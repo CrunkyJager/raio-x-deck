@@ -6,7 +6,9 @@
 <meta name="description" content="Cole um deck de Commander e veja o que está bem montado, o que falta e quais cartas trocar.">
 <title>Raio-X do Deck</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@500;700;800&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0&icon_names=casino,category,flag,format_list_bulleted,insights,playing_cards,radiology,swap_horiz,water_drop&display=block">
 <style>
 /* Boletim sobre feltro: leitura de cima para baixo, prioridades primeiro. Tema escuro único, escolhido de propósito. */
 :root {
@@ -408,21 +410,169 @@ dl.sw-why dd.cmp { color: var(--ink); border-left: 3px solid var(--accent); padd
 .mcw.tap .mc.atk { transform: translate(-50%, calc(-50% - 8px)) rotate(90deg); }
 .mc.tap .mpt { transform: rotate(-90deg); right: auto; left: -8px; bottom: -4px; }
 .s-bf { gap: 10px 8px; }
+
+/* ================= estética do mapa visual (18/11/2026) =================
+   Quadro azul-noite com grade de pontos e brilho no centro, pílulas em degradê com ícone,
+   núcleo com anel colorido, destaque dourado, uma cor (--h) por tela. Fica por último: vale sobre tudo acima. */
+:root {
+  --felt: #121521; --felt-2: #171b2a; --felt-3: #20263a; --line: #2c3247;
+  --ink: #eef0f6; --ink-2: #c6cbd9; --ink-3: #9aa2b4;
+  --accent: #ffc23d; --accent-2: #ffd36b; --gold-ink: #1a1300;
+  --good: #5cd68f; --warn: #f5b53f; --bad: #ff7d5c; --crit: #ff5d6c; --info: #6cb8ff;
+  --display: 'Chakra Petch', 'Segoe UI', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --h: 44; --c: hsl(var(--h) 85% 64%);
+}
+html { min-height: 100%; background-color: #0b0d15; background-image:
+    radial-gradient(circle, rgb(255 255 255 / .055) 1.2px, transparent 1.6px),
+    radial-gradient(ellipse 120% 1400px at 50% 0%, #20253a 0%, #121521 55%, #0b0d15 100%);
+  background-size: 24px 24px, 100% 100%; background-repeat: repeat, no-repeat; }
+body { background: transparent; font-family: var(--body); font-size: 16.5px; }
+h1, h2, h3 { font-family: var(--display); }
+.ic { font-family: 'Material Symbols Rounded'; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; font-feature-settings: 'liga'; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+.icwait .ic { visibility: hidden; }
+.noicons .ic { display: none !important; }
+
+/* cor de cada tela */
+[data-s="lista"] { --h: 44; }
+[data-s="resumo"] { --h: 212; }
+[data-s="trocas"] { --h: 24; }
+[data-s="funcoes"] { --h: 142; }
+[data-s="mana"] { --h: 186; }
+[data-s="plano"] { --h: 268; }
+[data-s="mesa"] { --h: 318; }
+[data-s="aovivo"] { --h: 352; }
+[data-s] .panel, .panel[data-s] { --c: hsl(var(--h) 85% 64%); }
+
+/* cabeçalho: o núcleo do mapa */
+.hero { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 34px; align-items: center; padding: 34px 36px; border-radius: 22px; overflow: hidden;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle, rgb(255 255 255 / .07) 1.2px, transparent 1.6px) 0 0 / 24px 24px,
+    radial-gradient(ellipse at 14% 50%, #262c47 0%, #161a29 55%, #0e1019 100%);
+  box-shadow: 0 20px 60px rgb(0 0 0 / .35); }
+.hero-tx { display: grid; gap: 10px; min-width: 0; }
+.hub { position: relative; width: 190px; height: 190px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; color: var(--ink);
+  border: 9px solid transparent;
+  background: radial-gradient(circle at 50% 38%, #232842, #171b2a 72%) padding-box,
+    conic-gradient(from 200deg, hsl(205 85% 60%), hsl(232 85% 64%), hsl(282 80% 64%), hsl(318 80% 62%), hsl(352 82% 60%), hsl(16 88% 58%), hsl(36 90% 55%), hsl(88 70% 48%), hsl(142 65% 48%), hsl(178 75% 45%), hsl(205 85% 60%)) border-box;
+  box-shadow: 0 18px 50px rgb(0 0 0 / .4), 0 0 120px 30px rgb(91 108 255 / .22); }
+.hub .ic { font-size: 44px; color: var(--accent); filter: drop-shadow(0 0 10px rgb(255 194 61 / .5)); }
+.hub b { font-family: var(--display); font-size: 26px; font-weight: 700; line-height: 1; }
+.hub small { font-size: 12.5px; color: var(--ink-3); line-height: 1.35; }
+.intro h1 { font-size: clamp(2.3rem, 4.8vw, 3.4rem); font-weight: 700; letter-spacing: .01em; }
+.intro h1 span { color: transparent; background: linear-gradient(95deg, #ffc23d, hsl(16 88% 62%) 60%, hsl(338 80% 64%)); -webkit-background-clip: text; background-clip: text; }
+.intro p { color: var(--ink-2); }
+.eyebrow { color: var(--ink-3); font-family: var(--mono); }
+@media (max-width: 700px) {
+  .hero { grid-template-columns: minmax(0, 1fr); padding: 24px 20px; gap: 20px; }
+  .hub { width: 92px; height: 92px; border-width: 6px; box-shadow: 0 10px 30px rgb(0 0 0 / .4), 0 0 60px 14px rgb(91 108 255 / .2); } .hub .ic { font-size: 24px; } .hub b { font-size: 14px; } .hub small { display: none; }
+}
+
+/* abas: pílulas; a da tela aberta acende no degradê da sua cor */
+.wrap { max-width: 1240px; }
+.tabs { top: 10px; gap: 2px; padding: 6px; flex-wrap: nowrap; justify-content: safe center; overflow-x: auto; scrollbar-width: none; border: 1px solid var(--line); border-radius: 999px; align-items: center;
+  background: rgb(18 21 33 / .86); backdrop-filter: blur(10px); box-shadow: 0 12px 34px rgb(0 0 0 / .35); }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs .tg { font-size: 0; width: 1px; height: 22px; padding: 0; margin: 0 6px; background: var(--line); }
+.tabs .tg:first-child { display: none; }
+.tabs a { --hc: hsl(var(--h) 85% 66%); border: 0; margin: 0; border-radius: 999px; padding: 5px 13px 5px 5px; align-items: center; gap: 7px; color: var(--ink-2); font-family: var(--display); font-weight: 600; font-size: .96rem; transition: background .2s, color .2s, box-shadow .2s; }
+.tabs a .ic { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 50%; font-size: 17px; color: var(--hc); background: color-mix(in srgb, var(--hc) 14%, transparent); }
+.noicons .tabs a { padding-left: 13px; }
+.tabs a i { display: none; }
+.noicons .tabs a i { display: inline; font-family: var(--mono); color: var(--ink-3); font-size: .68rem; }
+.tabs a:hover { background: var(--felt-3); color: var(--ink); border: 0; }
+.tabs a[aria-current="page"] { color: #fff; background: linear-gradient(135deg, hsl(var(--h) 80% 54%), hsl(calc(var(--h) + 18) 72% 42%)); box-shadow: 0 8px 22px hsl(var(--h) 70% 35% / .45); }
+.tabs a[aria-current="page"] .ic { color: #fff; background: rgb(255 255 255 / .22); }
+.tabs a[aria-current="page"] i { color: rgb(255 255 255 / .75); }
+@media (max-width: 600px) { .tabs { top: 6px; justify-content: flex-start; } .tabs a { padding: 5px 12px 5px 5px; } .tabs a .ic { width: 26px; height: 26px; font-size: 17px; } }
+
+/* painéis: cartão escuro com filete grosso da cor da tela */
+.panel { position: relative; background: linear-gradient(180deg, color-mix(in srgb, var(--c, var(--line)) 7%, var(--felt-2)) 0, var(--felt-2) 160px);
+  border: 1px solid var(--line); border-top: 5px solid var(--c, var(--line)); border-radius: 18px; box-shadow: 0 18px 50px rgb(0 0 0 / .3); }
+.panel > h2 { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.5rem; }
+.panel > h2::before { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--c, var(--accent)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c, var(--accent)) 22%, transparent), 0 0 16px var(--c, var(--accent)); }
+.panel h3 { font-weight: 600; }
+.panel.answer { box-shadow: 0 18px 50px rgb(0 0 0 / .3), 0 0 0 1px color-mix(in srgb, var(--c) 35%, transparent) inset; }
+.big { color: var(--c, var(--accent-2)); font-family: var(--display); font-weight: 700; text-shadow: 0 0 24px color-mix(in srgb, var(--c, var(--accent)) 40%, transparent); }
+.cmdname { font-family: var(--display); font-weight: 700; font-size: 1.85rem; }
+
+/* botões: dourado como o “continuar” do mapa */
+.btn { border-radius: 999px; padding: 8px 16px; background: var(--felt-3); border-color: var(--line); transition: border-color .15s, filter .15s; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary, a.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--gold-ink); box-shadow: 0 6px 20px rgb(255 194 61 / .25); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 4px 11px; }
+.btn[disabled] { opacity: .45; cursor: default; }
+textarea, select, input.txt { background: #0f1220; border-color: var(--line); border-radius: 12px; }
+textarea { padding: 12px 14px; font-family: var(--mono); }
+textarea:focus, select:focus, input.txt:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgb(255 194 61 / .18); }
+summary { color: var(--accent-2); }
+a { color: var(--accent-2); }
+
+/* veredito, selos e etiquetas em pílula */
+.verdict { background: color-mix(in srgb, var(--vc, var(--info)) 10%, var(--felt-3)); border-radius: 14px; border-left-width: 5px; }
+.v-good { --vc: var(--good); } .v-ok { --vc: var(--info); } .v-warn { --vc: var(--warn); } .v-bad { --vc: var(--crit); }
+.sev { border-radius: 999px; padding: 4px 10px; }
+.sev.s1 { background: var(--info); color: #0b1424; } .sev.s2 { background: var(--warn); color: var(--gold-ink); } .sev.s3 { background: var(--crit); }
+.tag { border-radius: 999px; padding: 3px 10px; background: var(--felt-3); }
+.tag.cmd { border-color: var(--accent); color: var(--accent-2); }
+.cn { border-radius: 999px; padding: 4px 12px; background: var(--felt-3); border: 1px solid var(--line); }
+.cn:hover { border-color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 12%, var(--felt-3)); }
+.cbox .cn { border: 0; background: none; padding: 0; }
+.cn.lock.on { border-color: var(--info); color: var(--info); background: color-mix(in srgb, var(--info) 12%, var(--felt-3)); }
+
+/* números e barras */
+.tile { background: linear-gradient(160deg, color-mix(in srgb, var(--tc, var(--info)) 12%, var(--felt-3)), var(--felt-3) 70%); border-radius: 14px; border-left: 0; border-top: 3px solid var(--tc, var(--info)); }
+.tile.good { --tc: var(--good); } .tile.warn { --tc: var(--warn); } .tile.bad { --tc: var(--bad); }
+.tile b { font-family: var(--display); }
+.gauge, .track { background: #0f1220; border-radius: 999px; }
+.gauge .band { background: rgb(92 214 143 / .28); border-radius: 999px; }
+.track .fill { border-radius: 999px; }
+.prog > div { background: linear-gradient(90deg, var(--accent), hsl(16 88% 60%)); box-shadow: 0 0 12px rgb(255 194 61 / .5); }
+.ref { border-top-color: var(--line); }
+.tw { background: #0f1220; border-radius: 14px; }
+
+/* trocas */
+.swapcard { background: rgb(15 18 32 / .7); border-radius: 16px; border: 1px solid var(--line); }
+.cimg, .pimg, .hov-img { border-radius: 10px; box-shadow: 0 8px 22px rgb(0 0 0 / .45); }
+.ctag { border-radius: 999px; padding: 4px 10px; font-family: var(--mono); font-weight: 600; }
+.ctag.in { background: var(--good); color: #0b2316; }
+dl.sw-why dd.cmp { border-left-color: var(--accent); }
+.noimg { background: repeating-linear-gradient(135deg, var(--felt-3) 0 10px, var(--felt-2) 10px 20px); }
+
+/* caixas flutuantes: o painel escuro do mapa, com o filete dourado */
+.pop, .hov, .zoom-box { background: #151927; border: 1px solid #2c3247; border-top: 5px solid var(--accent); border-radius: 18px; box-shadow: 0 20px 60px rgb(0 0 0 / .55); }
+.zoom { background: rgb(8 10 18 / .85); backdrop-filter: blur(4px); }
+
+/* mesas */
+.op { border-radius: 14px; background: var(--felt-3); }
+.op.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--felt-3)); }
+.vctl { top: 74px; border-radius: 999px; padding: 8px 12px; background: rgb(23 27 42 / .9); }
+.vb { border-radius: 999px; }
+.vb.play { background: var(--accent); border-color: var(--accent); color: var(--gold-ink); }
+.vlance { background: var(--felt-3); border-left-color: var(--accent); border-radius: 14px; }
+.vt { background: #0f1220; color: var(--accent); }
+.empty { border-radius: 16px; background: rgb(23 27 42 / .6); }
+@media (prefers-reduced-motion: reduce) { .tabs a, .btn { transition: none; } }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-  <header class="intro">
-    <span class="eyebrow">Commander · Magic: The Gathering</span>
-    <h1>Raio-X <span>do Deck</span></h1>
-    <p>Cole qualquer deck de Commander e veja o que está bem montado, o que falta e por quê. A ferramenta não monta o deck por você: ela aponta os buracos, sugere trocas com o raciocínio de cada uma e deixa o deck jogar partidas para você conferir.</p>
+  <header class="intro hero">
+    <div class="hub" aria-hidden="true"><span class="ic">radiology</span><b>Raio-X</b><small>lê · aponta<br>você decide</small></div>
+    <div class="hero-tx">
+      <span class="eyebrow">Commander · Magic: The Gathering</span>
+      <h1>Raio-X <span>do Deck</span></h1>
+      <p>Cole qualquer deck de Commander e veja o que está bem montado, o que falta e por quê. A ferramenta não monta o deck por você: ela aponta os buracos, sugere trocas com o raciocínio de cada uma e deixa o deck jogar partidas para você conferir.</p>
+    </div>
   </header>
   <nav class="tabs" id="tabs" aria-label="Telas">
     <span class="tg">Análise</span>
-    <a href="#lista"><i>01</i>Lista</a><a href="#resumo"><i>02</i>Resumo</a><a href="#trocas"><i>03</i>Trocas</a><a href="#funcoes"><i>04</i>Funções</a><a href="#mana"><i>05</i>Mana e curva</a><a href="#plano"><i>06</i>Plano e cortes</a>
+    <a href="#lista" style="--h:44"><span class="ic">format_list_bulleted</span><i>01</i>Lista</a><a href="#resumo" style="--h:212"><span class="ic">insights</span><i>02</i>Resumo</a><a href="#trocas" style="--h:24"><span class="ic">swap_horiz</span><i>03</i>Trocas</a><a href="#funcoes" style="--h:142"><span class="ic">category</span><i>04</i>Funções</a><a href="#mana" style="--h:186"><span class="ic">water_drop</span><i>05</i>Mana e curva</a><a href="#plano" style="--h:268"><span class="ic">flag</span><i>06</i>Plano e cortes</a>
     <span class="tg">Jogo</span>
-    <a href="#mesa"><i>07</i>Mesa simulada</a><a href="#aovivo"><i>08</i>Mesa ao vivo</a>
+    <a href="#mesa" style="--h:318"><span class="ic">casino</span><i>07</i>Mesa simulada</a><a href="#aovivo" style="--h:352"><span class="ic">playing_cards</span><i>08</i>Mesa ao vivo</a>
   </nav>
   <div class="empty" id="nodeck" hidden>Nenhum deck analisado ainda. <a href="#lista">Cole uma lista ou escolha um exemplo</a>.</div>
 
@@ -441,12 +591,22 @@ dl.sw-why dd.cmp { color: var(--ink); border-left: 3px solid var(--accent); padd
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611181800"></script>
-<script src="exemplos.js?v=202611181800"></script>
-<script src="papeis-ia.js?v=202611181800"></script>
-<script>window.RAIOX_V = "202611181800";</script>
-<script src="motor/engine.js?v=202611181800"></script>
-<script src="analise.js?v=202611181800"></script>
+<script src="cards-db.js?v=202611181930"></script>
+<script src="exemplos.js?v=202611181930"></script>
+<script src="papeis-ia.js?v=202611181930"></script>
+<script>window.RAIOX_V = "202611181930";</script>
+<script src="motor/engine.js?v=202611181930"></script>
+<script src="analise.js?v=202611181930"></script>
 
-<script src="mesa-ui.js?v=202611181800"></script>
+<script src="mesa-ui.js?v=202611181930"></script>
+<script>
+/* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
+(function () { const b = document.body; b.classList.add('icwait'); let feito = false;
+  const ok = () => { try { const c = document.createElement('canvas').getContext('2d'); c.font = '24px "Material Symbols Rounded", monospace'; return c.measureText('insights').width < 40; } catch (e) { return false; } };
+  const fim = () => { if (feito) return; feito = true; b.classList.remove('icwait'); if (!ok()) b.classList.add('noicons'); };
+  if (document.fonts && document.fonts.load) { document.fonts.load('24px "Material Symbols Rounded"', 'insights').then(fim, fim); setTimeout(fim, 4000); } else fim();
+  /* no celular a barra rola de lado: traz a aba aberta para a vista */
+  const mostra = () => { const a = document.querySelector('#tabs a[aria-current="page"]'); if (a) a.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'auto' }); };
+  addEventListener('hashchange', () => setTimeout(mostra, 0)); setTimeout(mostra, 300); })();
+</script>
 </body></html>

@@ -16,12 +16,20 @@ Tudo roda no navegador (HTML + JS, sem servidor). Base de ideias: Grimório Aren
 - `papeis-ia.js` — o que cada carta faz, em português. `exemplos.js` — 4 decks médios do EDHREC.
 
 ## Visual
-Tema escuro de feltro, fontes Alegreya Sans / Alegreya Sans SC / JetBrains Mono. Referência de organização: o Mapa do Sistema SAC (espaço para respirar, sobretítulos em mono, uma cor por área no filete de cima dos painéis, abas sublinhadas). O usuário não gosta de tela apertada.
+Desde 18/11/2026, a mesma linguagem do **mapa visual** do Mapa do Sistema SAC (artefato do usuário): quadro azul-noite com grade de pontos e brilho no topo, núcleo com anel em arco-íris no cabeçalho, abas em pílula (a aberta acende no degradê da cor da tela), destaque dourado `#ffc23d` nos botões principais, painéis escuros com filete grosso na cor da tela e uma bolinha brilhante antes do título.
+- Fontes: Chakra Petch (títulos), IBM Plex Sans (texto), IBM Plex Mono (números e sobretítulos). Ícones: Material Symbols Rounded (só os nomes listados em `icon_names` no `<link>`; ícone novo precisa entrar lá).
+- Cor por tela em `--h` (matiz): lista 44, resumo 212, trocas 24, funções 142, mana 186, plano 268, mesa simulada 318, mesa ao vivo 352. Nas abas o `--h` vai no `style` de cada link.
+- O bloco “estética do mapa visual” fica no fim do `<style>` e vale sobre os anteriores. A Mesa ao vivo continua no feltro verde (é a mesa de jogo).
+- Se a fonte de ícones não carregar, um script no fim do `index.html` põe `noicons` no body: os ícones somem e os números das abas (01…08) aparecem no lugar.
+- A barra de abas fica numa linha só; abaixo de ~1280 px rola de lado e traz a aba aberta para a vista.
+- O usuário não gosta de tela apertada: manter o respiro.
 
 ## Pendências
 1. **Dados do Grimório** (`cards.json`, `decks.json`, `names.tsv`, `alias.json`, `pt.json`) para a pasta `dados/`. O código já procura por `dados/cards.json` (força/resistência certas no combate), `dados/decks.json` (oponentes reais) e `dados/nomes-pt.json` (formato `{"nome em português": "English name"}`; montar a partir de `names.tsv`/`pt.json`). Sem eles: combate aproximado, só 4 oponentes de exemplo, nomes em português não funcionam.
 2. Teste das trocas na Mesa simulada deu "empate" em tudo com o deck do Stangg: conferir com os dados do Grimório; se continuar, ver quais cartas o motor não sabe jogar (`naoModelado` em `motor/engine.js`).
 3. As imagens das trocas e da prévia ainda usam `cards/named` uma a uma (fila de 110 ms); dá para passar a usar o mesmo lote de `/cards/collection` da Mesa ao vivo.
+
+4. Conferir os ícones das abas e do cabeçalho no navegador de verdade (no ambiente de teste a fonte de ícones não carrega, então só o modo sem ícones foi visto; o espaço deles já está reservado e medido).
 
 ## Como testar
 `python3 -m http.server` na pasta e abrir `http://localhost:8000`. Clicar num deck de exemplo, passar pelas abas, jogar na Mesa simulada (200 partidas) e uma partida na Mesa ao vivo.
