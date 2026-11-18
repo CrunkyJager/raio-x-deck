@@ -555,11 +555,72 @@ function swapBox(name, tag) {
     <div class="chips" style="margin-top:6px">${roles.map(r => `<span class="tag">${esc(r)}</span>`).join('')}</div>
     <p class="note" style="margin:6px 0 0">${c.r ? `Nº ${c.r.toLocaleString('pt-BR')} entre as mais jogadas` : 'Quase não aparece em decks de Commander'}${c.usd ? ` · US$ ${c.usd.toFixed(2).replace('.', ',')}` : ''}</p></div></div>`;
 }
+// por que esta carta no lugar daquela: comparação direta das duas
+function roleNames(c) { return [...rolesOf(c)].filter(k => k !== 'body' && k !== 'enabler').map(k => (ROLES.find(r => r.k === k) || {}).n).filter(Boolean); }
+function listPt(a) { return a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1]; }
+function compareText(A, s) {
+  const o = C(s.out), n = C(s.inn); if (!o || !n) return '';
+  const ia = window.PAPEIS_IA || {};
+  const lo = roleNames(o).map(x => x.toLowerCase()), ln = roleNames(n).map(x => x.toLowerCase());
+  const out = [];
+  const front = (c) => c.o.split('\n//\n')[0];
+  // o que a nova faz
+  let gain = ln.length ? `${n.name} traz ${listPt(ln)}` : `${n.name} reforça o plano do deck`;
+  if (ia[n.name] && ia[n.name].r) gain += ` (${ia[n.name].r.replace(/\.$/, '').toLowerCase()})`;
+  out.push(gain + '.');
+  // detalhes que fazem diferença
+  const no = front(n);
+  if (/target (nonland )?permanent|target artifact, creature, enchantment|nonland permanent/i.test(no) && /Destroy|Exile|Return|shuffles/i.test(no)) out.push('Responde a qualquer tipo de ameaça, não só a criaturas.');
+  else if (/artifact or enchantment|artifact and enchantment/i.test(no)) out.push('Serve contra artefatos e encantamentos, que costumam ser as peças que travam a mesa.');
+  if (/Destroy all|Exile all|each creature|All creatures get -/i.test(no)) out.push('Zera a mesa quando alguém dispara na frente.');
+  if ((/Instant/.test(n.t) || /\bFlash\b/.test(no)) && !isLand(n)) out.push('Pode ser usada no turno dos outros, na hora em que a ameaça aparece.');
+  if (/Whenever[^.]*draw a card|At the beginning of[^.]*draw/i.test(no)) out.push('Compra mais de uma vez, então rende mais quanto mais tempo fica na mesa.');
+  if (isLand(n) && ln.length) out.push('E ainda é um terreno: dá para jogar como terreno quando a remoção não for necessária.');
+  if (isLand(n)) { const cols = n.pm.replace(/[^WUBRG]/g, '').split('').filter(x => A.ident.has(x)); if (cols.length) out.push(`Faz ${listPt(cols.map(x => COLORNAME[x].toLowerCase()))}${TAPPED_RX(n) ? '' : ' e entra desvirado'}.`); }
+  if (!isLand(n) && !isLand(o)) {
+    if (n.v < o.v) out.push(`Custa ${o.v - n.v} a menos (${n.v} contra ${o.v}), então chega mais cedo na partida.`);
+    else if (n.v > o.v + 1) out.push(`Custa ${n.v - o.v} a mais, mas cobre um buraco que a outra não cobre.`);
+  }
+  const th = [...themesOf(n, A.cmdThemes)].filter(t => A.cmdThemes.has(t)).map(t => THEMES.find(x => x.k === t).n.toLowerCase());
+  if (th.length) out.push(`De quebra, conversa com ${listPt(th)}, o tema do comandante.`);
+  // o que se perde
+  if (isLand(o)) out.push(`Você perde um terreno ${/Basic/.test(o.t) ? 'básico' : ''} que estava sobrando.`.replace('  ', ' '));
+  else if (lo.length) {
+    const keep = [...rolesOf(o)].filter(k => k !== 'body' && k !== 'enabler').map(k => { const r = A.refs.find(x => x.k === k); const have = (A.byRole[k] || []).reduce((p, [, q]) => p + q, 0); return r ? `${r.n.toLowerCase()} fica em ${fmt(have - 1)}` : null; }).filter(Boolean);
+    out.push(`Em troca, sai ${o.name}, que dava ${listPt(lo)}${keep.length ? `; mesmo sem ela, ${listPt(keep)}` : ''}.`);
+  } else out.push(`Em troca, sai ${o.name}, que ${ia[o.name] && ia[o.name].r ? 'hoje ' + ia[o.name].r.replace(/\.$/, '').toLowerCase().replace(/^([a-zà-ú])/, m => m) : 'não cumpre nenhuma função clara no deck'}.`);
+  if (n.r && (!o.r || n.r < o.r / 3)) out.push(`Ela também aparece em muito mais decks de Commander (nº ${n.r.toLocaleString('pt-BR')} entre as mais jogadas${o.r ? `, contra nº ${o.r.toLocaleString('pt-BR')}` : ''}), sinal de que a comunidade acha que rende mais.`);
+  return out.join(' ');
+}
+
+// prévia ao passar o mouse nas outras opções
+let HOVT = null;
+function hoverBox() { let h = $('#hov'); if (!h) { h = document.createElement('div'); h.id = 'hov'; h.className = 'hov'; h.hidden = true; document.body.appendChild(h); } return h; }
+document.addEventListener('mouseover', (e) => {
+  const b = e.target.closest('[data-altin],[data-altout]'); if (!b || !matchMedia('(hover: hover)').matches) return;
+  clearTimeout(HOVT);
+  HOVT = setTimeout(() => {
+    const c = C(b.dataset.n); if (!c) return;
+    const h = hoverBox(); const ia = window.PAPEIS_IA && window.PAPEIS_IA[c.name];
+    const roles = roleNames(c);
+    h.innerHTML = `<div class="hov-img" data-hovimg="${esc(c.name)}"><span class="note">…</span></div><div><b>${esc(c.name)}</b><div style="margin:2px 0 4px">${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div>${ia && ia.r ? `<p class="note" style="margin:0 0 4px">${esc(ia.r)}</p>` : `<p class="note hov-o" style="margin:0 0 4px">${esc(c.o.split('\n//\n')[0].slice(0, 260))}${c.o.length > 260 ? '…' : ''}</p>`}<div class="chips">${roles.slice(0, 3).map(r => `<span class="tag">${esc(r)}</span>`).join('')}</div><p class="note" style="margin:6px 0 0">Clique para ${b.dataset.altin != null ? 'colocar esta no lugar' : 'tirar esta no lugar'}.</p></div>`;
+    const r = b.getBoundingClientRect(); const w = 360;
+    h.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left)) + 'px';
+    const below = r.bottom + 8, hgt = 210;
+    h.style.top = (below + hgt < window.innerHeight ? below : Math.max(8, r.top - hgt - 8)) + 'px';
+    h.hidden = false;
+    imgFor(c.name).then(src => { const el = h.querySelector('[data-hovimg]'); if (el && el.dataset.hovimg === c.name) el.innerHTML = src ? `<img src="${src}" alt="">` : '<span class="note">sem imagem</span>'; });
+  }, 120);
+});
+document.addEventListener('mouseout', (e) => { const b = e.target.closest('[data-altin],[data-altout]'); if (!b || (e.relatedTarget && b.contains(e.relatedTarget))) return; clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; });
+document.addEventListener('click', () => { clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; }, true);
+
 function renderSwapCard(s, i) {
   return `<div class="swapcard${SWAP_ON[i] ? '' : ' off'}" data-sw="${i}">
     <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><label class="field" style="margin:0 0 0 auto"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
     <div class="pair">${swapBox(s.out, 'SAI')}${swapBox(s.inn, 'ENTRA')}</div>
     <p class="why"><b>Por que sai:</b> ${esc(s.whyOut)}.<br><b>Por que entra:</b> ${esc(s.whyIn)}</p>
+    <p class="why cmp"><b>Na prática:</b> ${esc(compareText(LAST, s))}</p>
     ${s.alts.length ? `<div class="alt"><span class="note">Prefere outra para entrar?</span><div class="links">${s.alts.map(n => `<button class="cn" data-altin="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
     ${s.altsOut.length ? `<div class="alt"><span class="note">Ou tirar outra no lugar:</span><div class="links">${s.altsOut.map(n => `<button class="cn" data-altout="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
   </div>`;
