@@ -654,6 +654,62 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 .fx { font: 500 .8rem/1 var(--mono); padding: 5px 10px; border-radius: 99px; background: var(--felt-3); border: 1px solid var(--line); }
 .fx.mais { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); }
 .fx.menos { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+
+/* ================= aba Análise: Funções + Mana + Plano numa tela só (18/11/2026) ================= */
+.subnav { position: sticky; top: 74px; z-index: 12; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 0 auto 18px; padding: 6px; width: fit-content; max-width: 100%;
+  border: 1px solid var(--line); border-radius: 999px; background: rgb(18 21 33 / .86); backdrop-filter: blur(10px); }
+.subnav a { --hc: hsl(var(--h) 85% 66%); display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; color: var(--ink-2); text-decoration: none; font: 600 .92rem/1 var(--display); }
+.subnav a b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font: 600 .78rem/1 var(--mono); color: var(--hc); background: color-mix(in srgb, var(--hc) 16%, transparent); }
+.subnav a:hover, .subnav a[aria-current="true"] { color: #fff; background: color-mix(in srgb, var(--hc) 20%, transparent); }
+.sub { scroll-margin-top: 130px; }
+.sub + .sub { margin-top: 34px; padding-top: 30px; border-top: 1px dashed var(--line); }
+
+/* ================= Mesa ao vivo, versão mais legível (18/11/2026) =================
+   Terrenos aparecem como cartas (agrupados ×N), cada zona tem nome, contadores com rótulo,
+   carta virada não gira mais (fica apagada com o selo "virada"), lances do turno sempre à vista. */
+.vleg { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 10px 14px; font-size: .84rem; color: var(--ink-2); }
+.vleg span { display: inline-flex; align-items: center; gap: 7px; }
+.vleg .lg { width: 16px; height: 16px; border-radius: 4px; border: 2px solid; }
+.lg.vez { border-color: var(--accent); } .lg.alvo { border-color: var(--bad); } .lg.atk { border-color: var(--crit); box-shadow: 0 0 6px var(--crit); } .lg.cmd { border-color: #e7b55c; background: rgb(231 181 92 / .25); }
+.lg.tap { border-color: var(--ink-3); background: repeating-linear-gradient(135deg, #0006 0 3px, transparent 3px 6px); }
+.lg-pt { font: 700 .72rem/1 var(--mono); background: #f2ead6; color: #1a1612; border-radius: 4px; padding: 3px 4px; }
+.s-n i { font-style: normal; font-weight: 600; } .s-vez { color: var(--accent); } .s-alvo { color: var(--bad); }
+.s-v { flex-direction: column; height: auto; padding: 5px 12px 6px; gap: 2px; }
+.s-v small { font: 500 .62rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.s-stats { display: flex; flex-wrap: wrap; gap: 6px; }
+.stt { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgb(0 0 0 / .28); border: 1px solid rgb(255 255 255 / .07); font-size: .8rem; }
+.stt em { font-style: normal; color: var(--ink-3); }
+.stt b { font: 600 .84rem/1 var(--mono); color: var(--ink); }
+.stt.cmdz b { font-family: var(--body); color: #e7b55c; }
+.stt.perigo { border-color: var(--crit); } .stt.perigo b { color: var(--crit); }
+.zn { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 10px; border-top: 1px dashed rgb(255 255 255 / .08); }
+.zn-k { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font: 500 .7rem/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.zn-k b { font-size: .82rem; color: var(--ink); letter-spacing: 0; }
+.zn-x { text-transform: none; letter-spacing: 0; font-family: var(--body); font-size: .8rem; color: var(--ink-2); }
+.zn-x i { font-style: normal; } .novo-t { color: var(--good); } .atk-t { color: var(--crit); font-weight: 600; }
+.zn .vazio { font-size: .82rem; color: rgb(235 228 209 / .38); font-style: italic; }
+.s-lands2 { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; }
+.lgrp { position: relative; display: inline-flex; }
+.lgrp .mcw { --w: 50px; }
+.me .lgrp .mcw { --w: 60px; }
+.lq { position: absolute; right: -8px; top: -8px; font: 700 .74rem/1 var(--mono); font-style: normal; padding: 3px 5px; border-radius: 6px; background: var(--accent); color: var(--gold-ink); box-shadow: 0 1px 4px rgb(0 0 0 / .5); z-index: 2; }
+.lv { position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); white-space: nowrap; font: 600 .62rem/1 var(--mono); font-style: normal; padding: 2px 5px; border-radius: 5px; background: #000c; color: var(--ink-2); z-index: 2; }
+/* carta virada: em vez de girar (o nome ficava de lado), fica apagada e com selo */
+.mcw.tap, .me .mcw.tap { width: var(--w); height: auto; }
+.mcw.tap .mc, .mc.tap { position: relative; left: auto; top: auto; transform: none; filter: brightness(.68) saturate(.65); }
+.mcw.tap .mc.atk { transform: translateY(-10px); }
+.mcw.tap .mc::after { content: "virada"; position: absolute; left: 50%; bottom: 14%; transform: translateX(-50%); font: 700 .58rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 3px 5px; border-radius: 4px; background: #000d; color: var(--ink); border: 1px solid rgb(255 255 255 / .3); }
+.mc.tap .mpt { transform: none; left: auto; right: -4px; bottom: -6px; }
+.mtok b { -webkit-line-clamp: 5; }
+.s-gy { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .8rem; color: var(--ink-3); padding-top: 8px; border-top: 1px dashed rgb(255 255 255 / .08); }
+.s-gy em { font-style: normal; }
+.s-gy .cn { font-size: .76rem; padding: 2px 9px; background: rgb(0 0 0 / .3); }
+.zn-mao .s-mao { border-top: 0; padding-top: 4px; margin-top: 0; }
+.vlog2 { padding: 16px 18px; border-radius: 16px; background: var(--felt-2); border: 1px solid var(--line); }
+.vlog2 h3 { margin: 0 0 10px !important; font-size: 1rem; }
+.vlog2 ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; max-height: 260px; overflow-y: auto; font-size: .92rem; color: var(--ink-2); }
+.vlog2 li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 5px 8px; border-radius: 8px; }
+.vlog2 li.agora { background: rgb(255 194 61 / .1); color: var(--ink); box-shadow: inset 3px 0 0 var(--accent); }
 </style>
 </head>
 <body>
@@ -669,9 +725,9 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
   </header>
   <nav class="tabs" id="tabs" aria-label="Telas">
     <span class="tg">Análise</span>
-    <a href="#lista" style="--h:44"><span class="ic">format_list_bulleted</span><i>01</i>Lista</a><a href="#resumo" style="--h:212"><span class="ic">insights</span><i>02</i>Resumo</a><a href="#trocas" style="--h:24"><span class="ic">swap_horiz</span><i>03</i>Trocas</a><a href="#funcoes" style="--h:142"><span class="ic">category</span><i>04</i>Funções</a><a href="#mana" style="--h:186"><span class="ic">water_drop</span><i>05</i>Mana e curva</a><a href="#plano" style="--h:268"><span class="ic">flag</span><i>06</i>Plano e cortes</a>
+    <a href="#lista" style="--h:44"><span class="ic">format_list_bulleted</span><i>01</i>Lista</a><a href="#resumo" style="--h:212"><span class="ic">insights</span><i>02</i>Resumo</a><a href="#trocas" style="--h:24"><span class="ic">swap_horiz</span><i>03</i>Trocas</a><a href="#funcoes" style="--h:142"><span class="ic">category</span><i>04</i>Análise</a>
     <span class="tg">Jogo</span>
-    <a href="#mesa" style="--h:318"><span class="ic">casino</span><i>07</i>Mesa simulada</a><a href="#aovivo" style="--h:352"><span class="ic">playing_cards</span><i>08</i>Mesa ao vivo</a>
+    <a href="#mesa" style="--h:318"><span class="ic">casino</span><i>05</i>Mesa simulada</a><a href="#aovivo" style="--h:352"><span class="ic">playing_cards</span><i>06</i>Mesa ao vivo</a>
   </nav>
   <div class="empty" id="nodeck" hidden>Nenhum deck analisado ainda. <a href="#lista">Cole uma lista ou escolha um exemplo</a>.</div>
 
@@ -690,14 +746,14 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611182130"></script>
-<script src="exemplos.js?v=202611182130"></script>
-<script src="papeis-ia.js?v=202611182130"></script>
-<script>window.RAIOX_V = "202611182130";</script>
-<script src="motor/engine.js?v=202611182130"></script>
-<script src="analise.js?v=202611182130"></script>
+<script src="cards-db.js?v=202611182230"></script>
+<script src="exemplos.js?v=202611182230"></script>
+<script src="papeis-ia.js?v=202611182230"></script>
+<script>window.RAIOX_V = "202611182230";</script>
+<script src="motor/engine.js?v=202611182230"></script>
+<script src="analise.js?v=202611182230"></script>
 
-<script src="mesa-ui.js?v=202611182130"></script>
+<script src="mesa-ui.js?v=202611182230"></script>
 <script>
 /* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
 (function () { const b = document.body; b.classList.add('icwait'); let feito = false;

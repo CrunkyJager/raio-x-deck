@@ -384,19 +384,21 @@ function render(A) {
   </div>
   <div class="screen" data-s="trocas">${renderConcept(A)}${renderSwaps(A)}</div>
   <div class="screen" data-s="funcoes">
+  <nav class="subnav" aria-label="Partes da análise"><a href="#funcoes" data-sub="funcoes" style="--h:142"><b>1</b>Funções</a><a href="#mana" data-sub="mana" style="--h:186"><b>2</b>Mana e curva</a><a href="#plano" data-sub="plano" style="--h:268"><b>3</b>Plano e cortes</a></nav>
+  <div class="sub" id="sub-funcoes" style="--h:142">
   <section class="panel">
     <h2>Funções do deck</h2>
     <p class="lead">Todo deck de Commander precisa cobrir algumas funções básicas, não importa o comandante. As faixas são o que decks que funcionam costumam ter. Uma carta pode contar em mais de uma função.</p>
     <div class="refs">${refRows}</div>
   </section>
   </div>
-  <div class="screen" data-s="mana">
+  <div class="sub" id="sub-mana" style="--h:186">
   <div class="grid2">
     <section class="panel"><h2>Curva de mana</h2><p class="lead">Quantas cartas (sem contar terrenos) custam 0, 1, 2… manas. Muitas cartas caras deixam os primeiros turnos vazios.</p>${curveSvg}</section>
     <section class="panel"><h2>Base de mana</h2><p class="lead">Fontes de cada cor (terrenos, pedras e criaturas de mana) contra o quanto as suas cartas pedem daquela cor. A linha clara marca o recomendado.</p>${colorRows || '<p class="note">Deck incolor.</p>'}<p class="note" style="margin-top:8px">${A.tapped} terreno(s) sempre entram virados.</p></section>
   </div>
   </div>
-  <div class="screen" data-s="plano">
+  <div class="sub" id="sub-plano" style="--h:268">
   <section class="panel">
     <h2>Plano de jogo</h2>
     <p class="lead">Os temas que mais aparecem nas cartas. Um deck forte tem 1 ou 2 temas claros e quase todas as cartas puxando para eles.${A.tribe ? ` Tribo principal: <b>${esc(A.tribe[0])}</b> (${A.tribe[1]} criaturas).` : ''}</p>
@@ -405,6 +407,7 @@ function render(A) {
   <div class="grid2">
     <section class="panel"><h2>Cartas sem papel claro</h2><p class="lead">Todas as cartas são lidas: pelas etiquetas da comunidade, pelas regras de texto e, nas que sobram, pela leitura do texto da carta. Aqui ficam as que não têm função nem conversam com os temas do deck. Clique para ver o que cada uma faz e decida.</p>${A.noRole.length ? `<div class="links">${listLinks(A.noRole)}</div>` : '<p class="note">Nenhuma. Todas as cartas têm alguma função ou tema.</p>'}${A.bodyOnly.length ? `<h3 style="margin-top:12px">Só corpo</h3><p class="note">Criaturas sem habilidade que importe para o plano. Às vezes valem pelo tipo (tribo, artefato); senão, são as primeiras candidatas a corte.</p><div class="links">${listLinks(A.bodyOnly)}</div>` : ''}</section>
     <section class="panel"><h2>Pouco jogadas</h2><p class="lead">Cartas que quase ninguém usa no Commander. Às vezes são achados; muitas vezes existe opção melhor para a mesma função.</p>${A.obscure.length ? `<div class="links">${listLinks(A.obscure)}</div>` : '<p class="note">Nenhuma.</p>'}${A.pricey.length ? `<p class="note" style="margin-top:10px">Mais caras: ${A.pricey.map(c => `${esc(c.name)} (${brl(c.usd)})`).join(', ')}.</p>` : ''}</section>
+  </div>
   </div>
   </div>`;
 }
@@ -962,14 +965,18 @@ function wireSwaps(A) {
 }
 
 // ---------- telas ----------
-const SCREENS = ['lista', 'resumo', 'trocas', 'funcoes', 'mana', 'plano', 'mesa', 'aovivo'];
+const SCREENS = ['lista', 'resumo', 'trocas', 'funcoes', 'mesa', 'aovivo'];
+const SUBS = { mana: 'funcoes', plano: 'funcoes' }; // Funções, Mana e Plano viraram uma aba só (Análise)
 function show(name) {
+  const sub = SUBS[name] ? name : name === 'funcoes' ? 'funcoes' : null; if (SUBS[name]) name = SUBS[name];
   if (!SCREENS.includes(name)) name = LAST && !LAST.empty ? 'resumo' : 'lista';
   $$('[data-s]').forEach(el => { el.hidden = el.dataset.s !== name; });
   $$('#tabs a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + name ? 'page' : 'false'));
   const noDeck = !LAST || LAST.empty; const em = $('#nodeck'); if (em) em.hidden = !(noDeck && name !== 'lista');
   $('#pop').hidden = true;
-  window.scrollTo(0, 0);
+  $$('.subnav a').forEach(a => a.setAttribute('aria-current', a.dataset.sub === sub ? 'true' : 'false'));
+  const alvo = sub && sub !== 'funcoes' && $('#sub-' + sub);
+  if (alvo) requestAnimationFrame(() => window.scrollTo(0, alvo.getBoundingClientRect().top + window.scrollY - 90)); else window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', () => show(location.hash.slice(1)));
 

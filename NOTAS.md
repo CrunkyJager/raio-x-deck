@@ -9,7 +9,7 @@ Tudo roda no navegador (HTML + JS, sem servidor). Base de ideias: Grimório Aren
 
 ## Organização do código
 - `index.html` — página, estilos (todo o CSS fica aqui, no fim há os blocos mais novos) e ordem dos scripts. Os scripts levam `?v=AAAAMMDDHHMM` para o navegador não usar versão velha: troque o número a cada publicação.
-- `analise.js` — leitura da lista (Moxfield, Archidekt, LigaMagic, MTGO, seções em português), análise (funções, curva, mana, temas, bracket), abas/telas (`#lista`, `#resumo`, `#trocas`, `#funcoes`, `#mana`, `#plano`, `#mesa`, `#aovivo`), trocas sugeridas (sai → entra, com "Por que sai / Por que entra / Na prática"), ideia do deck (temas, modo, cartas travadas, cartas para testar), prévia ao passar o mouse, ampliar carta, imagens do Scryfall.
+- `analise.js` — leitura da lista (Moxfield, Archidekt, LigaMagic, MTGO, seções em português), análise (funções, curva, mana, temas, bracket), abas/telas (`#lista`, `#resumo`, `#trocas`, `#funcoes` = aba Análise, `#mesa`, `#aovivo`; `#mana` e `#plano` abrem a Análise já no trecho certo), trocas sugeridas (sai → entra, com "Por que sai / Por que entra / Na prática"), ideia do deck (temas, modo, cartas travadas, cartas para testar), prévia ao passar o mouse, ampliar carta, imagens do Scryfall.
 - `mesa-ui.js` — telas Mesa simulada e Mesa ao vivo. Oponentes, decks de amigos (localStorage), teste pareado das trocas, mesa visual com imagens do Scryfall (`/cards/collection` em lotes de 75, guardadas em localStorage).
 - `motor/engine.js` e `motor/mesa.js` — motor de jogo do Grimório (Edgar), copiado sem mudar as regras. `motor/worker.js` roda os dois num Worker.
 - `cards-db.js` — base de cartas (Scryfall + EDHREC). Campos: m, v, t, o, ci, r, gc, pm, usd, ban, tags, p. Não tem a resistência das criaturas.
@@ -30,10 +30,22 @@ Na linguagem do Grimório Arena (KPI, trilho com tracinho da média, colunas, r�
 - O motor (`testaTrocas` em `motor/mesa.js`) agora devolve `{ base, pares, todas }`: taxa de vitória da lista atual, de cada troca (com `cSai`/`cEntra`: vitórias nas partidas em que a carta apareceu) e de todas as trocas juntas. `mesa-ui.js` guarda em `window.RAIOX_TESTE` (preso ao objeto do deck) e dispara `raiox:teste`; a aba Trocas redesenha. Testar a partir da aba Trocas volta para ela no fim.
 - `motor/worker.js` passa o `?v=` para `engine.js` e `mesa.js` (antes o navegador podia rodar um motor velho do cache).
 
+## Aba Análise (18/11/2026)
+Funções, Mana e curva e Plano e cortes viraram uma aba só, a pedido do usuário. Tela `funcoes`, com três blocos `.sub` (`#sub-funcoes`, `#sub-mana`, `#sub-plano`), cada um com o seu `--h` (142, 186, 268). No topo, um índice fixo (`.subnav`) leva a cada bloco. `SUBS` em `analise.js` manda `#mana`/`#plano` para a aba e rola até o bloco. As abas ficaram 01–06.
+
+## Mesa ao vivo, versão legível (18/11/2026)
+O usuário achou feia e difícil: não via os terrenos, faltavam detalhes. Mudou em `lugarHTML` (`mesa-ui.js`) e no bloco "Mesa ao vivo, versão mais legível" do CSS:
+- Terrenos aparecem como cartas (imagem), agrupados por nome com selo ×N e "N virados"; o título da zona diz quantos estão virados, quantos dá para usar e "+1 agora" quando entrou um.
+- Cada zona tem nome (Terrenos, Criaturas, Outras permanentes, Sua mão) e os contadores têm rótulo (Mão, Grimório, Cemitério, Comandante: na zona/em jogo e imposto, Dano de comandante x/21, vermelho a partir de 15).
+- Carta virada não gira mais (o nome ficava de lado): fica apagada com o selo "virada".
+- Legenda acima da mesa; "jogando agora"/"é o alvo" ao lado do nome; "vida" escrito sobre o número.
+- Os 5 últimos do cemitério aparecem com nome clicável (o motor agora manda `gyL`, os 12 últimos, em cada quadro; só exibição, não mexe nas regras).
+- Os lances do turno ficam sempre abertos embaixo da mesa (`.vlog2`), com o lance atual destacado.
+
 ## Visual
 Desde 18/11/2026, a mesma linguagem do **mapa visual** do Mapa do Sistema SAC (artefato do usuário): quadro azul-noite com grade de pontos e brilho no topo, núcleo com anel em arco-íris no cabeçalho, abas em pílula (a aberta acende no degradê da cor da tela), destaque dourado `#ffc23d` nos botões principais, painéis escuros com filete grosso na cor da tela e uma bolinha brilhante antes do título.
 - Fontes: Chakra Petch (títulos), IBM Plex Sans (texto), IBM Plex Mono (números e sobretítulos). Ícones: Material Symbols Rounded (só os nomes listados em `icon_names` no `<link>`; ícone novo precisa entrar lá).
-- Cor por tela em `--h` (matiz): lista 44, resumo 212, trocas 24, funções 142, mana 186, plano 268, mesa simulada 318, mesa ao vivo 352. Nas abas o `--h` vai no `style` de cada link.
+- Cor por tela em `--h` (matiz): lista 44, resumo 212, trocas 24, análise 142 (dentro dela, mana 186 e plano 268), mesa simulada 318, mesa ao vivo 352. Nas abas o `--h` vai no `style` de cada link.
 - O bloco “estética do mapa visual” fica no fim do `<style>` e vale sobre os anteriores. A Mesa ao vivo continua no feltro verde (é a mesa de jogo).
 - Se a fonte de ícones não carregar, um script no fim do `index.html` põe `noicons` no body: os ícones somem e os números das abas (01…08) aparecem no lugar.
 - A barra de abas fica numa linha só; abaixo de ~1280 px rola de lado e traz a aba aberta para a vista.

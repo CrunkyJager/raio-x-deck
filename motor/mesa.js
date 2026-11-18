@@ -406,7 +406,7 @@ function arena(Ds,seed,cfg){
   function foto(k){
     quadros.push({t:T,k,log:log.length,j:P.map(p=>({vida:p.vida,vivo:p.vivo,terr:p.terr.length,tes:p.tes,mao:p.mao.slice(),lib:p.lib.length,zona:p.zona,tax:p.tax,cmdD:p.cmdD.slice(),
       perm:p.perm.map(x=>({n:x.tok?x.nome:nomeC(p,x.i),p:x.cri?poderDe(p,x):null,t:x.cri?resDe(p,x):null,c:x.cmd?1:0,tok:x.tok?1:0,tap:x.tap?1:0,atk:x.atk?1:0,i:x.i})),tl:p.terr.map(l=>({i:l.i,tap:l.tap?1:0})),
-      gy:p.gy.length}))});
+      gy:p.gy.length,gyL:p.gy.slice(-12)}))});
   }
 
   /* ---------- partida ---------- */

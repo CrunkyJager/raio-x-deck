@@ -292,11 +292,12 @@ function mesaHTML() {
       <input type="range" id="v-bar" min="0" max="${JOGO.quadros.length - 1}" value="0" aria-label="Momento da partida">
       <span class="vpos" id="v-pos"></span>
     </div>
+    <div class="vleg"><span><i class="lg vez"></i>de quem é a vez</span><span><i class="lg alvo"></i>alvo do lance</span><span><i class="lg atk"></i>criatura atacando</span><span><i class="lg cmd"></i>comandante</span><span><i class="lg tap"></i>carta virada (já usada no turno)</span><span><b class="lg-pt">3/3</b>força/resistência</span></div>
     <div class="feltro">
       ${lugares.map((l, k) => `<div class="seat ${l}" id="seat-${k}" style="grid-area:${l}"></div>`).join('')}
       <div class="centro" id="v-centro" style="grid-area:center"></div>
     </div>
-    <details class="vlog"><summary>O que aconteceu neste turno</summary><ol id="v-log"></ol></details>
+    <section class="vlog2"><h3>Lances deste turno</h3><ol id="v-log"></ol></section>
   </section>`;
 }
 function ligaControles() {
@@ -339,7 +340,9 @@ function vaiPara(i) {
   Q.j.forEach((p, k) => { const el = $('#seat-' + k); if (el) el.innerHTML = lugarHTML(p, k, ev, PREV && PREV.j[k]); });
   $('#v-centro').innerHTML = centroHTML(Q, ev);
   const ini = JOGO.log.findIndex(l => l.t === Q.t);
-  $('#v-log').innerHTML = JOGO.log.slice(Math.max(0, ini), Q.log).map(l => `<li><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span> ${esc(l.txt)}</li>`).join('');
+  const lances = JOGO.log.slice(Math.max(0, ini), Q.log);
+  $('#v-log').innerHTML = lances.map((l, j) => `<li class="${j === lances.length - 1 ? 'agora' : ''}"><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span><span>${esc(l.txt)}</span></li>`).join('') || '<li class="note">Nada ainda neste turno.</li>';
+  const ol = $('#v-log'); ol.scrollTop = ol.scrollHeight;
   PREV = Q;
 }
 function txtLance(ev, quem) {
@@ -367,22 +370,28 @@ function lugarHTML(p, k, ev, pv) {
   const vez = ev && ev.k === k, alvo = ev && ev.a === k && ev.k !== k;
   const dv = pv ? p.vida - pv.vida : 0;
   const cmd = JOGO.cmdNome[k]; const cmdIm = cmd ? imgDe(cmd) : null;
-  // terrenos por cor, com quantos estão virados
-  const cores = {}; let tap = 0;
-  p.tl.forEach(l => { if (l.tap) tap++; const m = l.i != null ? M[l.i] : null; const c = (m && m.cor) || ''; const key = c.length > 1 ? 'multi' : c || 'C'; cores[key] = (cores[key] || 0) + 1; });
-  const pip = (c) => c === 'multi' ? '<span class="ms multi"></span>' : `<span class="ms ${c === 'C' ? '' : c}">${c === 'C' ? '◇' : ''}</span>`;
   const me = k === 0;
+  // terrenos: as cartas de verdade, agrupadas por nome (×2, ×3…), com quantas estão viradas
+  const pvT = pv ? pv.tl.length : p.tl.length;
+  const grupos = new Map(); let tap = 0;
+  p.tl.forEach(l => { if (l.tap) tap++; const n = l.i != null ? nome(l.i) : 'Terreno'; const g = grupos.get(n) || { n, q: 0, tap: 0 }; g.q++; if (l.tap) g.tap++; grupos.set(n, g); });
+  const terrHTML = [...grupos.values()].sort((a, b) => b.q - a.q).map(g => `<span class="lgrp">${carta(g.n, { tap: g.tap === g.q, cls: 'terra' })}${g.q > 1 ? `<em class="lq">×${g.q}</em>` : ''}${g.tap && g.tap < g.q ? `<em class="lv">${g.tap} virado${g.tap > 1 ? 's' : ''}</em>` : ''}</span>`).join('');
+  const zona = (rot, n, extra, corpo, cls) => `<div class="zn ${cls || ''}"><div class="zn-k"><span>${rot}</span>${n != null ? `<b>${n}</b>` : ''}${extra ? `<span class="zn-x">${extra}</span>` : ''}</div>${corpo}</div>`;
+  const stat = (rot, v, t, cls) => `<span class="stt ${cls || ''}" title="${t}"><em>${rot}</em><b>${v}</b></span>`;
+  const cmdTxt = !cmd ? '' : p.zona ? `na zona de comando${p.tax ? ` (custa +${p.tax})` : ''}` : p.perm.some(x => x.c) ? 'em jogo' : '—';
+  const gyL = (p.gyL || []).slice().reverse();
   return `<div class="seat-in ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${p.vivo ? '' : 'morto'}">
     <div class="s-h">
       <button class="s-av" ${cmd ? `data-card="${esc(cmd)}"` : ''} style="${cmdIm ? `background-image:url('${esc(cmdIm[2])}')` : ''}" title="${esc(cmd)}"></button>
-      <div class="s-n"><b>${esc(me ? 'Você' : NOMES[k])}</b><span>${esc(me ? cmd : (cmd && cmd !== NOMES[k] ? cmd : 'Oponente ' + k))}</span></div>
-      <div class="s-v ${dv < 0 ? 'baixou' : dv > 0 ? 'subiu' : ''}"><span>${p.vida}</span>${dv ? `<i>${dv > 0 ? '+' : ''}${dv}</i>` : ''}</div>
+      <div class="s-n"><b>${esc(me ? 'Você' : NOMES[k])}</b><span>${esc(me ? cmd : (cmd && cmd !== NOMES[k] ? cmd : 'Oponente ' + k))}${vez ? ' · <i class="s-vez">jogando agora</i>' : alvo ? ' · <i class="s-alvo">é o alvo</i>' : ''}</span></div>
+      <div class="s-v ${dv < 0 ? 'baixou' : dv > 0 ? 'subiu' : ''}" title="Pontos de vida"><small>vida</small><span>${p.vida}</span>${dv ? `<i>${dv > 0 ? '+' : ''}${dv}</i>` : ''}</div>
     </div>
-    <div class="s-st"><span title="Cartas na mão">✋ ${p.mao.length}</span><span title="Grimório">▤ ${p.lib}</span><span title="Cemitério">⚰ ${p.gy}</span>${p.zona ? `<span class="z" title="Comandante na zona de comando">⬢ comandante na zona${p.tax ? ' +' + p.tax : ''}</span>` : ''}${p.cmdD.some(x => x) ? `<span title="Maior dano de comandante sofrido">⚔ ${Math.max(...p.cmdD)}/21</span>` : ''}</div>
-    <div class="s-lands" title="${tap} de ${p.terr} terrenos virados">${Object.entries(cores).map(([c, q]) => `<span class="lp">${pip(c)}<b>${q}</b></span>`).join('') || '<span class="note">sem terrenos</span>'}${p.terr ? `<span class="note">${tap ? tap + ' virado' + (tap > 1 ? 's' : '') : 'todos desvirados'}</span>` : ''}</div>
-    <div class="s-bf cri">${cri.map(x => carta(x.n, { tap: x.tap, atk: x.atk, cmd: x.c, tok: x.tok, p: x.p, t: x.t, novo: novo(x) })).join('') || '<span class="vazio">sem criaturas</span>'}</div>
-    ${out.length ? `<div class="s-bf out">${out.map(x => carta(x.n, { tap: x.tap, tok: x.tok, novo: novo(x), cls: 'mini' })).join('')}</div>` : ''}
-    ${me && p.mao.length ? `<div class="s-mao">${p.mao.map((i, j) => `<span style="--r:${(j - (p.mao.length - 1) / 2) * 4}deg">${carta(nome(i), { cls: 'mao' })}</span>`).join('')}</div>` : !me && p.mao.length ? `<div class="s-dorso">${Array.from({ length: Math.min(p.mao.length, 10) }, (_, j) => `<i style="--r:${(j - (Math.min(p.mao.length, 10) - 1) / 2) * 5}deg"></i>`).join('')}</div>` : ''}
+    <div class="s-stats">${stat('Mão', p.mao.length, 'Cartas na mão')}${stat('Grimório', p.lib, 'Cartas que faltam comprar')}${stat('Cemitério', p.gy, 'Cartas no cemitério')}${cmd ? stat('Comandante', cmdTxt, 'Onde está o comandante', 'cmdz') : ''}${p.cmdD.some(x => x) ? stat('Dano de comandante', Math.max(...p.cmdD) + '/21', 'Maior dano de um mesmo comandante; 21 elimina', Math.max(...p.cmdD) >= 15 ? 'perigo' : '') : ''}</div>
+    ${zona('Terrenos', p.terr, p.terr ? (tap ? `${tap} virado${tap > 1 ? 's' : ''} · ${p.terr - tap} para usar` : 'todos para usar') + (p.terr > pvT ? ' · <i class="novo-t">+1 agora</i>' : '') : '', terrHTML ? `<div class="s-lands2">${terrHTML}</div>` : '<span class="vazio">nenhum ainda</span>', 'zn-terra')}
+    ${zona('Criaturas', cri.length || null, cri.some(x => x.atk) ? '<i class="atk-t">atacando</i>' : '', `<div class="s-bf cri">${cri.map(x => carta(x.n, { tap: x.tap, atk: x.atk, cmd: x.c, tok: x.tok, p: x.p, t: x.t, novo: novo(x) })).join('') || '<span class="vazio">nenhuma</span>'}</div>`)}
+    ${out.length ? zona('Outras permanentes', out.length, 'artefatos, encantamentos…', `<div class="s-bf out">${out.map(x => carta(x.n, { tap: x.tap, tok: x.tok, novo: novo(x), cls: 'mini' })).join('')}</div>`) : ''}
+    ${me && p.mao.length ? zona('Sua mão', p.mao.length, '', `<div class="s-mao">${p.mao.map((i, j) => `<span style="--r:${(j - (p.mao.length - 1) / 2) * 4}deg">${carta(nome(i), { cls: 'mao' })}</span>`).join('')}</div>`, 'zn-mao') : !me && p.mao.length ? `<div class="s-dorso" title="${p.mao.length} cartas na mão">${Array.from({ length: Math.min(p.mao.length, 10) }, (_, j) => `<i style="--r:${(j - (Math.min(p.mao.length, 10) - 1) / 2) * 5}deg"></i>`).join('')}</div>` : ''}
+    ${gyL.length ? `<div class="s-gy"><em>Cemitério, mais recentes:</em> ${gyL.slice(0, 5).map(i => `<button class="cn" data-card="${esc(nome(i))}">${esc(nome(i))}</button>`).join('')}${p.gy > 5 ? `<span class="note">e mais ${p.gy - 5}</span>` : ''}</div>` : ''}
     ${!p.vivo ? '<div class="s-x">fora da partida</div>' : ''}
   </div>`;
 }
