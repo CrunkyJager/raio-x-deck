@@ -597,7 +597,7 @@ function compareText(A, s) {
 let HOVT = null;
 function hoverBox() { let h = $('#hov'); if (!h) { h = document.createElement('div'); h.id = 'hov'; h.className = 'hov'; h.hidden = true; document.body.appendChild(h); } return h; }
 document.addEventListener('mouseover', (e) => {
-  const b = e.target.closest('[data-altin],[data-altout]'); if (!b || !matchMedia('(hover: hover)').matches) return;
+  const b = e.target.closest('[data-altin],[data-altout]'); if (!b || (matchMedia('(pointer: coarse)').matches && !matchMedia('(any-hover: hover)').matches)) return;
   clearTimeout(HOVT);
   HOVT = setTimeout(() => {
     const c = C(b.dataset.n); if (!c) return;
