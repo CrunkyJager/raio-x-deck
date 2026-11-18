@@ -39,5 +39,17 @@ Desde 18/11/2026, a mesma linguagem do **mapa visual** do Mapa do Sistema SAC (a
 
 5. Ideia: usar preço da LigaMagic em vez de converter o do Scryfall (precisa de uma fonte de dados; não há API aberta).
 
+6. **Gráficos na tela Trocas, no estilo do Grimório Arena** (pedido do usuário em 18/11). Grimório: https://claude.ai/artifact/U3oRFYTQ9HamgmsbcqfZdN (compartilhado com o usuário; 2.916 linhas; os dados `cards.json`, `decks.json`, `names.tsv`, `alias.json`, `pt.json` também estão nele, ver pendência 1). O que o Grimório usa na análise:
+   - KPIs (`.kpi`, `.kpi.destaque.bom/.ruim`): número grande, verde se melhora e vermelho se piora.
+   - Linha por carta (`.vs-l`: nome · trilho · % · n): barra `.trilho i.bom/.ruim` com o resultado da carta e tracinho dourado `.ref` na média do deck.
+   - Curva em colunas douradas (`.curva .col i`) e barras de cor com duas faixas (`.barras2 .s` símbolos / `.f` fontes).
+   - Tabela `.tab` com cabeçalho mono.
+   Plano para o Raio-X (mesma linguagem, cores do nosso tema):
+   a) No topo das trocas: KPIs de taxa de vitória antes → depois (do teste pareado da Mesa simulada, que já existe em `mesa-ui.js`), preço antes → depois e bracket.
+   b) Em cada troca: mini-gráfico "sai × entra" com a barra de vitória de cada carta e o tracinho da média.
+   c) Réguas das funções com dois marcadores (hoje e com as trocas marcadas) e curva de mana antes × depois sobrepostas.
+   d) Barra de preço por troca (quanto soma ou economiza em R$).
+   Antes de começar, ler a parte de trocas/análise do Grimório (procurar `vs-l`, `kpi` e `trilho` no index.html dele) para copiar o layout.
+
 ## Como testar
 `python3 -m http.server` na pasta e abrir `http://localhost:8000`. Clicar num deck de exemplo, passar pelas abas, jogar na Mesa simulada (200 partidas) e uma partida na Mesa ao vivo.
