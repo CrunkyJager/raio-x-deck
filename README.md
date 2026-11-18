@@ -8,7 +8,9 @@ Site estático: só HTML e JavaScript, tudo roda no navegador. Publicado pelo Gi
 
 - `index.html` — página e estilos
 - `analise.js` — leitura da lista, análise, trocas sugeridas e navegação por abas
-- `teste.js`, `sim.js`, `forge-models.js`, `combos.js` — mesa simulada
+- `mesa-ui.js` — telas da Mesa simulada e da Mesa ao vivo
+- `motor/` — motor de jogo do Grimório Arena (Edgar): cada jogador joga o próprio deck, carta a carta; roda num Worker
+- `dados/` (opcional) — `cards.json` e `decks.json` do Grimório (cartas com força/resistência e decks de oponentes), `nomes-pt.json` (nomes em português)
 - `cards-db.js` — base de cartas (Scryfall + EDHREC)
 - `papeis-ia.js` — o que cada carta faz, em português
 - `exemplos.js` — decks de exemplo

@@ -171,6 +171,45 @@ table.heat th.rot span { display: inline-block; transform: rotate(-55deg); trans
 .hov-img { width: 130px; aspect-ratio: 488 / 680; border-radius: 6px; overflow: hidden; background: var(--felt-3); display: grid; place-items: center; }
 .hov-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .why.cmp { border-left: 3px solid var(--accent); padding-left: 10px; }
+.conc textarea { margin-top: 4px; }
+.cc-row { margin: 10px 0 4px; }
+.cc-box { display: grid; gap: 4px; }
+.cc-box b { font-family: var(--display); font-weight: 500; }
+.ops { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+.op { display: flex; gap: 8px; align-items: center; background: var(--felt-3); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+.op.on { border-color: var(--accent); }
+.op > span { display: grid; flex: 1; min-width: 0; }
+.op b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+input.txt { background: var(--felt); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; color: var(--ink); font: inherit; min-width: 260px; }
+.crow2 { display: grid; grid-template-columns: minmax(0, 1fr) 110px 44px; gap: 8px; align-items: center; padding: 3px 0; font-size: .92rem; }
+.crow2 .cbar { width: 110px; margin: 0; }
+.vivo { display: grid; gap: 12px; }
+.vctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.vctl input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+.vlance { display: flex; gap: 10px; align-items: center; background: var(--felt-3); border-left: 4px solid var(--accent); border-radius: 8px; padding: 10px 14px; font-size: 1.05rem; min-height: 48px; }
+.vt { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--felt); color: var(--accent-2); font-size: .9em; flex: none; }
+.vt.remo, .vt.wipe, .vt.morte { color: var(--bad); } .vt.resp, .vt.bloqueio { color: var(--info); } .vt.combo, .vt.fim { color: var(--warn); } .vt.terreno { color: var(--good); }
+.vgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.vgrid.n2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 760px) { .vgrid { grid-template-columns: 1fr; } }
+.vj { background: var(--felt); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; align-content: start; position: relative; transition: border-color .2s, box-shadow .2s; }
+.vj.vez { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.vj.alvo { border-color: var(--bad); }
+.vj.morto { opacity: .45; }
+.vj-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.vj-h b { font-family: var(--display); font-size: 1.05rem; }
+.vida { color: var(--bad); font-size: 1.15rem; font-weight: 600; }
+.vj-p { display: flex; flex-wrap: wrap; gap: 4px; }
+.vc { background: var(--felt-3); border: 1px solid var(--line); border-radius: 5px; padding: 2px 7px; font-size: .84rem; color: var(--ink); cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; }
+.vc:hover { border-color: var(--accent); }
+.vc.cmd { border-color: var(--accent); color: var(--accent-2); }
+.vc.tok { border-style: dashed; cursor: default; color: var(--ink-2); }
+.vc.tap { opacity: .6; transform: rotate(-2deg); }
+.vc.atk { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad) inset; }
+.vc .pt { font: 600 .78rem/1 var(--mono); color: var(--ink-2); }
+.vj-x { position: absolute; right: 10px; bottom: 8px; font-size: .8rem; color: var(--bad); text-transform: uppercase; letter-spacing: .06em; }
+.vlog ol { margin: 8px 0 0; padding-left: 0; list-style: none; display: grid; gap: 4px; max-height: 280px; overflow-y: auto; font-size: .92rem; color: var(--ink-2); }
+.vlog li { display: flex; gap: 8px; align-items: center; }
 </style>
 </head>
 <body>
@@ -180,7 +219,7 @@ table.heat th.rot span { display: inline-block; transform: rotate(-55deg); trans
     <h1>Raio-X do Deck</h1>
     <p>Cole qualquer deck de Commander e veja o que está bem montado, o que falta e por quê. A ferramenta não monta o deck por você: ela aponta os buracos e explica o raciocínio para você decidir.</p>
   </header>
-  <nav class="tabs" id="tabs" aria-label="Telas"><a href="#lista">1 · Lista</a><a href="#resumo">2 · Resumo</a><a href="#trocas">3 · Trocas</a><a href="#funcoes">Funções</a><a href="#mana">Mana e curva</a><a href="#plano">Plano e cortes</a><a href="#mesa">Mesa simulada</a></nav>
+  <nav class="tabs" id="tabs" aria-label="Telas"><a href="#lista">1 · Lista</a><a href="#resumo">2 · Resumo</a><a href="#trocas">3 · Trocas</a><a href="#funcoes">Funções</a><a href="#mana">Mana e curva</a><a href="#plano">Plano e cortes</a><a href="#mesa">Mesa simulada</a><a href="#aovivo">Mesa ao vivo</a></nav>
   <div class="empty" id="nodeck" hidden>Nenhum deck analisado ainda. <a href="#lista">Cole uma lista ou escolha um exemplo</a>.</div>
 
   <section class="panel" data-s="lista">
@@ -192,18 +231,18 @@ table.heat th.rot span { display: inline-block; transform: rotate(-55deg); trans
   </section>
 
   <div id="out"></div>
-  <div id="teste" data-s="mesa" hidden></div>
+  <div id="mesa" class="tout" data-s="mesa" hidden></div>
+  <div id="aovivo" class="tout" data-s="aovivo" hidden></div>
   <p class="note" style="margin-top:8px">Dados e imagens de cartas: Scryfall. Funções e popularidade: Scryfall e EDHREC, atualizados em 15/11/2026. As faixas de referência seguem o que decks de Commander costumam usar; são ponto de partida, não lei.</p>
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611181340"></script>
-<script src="exemplos.js?v=202611181340"></script>
-<script src="papeis-ia.js?v=202611181340"></script>
-<script src="analise.js?v=202611181340"></script>
-<script src="forge-models.js?v=202611181340"></script>
-<script src="combos.js?v=202611181340"></script>
-<script src="sim.js?v=202611181340"></script>
-<script src="teste.js?v=202611181340"></script>
+<script src="cards-db.js?v=202611181740"></script>
+<script src="exemplos.js?v=202611181740"></script>
+<script src="papeis-ia.js?v=202611181740"></script>
+<script>window.RAIOX_V = "202611181740";</script>
+<script src="motor/engine.js?v=202611181740"></script>
+<script src="analise.js?v=202611181740"></script>
 
+<script src="mesa-ui.js?v=202611181740"></script>
 </body></html>

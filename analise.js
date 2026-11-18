@@ -27,21 +27,39 @@ if (window.claude && window.claude.use) window.claude.use('sample').then(s => { 
 
 // ---------- leitura da lista ----------
 const ANY_NUMBER = /A deck can have any number of cards named|A deck can have up to (seven|nine) cards named/;
+// nomes em português: carregados de dados/nomes-pt.json quando existe ({"nome em português": "English name"})
+const PTIDX = {};
+function addPtNames(map) { for (const [pt, en] of Object.entries(map || {})) { const k = IDX[norm(en)] || (DB.cards[en] ? en : null); if (k && !PTIDX[norm(pt)]) PTIDX[norm(pt)] = k; } }
+if (typeof fetch === 'function' && location.protocol !== 'file:') fetch('dados/nomes-pt.json').then(r => (r.ok ? r.json() : null)).then(m => { if (m) addPtNames(m); }).catch(() => {});
+function lookupName(name) {
+  const tries = [name, name.split(' // ')[0], name.split(' / ')[0]];
+  for (const t of tries) { const k = IDX[norm(t)] || PTIDX[norm(t)]; if (k) return k; }
+  return null;
+}
+// seções que aparecem nas exportações (Moxfield, Archidekt, LigaMagic, MTGO, MTGA), em inglês e português
+const SEC_CMD = /^(commanders?|comandantes?|cmdr)$/;
+const SEC_MAIN = /^(deck|main|mainboard|lista|companion|companheiro|creatures?|criaturas?|lands?|terrenos?|artifacts?|artefatos?|enchantments?|encantamentos?|instants?|instant[aâ]neas?|m[aá]gicas instant[aâ]neas|sorcer(y|ies)|feiti[cç]os?|planeswalkers?|batalhas?|battles?|other|outros?)$/;
+const SEC_OUT = /^(sideboard|maybeboard|maybe|considering|side|reserva|tokens?|fichas?)\b/;
 function parseList(text) {
   const out = { cards: [], cmdHint: [], unknown: [] };
-  let section = '';
-  for (let raw of text.split(/\r?\n/)) {
+  let section = 'main';
+  for (const raw of text.split(/\r?\n/)) {
     let line = raw.trim(); if (!line) continue;
-    if (/^\/\//.test(line)) { section = line.replace(/^\/\/\s*/, '').toLowerCase(); continue; }
-    if (/^(commander|comandante|deck|mainboard|main|sideboard|maybeboard|considering|companion|tokens?)\s*:?\s*(\(\d+\))?$/i.test(line)) { section = line.toLowerCase(); continue; }
-    if (/^(sideboard|maybeboard|considering|tokens?)/.test(section)) continue;
-    let m = line.match(/^(\d+)\s*x?\s+(.+)$/i); let q = 1, name = line;
-    if (m) { q = +m[1]; name = m[2]; }
-    const isCmdTag = /\*CMDR\*|\[commander\]/i.test(name);
-    name = name.replace(/\s+\*[A-Z]+\*/g, '').replace(/\s+\[[^\]]*\]/g, '').replace(/\s+\([A-Za-z0-9]{2,6}\)(\s+[\w★-]+)?\s*$/, '').replace(/\s+#.*$/, '').trim();
-    const key = IDX[norm(name)] || IDX[norm(name.split(' / ')[0])] || IDX[norm(name.split(' // ')[0])];
+    const head = line.replace(/^(\/\/|#)\s*/, '').replace(/:$/, '').replace(/\s*\(\d+\)$/, '').trim().toLowerCase();
+    if (SEC_CMD.test(head)) { section = 'cmd'; continue; }
+    if (SEC_MAIN.test(head)) { section = 'main'; continue; }
+    if (SEC_OUT.test(head)) { section = 'out'; continue; }
+    if (/^(\/\/|#)/.test(line) || section === 'out') continue;
+    const isCmdTag = /\*CMDR\*|\[commander\]|\(commander\)/i.test(line);
+    line = line.replace(/\*[A-Za-z]+\*/g, '').replace(/\[commander\]|\(commander\)/ig, '').replace(/\s+#.*$/, '').trim();
+    // quantidade: "1 ", "1x ", "x1 "
+    let q = 1; let m = line.match(/^(\d+)\s*x?\s+(.+)$/i) || line.match(/^x(\d+)\s+(.+)$/i);
+    if (m) { q = +m[1]; line = m[2]; }
+    // edição e número: "[SET]", "[SET:123]", "(SET) 123", " - SET", foil " F" / "*F*"
+    let name = line.replace(/\s+\[[^\]]*\]\s*(\d+\S*)?$/, '').replace(/\s+\([A-Za-z0-9]{2,6}\)(\s+[\w★-]+)?$/, '').replace(/\s+[fF]$/, '').trim();
+    const key = lookupName(name) || lookupName(line);
     if (!key) { out.unknown.push(name); continue; }
-    if (/^commander|^comandante/.test(section) || isCmdTag) out.cmdHint.push(key);
+    if (section === 'cmd' || isCmdTag) out.cmdHint.push(key);
     for (let i = 0; i < q; i++) out.cards.push(key);
   }
   return out;
@@ -270,7 +288,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { parseList, guessCommanders, C, rolesOf, isLand, imgFor: (n) => imgFor(n), get last() { return LAST; } };
+window.RAIOX = { parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n) => imgFor(n), get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -278,9 +296,9 @@ function run(forcedCmd, goTo) {
   if (A.empty) { $('#go-msg').textContent = 'Não reconheci nenhuma carta.' + (A.unknown.length ? ' Exemplos do que não achei: ' + A.unknown.slice(0, 5).join(', ') : ''); return; }
   LAST = A;
   $('#go-msg').textContent = '';
+  loadConcept(A);
   out.innerHTML = render(A);
-  wire(A); wireSwaps(A);
-  window.RAIOX_CANDS = null;
+  wire(A); wireConcept(A); wireSwaps(A);
   document.dispatchEvent(new CustomEvent('raiox:deck', { detail: A }));
   const dest = goTo || 'resumo';
   if (location.hash === '#' + dest) show(dest); else location.hash = dest;
@@ -338,7 +356,7 @@ function render(A) {
     </section>
   </div>
   </div>
-  <div class="screen" data-s="trocas">${renderSwaps(A)}</div>
+  <div class="screen" data-s="trocas">${renderConcept(A)}${renderSwaps(A)}</div>
   <div class="screen" data-s="funcoes">
   <section class="panel">
     <h2>Funções do deck</h2>
@@ -389,12 +407,75 @@ async function askClaude(A) {
 const TAPPED_RX = (c) => /enters tapped\./.test(c.o) && !/unless|you may pay|If you don't/.test(c.o);
 function deckCounts(A) { const k = {}; A.cards.forEach(c => (k[c.name] = (k[c.name] || 0) + 1)); return k; }
 function roleCount(A, k) { return (A.byRole[k] || []).reduce((s, [, q]) => s + q, 0); }
+// ---------- conceito do deck: a ideia que as trocas seguem ----------
+const CONCEITOS = [
+  { k: 'voltron', n: 'Auras e equipamentos', rx: /aura|equipamento|equip|voltron/i },
+  { k: 'tokens', n: 'Fichas', rx: /ficha|tokens?\b/i },
+  { k: 'counters', n: 'Marcadores +1/+1', rx: /marcador|\+1\/\+1|counters?\b/i },
+  { k: 'graveyard', n: 'Cemitério', rx: /cemit[eé]rio|graveyard|reanima|recurs/i },
+  { k: 'artifacts', n: 'Artefatos', rx: /artefato|artifact/i },
+  { k: 'enchant', n: 'Encantamentos', rx: /encantamento|enchant/i },
+  { k: 'spells', n: 'Mágicas', rx: /m[aá]gicas?|instant[aâ]ne|feiti[cç]o|spellslinger/i },
+  { k: 'sac', n: 'Sacrifício e morte', rx: /sacrif|aristocrat|morre|morte/i },
+  { k: 'life', n: 'Ganho de vida', rx: /ganh\w* (de )?vida|lifegain|life ?gain/i },
+  { k: 'lands', n: 'Terrenos (landfall)', rx: /landfall|terrenos? extras?/i },
+  { k: 'combat', n: 'Ataque e combate', rx: /ataqu|atacar|combate|aggro|agressiv|bater/i },
+  { k: 'draw', n: 'Comprar muitas cartas', rx: /comprar muit|card draw|compra/i },
+  { k: 'flying', n: 'Voar', rx: /\bvoa|voador|flying/i },
+  { k: 'tribe', n: 'Tribo', rx: /tribal|tribo/i },
+];
+const MODOS = [['seguir', 'Seguir a ideia'], ['preferir', 'Preferir a ideia (aceita fora se for bem melhor)'], ['so', 'Só dentro da ideia'], ['livre', 'Livre (ignorar a ideia)']];
+let CONC = { text: '', man: {}, mode: 'seguir', lock: '', test: '' };
+const concKey = (A) => 'raiox:conceito:' + A.cmds.map(c => c.name).join('+');
+function loadConcept(A) { CONC = { text: '', man: {}, mode: 'seguir', lock: '', test: '' }; try { const s = localStorage.getItem(concKey(A)); if (s) CONC = Object.assign(CONC, JSON.parse(s)); } catch (e) {} }
+function saveConcept(A) { try { localStorage.setItem(concKey(A), JSON.stringify(CONC)); } catch (e) {} }
+function concDetected(A) { const t = CONC.text || ''; const on = new Set(CONCEITOS.filter(x => x.rx.test(t)).map(x => x.k)); if (A.tribe && new RegExp('\\b' + A.tribe[0].toLowerCase().slice(0, 5), 'i').test(t)) on.add('tribe'); return on; }
+function concOn(A) { const on = concDetected(A); for (const [k, v] of Object.entries(CONC.man || {})) v ? on.add(k) : on.delete(k); if (!A.tribe) on.delete('tribe'); return on; }
+function fitsK(A, c, k) {
+  if (k === 'tribe') return !!(A.tribe && subtypes(c).includes(A.tribe[0]));
+  if (k === 'flying') return /Flying/.test(c.o);
+  return themesOf(c, new Set([k])).has(k);
+}
+// null = sem ideia (não pesa); true/false = encaixa ou não
+function conceptFit(A, c) { if (CONC.mode === 'livre' || isLand(c)) return null; const on = A._concOn || concOn(A); if (!on.size) return null; return [...on].some(k => fitsK(A, c, k)); }
+const namesFrom = (txt) => String(txt || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+function resolveNames(txt) { const ok = [], bad = []; for (const n of namesFrom(txt)) { const k = lookupName(n.replace(/^\d+\s*x?\s+/i, '')); k ? ok.push(k) : bad.push(n); } return { ok, bad }; }
+
+function renderConcept(A) {
+  const on = concOn(A);
+  const chips = CONCEITOS.filter(x => x.k !== 'tribe' || A.tribe).map(x => `<button class="cn lock ${on.has(x.k) ? 'on' : ''}" data-cc="${x.k}" aria-pressed="${on.has(x.k)}">${esc(x.k === 'tribe' ? 'Tribo: ' + A.tribe[0] : x.n)}</button>`).join('');
+  const lockR = resolveNames(CONC.lock), testR = resolveNames(CONC.test);
+  const bad = lockR.bad.concat(testR.bad);
+  return `<section class="panel conc"><h2>A ideia do deck</h2>
+    <p class="lead">Conte em poucas palavras como o deck quer ganhar. As trocas passam a seguir isso: carta que encaixa na ideia pesa mais para ficar e para entrar. Fica salvo neste navegador para este comandante.</p>
+    <textarea id="cc-text" rows="2" style="min-height:60px;font-family:var(--body);font-size:1rem" placeholder="Ex.: equipar o comandante e bater com ele; fichas para segurar a mesa">${esc(CONC.text)}</textarea>
+    <div class="cc-row"><span class="note">Temas que li na ideia (clique para ligar ou desligar):</span><div class="links">${chips}</div></div>
+    <label class="field">Como seguir <select id="cc-mode">${MODOS.map(([v, l]) => `<option value="${v}" ${CONC.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    <div class="grid2" style="margin-top:12px">
+      <label class="cc-box"><b>Cartas que não saem</b><span class="note">Uma por linha ou separadas por vírgula. Vale nome em português.</span><textarea id="cc-lock" rows="3" style="min-height:70px">${esc(CONC.lock)}</textarea></label>
+      <label class="cc-box"><b>Cartas que quero testar entrando</b><span class="note">Cada uma vira uma troca, no lugar da carta que menos faz falta.</span><textarea id="cc-test" rows="3" style="min-height:70px">${esc(CONC.test)}</textarea></label>
+    </div>
+    <div class="row"><button class="btn primary" id="cc-go">Refazer as trocas com esta ideia</button>${bad.length ? `<span class="note" style="color:var(--warn)">Não reconheci: ${esc(bad.join(', '))}</span>` : ''}${on.size && CONC.mode !== 'livre' ? `<span class="note">Seguindo: ${esc([...on].map(k => k === 'tribe' ? A.tribe[0] : CONCEITOS.find(x => x.k === k).n.toLowerCase()).join(', '))}</span>` : ''}</div>
+  </section>`;
+}
+function rerenderTrocas(A) { const box = $('[data-s="trocas"]'); if (!box) return; box.innerHTML = renderConcept(A) + renderSwaps(A); wireConcept(A); wireSwaps(A); }
+function wireConcept(A) {
+  const t = $('#cc-text'); if (!t) return;
+  const sync = () => { CONC.text = t.value; CONC.mode = $('#cc-mode').value; CONC.lock = $('#cc-lock').value; CONC.test = $('#cc-test').value; saveConcept(A); };
+  t.addEventListener('input', () => { sync(); const on = concOn(A); $$('[data-cc]').forEach(b => { b.classList.toggle('on', on.has(b.dataset.cc)); b.setAttribute('aria-pressed', on.has(b.dataset.cc)); }); });
+  $$('[data-cc]').forEach(b => b.onclick = (e) => { e.stopPropagation(); sync(); const k = b.dataset.cc; const det = concDetected(A).has(k); const now = !b.classList.contains('on'); CONC.man = CONC.man || {}; if (now === det) delete CONC.man[k]; else CONC.man[k] = now; saveConcept(A); b.classList.toggle('on', now); b.setAttribute('aria-pressed', now); });
+  ['#cc-mode', '#cc-lock', '#cc-test'].forEach(s => $(s).addEventListener('change', sync));
+  $('#cc-go').onclick = () => { sync(); rerenderTrocas(A); };
+}
+
 function cutScore(A, c, needRoles) {
   if (isLand(c)) return -1e9;
   const roles = rolesOf(c); const real = [...roles].filter(k => k !== 'body');
   let s = 0;
   if (A.noRole.includes(c.name)) s += 50;
   if (A.bodyOnly.includes(c.name)) s += 35;
+  const fit = conceptFit(A, c);
+  if (fit !== null) s += ({ seguir: fit ? -25 : 12, preferir: fit ? -12 : 6, so: fit ? -60 : 20 })[CONC.mode] || 0;
   if (!A.cmdSupport.includes(c.name)) s += 12;
   s += c.r ? 30 * Math.min(c.r, 20000) / 20000 : 30;
   if (c.r && c.r < 4000) s -= 45 * (1 - c.r / 4000); // muito jogada no Commander: só sai com motivo forte
@@ -419,7 +500,7 @@ function whyCut(A, c) {
 }
 function rankAdds(A, list) {
   const cmdTh = A.cmdThemes;
-  return list.map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = c.r || 1e6; if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; return { c, s, th }; }).sort((a, b) => a.s - b.s);
+  return list.map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = c.r || 1e6; if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; const fit = conceptFit(A, c); if (fit) s *= ({ seguir: 0.4, preferir: 0.7, so: 0.4 })[CONC.mode] || 1; return { c, s, th, fit }; }).filter(x => !(CONC.mode === 'so' && x.fit === false)).sort((a, b) => a.s - b.s);
 }
 function addPool(A, test, n = 30) {
   const inDeck = new Set(A.uniq.map(c => c.name).concat(A.cmds.map(c => c.name)));
@@ -433,11 +514,13 @@ function addPool(A, test, n = 30) {
   return out.sort((a, b) => a.r - b.r).slice(0, n);
 }
 function buildSwaps(A) {
-  const swaps = []; const usedOut = new Set(), usedIn = new Set();
+  A._concOn = concOn(A); A._testBad = [];
+  const LOCK = new Set(resolveNames(CONC.lock).ok);
+  const swaps = []; const usedOut = new Set(LOCK), usedIn = new Set();
   const needRoles = new Set(A.refs.filter(r => r.k !== 'lands' && r.have < r.lo).map(r => r.k));
   const cutsAll = A.uniq.filter(c => !isLand(c)).map(c => ({ c, s: cutScore(A, c, needRoles) })).sort((a, b) => b.s - a.s);
   const nextCut = (avoid) => cutsAll.find(x => !usedOut.has(x.c.name) && x.s > -20 && !(avoid && avoid(x.c)));
-  const MAX = 12;
+  const MAX = 16;
   const push = (sw) => { if (swaps.length >= MAX) return false; swaps.push(sw); usedOut.add(sw.out); usedIn.add(sw.inn); return true; };
   const altsCut = (avoidFn) => cutsAll.filter(x => !usedOut.has(x.c.name) && x.s > -20 && !(avoidFn && avoidFn(x.c))).slice(0, 4).map(x => x.c.name);
   const label = { ramp: 'Ramp', draw: 'Compra de cartas', removal: 'Remoção pontual', wipe: 'Limpa-mesa', protect: 'Proteção', counter: 'Contramágica' };
@@ -478,7 +561,19 @@ function buildSwaps(A) {
   const pickGeneric = () => { const x = cutsAll.find(x => !usedOut.has(x.c.name) && x.s > -20 && safeOut(x.c)); return x ? { c: x.c, k: null, why: whyCut(A, x.c) } : null; };
   const thList = THEMES.filter(t => A.cmdThemes.has(t.k));
   const themePool = thList.length ? rankAdds(A, addPool(A, c => !isLand(c) && thList.some(t => t.rx.test(c.o) || (t.type && t.type.test(c.t))), 40)) : [];
-  for (let guard = 0; guard < 14 && swaps.length < 10; guard++) {
+  // cartas que você quer testar entrando: cada uma vira uma troca
+  const inDeckN = new Set(A.uniq.map(c => c.name).concat(A.cmds.map(c => c.name)));
+  for (const name of resolveNames(CONC.test).ok) {
+    const n = C(name); if (!n || inDeckN.has(name) || usedIn.has(name)) continue;
+    if (!n.ci.split('').every(x => !x || A.ident.has(x))) { (A._testBad = A._testBad || []).push(name); continue; }
+    const cut = pickSurplus() || pickGeneric(); if (!cut) break;
+    const rn = roleNames(n);
+    push({ goal: 'Seu teste', out: cut.c.name, inn: name, whyOut: cut.why, whyIn: `Você pediu para testar. ${rn.length ? 'Ela traz ' + listPt(rn.map(x => x.toLowerCase())) + '.' : ''}${conceptFit(A, n) ? ' Encaixa na ideia do deck.' : ''}`, alts: [], altsOut: altsCut().filter(x => x !== cut.c.name).slice(0, 4) });
+    if (cut.k === 'lands') cnt.lands--; else realRoles(cut.c).forEach(k => cnt[k]--);
+    realRoles(n).forEach(k => { if (cnt[k] < 1e8) cnt[k]++; });
+  }
+  const maxN = swaps.length + 10;
+  for (let guard = 0; guard < 14 && swaps.length < maxN; guard++) {
     const d = demand();
     let cut = pickSurplus();
     if (!cut && d && d.gap) cut = pickGeneric();
@@ -617,7 +712,7 @@ document.addEventListener('click', () => { clearTimeout(HOVT); const h = $('#hov
 
 function renderSwapCard(s, i) {
   return `<div class="swapcard${SWAP_ON[i] ? '' : ' off'}" data-sw="${i}">
-    <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><label class="field" style="margin:0 0 0 auto"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
+    <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><button class="btn small" style="margin-left:auto" data-lockout="${esc(s.out)}" title="Trava a carta que sai e refaz as trocas">Não tirar ${esc(s.out)}</button><label class="field" style="margin:0"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
     <div class="pair">${swapBox(s.out, 'SAI')}${swapBox(s.inn, 'ENTRA')}</div>
     <p class="why"><b>Por que sai:</b> ${esc(s.whyOut)}.<br><b>Por que entra:</b> ${esc(s.whyIn)}</p>
     <p class="why cmp"><b>Na prática:</b> ${esc(compareText(LAST, s))}</p>
@@ -630,6 +725,7 @@ function renderSwaps(A) {
   if (!SWAPS.length) return `<section class="panel"><h2>Trocas sugeridas</h2><p>Nenhuma troca óbvia pela lista: as funções estão nas faixas, a base de mana cobre as cores e não sobraram cartas sem papel. Para afinar daqui, use a <a href="#mesa">mesa simulada</a>, que mede carta por carta.</p></section>`;
   return `<section class="panel"><h2>Trocas sugeridas</h2>
     <p class="lead">Cada troca é um par: a carta que menos contribui sai, e entra uma das mais jogadas nas suas cores para o buraco apontado no resumo. A lista final continua com 100 cartas. Desmarque o que não quiser, troque a carta que entra pelas outras opções e clique em qualquer nome para ler a carta.</p>
+    ${A._testBad && A._testBad.length ? `<p class="note" style="color:var(--warn)">Fora das cores do comandante, não dá para testar: ${esc(A._testBad.join(', '))}.</p>` : ''}
     <div id="sw-list">${SWAPS.map(renderSwapCard).join('')}</div>
     <div class="row" style="margin-top:16px"><button class="btn primary" id="sw-apply">Aplicar as trocas marcadas e analisar de novo</button><button class="btn" id="sw-copy">Copiar a lista nova</button><button class="btn" id="sw-test">Testar na mesa simulada</button><span class="note" id="sw-msg"></span></div>
   </section>`;
@@ -648,6 +744,8 @@ function wireSwaps(A) {
   const redraw = (i) => { const el = $(`[data-sw="${i}"]`); el.outerHTML = renderSwapCard(SWAPS[i], i); swapImgs($(`[data-sw="${i}"]`)); };
   box.addEventListener('change', (e) => { const i = e.target.dataset.swon; if (i == null) return; SWAP_ON[+i] = e.target.checked; e.target.closest('.swapcard').classList.toggle('off', !e.target.checked); });
   box.addEventListener('click', (e) => {
+    const lk = e.target.closest('[data-lockout]');
+    if (lk) { e.stopPropagation(); CONC.lock = (CONC.lock ? CONC.lock.replace(/\s+$/, '') + '\n' : '') + lk.dataset.lockout; saveConcept(A); rerenderTrocas(A); return; }
     const bi = e.target.closest('[data-altin]'), bo = e.target.closest('[data-altout]');
     if (bi) { e.stopPropagation(); const i = +bi.dataset.altin, s = SWAPS[i], n = bi.dataset.n; if (SWAPS.some((x, j) => j !== i && x.inn === n)) return; s.alts = s.alts.map(x => (x === n ? s.inn : x)); s.inn = n; redraw(i); }
     if (bo) { e.stopPropagation(); const i = +bo.dataset.altout, s = SWAPS[i], n = bo.dataset.n; if (SWAPS.some((x, j) => j !== i && x.out === n)) return; s.altsOut = s.altsOut.map(x => (x === n ? s.out : x)); s.out = n; s.whyOut = whyCut(A, C(n)); redraw(i); }
@@ -655,11 +753,11 @@ function wireSwaps(A) {
   const msg = (t) => { $('#sw-msg').textContent = t; };
   $('#sw-copy').onclick = async () => { try { await navigator.clipboard.writeText(newList(A)); msg('Lista copiada. Cole no Moxfield ou no Archidekt.'); } catch (e) { $('#deck-in').value = newList(A); msg('Não deu para copiar daqui; a lista nova foi para a caixa da aba Lista.'); } };
   $('#sw-apply').onclick = () => { const n = SWAP_ON.filter(Boolean).length; if (!n) { msg('Nenhuma troca marcada.'); return; } $('#deck-in').value = newList(A); run(A.cmds.map(c => c.name), 'resumo'); };
-  $('#sw-test').onclick = () => { const t = $('#t-cands'); const ins = SWAPS.filter((s, i) => SWAP_ON[i]).map(s => s.inn); window.RAIOX_CANDS = ins; if (t) t.value = ins.join('\n'); location.hash = 'mesa'; };
+  $('#sw-test').onclick = () => { location.hash = 'mesa'; setTimeout(() => { const b = $('#m-tro'); if (b && !b.disabled) b.click(); }, 60); };
 }
 
 // ---------- telas ----------
-const SCREENS = ['lista', 'resumo', 'trocas', 'funcoes', 'mana', 'plano', 'mesa'];
+const SCREENS = ['lista', 'resumo', 'trocas', 'funcoes', 'mana', 'plano', 'mesa', 'aovivo'];
 function show(name) {
   if (!SCREENS.includes(name)) name = LAST && !LAST.empty ? 'resumo' : 'lista';
   $$('[data-s]').forEach(el => { el.hidden = el.dataset.s !== name; });
