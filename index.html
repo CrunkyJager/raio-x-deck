@@ -565,6 +565,18 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 .stat.price { background: linear-gradient(150deg, rgb(255 194 61 / .16), var(--felt-3) 70%); border-color: rgb(255 194 61 / .45); }
 .stat.price b { font-size: 2.3rem; color: var(--accent); text-shadow: 0 0 24px rgb(255 194 61 / .35); }
 @media (max-width: 760px) { .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stat.price { grid-column: 1 / -1; } .stat { padding: 12px 14px; } }
+
+/* trocas: nível e orçamento */
+.nivel { margin-top: 22px; padding: 18px 20px 20px; border-radius: 16px; background: rgb(15 18 32 / .6); border: 1px solid var(--line); }
+.nivel h3 { margin-top: 0 !important; }
+.nivel-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px 20px; margin-top: 14px; }
+.nivel select { width: 100%; }
+.reais { display: flex; align-items: center; gap: 8px; }
+.reais i { font: 600 .95rem/1 var(--mono); font-style: normal; color: var(--accent); }
+.reais input { min-width: 0; width: 100%; }
+.sw-sum { margin: 4px 0 6px; }
+.sw-sum .stat b { font-size: 1.5rem; } .sw-sum .stat.price b { font-size: 1.9rem; }
+.seta { color: var(--ink-3); font-weight: 500; margin: 0 2px; }
 </style>
 </head>
 <body>
@@ -601,14 +613,14 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611181955"></script>
-<script src="exemplos.js?v=202611181955"></script>
-<script src="papeis-ia.js?v=202611181955"></script>
-<script>window.RAIOX_V = "202611181955";</script>
-<script src="motor/engine.js?v=202611181955"></script>
-<script src="analise.js?v=202611181955"></script>
+<script src="cards-db.js?v=202611182040"></script>
+<script src="exemplos.js?v=202611182040"></script>
+<script src="papeis-ia.js?v=202611182040"></script>
+<script>window.RAIOX_V = "202611182040";</script>
+<script src="motor/engine.js?v=202611182040"></script>
+<script src="analise.js?v=202611182040"></script>
 
-<script src="mesa-ui.js?v=202611181955"></script>
+<script src="mesa-ui.js?v=202611182040"></script>
 <script>
 /* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
 (function () { const b = document.body; b.classList.add('icwait'); let feito = false;
