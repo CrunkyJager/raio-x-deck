@@ -308,7 +308,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n) => imgFor(n), get last() { return LAST; } };
+window.RAIOX = { parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n) => imgFor(n), get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -965,15 +965,16 @@ function wireSwaps(A) {
 }
 
 // ---------- telas ----------
-const SCREENS = ['lista', 'resumo', 'trocas', 'funcoes', 'mesa', 'aovivo'];
+const SCREENS = ['montar', 'lista', 'resumo', 'trocas', 'funcoes', 'mesa', 'aovivo'];
 const SUBS = { mana: 'funcoes', plano: 'funcoes' }; // Funções, Mana e Plano viraram uma aba só (Análise)
 function show(name) {
   const sub = SUBS[name] ? name : name === 'funcoes' ? 'funcoes' : null; if (SUBS[name]) name = SUBS[name];
   if (!SCREENS.includes(name)) name = LAST && !LAST.empty ? 'resumo' : 'lista';
   $$('[data-s]').forEach(el => { el.hidden = el.dataset.s !== name; });
   $$('#tabs a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + name ? 'page' : 'false'));
-  const noDeck = !LAST || LAST.empty; const em = $('#nodeck'); if (em) em.hidden = !(noDeck && name !== 'lista');
+  const noDeck = !LAST || LAST.empty; const em = $('#nodeck'); if (em) em.hidden = !(noDeck && name !== 'lista' && name !== 'montar');
   $('#pop').hidden = true;
+  document.dispatchEvent(new CustomEvent('raiox:tela', { detail: name }));
   $$('.subnav a').forEach(a => a.setAttribute('aria-current', a.dataset.sub === sub ? 'true' : 'false'));
   const alvo = sub && sub !== 'funcoes' && $('#sub-' + sub);
   if (alvo) requestAnimationFrame(() => window.scrollTo(0, alvo.getBoundingClientRect().top + window.scrollY - 90)); else window.scrollTo(0, 0);
