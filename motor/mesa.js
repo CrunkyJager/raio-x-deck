@@ -402,10 +402,10 @@ function arena(Ds,seed,cfg){
   /* ---------- lancar ---------- */
   function wipe(p,i){
     const m=p.M[i],na=m.wip.na;
-    diz(p.k,'wipe',`a mesa é limpa${na?' (menos artefatos)':''}`,i);p.st.wip++;
+    diz(p.k,'wipe',m.wip.n?`${nomeC(p,i)}: morre toda criatura com resistência até ${m.wip.n}`:`a mesa é limpa${na?' (menos artefatos)':''}`,i);p.st.wip++;
     for(const o of vivos()){
       const pr=o!==p&&salva(o,'w');
-      for(const x of o.perm.slice()){if(!x.cri)continue;if(na&&!x.tok&&o.M[x.i].a)continue;
+      for(const x of o.perm.slice()){if(!x.cri)continue;if(na&&!x.tok&&o.M[x.i].a)continue;if(m.wip.n&&resDe(o,x)>m.wip.n)continue;
         if(pr&&(pr.k==='fase'||pr.k==='hi'||pr.ind||pr.volta))continue;
         if(indes(o,x))continue;morre(o,x,false,p.k);}
     }
@@ -464,7 +464,7 @@ function arena(Ds,seed,cfg){
     if(m.r||(m.pr&&!m.wip))return -1;
     const fo=forca(p),maxO=Math.max(0,...opsDe(p).map(forca)),cedo=T<=6;
     if(m.wip){const na=m.wip.na;let meu=0,deles=0;
-      for(const o of vivos())for(const x of o.perm){if(!x.cri)continue;if(na&&!x.tok&&o.M[x.i].a)continue;if(o===p)meu+=poderDe(o,x)+1;else deles+=poderDe(o,x)+1;}
+      for(const o of vivos())for(const x of o.perm){if(!x.cri)continue;if(na&&!x.tok&&o.M[x.i].a)continue;if(m.wip.n&&resDe(o,x)>m.wip.n)continue;if(o===p)meu+=poderDe(o,x)+1;else deles+=poderDe(o,x)+1;}
       return deles>=meu+8&&deles>=10?9+deles/5:-1;}
     if(m.sp&&m.rem){const a=melhorAlvo(p,false,tipoRem(m));if(!a)return -1;if(/\bInstant\b/.test(m.tl)&&valor(a.o,a.x)<5)return -1;return 4+valor(a.o,a.x)/2;}
     if(m.wake)return p.gy.filter(j=>p.M[j].a&&!p.M[j].sp).length>=3?8:-1;
@@ -531,13 +531,22 @@ function arena(Ds,seed,cfg){
     const total=at.reduce((s,x)=>s+poderDe(p,x),0);
     let alvo=null,bv=-1e9;
     for(const o of ops){const bl=o.perm.filter(x=>x.cri&&!x.tap).length;
-      let v=forca(o)*0.6+(VIDA-o.vida)*0.7-bl*1.5+R()*4;
+      /* bate em quem ameaça mais (força na mesa), um pouco em quem já está machucado */
+      let v=forca(o)*0.8+(VIDA-o.vida)*0.35-bl*1.2+R()*4;
       if(total>=o.vida+bl*2)v+=50;
       if(v>bv){bv=v;alvo=o;}}
     /* segura bloqueador se a mesa ameaca */
     const perigo=Math.max(...ops.map(forca));
     at.sort((a,b)=>poderDe(p,b)-poderDe(p,a));
-    if(p.vida<=perigo*1.2&&at.length>2){const fica=at.slice().filter(x=>!temKw(p,x,'vigilance')).sort((a,b)=>resDe(p,b)-resDe(p,a))[0];if(fica)at.splice(at.indexOf(fica),1);}
+    const letal=total>=alvo.vida+alvo.perm.filter(x=>x.cri&&!x.tap).length;
+    if(!letal){
+      /* criatura de mana fraca fica em casa: vale mais gerando mana e bloqueando */
+      at=at.filter(x=>x.tok||!p.M[x.i].mana||poderDe(p,x)>=3);
+      /* segura bloqueadores conforme a ameaca: um terco do ataque se a vida ja nao aguenta um golpe e meio da mesa */
+      if(p.vida<=perigo*1.5&&at.length>2){const n=Math.min(at.length-1,Math.ceil(at.length/3));
+        const fica=at.filter(x=>!temKw(p,x,'vigilance')).sort((a,b)=>resDe(p,b)-resDe(p,a)||poderDe(p,a)-poderDe(p,b)).slice(0,n);
+        at=at.filter(x=>!fica.includes(x));}
+      if(!at.length)return;}
     /* nao manda quem morre de graca pra bloqueador maior */
     const blq=alvo.perm.filter(x=>x.cri&&!x.tap&&!preso(x));
     at=at.filter(x=>{if(x.tok&&blq.length>at.length)return true;if(!bloqueiam(p,x,alvo,blq).length)return true;
@@ -569,9 +578,12 @@ function arena(Ds,seed,cfg){
     if(LOG)diz(p.k,'ataque',`${at.filter(x=>p.perm.includes(x)).length} atacando, ${at.reduce((s,x)=>s+(p.perm.includes(x)?poderDe(p,x):0),0)} de poder`,-1,alvo.k);
     let livres=blq.filter(b=>alvo.perm.includes(b));const inc=at.reduce((s,x)=>s+poderDe(p,x),0);
     let dano=0,cmdDano=0;const golpes=[];
+    /* fila = poder dos atacantes que ainda vao chegar: vida que sobra se ninguem mais bloquear */
+    let fila=inc;const piso=Math.max(10,Math.round(VIDA*0.3));
     for(const x of at){
       if(!p.perm.includes(x))continue;
       const pw=poderDe(p,x),B=bon(p,x),k=w=>temKw(p,x,w,B);
+      const sobraVida=alvo.vida-dano-fila;fila-=pw;
       const pode=bloqueiam(p,x,alvo,livres);
       let b=null;
       if(pode.length){
@@ -579,7 +591,11 @@ function arena(Ds,seed,cfg){
         const sobra=mata.filter(y=>resDe(alvo,y)>pw&&!k('deathtouch'));
         if(sobra.length)b=sobra[0];
         else if(mata.length&&pw>=4)b=mata.sort((a,c)=>valor(alvo,a)-valor(alvo,c))[0];
-        else if(inc-dano>=alvo.vida||(pw>=8&&alvo.vida<=12))b=pode.slice().sort((a,c)=>valor(alvo,a)-valor(alvo,c))[0];
+        else if(inc-dano>=alvo.vida||(pw>=8&&alvo.vida<=12))b=pode.slice().sort((a,c)=>(a.cmd?1:0)-(c.cmd?1:0)||(c.tok?1:0)-(a.tok?1:0)||valor(alvo,a)-valor(alvo,c))[0];
+        /* bloqueio para segurar a vida: o golpe deixaria a vida baixa, ou o comandante chegaria a 21 */
+        else if((pw>=2&&sobraVida<piso)||(x.cmd&&alvo.cmdD[p.k]+pw>=21)){
+          const barato=pode.filter(y=>!y.cmd&&(y.tok||valor(alvo,y)<=valor(p,x)||x.cmd)).sort((a,c)=>(c.tok?1:0)-(a.tok?1:0)||valor(alvo,a)-valor(alvo,c));
+          if(barato.length)b=barato[0];}
       }
       if(b){livres.splice(livres.indexOf(b),1);
         const bp=poderDe(alvo,b),rb=resDe(alvo,b),ra=resDe(p,x);

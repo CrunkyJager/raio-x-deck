@@ -46,6 +46,20 @@ function para() { if (WK) { WK.terminate(); WK = null; } for (const [id, p] of W
 
 // ---------- seu deck e os oponentes ----------
 let A = null, EU = null, OPC = new Map();
+/* o seu deck com as trocas marcadas na aba Trocas (sai → entra) */
+function trocasOn() { return ((window.RAIOX && window.RAIOX.swaps && window.RAIOX.swaps()) || []).filter(s => s.on); }
+function deckComTrocas() {
+  const D = meuDeck(), M = D.M.slice(), base = D.base.slice(); let n = 0;
+  for (const s of trocasOn()) {
+    const iS = M.findIndex(m => m.nome === s.out); const pos = iS < 0 ? -1 : base.indexOf(iS); if (pos < 0) continue;
+    let iE = M.findIndex(m => m.nome === s.inn);
+    if (iE < 0) { const rec = achar(s.inn); if (!rec) continue; M.push(modelo(rec)); iE = M.length - 1; }
+    base[pos] = iE; n++;
+  }
+  return { ...limpo(D), M, base, nome: 'Você (com ' + n + ' troca' + (n === 1 ? '' : 's') + ')' };
+}
+const vivoComTrocas = () => String(store.get('vivoTrocas', '0')) === '1' && trocasOn().length > 0;
+const deckVivo = () => (vivoComTrocas() ? deckComTrocas() : limpo(meuDeck()));
 function meuDeck() {
   if (EU) return EU;
   const itens = A.cmds.map(c => ({ q: 1, nome: c.name, cmd: true }));
@@ -208,7 +222,7 @@ function resTrocas() {
 }
 
 // ---------- tela: Mesa ao vivo ----------
-let JOGO = null, PASSO = 0, TIMER = null, NOMES = [], PREV = null;
+let JOGO_TROCAS = 0, JOGO = null, PASSO = 0, TIMER = null, NOMES = [], PREV = null;
 const TP = { turno: '⟳', terreno: '◆', magia: '✦', remo: '✕', wipe: '☄', resp: '⟲', ataque: '⚔', bloqueio: '⛨', dano: '♥', morte: '☠', compra: '+', tutor: '⌕', combo: '∞', fim: '★' };
 const TPN = { turno: 'Novo turno', terreno: 'Terreno', magia: 'Mágica', remo: 'Remoção', wipe: 'Limpa-mesa', resp: 'Resposta', ataque: 'Ataque', bloqueio: 'Bloqueio', dano: 'Dano', morte: 'Morte', compra: 'Compra', tutor: 'Busca', combo: 'Combo', fim: 'Fim de jogo' };
 
@@ -248,6 +262,7 @@ function painelVivo() {
       <label class="field">Formato <select id="v-fmt"><option value="4" ${fmt === '4' ? 'selected' : ''}>Mesa de 4</option><option value="1" ${fmt === '1' ? 'selected' : ''}>1 contra 1</option></select></label>
       <label class="field">Vida <select id="v-vida">${[40, 30, 20].map(v => `<option ${+vida === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
       ${Array.from({ length: nO }, (_, k) => `<label class="field">Oponente ${k + 1} <select data-vop="${k}">${ops.map(o => `<option value="${esc(o.id)}" ${sel[k] === o.id ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select></label>`).join('')}
+      ${trocasOn().length ? `<label class="field">Seu deck <select id="v-tro"><option value="0" ${vivoComTrocas() ? '' : 'selected'}>Lista atual</option><option value="1" ${vivoComTrocas() ? 'selected' : ''}>Com as ${trocasOn().length} trocas marcadas</option></select></label>` : ''}
       <button class="btn" id="v-sort">Sortear oponentes</button>
       <button class="btn primary" id="v-go">${JOGO ? 'Jogar outra partida' : 'Jogar uma partida'}</button>
     </div>
@@ -257,8 +272,10 @@ function painelVivo() {
   $('#v-vida').onchange = (e) => store.set('vivoVida', +e.target.value);
   $$('[data-vop]').forEach(s => s.onchange = () => store.set('vivoOps', $$('[data-vop]').map(x => x.value)));
   $('#v-sort').onclick = () => { const ids = ops.map(o => o.id).filter(id => id !== 'ex:' + meuCmd()); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } store.set('vivoOps', ids.slice(0, nO)); painelVivo(); };
+  const vt = $('#v-tro'); if (vt) vt.onchange = () => store.set('vivoTrocas', vt.value);
   $('#v-go').onclick = jogaPartida;
   if (JOGO) { ligaControles(); vaiPara(PASSO); }
+  if (window.RAIOX_VIVO_JA) { window.RAIOX_VIVO_JA = false; setTimeout(() => { const g = $('#v-go'); if (g && !g.disabled) g.click(); }, 60); }
 }
 async function jogaPartida() {
   await pronto;
@@ -268,11 +285,12 @@ async function jogaPartida() {
   const b = $('#v-go'); b.disabled = true; b.textContent = 'Embaralhando…';
   try {
     const seed = (Math.random() * 4294967296) >>> 0;
-    const Ms = [limpo(meuDeck()).M, ...Ops.map(o => o.M)];
-    const jogo = roda('partida', { Dv: limpo(meuDeck()), Ops, seed, T: 20, vida: +store.get('vivoVida', 40), nomes: ['Você', ...ids.map(id => ops.find(o => o.id === id).nome)] });
+    const Dv = deckVivo(); JOGO_TROCAS = vivoComTrocas() ? trocasOn().length : 0;
+    const Ms = [Dv.M, ...Ops.map(o => o.M)];
+    const jogo = roda('partida', { Dv, Ops, seed, T: 20, vida: +store.get('vivoVida', 40), nomes: ['Você', ...ids.map(id => ops.find(o => o.id === id).nome)] });
     b.textContent = 'Buscando as cartas…';
     const imgs = buscaImagens(Ms.flatMap(M => M.map(m => m.nome)));
-    JOGO = await jogo; JOGO.Ms = Ms; JOGO.cmdNome = Ms.map((M, k) => { const D = k ? Ops[k - 1] : limpo(meuDeck()); return D.cmd ? (M[D.cmd.i].frente || M[D.cmd.i].nome) : ''; });
+    JOGO = await jogo; JOGO.Ms = Ms; JOGO.cmdNome = Ms.map((M, k) => { const D = k ? Ops[k - 1] : Dv; return D.cmd ? (M[D.cmd.i].frente || M[D.cmd.i].nome) : ''; });
     await Promise.race([imgs, new Promise(r => setTimeout(r, 6000))]);
     PASSO = 0; PREV = null; parar();
     $('#v-mesa').innerHTML = mesaHTML(); ligaControles(); vaiPara(0);
@@ -395,7 +413,7 @@ function lugarHTML(p, k, ev, pv) {
   return `<div class="seat-in ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${p.vivo ? '' : 'morto'}">
     <div class="s-h">
       <button class="s-av" ${cmd ? `data-card="${esc(cmd)}"` : ''} style="${cmdIm ? `background-image:url('${esc(cmdIm[2])}')` : ''}" title="${esc(cmd)}"></button>
-      <div class="s-n"><b>${esc(me ? 'Você' : NOMES[k])}</b><span>${esc(me ? cmd : (cmd && cmd !== NOMES[k] ? cmd : 'Oponente ' + k))}${vez ? ' · <i class="s-vez">jogando agora</i>' : alvo ? ' · <i class="s-alvo">é o alvo</i>' : ''}</span></div>
+      <div class="s-n"><b>${esc(me ? 'Você' : NOMES[k])}</b><span>${esc(me ? cmd + (JOGO_TROCAS ? ` · com as ${JOGO_TROCAS} trocas` : '') : (cmd && cmd !== NOMES[k] ? cmd : 'Oponente ' + k))}${vez ? ' · <i class="s-vez">jogando agora</i>' : alvo ? ' · <i class="s-alvo">é o alvo</i>' : ''}</span></div>
       <div class="s-v ${dv < 0 ? 'baixou' : dv > 0 ? 'subiu' : ''}" title="Pontos de vida"><small>vida</small><span>${p.vida}</span>${dv ? `<i>${dv > 0 ? '+' : ''}${dv}</i>` : ''}</div>
     </div>
     <div class="s-stats">${stat('Mão', p.mao.length, 'Cartas na mão')}${stat('Grimório', p.lib, 'Cartas que faltam comprar')}${stat('Cemitério', p.gy, 'Cartas no cemitério')}${cmd ? stat('Comandante', cmdTxt, 'Onde está o comandante', 'cmdz') : ''}${p.cmdD.some(x => x) ? stat('Dano de comandante', Math.max(...p.cmdD) + '/21', 'Maior dano de um mesmo comandante; 21 elimina', Math.max(...p.cmdD) >= 15 ? 'perigo' : '') : ''}</div>
@@ -418,6 +436,6 @@ document.addEventListener('click', (e) => {
 // ---------- liga com o resto do Raio-X ----------
 document.addEventListener('raiox:deck', (e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; JOGO = null; parar(); painel(); painelVivo(); });
 if (window.RAIOX && window.RAIOX.last) { A = window.RAIOX.last; painel(); painelVivo(); }
-window.addEventListener('hashchange', () => { if (location.hash !== '#aovivo') parar(); });
+window.addEventListener('hashchange', () => { if (location.hash !== '#aovivo') parar(); else if (A) painelVivo(); });
 pronto.then(() => { painel(); painelVivo(); });
 })();

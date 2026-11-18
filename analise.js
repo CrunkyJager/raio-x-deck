@@ -928,7 +928,7 @@ function renderSwaps(A) {
     <div id="sw-graf">${swapGraf(A)}</div>
     ${A._testBad && A._testBad.length ? `<p class="note" style="color:var(--warn)">Fora das cores do comandante, não dá para testar: ${esc(A._testBad.join(', '))}.</p>` : ''}
     <div id="sw-list">${SWAPS.map(renderSwapCard).join('')}</div>
-    <div class="row" style="margin-top:16px"><button class="btn primary" id="sw-apply">Aplicar as trocas marcadas e analisar de novo</button><button class="btn" id="sw-copy">Copiar a lista nova</button><button class="btn" id="sw-test">Testar na mesa simulada</button><span class="note" id="sw-msg"></span></div>
+    <div class="row" style="margin-top:16px"><button class="btn primary" id="sw-apply">Aplicar as trocas marcadas e analisar de novo</button><button class="btn" id="sw-copy">Copiar a lista nova</button><button class="btn" id="sw-test">Testar na mesa simulada</button><button class="btn" id="sw-vivo">Jogar ao vivo com as trocas</button><span class="note" id="sw-msg"></span></div>
   </section>`;
 }
 function refreshSum(A) { const sm = $('#sw-sum'); if (sm) sm.innerHTML = swapSum(A); const g = $('#sw-graf'); if (g) g.innerHTML = swapGraf(A); }
@@ -961,6 +961,7 @@ function wireSwaps(A) {
   $('#sw-apply').onclick = () => { const n = SWAP_ON.filter(Boolean).length; if (!n) { msg('Nenhuma troca marcada.'); return; } $('#deck-in').value = newList(A); run(A.cmds.map(c => c.name), 'resumo'); };
   const sec = box.closest('.panel');
   sec.addEventListener('click', (e) => { if (e.target.closest('[data-swtest]')) $('#sw-test').click(); });
+  $('#sw-vivo').onclick = () => { if (!SWAP_ON.some(Boolean)) { msg('Nenhuma troca marcada.'); return; } try { localStorage.setItem('raiox:vivoTrocas', '1'); } catch (e) {} window.RAIOX_VIVO_JA = true; location.hash = 'aovivo'; };
   $('#sw-test').onclick = () => { window.RAIOX_VOLTA = 'trocas'; location.hash = 'mesa'; setTimeout(() => { const b = $('#m-tro'); if (b && !b.disabled) b.click(); }, 60); };
 }
 

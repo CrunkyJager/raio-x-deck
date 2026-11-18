@@ -170,6 +170,8 @@ function modelo(r){
   if(m.sp){
     if(/destroy all nonartifact creatures/.test(low))m.wip={na:1};
     else if(/destroy all (?:creatures|nonland permanents|other creatures)|exile all (?:creatures|nonland permanents)|damage to each creature|all creatures get -\d+\/-\d+|each player sacrifices all creatures/.test(low))m.wip={na:0};
+    /* limpa-mesa parcial: "all creatures get -1/-1", "deals 2 damage to each creature": só morre quem tem resistência até N */
+    if(m.wip&&!/destroy all|exile all|sacrifices all/.test(low)){const q=low.match(/all creatures get -(\d+)\/-(\d+)|deals? (\d+) damage to each creature/);if(q)m.wip.n=+(q[2]||q[3]);}
     if(/costs \{1\} less to cast for each creature on the battlefield/.test(low))m.blas=1;
     if(/\bimprovise\b/.test(low))m.impv=1;
   }
