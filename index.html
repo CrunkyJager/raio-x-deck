@@ -386,6 +386,28 @@ dl.sw-why dd.cmp { color: var(--ink); border-left: 3px solid var(--accent); padd
 .c-txt { margin: 0; font-size: .98rem; line-height: 1.45; max-width: 30ch; }
 .c-vazio p { margin: 0; color: var(--ink-2); }
 .zoom-box.solo { grid-template-columns: minmax(0, 480px); justify-content: center; max-width: 520px; }
+
+/* mesa: os 3 oponentes lado a lado com o mesmo espaço, o lance numa faixa no meio, você embaixo */
+.feltro { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "left top right" "center center center" "me me me"; }
+.arena.n2 .feltro { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "center" "me"; }
+.seat.left .seat-in, .seat.top .seat-in, .seat.right .seat-in { min-height: 230px; }
+.centro { min-height: 0; }
+.c-ev, .c-vazio { grid-template-columns: auto minmax(0, 1fr); justify-items: start; align-items: center; text-align: left; gap: 6px 18px; max-width: 720px; margin: 0 auto; padding: 12px 18px; }
+.c-ev .c-k { grid-column: 2; align-self: end; }
+.c-ev .c-card { grid-row: 1 / span 2; width: 112px; }
+.c-ev .c-txt { grid-column: 2; align-self: start; max-width: 52ch; font-size: 1.02rem; }
+.c-ev:not(:has(.c-card)) { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+.c-ev:not(:has(.c-card)) .c-k, .c-ev:not(:has(.c-card)) .c-txt { grid-column: 1; }
+.c-vazio { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+@media (max-width: 900px) { .feltro { grid-template-columns: minmax(0, 1fr); grid-template-areas: "center" "top" "left" "right" "me"; } .seat.left .seat-in, .seat.top .seat-in, .seat.right .seat-in { min-height: 0; } }
+
+/* carta virada: ocupa um quadrado do tamanho da altura da carta, sem invadir as vizinhas */
+.mcw { position: relative; height: calc(var(--w) * 1.394); align-items: flex-end; }
+.mcw.tap { width: calc(var(--w) * 1.394); }
+.mcw.tap .mc { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(90deg); }
+.mcw.tap .mc.atk { transform: translate(-50%, calc(-50% - 8px)) rotate(90deg); }
+.mc.tap .mpt { transform: rotate(-90deg); right: auto; left: -8px; bottom: -4px; }
+.s-bf { gap: 10px 8px; }
 </style>
 </head>
 <body>
@@ -419,12 +441,12 @@ dl.sw-why dd.cmp { color: var(--ink); border-left: 3px solid var(--accent); padd
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611181754"></script>
-<script src="exemplos.js?v=202611181754"></script>
-<script src="papeis-ia.js?v=202611181754"></script>
-<script>window.RAIOX_V = "202611181754";</script>
-<script src="motor/engine.js?v=202611181754"></script>
-<script src="analise.js?v=202611181754"></script>
+<script src="cards-db.js?v=202611181800"></script>
+<script src="exemplos.js?v=202611181800"></script>
+<script src="papeis-ia.js?v=202611181800"></script>
+<script>window.RAIOX_V = "202611181800";</script>
+<script src="motor/engine.js?v=202611181800"></script>
+<script src="analise.js?v=202611181800"></script>
 
-<script src="mesa-ui.js?v=202611181754"></script>
+<script src="mesa-ui.js?v=202611181800"></script>
 </body></html>
