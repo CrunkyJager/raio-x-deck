@@ -151,8 +151,12 @@ async function testarTrocas() {
   }
   const Ops = opsEscolhidos(), N = Math.max(500, +store.get('n', 500));
   prog(0, 'Testando trocas');
-  const r = await roda('trocas', { Dv: limpo(D), Ops, pares, N, seed: 20261119, nOp: nOp() }, (fase, p) => prog(p, `${fase}: ${Math.round(p * pares.length)} de ${pares.length}`));
+  const r = await roda('trocas', { Dv: limpo(D), Ops, pares, N, seed: 20261119, nOp: nOp() }, (fase, p) => prog(p, `${fase}: ${Math.round(100 * p)}%`));
   RTROCAS = { r, N };
+  // a tela Trocas desenha os gráficos com este resultado (vale para este deck e estas trocas)
+  window.RAIOX_TESTE = { deck: A, N, nOp: nOp(), base: r.base, todas: r.todas, pares: r.pares.map(t => ({ out: t.nomeS, inn: t.nomeE, d: t.d, se: t.se, ok: t.ok, wr: t.wr, cSai: t.cSai, cEntra: t.cEntra })), testadas: pares.map(p => p.nomeS + '→' + p.nomeE) };
+  document.dispatchEvent(new CustomEvent('raiox:teste'));
+  if (window.RAIOX_VOLTA === 'trocas') { window.RAIOX_VOLTA = null; setTimeout(() => { location.hash = 'trocas'; }, 400); }
 }
 
 function resultado() {
@@ -194,13 +198,13 @@ function resultado() {
   </section>`;
 }
 function resTrocas() {
-  const { r, N } = RTROCAS;
+  const { N } = RTROCAS; const r = RTROCAS.r.pares || RTROCAS.r;
   if (!r.length) return `<section class="panel"><h2>Teste das trocas</h2><p>Nenhuma das trocas marcadas pôde ser testada (as cartas não foram achadas no deck montado).</p></section>`;
   const verd = (t) => t.ok ? ['ajuda', 'good'] : t.d < -1.5 * t.se ? ['piora', 'bad'] : ['empate', 'info'];
   return `<section class="panel answer"><h2>Teste das trocas</h2>
     <p class="lead">Cada troca jogou ${N.toLocaleString('pt-BR')} partidas com as mesmas cartas sorteadas que a lista atual, então a diferença vem da troca e não da sorte. "Ajuda" só quando o ganho passa de 1,5 vez o ruído.</p>
     <div class="tw"><table><thead><tr><th>Sai</th><th>Entra</th><th>Vitórias</th><th>Ruído</th><th>Resultado</th></tr></thead><tbody>${r.map(t => { const [v, k] = verd(t); return `<tr><td><button class="cn" data-card="${esc(t.nomeS)}">${esc(t.nomeS)}</button></td><td><button class="cn" data-card="${esc(t.nomeE)}">${esc(t.nomeE)}</button></td><td class="n"><b>${pts(t.d)}</b> ponto${Math.abs(t.d) >= 2 ? 's' : ''}</td><td class="n">±${fx(t.se)}</td><td><span class="sev s${k === 'good' ? 1 : k === 'bad' ? 3 : 2}" style="background:var(--${k})">${v}</span></td></tr>`; }).join('')}</tbody></table></div>
-    <p class="note">Uma troca que empata pode valer pelo conceito do deck ou pelo preço; uma que piora merece outra opção para entrar.</p></section>`;
+    <p class="note">Uma troca que empata pode valer pelo conceito do deck ou pelo preço; uma que piora merece outra opção para entrar. Os gráficos de cada troca aparecem na <a href="#trocas">aba Trocas</a>.</p></section>`;
 }
 
 // ---------- tela: Mesa ao vivo ----------

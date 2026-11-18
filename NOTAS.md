@@ -22,6 +22,14 @@ Tudo roda no navegador (HTML + JS, sem servidor). Base de ideias: Grimório Aren
 - No topo das trocas, blocos com preço antes → depois, bracket e game changers; atualizam ao marcar/desmarcar.
 - `isTutor()`: busca de terreno (Rampant Growth, Kodama) não conta mais como tutor. Isso corrigiu o bracket estimado (o Stangg de exemplo caiu de 3 para 2).
 
+## Gráficos das trocas (18/11/2026, antiga pendência 6)
+Na linguagem do Grimório Arena (KPI, trilho com tracinho da média, colunas, réguas), com as cores do nosso tema. CSS no bloco "trocas: gráficos no estilo do Grimório Arena", no fim do `<style>`.
+- Topo das trocas (`swapSum`, `#sw-sum`): KPIs com antes → depois e destaque verde/vermelho — vitórias na mesa simulada, preço, bracket, game changers. A vitória só aparece "depois" se o último teste foi feito com exatamente as trocas marcadas agora; senão pede para testar de novo.
+- `swapGraf` (`#sw-graf`): réguas das funções (faixa normal, bolinha vazia = hoje, dourada = com as trocas) e curva de mana sobreposta (tracejado = hoje, dourado = depois). O "depois" sai de `analyze(newList(A))`; atualiza ao marcar/desmarcar.
+- Em cada troca (`swapNums`, `.sw-num`): "Na mesa simulada" (trilho de vitória quando a carta sai × quando a que entra aparece, tracinho dourado na média do deck, nº de partidas), "No bolso" (barra para a esquerda = economiza, direita = soma, na escala da maior troca) e "Nas funções" (+1/−1 por função e custo).
+- O motor (`testaTrocas` em `motor/mesa.js`) agora devolve `{ base, pares, todas }`: taxa de vitória da lista atual, de cada troca (com `cSai`/`cEntra`: vitórias nas partidas em que a carta apareceu) e de todas as trocas juntas. `mesa-ui.js` guarda em `window.RAIOX_TESTE` (preso ao objeto do deck) e dispara `raiox:teste`; a aba Trocas redesenha. Testar a partir da aba Trocas volta para ela no fim.
+- `motor/worker.js` passa o `?v=` para `engine.js` e `mesa.js` (antes o navegador podia rodar um motor velho do cache).
+
 ## Visual
 Desde 18/11/2026, a mesma linguagem do **mapa visual** do Mapa do Sistema SAC (artefato do usuário): quadro azul-noite com grade de pontos e brilho no topo, núcleo com anel em arco-íris no cabeçalho, abas em pílula (a aberta acende no degradê da cor da tela), destaque dourado `#ffc23d` nos botões principais, painéis escuros com filete grosso na cor da tela e uma bolinha brilhante antes do título.
 - Fontes: Chakra Petch (títulos), IBM Plex Sans (texto), IBM Plex Mono (números e sobretítulos). Ícones: Material Symbols Rounded (só os nomes listados em `icon_names` no `<link>`; ícone novo precisa entrar lá).
@@ -39,17 +47,6 @@ Desde 18/11/2026, a mesma linguagem do **mapa visual** do Mapa do Sistema SAC (a
 
 5. Ideia: usar preço da LigaMagic em vez de converter o do Scryfall (precisa de uma fonte de dados; não há API aberta).
 
-6. **Gráficos na tela Trocas, no estilo do Grimório Arena** (pedido do usuário em 18/11). Grimório: https://claude.ai/artifact/U3oRFYTQ9HamgmsbcqfZdN (compartilhado com o usuário; 2.916 linhas; os dados `cards.json`, `decks.json`, `names.tsv`, `alias.json`, `pt.json` também estão nele, ver pendência 1). O que o Grimório usa na análise:
-   - KPIs (`.kpi`, `.kpi.destaque.bom/.ruim`): número grande, verde se melhora e vermelho se piora.
-   - Linha por carta (`.vs-l`: nome · trilho · % · n): barra `.trilho i.bom/.ruim` com o resultado da carta e tracinho dourado `.ref` na média do deck.
-   - Curva em colunas douradas (`.curva .col i`) e barras de cor com duas faixas (`.barras2 .s` símbolos / `.f` fontes).
-   - Tabela `.tab` com cabeçalho mono.
-   Plano para o Raio-X (mesma linguagem, cores do nosso tema):
-   a) No topo das trocas: KPIs de taxa de vitória antes → depois (do teste pareado da Mesa simulada, que já existe em `mesa-ui.js`), preço antes → depois e bracket.
-   b) Em cada troca: mini-gráfico "sai × entra" com a barra de vitória de cada carta e o tracinho da média.
-   c) Réguas das funções com dois marcadores (hoje e com as trocas marcadas) e curva de mana antes × depois sobrepostas.
-   d) Barra de preço por troca (quanto soma ou economiza em R$).
-   Antes de começar, ler a parte de trocas/análise do Grimório (procurar `vs-l`, `kpi` e `trilho` no index.html dele) para copiar o layout.
 
 ## Como testar
 `python3 -m http.server` na pasta e abrir `http://localhost:8000`. Clicar num deck de exemplo, passar pelas abas, jogar na Mesa simulada (200 partidas) e uma partida na Mesa ao vivo.

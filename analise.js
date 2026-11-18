@@ -829,31 +829,110 @@ function renderSwapCard(s, i) {
   return `<div class="swapcard${SWAP_ON[i] ? '' : ' off'}" data-sw="${i}">
     <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><button class="btn small" style="margin-left:auto" data-lockout="${esc(s.out)}" title="Trava a carta que sai e refaz as trocas">Não tirar ${esc(s.out)}</button><label class="field" style="margin:0"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
     <div class="pair">${swapBox(s.out, 'SAI')}${swapBox(s.inn, 'ENTRA')}</div>
+    ${swapNums(LAST, s)}
     <dl class="sw-why"><dt>Por que sai</dt><dd>${esc(s.whyOut)}.</dd><dt>Por que entra</dt><dd>${esc(s.whyIn)}</dd><dt>Na prática</dt><dd class="cmp">${esc(compareText(LAST, s))}</dd></dl>
     ${s.alts.length ? `<div class="alt"><span class="note">Prefere outra para entrar?</span><div class="links">${s.alts.map(n => `<button class="cn" data-altin="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
     ${s.altsOut.length ? `<div class="alt"><span class="note">Ou tirar outra no lugar:</span><div class="links">${s.altsOut.map(n => `<button class="cn" data-altout="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
   </div>`;
+}
+// ---------- gráficos das trocas (linguagem do Grimório Arena: KPI, trilho com a média, colunas, réguas) ----------
+const pctTxt = (v) => (v == null ? '—' : (100 * v).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%');
+const ptsTxt = (d) => (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+const swKey = (s) => s.out + '→' + s.inn;
+function teste() { const T = window.RAIOX_TESTE; return T && T.deck === LAST ? T : null; }
+function testeDe(s) { const T = teste(); return T ? T.pares.find(t => t.out === s.out && t.inn === s.inn) || null : null; }
+function onKeys() { return SWAPS.filter((s, i) => SWAP_ON[i]).map(swKey).sort().join('|'); }
+function kpi(rot, antes, depois, nota, tom) {
+  const mudou = depois != null && depois !== antes;
+  return `<div class="kpi${tom ? ' destaque ' + tom : ''}"><span class="k">${rot}</span><b>${mudou ? `<span class="de">${antes}</span><span class="seta">→</span>${depois}` : antes}</b><small>${nota}</small></div>`;
 }
 function swapSum(A) {
   let p = A.price, gc = A.gc.length;
   SWAPS.forEach((s, i) => { if (!SWAP_ON[i]) return; const a = C(s.inn) || {}, b = C(s.out) || {}; p += (a.usd || 0) - (b.usd || 0); gc += (a.gc ? 1 : 0) - (b.gc ? 1 : 0); });
   const tgt = +CONC.br, teto = +CONC.teto;
   const passou = teto > 0 && p * USD_BRL > teto + 0.5;
-  return `<div class="stat price"><span class="k">Preço do deck</span><b>${brl(A.price)} <span class="seta">→</span> ${brl(p)}</b><small>${teto > 0 ? (passou ? `ainda acima do teto de R$ ${teto.toLocaleString('pt-BR')}: marque mais trocas de preço ou aumente o teto` : `dentro do teto de R$ ${teto.toLocaleString('pt-BR')}`) : 'com as trocas marcadas'}</small></div>
-    <div class="stat"><span class="k">Bracket</span><b>${A.bracket}${tgt && tgt !== A.bracket ? ` <span class="seta">→</span> ${tgt}` : ''}</b><small>${tgt ? 'alvo que você escolheu' : 'estimado pela lista'}</small></div>
-    <div class="stat"><span class="k">Game changers</span><b>${A.gc.length}${gc !== A.gc.length ? ` <span class="seta">→</span> ${gc}` : ''}</b><small>${A._gcMax === 0 ? `o Bracket ${A._tgt} não aceita nenhuma` : A._gcMax === 3 ? 'o Bracket 3 aceita até 3' : 'o Bracket 4 não tem limite'}</small></div>`;
+  const dP = (p - A.price) * USD_BRL;
+  const precoNota = teto > 0 ? (passou ? `ainda acima do teto de R$ ${teto.toLocaleString('pt-BR')}` : `dentro do teto de R$ ${teto.toLocaleString('pt-BR')}`) : Math.abs(dP) < 1 ? 'as trocas quase não mudam o preço' : dP < 0 ? `economiza R$ ${Math.round(-dP).toLocaleString('pt-BR')}` : `soma R$ ${Math.round(dP).toLocaleString('pt-BR')}`;
+  const precoTom = passou ? 'ruim' : Math.abs(dP) < 1 ? '' : dP < 0 ? 'bom' : (teto > 0 ? '' : 'ruim');
+  // vitórias: do teste pareado da Mesa simulada, se ele foi feito com as trocas marcadas agora
+  const T = teste(); let vit;
+  if (!T) vit = `<div class="kpi vazio"><span class="k">Vitórias na mesa simulada</span><b>—</b><small>Ainda sem teste. <button class="btn small" data-swtest>Testar as trocas marcadas</button></small></div>`;
+  else {
+    const igual = T.testadas.slice().sort().join('|') === onKeys();
+    if (T.todas && igual) { const t = T.todas, sig = Math.abs(t.d) > 1.5 * t.se; vit = kpi('Vitórias na mesa simulada', pctTxt(T.base), pctTxt(t.wr), `${ptsTxt(t.d)} pontos (ruído ±${t.se.toFixed(1).replace('.', ',')}) em ${T.N.toLocaleString('pt-BR')} partidas`, sig ? (t.d > 0 ? 'bom' : 'ruim') : ''); }
+    else vit = kpi('Vitórias na mesa simulada', pctTxt(T.base), null, `com a lista atual. O teste foi feito com outras trocas marcadas: <button class="btn small" data-swtest>Testar de novo</button>`, '');
+  }
+  const brTom = tgt && tgt !== A.bracket ? 'bom' : '';
+  const gcTom = gc > A._gcMax ? 'ruim' : gc !== A.gc.length ? 'bom' : '';
+  return vit
+    + kpi('Preço do deck', brlTxt(A.price), Math.abs(dP) >= 1 ? brlTxt(p) : null, precoNota, precoTom)
+    + kpi('Bracket', String(A.bracket), tgt && tgt !== A.bracket ? String(tgt) : null, tgt ? 'alvo que você escolheu' : 'estimado pela lista', brTom)
+    + kpi('Game changers', String(A.gc.length), gc !== A.gc.length ? String(gc) : null, A._gcMax === 0 ? `o Bracket ${A._tgt} não aceita nenhuma` : A._gcMax === 3 ? 'o Bracket 3 aceita até 3' : 'o Bracket 4 não tem limite', gcTom);
+}
+// funções e curva: hoje × com as trocas marcadas
+function swapGraf(A) {
+  const n = SWAP_ON.filter(Boolean).length;
+  const B = n ? analyze(newList(A), A.cmds.map(c => c.name)) : A;
+  const reguas = A.refs.map(r => {
+    const r2 = (B.refs || []).find(x => x.k === r.k) || r;
+    const max = Math.max(r.hi * 1.35, r.have, r2.have) + 1, x = (v) => (100 * v / max).toFixed(1) + '%';
+    const mudou = r2.have !== r.have, dentro = (v) => v >= r.lo && v <= r.hi;
+    const tom = !mudou ? '' : dentro(r2.have) && !dentro(r.have) ? 'bom' : !dentro(r2.have) && dentro(r.have) ? 'ruim' : Math.abs(r2.have - (r.lo + r.hi) / 2) < Math.abs(r.have - (r.lo + r.hi) / 2) ? 'bom' : 'ruim';
+    return `<div class="rg${mudou ? '' : ' igual'}"><span class="rg-n">${esc(r.n)}</span>
+      <span class="rg-t" title="Faixa comum: ${r.lo}–${r.hi}"><span class="rg-band" style="left:${x(r.lo)};width:calc(${x(r.hi)} - ${x(r.lo)})"></span><i class="rg-hoje" style="left:${x(r.have)}"></i>${mudou ? `<i class="rg-dep ${tom}" style="left:${x(r2.have)}"></i>` : ''}</span>
+      <span class="rg-v">${fmt(r.have)}${mudou ? ` <span class="seta">→</span> <b class="${tom}">${fmt(r2.have)}</b>` : ''}</span></div>`;
+  }).join('');
+  const cmax = Math.max(1, ...A.curve, ...B.curve);
+  const curva = A.curve.map((q, v) => { const q2 = B.curve[v], d = q2 - q; return `<div class="col" title="Custo ${v}${v === 7 ? '+' : ''}: ${q} hoje${d ? `, ${q2} com as trocas` : ''}"><span class="col-q">${q2}${d ? `<small class="${d > 0 ? 'mais' : 'menos'}">${d > 0 ? '+' : '−'}${Math.abs(d)}</small>` : ''}</span><span class="col-b"><i class="antes" style="height:${(100 * q / cmax).toFixed(1)}%"></i><i class="dep" style="height:${(100 * q2 / cmax).toFixed(1)}%"></i></span><span class="col-l">${v}${v === 7 ? '+' : ''}</span></div>`; }).join('');
+  const mv = B.avgMV - A.avgMV;
+  return `<div class="graf2">
+    <div class="gbox"><h3>Funções: hoje × com as trocas</h3><p class="note">A faixa clara é o normal para Commander. <span class="lg-hoje"></span> hoje · <span class="lg-dep"></span> com as ${n} troca${n === 1 ? '' : 's'} marcada${n === 1 ? '' : 's'}.</p><div class="reguas">${reguas}</div></div>
+    <div class="gbox"><h3>Curva de mana</h3><p class="note"><span class="lg-antes"></span> hoje · <span class="lg-dep"></span> com as trocas. Custo médio ${A.avgMV.toFixed(2).replace('.', ',')}${Math.abs(mv) >= 0.005 ? ` <span class="seta">→</span> <b>${B.avgMV.toFixed(2).replace('.', ',')}</b>` : ''}.</p><div class="curva2">${curva}</div></div>
+  </div>`;
+}
+// em cada troca: sai × entra na mesa, no bolso e nas funções
+function swapNums(A, s) {
+  const o = C(s.out), n = C(s.inn); if (!o || !n) return '';
+  const t = testeDe(s), T = teste();
+  let mesa;
+  if (t && T) {
+    const ref = T.base, linhas = [[s.out, t.cSai, 'sai'], [s.inn, t.cEntra, 'entra']];
+    const max = Math.max(0.05, ref * 2, ...linhas.map(l => (l[1].wr || 0) * 1.15));
+    mesa = linhas.map(([nm, c, k]) => `<div class="vs-l"><span class="vs-n ${k}">${esc(nm)}</span><span class="trilho">${c.wr != null ? `<i class="${c.wr >= ref ? 'bom' : 'ruim'}" style="width:${(100 * c.wr / max).toFixed(1)}%"></i>` : ''}<span class="ref" style="left:${(100 * ref / max).toFixed(1)}%" title="Média do deck: ${pctTxt(ref)}"></span></span><span class="vs-p">${pctTxt(c.wr)}</span><span class="vs-j" title="partidas em que a carta apareceu">${c.j}</span></div>`).join('')
+      + `<p class="note vs-r">Vence quando a carta aparece; o tracinho dourado é a média do deck (${pctTxt(ref)}). A troca: <b class="${t.ok ? 'bom' : t.d < -1.5 * t.se ? 'ruim' : ''}">${ptsTxt(t.d)} pontos</b> (±${t.se.toFixed(1).replace('.', ',')}).</p>`;
+  } else mesa = `<p class="note">${T ? 'Esta troca não estava marcada (ou mudou de carta) no último teste.' : 'Ainda sem teste.'} <button class="btn small" data-swtest>Testar na mesa simulada</button></p>`;
+  // preço: barra que vai para a esquerda (economiza) ou para a direita (soma), na escala da maior troca
+  const dv = ((n.usd || 0) - (o.usd || 0)) * USD_BRL;
+  const escala = Math.max(5, ...SWAPS.map(x => Math.abs(((C(x.inn) || {}).usd || 0) - ((C(x.out) || {}).usd || 0)) * USD_BRL));
+  const w = Math.min(50, 50 * Math.abs(dv) / escala).toFixed(1);
+  const bolso = `<div class="pbar"><span class="pb-t"><i class="${dv < 0 ? 'eco' : 'soma'}" style="${dv < 0 ? `right:50%` : `left:50%`};width:${w}%"></i><span class="pb-0"></span></span><span class="pb-v ${Math.abs(dv) < 0.5 ? '' : dv < 0 ? 'bom' : 'ruim'}">${Math.abs(dv) < 0.5 ? 'mesmo preço' : (dv < 0 ? 'economiza ' : 'soma ') + 'R$ ' + Math.abs(dv).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div><p class="note">${brlTxt(o.usd, 1)} <span class="seta">→</span> ${brlTxt(n.usd, 1)}</p>`;
+  // funções: o que ganha e o que perde
+  const ks = new Set(A.refs.map(r => r.k)), ro = rolesOf(o), rn = rolesOf(n);
+  const fun = [...ks].map(k => { const d = (rn.has(k) ? 1 : 0) - (ro.has(k) ? 1 : 0) + (k === 'lands' ? (isLand(n) ? 1 : 0) - (isLand(o) ? 1 : 0) : 0); return d ? `<span class="fx ${d > 0 ? 'mais' : 'menos'}">${d > 0 ? '+' : '−'}1 ${esc(A.refs.find(r => r.k === k).n.toLowerCase())}</span>` : ''; }).join('');
+  const mv = !isLand(n) && !isLand(o) && n.v !== o.v ? `<span class="fx ${n.v < o.v ? 'mais' : 'menos'}">custo ${o.v} → ${n.v}</span>` : '';
+  return `<div class="sw-num">
+    <div><span class="eyebrow">Na mesa simulada</span>${mesa}</div>
+    <div><span class="eyebrow">No bolso</span>${bolso}</div>
+    <div><span class="eyebrow">Nas funções</span><div class="fxs">${fun + mv || '<span class="note">Mesmas funções medidas.</span>'}</div></div>
+  </div>`;
 }
 function renderSwaps(A) {
   SWAPS = buildSwaps(A); SWAP_ON = SWAPS.map(() => true);
   if (!SWAPS.length) return `<section class="panel"><h2>Trocas sugeridas</h2><p>Nenhuma troca óbvia pela lista: as funções estão nas faixas, a base de mana cobre as cores e não sobraram cartas sem papel. Para afinar daqui, use a <a href="#mesa">mesa simulada</a>, que mede carta por carta.</p></section>`;
   return `<section class="panel"><h2>Trocas sugeridas</h2>
     <p class="lead">Cada troca é um par: a carta que menos contribui sai, e entra uma das mais jogadas nas suas cores para o buraco apontado no resumo. A lista final continua com 100 cartas. Desmarque o que não quiser, troque a carta que entra pelas outras opções e clique em qualquer nome para ler a carta.</p>
-    <div class="stats sw-sum" id="sw-sum">${swapSum(A)}</div>
+    <div class="kpis sw-sum" id="sw-sum">${swapSum(A)}</div>
+    <div id="sw-graf">${swapGraf(A)}</div>
     ${A._testBad && A._testBad.length ? `<p class="note" style="color:var(--warn)">Fora das cores do comandante, não dá para testar: ${esc(A._testBad.join(', '))}.</p>` : ''}
     <div id="sw-list">${SWAPS.map(renderSwapCard).join('')}</div>
     <div class="row" style="margin-top:16px"><button class="btn primary" id="sw-apply">Aplicar as trocas marcadas e analisar de novo</button><button class="btn" id="sw-copy">Copiar a lista nova</button><button class="btn" id="sw-test">Testar na mesa simulada</button><span class="note" id="sw-msg"></span></div>
   </section>`;
 }
+function refreshSum(A) { const sm = $('#sw-sum'); if (sm) sm.innerHTML = swapSum(A); const g = $('#sw-graf'); if (g) g.innerHTML = swapGraf(A); }
+document.addEventListener('raiox:teste', () => {
+  const A = LAST; if (!A || !$('#sw-list')) return; refreshSum(A);
+  SWAPS.forEach((s, i) => { const el = $(`[data-sw="${i}"] .sw-num`); if (el) el.outerHTML = swapNums(A, s); });
+});
 function swapImgs(root) { $$('[data-swimg]', root).forEach(el => imgFor(el.dataset.swimg).then(src => { el.innerHTML = src ? `<img src="${src}" alt="${esc(el.dataset.swimg)}">` : '<span class="note" style="padding:8px;text-align:center">sem imagem</span>'; })); }
 function newList(A) {
   const swapped = {}; SWAPS.forEach((s, i) => { if (SWAP_ON[i]) swapped[s.out] = s.inn; });
@@ -865,8 +944,8 @@ function newList(A) {
 function wireSwaps(A) {
   const box = $('#sw-list'); if (!box) return;
   swapImgs(box);
-  const redraw = (i) => { const el = $(`[data-sw="${i}"]`); el.outerHTML = renderSwapCard(SWAPS[i], i); swapImgs($(`[data-sw="${i}"]`)); const sm = $('#sw-sum'); if (sm) sm.innerHTML = swapSum(A); };
-  box.addEventListener('change', (e) => { const i = e.target.dataset.swon; if (i == null) return; SWAP_ON[+i] = e.target.checked; e.target.closest('.swapcard').classList.toggle('off', !e.target.checked); const sm = $('#sw-sum'); if (sm) sm.innerHTML = swapSum(A); });
+  const redraw = (i) => { const el = $(`[data-sw="${i}"]`); el.outerHTML = renderSwapCard(SWAPS[i], i); swapImgs($(`[data-sw="${i}"]`)); refreshSum(A); };
+  box.addEventListener('change', (e) => { const i = e.target.dataset.swon; if (i == null) return; SWAP_ON[+i] = e.target.checked; e.target.closest('.swapcard').classList.toggle('off', !e.target.checked); refreshSum(A); });
   box.addEventListener('click', (e) => {
     const lk = e.target.closest('[data-lockout]');
     if (lk) { e.stopPropagation(); CONC.lock = (CONC.lock ? CONC.lock.replace(/\s+$/, '') + '\n' : '') + lk.dataset.lockout; saveConcept(A); rerenderTrocas(A); return; }
@@ -877,7 +956,9 @@ function wireSwaps(A) {
   const msg = (t) => { $('#sw-msg').textContent = t; };
   $('#sw-copy').onclick = async () => { try { await navigator.clipboard.writeText(newList(A)); msg('Lista copiada. Cole no Moxfield ou no Archidekt.'); } catch (e) { $('#deck-in').value = newList(A); msg('Não deu para copiar daqui; a lista nova foi para a caixa da aba Lista.'); } };
   $('#sw-apply').onclick = () => { const n = SWAP_ON.filter(Boolean).length; if (!n) { msg('Nenhuma troca marcada.'); return; } $('#deck-in').value = newList(A); run(A.cmds.map(c => c.name), 'resumo'); };
-  $('#sw-test').onclick = () => { location.hash = 'mesa'; setTimeout(() => { const b = $('#m-tro'); if (b && !b.disabled) b.click(); }, 60); };
+  const sec = box.closest('.panel');
+  sec.addEventListener('click', (e) => { if (e.target.closest('[data-swtest]')) $('#sw-test').click(); });
+  $('#sw-test').onclick = () => { window.RAIOX_VOLTA = 'trocas'; location.hash = 'mesa'; setTimeout(() => { const b = $('#m-tro'); if (b && !b.disabled) b.click(); }, 60); };
 }
 
 // ---------- telas ----------

@@ -577,6 +577,83 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 .sw-sum { margin: 4px 0 6px; }
 .sw-sum .stat b { font-size: 1.5rem; } .sw-sum .stat.price b { font-size: 1.9rem; }
 .seta { color: var(--ink-3); font-weight: 500; margin: 0 2px; }
+
+/* ================= trocas: gráficos no estilo do Grimório Arena (18/11/2026) =================
+   KPI com antes → depois (verde melhora, vermelho piora), réguas das funções com dois marcadores,
+   curva antes × depois sobreposta, e em cada troca: trilho sai × entra com o tracinho da média, barra de preço. */
+.bom { color: var(--good); } .ruim { color: var(--bad); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin: 20px 0 8px; }
+.kpi { display: grid; gap: 6px; align-content: start; padding: 16px 18px; border-radius: 14px; background: var(--felt-3); border: 1px solid var(--line); border-left: 5px solid var(--line); }
+.kpi .k { font: 500 .72rem/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.kpi b { font: 700 1.9rem/1.1 var(--display); color: var(--ink); display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px; }
+.kpi b .de { font-size: 1.15rem; color: var(--ink-3); font-weight: 600; }
+.kpi small { font-size: .84rem; color: var(--ink-3); line-height: 1.45; }
+.kpi small .btn { margin-top: 6px; }
+.kpi.destaque.bom { border-left-color: var(--good); background: linear-gradient(150deg, color-mix(in srgb, var(--good) 14%, transparent), var(--felt-3) 70%); }
+.kpi.destaque.bom b { color: var(--good); }
+.kpi.destaque.ruim { border-left-color: var(--bad); background: linear-gradient(150deg, color-mix(in srgb, var(--bad) 14%, transparent), var(--felt-3) 70%); }
+.kpi.destaque.ruim b { color: var(--bad); }
+.kpi.vazio b { color: var(--ink-3); }
+
+.graf2 { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 18px; margin: 18px 0 8px; }
+@media (max-width: 860px) { .graf2 { grid-template-columns: minmax(0, 1fr); } }
+.gbox { padding: 18px 20px 20px; border-radius: 16px; background: rgb(15 18 32 / .6); border: 1px solid var(--line); min-width: 0; }
+.gbox h3 { margin: 0 0 4px !important; font-size: 1.05rem; }
+.gbox > .note { margin: 0 0 14px; }
+.lg-hoje, .lg-dep, .lg-antes { display: inline-block; vertical-align: middle; width: 10px; height: 10px; border-radius: 3px; margin: 0 2px 0 6px; }
+.lg-hoje { background: transparent; border: 2px solid var(--ink-2); border-radius: 50%; }
+.lg-dep { background: var(--accent); }
+.lg-antes { background: transparent; border: 1.5px dashed var(--ink-3); }
+
+.reguas { display: grid; gap: 12px; }
+.rg { display: grid; grid-template-columns: minmax(110px, 150px) minmax(0, 1fr) 84px; gap: 12px; align-items: center; }
+.rg-n { font-size: .9rem; color: var(--ink-2); }
+.rg.igual .rg-n, .rg.igual .rg-v { color: var(--ink-3); }
+.rg-t { position: relative; height: 10px; border-radius: 99px; background: var(--felt-3); }
+.rg-band { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: color-mix(in srgb, var(--good) 28%, transparent); }
+.rg-t i { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); }
+.rg-hoje { border: 2px solid var(--ink-2); background: var(--felt-2); }
+.rg-dep { background: var(--accent); box-shadow: 0 0 0 3px rgb(255 194 61 / .22), 0 0 12px rgb(255 194 61 / .5); }
+.rg-dep.ruim { background: var(--bad); box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 25%, transparent); }
+.rg-v { font: 500 .86rem/1 var(--mono); color: var(--ink-2); text-align: right; white-space: nowrap; }
+@media (max-width: 500px) { .rg { grid-template-columns: minmax(0, 1fr) 76px; } .rg-t { grid-column: 1 / -1; grid-row: 2; } }
+
+.curva2 { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; align-items: end; height: 190px; }
+.curva2 .col { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; gap: 6px; text-align: center; }
+.col-q { font: 600 .9rem/1 var(--mono); color: var(--ink); display: grid; gap: 2px; }
+.col-q small { font-size: .7rem; } .col-q .mais { color: var(--accent-2); } .col-q .menos { color: var(--ink-3); }
+.col-b { position: relative; }
+.col-b i { position: absolute; bottom: 0; border-radius: 5px 5px 2px 2px; }
+.col-b .antes { left: 0; right: 0; border: 1.5px dashed var(--ink-3); border-bottom: 0; background: rgb(255 255 255 / .03); }
+.col-b .dep { left: 22%; right: 22%; background: linear-gradient(180deg, var(--accent-2), #d9961a); box-shadow: 0 0 14px rgb(255 194 61 / .25); }
+.col-l { font: 500 .78rem/1 var(--mono); color: var(--ink-3); }
+
+.sw-num { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 18px 22px; margin: 18px 0 0; padding: 16px 18px; border-radius: 14px; background: rgb(15 18 32 / .55); border: 1px solid var(--line); }
+@media (max-width: 860px) { .sw-num { grid-template-columns: minmax(0, 1fr); } }
+.sw-num .eyebrow { display: block; margin-bottom: 10px; }
+.sw-num > div > .note { margin: 8px 0 0; }
+.swapcard.off .sw-num { opacity: .4; }
+.vs-l { display: grid; grid-template-columns: minmax(80px, 170px) minmax(0, 1fr) 42px 40px; gap: 10px; align-items: center; margin-bottom: 8px; }
+.vs-n { font-size: .88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 10px; position: relative; }
+.vs-n::before { content: ""; position: absolute; left: 0; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; }
+.vs-n.sai::before { background: var(--crit); } .vs-n.entra::before { background: var(--good); }
+.trilho { position: relative; height: 10px; border-radius: 99px; background: var(--felt-3); }
+.trilho i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
+.trilho i.bom { background: var(--good); } .trilho i.ruim { background: var(--bad); }
+.trilho .ref { position: absolute; top: -4px; width: 3px; height: 18px; margin-left: -1.5px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 8px rgb(255 194 61 / .6); }
+.vs-p { font: 600 .88rem/1 var(--mono); text-align: right; }
+.vs-j { font: 500 .76rem/1 var(--mono); color: var(--ink-3); text-align: right; }
+.vs-r { margin-top: 10px !important; }
+.pbar { display: grid; gap: 8px; }
+.pb-t { position: relative; height: 12px; border-radius: 99px; background: var(--felt-3); }
+.pb-t i { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
+.pb-t i.eco { background: var(--good); } .pb-t i.soma { background: var(--bad); }
+.pb-0 { position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--ink-3); }
+.pb-v { font: 600 .95rem/1.2 var(--mono); }
+.fxs { display: flex; flex-wrap: wrap; gap: 6px; }
+.fx { font: 500 .8rem/1 var(--mono); padding: 5px 10px; border-radius: 99px; background: var(--felt-3); border: 1px solid var(--line); }
+.fx.mais { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); }
+.fx.menos { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
 </style>
 </head>
 <body>
@@ -613,14 +690,14 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611182040"></script>
-<script src="exemplos.js?v=202611182040"></script>
-<script src="papeis-ia.js?v=202611182040"></script>
-<script>window.RAIOX_V = "202611182040";</script>
-<script src="motor/engine.js?v=202611182040"></script>
-<script src="analise.js?v=202611182040"></script>
+<script src="cards-db.js?v=202611182130"></script>
+<script src="exemplos.js?v=202611182130"></script>
+<script src="papeis-ia.js?v=202611182130"></script>
+<script>window.RAIOX_V = "202611182130";</script>
+<script src="motor/engine.js?v=202611182130"></script>
+<script src="analise.js?v=202611182130"></script>
 
-<script src="mesa-ui.js?v=202611182040"></script>
+<script src="mesa-ui.js?v=202611182130"></script>
 <script>
 /* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
 (function () { const b = document.body; b.classList.add('icwait'); let feito = false;

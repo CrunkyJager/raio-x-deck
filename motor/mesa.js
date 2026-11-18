@@ -473,13 +473,21 @@ function hist(v){const o={};for(const x of v)o[x]=(o[x]||0)+1;return o;}
 
 /* troca pareada: mesmas sementes, 1 carta trocada */
 function testaTrocas(Dv,Ops,pares,N,seed,prog,nOp){
-  const base=torneio(Dv,Ops,N,seed,null,nOp).map(r=>r.venc===0?1:0);
+  /* Raio-X: devolve tambem a taxa de vitoria antes/depois (todas as trocas juntas) e o resultado de cada carta (sai na lista atual, entra na lista trocada) */
+  const passos=pares.length+(pares.length>1?1:0)+1;let feito=0;const pg=()=>{if(prog)prog('Testando trocas',++feito/passos);};
+  const vit=Q=>Q.map(r=>r.venc===0?1:0),taxa=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
+  const quandoViu=(Q,i)=>{let j=0,v=0;for(const r of Q)if(r.P[0].st.viu.includes(i)){j++;if(r.venc===0)v++;}return{j,wr:j?v/j:null};};
+  const Qb=torneio(Dv,Ops,N,seed,null,nOp),base=vit(Qb);pg();
   const out=[];
-  pares.forEach((pr,k)=>{if(prog)prog('Testando trocas',k/pares.length);
-    const b=Dv.base.slice(),j=b.indexOf(pr.sai);if(j<0)return;b[j]=pr.entra;
-    const D2={...Dv,base:b};const q=torneio(D2,Ops,N,seed,null,nOp).map(r=>r.venc===0?1:0);
-    const d=dif(base,q);out.push({...pr,d:d.d,se:d.se,ok:d.d>1.5*d.se});});
-  return out;
+  pares.forEach(pr=>{
+    const b=Dv.base.slice(),j=b.indexOf(pr.sai);if(j<0){pg();return;}b[j]=pr.entra;
+    const Q2=torneio({...Dv,base:b},Ops,N,seed,null,nOp),q=vit(Q2);const d=dif(base,q);
+    out.push({...pr,d:d.d,se:d.se,ok:d.d>1.5*d.se,wr:taxa(q),cSai:quandoViu(Qb,pr.sai),cEntra:quandoViu(Q2,pr.entra)});pg();});
+  let todas=null;
+  if(out.length===1)todas={wr:out[0].wr,d:out[0].d,se:out[0].se};
+  else if(out.length>1){let b=Dv.base.slice();for(const pr of out){const j=b.indexOf(pr.sai);if(j>=0)b[j]=pr.entra;}
+    const q=vit(torneio({...Dv,base:b},Ops,N,seed,null,nOp));const d=dif(base,q);todas={wr:taxa(q),d:d.d,se:d.se};pg();}
+  return{base:taxa(base),pares:out,todas};
 }
 
 /* estudo de trocas no formato do PDF: valor de cada carta, grade fracas x candidatas, confirmacao por tipo de mesa */
