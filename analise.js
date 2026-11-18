@@ -329,7 +329,13 @@ function render(A) {
   return `
   <div class="screen" data-s="resumo">
   <section class="head panel">
-    <div class="who"><div class="cmdname">${cmdNames.map(esc).join(' + ') || 'Comandante não encontrado'}</div><div class="ident">${identHTML}<span class="note">${A.total} cartas · custo médio <span class="num">${A.avgMV.toFixed(2)}</span> · ${A.lands} terrenos${A.mdfc ? ` + ${A.mdfc} de duas faces` : ''} · cerca de US$ <span class="num">${Math.round(A.price)}</span></span></div>
+    <div class="who"><div class="cmdname">${cmdNames.map(esc).join(' + ') || 'Comandante não encontrado'}</div><div class="ident">${identHTML}</div>
+      <div class="stats">
+        <div class="stat price"><span class="k">Preço do deck</span><b>US$ ${Math.round(A.price).toLocaleString('pt-BR')}</b>${A.pricey && A.pricey.length ? `<small>Mais caras: ${A.pricey.slice(0, 3).map(c => `${esc(c.name)} (US$ ${c.usd.toFixed(0)})`).join(' · ')}</small>` : '<small>estimativa pelo Scryfall</small>'}</div>
+        <div class="stat"><span class="k">Cartas</span><b>${A.total}</b></div>
+        <div class="stat"><span class="k">Custo médio</span><b>${A.avgMV.toFixed(2)}</b></div>
+        <div class="stat"><span class="k">Terrenos</span><b>${A.lands}</b>${A.mdfc ? `<small>+ ${A.mdfc} de duas faces</small>` : ''}</div>
+      </div>
       ${A.legendCandidates.length > 1 ? `<label class="field">Trocar comandante <select id="cmd-pick">${A.legendCandidates.map(n => `<option ${cmdNames.includes(n) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>` : ''}</div>
     <div class="verdict v-${A.verdict.k}">${A.verdict.t}</div>
     ${A.unknown.length ? `<p class="note">Não reconheci ${A.unknown.length} linha(s): ${esc(A.unknown.slice(0, 6).join(', '))}${A.unknown.length > 6 ? '…' : ''}. Confira a grafia em inglês.</p>` : ''}
