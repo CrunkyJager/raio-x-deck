@@ -714,8 +714,7 @@ function renderSwapCard(s, i) {
   return `<div class="swapcard${SWAP_ON[i] ? '' : ' off'}" data-sw="${i}">
     <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><button class="btn small" style="margin-left:auto" data-lockout="${esc(s.out)}" title="Trava a carta que sai e refaz as trocas">Não tirar ${esc(s.out)}</button><label class="field" style="margin:0"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
     <div class="pair">${swapBox(s.out, 'SAI')}${swapBox(s.inn, 'ENTRA')}</div>
-    <p class="why"><b>Por que sai:</b> ${esc(s.whyOut)}.<br><b>Por que entra:</b> ${esc(s.whyIn)}</p>
-    <p class="why cmp"><b>Na prática:</b> ${esc(compareText(LAST, s))}</p>
+    <dl class="sw-why"><dt>Por que sai</dt><dd>${esc(s.whyOut)}.</dd><dt>Por que entra</dt><dd>${esc(s.whyIn)}</dd><dt>Na prática</dt><dd class="cmp">${esc(compareText(LAST, s))}</dd></dl>
     ${s.alts.length ? `<div class="alt"><span class="note">Prefere outra para entrar?</span><div class="links">${s.alts.map(n => `<button class="cn" data-altin="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
     ${s.altsOut.length ? `<div class="alt"><span class="note">Ou tirar outra no lugar:</span><div class="links">${s.altsOut.map(n => `<button class="cn" data-altout="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
   </div>`;
@@ -820,6 +819,14 @@ document.addEventListener('click', (e) => {
   openZoom(name, SCRY(name, 'large'));
 }, true);
 document.addEventListener('keydown', (e) => { const z = $('#zoom'); if (e.key === 'Escape' && z && !z.hidden) z.hidden = true; });
+
+
+// imagem que não carregou (sem internet ou carta sem foto): mostra o nome no lugar do ícone quebrado
+document.addEventListener('error', (e) => {
+  const im = e.target; if (!im || im.tagName !== 'IMG') return;
+  const box = im.parentElement; if (!box) return;
+  box.innerHTML = `<span class="noimg">${esc(im.alt || 'sem imagem')}</span>`;
+}, true);
 
 // exemplos e entrada
 const ex = window.EXEMPLOS || {};

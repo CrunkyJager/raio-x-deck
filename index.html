@@ -210,21 +210,117 @@ input.txt { background: var(--felt); border: 1px solid var(--line); border-radiu
 .vj-x { position: absolute; right: 10px; bottom: 8px; font-size: .8rem; color: var(--bad); text-transform: uppercase; letter-spacing: .06em; }
 .vlog ol { margin: 8px 0 0; padding-left: 0; list-style: none; display: grid; gap: 4px; max-height: 280px; overflow-y: auto; font-size: .92rem; color: var(--ink-2); }
 .vlog li { display: flex; gap: 8px; align-items: center; }
+
+/* ---------- refinamento visual: mais respiro, hierarquia clara, uma cor por área ---------- */
+body { font-size: 17px; line-height: 1.6; }
+.wrap { max-width: 1180px; gap: 28px; padding-block: 36px 72px; }
+.intro { gap: 10px; }
+.eyebrow { font: 500 .78rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.intro h1 { font-size: clamp(2.2rem, 4.6vw, 3.2rem); line-height: 1.05; letter-spacing: .01em; }
+.intro h1 span { color: var(--accent-2); }
+.intro p { font-size: 1.06rem; max-width: 64ch; }
+h2 { font-size: 1.45rem; margin-bottom: 4px; }
+.panel h3 { font-size: 1.12rem; margin: 22px 0 8px; }
+.lead { margin: 2px 0 16px; max-width: 70ch; line-height: 1.6; }
+.note { font-size: .88rem; line-height: 1.5; }
+.panel { padding: 24px 26px 26px; border-radius: 12px; border-top: 3px solid var(--c, var(--line)); }
+@media (max-width: 600px) { .panel { padding: 18px 16px 20px; } body { font-size: 16px; } }
+#out .screen, .tout { gap: 22px; }
+.grid2 { gap: 22px; }
+/* cor de cada área, no filete de cima dos painéis */
+[data-s="lista"] { --c: var(--accent); }
+[data-s="resumo"] .panel { --c: var(--accent); }
+[data-s="trocas"] .panel { --c: var(--warn); }
+[data-s="funcoes"] .panel { --c: var(--good); }
+[data-s="mana"] .panel { --c: var(--info); }
+[data-s="plano"] .panel { --c: #b79be0; }
+[data-s="mesa"] .panel, [data-s="aovivo"] .panel { --c: #e07a9a; }
+.panel.answer { border-color: var(--line); border-top-color: var(--c, var(--accent)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 35%, transparent) inset; }
+
+/* abas: sublinhado, agrupadas, número em mono */
+.tabs { gap: 2px; padding: 0; background: color-mix(in srgb, var(--felt) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); align-items: stretch; }
+.tabs .tg { flex: none; align-self: center; font: 500 .7rem/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); padding: 0 6px 0 14px; }
+.tabs .tg:first-child { padding-left: 0; }
+.tabs a { border: 0; border-radius: 0; border-bottom: 3px solid transparent; margin-bottom: -1px; padding: 13px 12px 11px; display: inline-flex; gap: 7px; align-items: baseline; font-size: 1rem; }
+.tabs a i { font: 500 .72rem/1 var(--mono); font-style: normal; color: var(--ink-3); }
+.tabs a:hover { border-color: var(--line); background: none; }
+.tabs a[aria-current="page"] { background: none; border-bottom-color: var(--accent); color: var(--ink); }
+.tabs a[aria-current="page"] i { color: var(--accent-2); }
+
+/* resumo */
+.verdict { padding: 14px 18px; font-size: 1.05rem; border-radius: 10px; }
+.pri { gap: 12px; }
+.pri li { line-height: 1.55; }
+.sev { padding: 4px 8px; border-radius: 4px; font: 600 .68rem/1 var(--mono); letter-spacing: .08em; }
+.area { font: 500 .72rem/1 var(--mono); letter-spacing: .08em; }
+
+/* funções */
+.refs { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px 28px; }
+.ref { padding-top: 14px; }
+.ref p { line-height: 1.55; }
+
+/* tabelas no padrão: cabeçalho em mono, linhas arejadas */
+.tw { border: 1px solid var(--line); border-radius: 10px; background: var(--felt); }
+.tw table { font-size: .93rem; }
+.tw th { font: 500 .72rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); padding: 11px 14px; }
+.tw td { padding: 10px 14px; }
+.tw tr:last-child td { border-bottom: 0; }
+
+/* trocas */
+.swapcard { background: var(--felt); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 20px; margin-top: 18px; }
+.swapcard + .swapcard { margin-top: 16px; }
+.sw-h { margin-bottom: 16px; }
+.sw-h h3 { font-size: 1.15rem; }
+.pair { gap: 22px; }
+.cbox { gap: 16px; }
+.why { margin-top: 16px; line-height: 1.6; }
+dl.sw-why { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 18px; margin: 18px 0 0; max-width: 92ch; }
+dl.sw-why dt { font: 500 .72rem/1.9 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+dl.sw-why dd { margin: 0; color: var(--ink-2); line-height: 1.6; }
+dl.sw-why dd.cmp { color: var(--ink); border-left: 3px solid var(--accent); padding-left: 12px; }
+@media (max-width: 600px) { dl.sw-why { grid-template-columns: 1fr; gap: 2px; } dl.sw-why dd { margin-bottom: 10px; } }
+.alt { margin-top: 14px; display: grid; gap: 6px; }
+.conc .cc-row { margin: 16px 0 10px; display: grid; gap: 8px; }
+.cc-box { gap: 6px; }
+
+/* listas de cartas */
+.links { gap: 6px 7px; }
+.cn { padding: 3px 9px; border-radius: 5px; font-size: .9rem; }
+
+/* números */
+.tiles { gap: 14px; margin: 8px 0 22px; }
+.tile { padding: 14px 16px; border-radius: 10px; gap: 6px; }
+.tile b { font-size: 1.85rem; }
+
+/* mesa simulada */
+.ops { gap: 10px; }
+.op { padding: 10px 12px; border-radius: 10px; }
+.vgrid { gap: 14px; }
+.vj { padding: 14px 16px; gap: 8px; border-radius: 12px; }
+.vlance { padding: 14px 18px; border-radius: 10px; }
+.noimg { display: grid; place-items: center; width: 100%; height: 100%; padding: 10px; text-align: center; font: 600 .82rem/1.3 var(--display); color: var(--ink-2); background: repeating-linear-gradient(135deg, var(--felt-3) 0 10px, var(--felt-2) 10px 20px); }
+@media (max-width: 600px) { .swapcard { padding: 14px 12px 16px; } .sw-h { gap: 8px; } .tabs a { padding: 12px 9px 10px; } }
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header class="intro">
-    <h1>Raio-X do Deck</h1>
-    <p>Cole qualquer deck de Commander e veja o que está bem montado, o que falta e por quê. A ferramenta não monta o deck por você: ela aponta os buracos e explica o raciocínio para você decidir.</p>
+    <span class="eyebrow">Commander · Magic: The Gathering</span>
+    <h1>Raio-X <span>do Deck</span></h1>
+    <p>Cole qualquer deck de Commander e veja o que está bem montado, o que falta e por quê. A ferramenta não monta o deck por você: ela aponta os buracos, sugere trocas com o raciocínio de cada uma e deixa o deck jogar partidas para você conferir.</p>
   </header>
-  <nav class="tabs" id="tabs" aria-label="Telas"><a href="#lista">1 · Lista</a><a href="#resumo">2 · Resumo</a><a href="#trocas">3 · Trocas</a><a href="#funcoes">Funções</a><a href="#mana">Mana e curva</a><a href="#plano">Plano e cortes</a><a href="#mesa">Mesa simulada</a><a href="#aovivo">Mesa ao vivo</a></nav>
+  <nav class="tabs" id="tabs" aria-label="Telas">
+    <span class="tg">Análise</span>
+    <a href="#lista"><i>01</i>Lista</a><a href="#resumo"><i>02</i>Resumo</a><a href="#trocas"><i>03</i>Trocas</a><a href="#funcoes"><i>04</i>Funções</a><a href="#mana"><i>05</i>Mana e curva</a><a href="#plano"><i>06</i>Plano e cortes</a>
+    <span class="tg">Jogo</span>
+    <a href="#mesa"><i>07</i>Mesa simulada</a><a href="#aovivo"><i>08</i>Mesa ao vivo</a>
+  </nav>
   <div class="empty" id="nodeck" hidden>Nenhum deck analisado ainda. <a href="#lista">Cole uma lista ou escolha um exemplo</a>.</div>
 
   <section class="panel" data-s="lista">
     <h2>Sua lista</h2>
-    <p class="lead">No Moxfield: Export → copiar como texto. Também funciona com Archidekt, MTGA e listas digitadas (uma carta por linha, nome em inglês). Se a lista não marcar o comandante, ele é adivinhado e você pode trocar depois.</p>
+    <p class="lead">No Moxfield: Export → copiar como texto. Também funciona com Archidekt, LigaMagic, MTGO, MTGA e listas digitadas, uma carta por linha. Se a lista não marcar o comandante, ele é adivinhado e você pode trocar depois.</p>
     <textarea id="deck-in" aria-label="Lista do deck" spellcheck="false"></textarea>
     <div class="row"><button class="btn primary" id="go">Analisar</button><span class="note">Exemplos (decks médios do EDHREC):</span><span id="examples" class="row" style="margin:0"></span></div>
     <p class="note" id="go-msg" role="status"></p>
@@ -237,12 +333,12 @@ input.txt { background: var(--felt); border: 1px solid var(--line); border-radiu
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611181740"></script>
-<script src="exemplos.js?v=202611181740"></script>
-<script src="papeis-ia.js?v=202611181740"></script>
-<script>window.RAIOX_V = "202611181740";</script>
-<script src="motor/engine.js?v=202611181740"></script>
-<script src="analise.js?v=202611181740"></script>
+<script src="cards-db.js?v=202611181744"></script>
+<script src="exemplos.js?v=202611181744"></script>
+<script src="papeis-ia.js?v=202611181744"></script>
+<script>window.RAIOX_V = "202611181744";</script>
+<script src="motor/engine.js?v=202611181744"></script>
+<script src="analise.js?v=202611181744"></script>
 
-<script src="mesa-ui.js?v=202611181740"></script>
+<script src="mesa-ui.js?v=202611181744"></script>
 </body></html>
