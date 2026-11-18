@@ -1,6 +1,6 @@
 # Notas do projeto — Raio-X do Deck
 
-Leia antes de mexer. Atualize no fim de cada rodada de trabalho.
+Leia antes de mexer. Atualize no fim de cada rodada de trabalho. Instruções de acesso e rotina para o Claude: `CLAUDE.md`.
 
 ## O que é
 Ferramenta de análise de decks de Commander (Magic), feita pelo CrunkyJager com o Edgar.
@@ -62,20 +62,21 @@ Desde 18/11/2026, a mesma linguagem do **mapa visual** do Mapa do Sistema SAC (a
 - Resumo: o preço do deck fica em destaque, num bloco dourado (`.stats` / `.stat.price` em `analise.js`), com as 3 cartas mais caras embaixo; ao lado ficam blocos de cartas, custo médio e terrenos. Antes o preço ficava escondido numa linha cinza e o usuário não achava.
 - O usuário não gosta de tela apertada: manter o respiro.
 
-## Pendências
-1. **Dados do Grimório** (`cards.json`, `decks.json`, `names.tsv`, `alias.json`, `pt.json`) para a pasta `dados/`. O código já procura por `dados/cards.json` (força/resistência certas no combate), `dados/decks.json` (oponentes reais) e `dados/nomes-pt.json` (formato `{"nome em português": "English name"}`; montar a partir de `names.tsv`/`pt.json`). Sem eles: combate aproximado, só 4 oponentes de exemplo, nomes em português não funcionam.
-2. Teste das trocas na Mesa simulada deu "empate" em tudo com o deck do Stangg: conferir com os dados do Grimório; se continuar, ver quais cartas o motor não sabe jogar (`naoModelado` em `motor/engine.js`).
-3. As imagens das trocas e da prévia ainda usam `cards/named` uma a uma (fila de 110 ms); dá para passar a usar o mesmo lote de `/cards/collection` da Mesa ao vivo.
-
-5. Ideia: usar preço da LigaMagic em vez de converter o do Scryfall (precisa de uma fonte de dados; não há API aberta).
-
-7. **Mecânicas que faltavam no motor** — feito em 18/11/2026 (ver seção "Motor próprio" acima). O que ainda falta:
-   - Krenko 36/65, Lathril 29/65 e Edgar 33/64 cartas ainda com alguma frase ignorada (Stangg 1/65). As maiores sobras: olhar o topo do grimório (Goblin Ringleader, Muxus, Conspicuous Snoop, Realmwalker, Elven Chorus), ciclar (Gempalm Incinerator), regenerar, "choose one" de feitiços/encantos modais, proliferar, roubar criatura (Captivating Vampire, New Blood), planeswalkers (Tyvar Kell, Sorin), Blood Moon, "protection from", Grenzo, mágicas que tiram oponente do jogo de outros jeitos. Rodar `node ferramentas/lacunas.js "Nome"` para ver uma carta.
-   - Algumas leituras são aproximadas: menace = precisa de 2 bloqueadores livres; landwalk = imbloqueável contra quem tem a cor; Coat of Arms só conta as suas criaturas; "alvo" de dano escolhe a criatura que morre e vale mais, senão o oponente com menos vida; Alpha Authority só dá resistência a magia; Tyvar's Stand vira proteção guardada (sem o +X/+X).
-   - Toda a vida/resistência ainda é aproximada pela força (a base do Raio-X não tem resistência). Com `dados/cards.json` (pendência 1) o Germe, o Skullclamp e os bloqueios ficam certos.
-   - O motor "abstrato" de `engine.js` (`jogo`, usado só em `simula`/`analise`) não foi mexido; a Mesa simulada e a Mesa ao vivo usam o `arena` de `mesa.js`.
-   - Refazer o teste das trocas do Stangg (pendência 2) agora que auras/equipamentos funcionam.
-   - Avisar o Edgar: o motor do Raio-X deixou de ser cópia do Grimório.
+## Pendências (ordem sugerida para a próxima conversa)
+1. **Área para montar decks (pedido do usuário, 18/11/2026).** Moxfield não tem API oficial e bloqueia leitura por outros sites (link de deck do Moxfield não funciona fora dele); então o caminho mais fácil é ter o construtor aqui e conversar com o Moxfield por texto:
+   - nova aba "Montar" (tela própria com `--h` novo): busca de cartas na `cards-db.js` (nome em inglês/português, filtro por tipo, cor, custo e função usando `papeis-ia.js`), escolher o comandante primeiro e travar a identidade de cor, + / − por carta, contador 100 cartas, curva e funções ao vivo (reusar a análise), avisos de bracket e preço (reusar `brl()` e os limites de bracket);
+   - vários decks salvos no localStorage, com nome; botão "Analisar no Raio-X" (manda para a aba Lista) e "Jogar na Mesa" (vira deck de amigo/oponente);
+   - Moxfield: **importar** = colar o texto que o Moxfield exporta (More → Export → Plain Text/MTGO; o leitor de lista já entende); **exportar** = botão "Copiar para o Moxfield" (formato `1 Nome` com `Commander` em cima) + link para moxfield.com/decks/personal (lá: Create → Import → colar);
+   - Archidekt tem API pública de leitura de deck (`archidekt.com/api/decks/ID/`): testar se aceita pedido do navegador (CORS) para importar por link; se aceitar, importar por link do Archidekt.
+2. **Dados do Grimório** (`cards.json`, `decks.json`, `names.tsv`, `alias.json`, `pt.json`) para a pasta `dados/`. O código já procura por `dados/cards.json` (força/resistência certas no combate), `dados/decks.json` (oponentes reais) e `dados/nomes-pt.json` (formato `{"nome em português": "English name"}`; montar a partir de `names.tsv`/`pt.json`). Sem eles: resistência = força (o Germe, o Skullclamp e os bloqueios ficam aproximados), só 4 oponentes de exemplo, nomes em português não funcionam.
+3. **Refazer o teste das trocas do Stangg** na Mesa simulada (antes dava "empate" em tudo; agora auras/equipamentos funcionam). Se continuar estranho, ver quais cartas o motor não sabe jogar (`node ferramentas/lacunas.js`).
+4. **Equilíbrio do motor** (`node ferramentas/partida.js X 200 5`): o Lathril caiu de ~14% para ~4% de vitórias depois do motor novo — descobrir por quê (Golgari Charm usado como limpa-mesa no turno 2? elfos virando para mana em vez de atacar? 10 elfos tapados antes do combate?). O Edgar ficou com ~45% por causa do laço Vito + Exquisite Blood/Bloodthirsty Conqueror (real, mas conferir se não fecha cedo demais). O log repete "General Kreat: 1 de dano em cada oponente" várias vezes seguidas: juntar em uma linha.
+5. **O que o motor ainda ignora** (Krenko 36/65, Lathril 29/65, Edgar 33/64 cartas com alguma frase ignorada; Stangg 1/65): olhar o topo do grimório (Goblin Ringleader, Muxus, Conspicuous Snoop, Realmwalker, Elven Chorus), ciclar (Gempalm Incinerator), regenerar, "choose one" (feitiços e encantamentos modais), proliferar, roubar criatura (Captivating Vampire, New Blood), planeswalkers (Tyvar Kell, Sorin), Blood Moon, "protection from", Grenzo. `node ferramentas/lacunas.js "Nome"` mostra uma carta.
+   Leituras aproximadas: menace = precisa de 2 bloqueadores livres; landwalk = imbloqueável contra quem tem a cor; Coat of Arms só conta as suas criaturas; dano "em qualquer alvo" escolhe a criatura que morre e vale mais, senão o oponente com menos vida; Alpha Authority só dá resistência a magia; Tyvar's Stand vira proteção guardada (sem o +X/+X). O motor abstrato de `engine.js` (`jogo`, usado só em `simula`/`analise`) não foi mexido.
+6. Conferir a Mesa ao vivo **com imagens** (o teste daqui foi sem internet): o leque de anexos atrás da criatura, o texto "equipada com", o selo ⓘ.
+7. As imagens das trocas e da prévia ainda usam `cards/named` uma a uma (fila de 110 ms); dá para passar a usar o lote de `/cards/collection` da Mesa ao vivo.
+8. Ideia: preço da LigaMagic em vez de converter o do Scryfall (precisa de uma fonte de dados; não há API aberta).
+9. Avisar o Edgar que o motor do Raio-X deixou de ser cópia do Grimório (ver "Motor próprio").
 
 ## Como testar
 `node ferramentas/lacunas.js` mede o que o motor ignora (ver pendência 7).
