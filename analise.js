@@ -308,7 +308,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n) => imgFor(n), get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -453,6 +453,7 @@ const CONCEITOS = [
   { k: 'flying', n: 'Voar', rx: /\bvoa|voador|flying/i },
   { k: 'tribe', n: 'Tribo', rx: /tribal|tribo/i },
 ];
+if (window.RAIOX) window.RAIOX.CONCEITOS = CONCEITOS;
 const MODOS = [['seguir', 'Seguir a ideia'], ['preferir', 'Preferir a ideia (aceita fora se for bem melhor)'], ['so', 'Só dentro da ideia'], ['livre', 'Livre (ignorar a ideia)']];
 let CONC = { text: '', man: {}, mode: 'seguir', lock: '', test: '', br: '', teto: '', tetoCarta: '' };
 const concKey = (A) => 'raiox:conceito:' + A.cmds.map(c => c.name).join('+');
