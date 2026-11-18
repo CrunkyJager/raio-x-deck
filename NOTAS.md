@@ -30,7 +30,5 @@ Desde 18/11/2026, a mesma linguagem do **mapa visual** do Mapa do Sistema SAC (a
 2. Teste das trocas na Mesa simulada deu "empate" em tudo com o deck do Stangg: conferir com os dados do Grimório; se continuar, ver quais cartas o motor não sabe jogar (`naoModelado` em `motor/engine.js`).
 3. As imagens das trocas e da prévia ainda usam `cards/named` uma a uma (fila de 110 ms); dá para passar a usar o mesmo lote de `/cards/collection` da Mesa ao vivo.
 
-4. Conferir os ícones das abas e do cabeçalho no navegador de verdade (no ambiente de teste a fonte de ícones não carrega, então só o modo sem ícones foi visto; o espaço deles já está reservado e medido).
-
 ## Como testar
 `python3 -m http.server` na pasta e abrir `http://localhost:8000`. Clicar num deck de exemplo, passar pelas abas, jogar na Mesa simulada (200 partidas) e uma partida na Mesa ao vivo.
