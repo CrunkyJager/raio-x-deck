@@ -204,8 +204,31 @@ function resTrocas() {
 }
 
 // ---------- tela: Mesa ao vivo ----------
-let JOGO = null, PASSO = 0, TIMER = null, NOMES = [];
-const TP = { turno: '', terreno: '🜨', magia: '✦', remo: '✕', wipe: '☄', resp: '⟲', ataque: '⚔', bloqueio: '⛨', dano: '♥', morte: '☠', compra: '+', tutor: '⌕', combo: '∞', fim: '★' };
+let JOGO = null, PASSO = 0, TIMER = null, NOMES = [], PREV = null;
+const TP = { turno: '⟳', terreno: '◆', magia: '✦', remo: '✕', wipe: '☄', resp: '⟲', ataque: '⚔', bloqueio: '⛨', dano: '♥', morte: '☠', compra: '+', tutor: '⌕', combo: '∞', fim: '★' };
+const TPN = { turno: 'Novo turno', terreno: 'Terreno', magia: 'Mágica', remo: 'Remoção', wipe: 'Limpa-mesa', resp: 'Resposta', ataque: 'Ataque', bloqueio: 'Bloqueio', dano: 'Dano', morte: 'Morte', compra: 'Compra', tutor: 'Busca', combo: 'Combo', fim: 'Fim de jogo' };
+
+// imagens do Scryfall: pede em lotes de 75 (endpoint /cards/collection) e guarda no navegador
+const IMGS = new Map(Object.entries(store.get('img', {})));
+const imgDe = (n) => IMGS.get(n) || IMGS.get(String(n).split(' // ')[0]) || null;
+async function buscaImagens(nomes) {
+  const falta = [...new Set(nomes)].filter(n => n && !imgDe(n) && !/\(carta vazia\)|não achada/.test(n));
+  for (let i = 0; i < falta.length; i += 75) {
+    const lote = falta.slice(i, i + 75);
+    try {
+      const r = await fetch('https://api.scryfall.com/cards/collection', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ identifiers: lote.map(n => ({ name: n.split(' // ')[0] })) }) });
+      if (!r.ok) break;
+      const j = await r.json();
+      for (const c of j.data || []) {
+        const iu = c.image_uris || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris); if (!iu) continue;
+        const v = [iu.small, iu.normal, iu.art_crop]; IMGS.set(c.name, v); IMGS.set(c.name.split(' // ')[0], v);
+      }
+    } catch (e) { break; }
+    await new Promise(r => setTimeout(r, 120));
+  }
+  try { const o = {}; let k = 0; for (const [n, v] of IMGS) { o[n] = v; if (++k > 4000) break; } store.set('img', o); } catch (e) {}
+}
+
 function painelVivo() {
   const box = $('#aovivo'); if (!box) return;
   if (!A) { box.innerHTML = ''; return; }
@@ -214,14 +237,15 @@ function painelVivo() {
   const def = selecionados().slice(0, nO).map(o => o.id);
   const sel = (esc0 && esc0.length === nO) ? esc0 : def;
   box.innerHTML = `<section class="panel">
+    <span class="eyebrow">Jogo · uma partida</span>
     <h2>Mesa ao vivo</h2>
-    <p class="lead">Uma partida jogada lance a lance pelo mesmo motor da Mesa simulada. Avance passo a passo ou deixe rodar, e clique em qualquer carta para ler.</p>
+    <p class="lead">Uma partida jogada lance a lance pelo mesmo motor da Mesa simulada, com as cartas na mesa. Avance passo a passo ou deixe rodar; clique em qualquer carta para ler e na imagem para ampliar.</p>
     <div class="row" style="gap:12px">
       <label class="field">Formato <select id="v-fmt"><option value="4" ${fmt === '4' ? 'selected' : ''}>Mesa de 4</option><option value="1" ${fmt === '1' ? 'selected' : ''}>1 contra 1</option></select></label>
       <label class="field">Vida <select id="v-vida">${[40, 30, 20].map(v => `<option ${+vida === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
       ${Array.from({ length: nO }, (_, k) => `<label class="field">Oponente ${k + 1} <select data-vop="${k}">${ops.map(o => `<option value="${esc(o.id)}" ${sel[k] === o.id ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select></label>`).join('')}
       <button class="btn" id="v-sort">Sortear oponentes</button>
-      <button class="btn primary" id="v-go">Jogar uma partida</button>
+      <button class="btn primary" id="v-go">${JOGO ? 'Jogar outra partida' : 'Jogar uma partida'}</button>
     </div>
   </section>
   <div id="v-mesa">${JOGO ? mesaHTML() : ''}</div>`;
@@ -230,42 +254,49 @@ function painelVivo() {
   $$('[data-vop]').forEach(s => s.onchange = () => store.set('vivoOps', $$('[data-vop]').map(x => x.value)));
   $('#v-sort').onclick = () => { const ids = ops.map(o => o.id).filter(id => id !== 'ex:' + meuCmd()); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } store.set('vivoOps', ids.slice(0, nO)); painelVivo(); };
   $('#v-go').onclick = jogaPartida;
-  if (JOGO) ligaControles();
+  if (JOGO) { ligaControles(); vaiPara(PASSO); }
 }
 async function jogaPartida() {
   await pronto;
   const ops = listaOps(); const ids = $$('[data-vop]').map(x => x.value); store.set('vivoOps', ids);
   const Ops = ids.map(id => opDe(ops.find(o => o.id === id)));
-  NOMES = ['Você (' + meuCmd() + ')', ...ids.map(id => ops.find(o => o.id === id).nome)];
-  const b = $('#v-go'); b.disabled = true; b.textContent = 'Jogando…';
+  NOMES = [meuCmd(), ...ids.map(id => ops.find(o => o.id === id).nome)];
+  const b = $('#v-go'); b.disabled = true; b.textContent = 'Embaralhando…';
   try {
     const seed = (Math.random() * 4294967296) >>> 0;
-    JOGO = await roda('partida', { Dv: limpo(meuDeck()), Ops, seed, T: 20, vida: +store.get('vivoVida', 40), nomes: NOMES });
-    JOGO.Ms = [limpo(meuDeck()).M, ...Ops.map(o => o.M)];
-    PASSO = 0; parar();
+    const Ms = [limpo(meuDeck()).M, ...Ops.map(o => o.M)];
+    const jogo = roda('partida', { Dv: limpo(meuDeck()), Ops, seed, T: 20, vida: +store.get('vivoVida', 40), nomes: ['Você', ...ids.map(id => ops.find(o => o.id === id).nome)] });
+    b.textContent = 'Buscando as cartas…';
+    const imgs = buscaImagens(Ms.flatMap(M => M.map(m => m.nome)));
+    JOGO = await jogo; JOGO.Ms = Ms; JOGO.cmdNome = Ms.map((M, k) => { const D = k ? Ops[k - 1] : limpo(meuDeck()); return D.cmd ? (M[D.cmd.i].frente || M[D.cmd.i].nome) : ''; });
+    await Promise.race([imgs, new Promise(r => setTimeout(r, 6000))]);
+    PASSO = 0; PREV = null; parar();
     $('#v-mesa').innerHTML = mesaHTML(); ligaControles(); vaiPara(0);
+    $('#v-mesa').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { $('#v-mesa').innerHTML = `<div class="verdict v-bad">O motor falhou: ${esc(e.message).slice(0, 300)}</div>`; }
   b.disabled = false; b.textContent = 'Jogar outra partida';
 }
 function mesaHTML() {
   const n = JOGO.quadros[0].j.length;
-  return `<section class="panel vivo">
+  const lugares = n === 2 ? ['me', 'top'] : ['me', 'left', 'top', 'right'];
+  return `<section class="arena n${n}">
     <div class="vctl">
-      <button class="btn small" data-v="ini" title="Começo">⏮</button><button class="btn small" data-v="vt" title="Turno anterior">⏪</button><button class="btn small" data-v="ant" title="Lance anterior">◀</button>
-      <button class="btn small primary" id="v-play">▶ Rodar</button>
-      <button class="btn small" data-v="prox" title="Próximo lance">▶|</button><button class="btn small" data-v="pt" title="Próximo turno">⏩</button><button class="btn small" data-v="fim" title="Fim">⏭</button>
-      <label class="field" style="margin:0">Velocidade <select id="v-vel"><option value="1400">devagar</option><option value="700" selected>normal</option><option value="300">rápido</option><option value="90">turbo</option></select></label>
+      <button class="vb" data-v="ini" title="Começo">⏮</button><button class="vb" data-v="vt" title="Turno anterior">⏪</button><button class="vb" data-v="ant" title="Lance anterior">◀</button>
+      <button class="vb play" id="v-play">▶ Rodar</button>
+      <button class="vb" data-v="prox" title="Próximo lance">▶</button><button class="vb" data-v="pt" title="Próximo turno">⏩</button><button class="vb" data-v="fim" title="Fim">⏭</button>
+      <select id="v-vel" class="vsel" aria-label="Velocidade"><option value="1500">devagar</option><option value="800" selected>normal</option><option value="350">rápido</option><option value="100">turbo</option></select>
       <input type="range" id="v-bar" min="0" max="${JOGO.quadros.length - 1}" value="0" aria-label="Momento da partida">
-      <span class="note num" id="v-pos"></span>
+      <span class="vpos" id="v-pos"></span>
     </div>
-    <div class="vlance" id="v-lance"></div>
-    <div class="vgrid n${n}" id="v-jog"></div>
+    <div class="feltro">
+      ${lugares.map((l, k) => `<div class="seat ${l}" id="seat-${k}" style="grid-area:${l}"></div>`).join('')}
+      <div class="centro" id="v-centro" style="grid-area:center"></div>
+    </div>
     <details class="vlog"><summary>O que aconteceu neste turno</summary><ol id="v-log"></ol></details>
   </section>`;
 }
 function ligaControles() {
-  const q = JOGO.quadros;
-  const turnoDe = (i) => q[i].t;
+  const q = JOGO.quadros; const turnoDe = (i) => q[i].t;
   $$('[data-v]').forEach(b => b.onclick = () => {
     parar(); const v = b.dataset.v;
     if (v === 'ini') vaiPara(0); else if (v === 'fim') vaiPara(q.length - 1);
@@ -282,37 +313,82 @@ function rodar() {
   const passo = () => {
     if (PASSO >= JOGO.quadros.length - 1) { parar(); return; }
     vaiPara(PASSO + 1); const e = JOGO.log[JOGO.quadros[PASSO].log - 1];
-    const v = +($('#v-vel') || { value: 700 }).value;
-    TIMER = setTimeout(passo, e && /turno|combo|wipe|morte|fim/.test(e.tp) ? v * 1.6 : v);
+    const v = +($('#v-vel') || { value: 800 }).value;
+    TIMER = setTimeout(passo, e && /turno|combo|wipe|morte|fim|ataque/.test(e.tp) ? v * 1.7 : v);
   };
   TIMER = setTimeout(passo, 10);
+}
+
+// uma carta na mesa: imagem do Scryfall; ficha sem imagem vira um cartão desenhado
+function carta(nome, o = {}) {
+  const im = o.tok ? null : imgDe(nome);
+  const cls = ['mc', o.tap ? 'tap' : '', o.atk ? 'atk' : '', o.cmd ? 'cmd' : '', o.tok ? 'tok' : '', o.novo ? 'novo' : '', o.cls || ''].join(' ');
+  const pt = o.p != null ? `<span class="mpt">${o.p}/${o.t}</span>` : '';
+  const face = im ? `<img src="${esc(im[0])}" alt="${esc(nome)}" loading="lazy" data-big="${esc(im[1])}">` : `<span class="mtok"><b>${esc(nome)}</b>${o.tok ? '<i>ficha</i>' : ''}</span>`;
+  return `<span class="mcw ${o.tap ? 'tap' : ''}"><button class="${cls}" ${o.tok ? '' : `data-card="${esc(nome)}"`} title="${esc(nome)}">${face}${pt}</button></span>`;
 }
 function vaiPara(i) {
   const q = JOGO.quadros; PASSO = Math.max(0, Math.min(q.length - 1, i));
   const Q = q[PASSO], ev = JOGO.log[Q.log - 1];
   $('#v-bar').value = PASSO;
-  $('#v-pos').textContent = `Turno ${Q.t} · lance ${PASSO + 1} de ${q.length}`;
-  $('#v-lance').innerHTML = ev ? `<span class="vt ${esc(ev.tp)}">${TP[ev.tp] || '•'}</span><span><b>${esc(NOMES[ev.k] || '')}</b> · ${esc(ev.txt)}</span>` : '<span class="note">Mãos compradas. A partida vai começar.</span>';
-  $('#v-jog').innerHTML = Q.j.map((p, k) => jogadorHTML(p, k, ev)).join('');
+  $('#v-pos').textContent = `Turno ${Q.t} · ${PASSO + 1}/${q.length}`;
+  Q.j.forEach((p, k) => { const el = $('#seat-' + k); if (el) el.innerHTML = lugarHTML(p, k, ev, PREV && PREV.j[k]); });
+  $('#v-centro').innerHTML = centroHTML(Q, ev);
   const ini = JOGO.log.findIndex(l => l.t === Q.t);
-  $('#v-log').innerHTML = JOGO.log.slice(Math.max(0, ini), Q.log).map(l => `<li class="${l.tp}"><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span> ${esc(l.txt)}</li>`).join('');
+  $('#v-log').innerHTML = JOGO.log.slice(Math.max(0, ini), Q.log).map(l => `<li><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span> ${esc(l.txt)}</li>`).join('');
+  PREV = Q;
 }
-function jogadorHTML(p, k, ev) {
-  const M = JOGO.Ms[k]; const vez = ev && ev.k === k; const alvo = ev && ev.a === k;
-  const nome = (i) => (M[i] ? (M[i].frente || M[i].nome) : '?');
-  const perm = p.perm.slice().sort((a, b) => (b.c - a.c) || ((b.p != null) - (a.p != null)));
-  const cart = (x) => `<button class="vc ${x.c ? 'cmd' : ''} ${x.tok ? 'tok' : ''} ${x.tap ? 'tap' : ''} ${x.atk ? 'atk' : ''}" ${x.tok ? '' : `data-card="${esc(x.n)}"`}>${esc(x.n)}${x.p != null ? `<span class="pt">${x.p}/${x.t}</span>` : ''}</button>`;
-  const terr = {}; p.tl.forEach(l => { const n = l.i != null ? nome(l.i) : 'Terreno'; terr[n] = (terr[n] || 0) + 1; });
-  const tap = p.tl.filter(l => l.tap).length;
-  return `<div class="vj ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${p.vivo ? '' : 'morto'}">
-    <div class="vj-h"><b>${esc(NOMES[k])}</b><span class="vida num" title="Vida">♥ ${p.vida}</span></div>
-    <div class="vj-s note">Mão ${p.mao.length} · grimório ${p.lib} · cemitério ${p.gy}${p.zona ? ` · comandante na zona${p.tax ? ` (+${p.tax})` : ''}` : ''}${p.cmdD.some(x => x) ? ` · dano de comandante sofrido ${Math.max(...p.cmdD)}` : ''}</div>
-    <div class="vj-t note">${p.terr} terreno${p.terr === 1 ? '' : 's'}${tap ? ` (${tap} virado${tap === 1 ? '' : 's'})` : ''}: ${Object.entries(terr).map(([n, q]) => esc(n) + (q > 1 ? ' ×' + q : '')).join(', ') || '—'}</div>
-    <div class="vj-p">${perm.length ? perm.map(cart).join('') : '<span class="note">Nada em campo.</span>'}</div>
-    ${k === 0 && p.mao.length ? `<details class="vj-m"><summary>Sua mão</summary><div class="vj-p">${p.mao.map(i => `<button class="vc" data-card="${esc(nome(i))}">${esc(nome(i))}</button>`).join('')}</div></details>` : ''}
-    ${!p.vivo ? '<div class="vj-x">fora da partida</div>' : ''}
+function txtLance(ev, quem) {
+  if (ev.tp === 'turno') return `Vez de <b>${esc(quem)}</b>`;
+  const nm = ev.k === 0 ? 'Você' : NOMES[ev.k] || '';
+  return nm && ev.txt.startsWith(nm) ? `<b>${esc(nm)}</b>${esc(ev.txt.slice(nm.length))}` : esc(ev.txt);
+}
+function centroHTML(Q, ev) {
+  if (!ev) return `<div class="c-vazio"><span class="c-k">Turno 0</span><p>Mãos compradas.<br>A partida vai começar.</p></div>`;
+  const M = JOGO.Ms[ev.k]; const nomeC = ev.c >= 0 && M[ev.c] ? (M[ev.c].frente || M[ev.c].nome) : null;
+  const im = nomeC ? imgDe(nomeC) : null;
+  const quem = ev.k >= 0 ? (ev.k === 0 ? 'Você' : NOMES[ev.k]) : '';
+  return `<div class="c-ev ${esc(ev.tp)}">
+    <span class="c-k"><span class="vt ${esc(ev.tp)}">${TP[ev.tp] || '•'}</span>${esc(TPN[ev.tp] || ev.tp)} · turno ${Q.t}</span>
+    ${im ? `<button class="c-card" data-card="${esc(nomeC)}"><img src="${esc(im[1])}" alt="${esc(nomeC)}"></button>` : nomeC ? `<button class="c-card" data-card="${esc(nomeC)}"><span class="mtok big"><b>${esc(nomeC)}</b></span></button>` : ''}
+    <p class="c-txt">${txtLance(ev, quem)}</p>
   </div>`;
 }
+function lugarHTML(p, k, ev, pv) {
+  const M = JOGO.Ms[k]; const nome = (i) => (M[i] ? (M[i].frente || M[i].nome) : '?');
+  const antes = new Set(pv ? pv.perm.map(x => x.n + '|' + x.i) : []);
+  const cri = p.perm.filter(x => x.p != null).sort((a, b) => b.c - a.c || (b.p || 0) - (a.p || 0));
+  const out = p.perm.filter(x => x.p == null);
+  const novo = (x) => pv && !antes.has(x.n + '|' + x.i);
+  const vez = ev && ev.k === k, alvo = ev && ev.a === k && ev.k !== k;
+  const dv = pv ? p.vida - pv.vida : 0;
+  const cmd = JOGO.cmdNome[k]; const cmdIm = cmd ? imgDe(cmd) : null;
+  // terrenos por cor, com quantos estão virados
+  const cores = {}; let tap = 0;
+  p.tl.forEach(l => { if (l.tap) tap++; const m = l.i != null ? M[l.i] : null; const c = (m && m.cor) || ''; const key = c.length > 1 ? 'multi' : c || 'C'; cores[key] = (cores[key] || 0) + 1; });
+  const pip = (c) => c === 'multi' ? '<span class="ms multi"></span>' : `<span class="ms ${c === 'C' ? '' : c}">${c === 'C' ? '◇' : ''}</span>`;
+  const me = k === 0;
+  return `<div class="seat-in ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${p.vivo ? '' : 'morto'}">
+    <div class="s-h">
+      <button class="s-av" ${cmd ? `data-card="${esc(cmd)}"` : ''} style="${cmdIm ? `background-image:url('${esc(cmdIm[2])}')` : ''}" title="${esc(cmd)}"></button>
+      <div class="s-n"><b>${esc(me ? 'Você' : NOMES[k])}</b><span>${esc(me ? cmd : (cmd && cmd !== NOMES[k] ? cmd : 'Oponente ' + k))}</span></div>
+      <div class="s-v ${dv < 0 ? 'baixou' : dv > 0 ? 'subiu' : ''}"><span>${p.vida}</span>${dv ? `<i>${dv > 0 ? '+' : ''}${dv}</i>` : ''}</div>
+    </div>
+    <div class="s-st"><span title="Cartas na mão">✋ ${p.mao.length}</span><span title="Grimório">▤ ${p.lib}</span><span title="Cemitério">⚰ ${p.gy}</span>${p.zona ? `<span class="z" title="Comandante na zona de comando">⬢ comandante na zona${p.tax ? ' +' + p.tax : ''}</span>` : ''}${p.cmdD.some(x => x) ? `<span title="Maior dano de comandante sofrido">⚔ ${Math.max(...p.cmdD)}/21</span>` : ''}</div>
+    <div class="s-lands" title="${tap} de ${p.terr} terrenos virados">${Object.entries(cores).map(([c, q]) => `<span class="lp">${pip(c)}<b>${q}</b></span>`).join('') || '<span class="note">sem terrenos</span>'}${p.terr ? `<span class="note">${tap ? tap + ' virado' + (tap > 1 ? 's' : '') : 'todos desvirados'}</span>` : ''}</div>
+    <div class="s-bf cri">${cri.map(x => carta(x.n, { tap: x.tap, atk: x.atk, cmd: x.c, tok: x.tok, p: x.p, t: x.t, novo: novo(x) })).join('') || '<span class="vazio">sem criaturas</span>'}</div>
+    ${out.length ? `<div class="s-bf out">${out.map(x => carta(x.n, { tap: x.tap, tok: x.tok, novo: novo(x), cls: 'mini' })).join('')}</div>` : ''}
+    ${me && p.mao.length ? `<div class="s-mao">${p.mao.map((i, j) => `<span style="--r:${(j - (p.mao.length - 1) / 2) * 4}deg">${carta(nome(i), { cls: 'mao' })}</span>`).join('')}</div>` : !me && p.mao.length ? `<div class="s-dorso">${Array.from({ length: Math.min(p.mao.length, 10) }, (_, j) => `<i style="--r:${(j - (Math.min(p.mao.length, 10) - 1) / 2) * 5}deg"></i>`).join('')}</div>` : ''}
+    ${!p.vivo ? '<div class="s-x">fora da partida</div>' : ''}
+  </div>`;
+}
+// clique na imagem da mesa: abre grande (mesmo visual de ampliar do resto do site)
+document.addEventListener('click', (e) => {
+  const im = e.target.closest('.arena img[data-big], .c-card img'); if (!im) return;
+  e.preventDefault(); e.stopPropagation();
+  const z = document.createElement('div'); z.className = 'zoom'; z.innerHTML = `<div class="zoom-box solo"><button class="btn small zoom-x">Fechar ✕</button><div class="zoom-img"><img src="${esc(im.dataset.big || im.src)}" alt="${esc(im.alt)}"></div></div>`;
+  z.onclick = () => z.remove(); document.body.appendChild(z);
+}, true);
 
 // ---------- liga com o resto do Raio-X ----------
 document.addEventListener('raiox:deck', (e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; JOGO = null; parar(); painel(); painelVivo(); });
