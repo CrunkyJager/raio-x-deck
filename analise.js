@@ -597,13 +597,13 @@ function compareText(A, s) {
 let HOVT = null;
 function hoverBox() { let h = $('#hov'); if (!h) { h = document.createElement('div'); h.id = 'hov'; h.className = 'hov'; h.hidden = true; document.body.appendChild(h); } return h; }
 document.addEventListener('mouseover', (e) => {
-  const b = e.target.closest('[data-altin],[data-altout]'); if (!b || (matchMedia('(pointer: coarse)').matches && !matchMedia('(any-hover: hover)').matches)) return;
+  const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || b.closest('#pop')) return;
   clearTimeout(HOVT);
   HOVT = setTimeout(() => {
-    const c = C(b.dataset.n); if (!c) return;
+    const c = C(b.dataset.n || b.dataset.card); if (!c) return;
     const h = hoverBox(); const ia = window.PAPEIS_IA && window.PAPEIS_IA[c.name];
     const roles = roleNames(c);
-    h.innerHTML = `<div class="hov-img" data-hovimg="${esc(c.name)}"><span class="note">…</span></div><div><b>${esc(c.name)}</b><div style="margin:2px 0 4px">${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div>${ia && ia.r ? `<p class="note" style="margin:0 0 4px">${esc(ia.r)}</p>` : `<p class="note hov-o" style="margin:0 0 4px">${esc(c.o.split('\n//\n')[0].slice(0, 260))}${c.o.length > 260 ? '…' : ''}</p>`}<div class="chips">${roles.slice(0, 3).map(r => `<span class="tag">${esc(r)}</span>`).join('')}</div><p class="note" style="margin:6px 0 0">Clique para ${b.dataset.altin != null ? 'colocar esta no lugar' : 'tirar esta no lugar'}.</p></div>`;
+    h.innerHTML = `<div class="hov-img" data-hovimg="${esc(c.name)}"><span class="note">…</span></div><div><b>${esc(c.name)}</b><div style="margin:2px 0 4px">${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div>${ia && ia.r ? `<p class="note" style="margin:0 0 4px">${esc(ia.r)}</p>` : `<p class="note hov-o" style="margin:0 0 4px">${esc(c.o.split('\n//\n')[0].slice(0, 260))}${c.o.length > 260 ? '…' : ''}</p>`}<div class="chips">${roles.slice(0, 3).map(r => `<span class="tag">${esc(r)}</span>`).join('')}</div><p class="note" style="margin:6px 0 0">${b.dataset.altin != null ? 'Clique para colocar esta no lugar.' : b.dataset.altout != null ? 'Clique para tirar esta no lugar.' : 'Clique para ver os detalhes.'}</p></div>`;
     const r = b.getBoundingClientRect(); const w = 360;
     h.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left)) + 'px';
     const below = r.bottom + 8, hgt = 210;
@@ -612,7 +612,7 @@ document.addEventListener('mouseover', (e) => {
     imgFor(c.name).then(src => { const el = h.querySelector('[data-hovimg]'); if (el && el.dataset.hovimg === c.name) el.innerHTML = src ? `<img src="${src}" alt="">` : '<span class="note">sem imagem</span>'; });
   }, 120);
 });
-document.addEventListener('mouseout', (e) => { const b = e.target.closest('[data-altin],[data-altout]'); if (!b || (e.relatedTarget && b.contains(e.relatedTarget))) return; clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; });
+document.addEventListener('mouseout', (e) => { const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || (e.relatedTarget && b.contains(e.relatedTarget))) return; clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; });
 document.addEventListener('click', () => { clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; }, true);
 
 function renderSwapCard(s, i) {
