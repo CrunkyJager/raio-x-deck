@@ -397,6 +397,7 @@ function cutScore(A, c, needRoles) {
   if (A.bodyOnly.includes(c.name)) s += 35;
   if (!A.cmdSupport.includes(c.name)) s += 12;
   s += c.r ? 30 * Math.min(c.r, 20000) / 20000 : 30;
+  if (c.r && c.r < 4000) s -= 45 * (1 - c.r / 4000); // muito jogada no Commander: só sai com motivo forte
   s -= 7 * real.length;
   if (c.gc) s -= 30;
   if (A.avgMV > 3.6 && c.v >= 5) s += 4 * (c.v - 4);
@@ -490,7 +491,7 @@ function buildSwaps(A) {
       pool = themePool; goal = 'Foco no plano';
       whyIn = `As funções básicas já estão nas faixas; esta puxa para ${thList.map(t => t.n.toLowerCase()).join(' e ')}, o que o comandante pede.`;
     }
-    const add = pool.find(x => !usedIn.has(x.c.name));
+    const add = pool.find(x => !usedIn.has(x.c.name) && !realRoles(x.c).some(k => k !== (d && d.r.k) && cnt[k] >= refOf(k).hi));
     if (!add) { if (d) { cnt[d.r.k] = 1e9; continue; } break; }
     const alts = pool.filter(x => !usedIn.has(x.c.name) && x.c.name !== add.c.name).slice(0, 5).map(x => x.c.name);
     push({ goal, out: cut.c.name, inn: add.c.name, whyOut: cut.why, whyIn: add.th && d ? whyIn + ' Esta também conversa com o tema do comandante.' : whyIn, alts, altsOut: [] });
