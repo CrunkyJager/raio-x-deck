@@ -328,9 +328,21 @@ function rodar() {
 function carta(nome, o = {}) {
   const im = o.tok ? null : imgDe(nome);
   const cls = ['mc', o.tap ? 'tap' : '', o.atk ? 'atk' : '', o.cmd ? 'cmd' : '', o.tok ? 'tok' : '', o.novo ? 'novo' : '', o.cls || ''].join(' ');
-  const pt = o.p != null ? `<span class="mpt">${o.p}/${o.t}</span>` : '';
+  const pt = o.p != null ? `<span class="mpt ${o.buff ? 'buff' : ''}" ${o.buff ? `title="${esc(o.buff)}"` : ''}>${o.p}/${o.t}</span>` : '';
+  const ct = o.ct ? `<span class="mct" title="${o.ct} marcador${o.ct > 1 ? 'es' : ''} +1/+1">+${o.ct}</span>` : '';
+  const lac = o.lac && o.lac.length ? `<i class="mlac" title="${esc('O motor não simula esta parte da carta:\n• ' + o.lac.join('\n• '))}">ⓘ</i>` : '';
+  const solto = o.solto ? '<em class="msolto">solto</em>' : '';
+  // cartas anexadas: em leque atrás da criatura, só a ponta de cada uma aparece (clicável)
+  const anx = (o.an || []).map((a, j) => { const n0 = a.n.replace(/ \(cópia\)$/, ''); const ia = a.i >= 0 ? imgDe(n0) : null;
+    return `<button class="manx" style="--j:${j + 1}" data-card="${esc(n0)}" title="${esc(a.n)}">${ia ? `<img src="${esc(ia[0])}" alt="${esc(a.n)}" data-big="${esc(ia[1])}">` : `<span class="mtok"><b>${esc(a.n)}</b></span>`}</button>`; }).join('');
   const face = im ? `<img src="${esc(im[0])}" alt="${esc(nome)}" loading="lazy" data-big="${esc(im[1])}">` : `<span class="mtok"><b>${esc(nome)}</b>${o.tok ? '<i>ficha</i>' : ''}</span>`;
-  return `<span class="mcw ${o.tap ? 'tap' : ''}"><button class="${cls}" ${o.tok ? '' : `data-card="${esc(nome)}"`} title="${esc(nome)}">${face}${pt}</button></span>`;
+  const sob = o.an && o.an.length ? `<span class="mcom" title="${esc(o.an.map(a => a.n).join(', '))}">${o.an.length > 1 ? 'equipada/encantada com' : 'com'}: ${esc(o.an.map(a => a.n).join(', '))}</span>` : '';
+  const kw = o.kw && o.kw.length ? `<span class="mkw">${esc(o.kw.map(k => KW_PT[k] || k).join(' · '))}</span>` : '';
+  return `<span class="mcw ${o.tap ? 'tap' : ''} ${o.an && o.an.length ? 'com-anx' : ''}" style="${o.an && o.an.length ? `--n:${o.an.length}` : ''}">${anx}<button class="${cls}" ${o.tok ? '' : `data-card="${esc(nome)}"`} title="${esc(nome)}">${face}${pt}${ct}${lac}${solto}</button>${sob || kw ? `<span class="msub">${sob}${kw}</span>` : ''}</span>`;
+}
+const KW_PT = { flying: 'voar', haste: 'ímpeto', trample: 'atropelar', vigilance: 'vigilância', reach: 'alcance', lifelink: 'vínculo com a vida', deathtouch: 'toque mortífero', menace: 'ameaçar', 'first strike': 'iniciativa', 'double strike': 'golpe duplo', hexproof: 'resistência a magia', indestructible: 'indestrutível', ward: 'proteção (ward)', shroud: 'manto', mountainwalk: 'montanhismo', forestwalk: 'florestalismo' };
+function lacDe(M, x) { const m = x.i >= 0 && !x.tok ? M[x.i] : null; return m && m.lac ? m.lac : null; }
+function buffDe(x) { const p = []; if (x.bp) p.push(`${x.bp > 0 ? '+' : ''}${x.bp} de força`); if (x.bt) p.push(`${x.bt > 0 ? '+' : ''}${x.bt} de resistência`); return p.length ? 'Alterada por anexos, lordes ou marcadores: ' + p.join(', ') : '';
 }
 function vaiPara(i) {
   const q = JOGO.quadros; PASSO = Math.max(0, Math.min(q.length - 1, i));
@@ -388,8 +400,8 @@ function lugarHTML(p, k, ev, pv) {
     </div>
     <div class="s-stats">${stat('Mão', p.mao.length, 'Cartas na mão')}${stat('Grimório', p.lib, 'Cartas que faltam comprar')}${stat('Cemitério', p.gy, 'Cartas no cemitério')}${cmd ? stat('Comandante', cmdTxt, 'Onde está o comandante', 'cmdz') : ''}${p.cmdD.some(x => x) ? stat('Dano de comandante', Math.max(...p.cmdD) + '/21', 'Maior dano de um mesmo comandante; 21 elimina', Math.max(...p.cmdD) >= 15 ? 'perigo' : '') : ''}</div>
     ${zona('Terrenos', p.terr, p.terr ? (tap ? `${tap} virado${tap > 1 ? 's' : ''} · ${p.terr - tap} para usar` : 'todos para usar') + (p.terr > pvT ? ' · <i class="novo-t">+1 agora</i>' : '') : '', terrHTML ? `<div class="s-lands2">${terrHTML}</div>` : '<span class="vazio">nenhum ainda</span>', 'zn-terra')}
-    ${zona('Criaturas', cri.length || null, cri.some(x => x.atk) ? '<i class="atk-t">atacando</i>' : '', `<div class="s-bf cri">${cri.map(x => carta(x.n, { tap: x.tap, atk: x.atk, cmd: x.c, tok: x.tok, p: x.p, t: x.t, novo: novo(x) })).join('') || '<span class="vazio">nenhuma</span>'}</div>`)}
-    ${out.length ? zona('Outras permanentes', out.length, 'artefatos, encantamentos…', `<div class="s-bf out">${out.map(x => carta(x.n, { tap: x.tap, tok: x.tok, novo: novo(x), cls: 'mini' })).join('')}</div>`) : ''}
+    ${zona('Criaturas', cri.length || null, cri.some(x => x.atk) ? '<i class="atk-t">atacando</i>' : '', `<div class="s-bf cri">${cri.map(x => carta(x.n, { tap: x.tap, atk: x.atk, cmd: x.c, tok: x.tok && !(x.i >= 0), p: x.p, t: x.t, novo: novo(x), an: x.an, ct: x.ct, kw: x.kw, buff: buffDe(x), lac: lacDe(M, x) })).join('') || '<span class="vazio">nenhuma</span>'}</div>`)}
+    ${out.length ? zona('Outras permanentes', out.length, 'artefatos, encantamentos…', `<div class="s-bf out">${out.map(x => carta(x.n, { tap: x.tap, tok: x.tok, novo: novo(x), cls: 'mini', solto: x.solto, an: x.an, lac: lacDe(M, x) })).join('')}</div>`) : ''}
     ${me && p.mao.length ? zona('Sua mão', p.mao.length, '', `<div class="s-mao">${p.mao.map((i, j) => `<span style="--r:${(j - (p.mao.length - 1) / 2) * 4}deg">${carta(nome(i), { cls: 'mao' })}</span>`).join('')}</div>`, 'zn-mao') : !me && p.mao.length ? `<div class="s-dorso" title="${p.mao.length} cartas na mão">${Array.from({ length: Math.min(p.mao.length, 10) }, (_, j) => `<i style="--r:${(j - (Math.min(p.mao.length, 10) - 1) / 2) * 5}deg"></i>`).join('')}</div>` : ''}
     ${gyL.length ? `<div class="s-gy"><em>Cemitério, mais recentes:</em> ${gyL.slice(0, 5).map(i => `<button class="cn" data-card="${esc(nome(i))}">${esc(nome(i))}</button>`).join('')}${p.gy > 5 ? `<span class="note">e mais ${p.gy - 5}</span>` : ''}</div>` : ''}
     ${!p.vivo ? '<div class="s-x">fora da partida</div>' : ''}

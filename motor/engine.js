@@ -1,4 +1,4 @@
-/* Motor do Grimório Arena, de Edgar. Copiado sem mudanças de regra; usado pelo Raio-X na Mesa simulada e na Mesa ao vivo. */
+/* Motor do Grimório Arena, de Edgar. Desde 18/11/2026 o Raio-X tem motor próprio: lerHab() lê anexos, lordes, gatilhos etc. (pendência 7). */
 /* Motor do analisador: puro, roda no Worker, na pagina e no node. */
 function norm(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g,' ').trim();}
 
@@ -189,9 +189,235 @@ function modelo(r){
   /* magica sem efeito lido fica como reativa (nao e lancada) */
   m.r=m.sp&&!m.dr&&!m.ramp&&!m.sham&&!m.ret&&!m.tok&&!m.pr&&!m.rem&&!m.wip&&!m.tut&&!m.wake;
   if(m.x&&m.sp&&!m.tut)m.r=true;
+  lerHab(m);
+  m.kws=kw?kw.split(/,\s*/).map(k=>k.replace(/ \{\d\}$/,'')):[];
   m.lac=lacunas(m);
   return m;
 }
+
+/* ===== Raio-X: leitor de habilidades (pendência 7). Daqui em diante o motor é do Raio-X, não mais cópia fiel do Grimório.
+   Lê frase por frase o que o motor do Edgar ignorava: anexos (equipamento/aura), lordes, palavras-chave dadas,
+   gatilhos (atacar, dano de combate, entrar, morrer, conjurar, início/fim de turno), marcadores +1/+1, habilidades ativadas
+   e redução de custo por cor/tipo. Cada frase lida entra em m.lido e sai das lacunas. O jogo (motor/mesa.js) aplica m.hab. */
+const KWS=['flying','haste','trample','vigilance','reach','lifelink','deathtouch','menace','first strike','double strike','hexproof','indestructible','shroud','ward','mountainwalk','forestwalk','swampwalk','islandwalk','plainswalk'];
+const TIPOS_PL={goblins:'goblin',elves:'elf',elfs:'elf',vampires:'vampire',zombies:'zombie',humans:'human',warriors:'warrior',spirits:'spirit',dragons:'dragon',angels:'angel',wizards:'wizard',soldiers:'soldier',knights:'knight',merfolk:'merfolk',dinosaurs:'dinosaur',cats:'cat',dwarves:'dwarf',faeries:'faerie',slivers:'sliver',beasts:'beast',rogues:'rogue',clerics:'cleric',shamans:'shaman',samurai:'samurai'};
+function frasesDe(txt){const o=[];for(const ln of String(txt||'').replace(/\([^)]*\)/g,'').split('\n').map(x=>x.trim()).filter(Boolean))for(const fr of ln.split(/(?<=\.)\s+/).map(x=>x.trim()).filter(Boolean))o.push(fr);return o;}
+const NUMW={a:1,an:1,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,ten:10};
+const numW=s=>NUMW[s]??(/^\d+$/.test(s)?+s:null);
+const tipoNorm=w=>{w=String(w||'').toLowerCase().trim();if(TIPOS_PL[w])return TIPOS_PL[w];return w.replace(/ creatures?$/,'');};
+function kwDe(s){const o=[];s=' '+String(s).toLowerCase()+' ';for(const k of KWS)if(new RegExp('[ ,]'+k+'\\b').test(s))o.push(k);
+  if(/can't be blocked except by creatures with flying or reach/.test(s))o.push('evasao');
+  if(/can't be blocked(?! except| by more)/.test(s))o.push('imbloq');
+  if(/can't be the target of spells or abilities your opponents control/.test(s))o.push('hexproof');
+  return o;}
+function tiposDe(tl){const t=String(tl||'').split('—')[1]||'';return t.toLowerCase().split(/\s+/).filter(Boolean);}
+/* efeito no fim de uma frase de gatilho ou ativação */
+function efeito(s){
+  const e={};let a;
+  if((a=s.match(/create (a|an|one|two|three|four|five|x|that many|\d+) (?:tapped )?(\d+)\/(\d+) ([a-z ]*?)creature tokens?(?: with ([a-z, ]+?))?(?:,| that|\.|$| and| for each| where| attached)/))){
+    let n=numW(a[1]);const f={p:+a[2],t:+a[3]};
+    const ws=a[4].replace(/\b(white|blue|black|red|green|colorless|legendary|artifact|enchantment)\b/g,'').trim();f.tipos=ws?ws.split(/\s+/):[];
+    if(a[5])f.kw=kwDe(a[5]);
+    if(a[1]==='that many')n='dano';
+    if(a[1]==='x'){const w=s.match(/where x is (?:the number of ([a-z]+)(?: creatures)? you control|(?:its|that creature's|~'s) power|the number of ([a-z]+) on the battlefield)/);
+      if(w)n=w[1]?'tipo:'+tipoNorm(w[1]):w[2]?'tipo:'+tipoNorm(w[2]):'poder';else if(/for each/.test(s))n='poder';else n=1;}
+    if(/for each \+1\/\+1 counter/.test(s))f.porCont=1;
+    if(/tapped and attacking|attacks this combat if able/.test(s))f.atk=1;
+    if(/gains? haste/.test(s))(f.kw=f.kw||[]).push('haste');
+    f.n=n??1;e.fic=f;}
+  if((a=s.match(/create (a|an|one|two|three|\d+) treasure tokens?/)))e.tes=numW(a[1]);
+  if((a=s.match(/put (a|one|two|\d+) \+1\/\+1 counters? on (it|~|that creature|each ([a-z ]+?) you control|target creature you control|equipped creature|enchanted creature|each modified creature you control)/))){
+    let alvo='self';const w=a[2];if(/each modified/.test(w))alvo='mod';else if(a[3])alvo='tipo:'+tipoNorm(a[3]);else if(/target creature/.test(w))alvo='melhor';else if(/equipped|enchanted/.test(w))alvo='host';
+    e.cont={n:numW(a[1]),alvo};if(/for each elf you control/.test(s))e.cont.n='tipo:elf';}
+  if((a=s.match(/\bdraws? (a|one|two|three|x|\d+) cards?/))&&!/opponent draws|target player draws/.test(s)){e.dr=a[1]==='x'?'x':numW(a[1]);}
+  if((a=s.match(/(?:you )?gain (\d+|x) life/))&&!/opponent/.test(s.slice(0,a.index)))e.vida=a[1]==='x'?'x':+a[1];
+  if((a=s.match(/gain (\d+) life for each attacking ([a-z]+)/)))e.vida='atk:'+tipoNorm(a[2]);
+  if((a=s.match(/(each opponent|target opponent|target player|that player) loses (\d+|x|that much) life/))){if(!/^each/.test(a[1]))e.drenUm=1;e.dren=a[2]==='that much'?'x':a[2]==='x'?'x':+a[2];if(/you gain (?:\d+|that much|x) life|gain life equal/.test(s))e.vida=e.vida||'dren';}
+  if((a=s.match(/deals? (\d+|x|that much) damage to (each opponent|each other opponent|any (?:other )?target|target player|target opponent|the player or planeswalker it's attacking|target creature|each creature)/))){
+    const n=a[1]==='that much'?'x':a[1]==='x'?'x':+a[1];const w=a[2];
+    if(/each (other )?opponent/.test(w))e.danoOp=n;else if(/creature/.test(w))e.danoCri=n;else e.danoAlvo=n;}
+  if(/deals damage equal to its power to (?:the player|target player|any target)/.test(s))e.danoAlvo='poder';
+  if((a=s.match(/(?:it|~) gets \+(\d+|x)\/\+(\d+|x) until end of turn/)))e.tmp={p:a[1]==='x'?'x':+a[1],t:a[2]==='x'?'x':+a[2]};
+  if((a=s.match(/(?:creatures you control|([a-z]+) you control) get \+(\d+)\/\+(\d+) until end of turn/)))e.tmpTodos={p:+a[2],t:+a[3],tipo:a[1]?tipoNorm(a[1]):'*'};
+  if(/untap all lands you control/.test(s))e.desvTerr=1;
+  if(/search your library for (?:a|up to (?:one|two)) basic land cards?[^.]*onto the battlefield/.test(s))e.terra=/up to two/.test(s)?2:1;
+  if(/additional combat phase/.test(s))e.combate=1;
+  if(/return (?:target|up to one target) aura or equipment card from your graveyard to your hand/.test(s))e.recupera='anexo';
+  if((a=s.match(/return (?:another )?target ([a-z]+) card from your graveyard to your hand/)))e.recupera=e.recupera||tipoNorm(a[1]);
+  if((a=s.match(/\bdiscover (\d+)/)))e.descobre=+a[1];
+  if(/return any number of aura cards from your graveyard to the battlefield attached/.test(s))e.tempestade=1;
+  if(/its controller creates a 3\/3/.test(s))e.fichaDono=1;
+  if(/untap all modified creatures/.test(s))e.desvMod=1;
+  return Object.keys(e).length?e:null;
+}
+/* quem dispara o gatilho */
+function quando(s,m){
+  let a;
+  if(/^whenever (?:~|equipped creature|enchanted creature) and at least one other creature attack|^whenever ~ attacks|^whenever equipped creature attacks|^whenever enchanted creature attacks/.test(s))return{q:'atk',quem:/equipped|enchanted/.test(s)?'host':'self'};
+  if(/^whenever you attack/.test(s))return{q:'ataque'};
+  if((a=s.match(/^whenever (?:a|one or more) (nontoken )?(modified )?([a-z]+)?(?: creatures?)? you control (?:attack|attacks)/))){return{q:'atkTipo',tipo:a[3]&&a[3]!=='creature'&&a[3]!=='creatures'?tipoNorm(a[3]):'*',mod:!!a[2],um:/one or more/.test(s),nt:!!a[1]};}
+  if((a=s.match(/^whenever a creature you control with power (\d+) or less attacks/)))return{q:'atkTipo',tipo:'*',pmax:+a[1]};
+  if(/^whenever (?:~|this creature|equipped creature|enchanted creature) deals combat damage to (?:a player|an opponent)/.test(s))return{q:'danoJog',quem:/equipped|enchanted/.test(s)?'host':'self'};
+  if(/^whenever (?:~|this creature) deals damage to (?:a player|an opponent)/.test(s))return{q:'danoJog',quem:'self'};
+  if((a=s.match(/^whenever (?:a|one or more) (modified )?(?:([a-z]+) )?creatures? you control deals? combat damage to a player/)))return{q:'danoJogTipo',mod:!!a[1],tipo:a[2]?tipoNorm(a[2]):'*'};
+  if(/^whenever a commander you control deals combat damage to an opponent/.test(s))return{q:'danoJogTipo',cmd:1};
+  if(/^(?:constellation — )?whenever (?:~|this creature) or another enchantment you control enters/.test(s))return{q:'entra',f:'enc',eu:1};
+  if(/^(?:constellation — )?whenever an enchantment you control enters/.test(s))return{q:'entra',f:'enc'};
+  if(/^whenever an aura or equipment you control enters/.test(s))return{q:'entra',f:'anexo'};
+  if(/^whenever an aura you control enters/.test(s))return{q:'entra',f:'aura'};
+  if((a=s.match(/^whenever (~ or )?(?:another|one or more other|a|one or more) (nontoken )?([a-z]+)?(?: creatures?)? you control (?:with power (\d+) or less )?enters?/))){return{q:'entra',f:'cri',tipo:a[3]&&!/^creatures?$/.test(a[3])?tipoNorm(a[3]):'*',eu:!!a[1],outro:!a[1],pmax:a[4]?+a[4]:null};}
+  if(/^whenever another creature you control enters|^whenever a creature you control enters|^whenever another creature enters/.test(s))return{q:'entra',f:'cri',tipo:'*',outro:/another/.test(s)};
+  if((a=s.match(/^whenever (~|this creature) or another ([a-z]+)?(?: creature)?(?: or planeswalker)?(?: you control)? dies/))){return{q:'morre',tipo:a[2]&&a[2]!=='creature'?tipoNorm(a[2]):'*',meu:/you control/.test(s)};}
+  if((a=s.match(/^whenever (?:a|another) (nontoken )?([a-z]+)? ?(?:creature )?you control dies/))){return{q:'morre',tipo:a[2]&&a[2]!=='creature'?tipoNorm(a[2]):'*',meu:1,outro:/another/.test(s)};}
+  if(/^whenever (?:another|a) creature dies/.test(s))return{q:'morre',tipo:'*',outro:/another/.test(s)};
+  if(/^whenever a creature an opponent controls dies/.test(s))return{q:'morre',op:1,tipo:'*'};
+  if(/^when (?:~|this creature) dies/.test(s))return{q:'morreEu'};
+  if(/^when(?:ever)? (?:enchanted|equipped) creature dies/.test(s))return{q:'hostMorre'};
+  if(/^when (?:this aura|~) is put into a graveyard from the battlefield/.test(s))return{q:'auraSai'};
+  if(/^whenever enchanted creature or another modified creature you control dies/.test(s))return{q:'morre',meu:1,mod:1,tipo:'*'};
+  if((a=s.match(/^whenever you cast (?:a|an) ([a-z]+)? ?spell/))){return{q:'conj',tipo:a[1]?tipoNorm(a[1]):'*'};}
+  if(/^whenever you cast another ([a-z]+) spell/.test(s))return{q:'conj',tipo:tipoNorm(s.match(/another ([a-z]+) spell/)[1]),outro:1};
+  if(/^at the beginning of (?:your|each) upkeep/.test(s))return{q:'upkeep',todos:/each upkeep/.test(s)};
+  if(/^at the beginning of your end step/.test(s))return{q:'fim'};
+  if(/^at the beginning of combat on your turn/.test(s))return{q:'combate'};
+  if(/^whenever you gain life/.test(s))return{q:'ganha'};
+  if(/^whenever an opponent loses life/.test(s))return{q:'opPerde'};
+  if(/^when (?:~|this (?:creature|aura|equipment|artifact|enchantment)) enters/.test(s))return{q:'etb'};
+  return null;
+}
+function lerHab(m){
+  m.lido=new Set();m.hab=[];
+  if(m.land||!m.txt)return;
+  const nome=m.frente.toLowerCase(),curto=nome.split(',')[0].trim(),curto1=nome.split(/[ ,]/)[0];
+  m.tipos=tiposDe(m.tl);if(/\bchangeling\b/i.test(m.txt))m.tipos.push('*');
+  const ok=fr=>m.lido.add(fr);
+  let ult=null;
+  const frases=frasesDe(m.txt);
+  for(const fr of frases){
+    let s=fr.toLowerCase().replace(/[’]/g,"'").replace(/\.$/,'').replace(/"$/,'');
+    s=s.split(nome).join('~');if(m.leg)s=s.split(curto).join('~');if(m.leg&&curto1.length>3)s=s.replace(new RegExp('\\b'+curto1+'\\b','g'),'~');
+    s=s.replace(/\bthis (creature|equipment|aura|artifact|enchantment)\b/g,m.cri?'~':'~');
+    s=s.replace(/^(?:[a-z' ]+ — )(?=whenever|when|at the|\{|other|you|creatures|each)/,'');
+    let a;
+    /* anexos */
+    if((a=s.match(/^equip(?: \{(\d+)\}|—| \{)/))){m.eq=a[1]?+a[1]:2;ok(fr);continue;}
+    if((a=s.match(/^reconfigure \{(\d+)\}/))){m.eq=+a[1];m.reconf=1;ok(fr);continue;}
+    if(/^living weapon/.test(s)){m.lw=1;ok(fr);continue;}
+    if((a=s.match(/^enchant (creature you control|modified creature|creature|permanent|land|artifact or creature)/))){m.aura={'creature you control':'cy','modified creature':'m',creature:'c',permanent:'p',land:'l','artifact or creature':'c'}[a[1]];ok(fr);continue;}
+    if(/^(?:umbra|totem) armor/.test(s)){m.umbra=1;ok(fr);continue;}
+    if(/^as long as enchanted permanent is an equipment/.test(s)){ok(fr);continue;}
+    if(/^(?:equipped|enchanted) creature can't attack or block|^enchanted creature doesn't untap|^enchanted creature can't attack/.test(s)){m.auraMa=1;ok(fr);continue;}
+    if((a=s.match(/^(?:as long as enchanted permanent is a creature, it|equipped creature|enchanted creature) (gets? ([+-]\d+)\/([+-]\d+)(?: for each ([^,"]+?))?(?: and|,|$))?\s*(?:has|have)?\s*(.*)$/))&&(a[1]||/^(?:equipped|enchanted) creature (?:has|can't be)/.test(s)||/^as long as enchanted permanent is a creature, it (?:has|gets)/.test(s))){
+      const d=m.da||(m.da={p:0,t:0,kw:[]});
+      if(a[1]){d.p+=+a[2];d.t+=+a[3];const f=a[4]||'';
+        if(f)d.por=/for each aura and equipment attached/.test(s)?'anexo':/aura and equipment attached/.test(f)?'anexo':/artifact and\/or enchantment/.test(f)?'artenc':/other enchantment on the battlefield/.test(f)?'outroEnc':/enchantment you control/.test(f)?'enc':(f.match(/^([a-z]+) you control/)?'tipo:'+tipoNorm(f.match(/^([a-z]+) you control/)[1]):'?');}
+      const resto=(a[5]||'')+' '+(a[1]?'':s);
+      const q=resto.match(/"([^"]+)"?/);
+      if(q){const h=q[1].replace(/\.$/,'').replace(/\bthis creature\b/g,'~'),w=quando(h,m),e=efeito(h);
+        if(w&&e){(m.daHab=m.daHab||[]).push({...w,quem:'host',e});}
+        else if(/^\{r\}: ~ gets \+1\/\+0/.test(h)){d.fogo=1;}}
+      d.kw.push(...kwDe(resto.replace(/"[^"]*"?/g,'')));ok(fr);continue;}
+    if(/^(?:equip abilities you activate that target enchanted creature|aura spells you cast that target enchanted creature) cost \{3\} less/.test(s)){m.sb=3;ok(fr);continue;}
+    if(/^when ~ enters, attach it to target creature you control/.test(s)){m.anexaEntra=1;ok(fr);continue;}
+    if(/^(?:that creature|enchanted creature) deals damage equal to its power to (?:up to one target creature you don't control|any other target)|^when ~ enters, enchanted creature deals damage equal to its power to any other target|^when ~ enters, you may have enchanted creature fight target creature/.test(s)){m.morde=1;ok(fr);continue;}
+    if(/^whenever enchanted creature is dealt damage, it deals that much damage to each opponent/.test(s)){m.dor=1;ok(fr);continue;}
+    if(/^this ability triggers only once each turn/.test(s)){if(ult)ult.uma=1;ok(fr);continue;}
+    if(/^(?:then )?if it has three or more \+1\/\+1 counters on it, sacrifice (?:this aura|~)|^when you sacrifice (?:this aura|~), search your library for up to two basic land/.test(s)){m.ordalia=1;ok(fr);continue;}
+    if(/^(?:it|that token) (?:enters tapped and attacking|attacks this combat if able|gains haste until end of turn and attacks this combat if able)/.test(s)){if(ult&&ult.e&&ult.e.fic){ult.e.fic.atk=1;if(/haste/.test(s))(ult.e.fic.kw=ult.e.fic.kw||[]).push('haste');}ok(fr);continue;}
+    if(/^sacrifice (?:it|them|that token|those tokens|all tokens created this way) at the beginning of the next end step/.test(s)){if(ult&&ult.e&&ult.e.fic)ult.e.fic.sac=1;ok(fr);continue;}
+    /* lordes e bônus estáticos */
+    if((a=s.match(/^(other )?(attacking )?(modified )?(?:([a-z]+) )?(creatures|goblins|elves|vampires|elfs|zombies|humans|warriors|spirits|dragons|knights|soldiers|wizards|merfolk|slivers|cats|beasts)(?: creatures)?(?: you control)?(?: of the chosen type)? (?:(?:get|gets) \+(\d+)\/\+(\d+)(?! until)(?: for each ([a-z ]+?))?)?(?: and )?(?:(?:have|has) (.+))?$/))&&(a[6]||a[9])&&!/^creatures you control get \+\d\/\+\d until/.test(s)){
+      const sub=a[4]&&!/^(creature|other)$/.test(a[4])?tipoNorm(a[4]):null,pl=a[5]==='creatures'?null:tipoNorm(a[5]);
+      let tipo=sub||pl||'*';if(/of the chosen type/.test(s))tipo='escolha';
+      const L={tipo,outros:!!a[1],atk:!!a[2],mod:!!a[3],p:a[6]?+a[6]:0,t:a[7]?+a[7]:0,kw:[]};
+      if(a[8])L.por=/fellowship counter/.test(a[8])?'fixo2':'tipo:'+tipoNorm(a[8].replace(/ you control$/,'').split(' ')[0]);
+      if(a[9]){const q=a[9].match(/"\{t\}: add (\{[wubrg]\}|one mana of any color)/);if(q){L.mana=q[1].length===3?q[1][1].toUpperCase():ANY;}else{L.kw=kwDe(a[9]);const q2=a[9].match(/"ward—pay 2 life/);if(q2)L.kw.push('ward');}}
+      (m.lorde=m.lorde||[]).push(L);m.anth=0;ok(fr);continue;}
+    if(/^each creature gets \+1\/\+1 for each other creature on the battlefield that shares at least one creature type with it/.test(s)){m.brasao=1;ok(fr);continue;}
+    if(/^as ~ enters, choose a creature type|^as this artifact enters, choose a creature type|^~ enters with a fellowship counter/.test(s)){ok(fr);continue;}
+    /* redução de custo por cor e por tipo */
+    if((a=s.match(/^(?:each spell you cast that's (red|green|blue|white|black)(?: or (red|green|blue|white|black))?|(red|green|blue|white|black) (creature )?spells you cast|([a-z]+) (creature )?spells you cast|creature spells you cast of the chosen type) costs? \{(\d)\} less to cast/))){
+      const C={white:'W',blue:'U',black:'B',red:'R',green:'G'};const r={n:+a[7]};
+      if(a[1])r.cor=C[a[1]]+(a[2]?C[a[2]]:'');else if(a[3]){r.cor=C[a[3]];if(a[4])r.cri=1;}
+      else if(a[5]){const t=tipoNorm(a[5]);if(t==='enchantment')r.ench=1;else if(t==='artifact')r.art=1;else if(t==='instant'||t==='sorcery')r.sp=1;else r.tipo=t;if(a[6])r.cri=1;}
+      else r.tipo='escolha';
+      (m.disX=m.disX||[]).push(r);ok(fr);continue;}
+    /* habilidades ativadas */
+    if((a=s.match(/^\{t\}: create x 1\/1 ([a-z ]+?) creature tokens, where x is the number of ([a-z]+) you control/))){m.hab.push(ult={q:'tap',e:{fic:{n:'tipo:'+tipoNorm(a[2]),p:1,t:1,tipos:a[1].replace(/\b(red|green|black|white|blue)\b/g,'').trim().split(/\s+/)}}});ok(fr);continue;}
+    if((a=s.match(/^(\{[^}]+\}(?:\{[^}]+\})*), \{t\}: create (?:a|one) (\d+)\/(\d+) ([a-z ]+?) creature token/))){m.hab.push(ult={q:'tap',custo:parseCusto(a[1]).g+parseCusto(a[1]).c,e:{fic:{n:1,p:+a[2],t:+a[3],tipos:a[4].replace(/\b(red|green|black|white|blue)\b/g,'').trim().split(/\s+/)}}});ok(fr);continue;}
+    if(/^\{t\}, tap ten untapped elves you control: each opponent loses 10 life/.test(s)){m.hab.push(ult={q:'tap',dez:'elf',e:{dren:10}});ok(fr);continue;}
+    if((a=s.match(/^(?:\{(\d)\}(?:\{[wubrg]\})*, )?sacrifice (?:a|another) ([a-z]+)?:? ?(?:creature)?: (?:~|this enchantment|this creature) deals (\d) damage to any target/))||(a=s.match(/^(\{[^}]+\})*,? ?sacrifice (?:a|another) ([a-z]+): ~ deals (\d) damage/))){m.sac={tipo:a[2]&&a[2]!=='creature'?tipoNorm(a[2]):'*',dano:+(a[3]),custo:/\{1\}\{r\}/.test(s)?2:0};ok(fr);continue;}
+    if((a=s.match(/^sacrifice (?:a|another) ([a-z]+)?:? ?(?:creature)?: (scry 1|add \{r\}|regenerate target creature)/))){m.sac={tipo:a[1]&&a[1]!=='creature'?tipoNorm(a[1]):'*',dano:0,mana:/add/.test(s)?1:0};ok(fr);continue;}
+    if(/^\{t\}: create a token that's a copy of target nonlegendary creature you control/.test(s)){m.kiki=1;ok(fr);continue;}
+    if(/^that token gains haste|^sacrifice it at the beginning of the next end step/.test(s)&&m.kiki){ok(fr);continue;}
+    if((a=s.match(/^\{t\}: target creature gets \+x\/\+x until end of turn, where x is the number of ([a-z]+) you control/))){m.hab.push({q:'tap',e:{tmpAlvo:'tipo:'+tipoNorm(a[1])}});ok(fr);continue;}
+    if((a=s.match(/^\{t\}: put a \+1\/\+1 counter on target creature for each ([a-z]+) you control/))){m.hab.push({q:'tap',e:{cont:{n:'tipo:'+tipoNorm(a[1]),alvo:'melhor'}}});ok(fr);continue;}
+    if((a=s.match(/^\{t\}: add x mana of any one color, where x is the number of ([a-z]+)s? (?:you control|on the battlefield)/))){m.manaX=tipoNorm(a[1]+'s');m.cor=ANY;ok(fr);continue;}
+    if(/^\{1\}, \{t\}: untap target creature|^you may activate abilities of creatures you control as though those creatures had haste/.test(s)){m.elixir=1;ok(fr);continue;}
+    if(/^\{1\}: untap this artifact/.test(s)){ok(fr);continue;}
+    if(/^\{5\}, \{t\}: draw a card|^\{2\}, \{t\}: you gain 1 life|^\{3\}, \{t\}: untap target creature|^\{4\}, \{t\}: tap target creature/.test(s)){m.cajado=1;ok(fr);continue;}
+    /* gatilhos */
+    const w=quando(s,m);
+    if(w){const resto=s.replace(/^[^,]*?,\s*/,'');
+      if(w.q==='etb'){const e0=efeito(resto);if(e0){if(m.tok)delete e0.fic;if(m.dr)delete e0.dr;if(m.lifeETB)delete e0.vida;if(m.ramp)delete e0.terra;if(m.remEtb){delete e0.danoAlvo;delete e0.danoCri;}}if(e0&&Object.keys(e0).length){m.hab.push(ult={...w,e:e0});ok(fr);continue;}if(m.tok||m.dr||m.lifeETB||m.remEtb)continue;}const e=efeito(resto)||((w.q==='hostMorre'||w.q==='auraSai')&&/return it to its owner's hand/.test(resto)?{volta:1}:null);
+      if(w.q==='auraSai'&&/return it to its owner's hand/.test(resto)){m.rancor=1;ok(fr);continue;}
+      if(e){if(w.q==='hostMorre'&&/x is its toughness/.test(s)){e.dr='t';e.vida='t';}
+        if(w.q==='upkeep'&&/if you have the city's blessing/.test(s))continue;
+        m.hab.push(ult={...w,e});ok(fr);continue;}}
+    if(/^where x is|^x is /.test(s)&&ult){ok(fr);continue;}
+    if(/^you have no maximum hand size/.test(s)){m.semLimite=1;ok(fr);continue;}
+    if(/^exile those auras at the beginning of your next end step|^if those auras would leave the battlefield/.test(s)){ok(fr);continue;}
+    if(m.sp){const e=efeito(s);if(e){const k={};for(const c of ['vida','dren','danoOp','danoAlvo','tmpTodos','cont','tes','fichaDono','descobre','recupera'])if(e[c]!=null)k[c]=e[c];if(e.fic&&!m.tok)k.fic=e.fic;
+      if(/^put a \+1\/\+1 counter on each of up to x target creatures/.test(s))k.cont={n:1,alvo:'todos'};
+      if(Object.keys(k).length){m.hab.push(ult={q:'sp',e:k});ok(fr);continue;}}
+      if(/^(?:auras, equipment, and modified creatures you control|target creature you control) gains? hexproof|^create a royal role token attached/.test(s)){m.hab.push({q:'sp',e:/royal role/.test(s)?{papel:1}:{hexMod:1}});ok(fr);continue;}
+      if(/^target creature you control gets \+x\/\+x and gains hexproof and indestructible/.test(s)){ok(fr);continue;}
+      if(/^the owner of target permanent shuffles it|^if it's a permanent card, they put it onto the battlefield/.test(s)&&m.rem){ok(fr);continue;}}
+  }
+  /* comandantes de exemplo (pendência 7b): textos que pedem regra própria */
+  const esp=HAB_ESP[m.frente]||HAB_ESP[m.nome];if(esp){esp(m,rx=>{for(const fr of frases)if(rx.test(fr))ok(fr);});if(esp.tudo)for(const fr of frases)ok(fr);}
+  if(m.r&&m.hab.some(h=>h.q==='sp'&&['fic','cont','vida','dren','danoOp','danoAlvo','tmpTodos','tes','descobre','recupera'].some(k=>h.e[k]!=null)))m.r=false;
+  if(m.lorde&&m.lorde.some(L=>L.tipo==='escolha')||m.disX&&m.disX.some(r=>r.tipo==='escolha'))m.escolha=1;
+}
+const HAB_ESP={
+  'Stangg, Echo Warrior':Object.assign(m=>{m.hab=m.hab.filter(h=>h.q!=='atk');m.hab.push({q:'atk',quem:'self',e:{gemeo:1}});},{tudo:1}),
+  'Edgar Markov':Object.assign(m=>{m.hab=[{q:'conj',tipo:'vampire',outro:1,zona:1,e:{fic:{n:1,p:1,t:1,tipos:['vampire']}}},{q:'atk',quem:'self',e:{cont:{n:1,alvo:'tipo:vampire'}}}];},{tudo:1}),
+  'Lathril, Blade of the Elves':Object.assign(m=>{m.hab=[{q:'danoJog',quem:'self',e:{fic:{n:'dano',p:1,t:1,tipos:['elf','warrior']}}},{q:'tap',dez:'elf',e:{dren:10}}];},{tudo:1}),
+  'Krenko, Mob Boss':Object.assign(m=>{m.hab=[{q:'tap',e:{fic:{n:'tipo:goblin',p:1,t:1,tipos:['goblin']}}}];},{tudo:1}),
+  'Krenko, Tin Street Kingpin':Object.assign(m=>{m.hab=[{q:'atk',quem:'self',e:{cont:{n:1,alvo:'self'},fic:{n:'poder',p:1,t:1,tipos:['goblin']}}}];},{tudo:1}),
+  'Wild Growth':Object.assign(m=>{m.mana=1;m.cor='G';m.aura=0;},{tudo:1}),
+  'Akki Battle Squad':Object.assign(m=>{m.hab=[{q:'atkTipo',tipo:'*',mod:1,um:1,uma:1,e:{desvMod:1,combate:1}}];},{tudo:1}),
+  'Coat of Arms':Object.assign(m=>{m.brasao=1;},{tudo:1}),
+  'Shared Animosity':Object.assign(m=>{m.hab=[{q:'atkTipo',tipo:'*',e:{animo:1}}];},{tudo:1}),
+  'Goblin Piledriver':(m,marca)=>{m.hab=m.hab.filter(h=>h.q!=='atk');m.hab.push({q:'atk',quem:'self',e:{tmpPor:'atk:goblin',p:2}});marca(/^Whenever this creature attacks/);},
+  'Muxus, Goblin Grandee':(m,marca)=>{m.hab=m.hab.filter(h=>h.q!=='atk');m.hab.push({q:'atk',quem:'self',e:{tmpPor:'tipo:goblin',p:1,t:1}});marca(/^Whenever Muxus attacks/);},
+  'Kediss, Emberclaw Familiar':Object.assign(m=>{m.hab=[{q:'danoJogTipo',cmd:1,e:{espelho:1}}];},{tudo:1}),
+  "Tyvar's Stand":m=>{m.pr={r:1,k:'um'};},
+  'Doubling Season':Object.assign(m=>{m.dobraFicha=1;m.dobraCont=1;},{tudo:1}),
+  'Sanctum Weaver':Object.assign(m=>{m.manaX='enc';m.cor=ANY;},{tudo:1}),
+  'Nylea\'s Colossus':Object.assign(m=>{m.hab=[{q:'entra',f:'enc',eu:1,e:{dobra:1}}];},{tudo:1}),
+  'Sanctum Seeker':Object.assign(m=>{m.hab=[{q:'atkTipo',tipo:'vampire',e:{dren:1,vida:'dren'}}];},{tudo:1}),
+  'Raid Bombardment':Object.assign(m=>{m.hab=[{q:'atkTipo',tipo:'*',pmax:2,e:{danoAtacado:1}}];},{tudo:1}),
+  'Mage Slayer':Object.assign(m=>{m.eq=3;m.daHab=[{q:'atk',quem:'host',e:{danoAtacado:'poder'}}];},{tudo:1}),
+  'Blood Artist':Object.assign(m=>{m.hab=[{q:'morre',tipo:'*',e:{dren:1,vida:'dren'}}];},{tudo:1}),
+  'Cruel Celebrant':Object.assign(m=>{m.hab=[{q:'morre',tipo:'*',meu:1,e:{dren:1,vida:'dren'}}];},{tudo:1}),
+  'Vengeful Bloodwitch':Object.assign(m=>{m.hab=[{q:'morre',tipo:'*',meu:1,e:{dren:1,vida:'dren'}}];},{tudo:1}),
+  'Exquisite Blood':Object.assign(m=>{m.hab=[{q:'opPerde',e:{vida:'x'}}];},{tudo:1}),
+  'Sanguine Bond':Object.assign(m=>{m.hab=[{q:'ganha',e:{dren:'x',drenUm:1}}];},{tudo:1}),
+  'Vito, Thorn of the Dusk Rose':(m,marca)=>{m.hab=m.hab.filter(h=>h.q!=='ganha');m.hab.push({q:'ganha',e:{dren:'x',drenUm:1}});marca(/^Whenever you gain life/);},
+  'Bloodthirsty Conqueror':(m,marca)=>{m.hab=m.hab.filter(h=>h.q!=='opPerde');m.hab.push({q:'opPerde',e:{vida:'x'}});marca(/^Whenever an opponent loses life/);},
+  'Impact Tremors':Object.assign(m=>{m.hab=[{q:'entra',f:'cri',tipo:'*',e:{danoOp:1}}];},{tudo:1}),
+  'Purphoros, God of the Forge':(m,marca)=>{m.hab=m.hab.filter(h=>h.q!=='entra');m.hab.push({q:'entra',f:'cri',tipo:'*',outro:1,e:{danoOp:2}});m.cri=false;m.p=0;marca(/^As long as your devotion|^Whenever another creature you control enters/);},
+  'Goblin Bombardment':Object.assign(m=>{m.sac={tipo:'*',dano:1};},{tudo:1}),
+  'Moldervine Reclamation':Object.assign(m=>{m.hab=[{q:'morre',tipo:'*',meu:1,e:{vida:1,dr:1}}];},{tudo:1}),
+  'Elderfang Venom':Object.assign(m=>{m.lorde=[{tipo:'elf',atk:1,p:0,t:0,kw:['deathtouch']}];m.hab=[{q:'morre',tipo:'elf',meu:1,e:{dren:1,vida:'dren'}}];},{tudo:1}),
+  'Poison-Tip Archer':(m,marca)=>{m.hab=m.hab.filter(h=>h.q!=='morre');m.hab.push({q:'morre',tipo:'*',outro:1,e:{dren:1}});marca(/^Whenever another creature dies/);},
+  'Boggart Shenanigans':Object.assign(m=>{m.hab=[{q:'morre',tipo:'goblin',meu:1,outro:1,e:{danoAlvo:1}}];},{tudo:1}),
+  'Pashalik Mons':(m,marca)=>{m.hab=m.hab.filter(h=>h.q!=='morre');m.hab.push({q:'morre',tipo:'goblin',meu:1,e:{danoAlvo:1}});marca(/^Whenever Pashalik Mons or another Goblin/);},
+  'Anointed Procession':Object.assign(m=>{m.dobraFicha=1;},{tudo:1}),
+  'Kiki-Jiki, Mirror Breaker':(m,marca)=>{m.kiki=1;marca(/^\{T\}: Create a token that's a copy|^That token gains haste|^Sacrifice it at the beginning/);},
+  'Goblin Warchief':m=>{},
+};
 
 /* Leitor de clausulas: separa o texto da carta em frases e diz quais o motor aplica no jogo e quais ignora */
 const KWOK={haste:m=>m.haste,'first strike':m=>m.fs,lifelink:m=>m.ll,flying:m=>m.ev,trample:m=>m.ev,menace:m=>m.ev,'double strike':m=>m.ds,infect:m=>m.inf,vigilance:m=>m.vig,indestructible:m=>m.ind,hexproof:m=>m.hex,shroud:m=>m.hex,ward:m=>m.ward,flash:()=>true,reach:()=>true,improvise:m=>m.impv,affinity:m=>m.myco||m.metal};
@@ -251,6 +477,7 @@ function lacunas(m){
     const soKw=/^(?:(?:flying|haste|vigilance|trample|reach|lifelink|menace|first strike|double strike|deathtouch|indestructible|defender|hexproof|shroud|flash|infect|improvise|affinity for artifacts|ward \{\d\}|protector)(?:, |$))+$/i.test(ln);
     if(soKw){for(const k of ln.toLowerCase().split(/,\s*/)){const key=k.replace(/ \{\d\}$/,'').replace(/ for artifacts$/,'');const f=KWOK[key];if(f?!f(m):true)out.push(k.trim());}continue;}
     for(const fr of ln.split(/(?<=\.)\s+/).map(x=>x.trim()).filter(Boolean)){
+      if(m.lido&&m.lido.has(fr))continue;
       if(CLAUSULAS.some(c=>c[0].test(fr)&&c[1](m)))continue;
       out.push(fr.length>70?fr.slice(0,67)+'...':fr);
     }
@@ -282,7 +509,7 @@ function rotulo(m){
 /* carta com texto que o motor nao leu */
 function naoModelado(m){
   if(m.land||!m.txt||m.r||(m.cri&&m.p>0))return false;
-  if(m.mana||m.ramp||m.dis||m.dr||m.sham||m.ret||m.gat||m.cada||m.tok||m.tome||m.slate||m.me||m.ugin||m.uin||m.opal||m.amber||m.myco||m.metal||m.bronze||m.magnus||m.tithe||m.pr||m.rem||m.remEtb||m.remAtk||m.wip||m.wake||m.iron||m.tut||m.hexA||m.hexAO||m.hexC||m.boots||m.indA||m.indC||m.wardAO||m.clock||m.clamp||m.plat||m.morte||m.lant)return false;
+  if(m.mana||m.ramp||m.dis||m.dr||m.sham||m.ret||m.gat||m.cada||m.tok||m.tome||m.slate||m.me||m.ugin||m.uin||m.opal||m.amber||m.myco||m.metal||m.bronze||m.magnus||m.tithe||m.pr||m.rem||m.remEtb||m.remAtk||m.wip||m.wake||m.iron||m.tut||m.hexA||m.hexAO||m.hexC||m.boots||m.indA||m.indC||m.wardAO||m.clock||m.clamp||m.plat||m.morte||m.lant||m.eq||m.aura||m.lorde||m.disX||m.brasao||m.sac||m.kiki||m.manaX||(m.hab&&m.hab.length)||m.dobraFicha)return false;
   return m.txt.replace(/\b(Flying|Haste|Vigilance|Trample|Reach|Lifelink|Menace|First strike|Double strike|Deathtouch|Indestructible|Defender|Hexproof|Ward \{\d\})\b[,\s]*/gi,'').trim().length>0;
 }
 

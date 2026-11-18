@@ -710,6 +710,21 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 .vlog2 ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; max-height: 260px; overflow-y: auto; font-size: .92rem; color: var(--ink-2); }
 .vlog2 li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 5px 8px; border-radius: 8px; }
 .vlog2 li.agora { background: rgb(255 194 61 / .1); color: var(--ink); box-shadow: inset 3px 0 0 var(--accent); }
+
+/* Mesa ao vivo: anexos em leque, bônus, marcadores e o que o motor não simula (pendência 7, 18/11/2026) */
+.mcw { position: relative; flex-direction: column; align-items: center; }
+.mcw.com-anx { margin-left: calc(var(--n) * 9px); margin-top: calc(var(--n) * 7px + 4px); }
+.manx { position: absolute; top: calc(var(--j) * -7px); left: calc(var(--j) * -9px); width: var(--w); aspect-ratio: 63/88; padding: 0; border: 0; border-radius: 6px; overflow: hidden; background: #222; z-index: 0; cursor: zoom-in; box-shadow: 0 2px 6px rgba(0,0,0,.55); filter: brightness(.85); }
+.manx:hover { filter: none; z-index: 3; }
+.manx img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mcw > .mc { z-index: 1; }
+.mpt.buff { background: #9fe7a8; color: #0d2a12; }
+.mct { position: absolute; left: -4px; bottom: -6px; font: 700 .64rem/1 var(--mono); background: #ffc23d; color: #1a1612; border-radius: 5px; padding: 3px 4px; box-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.mlac { position: absolute; right: -5px; top: -5px; width: 15px; height: 15px; border-radius: 50%; font: 700 .62rem/15px var(--body); font-style: normal; text-align: center; background: rgba(15,22,40,.85); color: #ffd98a; border: 1px solid rgba(255,194,61,.6); cursor: help; z-index: 2; }
+.msolto { position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); font: 600 .55rem/1 var(--mono); font-style: normal; text-transform: uppercase; letter-spacing: .04em; background: rgba(15,22,40,.85); color: #ffd98a; padding: 2px 4px; border-radius: 4px; }
+.msub { display: block; max-width: calc(var(--w) + 40px); margin-top: 8px; font: 500 .6rem/1.25 var(--body); color: rgba(235,228,209,.82); text-align: center; }
+.mcom { display: block; color: #ffd98a; }
+.mkw { display: block; color: #9fe7a8; }
 </style>
 </head>
 <body>
@@ -746,14 +761,14 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611182230"></script>
-<script src="exemplos.js?v=202611182230"></script>
-<script src="papeis-ia.js?v=202611182230"></script>
-<script>window.RAIOX_V = "202611182230";</script>
-<script src="motor/engine.js?v=202611182230"></script>
-<script src="analise.js?v=202611182230"></script>
+<script src="cards-db.js?v=202611182300"></script>
+<script src="exemplos.js?v=202611182300"></script>
+<script src="papeis-ia.js?v=202611182300"></script>
+<script>window.RAIOX_V = "202611182300";</script>
+<script src="motor/engine.js?v=202611182300"></script>
+<script src="analise.js?v=202611182300"></script>
 
-<script src="mesa-ui.js?v=202611182230"></script>
+<script src="mesa-ui.js?v=202611182300"></script>
 <script>
 /* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
 (function () { const b = document.body; b.classList.add('icwait'); let feito = false;
