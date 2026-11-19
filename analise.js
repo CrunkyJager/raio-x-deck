@@ -604,7 +604,8 @@ function tipoRamp(c) {
   const cond = /\b(Whenever|When) [^\n]*?(deals (combat )?damage|attacks|dies|an opponent|a player|you cast|you copy)[^\n]*(Treasure|Add \{|search your library for [^.]*land)/.test(o);
   let r = null;
   const pede = /(^|\n)[^\n:]*(Collect evidence|Remove (an?|one|two|three|\w+) [^:\n]*counters?|Exert|Tap an untapped|Tap (two|three|\w+) untapped)[^:\n]*: Add/i.test(o) || /: Add [^\n]*Activate only if/i.test(o);
-  if (pede) r = 'condicional';
+  if (pede || /sacrifice this Aura[^\n]*\n[^\n]*When you sacrifice this Aura, search/i.test(o)) r = 'condicional'; // Ordeal of Nylea: só depois de 3 ataques
+  else if (/Whenever enchanted (land|Forest|[A-Z][a-z]+) is tapped for mana, its controller adds an additional/i.test(o)) r = 'pedra'; // Wild Growth, Utopia Sprawl: mana a mais todo turno
   else if (tg.includes('ritual')) r = 'ritual';
   else if (/Sacrifice (an?|another) (creature|artifact|permanent|[A-Z][a-z]+)\b[^:\n]*: Add/.test(o)) r = null; // altar: é peça de combo, não acelera
   else if (/Sacrifice (this|~|it)[^:\n]*: Add/.test(o) && !tapAdd) r = 'tesouro';
@@ -800,6 +801,64 @@ function condDeck(A, c, o) {
   if (A.tribe && new RegExp('Whenever (a|another) ' + A.tribe[0], 'i').test(o)) return [1, `rende com ${A.tribe[0]}, a tribo do deck`];
   return [0.6, 'depende de algo acontecer antes'];
 }
+// ---------- nota do ramp pelo modelo geral (19/11/2026, aprovado pelo usuário) ----------
+// MEX = mana a mais × peso do turno (mana no T2 vale mais que no T6); permanente rende do turno seguinte até o T6;
+// mana de uma vez só = melhor turno; × confiabilidade (criatura 0,85, ritual 0,9, condicional medida contra o deck).
+// Nota = 1,15 × MEX / 2,6 (Arcane Signet = 1,15); acima de 1,3 cresce em raiz. +0,3 se põe o comandante um turno antes.
+const RW = [0, 1.0, 1.0, 0.9, 0.75, 0.55, 0.4];
+const rSoma = (de) => { let s = 0; for (let t = Math.max(1, de); t <= 6; t++) s += RW[t]; return s; };
+const pT = (t) => RW[Math.max(1, Math.min(6, t))];
+function manaDada(A, c, o) {
+  const linha = o.split('\n').find(l => /:\s*Add/.test(l)) || '';
+  const add = linha.match(/Add ((\{[^}]+\})+)/) || o.match(/Add ((\{[^}]+\})+)/);
+  let g = add ? (add[1].match(/\{/g) || []).length : 0, w = null;
+  if (/Add one mana/i.test(o)) g = 1; if (/Add two/i.test(o)) g = 2; if (/Add three/i.test(o)) g = 3;
+  if (/adds an additional/i.test(o)) g = 1; // Wild Growth, Utopia Sprawl: o terreno dá uma a mais
+  const fe = o.match(/Add [^\n]*for each ([A-Z][a-z]+|creature|artifact)/i);
+  if (fe) { const tri = A.tribe && fe[1].toLowerCase().startsWith(A.tribe[0].toLowerCase()); g = tri || /creature/i.test(fe[1]) ? 3 : 2; w = `a mana cresce com o que está na mesa (conta ${g})`; }
+  else if (/Add an amount of|Add [^\n]*equal to|Add X mana/i.test(o)) { g = 2; w = 'a mana cresce com o tempo (conta 2)'; }
+  const ca = linha ? custoN(linha.split(':')[0].replace(/\{[TQ]\}/g, '')) : 0;
+  return { g, net: Math.max(0, g - ca), ca, w };
+}
+function mexRamp(A, c, tr, o) {
+  const cv = c.v, cr = custoRamp(c), w = [`${RAMP_N[tr]} de ${cr}${cr !== cv ? ' na prática' : ''}`];
+  const cmd = (A.cmds || [])[0], C = cmd ? cmd.v : 0;
+  const D = manaDada(A, c, o); if (D.w) w.push(D.w);
+  let entra = Math.max(1, cv), mex = 0, conf = 1, g = 0, vez = false;
+  if (/enters tapped/i.test(o) && /Artifact/.test(c.t)) entra += 1;
+  const sp = cv === 0 && o.match(/Suspend (\d+)/); if (sp) entra = +sp[1] + 1;
+  if (trocaTerreno(c)) { entra = Math.max(1, cr); w.push('troca um terreno da mão'); }
+  if (tr === 'pedra' || tr === 'dork') {
+    g = D.net; if (D.ca) w.push(`ativar custa ${D.ca}`);
+    if (tr === 'dork') { conf = 0.85; w.push('é criatura: morre no primeiro limpa-mesa (×0,85)'); }
+    if (trocaTerreno(c)) { g = Math.min(g, 1); vez = true; mex = pT(entra) * 1; }
+    else mex = g * rSoma(entra + 1);
+  } else if (tr === 'terreno') {
+    const bf = /(two|up to two)[^.]*basic land cards?[^.]*(put them|onto the battlefield)|up to two[^.]*onto the battlefield/i.test(o) && !/put one onto the battlefield/i.test(o) ? 2 : 1;
+    const mao = /into your hand/i.test(o) ? 1 : 0; g = bf;
+    mex = bf * rSoma(entra + 1) + 0.5 * mao * rSoma(entra + 2); if (mao) w.push('+1 terreno na mão (vale meio)'); if (bf === 2) w.push('dois terrenos');
+  } else if (tr === 'tesouro') {
+    const m = o.match(/create (a|an|one|two|three|four|X|\d+)[^.]*Treasure/i);
+    g = !m ? 1 : ({ a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, x: 2 })[m[1].toLowerCase()] || +m[1] || 1; vez = true;
+    mex = g * pT(entra + 1); w.push('a mana vem uma vez só');
+  } else if (tr === 'ritual') {
+    g = Math.max(0, D.g - cv); vez = true; conf = 0.9; mex = g * pT(Math.max(cv, C - g)); w.push('a mana some no fim do turno: conta só o melhor turno');
+  } else { // condicional: a condição medida contra o deck
+    const [m, ww] = condDeck(A, c, o); conf = Math.min(0.85, m); w.push(ww); // nunca mais firme que criatura de mana
+    g = Math.max(1, D.net || (/two basic land/i.test(o) ? 2 : 1));
+    if (/three or more [^.]*counters|sacrifice this Aura/i.test(o)) { entra += 3; w.push('a mana só chega depois de alguns turnos'); }
+    mex = g * rSoma(entra + 1);
+  }
+  mex *= conf;
+  let nota = 1.15 * mex / 2.6; if (nota > 1.3) nota = 1.3 + 0.25 * Math.sqrt(nota - 1.3);
+  w.push(`rende ${fmtD(mex, 1)} manas pesadas até o T6`);
+  let bonus = 0, bonusW = '';
+  if (C >= 3 && g > 0 && tr !== 'condicional' && !/Powerstone|Spend this mana only/i.test(o)) {
+    const t = vez ? Math.max(cv, C - g) : Math.max(entra + 1, C - g);
+    if (t < C) { const P = A.plano; bonus = P && P.ativo ? 0.3 : 0.2; bonusW = `põe ${cmd.name.split(',')[0]} na mesa um turno antes (+${fmtD(bonus, 1)})`; }
+  }
+  return { nota, mex, bonus, bonusW, w };
+}
 const EF = {};
 function efetiv(A, c) {
   if (!c || isLand(c)) return { v: {}, why: {} };
@@ -813,17 +872,11 @@ function efetiv(A, c) {
     const tr = tipoRamp(c), cr = custoRamp(c), w = [];
     if (!tr) { v.ramp = 0.1; w.push('não dá mana de verdade (a etiqueta de ramp engana)'); }
     else {
-      let x = cr <= 1 ? 1.3 : cr === 2 ? 1.15 : cr === 3 ? 0.85 : cr === 4 ? 0.55 : 0.3; w.push(`${RAMP_N[tr]} de ${cr}${cr !== cv ? ' na prática' : ''}`);
-      if (/Add \{[^}]+\}\{[^}]+\}|Add two|Add three/.test(o) && tr === 'pedra') { x *= 1.2; w.push('dá 2 manas'); }
-      if (tr === 'dork') { x *= 0.85; w.push('é criatura: morre no primeiro limpa-mesa'); }
-      if (/Add [^\n]*for each (Elf|Goblin|creature|[A-Z][a-z]+|artifact)[^\n]*you control|Add [^\n]*equal to the number of/i.test(o)) { x *= 1.4; w.push('a mana cresce com o que está na mesa'); }
-      if (tr === 'terreno' && /two basic land|up to two|two land cards/i.test(o)) { x *= 1.1; w.push('dois terrenos'); }
-      if (tr === 'tesouro') { x *= 0.55; w.push('a mana vem uma vez só'); }
+      const M = mexRamp(A, c, tr, o); let x = M.nota; w.push(...M.w);
       if (/Powerstone/.test(o)) { x *= 0.5; w.push('Powerstone: a mana só paga artefato'); }
       const so = o.match(/Spend this mana only to cast (an? )?(\w+)/i); if (so && !/creature/i.test(so[2]) && !(A.tribe && so[2].startsWith(A.tribe[0]))) { x *= 0.3; w.push(`a mana só paga ${so[2]}`); }
       if (/gains control of this (artifact|permanent)/i.test(o)) { x *= 0.5; w.push('passa para outro jogador depois de usar'); }
-      if (tr === 'ritual') { x *= 0.3; w.push('a mana some no fim do turno'); }
-      if (tr === 'condicional') { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); }
+      if (M.bonus) { x += M.bonus; w.push(M.bonusW); }
       v.ramp = x;
     }
     why.ramp = w.join('; ');
@@ -897,7 +950,7 @@ function efetiv(A, c) {
     v.counter = Math.max(0.2, x); why.counter = w.join('; ');
   }
   // o texto tem que fazer a função de verdade (as etiquetas juntam muito engano)
-  const FAZ = { ramp: /Add \{|Add (one|two|three|X|that much) mana|mana of any|Treasure|Powerstone|search your library for [^.]*(land|Forest|Plains|Island|Swamp|Mountain)|lands? cards? [^.]*onto the battlefield|costs? \{\d\} less|play an additional land/i, draw: /draws? (a|an|two|three|four|five|seven|X|\d+) cards?|draw cards|exile the top [^.]*(you may (play|cast))/i, removal: /destroy target|exile target|shuffles it into|on the (top|bottom) of (its owner's|their) library|damage to (any )?target|damage to (each|up to)|target [^.]*gets -\d|fights?|return target [^.]*owner's hand|sacrifices? (a|an) (creature|permanent)|counters? on target/i, protect: /hexproof|indestructible|shroud|protection from|phases? out|[Cc]ounter target|[Rr]egenerate|\bward\b|can't be the target/i, counter: /[Cc]ounter target/ };
+  const FAZ = { ramp: /Add \{|Add an amount of|adds an additional|Add (one|two|three|X|that much) mana|mana of any|Treasure|Powerstone|search your library for [^.]*(land|Forest|Plains|Island|Swamp|Mountain)|lands? cards? [^.]*onto the battlefield|costs? \{\d\} less|play an additional land/i, draw: /draws? (a|an|two|three|four|five|seven|X|\d+) cards?|draw cards|exile the top [^.]*(you may (play|cast))/i, removal: /destroy target|exile target|shuffles it into|on the (top|bottom) of (its owner's|their) library|damage to (any )?target|damage to (each|up to)|target [^.]*gets -\d|fights?|return target [^.]*owner's hand|sacrifices? (a|an) (creature|permanent)|counters? on target/i, protect: /hexproof|indestructible|shroud|protection from|phases? out|[Cc]ounter target|[Rr]egenerate|\bward\b|can't be the target/i, counter: /[Cc]ounter target/ };
   for (const k in FAZ) if (v[k] != null && !FAZ[k].test(o)) { v[k] = 0.15; why[k] = 'a etiqueta diz que faz, mas o texto não mostra o efeito'; }
   const ks = Object.keys(v).sort((a, b) => v[b] - v[a]);
   const modal = /Choose one|choose one —/i.test(o) || o.split('\n').filter(l => autoSac(l) && /:/.test(l)).length >= 2;
