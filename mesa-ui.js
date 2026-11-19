@@ -71,6 +71,7 @@ function listaOps() {
   const out = [];
   for (const d of DECKS) out.push({ id: 'g:' + (d.id || d.nome), nome: d.nome, lista: d.lista, cmd: d.cmd || null, fonte: d.fonte || 'EDHREC / Archidekt' });
   for (const [n, l] of Object.entries(window.EXEMPLOS || {})) if (!DECKS.some(d => d.nome === n)) out.push({ id: 'ex:' + n, nome: n, lista: l, cmd: null, fonte: 'deck médio do EDHREC' });
+  for (const [n, l] of Object.entries(window.OPONENTES_EDHREC || {})) if (!out.some(o => o.nome === n)) out.push({ id: 'ed:' + n, nome: n, lista: l, cmd: null, fonte: 'deck médio do EDHREC', extra: true });
   for (const a of store.get('amigos', [])) out.push({ id: 'am:' + a.nome, nome: a.nome, lista: a.lista, cmd: null, fonte: 'deck de amigo', amigo: true });
   return out;
 }
@@ -81,8 +82,8 @@ function opDe(o) {
 const meuCmd = () => (A && A.cmds[0] ? A.cmds[0].name : '');
 function selecionados() {
   const all = listaOps(); const sel = store.get('ops', null);
-  // por padrão, todos menos o deck que tem o mesmo comandante que o seu
-  return all.filter(o => (sel ? sel.includes(o.id) : o.nome !== meuCmd()));
+  // por padrão, os decks de sempre menos o que tem o mesmo comandante que o seu (os 30 do EDHREC ficam desmarcados)
+  return all.filter(o => (sel ? sel.includes(o.id) : !o.extra && o.nome !== meuCmd()));
 }
 
 // ---------- tela: Mesa simulada ----------
