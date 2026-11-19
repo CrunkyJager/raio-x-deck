@@ -583,7 +583,7 @@ const G = (() => {
     if (k === 'lands') { const cs = [...E.I].filter(x => (c.pm || '').includes(x)); if (cs.length) r.push('Dá mana ' + cs.map(x => R.COLORNAME[x].toLowerCase()).join(' e ')); if (/enters tapped\./.test(c.o) && !/unless|you may pay|If you don't/.test(c.o)) r.push('entra virado'); }
     if (E.edh) { const t = R.edhPorque(E.edh, c); if (t && (k !== 'lands' || R.edhCarta(E.edh, c))) r.push(t); }
     const brlC = (c.usd || 0) * (R.usd || 5.56); if (brlC >= 50) r.push(`cara (${R.brlTxt ? R.brlTxt(c.usd) : 'R$ ' + Math.round(brlC)}): só vale se couber no seu orçamento`);
-    r.push(`Popularidade: nº ${c.r.toLocaleString('pt-BR')} no Commander (só desempata)`);
+    r.push(`Popularidade: nº ${c.r.toLocaleString('pt-BR')} no Commander`);
     return r;
   }
   function pipsDeck(d) {

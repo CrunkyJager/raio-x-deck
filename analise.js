@@ -329,7 +329,7 @@ function run(forcedCmd, goTo) {
   document.dispatchEvent(new CustomEvent('raiox:deck', { detail: A }));
   // EDHREC ainda não veio para este comandante: busca e refaz a análise uma vez (fica guardado 7 dias)
   // página do comandante no EDHREC (só informação): busca uma vez e redesenha as trocas
-  if (A.cmds.length && !edhJa(edhCmdCam(A.cmds.map(c => c.name)))) edhPagina(edhCmdCam(A.cmds.map(c => c.name))).then(e => { if (e && !e.erro && LAST === A) rerenderTrocas(A); });
+  if (EDH_LIGADO && A.cmds.length && !edhJa(edhCmdCam(A.cmds.map(c => c.name)))) edhPagina(edhCmdCam(A.cmds.map(c => c.name))).then(e => { if (e && !e.erro && LAST === A) rerenderTrocas(A); });
   const dest = goTo || 'resumo';
   if (location.hash === '#' + dest) show(dest); else location.hash = dest;
 }
@@ -603,6 +603,9 @@ function tipoRamp(c) {
 // A página do comandante (pages/commanders/<slug>) só serve de informação ("como costumam jogar"), sem peso.
 // Tudo guardado 7 dias em localStorage ('raiox:edh:<caminho>').
 const EDH = {};
+// DESLIGADO em 19/11/2026 a pedido do usuário: nada de depender de dados de fora (tema pouco jogado não teria base).
+// O código fica para consulta até a lógica própria (efetividade + triangulação) entrar; com false nada é buscado nem pesa.
+const EDH_LIGADO = false;
 const EDH_TEMA = { voltron: 'voltron', tokens: 'tokens', counters: 'plus-1-plus-1-counters', graveyard: 'graveyard', artifacts: 'artifacts', enchant: 'enchantress', spells: 'spellslinger', sac: 'aristocrats', life: 'lifegain', lands: 'landfall', combat: 'aggro', draw: 'card-draw', flying: 'flying' };
 const EDH_PLURAL = { Elf: 'elves', Dwarf: 'dwarves', Wolf: 'wolves', Werewolf: 'werewolves', Fungus: 'fungi', Sphinx: 'sphinxes', Fox: 'foxes', Mouse: 'mice', Ox: 'oxen', Octopus: 'octopuses', Djinn: 'djinn', Phoenix: 'phoenixes' };
 const EDH_COR = { '': 'colorless', W: 'mono-white', U: 'mono-blue', B: 'mono-black', R: 'mono-red', G: 'mono-green', WU: 'azorius', UB: 'dimir', BR: 'rakdos', RG: 'gruul', GW: 'selesnya', WB: 'orzhov', UR: 'izzet', BG: 'golgari', RW: 'boros', GU: 'simic', WUB: 'esper', UBR: 'grixis', BRG: 'jund', RGW: 'naya', GWU: 'bant', WBG: 'abzan', URW: 'jeskai', BGU: 'sultai', RWB: 'mardu', GUR: 'temur', WUBR: 'yore-tiller', UBRG: 'glint-eye', BRGW: 'dune-brood', RGWU: 'ink-treader', GWUB: 'witch-maw', WUBRG: 'five-color' };
@@ -637,6 +640,7 @@ function edhTemaCam(k, ident, tribo) {
 const EDH_TEMA_N = (k, tribo) => k === 'tribe' ? 'de ' + (tribo || 'tribo') : ({ voltron: 'Voltron', tokens: 'de fichas', counters: 'de marcadores +1/+1', graveyard: 'de cemitério', artifacts: 'de artefatos', enchant: 'de encantamentos', spells: 'de mágicas', sac: 'de sacrifício', life: 'de ganho de vida', lands: 'de landfall', combat: 'de ataque (aggro)', draw: 'de compra', flying: 'de voadores' })[k] || k;
 // ideia = temas escolhidos; devolve as páginas que já chegaram e uma promessa das que faltam
 function edhIdeia(temas, ident, tribo) {
+  if (!EDH_LIGADO) return { pags: [], cor: '', tribo, carrega: null };
   const cams = [...temas].map(k => [k, edhTemaCam(k, ident, tribo)]).filter(([, c]) => c);
   const pags = cams.map(([k, cam]) => ({ k, cam, d: edhJa(cam) })).filter(x => x.d);
   const falta = cams.filter(([, cam]) => !edhJa(cam) && !(EDH[cam] && EDH[cam].erro));
@@ -1048,7 +1052,7 @@ function edhTroca(A, s) {
 }
 function edhBox(A) {
   const nome = A.plano ? A.plano.nome : 'o comandante';
-  const cm = A.cmds.length ? edhJa(edhCmdCam(A.cmds.map(c => c.name))) : null;
+  const cm = EDH_LIGADO && A.cmds.length ? edhJa(edhCmdCam(A.cmds.map(c => c.name))) : null;
   const bits = [];
   if (A.edh) bits.push(`A sinergia de cada troca é medida contra a sua ideia: decks ${A.edh.pags.map(p => EDH_TEMA_N(p.k, A.edh.tribo)).join(', ')} ${A.edh.cor} no EDHREC (quanto a carta aparece neles a mais que nos decks dessas cores em geral).`);
   if (cm && cm.tags.length) bits.push(`Só para comparar, no EDHREC quem joga ${nome} costuma ir de: ${cm.tags.map(([t, n]) => `${t} (${n.toLocaleString('pt-BR')})`).join(', ')}. Isso não muda as trocas.`);
