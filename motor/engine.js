@@ -398,6 +398,13 @@ const HAB_ESP={
   'Doubling Season':Object.assign(m=>{m.dobraFicha=1;m.dobraCont=1;},{tudo:1}),
   'Sanctum Weaver':Object.assign(m=>{m.manaX='enc';m.cor=ANY;},{tudo:1}),
   'Nylea\'s Colossus':Object.assign(m=>{m.hab=[{q:'entra',f:'enc',eu:1,e:{dobra:1}}];},{tudo:1}),
+  /* finalizadores de elfos (19/11/2026): o Lathril só juntava elfos 1/1 e não tinha como fechar a partida */
+  'Craterhoof Behemoth':Object.assign(m=>{m.kws=['haste'];m.hab=[{q:'etb',e:{tmpTodos:{tipo:'*',p:'cri',t:'cri',kw:['trample']}}}];},{tudo:1}),
+  'Shaman of the Pack':Object.assign(m=>{m.hab=[{q:'etb',e:{dren:'tipo:elf',drenUm:1}}];},{tudo:1}),
+  'Skemfar Shadowsage':Object.assign(m=>{m.hab=[{q:'etb',e:{dren:'maiorTipo'}}];},{tudo:1}),
+  'Ezuri, Renegade Leader':Object.assign(m=>{m.hab=[{q:'pump',custo:5,tipo:'elf',e:{tmpTodos:{tipo:'elf',p:3,t:3,kw:['trample']}}}];},{tudo:1}),
+  'Elvish Warmaster':(m,marca)=>{m.hab.push({q:'pump',custo:7,tipo:'elf',e:{tmpTodos:{tipo:'elf',p:2,t:2,kw:['deathtouch']}}});marca(/^\{5\}\{G\}\{G\}/);},
+  'Abomination of Llanowar':Object.assign(m=>{m.pDin='tipo:elf';m.kws=['vigilance','menace'];m.tipos=[...new Set([...(m.tipos||[]),'elf','horror'])];},{tudo:1}),
   'Sanctum Seeker':Object.assign(m=>{m.hab=[{q:'atkTipo',tipo:'vampire',e:{dren:1,vida:'dren'}}];},{tudo:1}),
   'Raid Bombardment':Object.assign(m=>{m.hab=[{q:'atkTipo',tipo:'*',pmax:2,e:{danoAtacado:1}}];},{tudo:1}),
   'Mage Slayer':Object.assign(m=>{m.eq=3;m.daHab=[{q:'atk',quem:'host',e:{danoAtacado:'poder'}}];},{tudo:1}),

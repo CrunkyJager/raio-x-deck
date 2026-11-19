@@ -503,6 +503,7 @@ const G = (() => {
   }
   function sugestoes(k, E, n) {
     const d = E.d, out = [];
+    const FUN = {}; for (const x of E.slots) if (x.k !== 'tema' && x.k !== 'lands') FUN[x.k] = x;
     for (const c of pool()) {
       if (d.cartas[c.name] || d.cmds.includes(c.name) || d.recusadas[c.name]) continue;
       const land = isLandC(c);
@@ -517,6 +518,14 @@ const G = (() => {
       const pop = Math.max(0, 1 - Math.log10(c.r) / 5);
       let nota = pop + (fit.length ? 0.35 + 0.1 * Math.min(2, fit.length - 1) : 0);
       if (['ramp', 'removal', 'protect', 'counter'].includes(k) && c.v <= 2) nota += 0.12;
+      // função que já passou da meta perde peso (no Krenko as vagas da ideia puxavam goblins de mana e o ramp ia a 25/10);
+      // carta que cobre outra função ainda faltando ganha um pouco
+      if (k !== 'lands') for (const r of ps) {
+        if (r === k) continue;
+        const sl = FUN[r]; if (!sl) continue;
+        if (sl.tem >= sl.alvo) nota -= 0.18 + 0.04 * Math.min(5, sl.tem - sl.alvo);
+        else nota += 0.08;
+      }
       if (k === 'lands') { const fora = [...E.I].filter(x => (c.pm || '').includes(x)).length; nota += fora >= 2 ? 0.2 : 0; if (/enters tapped\./.test(c.o) && !/unless|you may pay|If you don't/.test(c.o)) nota -= 0.15; }
       out.push({ c, nota, fit, ps });
       if (out.length > 600) break;
@@ -680,7 +689,9 @@ async function archidekt(url) {
     if (res.erro) { msg(res.erro, 'mt-imp-msg'); return; }
     desenha(); msg(`Importado do Archidekt: "${res.d.nome}", ${contar(res.d)} cartas${res.unknown.length ? `. Não reconheci ${res.unknown.length}: ${res.unknown.slice(0, 6).join(', ')}` : ''}.`, 'mt-imp-msg'); $('#mt-imp').open = true;
   } catch (e) {
-    msg(`Não deu para ler o Archidekt daqui (${e.message || 'o site bloqueou o pedido'}). No Archidekt: Export → copie o texto e use "Importar texto".`, 'mt-imp-msg');
+    // o Archidekt só libera a API para o site dele (CORS; conferido em 19/11/2026): de uma página estática não dá
+    const el = $('#mt-imp-msg');
+    if (el) el.innerHTML = `O Archidekt não deixa outros sites lerem os decks dele direto. Faça assim: <a href="https://archidekt.com/decks/${esc(m[1])}" target="_blank" rel="noopener">abra o deck no Archidekt</a> → menu <b>Export</b> (ou <b>Exportar</b>) → <b>Copy</b>, e cole o texto em "Importar texto" aqui.`;
   }
 }
 

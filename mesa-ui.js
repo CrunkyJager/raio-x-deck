@@ -226,26 +226,10 @@ let JOGO_TROCAS = 0, JOGO = null, PASSO = 0, TIMER = null, NOMES = [], PREV = nu
 const TP = { turno: '⟳', terreno: '◆', magia: '✦', remo: '✕', wipe: '☄', resp: '⟲', ataque: '⚔', bloqueio: '⛨', dano: '♥', morte: '☠', compra: '+', tutor: '⌕', combo: '∞', fim: '★' };
 const TPN = { turno: 'Novo turno', terreno: 'Terreno', magia: 'Mágica', remo: 'Remoção', wipe: 'Limpa-mesa', resp: 'Resposta', ataque: 'Ataque', bloqueio: 'Bloqueio', dano: 'Dano', morte: 'Morte', compra: 'Compra', tutor: 'Busca', combo: 'Combo', fim: 'Fim de jogo' };
 
-// imagens do Scryfall: pede em lotes de 75 (endpoint /cards/collection) e guarda no navegador
-const IMGS = new Map(Object.entries(store.get('img', {})));
+// imagens do Scryfall: o carregador em lote e o cache ficam no analise.js (um só para a página)
+const IMGS = window.RAIOX.imgCache;
 const imgDe = (n) => IMGS.get(n) || IMGS.get(String(n).split(' // ')[0]) || null;
-async function buscaImagens(nomes) {
-  const falta = [...new Set(nomes)].filter(n => n && !imgDe(n) && !/\(carta vazia\)|não achada/.test(n));
-  for (let i = 0; i < falta.length; i += 75) {
-    const lote = falta.slice(i, i + 75);
-    try {
-      const r = await fetch('https://api.scryfall.com/cards/collection', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ identifiers: lote.map(n => ({ name: n.split(' // ')[0] })) }) });
-      if (!r.ok) break;
-      const j = await r.json();
-      for (const c of j.data || []) {
-        const iu = c.image_uris || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris); if (!iu) continue;
-        const v = [iu.small, iu.normal, iu.art_crop]; IMGS.set(c.name, v); IMGS.set(c.name.split(' // ')[0], v);
-      }
-    } catch (e) { break; }
-    await new Promise(r => setTimeout(r, 120));
-  }
-  try { const o = {}; let k = 0; for (const [n, v] of IMGS) { o[n] = v; if (++k > 4000) break; } store.set('img', o); } catch (e) {}
-}
+const buscaImagens = (nomes) => window.RAIOX.imgsDe(nomes.filter(n => n && !/\(carta vazia\)|não achada/.test(n)));
 
 function painelVivo() {
   const box = $('#aovivo'); if (!box) return;

@@ -308,7 +308,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { THEMES, themesOf, subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -983,14 +983,57 @@ function show(name) {
 }
 window.addEventListener('hashchange', () => show(location.hash.slice(1)));
 
-// imagens: vêm do Scryfall na hora em que a carta aparece (fila de ~110 ms entre pedidos, como o Scryfall pede)
+// imagens: endereço direto do CDN do Scryfall (cards.scryfall.io, sem limite), descoberto em lotes de até 75 cartas
+// pelo /cards/collection. Antes cada imagem era um pedido ao /cards/named, que só aceita ~2 por segundo: com a fila
+// de 110 ms, metade voltava barrada (ERR_BLOCKED_BY_ORB) e a carta ficava só com o nome.
+// Cache único da página (a Mesa ao vivo usa o mesmo), guardado no navegador em raiox:img como [small, normal, art_crop].
+// ampliar carta: um pedido só, na versão grande
 const SCRY = (name, v) => 'https://api.scryfall.com/cards/named?format=image&version=' + (v || 'normal') + '&exact=' + encodeURIComponent(String(name).split(' // ')[0]);
-let QT = 0;
+const IMG_V = { small: 0, normal: 1, art_crop: 2 };
+const IMGC = new Map();
+try { for (const [n, v] of Object.entries(JSON.parse(localStorage.getItem('raiox:img') || '{}'))) IMGC.set(n, v); } catch (e) {}
+const IMG_NAO = new Set();
+const imgKey = (n) => String(n).split(' // ')[0];
+const IMG_FILA = new Map();
+let IMG_T = null, IMG_ULT = 0, IMG_SV = null;
+function imgGuarda() {
+  clearTimeout(IMG_SV);
+  IMG_SV = setTimeout(() => { try { localStorage.setItem('raiox:img', JSON.stringify(Object.fromEntries([...IMGC].slice(-4000)))); } catch (e) {} }, 1000);
+}
+async function imgLote() {
+  IMG_T = null;
+  const espera = IMG_ULT + 550 - Date.now();
+  if (espera > 0) { IMG_T = setTimeout(imgLote, espera); return; }
+  const nomes = [...IMG_FILA.keys()].slice(0, 75); if (!nomes.length) return;
+  const cbs = nomes.map(n => { const l = IMG_FILA.get(n); IMG_FILA.delete(n); return l; });
+  IMG_ULT = Date.now();
+  try {
+    const r = await fetch('https://api.scryfall.com/cards/collection', { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ identifiers: nomes.map(name => ({ name })) }) });
+    if (r.status === 429) { nomes.forEach((n, i) => IMG_FILA.set(n, (IMG_FILA.get(n) || []).concat(cbs[i]))); IMG_ULT = Date.now() + 1500; }
+    else if (r.ok) {
+      const j = await r.json();
+      for (const c of j.data || []) {
+        const iu = c.image_uris || (c.card_faces && c.card_faces[0] && c.card_faces[0].image_uris); if (!iu) continue;
+        const v = [iu.small, iu.normal, iu.art_crop]; IMGC.set(c.name, v); IMGC.set(imgKey(c.name), v);
+      }
+      for (const x of j.not_found || []) if (x.name) IMG_NAO.add(x.name);
+      imgGuarda();
+    }
+  } catch (e) {}
+  nomes.forEach((n, i) => { if (!IMG_FILA.has(n)) cbs[i].forEach(f => f()); });
+  if (IMG_FILA.size && !IMG_T) IMG_T = setTimeout(imgLote, 550);
+}
 function imgFor(name, v) {
   if (!name) return Promise.resolve(null);
-  const now = Date.now(); QT = Math.max(QT + 110, now); const wait = QT - now;
-  return new Promise(res => setTimeout(() => res(SCRY(name, v)), wait));
+  const k = imgKey(name), i = IMG_V[v] != null ? IMG_V[v] : 1;
+  const pega = () => { const t = IMGC.get(name) || IMGC.get(k); return t ? (t[i] || t[1]) : null; };
+  if (pega() || IMG_NAO.has(k)) return Promise.resolve(pega());
+  return new Promise(res => {
+    IMG_FILA.set(k, (IMG_FILA.get(k) || []).concat(() => res(pega())));
+    if (!IMG_T) IMG_T = setTimeout(imgLote, 40);   // junta os pedidos da mesma tela num lote só
+  });
 }
+const imgsDe = (nomes) => Promise.all([...new Set(nomes)].map(n => imgFor(n)));
 
 // detalhe da carta
 document.addEventListener('click', (e) => {

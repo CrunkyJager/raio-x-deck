@@ -7,7 +7,10 @@ function arena(Ds,seed,cfg){
   cfg=cfg||{};const R=rngDe(seed>>>0),LOG=!!cfg.log,TMAX=cfg.T||20,VIDA=cfg.vida||40;let P=null;
   const log=[],quadros=[];let T=0;
   const NOM=cfg.nomes||Ds.map((D,k)=>k?'Oponente '+k:'Você');
-  const diz=(k,tp,txt,c,alvo)=>{if(!LOG)return;log.push({t:T,k,tp,txt,c:c??-1,a:alvo??-1});if(P)foto(k);};
+  /* lance igual ao anterior (mesmo turno, jogador e texto) vira uma linha só com (×N): o General Kreat e o Sanctum Seeker repetiam até 30 linhas */
+  const diz=(k,tp,txt,c,alvo)=>{if(!LOG)return;const u=log[log.length-1];
+    if(u&&u.t===T&&u.k===k&&u.base===txt){u.n=(u.n||1)+1;u.txt=`${txt} (×${u.n})`;if(P&&quadros.length&&quadros[quadros.length-1].log===log.length){quadros.pop();foto(k);}return;}
+    log.push({t:T,k,tp,txt,base:txt,c:c??-1,a:alvo??-1});if(P)foto(k);};
 
   /* ---------- jogadores ---------- */
   P=Ds.map((D,k)=>{
@@ -15,8 +18,13 @@ function arena(Ds,seed,cfg){
     let lib=D.base.slice();emb(lib,R);
     const nL=v=>v.filter(i=>M[i].land).length;
     let mao=lib.slice(0,7);
-    if(nL(mao)<2||nL(mao)>5){lib=D.base.slice();emb(lib,R);mao=lib.slice(0,7);}
-    lib=lib.slice(7);
+    if(nL(mao)<2||nL(mao)>5){lib=D.base.slice();emb(lib,R);mao=lib.slice(0,7);
+      /* segundo mulligan (London, 19/11/2026): 7 novas e uma volta para o fundo. Antes ficava com qualquer mão e
+         o deck travava em 1–2 terrenos (o Lathril morria no turno 5 sem jogar nada) */
+      if(nL(mao)<2||nL(mao)>5){lib=D.base.slice();emb(lib,R);mao=lib.slice(0,7);
+        const fora=nL(mao)>5?mao.find(i=>M[i].land):mao.filter(i=>!M[i].land).sort((a,b)=>(M[b].cmc||0)-(M[a].cmc||0))[0];
+        if(fora!=null){mao.splice(mao.indexOf(fora),1);lib.splice(lib.indexOf(fora),1);lib.push(fora);}}}
+    lib=lib.slice(mao.length);
     const cnt={};for(const i of D.base){const m=M[i];if(m.cri)for(const t of m.tipos||[])if(t!=='*')cnt[t]=(cnt[t]||0)+1;}
     const escolha=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'';
     return{k,D,M,ci,cmdI,lib,mao,escolha,terr:[],perm:[],gy:[],vida:VIDA,tax:0,zona:cmdI>=0,cmdD:[0,0,0,0],
@@ -62,8 +70,8 @@ function arena(Ds,seed,cfg){
   }
   const BRASAO=P.some(p=>p.M.some(m=>m.brasao));
   const temKw=(p,x,k,B)=>{const m=x.i>=0&&!x.tok?p.M[x.i]:null;if(m&&m.kws&&m.kws.includes(k))return true;if(m&&k==='haste'&&(m.has||m.haste))return true;return (B||bon(p,x)).kw.has(k);};
-  const poderDe=(p,x)=>{if(!x.cri)return 0;const m=x.tok?null:p.M[x.i];let b=x.p;if(m&&m.bronze)b=p.perm.filter(y=>!y.tok&&p.M[y.i].a).length;const B=bon(p,x);let v=Math.max(0,b+anth(p)+B.p+(x.tmp||0));if(temKw(p,x,'double strike',B))v*=2;return v;};
-  const resDe=(p,x)=>{const B=bon(p,x);return x.t+anth(p)+B.t+(x.tmpT??x.tmp??0)-(x.dano||0);};
+  const poderDe=(p,x)=>{if(!x.cri)return 0;const m=x.tok?null:p.M[x.i];let b=x.p;if(m&&m.bronze)b=p.perm.filter(y=>!y.tok&&p.M[y.i].a).length;if(m&&m.pDin)b=contN(p,x,m.pDin,{});const B=bon(p,x);let v=Math.max(0,b+anth(p)+B.p+(x.tmp||0));if(temKw(p,x,'double strike',B))v*=2;return v;};
+  const resDe=(p,x)=>{const B=bon(p,x);const m=x.tok?null:p.M[x.i];return (m&&m.pDin?contN(p,x,m.pDin,{}):x.t)+anth(p)+B.t+(x.tmpT??x.tmp??0)-(x.dano||0);};
   const forca=p=>{let s=0;for(const x of p.perm)if(x.cri)s+=poderDe(p,x);return s;};
   const nomeC=(p,i)=>p.M[i].frente||p.M[i].nome;
   const ganha=(p,n)=>{p.vida+=n;if(n>0&&FUNDO>8){laco(p);return;}if(n>0){FUNDO++;for(const z of p.perm.slice())for(const h of habs(z))if(h.q==='ganha')faz(p,z,h.e,{n});FUNDO--;}if(n>0&&tem(p,'ratch')){const j=p.gy.findIndex(g=>p.M[g].a&&!p.M[g].sp&&(p.M[g].cmc||0)<=n);if(j>=0){const c=p.gy.splice(j,1)[0];entra(p,c);}}};
@@ -193,7 +201,10 @@ function arena(Ds,seed,cfg){
   const NADA=[];
   function contN(q,z,n,ctx){if(typeof n==='number')return n;if(n==='x')return ctx.n||0;if(n==='dano')return ctx.dano||0;if(n==='poder')return ctx.poder??(z&&z.cri?poderDe(q,z):0);if(n==='t')return ctx.t||0;
     if(String(n).startsWith('tipo:')){const t=n.slice(5);return q.perm.filter(w=>w.cri&&ehTipo(q,w,t)).length;}
-    if(String(n).startsWith('atk:')){const t=n.slice(4);return q.perm.filter(w=>w.cri&&w.atk&&ehTipo(q,w,t)).length;}return 1;}
+    if(String(n).startsWith('atk:')){const t=n.slice(4);return q.perm.filter(w=>w.cri&&w.atk&&ehTipo(q,w,t)).length;}
+    if(n==='cri')return q.perm.filter(w=>w.cri).length;
+    if(n==='maiorTipo'){const c={};let b=0;for(const w of q.perm)if(w.cri)for(const t of tiposX(w))if(t!=='*'){c[t]=(c[t]||0)+1;if(c[t]>b)b=c[t];}return b;}
+    return 1;}
   function melhorMeu(q,f){let b=null,bv=-1e9;for(const x of q.perm){if(!x.cri||x.sacFim||(f&&!f(x)))continue;const v=poderDe(q,x)+(x.cmd?5:0)+(x.atk?2:0);if(v>bv){bv=v;b=x;}}return b;}
   function danoQualquer(q,n,origem,nomeF){
     /* criatura que morre com o dano e vale a pena; senão o oponente com menos vida */
@@ -226,7 +237,9 @@ function arena(Ds,seed,cfg){
     if(e.danoAtacado&&ctx.alvo){const n=e.danoAtacado==='poder'?poderDe(q,z.an||z):contN(q,z,e.danoAtacado,ctx);if(n>0){perde(ctx.alvo,n,q.k);q.st.dano+=n;diz(q.k,'dano',`${nm}: ${n} de dano em ${NOM[ctx.alvo.k]}`);}}
     if(e.tmp&&z){const w=z.an||z;w.tmp=(w.tmp||0)+(e.tmp.p==='x'?0:e.tmp.p);w.tmpT=(w.tmpT??0)+(e.tmp.t==='x'?0:e.tmp.t);}
     if(e.tmpPor&&z){const t=e.tmpPor;let n=0;for(const w of q.perm)if(w!==z&&w.cri&&(t.startsWith('atk:')?w.atk&&ehTipo(q,w,t.slice(4)):ehTipo(q,w,t.slice(5))))n++;z.tmp=(z.tmp||0)+n*(e.p||1);z.tmpT=(z.tmpT??0)+n*(e.t||0);}
-    if(e.tmpTodos){for(const w of q.perm)if(w.cri&&ehTipo(q,w,e.tmpTodos.tipo)){w.tmp=(w.tmp||0)+e.tmpTodos.p;w.tmpT=(w.tmpT??0)+e.tmpTodos.t;}}
+    if(e.tmpTodos){const T_=e.tmpTodos,np=contN(q,z,T_.p,ctx),nt=contN(q,z,T_.t,ctx);let k=0;
+      for(const w of q.perm)if(w.cri&&ehTipo(q,w,T_.tipo)){w.tmp=(w.tmp||0)+np;w.tmpT=(w.tmpT??0)+nt;if(T_.kw)for(const kw of T_.kw)(w.kwT||(w.kwT=new Set())).add(kw);k++;}
+      if(LOG&&k)diz(q.k,'magia',`${nm}: ${k} criatura${k>1?'s':''} ganha${k>1?'m':''} +${np}/+${nt}${T_.kw?' e '+T_.kw.join(', '):''} até o fim do turno`);}
     if(e.tmpAlvo){const b=melhorMeu(q,w=>w.atk||!w.sick);if(b){const n=contN(q,z,e.tmpAlvo,ctx);b.tmp=(b.tmp||0)+n;b.tmpT=(b.tmpT??0)+n;}}
     if(e.animo&&ctx.x){const x=ctx.x,ts=tiposX(x);let n=0;for(const w of q.perm)if(w!==x&&w.atk&&tiposX(w).some(t=>ts.includes(t)))n++;x.tmp=(x.tmp||0)+n;}
     if(e.dobra){const b=melhorMeu(q,w=>!w.sick||w.atk);if(b){b.tmp=(b.tmp||0)+poderDe(q,b);b.tmpT=(b.tmpT??0)+Math.max(0,resDe(q,b));}}
@@ -298,7 +311,10 @@ function arena(Ds,seed,cfg){
     const elixir=p.perm.some(z=>!z.tok&&z.i>=0&&p.M[z.i].elixir);
     const pronto=z=>!z.tap&&(!z.sick||elixir||temKw(p,z,'haste'));
     for(const z of p.perm.slice()){if(z.i<0||z.tok||!z.cri)continue;const m=p.M[z.i];
-      for(const h of m.hab||[]){if(h.q!=='tap'||!pronto(z))continue;
+      for(const h of m.hab||[]){
+        /* pump ativado só com mana (Ezuri, Elvish Warmaster): antes do combate, uma vez por turno, com 3+ do tipo prontos para atacar */
+        if(h.q==='pump'){if(z.pumpT===T||p.perm.filter(w=>w.cri&&!w.tap&&!w.sick&&ehTipo(p,w,h.tipo)).length<3||!pagaG(p,U,h.custo))continue;z.pumpT=T;faz(p,z,h.e,{});continue;}
+        if(h.q!=='tap'||!pronto(z))continue;
         if(h.dez){const el=p.perm.filter(w=>w!==z&&w.cri&&!w.tap&&ehTipo(p,w,h.dez));if(el.length<10)continue;for(const w of el.slice(0,10))w.tap=true;z.tap=true;diz(p.k,'magia',`${nomeC(p,z.i)} vira 10 elfos: cada oponente perde 10`,z.i);faz(p,z,h.e,{});continue;}
         if(h.e.fic&&contN(p,z,h.e.fic.n,{})<2&&poderDe(p,z)>=2)continue;
         if(h.custo&&!pagaG(p,U,h.custo))continue;
