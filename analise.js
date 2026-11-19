@@ -309,7 +309,7 @@ function suggestions(A, roleK, n = 8) {
     if (roleK === 'removal' && c.tags.includes('board-wipe')) continue;
     out.push(c);
   }
-  return out.sort((a, b) => a.r - b.r).slice(0, n);
+  return out.sort((a, b) => ((efetiv(A, b).v[roleK] || 0) - (efetiv(A, a).v[roleK] || 0)) || a.r - b.r).slice(0, n); // pela efetividade na função; popularidade só desempata
 }
 
 // ---------- desenho ----------
@@ -318,7 +318,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), custoRamp: (c) => custoRamp(c), terrenosFormula: (cs, cm) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), custoRamp: (c) => custoRamp(c), terrenosFormula: (cs, cm) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A, c) => efetiv(A, c), perfilDeck: (A) => perfilDeck(A), efPlano: (A, c) => efPlano(A, c), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -558,7 +558,7 @@ function efeitos(c) {
   const lnl = ln.toLowerCase(); const vistos = new Set();
   for (const [k, v, n] of KWV) if (lnl.includes(k) && !vistos.has(n) && !(k === "can't be blocked" && /can't be blocked (except|by more)/.test(lnl))) { e.kv += v; vistos.add(n); e.diz.push(n); }
   if (/Umbra armor|Totem armor/.test(o)) { e.kv += 1.6; e.diz.push('salva a criatura de ser destruída'); }
-  e.haste = /\bhaste\b/i.test(ln) || /creatures you control (have|gain) haste|creature spells you cast [^.]*haste|\briot\b|creatures you control [^.]*haste/i.test(o) || (/target creature (you control )?gains? haste/i.test(o) && c.v <= 1);
+  e.haste = /\bhaste\b/i.test(ln) || /creatures you control (have|gain) haste|creature spells you cast [^.]*haste|creatures you control [^.]*haste/i.test(o) || (/target creature (you control )?gains? haste/i.test(o) && c.v <= 1);
   if (e.haste && e.anexo) e.diz.push('ímpeto');
   e.draw = /draw (a|two|X) cards?/i.test(o); if (e.anexo && e.draw) e.diz.push('compra uma carta');
   e.volta = /return (it|this card) to its owner's hand/.test(o) && e.anexo;
@@ -608,7 +608,7 @@ function tipoRamp(c) {
   else if (tg.includes('land-ramp') && /Its controller may search|that player may search|each player/i.test(o)) r = null; // Path to Exile: o terreno vai para o outro
   else if ((tg.includes('mana-rock') || (/Artifact/.test(t) && !/Creature/.test(t) && tapAdd)) && !cond) r = 'pedra';
   else if ((tg.includes('mana-dork') || (/Creature/.test(t) && tapAdd)) && !cond) r = 'dork';
-  else if (tg.includes('land-ramp') && /(search your library for [^.]*land[^.]*(put|onto the battlefield)|put (a|up to \w+|any number of) [^.]*land cards? [^.]*onto the battlefield)/i.test(o) && !cond) r = 'terreno';
+  else if (tg.includes('land-ramp') && /(search your library for [^.]*(land|Forest|Plains|Island|Swamp|Mountain)[^.]*(put|onto the battlefield)|put (a|up to \w+|any number of) [^.]*land cards? [^.]*onto the battlefield)/i.test(o) && !cond) r = 'terreno';
   else if (/Enchantment/.test(t) && tapAdd) r = 'pedra';
   else if (tg.includes('ramp') || tg.includes('mana-doubler') || /Treasure|Add \{/.test(o)) {
     if (cond || /Whenever|At the beginning|unless/.test(o) && !/^When [^\n]*enters/m.test(o)) r = 'condicional';
@@ -749,20 +749,274 @@ function valorPlano(A, c) {
   return (cache[c.name] = { v, why });
 }
 
+// ---------- efetividade por função e trocas por triangulação (20/11/2026, pedido do usuário) ----------
+// Sem dados de fora: a nota de cada carta em cada função sai do texto (custo, se repete ou é uma vez, se fica na mesa,
+// velocidade, alcance, se é simétrica, se tem desvantagem) e a CONDIÇÃO é medida contra o deck
+// (Ragavan num deck que bate cedo com ímpeto vale muito; num deck lento, pouco). Popularidade não entra.
+const EF_K = ['ramp', 'draw', 'removal', 'wipe', 'protect', 'counter'];
+const semLembrete = (c) => c.o.split('\n//\n')[0].replace(/\([^)]*\)/g, '');
+function perfilDeck(A) {
+  if (A._perfil) return A._perfil;
+  const nl = A.cards.filter(c => !isLand(c)), n = nl.length || 1;
+  const front = (c) => c.t.split(' // ')[0];
+  const cri = nl.filter(c => /Creature/.test(front(c)));
+  const cedo = cri.filter(c => c.v <= 2).length, haste = nl.filter(c => efeitos(c).haste).length;
+  const evas = cri.filter(c => /\b(Flying|Menace|Trample|Shadow|Horsemanship)\b|can't be blocked/i.test(c.o)).length;
+  const P = {
+    n, cri: cri.length / n,
+    bate: Math.min(1, (cedo + 1.5 * haste + 0.4 * evas) / 16 + (A.plano && A.plano.atk ? 0.15 : 0)),
+    feit: nl.filter(c => /Instant|Sorcery/.test(front(c))).length / n,
+    naoCri: (n - cri.length) / n,
+    morre: Math.min(1, nl.filter(c => /[Ss]acrifice (a|another) creature/.test(c.o)).length / 6 + cri.length / n * 0.5),
+    fichas: Math.min(1, nl.filter(c => /create[^.]*tokens?/i.test(c.o)).length / 12),
+    nCri: cri.length,
+  };
+  P.txt = `${cri.length} criaturas, ${cedo} de até 2 manas, ${haste} fontes de ímpeto`;
+  return (A._perfil = P);
+}
+// a condição de um gatilho, medida contra o deck: [multiplicador, porquê]
+function condDeck(A, c, o) {
+  const P = perfilDeck(A), pc = (x) => Math.round(100 * x) + '%';
+  const proprio = /\b(Haste|Dash|Flying|Menace|Trample)\b|can't be blocked/i.test(o);
+  if (/deals (combat )?damage to (a player|an opponent|one or more)|Whenever [^.\n]*attacks/i.test(o)) {
+    const m = Math.min(1.1, 0.3 + 0.75 * P.bate + (proprio ? 0.15 : 0));
+    return [m, `só rende atacando; o deck ${P.bate >= 0.6 ? 'bate cedo' : P.bate >= 0.35 ? 'bate às vezes' : 'demora a atacar'} (${P.txt})${proprio ? ' e ela mesma tem como chegar' : ''}`];
+  }
+  if (/Whenever an opponent|each opponent|opponents? (casts?|draws?)/i.test(o)) return [0.85, 'depende dos oponentes, que jogam todo turno: rende quase sempre'];
+  if (/Whenever you cast (an? )?(instant|sorcery|noncreature)/i.test(o)) { const s = /noncreature/i.test(o) ? P.naoCri : P.feit; return [Math.min(1.1, 0.25 + 1.6 * s), `rende com ${/noncreature/i.test(o) ? 'mágicas que não são criatura' : 'instantâneas e feitiços'}: ${pc(s)} do deck`]; }
+  if (/Whenever you cast (a|an) creature spell|Whenever (a|another) (nontoken )?creature (you control )?enters/i.test(o)) return [Math.min(1.1, 0.25 + 1.2 * P.cri), `rende com criaturas: ${pc(P.cri)} do deck`];
+  if (/Whenever (a|another) creature (you control )?dies|Whenever you sacrifice/i.test(o)) return [Math.min(1.1, 0.25 + 0.9 * P.morre), `rende quando criatura morre; o deck ${P.morre >= 0.5 ? 'tem como sacrificar' : 'tem pouco sacrifício'}`];
+  if (/Whenever (one or more )?tokens?|create one or more tokens/i.test(o)) return [Math.min(1.1, 0.25 + 0.9 * P.fichas), `rende com fichas; o deck ${P.fichas >= 0.5 ? 'faz muitas' : 'faz poucas'}`];
+  if (A.tribe && new RegExp('Whenever (a|another) ' + A.tribe[0], 'i').test(o)) return [1, `rende com ${A.tribe[0]}, a tribo do deck`];
+  return [0.6, 'depende de algo acontecer antes'];
+}
+const EF = {};
+function efetiv(A, c) {
+  if (!c || isLand(c)) return { v: {}, why: {} };
+  const key = A._efKey || (A._efKey = Math.random()); const cache = EF[key] || (EF[key] = {}); if (cache[c.name]) return cache[c.name];
+  const o = semLembrete(c), t = c.t.split(' // ')[0], rl = rolesOf(c), cv = c.v, v = {}, why = {};
+  const inst = /Instant/.test(t) || /\bFlash\b/.test(o), cri = /Creature/.test(t);
+  const autoSac = (l) => new RegExp('Sacrifice (this|~|' + c.name.split(',')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i').test(l);
+  const rep = (rx) => o.split('\n').some(l => rx.test(l) && !autoSac(l) && /^(Whenever|At the beginning|[^:]*\{T\}[^:]*:|[^:]*\{\d*[WUBRGC]*\}[^:]*:)/.test(l.trim()));
+  const custoAdj = (x, d) => x - d * Math.max(0, cv - 2);
+  if (rl.has('ramp')) {
+    const tr = tipoRamp(c), cr = custoRamp(c), w = [];
+    if (!tr) { v.ramp = 0.1; w.push('não dá mana de verdade (a etiqueta de ramp engana)'); }
+    else {
+      let x = cr <= 1 ? 1.3 : cr === 2 ? 1.15 : cr === 3 ? 0.85 : cr === 4 ? 0.55 : 0.3; w.push(`${RAMP_N[tr]} de ${cr}${cr !== cv ? ' na prática' : ''}`);
+      if (/Add \{[^}]+\}\{[^}]+\}|Add two|Add three/.test(o) && tr === 'pedra') { x *= 1.2; w.push('dá 2 manas'); }
+      if (tr === 'dork') { x *= 0.85; w.push('é criatura: morre no primeiro limpa-mesa'); }
+      if (tr === 'terreno' && /two basic land|up to two|two land cards/i.test(o)) { x *= 1.1; w.push('dois terrenos'); }
+      if (tr === 'tesouro') { x *= 0.55; w.push('a mana vem uma vez só'); }
+      if (tr === 'ritual') { x *= 0.3; w.push('a mana some no fim do turno'); }
+      if (tr === 'condicional') { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); }
+      v.ramp = x;
+    }
+    why.ramp = w.join('; ');
+  }
+  if (rl.has('draw')) {
+    const w = []; let x;
+    const nM = o.match(/draws? (two|three|four|five|seven|X|\d+) cards/i), N = nM ? ({ two: 2, three: 3, four: 4, five: 5, seven: 7, x: 3 })[nM[1].toLowerCase()] || +nM[1] || 3 : 1;
+    if (rep(/draw|exile the top|look at the top/i)) {
+      const up = /At the beginning of (your|each)/i.test(o), tap = /\{T\}[^:]*:[^\n]*draw/i.test(o);
+      x = up || tap ? 1.25 : 1.1; w.push(up ? 'compra todo turno' : tap ? 'compra toda vez que você ativa' : 'compra mais de uma vez');
+      const at = o.split('\n').find(l => /:/.test(l) && /draw/i.test(l.split(':').slice(1).join(':'))); if (tap && at) { const ca = custoN(at.split(':')[0]); if (ca >= 2) { x -= 0.15 * (ca - 1); w.push(`cada ativação custa ${ca}`); } if (/Activate only|discard|Sacrifice an?/i.test(at)) { x -= 0.25; w.push('a ativação pede algo em troca'); } }
+      if (!up && !tap) { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); }
+      x = custoAdj(x, 0.08);
+    } else {
+      x = custoAdj(Math.min(1.3, 0.25 + 0.3 * N), 0.07); w.push(N > 1 ? `compra ${N} de uma vez` : 'compra uma (troca a si mesma, não dá vantagem)');
+      if (inst) { x += 0.1; w.push('instantânea'); }
+    }
+    if (/each player draws|Each player draws/.test(o)) { x *= 0.6; w.push('os oponentes compram também'); }
+    if (/you lose \d+ life|pay \d+ life/i.test(o) && !/Whenever/.test(o)) w.push('custa vida');
+    v.draw = Math.max(0.1, x); why.draw = w.join('; ');
+  }
+  if (rl.has('removal')) {
+    const w = []; let x = 1;
+    if (inst) { x += 0.2; w.push('instantânea'); } else if (!cri && !/Enchantment|Artifact/.test(t)) { x -= 0.1; w.push('só no seu turno'); }
+    x += cv <= 1 ? 0.25 : cv === 2 ? 0.15 : cv >= 5 ? -0.3 : cv === 4 ? -0.15 : 0; w.push(`custa ${cv}`);
+    // o alcance vem só das frases que removem de fato (não de "untap target permanent" num modo ao lado)
+    const rem = (o.match(/[^.;\n•—]*(destroy|exile|damage to|gets -\d|-\d+\/-\d+|owner's hand|sacrifices?|fights?|shuffles it into)[^.;\n•—]*/gi) || []).join(' | ');
+    const cor = rem.match(/if (it's|it is) (white|blue|black|red|green)|target (white|blue|black|red|green) (permanent|creature)/i);
+    if (cor) { x -= 0.6; w.push(`só pega ${({ white: 'branco', blue: 'azul', black: 'preto', red: 'vermelho', green: 'verde' })[(cor[2] || cor[3]).toLowerCase()]}`); }
+    else if (/target (nonland )?permanent(?! with)/i.test(rem)) { x += 0.25; w.push('pega qualquer permanente'); }
+    else if (/target (creature or planeswalker|artifact, creature|creature, artifact|artifact or creature|creature or artifact)/i.test(rem)) x += 0.1;
+    else if (!/target (\w+ )?creature|any target|each creature/i.test(rem) && /target (non-?\w+ )?(artifact|enchantment)/i.test(rem)) { x -= 0.55; w.push('só artefato ou encantamento'); }
+    if (/(its controller|its owner|they) [^\n]*reveal[^\n]*onto the battlefield/i.test(o)) { x -= 0.35; w.push('o dono pode ganhar outra permanente no lugar'); }
+    const sacL = o.split('\n').find(l => autoSac(l) && /destroy|exile|damage/i.test(l)); if (sacL && /:/.test(sacL)) { const ca = custoN(sacL.split(':')[0]); if (ca + cv >= 4) { x -= 0.15; w.push(`no total custa ${ca + cv}`); } }
+    if (/with (power|mana value|toughness) \d+ or (less|greater)|tapped creature|attacking (creature|or blocking)|blocking creature|target non(black|white|artifact|Elf|[A-Z][a-z]+) creature/i.test(o)) { x -= 0.3; w.push('só pega alguns alvos'); }
+    const dn = o.match(/deals (\d+) damage to (any )?target/i); if (dn && !/X damage/.test(o)) { const f = +dn[1] <= 1 ? 0.5 : +dn[1] === 2 ? 0.75 : +dn[1] === 3 ? 0.9 : 1; if (f < 1) { x *= f; w.push(`só ${dn[1]} de dano`); } }
+    if (/[Rr]eturn target [^.]*to its owner's hand/.test(o) && !/[Dd]estroy|[Ee]xile target/.test(o)) { x -= 0.35; w.push('só devolve para a mão'); }
+    if (/(each|target) (opponent|player) sacrifices/i.test(o) && !/target (creature|permanent)/i.test(o)) { x -= 0.25; w.push('o oponente escolhe o que perde'); }
+    if (rep(/destroy|exile|damage|-\d+\/-\d+/i) && !/^When [^\n]*enters/m.test(o)) { x += 0.3; w.push('remove mais de uma vez'); }
+    else if (cri && /When [^\n]*enters/.test(o)) { x += 0.1; w.push('deixa um corpo na mesa'); }
+    const linR = o.split('\n').find(l => /destroy|exile target|damage to (any )?target/i.test(l)) || ''; if (/^Whenever/.test(linR.trim())) { const [m, ww] = condDeck(A, c, linR); x *= m; w.push(ww); }
+    v.removal = Math.max(0.2, Math.min(1.6, x)); why.removal = w.join('; ');
+  }
+  if (rl.has('wipe')) {
+    const w = []; let x = 1; const P = perfilDeck(A);
+    const fr = (o.match(/[^.\n]*(destroy all|exile all|damage to each|each creature|all creatures|sacrifices? (a|all|each)|-\d+\/-\d+|-X\/-X)[^.\n]*/i) || [o])[0];
+    const lado = /creatures? your opponents control|each creature you don't control|non-?(Vampire|Elf|Goblin|Zombie|Human|Dragon|Angel|[A-Z][a-z]+) creatures|each opponent sacrifices/i.test(fr) || (A.tribe && new RegExp('non-?' + A.tribe[0], 'i').test(fr));
+    const dano = fr.match(/deals (\d+) damage to each/i); if (dano && +dano[1] <= 2) { x *= 0.55; w.push(`só ${dano[1]} de dano: mata as pequenas`); }
+    if (lado) { x += 0.5; w.push('só de um lado: poupa as suas'); }
+    else if (/all creatures|each creature|all nonland permanents|all permanents|each player sacrifices/i.test(fr)) { x *= Math.max(0.35, 1.25 - 1.1 * P.cri); w.push(`simétrico: leva junto as suas ${P.nCri} criaturas`); }
+    x += cv <= 4 ? 0.1 : cv >= 6 ? -0.2 : 0; if (inst) { x += 0.15; w.push('instantânea'); }
+    v.wipe = Math.max(0.2, x); why.wipe = w.join('; ');
+  }
+  if (rl.has('protect')) {
+    const w = []; let x = 0.9;
+    if (inst) { x += 0.15; w.push('responde na hora'); }
+    x += cv <= 1 ? 0.2 : cv >= 4 ? -0.2 : 0;
+    if (/(creatures|permanents) you control (gain|have|get)|each creature you control/i.test(o)) { x += 0.25; w.push('protege todas as suas'); }
+    if (/Equipment/.test(t) || (!/Instant|Sorcery/.test(t) && !/until end of turn/.test(o))) { x += 0.25; w.push('fica na mesa e protege sempre'); }
+    v.protect = Math.max(0.2, x); why.protect = w.join('; ') || 'proteção de uma vez';
+  }
+  if (rl.has('counter')) {
+    const w = []; let x = 1;
+    x += cv <= 2 ? 0.2 : cv >= 4 ? -0.25 : 0; w.push(`custa ${cv}`);
+    if (/unless its controller pays/i.test(o)) { x -= 0.35; w.push('o oponente pode pagar'); }
+    if (/Counter target (noncreature|creature|instant|sorcery|artifact|enchantment|activated|triggered)/i.test(o)) { x -= 0.2; w.push('só alguns tipos'); }
+    if (/rather than pay|without paying/i.test(o)) { x += 0.2; w.push('pode sair de graça'); }
+    v.counter = Math.max(0.2, x); why.counter = w.join('; ');
+  }
+  // o texto tem que fazer a função de verdade (as etiquetas juntam muito engano)
+  const FAZ = { draw: /draws? (a|an|two|three|four|five|seven|X|\d+) cards?|draw cards|exile the top [^.]*(you may (play|cast))/i, removal: /destroy target|exile target|shuffles it into|on the (top|bottom) of (its owner's|their) library|damage to (any )?target|damage to (each|up to)|target [^.]*gets -\d|fights?|return target [^.]*owner's hand|sacrifices? (a|an) (creature|permanent)|counters? on target/i, protect: /hexproof|indestructible|shroud|protection from|phases? out|[Cc]ounter target|[Rr]egenerate|\bward\b|can't be the target/i, counter: /[Cc]ounter target/ };
+  for (const k in FAZ) if (v[k] != null && !FAZ[k].test(o)) { v[k] = 0.15; why[k] = 'a etiqueta diz que faz, mas o texto não mostra o efeito'; }
+  const ks = Object.keys(v).sort((a, b) => v[b] - v[a]);
+  const modal = /Choose one|choose one —/i.test(o) || o.split('\n').filter(l => autoSac(l) && /:/.test(l)).length >= 2;
+  ks.slice(1).forEach(k => { v[k] = modal ? 0 : v[k] * 0.6; });
+  return (cache[c.name] = { v, why });
+}
+const efMax = (A, c) => Math.max(0, ...Object.values(efetiv(A, c).v));
+// quanto vale a i-ésima carta de uma função (0 = a melhor): cheia até o mínimo da faixa, cai até 0,25 no máximo, quase nada acima
+function precisa(r, i) { if (i < r.lo) return 1; if (i < r.hi) return 1 - 0.75 * (i - r.lo + 1) / (r.hi - r.lo + 1); return 0.08; }
+const PESO_K = { ramp: 1, draw: 1, removal: 1, wipe: 0.8, protect: 0.8, counter: 0.7, lands: 1.2, plano: 1, corpos: 0.8 };
+// deck que ganha atacando precisa de criaturas na mesa: abaixo de 20 cada corpo pesa cheio
+const USA_CORPOS = false;
+const REF_CORPOS = { k: 'corpos', n: 'Criaturas (o deck ganha atacando)', lo: 20, hi: 28 };
+// pares que fecham laço, lidos do texto: ganhar vida → oponente perde, e oponente perde → você ganha (Sanguine Bond + Exquisite Blood)
+const COMBO_RX = [[/Whenever you gain life[^.]*(opponent|each opponent)[^.]*loses?/i, /Whenever an opponent loses life[^.]*you gain|Whenever an opponent loses life, you gain/i]];
+function comboPar(A, c) {
+  const o = semLembrete(c);
+  for (const [a, b] of COMBO_RX) { const outro = a.test(o) ? b : b.test(o) ? a : null; if (!outro) continue; const p = A.uniq.concat(A.cmds).find(x => x.name !== c.name && !isLand(x) && outro.test(semLembrete(x))); if (p) return p.name; }
+  return null;
+}
+// 'plano' = as vagas que sobram para o que faz o deck ganhar: ameaças, peças que o comandante usa, cartas do plano.
+// Toda não-terreno entra nessa fila com a nota dela no plano; as 25 melhores contam cheio.
+function efPlano(A, c) {
+  if (!c || isLand(c)) return 0; const rl = rolesOf(c), vp = valorPlano(A, c).v;
+  let x = 0.35 + 0.3 * vp + (A.cmdSupport.includes(c.name) ? 0.35 : 0) + (rl.has('threat') || rl.has('wincon') ? 0.4 : 0) + (A.plano && A.plano.voltron && efeitos(c).anexo ? 0.3 : 0);
+  const par = comboPar(A, c); if (par) x += 1.1; // metade de um laço que ganha o jogo (lido do texto das duas)
+  if (isTutor(c)) x += c.v <= 2 ? 0.7 : 0.4; // tutor: vira a peça que falta
+  if (['drain', 'amplify', 'extra', 'wincon', 'copy'].some(k => rl.has(k))) x += 0.3; // motor ou fim de jogo
+  // pagamento: o gatilho bate com o que o deck faz (fichas, criaturas entrando, ataques) e o efeito fecha o jogo
+  const o = semLembrete(c);
+  const hino = /(creatures|tokens|other [A-Z][a-z]+s?|[A-Z][a-z]+s) you control (get|have) \+|each (other )?creature (you control )?gets \+|shares a creature type/i.test(o);
+  const dreno = /Whenever[^\n]*(damage to (each opponent|the player|that player|target opponent|any target|defending player)|loses? \d+ life|each opponent loses)|double the damage|deals that much damage/i.test(o);
+  if (hino || dreno) { const [m] = hino && !/Whenever/i.test(o) ? [Math.min(1, 0.4 + 1.2 * perfilDeck(A).cri)] : condDeck(A, c, o); x += 0.6 * Math.min(1, m); }
+  if (A.noRole.includes(c.name) || A.bodyOnly.includes(c.name)) x -= 0.3;
+  // deck de tribo: criatura de fora da tribo que não conversa com o comandante é só um corpo
+  if (A.tribe && /Creature/.test(c.t.split(' // ')[0]) && !subtypes(c).includes(A.tribe[0]) && !/Changeling/.test(c.o || '') && vp < 0.5 && !A.cmdSupport.includes(c.name)) x *= 0.45;
+  if (efMax(A, c) >= 0.6) x *= 0.4; // o valor desta já conta na função básica
+  return Math.max(0, Math.min(1.6, x));
+}
+// valor do deck = soma, em cada função, da efetividade de cada carta × o quanto o deck ainda precisa dela (retorno decrescente)
+// + 0,15 × leitura do plano do comandante. A troca é o par (sai, entra) que mais sobe esse valor.
+function triangula(A, ctx) {
+  const refs = A.refs.filter(r => r.k === 'lands' || EF_K.includes(r.k)).concat([{ k: 'plano', n: 'Plano (ameaças e peças do comandante)', lo: 30, hi: 48 }]);
+  const P = perfilDeck(A), ataca = (A.plano && A.plano.atk) || P.bate >= 0.35;
+  if (ataca && USA_CORPOS) refs.push(REF_CORPOS);
+  const listas = {}; for (const r of refs) listas[r.k] = [];
+  const corpo = (c) => { const f = c.t.split(' // ')[0]; if (!/Creature/.test(f)) return null; const pw = parseInt(c.p) || 0; return Math.max(0.3, Math.min(1.3, 0.5 + 0.15 * pw + (efeitos(c).haste ? 0.2 : 0) - 0.05 * Math.max(0, c.v - 4))); };
+  const efDe = (c) => isLand(c) ? { lands: TAPPED_RX(c) ? 0.9 : 1 } : Object.assign(isMdfcLand(c) ? { lands: 0.5 } : {}, efetiv(A, c).v, efMax(A, c) >= 0.6 ? {} : { plano: efPlano(A, c) }, ataca && USA_CORPOS && corpo(c) != null ? { corpos: corpo(c) } : {});
+  const conta = (c, q) => { const e = efDe(c); for (const k in e) if (listas[k]) for (let i = 0; i < q; i++) listas[k].push(e[k]); };
+  const qtd = deckCounts(A);
+  for (const c of A.uniq) conta(c, qtd[c.name] || 1);
+  const valorK = (k, arr) => { const r = refs.find(x => x.k === k); const s = arr.filter(x => x > 0).sort((a, b) => b - a); return PESO_K[k] * s.reduce((t, x, i) => t + x * precisa(r, i), 0); };
+  const tira = (arr, x) => { const i = arr.indexOf(x); if (i >= 0) arr.splice(i, 1); };
+  const plano = () => 0;
+  // ganho de trocar sai → entra (só as funções que mudam)
+  const ganho = (sai, entra) => {
+    const es = efDe(sai), ee = entra ? efDe(entra) : {}; let g = (entra ? plano(entra) : 0) - plano(sai); const det = [];
+    for (const k of new Set([...Object.keys(es), ...Object.keys(ee)])) {
+      if (!listas[k]) continue; const a = listas[k], b = a.slice(); if (es[k] != null) tira(b, es[k]); if (ee[k] != null) b.push(ee[k]);
+      const d = valorK(k, b) - valorK(k, a); g += d; det.push([k, d]);
+    }
+    return { g, det };
+  };
+  const aplica = (sai, entra) => { const es = efDe(sai), ee = efDe(entra); for (const k in es) if (listas[k]) tira(listas[k], es[k]); for (const k in ee) if (listas[k]) listas[k].push(ee[k]); };
+  // quem pode sair: não-terrenos (menos travadas e já usadas) e, se sobra terreno, o terreno que menos falta faz
+  const saiC = () => {
+    const nl = A.uniq.filter(c => !isLand(c) && !ctx.usedOut.has(c.name) && !(ctx.LOCK && ctx.LOCK.has(c.name))).map(c => ({ c, ...ganho(c, null) })).sort((a, b) => b.g - a.g).slice(0, 18);
+    const lr = refs.find(r => r.k === 'lands');
+    if (lr) { const terra = ctx.terraQueSai(); if (terra) nl.push({ c: terra, ...ganho(terra, null) }); }
+    return nl;
+  };
+  // quem pode entrar: cartas das cores com efetividade em alguma função ou que servem ao plano
+  const inDeck = new Set(A.uniq.map(c => c.name).concat(A.cmds.map(c => c.name)));
+  const pool = [];
+  for (const name of Object.keys(DB.cards)) {
+    if (inDeck.has(name)) continue; const c = C(name); if (c.ban || !c.r || isLand(c)) continue;
+    if (!c.ci.split('').every(x => !x || A.ident.has(x))) continue; if (!addOk(A, c)) continue;
+    const rl = rolesOf(c); if (!EF_K.some(k => rl.has(k)) && !(A.plano && A.plano.ativo && valorPlano(A, c).v >= 1.5)) continue;
+    pool.push(c);
+  }
+  const out = [];
+  for (let n = 0; n < ctx.max; n++) {
+    const sais = saiC(); if (!sais.length) break;
+    // pré-seleção: as 80 que mais somem com o deck como está
+    const ent = pool.filter(c => !ctx.usedIn.has(c.name)).map(c => { const e = efDe(c); let g = plano(c); for (const k in e) if (listas[k]) { const b = listas[k].concat([e[k]]); g += valorK(k, b) - valorK(k, listas[k]); } return { c, g }; }).sort((a, b) => b.g - a.g).slice(0, 80);
+    let best = null;
+    for (const s of sais) for (const e of ent) {
+      if (!ctx.cabe(e.c, s.c)) continue;
+      const r = ganho(s.c, e.c); const g = r.g - 0.04 * Math.log10(1 + (e.c.usd || 0));
+      if (!best || g > best.g) best = { sai: s.c, entra: e.c, g, det: r.det, corpoV: { [s.c.name]: corpo(s.c) || 0, [e.c.name]: corpo(e.c) || 0 } };
+    }
+    if (!best || best.g < 0.12) break;
+    best.alts = ent.filter(x => x.c.name !== best.entra.name && ctx.cabe(x.c, best.sai)).map(x => ({ c: x.c, g: ganho(best.sai, x.c).g })).sort((a, b) => b.g - a.g).slice(0, 5).map(x => x.c.name);
+    best.altsOut = sais.filter(x => x.c.name !== best.sai.name && !isLand(x.c)).sort((a, b) => b.g - a.g).slice(0, 4).map(x => x.c.name);
+    best.cnt = Object.fromEntries(refs.map(r => [r.k, listas[r.k].length]));
+    aplica(best.sai, best.entra); ctx.usedOut.add(best.sai.name); ctx.usedIn.add(best.entra.name);
+    if (!ctx.aceita(best)) { ctx.usedOut.delete(best.sai.name); aplica(best.entra, best.sai); ctx.usedIn.add(best.entra.name); continue; }
+    out.push(best);
+  }
+  return out;
+}
+// texto das trocas da triangulação
+function textoTri(A, b) {
+  const refOf = (k) => k === 'plano' ? { n: 'O plano (ameaças e peças do comandante)', lo: 30, hi: 48 } : k === 'corpos' ? REF_CORPOS : A.refs.find(r => r.k === k);
+  const pior = b.det.filter(([, d]) => d < 0).sort((x, y) => x[1] - y[1])[0], melhor = b.det.filter(([, d]) => d > 0).sort((x, y) => y[1] - x[1])[0];
+  const efS = efetiv(A, b.sai), efE = efetiv(A, b.entra), vpS = valorPlano(A, b.sai), vpE = valorPlano(A, b.entra);
+  const wP = (c, vp) => vp.why[0] || (A.cmdSupport.includes(c.name) ? 'conversa com o comandante' : rolesOf(c).has('threat') ? 'é ameaça' : 'faz pouco pelo plano do comandante');
+  const ev = (k, c, e) => k === 'plano' ? efPlano(A, c) : k === 'corpos' ? (b.corpoV || {})[c.name] || 0 : (e.v[k] || 0), ew = (k, c, e, vp) => k === 'plano' ? wP(c, vp) : k === 'corpos' ? `é criatura de poder ${c.p || 0}` : (e.why[k] || 'efeito fraco');
+  const faixa = (k) => { const r = refOf(k); return r ? `${r.n} está em ${fmt(b.cnt[k])} (faixa ${r.lo}–${r.hi})` : ''; };
+  let whyOut;
+  if (isLand(b.sai)) whyOut = `${faixa('lands')}: um terreno a mais rende pouco; ${TAPPED_RX(b.sai) ? 'este entra virado' : 'é um básico de uma cor que tem fontes de sobra'}.`;
+  else if (pior) whyOut = `${faixa(pior[0])}. Entre elas, esta é das que menos rendem: ${ew(pior[0], b.sai, efS, vpS)} (efetividade ${fmtD(ev(pior[0], b.sai, efS))}).`;
+  else whyOut = `Não cumpre nenhuma função básica do deck${vpS.why.length ? '; ' + vpS.why[0] : ''}.`;
+  if (!isLand(b.sai) && (!pior || pior[0] !== 'plano') && vpS.v < 0 && vpS.why.length) whyOut += ` Pelo plano: ${vpS.why[0]}.`;
+  let whyIn = melhor ? `${faixa(melhor[0])}. Esta: ${ew(melhor[0], b.entra, efE, vpE)} (efetividade ${fmtD(ev(melhor[0], b.entra, efE))}).` : '';
+  const outras = Object.keys(efE.v).filter(k => !melhor || k !== melhor[0]).map(k => (refOf(k) || {}).n).filter(Boolean);
+  if (outras.length) whyIn += ` Também conta como ${listPt(outras.map(x => x.toLowerCase()))}.`;
+  if (vpE.v >= 1 && vpE.why.length) whyIn += ` Pelo plano: ${vpE.why[0]}.`;
+  whyIn += ` Ganho da troca: +${fmtD(b.g, 2)}.`;
+  const goal = melhor ? ({ corpos: 'Criaturas', plano: 'Plano do comandante', ramp: 'Ramp', draw: 'Compra de cartas', removal: 'Remoção pontual', wipe: 'Limpa-mesa', protect: 'Proteção', counter: 'Contramágica' })[melhor[0]] || 'Efetividade' : 'Plano do comandante';
+  return { goal, whyOut, whyIn: whyIn.trim() };
+}
+
 function cutScore(A, c, needRoles) {
   if (isLand(c)) return -1e9;
   const roles = rolesOf(c); const real = [...roles].filter(k => k !== 'body');
   let s = 0;
+  if (comboPar(A, c)) s -= 60; // metade de um laço que ganha o jogo: não sai
+  if (isTutor(c)) s -= 25; // tutor vira a peça que falta
   if (A.noRole.includes(c.name)) s += 50;
   if (A.bodyOnly.includes(c.name)) s += 35;
   const fit = conceptFit(A, c);
   if (fit !== null) s += ({ seguir: fit ? -25 : 12, preferir: fit ? -12 : 6, so: fit ? -60 : 20 })[CONC.mode] || 0;
   if (!A.cmdSupport.includes(c.name)) s += 12;
   if (A.edh) s += 40 - 70 * edhNota(A.edh, c); // com o EDHREC: fica o que tem sinergia com a ideia ou é muito jogado nessas cores (antes: popularidade geral)
-  else {
-    s += c.r ? 30 * Math.min(c.r, 20000) / 20000 : 30;
-    if (c.r && c.r < 4000) s -= 45 * (1 - c.r / 4000); // muito jogada no Commander: só sai com motivo forte
-  }
+  else s += 25 - 22 * Math.max(efMax(A, c), efPlano(A, c)); // sem dados de fora: fica o que é efetivo na função (antes: popularidade)
   s -= 7 * real.length;
   if (c.gc) s += A._gcOk ? -30 : 40;
   if (A._capCard < Infinity && (c.usd || 0) > A._capCard) s += 40; // acima do teto por carta: candidata a sair
@@ -797,7 +1051,7 @@ function addOk(A, c) {
 }
 function rankAdds(A, list) {
   const cmdTh = A.cmdThemes;
-  return list.filter(c => addOk(A, c)).map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = c.r || 1e6; if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; const fit = conceptFit(A, c); if (fit) s *= ({ seguir: 0.4, preferir: 0.7, so: 0.4 })[CONC.mode] || 1; if (A._capDeck < Infinity && c.usd > 1) s *= 1 + Math.min(3, c.usd / 10); const vp = valorPlano(A, c).v; s *= Math.exp(-0.45 * vp); if (A.edh) s *= Math.exp(-2.5 * edhNota(A.edh, c)); return { c, s, th, fit, vp }; }).filter(x => !(A.plano && A.plano.ativo && x.vp <= -1.5)).filter(x => !(CONC.mode === 'so' && x.fit === false)).sort((a, b) => a.s - b.s);
+  return list.filter(c => addOk(A, c)).map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = (1 + (c.r || 1e5) / 1e5) * Math.exp(-2.5 * efMax(A, c)); if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; const fit = conceptFit(A, c); if (fit) s *= ({ seguir: 0.4, preferir: 0.7, so: 0.4 })[CONC.mode] || 1; if (A._capDeck < Infinity && c.usd > 1) s *= 1 + Math.min(3, c.usd / 10); const vp = valorPlano(A, c).v; s *= Math.exp(-0.45 * vp); if (A.edh) s *= Math.exp(-2.5 * edhNota(A.edh, c)); return { c, s, th, fit, vp }; }).filter(x => !(A.plano && A.plano.ativo && x.vp <= -1.5)).filter(x => !(CONC.mode === 'so' && x.fit === false)).sort((a, b) => a.s - b.s);
 }
 function addPool(A, test, n = 30) {
   const inDeck = new Set(A.uniq.map(c => c.name).concat(A.cmds.map(c => c.name)));
@@ -948,28 +1202,17 @@ function buildSwaps(A) {
       if (r.k !== 'lands') { realRoles(c).forEach(k => cnt[k]--); realRoles(r.add.c).forEach(k => { if (cnt[k] < 1e8) cnt[k]++; }); }
     }
   }
-  const maxN = swaps.length + 10;
-  for (let guard = 0; guard < 14 && swaps.length < maxN; guard++) {
-    const d = demand();
-    let cut = pickSurplus();
-    if (!cut && d && d.gap) cut = pickGeneric();
-    if (!cut) break;
-    let pool, goal, whyIn;
-    if (d) {
-      pool = poolFor(d.r.k); goal = label[d.r.k] || d.r.n;
-      whyIn = d.gap ? `${d.r.n} está em ${fmt(cnt[d.r.k])}; o normal é ${d.r.lo}–${d.r.hi}. ${d.r.why}` : `${d.r.n} está em ${fmt(cnt[d.r.k])}, na parte de baixo da faixa ${d.r.lo}–${d.r.hi}. Com a folga que sobra em outra função, vale reforçar. ${d.r.why}`;
-    } else {
-      pool = themePool; goal = 'Foco no plano';
-      whyIn = `As funções básicas já estão nas faixas; esta puxa para ${thList.map(t => t.n.toLowerCase()).join(' e ')}, o que o comandante pede.`;
-    }
-    const add = pool.find(x => !usedIn.has(x.c.name) && cabe(x.c, cut.c) && !realRoles(x.c).some(k => k !== (d && d.r.k) && cnt[k] >= refOf(k).hi));
-    if (!add) { if (d) { cnt[d.r.k] = 1e9; continue; } break; }
-    const alts = pool.filter(x => !usedIn.has(x.c.name) && x.c.name !== add.c.name).slice(0, 5).map(x => x.c.name);
-    push({ goal, out: cut.c.name, inn: add.c.name, whyOut: cut.why, whyIn: add.th && d ? whyIn + ' Esta também conversa com o tema do comandante.' : whyIn, alts, altsOut: [] });
-    if (!cut.k) swaps[swaps.length - 1].altsOut = altsCut().filter(n => n !== cut.c.name).slice(0, 4);
-    if (cut.k === 'lands') cnt.lands--; else realRoles(cut.c).forEach(k => cnt[k]--);
-    realRoles(add.c).forEach(k => { if (cnt[k] < 1e8) cnt[k]++; });
-  }
+  // 1b) triangulação (20/11/2026): falta × sobra, pela efetividade de cada carta em cada função; o par de maior ganho vira troca
+  const terraQueSai = () => {
+    if (!lr || cnt.lands <= lr.lo) return null;
+    const tapped = A.uniq.filter(c => isLand(c) && !/Basic/.test(c.t) && TAPPED_RX(c) && !usedOut.has(c.name) && !LOCK.has(c.name));
+    const sur = (x) => (x in A.sources ? A.sources[x] - A.colorNeed[x] : -99);
+    const basics = A.uniq.filter(c => /Basic Land/.test(c.t) && !usedOut.has(c.name)).sort((a, b) => sur(b.pm.replace(/[^WUBRG]/g, '')[0]) - sur(a.pm.replace(/[^WUBRG]/g, '')[0]));
+    return tapped[0] || basics[0] || null;
+  };
+  const tri = triangula(A, { max: 10, usedOut, usedIn, LOCK, cabe, terraQueSai, aceita: (b) => { const t = textoTri(A, b); return push({ goal: t.goal, out: b.sai.name, inn: b.entra.name, whyOut: t.whyOut, whyIn: t.whyIn, alts: b.alts, altsOut: b.altsOut, ganho: b.g }); } });
+  for (const b of tri) { if (isLand(b.sai)) cnt.lands--; else realRoles(b.sai).forEach(k => cnt[k]--); realRoles(b.entra).forEach(k => { if (cnt[k] < 1e8) cnt[k]++; }); }
+  A._tri = tri.length;
 
   // 2) cores com poucas fontes: um básico da cor que sobra sai, um terreno que faz a cor que falta entra
   const ident = [...A.ident]; const src = Object.assign({}, A.sources);
@@ -1001,17 +1244,6 @@ function buildSwaps(A) {
     }
   }
 
-  // 4) sobrou carta sem papel: troca por carta do tema do comandante
-  const cmdTh = [...A.cmdThemes];
-  if (cmdTh.length) {
-    const th = THEMES.filter(t => A.cmdThemes.has(t.k));
-    const pool = rankAdds(A, addPool(A, c => !isLand(c) && th.some(t => t.rx.test(c.o) || (t.type && t.type.test(c.t))), 40));
-    const leftovers = cutsAll.filter(x => !usedOut.has(x.c.name) && (A.noRole.includes(x.c.name) || A.bodyOnly.includes(x.c.name)));
-    for (const cut of leftovers.slice(0, Math.max(0, 12 - swaps.length))) {
-      const add = pool.find(x => !usedIn.has(x.c.name) && cabe(x.c, cut.c)); if (!add) break;
-      if (!push({ goal: 'Foco no plano', out: cut.c.name, inn: add.c.name, whyOut: whyCut(A, cut.c), whyIn: `Puxa para ${th.map(t => t.n.toLowerCase()).join(' e ')}, o que o comandante pede. Entre as mais jogadas nas suas cores com esse tema.`, alts: pool.filter(x => !usedIn.has(x.c.name) && x.c.name !== add.c.name).slice(0, 5).map(x => x.c.name), altsOut: [] })) break;
-    }
-  }
   return swaps;
 }
 
