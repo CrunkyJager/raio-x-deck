@@ -261,10 +261,12 @@ function arena(Ds,seed,cfg){
     diz(q.k,'ficha',`${nomeC(q,z.i)} ataca e cria o Stangg Twin (3/4, atacando)${nc?` com cópia de ${nc} aura${nc>1?'s':''}/equipamento${nc>1?'s':''}`:''}`);
   }
   /* algo entrou no campo de p: dispara quem observa */
-  function entrou(p,x){
+  let PROF=0;
+  function entrou(p,x){if(PROF>40)return;PROF++;try{entrou0(p,x);}finally{PROF--;}}
+  function entrou0(p,x){
     const m=mOf(x),ehEnc=m&&m.ench,ehAnx=m&&(m.aura||m.eq),ehAura=m&&m.aura;
     for(const z of p.perm.slice()){for(const h of habs(z)){if(h.q!=='entra')continue;
-      if(h.f==='cri'){if(!x.cri||x.cop)continue;if(h.outro&&z===x)continue;if(!h.eu&&!h.outro&&z===x)continue;if(!ehTipo(p,x,h.tipo))continue;if(h.pmax!=null&&poderDe(p,x)>h.pmax)continue;}
+      if(h.f==='cri'){if(!x.cri||x.cop||(h.nt&&x.tok))continue;if(h.outro&&z===x)continue;if(!h.eu&&!h.outro&&z===x)continue;if(!ehTipo(p,x,h.tipo))continue;if(h.pmax!=null&&poderDe(p,x)>h.pmax)continue;}
       else if(h.f==='enc'){if(!ehEnc)continue;if(z===x&&!h.eu)continue;}
       else if(h.f==='anexo'){if(!ehAnx)continue;}
       else if(h.f==='aura'){if(!ehAura)continue;}
@@ -274,7 +276,7 @@ function arena(Ds,seed,cfg){
   }
   function aoMorrer(p,x,pw,mod,exila){
     for(const q of P){if(!q.vivo)continue;for(const z of q.perm.slice())for(const h of habs(z)){if(h.q!=='morre')continue;
-      if(h.op&&q===p)continue;if(h.meu&&q!==p)continue;if(h.outro&&z===x)continue;if(h.mod&&!mod)continue;if(!ehTipo(p,x,h.tipo))continue;
+      if(h.op&&q===p)continue;if(h.meu&&q!==p)continue;if(h.nt&&x.tok)continue;if(h.outro&&z===x)continue;if(h.mod&&!mod)continue;if(!ehTipo(p,x,h.tipo))continue;
       faz(q,z,h.e,{x,poder:pw});}}
   }
   function lancou(p,i){

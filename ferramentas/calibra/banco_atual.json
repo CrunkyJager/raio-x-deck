@@ -1,0 +1,2745 @@
+{
+ "cloud-ex-soldier/voltron": {
+  "sw": [
+   "Excalibur, Sword of Eden → Yarus, Roar of the Old Gods",
+   "Clever Concealment → Rune of Speed",
+   "Vincent, Vengeful Atoner → Demonic Ruckus",
+   "Forge Anew → Oblation",
+   "Red XIII, Proud Warrior → Audacity",
+   "Hammer of Nazahn → Gimli's Reckless Might",
+   "The Reaver Cleaver → Overgrown Battlement",
+   "Conformer Shuriken → Fear of Missing Out",
+   "Sram, Senior Edificer → Incubation Druid",
+   "Professor Hojo → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal"
+  ],
+  "d": 0.8,
+  "se": 1.1994665480954438,
+  "base": 0.06,
+  "pares": [
+   [
+    "Excalibur, Sword of Eden",
+    "Yarus, Roar of the Old Gods",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Clever Concealment",
+    "Rune of Speed",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Vincent, Vengeful Atoner",
+    "Demonic Ruckus",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Forge Anew",
+    "Oblation",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Red XIII, Proud Warrior",
+    "Audacity",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Hammer of Nazahn",
+    "Gimli's Reckless Might",
+    0,
+    0
+   ],
+   [
+    "The Reaver Cleaver",
+    "Overgrown Battlement",
+    -0.2,
+    0.5290746639180522
+   ],
+   [
+    "Conformer Shuriken",
+    "Fear of Missing Out",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Sram, Senior Edificer",
+    "Incubation Druid",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Professor Hojo",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.6,
+    0.8713667425372625
+   ]
+  ],
+  "erros": []
+ },
+ "baylen-the-haymaker/tokens": {
+  "sw": [
+   "Dazzling Theater // Prop Room → Oblation",
+   "For the Common Good → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Smothering Tithe → Herd Heirloom",
+   "Drumbellower → Joraga Treespeaker",
+   "Seedborn Muse → Khalni Ambush // Khalni Territory",
+   "Enduring Vitality → Bugenhagen, Wise Elder",
+   "Belladonna Took → Balefire Dragon",
+   "Academy Manufactor → Caravan Vigil",
+   "Season of the Burrow → Kazuul's Fury // Kazuul's Cliffs",
+   "Anim Pakal, Thousandth Moon → Ran and Shaw",
+   "Cultivate → Opal Palace",
+   "Burrowguard Mentor → Forbidden Orchard"
+  ],
+  "d": 2,
+  "se": 1.1966620241321273,
+  "base": 0.034,
+  "pares": [
+   [
+    "Dazzling Theater // Prop Room",
+    "Oblation",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "For the Common Good",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    1,
+    0.8234075540095561
+   ],
+   [
+    "Smothering Tithe",
+    "Herd Heirloom",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Drumbellower",
+    "Joraga Treespeaker",
+    0,
+    0.4
+   ],
+   [
+    "Seedborn Muse",
+    "Khalni Ambush // Khalni Territory",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Enduring Vitality",
+    "Bugenhagen, Wise Elder",
+    2.1999999999999997,
+    0.8662101361678932
+   ],
+   [
+    "Belladonna Took",
+    "Balefire Dragon",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Academy Manufactor",
+    "Caravan Vigil",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Season of the Burrow",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    0,
+    0.4
+   ],
+   [
+    "Anim Pakal, Thousandth Moon",
+    "Ran and Shaw",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Cultivate",
+    "Opal Palace",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Burrowguard Mentor",
+    "Forbidden Orchard",
+    -0.2,
+    0.4471241438347967
+   ]
+  ],
+  "erros": []
+ },
+ "the-wise-mothman/plus-1-plus-1-counters": {
+  "sw": [
+   "Evolution Sage → Khalni Ambush // Khalni Territory",
+   "Winding Constrictor → Kozilek's Command",
+   "Inexorable Tide → Fell the Profane // Fell Mire",
+   "The Water Crystal → Bugenhagen, Wise Elder",
+   "Agent Frank Horrigan → Teferi's Response",
+   "Casualties of War → Hagra Mauling // Hagra Broodpit",
+   "Guardian Project → Overgrown Battlement",
+   "Vault 12: The Necropolis → Illusionist's Gambit",
+   "Mutational Advantage → Surrak, the Hunt Caller",
+   "Radstorm → Pippin, Warden of Isengard",
+   "Mirelurk Queen → Opal Palace",
+   "Muldrotha, the Gravetide → Haven of the Spirit Dragon",
+   "Altar of the Brood → City of Brass"
+  ],
+  "d": 3.2,
+  "se": 1.0097128304622063,
+  "base": 0.05,
+  "pares": [
+   [
+    "Evolution Sage",
+    "Khalni Ambush // Khalni Territory",
+    0.6,
+    0.44640788523501684
+   ],
+   [
+    "Winding Constrictor",
+    "Kozilek's Command",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Inexorable Tide",
+    "Fell the Profane // Fell Mire",
+    0,
+    0
+   ],
+   [
+    "The Water Crystal",
+    "Bugenhagen, Wise Elder",
+    1.2,
+    0.4869496893930624
+   ],
+   [
+    "Agent Frank Horrigan",
+    "Teferi's Response",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Casualties of War",
+    "Hagra Mauling // Hagra Broodpit",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Guardian Project",
+    "Overgrown Battlement",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Vault 12: The Necropolis",
+    "Illusionist's Gambit",
+    0,
+    0
+   ],
+   [
+    "Mutational Advantage",
+    "Surrak, the Hunt Caller",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Radstorm",
+    "Pippin, Warden of Isengard",
+    0,
+    0
+   ],
+   [
+    "Mirelurk Queen",
+    "Opal Palace",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Muldrotha, the Gravetide",
+    "Haven of the Spirit Dragon",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Altar of the Brood",
+    "City of Brass",
+    0.4,
+    0.2822764602300376
+   ]
+  ],
+  "erros": []
+ },
+ "teval-the-balanced-scale/graveyard": {
+  "sw": [
+   "Afterlife from the Loam → Sword of Fire and Ice",
+   "Will of the Sultai → Teferi's Response",
+   "Tatyova, Benthic Druid → Khalni Ambush // Khalni Territory",
+   "Crop Rotation → Blizzard Brawl",
+   "Hedge Shredder → Renowned Weaponsmith",
+   "Grisly Salvage → Illusionist's Gambit",
+   "Colossal Grave-Reaver → Gollum's Bite",
+   "Kishla Skimmer → Dragonstorm Forecaster",
+   "Ob Nixilis, the Fallen → Surrak, the Hunt Caller",
+   "Avenger of Zendikar → Shadow-Rite Priest"
+  ],
+  "d": 1.4000000000000001,
+  "se": 0.8222408406300431,
+  "base": 0.028,
+  "pares": [
+   [
+    "Afterlife from the Loam",
+    "Sword of Fire and Ice",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Will of the Sultai",
+    "Teferi's Response",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Tatyova, Benthic Druid",
+    "Khalni Ambush // Khalni Territory",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Crop Rotation",
+    "Blizzard Brawl",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Hedge Shredder",
+    "Renowned Weaponsmith",
+    -1,
+    0.44497190922573976
+   ],
+   [
+    "Grisly Salvage",
+    "Illusionist's Gambit",
+    0,
+    0
+   ],
+   [
+    "Colossal Grave-Reaver",
+    "Gollum's Bite",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Kishla Skimmer",
+    "Dragonstorm Forecaster",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Ob Nixilis, the Fallen",
+    "Surrak, the Hunt Caller",
+    0,
+    0
+   ],
+   [
+    "Avenger of Zendikar",
+    "Shadow-Rite Priest",
+    0.4,
+    0.39959979979974963
+   ]
+  ],
+  "erros": []
+ },
+ "breya-etherium-shaper/artifacts": {
+  "sw": [
+   "Enthusiastic Mechanaut → Sheltered by Ghosts",
+   "Krark-Clan Ironworks → Firemind's Research",
+   "Etherium Sculptor → Hardlight Containment",
+   "Smothering Tithe → Kazuul's Fury // Kazuul's Cliffs",
+   "Foundry Inspector → Rankle and Torbran",
+   "Thoughtcast → Nin, the Pain Artist",
+   "Chromatic Lantern → Renowned Weaponsmith",
+   "Sword of the Meek → Chains of Custody",
+   "Weapons Manufacturing → Oblation",
+   "Thopter Foundry → Dragonstorm Forecaster",
+   "Emry, Lurker of the Loch → Sulfur Falls"
+  ],
+  "d": 1.4000000000000001,
+  "se": 1.1815582931027993,
+  "base": 0.05,
+  "pares": [
+   [
+    "Enthusiastic Mechanaut",
+    "Sheltered by Ghosts",
+    -0.6,
+    0.7741317717288188
+   ],
+   [
+    "Krark-Clan Ironworks",
+    "Firemind's Research",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Etherium Sculptor",
+    "Hardlight Containment",
+    0.6,
+    0.6627820154470095
+   ],
+   [
+    "Smothering Tithe",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Foundry Inspector",
+    "Rankle and Torbran",
+    -1,
+    0.5983310120660636
+   ],
+   [
+    "Thoughtcast",
+    "Nin, the Pain Artist",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Chromatic Lantern",
+    "Renowned Weaponsmith",
+    0.6,
+    0.5284694882393873
+   ],
+   [
+    "Sword of the Meek",
+    "Chains of Custody",
+    0.4,
+    0.5654025114907079
+   ],
+   [
+    "Weapons Manufacturing",
+    "Oblation",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Thopter Foundry",
+    "Dragonstorm Forecaster",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Emry, Lurker of the Loch",
+    "Sulfur Falls",
+    0.2,
+    0.599933329629218
+   ]
+  ],
+  "erros": []
+ },
+ "go-shintai-of-lifes-origin/enchantress": {
+  "sw": [
+   "Kyoshi Island Plaza → Firemind's Research",
+   "Destiny Spinner → Nin, the Pain Artist",
+   "Go-Shintai of Boundless Vigor → Rankle and Torbran",
+   "Honden of Cleansing Fire → Oblation",
+   "Honden of Night's Reach → Dragonstorm Forecaster",
+   "Leyline of the Guildpact → Teferi's Response",
+   "Sanctum of Tranquil Light → Renowned Weaponsmith",
+   "Aang's Journey → Khalni Ambush // Khalni Territory",
+   "Smothering Tithe → Ran and Shaw",
+   "Sphere of Safety → Magda, Brazen Outlaw",
+   "Southern Air Temple → Watery Grave",
+   "Setessan Champion → Steam Vents"
+  ],
+  "d": -1.2,
+  "se": 0.8468293806901127,
+  "base": 0.062,
+  "pares": [
+   [
+    "Kyoshi Island Plaza",
+    "Firemind's Research",
+    -0.4,
+    0.5654025114907079
+   ],
+   [
+    "Destiny Spinner",
+    "Nin, the Pain Artist",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Go-Shintai of Boundless Vigor",
+    "Rankle and Torbran",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Honden of Cleansing Fire",
+    "Oblation",
+    0,
+    0
+   ],
+   [
+    "Honden of Night's Reach",
+    "Dragonstorm Forecaster",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Leyline of the Guildpact",
+    "Teferi's Response",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Sanctum of Tranquil Light",
+    "Renowned Weaponsmith",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Aang's Journey",
+    "Khalni Ambush // Khalni Territory",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Smothering Tithe",
+    "Ran and Shaw",
+    -0.8,
+    0.3983967871356395
+   ],
+   [
+    "Sphere of Safety",
+    "Magda, Brazen Outlaw",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Southern Air Temple",
+    "Watery Grave",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Setessan Champion",
+    "Steam Vents",
+    -0.6,
+    0.5284694882393873
+   ]
+  ],
+  "erros": []
+ },
+ "vivi-ornitier/spellslinger": {
+  "sw": [
+   "Jeska's Will → Preyseizer Dragon",
+   "Flusterstorm → Renowned Weaponsmith",
+   "Force of Will → Firemind's Research",
+   "Underworld Breach → Dragonstorm Forecaster",
+   "Brain Freeze → Magda, Brazen Outlaw",
+   "Expressive Iteration → Ran and Shaw",
+   "Windfall → Thundering Djinn",
+   "Lotus Petal → Honest Work",
+   "Strike It Rich → Mana Vault",
+   "Curiosity → Paradise Mantle"
+  ],
+  "d": 0,
+  "se": 0.848528137423857,
+  "base": 0.03,
+  "pares": [
+   [
+    "Jeska's Will",
+    "Preyseizer Dragon",
+    1,
+    0.44497190922573976
+   ],
+   [
+    "Flusterstorm",
+    "Renowned Weaponsmith",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Force of Will",
+    "Firemind's Research",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Underworld Breach",
+    "Dragonstorm Forecaster",
+    0,
+    0
+   ],
+   [
+    "Brain Freeze",
+    "Magda, Brazen Outlaw",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Expressive Iteration",
+    "Ran and Shaw",
+    0,
+    0
+   ],
+   [
+    "Windfall",
+    "Thundering Djinn",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Lotus Petal",
+    "Honest Work",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Strike It Rich",
+    "Mana Vault",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Curiosity",
+    "Paradise Mantle",
+    -1.6,
+    0.5611416933360058
+   ]
+  ],
+  "erros": []
+ },
+ "teysa-karlov/aristocrats": {
+  "sw": [
+   "Bartolomé del Presidio → Sword of Fire and Ice",
+   "Carrion Feeder → Sheltered by Ghosts",
+   "Reassembling Skeleton → Soldevi Adnate",
+   "Viscera Seer → Sand Scout",
+   "Yahenni, Undying Partisan → Mana Vault",
+   "Reanimate → Sejiri Shelter // Sejiri Glacier",
+   "Victimize → Roshan, Hidden Magister",
+   "Ashnod's Altar → Elspeth, Storm Slayer",
+   "Phyrexian Altar → Thaumatic Compass // Spires of Orazca",
+   "Smothering Tithe → Doctor Spectrum",
+   "Midnight Reaper → Forbidden Orchard",
+   "Toxic Deluge → Lazotep Quarry"
+  ],
+  "d": 0.2,
+  "se": 1.2805936123532713,
+  "base": 0.098,
+  "pares": [
+   [
+    "Bartolomé del Presidio",
+    "Sword of Fire and Ice",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Carrion Feeder",
+    "Sheltered by Ghosts",
+    0.4,
+    0.6322024992041712
+   ],
+   [
+    "Reassembling Skeleton",
+    "Soldevi Adnate",
+    0,
+    0
+   ],
+   [
+    "Viscera Seer",
+    "Sand Scout",
+    -0.4,
+    0.5654025114907079
+   ],
+   [
+    "Yahenni, Undying Partisan",
+    "Mana Vault",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Reanimate",
+    "Sejiri Shelter // Sejiri Glacier",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Victimize",
+    "Roshan, Hidden Magister",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Ashnod's Altar",
+    "Elspeth, Storm Slayer",
+    0,
+    0
+   ],
+   [
+    "Phyrexian Altar",
+    "Thaumatic Compass // Spires of Orazca",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Smothering Tithe",
+    "Doctor Spectrum",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Midnight Reaper",
+    "Forbidden Orchard",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Toxic Deluge",
+    "Lazotep Quarry",
+    0.2,
+    0.5290746639180522
+   ]
+  ],
+  "erros": []
+ },
+ "frodo-adventurous-hobbit-sam-loyal-attendant/lifegain": {
+  "sw": [
+   "Bag End Banquet → Sword of Fire and Ice",
+   "Academy Manufactor → Sheltered by Ghosts",
+   "Essence Warden → Oblation",
+   "Tireless Provisioner → Shadow-Rite Priest",
+   "Treebeard, Gracious Host → Pyre of Heroes",
+   "Gilded Goose → Hardlight Containment",
+   "Sanguine Bond → Cloud, Midgar Mercenary",
+   "Jaheira, Friend of the Forest → Tezzeret, Cruel Captain",
+   "Field-Tested Frying Pan → Swinging Ship",
+   "Assemble the Entmoot → Sting, the Glinting Dagger"
+  ],
+  "d": 0,
+  "se": 0.565685424949238,
+  "base": 0.018,
+  "pares": [
+   [
+    "Bag End Banquet",
+    "Sword of Fire and Ice",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Academy Manufactor",
+    "Sheltered by Ghosts",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Essence Warden",
+    "Oblation",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Tireless Provisioner",
+    "Shadow-Rite Priest",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Treebeard, Gracious Host",
+    "Pyre of Heroes",
+    0,
+    0
+   ],
+   [
+    "Gilded Goose",
+    "Hardlight Containment",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Sanguine Bond",
+    "Cloud, Midgar Mercenary",
+    0,
+    0
+   ],
+   [
+    "Jaheira, Friend of the Forest",
+    "Tezzeret, Cruel Captain",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Field-Tested Frying Pan",
+    "Swinging Ship",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Assemble the Entmoot",
+    "Sting, the Glinting Dagger",
+    0.2,
+    0.19979989989987482
+   ]
+  ],
+  "erros": []
+ },
+ "omnath-locus-of-creation/landfall": {
+  "sw": [
+   "Splendid Reclamation → Firemind's Research",
+   "Wrenn and Seven → Preyseizer Dragon",
+   "Exploration → Sheltered by Ghosts",
+   "Nissa, Resurgent Animist → Teferi's Response",
+   "Spelunking → Nin, the Pain Artist",
+   "Explore → Dragonstorm Forecaster",
+   "Crop Rotation → Oblation",
+   "Cultivate → Nibelheim Aflame",
+   "Scapeshift → Ran and Shaw",
+   "Kodama's Reach → Ral, Caller of Storms"
+  ],
+  "d": 1.2,
+  "se": 0.6907387349787183,
+  "base": 0.022,
+  "pares": [
+   [
+    "Splendid Reclamation",
+    "Firemind's Research",
+    0,
+    0
+   ],
+   [
+    "Wrenn and Seven",
+    "Preyseizer Dragon",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Exploration",
+    "Sheltered by Ghosts",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Nissa, Resurgent Animist",
+    "Teferi's Response",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Spelunking",
+    "Nin, the Pain Artist",
+    0,
+    0
+   ],
+   [
+    "Explore",
+    "Dragonstorm Forecaster",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Crop Rotation",
+    "Oblation",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Cultivate",
+    "Nibelheim Aflame",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Scapeshift",
+    "Ran and Shaw",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Kodama's Reach",
+    "Ral, Caller of Storms",
+    0,
+    0
+   ]
+  ],
+  "erros": []
+ },
+ "isshin-two-heavens-as-one/aggro": {
+  "sw": [
+   "Ainok Strike Leader → Rankle and Torbran",
+   "Krenko, Tin Street Kingpin → Oblation",
+   "Skyhunter Strike Force → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Teferi's Protection → Kazuul's Fury // Kazuul's Cliffs",
+   "Otharri, Suns' Glory → Longshot, Rebel Bowman",
+   "Fervent Charge → Asmoranomardicadaistinaculdacar",
+   "Vandalblast → Magda, Brazen Outlaw",
+   "Sun Titan → Sand Scout",
+   "Firebender Ascension → Elspeth, Storm Slayer",
+   "Arabella, Abandoned Doll → Fighter Class",
+   "Blasphemous Act → City of Brass",
+   "Reconnaissance → Cavern of Souls",
+   "Brutal Hordechief → Mana Confluence"
+  ],
+  "d": 0.8,
+  "se": 1.0948607217358746,
+  "base": 0.042,
+  "pares": [
+   [
+    "Ainok Strike Leader",
+    "Rankle and Torbran",
+    0.6,
+    0.5284694882393873
+   ],
+   [
+    "Krenko, Tin Street Kingpin",
+    "Oblation",
+    0,
+    0
+   ],
+   [
+    "Skyhunter Strike Force",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Teferi's Protection",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Otharri, Suns' Glory",
+    "Longshot, Rebel Bowman",
+    0,
+    0
+   ],
+   [
+    "Fervent Charge",
+    "Asmoranomardicadaistinaculdacar",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Vandalblast",
+    "Magda, Brazen Outlaw",
+    1,
+    0.44497190922573976
+   ],
+   [
+    "Sun Titan",
+    "Sand Scout",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Firebender Ascension",
+    "Elspeth, Storm Slayer",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Arabella, Abandoned Doll",
+    "Fighter Class",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Blasphemous Act",
+    "City of Brass",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Reconnaissance",
+    "Cavern of Souls",
+    -0.8,
+    0.5645529204600752
+   ],
+   [
+    "Brutal Hordechief",
+    "Mana Confluence",
+    -0.2,
+    0.3462946722085109
+   ]
+  ],
+  "erros": []
+ },
+ "nekusar-the-mindrazer/card-draw": {
+  "sw": [
+   "Forced Fruition → Rankle and Torbran",
+   "Prosperity → Renowned Weaponsmith",
+   "Scrawling Crawler → Firemind's Research",
+   "Font of Mythos → Kazuul's Fury // Kazuul's Cliffs",
+   "Howling Mine → Ran and Shaw",
+   "Teferi's Puzzle Box → Asmoranomardicadaistinaculdacar",
+   "Jace's Archivist → Dragonstorm Forecaster",
+   "Kami of the Crescent Moon → Conversion Apparatus",
+   "Dictate of Kruphix → Magda, Brazen Outlaw",
+   "Dark Deal → Surtr, Fiery Jötun"
+  ],
+  "d": -0.4,
+  "se": 0.6925893444170218,
+  "base": 0.02,
+  "pares": [
+   [
+    "Forced Fruition",
+    "Rankle and Torbran",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Prosperity",
+    "Renowned Weaponsmith",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Scrawling Crawler",
+    "Firemind's Research",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Font of Mythos",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Howling Mine",
+    "Ran and Shaw",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Teferi's Puzzle Box",
+    "Asmoranomardicadaistinaculdacar",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Jace's Archivist",
+    "Dragonstorm Forecaster",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Kami of the Crescent Moon",
+    "Conversion Apparatus",
+    0,
+    0.4
+   ],
+   [
+    "Dictate of Kruphix",
+    "Magda, Brazen Outlaw",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Dark Deal",
+    "Surtr, Fiery Jötun",
+    0.4,
+    0.2822764602300376
+   ]
+  ],
+  "erros": []
+ },
+ "giada-font-of-hope/flying": {
+  "sw": [
+   "Cleansing Nova → Oblation",
+   "Sephara, Sky's Blade → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Teferi's Protection → Kozilek's Command",
+   "Bishop of Wings → Soul Partition",
+   "Starnheim Aspirant → Makindi Stampede // Makindi Mesas",
+   "Serra the Benevolent → Elspeth, Storm Slayer",
+   "Angelic Accord → Sand Scout",
+   "Authority of the Consuls → Conversion Apparatus",
+   "Land Tax → Peace in Our Time",
+   "Akroma's Will → Pit Automaton",
+   "Farewell → Command Tower",
+   "Smothering Tithe → Exotic Orchard",
+   "Urza's Incubator → Reliquary Tower"
+  ],
+  "d": 2,
+  "se": 1.1627553482998907,
+  "base": 0.058,
+  "pares": [
+   [
+    "Cleansing Nova",
+    "Oblation",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Sephara, Sky's Blade",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    -1,
+    0.6618156843109719
+   ],
+   [
+    "Teferi's Protection",
+    "Kozilek's Command",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Bishop of Wings",
+    "Soul Partition",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Starnheim Aspirant",
+    "Makindi Stampede // Makindi Mesas",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Serra the Benevolent",
+    "Elspeth, Storm Slayer",
+    0,
+    0
+   ],
+   [
+    "Angelic Accord",
+    "Sand Scout",
+    3,
+    0.8136338242723198
+   ],
+   [
+    "Authority of the Consuls",
+    "Conversion Apparatus",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Land Tax",
+    "Peace in Our Time",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Akroma's Will",
+    "Pit Automaton",
+    1.4000000000000001,
+    0.5967243919934897
+   ],
+   [
+    "Farewell",
+    "Command Tower",
+    -1.2,
+    0.6301745789858554
+   ],
+   [
+    "Smothering Tithe",
+    "Exotic Orchard",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Urza's Incubator",
+    "Reliquary Tower",
+    0.6,
+    0.44640788523501684
+   ]
+  ],
+  "erros": []
+ },
+ "voja-jaws-of-the-conclave/elves": {
+  "sw": [
+   "Hollowhenge Overlord → Fear of Missing Out",
+   "Cemetery Prowler → Oblation",
+   "Anara, Wolvid Familiar → Yarus, Roar of the Old Gods",
+   "Rishkar, Peema Renegade → Expedite",
+   "Cultivate → Infectious Bloodlust",
+   "Bloom Tender → Scurry of Gremlins",
+   "Devoted Druid → Flame-Kin Zealot",
+   "Teferi's Protection → Heroic Reinforcements",
+   "Maskwood Nexus → Imodane's Recruiter // Train Troops",
+   "Howling Moon → Goblin War Party",
+   "Reclamation Sage → Opal Palace",
+   "Masked Vandal → Clifftop Retreat"
+  ],
+  "d": 0.2,
+  "se": 0.9164714943739386,
+  "base": 0.04,
+  "pares": [
+   [
+    "Hollowhenge Overlord",
+    "Fear of Missing Out",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Cemetery Prowler",
+    "Oblation",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Anara, Wolvid Familiar",
+    "Yarus, Roar of the Old Gods",
+    0,
+    0
+   ],
+   [
+    "Rishkar, Peema Renegade",
+    "Expedite",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Cultivate",
+    "Infectious Bloodlust",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Bloom Tender",
+    "Scurry of Gremlins",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Devoted Druid",
+    "Flame-Kin Zealot",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Teferi's Protection",
+    "Heroic Reinforcements",
+    -0.2,
+    0.5290746639180522
+   ],
+   [
+    "Maskwood Nexus",
+    "Imodane's Recruiter // Train Troops",
+    0,
+    0.4
+   ],
+   [
+    "Howling Moon",
+    "Goblin War Party",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Reclamation Sage",
+    "Opal Palace",
+    0.6,
+    0.44640788523501684
+   ],
+   [
+    "Masked Vandal",
+    "Clifftop Retreat",
+    0.2,
+    0.4471241438347967
+   ]
+  ],
+  "erros": []
+ },
+ "zada-hedron-grinder/goblins": {
+  "sw": [
+   "Mana Geyser → Sword of Fire and Ice",
+   "Monstrous Rage → Kazuul's Fury // Kazuul's Cliffs",
+   "Run Amok → Kozilek's Command",
+   "Temur Battle Rage → Flame Discharge",
+   "Titan's Strength → Nibelheim Aflame",
+   "Ruby Medallion → Goblin Firebomb",
+   "Goblin Warchief → Endrider Catalyzer",
+   "Dragon Fodder → Hankyu",
+   "Electroduplicate → Thaumatic Compass // Spires of Orazca",
+   "Empty the Warrens → Bilbo's Ring"
+  ],
+  "d": -1.4000000000000001,
+  "se": 0.9143741028703732,
+  "base": 0.08,
+  "pares": [
+   [
+    "Mana Geyser",
+    "Sword of Fire and Ice",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Monstrous Rage",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Run Amok",
+    "Kozilek's Command",
+    0,
+    0
+   ],
+   [
+    "Temur Battle Rage",
+    "Flame Discharge",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Titan's Strength",
+    "Nibelheim Aflame",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Ruby Medallion",
+    "Goblin Firebomb",
+    0,
+    0.4
+   ],
+   [
+    "Goblin Warchief",
+    "Endrider Catalyzer",
+    -1,
+    0.5272570530585627
+   ],
+   [
+    "Dragon Fodder",
+    "Hankyu",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Electroduplicate",
+    "Thaumatic Compass // Spires of Orazca",
+    -0.8,
+    0.3983967871356395
+   ],
+   [
+    "Empty the Warrens",
+    "Bilbo's Ring",
+    -0.4,
+    0.2822764602300376
+   ]
+  ],
+  "erros": []
+ },
+ "wilhelt-the-rotcleaver/zombies": {
+  "sw": [
+   "Cyclonic Rift → Kozilek's Command",
+   "Gisa and Geralf → Erebos, Bleak-Hearted",
+   "Rooftop Storm → Renowned Weaponsmith",
+   "Reanimate → Fell the Profane // Fell Mire",
+   "Zombie Apocalypse → Teferi's Response",
+   "Empty the Laboratory → Dragonstorm Forecaster",
+   "Distant Melody → Soldevi Adnate",
+   "Toxic Deluge → Mirrodin Avenged",
+   "Undead Warchief → Honest Work",
+   "Poppet Stitcher // Poppet Factory → Dee Kay, Finder of the Lost",
+   "Dark Ritual → Forbidden Orchard",
+   "Negate → Lazotep Quarry",
+   "Counterspell → Voldaren Estate"
+  ],
+  "d": 0.6,
+  "se": 0.7206108519860077,
+  "base": 0.026,
+  "pares": [
+   [
+    "Cyclonic Rift",
+    "Kozilek's Command",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Gisa and Geralf",
+    "Erebos, Bleak-Hearted",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Rooftop Storm",
+    "Renowned Weaponsmith",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Reanimate",
+    "Fell the Profane // Fell Mire",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Zombie Apocalypse",
+    "Teferi's Response",
+    0,
+    0
+   ],
+   [
+    "Empty the Laboratory",
+    "Dragonstorm Forecaster",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Distant Melody",
+    "Soldevi Adnate",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Toxic Deluge",
+    "Mirrodin Avenged",
+    0,
+    0
+   ],
+   [
+    "Undead Warchief",
+    "Honest Work",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Poppet Stitcher // Poppet Factory",
+    "Dee Kay, Finder of the Lost",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Dark Ritual",
+    "Forbidden Orchard",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Negate",
+    "Lazotep Quarry",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Counterspell",
+    "Voldaren Estate",
+    0,
+    0
+   ]
+  ],
+  "erros": []
+ },
+ "the-ur-dragon/dragons": {
+  "sw": [
+   "Dragonlord's Servant → Firemind's Research",
+   "Sarkhan, Soul Aflame → Nin, the Pain Artist",
+   "Dragonspeaker Shaman → Rankle and Torbran",
+   "Dracogenesis → Dragonstorm Forecaster",
+   "Rhythm of the Wild → Parapet Thrasher",
+   "Urza's Incubator → Niv-Mizzet, Parun",
+   "Cyclonic Rift → Smaug, Wicked Worm",
+   "Smothering Tithe → Demanding Dragon",
+   "Scourge of Valkas → Dragonhawk, Fate's Tempest",
+   "Chromatic Lantern → Forging the Tyrite Sword",
+   "Morophon, the Boundless → Watery Grave",
+   "Garruk's Uprising → Godless Shrine",
+   "Temur Ascendancy → Hallowed Fountain"
+  ],
+  "d": 0.2,
+  "se": 1.2805936123532713,
+  "base": 0.088,
+  "pares": [
+   [
+    "Dragonlord's Servant",
+    "Firemind's Research",
+    0,
+    0.4
+   ],
+   [
+    "Sarkhan, Soul Aflame",
+    "Nin, the Pain Artist",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Dragonspeaker Shaman",
+    "Rankle and Torbran",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Dracogenesis",
+    "Dragonstorm Forecaster",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Rhythm of the Wild",
+    "Parapet Thrasher",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Urza's Incubator",
+    "Niv-Mizzet, Parun",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Cyclonic Rift",
+    "Smaug, Wicked Worm",
+    0.4,
+    0.6925893444170218
+   ],
+   [
+    "Smothering Tithe",
+    "Demanding Dragon",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Scourge of Valkas",
+    "Dragonhawk, Fate's Tempest",
+    0.4,
+    0.5654025114907079
+   ],
+   [
+    "Chromatic Lantern",
+    "Forging the Tyrite Sword",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Morophon, the Boundless",
+    "Watery Grave",
+    0,
+    0.4
+   ],
+   [
+    "Garruk's Uprising",
+    "Godless Shrine",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Temur Ascendancy",
+    "Hallowed Fountain",
+    -0.2,
+    0.4471241438347967
+   ]
+  ],
+  "erros": []
+ },
+ "clavileno-first-of-the-blessed/vampires": {
+  "sw": [
+   "Radiant Destiny → Sword of Fire and Ice",
+   "New Blood → Sheltered by Ghosts",
+   "Blade of the Bloodchief → Oblation",
+   "Austere Command → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "March of the Canonized → Paradise Mantle",
+   "Promise of Aclazotz // Foul Rebirth → Mox Amber",
+   "Victimize → Conversion Apparatus",
+   "Patron of the Vein → Fell the Profane // Fell Mire",
+   "Twilight Prophet → Pit Automaton",
+   "Return to Dust → Hardlight Containment",
+   "Damn → Forbidden Orchard",
+   "Pact of the Serpent → Lazotep Quarry"
+  ],
+  "d": 1.6,
+  "se": 1.809662952043833,
+  "base": 0.14,
+  "pares": [
+   [
+    "Radiant Destiny",
+    "Sword of Fire and Ice",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "New Blood",
+    "Sheltered by Ghosts",
+    0.4,
+    0.5654025114907079
+   ],
+   [
+    "Blade of the Bloodchief",
+    "Oblation",
+    0,
+    0.48989794855663565
+   ],
+   [
+    "Austere Command",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.8,
+    0.747475752115077
+   ],
+   [
+    "March of the Canonized",
+    "Paradise Mantle",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Promise of Aclazotz // Foul Rebirth",
+    "Mox Amber",
+    2,
+    0.7429670248402684
+   ],
+   [
+    "Victimize",
+    "Conversion Apparatus",
+    0.4,
+    0.6322024992041712
+   ],
+   [
+    "Patron of the Vein",
+    "Fell the Profane // Fell Mire",
+    -1.6,
+    0.9353502017960973
+   ],
+   [
+    "Twilight Prophet",
+    "Pit Automaton",
+    0.2,
+    0.663264653060903
+   ],
+   [
+    "Return to Dust",
+    "Hardlight Containment",
+    -0.2,
+    0.599933329629218
+   ],
+   [
+    "Damn",
+    "Forbidden Orchard",
+    0,
+    0.848528137423857
+   ],
+   [
+    "Pact of the Serpent",
+    "Lazotep Quarry",
+    1.2,
+    0.746404715955091
+   ]
+  ],
+  "erros": []
+ },
+ "hakbal-of-the-surging-soul/merfolk": {
+  "sw": [
+   "Evolution Sage → Overgrown Battlement",
+   "Deeproot Pilgrimage → Incubation Druid",
+   "Cyclonic Rift → Khalni Ambush // Khalni Territory",
+   "Deeproot Waters → Joraga Treespeaker",
+   "Reflections of Littjara → Renowned Weaponsmith",
+   "Stonybrook Banneret → Tangled Florahedron // Tangled Vale",
+   "Vodalian Hexcatcher → Kozilek's Command",
+   "Wave Goodbye → Dragonstorm Forecaster",
+   "Bygone Marvels → Sword of Fire and Ice",
+   "Explore → Khalni Heart Expedition",
+   "Kindred Discovery → Opal Palace",
+   "Prime Speaker Zegana → Exotic Orchard"
+  ],
+  "d": 0.6,
+  "se": 0.6627820154470095,
+  "base": 0.016,
+  "pares": [
+   [
+    "Evolution Sage",
+    "Overgrown Battlement",
+    0,
+    0
+   ],
+   [
+    "Deeproot Pilgrimage",
+    "Incubation Druid",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Cyclonic Rift",
+    "Khalni Ambush // Khalni Territory",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Deeproot Waters",
+    "Joraga Treespeaker",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Reflections of Littjara",
+    "Renowned Weaponsmith",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Stonybrook Banneret",
+    "Tangled Florahedron // Tangled Vale",
+    0,
+    0
+   ],
+   [
+    "Vodalian Hexcatcher",
+    "Kozilek's Command",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Wave Goodbye",
+    "Dragonstorm Forecaster",
+    0,
+    0
+   ],
+   [
+    "Bygone Marvels",
+    "Sword of Fire and Ice",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Explore",
+    "Khalni Heart Expedition",
+    0,
+    0.4
+   ],
+   [
+    "Kindred Discovery",
+    "Opal Palace",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Prime Speaker Zegana",
+    "Exotic Orchard",
+    0.4,
+    0.2822764602300376
+   ]
+  ],
+  "erros": []
+ },
+ "kaalia-of-the-vast/angels": {
+  "sw": [
+   "Valgavoth, Terror Eater → Fear of Missing Out",
+   "Sephara, Sky's Blade → Oblation",
+   "Archfiend of Despair → Expedite",
+   "Reya Dawnbringer → Rankle and Torbran",
+   "Smothering Tithe → Charitable Levy",
+   "Rune-Scarred Demon → Frenzied Fugue",
+   "Damn → Rune of Speed",
+   "Teferi's Protection → Infectious Bloodlust",
+   "Avacyn, Angel of Horror → Junkyard Genius",
+   "Reanimate → Scurry of Gremlins",
+   "Lord of the Void → City of Brass",
+   "Blasphemous Act → Smoldering Marsh",
+   "Angelic Arbiter → Cavern of Souls"
+  ],
+  "d": -1,
+  "se": 1.1480418110852932,
+  "base": 0.068,
+  "pares": [
+   [
+    "Valgavoth, Terror Eater",
+    "Fear of Missing Out",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Sephara, Sky's Blade",
+    "Oblation",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Archfiend of Despair",
+    "Expedite",
+    0,
+    0
+   ],
+   [
+    "Reya Dawnbringer",
+    "Rankle and Torbran",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Smothering Tithe",
+    "Charitable Levy",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Rune-Scarred Demon",
+    "Frenzied Fugue",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Damn",
+    "Rune of Speed",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Teferi's Protection",
+    "Infectious Bloodlust",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Avacyn, Angel of Horror",
+    "Junkyard Genius",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Reanimate",
+    "Scurry of Gremlins",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Lord of the Void",
+    "City of Brass",
+    -0.8,
+    0.5645529204600752
+   ],
+   [
+    "Blasphemous Act",
+    "Smoldering Marsh",
+    -0.8,
+    0.847773554671293
+   ],
+   [
+    "Angelic Arbiter",
+    "Cavern of Souls",
+    0.6,
+    0.5284694882393873
+   ]
+  ],
+  "erros": []
+ },
+ "pantlaza-sun-favored/dinosaurs": {
+  "sw": [
+   "The Skullspore Nexus → Dracosaur Auxiliary",
+   "From the Rubble → Oblation",
+   "Rhythm of the Wild → Sheltered by Ghosts",
+   "Otepec Huntmaster → Bloodroot Apothecary",
+   "Rishkar's Expertise → Bugenhagen, Wise Elder",
+   "Marauding Raptor → Overgrown Battlement",
+   "Zacama, Primal Calamity → Khalni Ambush // Khalni Territory",
+   "Urza's Incubator → Garruk Wildspeaker",
+   "Monster Manual // Zoological Study → Peace in Our Time",
+   "Monstrous Vortex → Kazuul's Fury // Kazuul's Cliffs",
+   "Elemental Bond → City of Brass",
+   "Garruk's Uprising → Mana Confluence",
+   "Descendants' Path → Battlefield Forge"
+  ],
+  "d": 1.2,
+  "se": 1.4131949617798671,
+  "base": 0.064,
+  "pares": [
+   [
+    "The Skullspore Nexus",
+    "Dracosaur Auxiliary",
+    0.8,
+    0.5645529204600752
+   ],
+   [
+    "From the Rubble",
+    "Oblation",
+    0,
+    0
+   ],
+   [
+    "Rhythm of the Wild",
+    "Sheltered by Ghosts",
+    0,
+    0.4
+   ],
+   [
+    "Otepec Huntmaster",
+    "Bloodroot Apothecary",
+    -1,
+    0.5272570530585627
+   ],
+   [
+    "Rishkar's Expertise",
+    "Bugenhagen, Wise Elder",
+    0,
+    0.6928203230275509
+   ],
+   [
+    "Marauding Raptor",
+    "Overgrown Battlement",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Zacama, Primal Calamity",
+    "Khalni Ambush // Khalni Territory",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Urza's Incubator",
+    "Garruk Wildspeaker",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Monster Manual // Zoological Study",
+    "Peace in Our Time",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Monstrous Vortex",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Elemental Bond",
+    "City of Brass",
+    -1,
+    0.44497190922573976
+   ],
+   [
+    "Garruk's Uprising",
+    "Mana Confluence",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Descendants' Path",
+    "Battlefield Forge",
+    -0.2,
+    0.5290746639180522
+   ]
+  ],
+  "erros": []
+ },
+ "inalla-archmage-ritualist/wizards": {
+  "sw": [
+   "Cyclonic Rift → Firemind's Research",
+   "Reanimate → Rankle and Torbran",
+   "Unearth → Renowned Weaponsmith",
+   "An Offer You Can't Refuse → Dragonstorm Forecaster",
+   "Galecaster Colossus → Nin, the Pain Artist",
+   "Cornered by Black Mages → Embermage Goblin",
+   "Displace → Asmoranomardicadaistinaculdacar",
+   "Stonybrook Banneret → Conversion Apparatus",
+   "Ertai Resurrected → Niv-Mizzet, Parun",
+   "Ghostly Flicker → Magda, Brazen Outlaw",
+   "Blasphemous Act → Forbidden Orchard",
+   "Panharmonicon → City of Brass"
+  ],
+  "d": -0.6,
+  "se": 0.6627820154470095,
+  "base": 0.02,
+  "pares": [
+   [
+    "Cyclonic Rift",
+    "Firemind's Research",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Reanimate",
+    "Rankle and Torbran",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Unearth",
+    "Renowned Weaponsmith",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "An Offer You Can't Refuse",
+    "Dragonstorm Forecaster",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Galecaster Colossus",
+    "Nin, the Pain Artist",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Cornered by Black Mages",
+    "Embermage Goblin",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Displace",
+    "Asmoranomardicadaistinaculdacar",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Stonybrook Banneret",
+    "Conversion Apparatus",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Ertai Resurrected",
+    "Niv-Mizzet, Parun",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Ghostly Flicker",
+    "Magda, Brazen Outlaw",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Blasphemous Act",
+    "Forbidden Orchard",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Panharmonicon",
+    "City of Brass",
+    0.2,
+    0.19979989989987482
+   ]
+  ],
+  "erros": []
+ },
+ "eowyn-shieldmaiden/humans": {
+  "sw": [
+   "Oath of Eorl → Firemind's Research",
+   "Akroma's Will → Longshot, Rebel Bowman",
+   "Coppercoat Vanguard → Nin, the Pain Artist",
+   "Door of Destinies → Corsair Captain",
+   "Taunt from the Rampart → Oblation",
+   "Crown of Gondor → Kazuul's Fury // Kazuul's Cliffs",
+   "Lost to Legend → Conversion Apparatus",
+   "Vanquisher's Banner → Traumatic Critique",
+   "Boromir, Warden of the Tower → Endrider Catalyzer",
+   "Mass Appeal → Doctor Spectrum",
+   "Counterspell → Forbidden Orchard",
+   "Horn of Gondor → Steam Vents",
+   "Kindred Discovery → Sacred Foundry"
+  ],
+  "d": -0.6,
+  "se": 1.3112131787013124,
+  "base": 0.094,
+  "pares": [
+   [
+    "Oath of Eorl",
+    "Firemind's Research",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Akroma's Will",
+    "Longshot, Rebel Bowman",
+    -0.8,
+    0.6314427923414757
+   ],
+   [
+    "Coppercoat Vanguard",
+    "Nin, the Pain Artist",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Door of Destinies",
+    "Corsair Captain",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Taunt from the Rampart",
+    "Oblation",
+    0,
+    0
+   ],
+   [
+    "Crown of Gondor",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    -0.8,
+    0.5645529204600752
+   ],
+   [
+    "Lost to Legend",
+    "Conversion Apparatus",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Vanquisher's Banner",
+    "Traumatic Critique",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Boromir, Warden of the Tower",
+    "Endrider Catalyzer",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Mass Appeal",
+    "Doctor Spectrum",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Counterspell",
+    "Forbidden Orchard",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Horn of Gondor",
+    "Steam Vents",
+    -0.6,
+    0.5993996996996244
+   ],
+   [
+    "Kindred Discovery",
+    "Sacred Foundry",
+    -0.8,
+    0.5645529204600752
+   ]
+  ],
+  "erros": []
+ },
+ "the-first-sliver/slivers": {
+  "sw": [
+   "Thrumming Hivepool → Firemind's Research",
+   "Patriarch's Bidding → Nin, the Pain Artist",
+   "Reflections of Littjara → Oblation",
+   "Distant Melody → Traumatic Critique",
+   "Teferi's Protection → Bugenhagen, Wise Elder",
+   "Constricting Sliver → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Morophon, the Boundless → Rankle and Torbran",
+   "Crypt Sliver → Teferi's Response",
+   "Chromatic Lantern → Forging the Tyrite Sword",
+   "Rhystic Study → Dragonstorm Forecaster",
+   "Descendants' Path → Sulfur Falls"
+  ],
+  "d": 0.4,
+  "se": 1.232753016625796,
+  "base": 0.064,
+  "pares": [
+   [
+    "Thrumming Hivepool",
+    "Firemind's Research",
+    -1.4000000000000001,
+    0.525433154644813
+   ],
+   [
+    "Patriarch's Bidding",
+    "Nin, the Pain Artist",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Reflections of Littjara",
+    "Oblation",
+    0,
+    0
+   ],
+   [
+    "Distant Melody",
+    "Traumatic Critique",
+    -0.2,
+    0.599933329629218
+   ],
+   [
+    "Teferi's Protection",
+    "Bugenhagen, Wise Elder",
+    1.4000000000000001,
+    0.9143741028703732
+   ],
+   [
+    "Constricting Sliver",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.4,
+    0.8483395546595714
+   ],
+   [
+    "Morophon, the Boundless",
+    "Rankle and Torbran",
+    -1.2,
+    0.4869496893930624
+   ],
+   [
+    "Crypt Sliver",
+    "Teferi's Response",
+    0,
+    0
+   ],
+   [
+    "Chromatic Lantern",
+    "Forging the Tyrite Sword",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Rhystic Study",
+    "Dragonstorm Forecaster",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Descendants' Path",
+    "Sulfur Falls",
+    0,
+    0.4
+   ]
+  ],
+  "erros": []
+ },
+ "rin-and-seri-inseparable/cats": {
+  "sw": [
+   "Enduring Courage → Oblation",
+   "Phelia, Exuberant Shepherd → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Taurean Mauler → Khalni Ambush // Khalni Territory",
+   "Shamanic Revelation → Bugenhagen, Wise Elder",
+   "Spirited Companion → Kazuul's Fury // Kazuul's Cliffs",
+   "Ajani, the Greathearted → Herd Heirloom",
+   "Patchwork Banner → Overgrown Battlement",
+   "Maskwood Nexus → Nibelheim Aflame",
+   "Jinnie Fay, Jetmir's Second → Sheltered by Ghosts",
+   "Cultivate → Incubation Druid",
+   "Cathars' Crusade → Forbidden Orchard",
+   "Impact Tremors → City of Brass"
+  ],
+  "d": 5.4,
+  "se": 2.276330380239213,
+  "base": 0.216,
+  "pares": [
+   [
+    "Enduring Courage",
+    "Oblation",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Phelia, Exuberant Shepherd",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    -2.1999999999999997,
+    1.2451184682591452
+   ],
+   [
+    "Taurean Mauler",
+    "Khalni Ambush // Khalni Territory",
+    1,
+    0.6618156843109719
+   ],
+   [
+    "Shamanic Revelation",
+    "Bugenhagen, Wise Elder",
+    4.2,
+    1.5762994639344392
+   ],
+   [
+    "Spirited Companion",
+    "Kazuul's Fury // Kazuul's Cliffs",
+    0.6,
+    0.8713667425372625
+   ],
+   [
+    "Ajani, the Greathearted",
+    "Herd Heirloom",
+    -0.2,
+    0.599933329629218
+   ],
+   [
+    "Patchwork Banner",
+    "Overgrown Battlement",
+    -0.2,
+    0.663264653060903
+   ],
+   [
+    "Maskwood Nexus",
+    "Nibelheim Aflame",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Jinnie Fay, Jetmir's Second",
+    "Sheltered by Ghosts",
+    0.8,
+    0.747475752115077
+   ],
+   [
+    "Cultivate",
+    "Incubation Druid",
+    0.2,
+    0.7210547829395489
+   ],
+   [
+    "Cathars' Crusade",
+    "Forbidden Orchard",
+    0.2,
+    0.7210547829395489
+   ],
+   [
+    "Impact Tremors",
+    "City of Brass",
+    -0.6,
+    0.7741317717288188
+   ]
+  ],
+  "erros": []
+ },
+ "urza-chief-artificer/artifacts": {
+  "sw": [
+   "Etherium Sculptor → Oblation",
+   "Foundry Inspector → Fell the Profane // Fell Mire",
+   "Solemn Simulacrum → Dragonstorm Forecaster",
+   "Bronze Guardian → Renowned Weaponsmith",
+   "Thoughtcast → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Emergency Regeneration → Sheltered by Ghosts",
+   "Bident of Thassa → Makindi Stampede // Makindi Mesas",
+   "Cranial Plating → Kaito Shizuki",
+   "Simulacrum Synthesizer → Sand Scout",
+   "Digsite Engineer → Elspeth, Storm Slayer",
+   "Steel Overseer → Forbidden Orchard",
+   "Emry, Lurker of the Loch → Glacial Fortress",
+   "Liberator, Urza's Battlethopter → Isolated Chapel"
+  ],
+  "d": 1,
+  "se": 1.0761040841851683,
+  "base": 0.042,
+  "pares": [
+   [
+    "Etherium Sculptor",
+    "Oblation",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Foundry Inspector",
+    "Fell the Profane // Fell Mire",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Solemn Simulacrum",
+    "Dragonstorm Forecaster",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Bronze Guardian",
+    "Renowned Weaponsmith",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Thoughtcast",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.6,
+    0.5993996996996244
+   ],
+   [
+    "Emergency Regeneration",
+    "Sheltered by Ghosts",
+    1,
+    0.6618156843109719
+   ],
+   [
+    "Bident of Thassa",
+    "Makindi Stampede // Makindi Mesas",
+    -0.8,
+    0.6314427923414757
+   ],
+   [
+    "Cranial Plating",
+    "Kaito Shizuki",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Simulacrum Synthesizer",
+    "Sand Scout",
+    -0.4,
+    0.5654025114907079
+   ],
+   [
+    "Digsite Engineer",
+    "Elspeth, Storm Slayer",
+    -0.2,
+    0.5290746639180522
+   ],
+   [
+    "Steel Overseer",
+    "Forbidden Orchard",
+    0,
+    0.4
+   ],
+   [
+    "Emry, Lurker of the Loch",
+    "Glacial Fortress",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Liberator, Urza's Battlethopter",
+    "Isolated Chapel",
+    -0.6,
+    0.44640788523501684
+   ]
+  ],
+  "erros": []
+ },
+ "bello-bard-of-the-brambles/aggro": {
+  "sw": [
+   "Gilded Lotus → Rune of Speed",
+   "Fanatic of Rhonas → Demonic Ruckus",
+   "Chimil, the Inner Sun → Audacity",
+   "Cultivate → Fear of Missing Out",
+   "Wandertale Mentor → Sword of Fire and Ice",
+   "Arcane Signet → Karvanista, Loyal Lupari // Lupari Shield",
+   "Explore → Frog Tongue",
+   "Goblin Anarchomancer → Spider Umbra",
+   "Fellwar Stone → Lion Umbra",
+   "Kodama of the East Tree → Firion, Wild Rose Warrior",
+   "Hedron Archive → City of Brass",
+   "Thran Dynamo → Cavern of Souls"
+  ],
+  "d": -0.2,
+  "se": 0.8245726165717608,
+  "base": 0.028,
+  "pares": [
+   [
+    "Gilded Lotus",
+    "Rune of Speed",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Fanatic of Rhonas",
+    "Demonic Ruckus",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Chimil, the Inner Sun",
+    "Audacity",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Cultivate",
+    "Fear of Missing Out",
+    0.6,
+    0.44640788523501684
+   ],
+   [
+    "Wandertale Mentor",
+    "Sword of Fire and Ice",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Arcane Signet",
+    "Karvanista, Loyal Lupari // Lupari Shield",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Explore",
+    "Frog Tongue",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Goblin Anarchomancer",
+    "Spider Umbra",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Fellwar Stone",
+    "Lion Umbra",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Kodama of the East Tree",
+    "Firion, Wild Rose Warrior",
+    0,
+    0
+   ],
+   [
+    "Hedron Archive",
+    "City of Brass",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Thran Dynamo",
+    "Cavern of Souls",
+    0.2,
+    0.3462946722085109
+   ]
+  ],
+  "erros": []
+ },
+ "ms-bumbleflower/plus-1-plus-1-counters": {
+  "sw": [
+   "Tempt with Discovery → Sheltered by Ghosts",
+   "Smothering Tithe → Khalni Ambush // Khalni Territory",
+   "Faeburrow Elder → Soul Partition",
+   "Rishkar, Peema Renegade → Renowned Weaponsmith",
+   "Wizard Class → Dragonstorm Forecaster",
+   "Scrawling Crawler → Elspeth, Storm Slayer",
+   "Selvala, Explorer Returned → Ifh-Bíff Efreet",
+   "Cultivate → Sand Scout",
+   "Riot Control → Oblation",
+   "Rites of Flourishing → Wakka, Devoted Guardian"
+  ],
+  "d": -0.2,
+  "se": 0.7210547829395489,
+  "base": 0.022,
+  "pares": [
+   [
+    "Tempt with Discovery",
+    "Sheltered by Ghosts",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Smothering Tithe",
+    "Khalni Ambush // Khalni Territory",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Faeburrow Elder",
+    "Soul Partition",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Rishkar, Peema Renegade",
+    "Renowned Weaponsmith",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Wizard Class",
+    "Dragonstorm Forecaster",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Scrawling Crawler",
+    "Elspeth, Storm Slayer",
+    0,
+    0
+   ],
+   [
+    "Selvala, Explorer Returned",
+    "Ifh-Bíff Efreet",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Cultivate",
+    "Sand Scout",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Riot Control",
+    "Oblation",
+    0,
+    0
+   ],
+   [
+    "Rites of Flourishing",
+    "Wakka, Devoted Guardian",
+    -0.4,
+    0.39959979979974963
+   ]
+  ],
+  "erros": []
+ },
+ "xyris-the-writhing-storm/card-draw": {
+  "sw": [
+   "Font of Mythos → Firemind's Research",
+   "Howling Mine → Nin, the Pain Artist",
+   "Teferi's Puzzle Box → Gimli's Reckless Might",
+   "Forced Fruition → Frostcliff Siege",
+   "Jace's Archivist → Fear of Missing Out",
+   "Kami of the Crescent Moon → Parapet Thrasher",
+   "Dictate of Kruphix → Munitions Enthusiast",
+   "Windfall → Bumi, Unleashed",
+   "Winds of Change → Goblin War Party",
+   "Rites of Flourishing → Reckless Bushwhacker"
+  ],
+  "d": -0.6,
+  "se": 0.7206108519860077,
+  "base": 0.03,
+  "pares": [
+   [
+    "Font of Mythos",
+    "Firemind's Research",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Howling Mine",
+    "Nin, the Pain Artist",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Teferi's Puzzle Box",
+    "Gimli's Reckless Might",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Forced Fruition",
+    "Frostcliff Siege",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Jace's Archivist",
+    "Fear of Missing Out",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Kami of the Crescent Moon",
+    "Parapet Thrasher",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Dictate of Kruphix",
+    "Munitions Enthusiast",
+    0,
+    0
+   ],
+   [
+    "Windfall",
+    "Bumi, Unleashed",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Winds of Change",
+    "Goblin War Party",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Rites of Flourishing",
+    "Reckless Bushwhacker",
+    0.4,
+    0.2822764602300376
+   ]
+  ],
+  "erros": []
+ },
+ "anikthea-hand-of-erebos/enchantress": {
+  "sw": [
+   "Demon of Fate's Design → Lead Pipe",
+   "Song of the Worldsoul → Sword of Fire and Ice",
+   "Dryad of the Ilysian Grove → Audacity",
+   "Teleportation Circle → Sheltered by Ghosts",
+   "Herald of the Pantheon → Frog Tongue",
+   "Mirari's Wake → Karvanista, Loyal Lupari // Lupari Shield",
+   "Battle at the Helvault → Spider Umbra",
+   "Jukai Naturalist → Song of Freyalise",
+   "Grasp of Fate → Lion Umbra",
+   "Grim Guardian → Feather of Flight",
+   "Starfield of Nyx → Forbidden Orchard",
+   "Weaver of Harmony → Haven of the Spirit Dragon"
+  ],
+  "d": 2.4,
+  "se": 1.3522130009728497,
+  "base": 0.074,
+  "pares": [
+   [
+    "Demon of Fate's Design",
+    "Lead Pipe",
+    0,
+    0.4
+   ],
+   [
+    "Song of the Worldsoul",
+    "Sword of Fire and Ice",
+    -0.2,
+    0.599933329629218
+   ],
+   [
+    "Dryad of the Ilysian Grove",
+    "Audacity",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Teleportation Circle",
+    "Sheltered by Ghosts",
+    1.2,
+    0.746404715955091
+   ],
+   [
+    "Herald of the Pantheon",
+    "Frog Tongue",
+    0.6,
+    0.5993996996996244
+   ],
+   [
+    "Mirari's Wake",
+    "Karvanista, Loyal Lupari // Lupari Shield",
+    -1,
+    0.5272570530585627
+   ],
+   [
+    "Battle at the Helvault",
+    "Spider Umbra",
+    0,
+    0.4
+   ],
+   [
+    "Jukai Naturalist",
+    "Song of Freyalise",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Grasp of Fate",
+    "Lion Umbra",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Grim Guardian",
+    "Feather of Flight",
+    0,
+    0.48989794855663565
+   ],
+   [
+    "Starfield of Nyx",
+    "Forbidden Orchard",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Weaver of Harmony",
+    "Haven of the Spirit Dragon",
+    0.6,
+    0.5993996996996244
+   ]
+  ],
+  "erros": []
+ }
+}

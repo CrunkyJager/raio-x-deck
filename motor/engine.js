@@ -267,10 +267,10 @@ function quando(s,m){
   if(/^(?:constellation — )?whenever an enchantment you control enters/.test(s))return{q:'entra',f:'enc'};
   if(/^whenever an aura or equipment you control enters/.test(s))return{q:'entra',f:'anexo'};
   if(/^whenever an aura you control enters/.test(s))return{q:'entra',f:'aura'};
-  if((a=s.match(/^whenever (~ or )?(?:another|one or more other|a|one or more) (nontoken )?([a-z]+)?(?: creatures?)? you control (?:with power (\d+) or less )?enters?/))){return{q:'entra',f:'cri',tipo:a[3]&&!/^creatures?$/.test(a[3])?tipoNorm(a[3]):'*',eu:!!a[1],outro:!a[1],pmax:a[4]?+a[4]:null};}
+  if((a=s.match(/^whenever (~ or )?(?:another|one or more other|a|one or more) (nontoken )?([a-z]+)?(?: creatures?)? you control (?:with power (\d+) or less )?enters?/))){return{q:'entra',f:'cri',tipo:a[3]&&!/^creatures?$/.test(a[3])?tipoNorm(a[3]):'*',eu:!!a[1],outro:!a[1],pmax:a[4]?+a[4]:null,nt:!!a[2]};}
   if(/^whenever another creature you control enters|^whenever a creature you control enters|^whenever another creature enters/.test(s))return{q:'entra',f:'cri',tipo:'*',outro:/another/.test(s)};
   if((a=s.match(/^whenever (~|this creature) or another ([a-z]+)?(?: creature)?(?: or planeswalker)?(?: you control)? dies/))){return{q:'morre',tipo:a[2]&&a[2]!=='creature'?tipoNorm(a[2]):'*',meu:/you control/.test(s)};}
-  if((a=s.match(/^whenever (?:a|another) (nontoken )?([a-z]+)? ?(?:creature )?you control dies/))){return{q:'morre',tipo:a[2]&&a[2]!=='creature'?tipoNorm(a[2]):'*',meu:1,outro:/another/.test(s)};}
+  if((a=s.match(/^whenever (?:a|another) (nontoken )?([a-z]+)? ?(?:creature )?you control dies/))){return{q:'morre',tipo:a[2]&&a[2]!=='creature'?tipoNorm(a[2]):'*',meu:1,outro:/another/.test(s),nt:!!a[1]};}
   if(/^whenever (?:another|a) creature dies/.test(s))return{q:'morre',tipo:'*',outro:/another/.test(s)};
   if(/^whenever a creature an opponent controls dies/.test(s))return{q:'morre',op:1,tipo:'*'};
   if(/^when (?:~|this creature) dies/.test(s))return{q:'morreEu'};
