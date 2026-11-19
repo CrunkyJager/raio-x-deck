@@ -131,12 +131,30 @@ const ROLES = [
   { k: 'enabler', n: 'Habilitador de sinergia', tags: [] },
   { k: 'wincon', n: 'Plano de vitória ou defesa', tags: [] },
 ];
+// ---------- funções lidas dos roteiros do Forge (forge-db.js, gerado por ferramentas/forge/converte.py) ----------
+// fx(c): {ramp:[…], draw:[…], removal:[…], wipe:[…], protect:[…], counter:[…], _kw, _si, _gratis} ou null quando a carta
+// não tem roteiro (lista _falta, ou forge-db.js não carregou): aí vale a leitura antiga (etiquetas + texto)
+const FX6 = ['ramp', 'draw', 'removal', 'wipe', 'protect', 'counter'];
+let FX_FALTA = null;
+function fx(c) {
+  const F = typeof window !== 'undefined' ? window.FORGE_FX : null; if (!F || !c) return null;
+  if (!FX_FALTA) FX_FALTA = new Set(F._falta || []);
+  if (FX_FALTA.has(c.name)) return null;
+  return F[c.name] || {}; // no Forge e sem nenhuma das funções
+}
+const fxL = (f, k) => (f && Array.isArray(f[k]) ? f[k] : []);
+// compra que só troca a si mesma (ciclagem) não ocupa vaga de compra
+const fxDraw = (f) => fxL(f, 'draw').filter(e => e.tipo !== 'ciclo');
+const fxModal = (f) => !!f && FX6.some(k => fxL(f, k).some(e => e.modal));
 function rolesOf(c) {
-  const s = new Set(); for (const r of ROLES) if (r.tags.some(t => c.tags.includes(t)) || (r.rx && r.rx.test(c.o))) s.add(r.k); if (s.has('wipe')) s.delete('removal');
+  const s = new Set(); for (const r of ROLES) if (r.tags.some(t => c.tags.includes(t)) || (r.rx && r.rx.test(c.o))) s.add(r.k);
+  const f = isLand(c) ? null : fx(c);
+  if (f) { for (const k of FX6) s.delete(k); for (const k of FX6) if ((k === 'draw' ? fxDraw(f) : fxL(f, k)).length) s.add(k); }
+  if (s.has('wipe')) s.delete('removal');
   const ia = (typeof window !== 'undefined' && window.PAPEIS_IA) ? window.PAPEIS_IA[c.name] : null; if (ia) for (const k of ia.p) s.add(k);
   const front = c.t.split(' // ')[0], o = c.o.split('\n//\n')[0];
   if (/can't lose the game|win the game|opponents can't win|loses the game|Creatures can't attack you unless/.test(o)) s.add('wincon');
-  if (/choose new targets? for target spell|change the target of target spell|Counter target (spell|activated|triggered)/i.test(o)) s.add(/Counter target/.test(o) ? 'counter' : 'protect');
+  if (!f && /choose new targets? for target spell|change the target of target spell|Counter target (spell|activated|triggered)/i.test(o)) s.add(/Counter target/.test(o) ? 'counter' : 'protect');
   const pw = parseInt(String(c.p || '').split(' // ')[0]);
   if (/Planeswalker/.test(front) || (/Creature/.test(front) && ((pw >= 5) || (pw >= 3 && /Flying|Trample|Menace|Double strike|Infect|Indestructible/i.test(o)) || /power is equal to the number|\*/.test(String(c.p || ''))))) s.add('threat');
   return s;
@@ -608,6 +626,7 @@ const RAMP_N = { pedra: 'pedra de mana', dork: 'criatura de mana', terreno: 'bus
 function tipoRamp(c) {
   if (!c || isLand(c)) return null;
   if (c.name in TIPO_RAMP) return TIPO_RAMP[c.name];
+  const f = fx(c); if (f) return (TIPO_RAMP[c.name] = tipoRampFx(c, f));
   const o = c.o.split('\n//\n')[0].replace(/\([^)]*\)/g, ''), t = c.t.split(' // ')[0], tg = c.tags; // sem o texto de lembrete (o do tesouro tem "{T}: Add")
   const tapAdd = /(^|\n)[^\n]*\{T\}[^:\n]*: Add /.test(o) && !/\{T\}, Sacrifice (this|~|it)[^:\n]*: Add/.test(o);
   const cond = /\b(Whenever|When) [^\n]*?(deals (combat )?damage|attacks|dies|an opponent|a player|you cast|you copy)[^\n]*(Treasure|Add \{|search your library for [^.]*land)/.test(o);
@@ -629,6 +648,25 @@ function tipoRamp(c) {
     else if (tg.includes('ramp')) r = 'condicional';
   }
   return (TIPO_RAMP[c.name] = r);
+}
+// tipo de ramp pelo roteiro do Forge: a melhor entrada da carta (pedra/dork/terreno > tesouro > ritual > condicional)
+const RAMP_ORD = ['pedra', 'dork', 'terreno', 'tesouro', 'ritual', 'condicional'];
+function tipoRampFx(c, f) {
+  const cri = /Creature/.test(c.t.split(' // ')[0]); let best = null;
+  for (const e of fxL(f, 'ramp')) {
+    let t = null;
+    if (e.tipo === 'pedra' || e.tipo === 'dork') t = e.rep === 'tap' || !e.rep ? e.tipo : e.rep === 'sempre' || e.rep === 'fase' ? e.tipo : 'condicional';
+    else if (e.tipo === 'terreno') t = e.rep && e.rep !== 'fase' && e.rep !== 'tap' && e.rep !== 'act' ? 'condicional' : 'terreno';
+    else if (e.tipo === 'tesouro' || e.tipo === 'sacrifica') t = e.rep === 'fase' ? 'pedra' : e.rep === 'gatilho' ? 'condicional' : 'tesouro'; // Tithe: só se o oponente comprar
+    else if (e.tipo === 'ritual') t = 'ritual';
+    else if (e.tipo === 'extra' || e.tipo === 'multiplica' || e.tipo === 'pedrinha') t = e.cond && e.cond !== 'TapsForMana' && e.cond !== 'ManaAdded' && e.cond !== 'R:ProduceMana' ? 'condicional' : 'pedra'; // Wild Growth, Mana Reflection, Powerstone
+    else if (e.tipo === 'desvira') t = e.rep === 'tap' ? (cri ? 'dork' : 'pedra') : 'condicional'; // Arbor Elf
+    else if (e.tipo === 'gatilho' || e.tipo === 'pede' || e.tipo === 'terra-extra') t = 'condicional';
+    // reduz: redutor de custo, não é mana (efetiv trata à parte)
+    if (t && e.tras) t = 'condicional';
+    if (t && (best == null || RAMP_ORD.indexOf(t) < RAMP_ORD.indexOf(best))) best = t;
+  }
+  return best;
 }
 // custo real de um ramp (19/11/2026): Everflowing Chalice custa {0}, mas cada marcador custa {2}; X (Astral Cornucopia) idem;
 // Mox Diamond custa 0, mas troca um terreno da mão: adianta uma vez, não soma um terreno — conta como ramp de 2
@@ -826,7 +864,7 @@ function condDeck(A, c, o) {
     const m = Math.min(1.1, 0.3 + 0.75 * P.bate + (proprio ? 0.15 : 0));
     return [m, `só rende atacando; o deck ${P.bate >= 0.6 ? 'bate cedo' : P.bate >= 0.35 ? 'bate às vezes' : 'demora a atacar'} (${P.txt})${proprio ? ' e ela mesma tem como chegar' : ''}`];
   }
-  if (/Whenever an opponent|each opponent|opponents? (casts?|draws?)/i.test(o)) return [0.85, 'depende dos oponentes, que jogam todo turno: rende quase sempre'];
+  if (/Whenever an opponent|each opponent|opponents? (casts?|draws?)/i.test(o)) return [1.1, 'dispara com a jogada de 3 oponentes: rende várias vezes por rodada'];
   if (/Whenever you cast (an? )?(instant|sorcery|noncreature)/i.test(o)) { const s = /noncreature/i.test(o) ? P.naoCri : P.feit; return [Math.min(1.1, 0.25 + 1.6 * s), `rende com ${/noncreature/i.test(o) ? 'mágicas que não são criatura' : 'instantâneas e feitiços'}: ${pc(s)} do deck`]; }
   if (/Whenever you cast (a|an) creature spell|Whenever (a|another) (nontoken )?creature (you control )?enters/i.test(o)) return [Math.min(1.1, 0.25 + 1.2 * P.cri), `rende com criaturas: ${pc(P.cri)} do deck`];
   if (/Whenever (a|another) creature (you control )?dies|Whenever you sacrifice/i.test(o)) return [Math.min(1.1, 0.25 + 0.9 * P.morre), `rende quando criatura morre; o deck ${P.morre >= 0.5 ? 'tem como sacrificar' : 'tem pouco sacrifício'}`];
@@ -897,6 +935,122 @@ function mexRamp(A, c, tr, o) {
   }
   return { nota, mex, bonus, bonusW, w };
 }
+// parte do deck (não-terrenos) que uma lista de tipos do Forge pega: 'Creature', 'Instant,Sorcery', 'Card.ChosenType', 'Dragon'…
+function parteDeck(A, vale) {
+  const nl = A.cards.filter(x => !isLand(x)), n = nl.length || 1, P = perfilDeck(A);
+  const ps = String(vale).split(',').map(x => x.replace(/^(Card|Spell)\./, '').split(/[.+]/)[0]);
+  if (ps.some(x => x === 'Card')) return 1;
+  if (ps.some(x => /ChosenType/.test(x))) return P.tri;
+  return nl.filter(x => { const fr = x.t.split(' // ')[0]; return ps.some(t => t === 'nonCreature' ? !/Creature/.test(fr) : new RegExp('\\b' + t + '\\b').test(fr)); }).length / n;
+}
+// custo do Forge ("2 W W", "X X R R", "4 T Sac<1/CARDNAME>"): manas
+const custoF = (s) => String(s || '').split(/\s+/).reduce((t, x) => t + (/^\d+$/.test(x) ? +x : /^[WUBRGC](\/[WUBRGP])?$/.test(x) ? 1 : 0), 0);
+const COND_N = { Attacks: 'quando ataca', DamageDone: 'quando causa dano', DamageDoneOnce: 'quando causa dano', ChangesZone: 'quando algo entra ou sai', SpellCast: 'quando alguém conjura', Phase: 'a cada turno', AttackersDeclared: 'quando ataca' };
+// efetividade pelos parâmetros do Forge (mesma escala da leitura antiga: ~1 = carta padrão da função)
+function efetivFx(A, c, f, K) {
+  const { rl, cv, inst, cri, v, why, custoAdj, o } = K, P = perfilDeck(A);
+  const melhor = (k, fn) => { let b = null; for (const e of fxL(f, k)) { const r = fn(e); if (!b || r[0] > b[0]) b = r; } return b; };
+  const gratis = f._gratis ? 0.2 : 0;
+  if (rl.has('draw')) {
+    const b = melhor('draw', (e) => {
+      const w = []; let x; const n = e.n || 1;
+      const umaVez = /Sac<1\/CARDNAME>/.test(e.custo || ''), rep = e.rep && !umaVez;
+      if (e.tipo === 'ciclo') { x = 0.2; w.push('ciclagem: só troca a si mesma'); }
+      else if (e.loot || e.tipo === 'conive') { x = rep ? 0.45 : 0.2; w.push('compra e descarta: só filtra, não dá carta a mais'); }
+      else if (rep) {
+        x = ['fase', 'tap', 'act', 'sempre'].includes(e.rep) ? 1.25 : 1.1;
+        w.push(e.rep === 'fase' ? 'compra todo turno' : e.rep === 'tap' || e.rep === 'act' ? 'compra toda vez que você ativa' : e.rep === 'sempre' ? 'joga do topo o tempo todo' : 'compra mais de uma vez');
+        if (n >= 2) { x += 0.1 * Math.min(3, n - 1); w.push(`${n} por vez`); }
+        if (e.rep === 'tap' || e.rep === 'act') { const ca = custoF(e.custo); if (ca >= 2) { x -= 0.15 * (ca - 1); w.push(`cada ativação custa ${ca}`); } if (/Sac<|Discard</.test(e.custo || '')) { x -= 0.25; w.push('a ativação pede algo em troca'); } }
+        if (e.rep === 'gatilho') { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); }
+        x = custoAdj(x, 0.08);
+      } else {
+        x = custoAdj(n === 1 ? 0.4 : Math.min(1.3, 0.25 + 0.3 * n), 0.07);
+        w.push(e.tipo === 'recursao' ? `devolve ${n > 1 ? n + ' cartas' : 'uma carta'} do cemitério para a mão` : e.tipo === 'cava' ? `olha ${e.olha || n} e pega ${n}` : n > 1 ? `compra ${n} de uma vez` : 'compra uma (troca a si mesma, não dá vantagem)');
+        if (e.tipo === 'cava' && n === 1) x += 0.05;
+        if (e.tipo === 'cascata' || e.tipo === 'descobre') { x = Math.max(x, 0.6); w.push('mágica de graça junto'); }
+        if (inst) { x += 0.1; w.push('instantânea'); }
+      }
+      if (e.filtro && /Creature/.test(e.filtro) && !/Land|Card\b/.test(e.filtro)) { const m = Math.min(1, 0.2 + 1.2 * P.cri); x *= m; w.push(`só pega criatura: ${Math.round(100 * P.cri)}% do deck`); }
+      if (e.paga) { x *= 0.9; w.push('o oponente pode pagar para evitar (e se atrasa pagando)'); }
+      if (e.todos) { x *= 0.6; w.push('os oponentes compram também'); }
+      if (e.tras) { x *= 0.8; w.push('só no verso'); }
+      if (e.cond && !rep) { x *= 0.8; w.push(COND_N[e.cond] ? 'só ' + COND_N[e.cond] : 'só se algo acontecer'); }
+      return [x, w];
+    });
+    if (b) { v.draw = Math.max(0.1, b[0]); why.draw = b[1].join('; '); }
+  }
+  if (rl.has('removal')) {
+    const b = melhor('removal', (e) => {
+      const w = []; let x = 1;
+      if (inst) { x += 0.2; w.push('instantânea'); } else if (!cri && !/Enchantment|Artifact|Planeswalker/.test(K.t) && !e.rep) { x -= 0.1; w.push('só no seu turno'); }
+      x += cv <= 1 ? 0.25 : cv === 2 ? 0.15 : cv >= 5 ? -0.3 : cv === 4 ? -0.15 : 0; w.push(`custa ${cv}`);
+      const AL = { permanente: [0.25, 'pega qualquer permanente'], naoterreno: [0.25, 'pega qualquer permanente'], 'criatura+': [0.1, ''], qualquer: [0, ''], criatura: [0, ''], 'artefato/encantamento': [-0.55, 'só artefato ou encantamento'], terreno: [-0.7, 'só terreno'], planeswalker: [-0.6, 'só planeswalker'], naocriatura: [-0.3, 'não pega criatura'], outro: [-0.4, 'só alguns tipos'], jogador: [-0.8, 'só no jogador'] }[e.alc] || [0, ''];
+      x += AL[0]; if (AL[1]) w.push(AL[1]);
+      if (e.restr === 'cor') { x -= 0.6; w.push('só pega uma cor'); } else if (e.restr) { x -= 0.3; w.push('só pega alguns alvos'); }
+      const MD = { mao: [-0.35, 'só devolve para a mão'], edito: [-0.25, 'o oponente escolhe o que perde'], some: [-0.4, 'some só por um tempo'], neutraliza: [-0.1, 'deixa a carta sem efeito'], luta: [-0.2, 'precisa de uma criatura sua'], rouba: [0.1, 'fica com a carta'] }[e.modo];
+      if (MD) { x += MD[0]; w.push(MD[1]); }
+      if ((e.modo === 'dano' || e.modo === 'menos') && e.dano) { const fd = e.dano <= 1 ? 0.5 : e.dano === 2 ? 0.75 : e.dano === 3 ? 0.9 : 1; if (fd < 1) { x *= fd; w.push(`só ${e.dano} de ${e.modo === 'dano' ? 'dano' : '−X/−X'}`); } }
+      if (e.modo === 'edito' && e.todos) { x -= 0.4; w.push('você também sacrifica'); }
+      if (e.rep && e.rep !== 'sempre') { x += 0.3; w.push('remove mais de uma vez'); if (e.cond) { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); } }
+      else if (cri) { x += 0.1; w.push('deixa um corpo na mesa'); }
+      if ((e.n || 1) >= 2 && !e.rep) { x += 0.15; w.push(`${e.n} alvos`); }
+      if (gratis) { x += gratis; w.push('pode sair de graça'); }
+      if (e.tras) { x *= 0.8; w.push('só no verso'); }
+      if (e.compensa) { x -= 0.25; w.push('o dono ganha algo em troca (ficha, terreno ou outra permanente)'); }
+      return [Math.max(0.2, Math.min(1.6, x)), w];
+    });
+    if (b) { v.removal = b[0]; why.removal = b[1].join('; '); }
+  }
+  if (rl.has('wipe')) {
+    const b = melhor('wipe', (e) => {
+      const w = []; let x = 1;
+      const cvW = e.modo === 'sobrecarga' && e.custo ? custoF(e.custo) : cv;
+      if (e.modo === 'sobrecarga') { x += 0.15; w.push(`com sobrecarga custa ${cvW} e pega todas; sem ela é remoção pontual de ${cv}`); }
+      if (e.dano && e.dano <= 2 && /Damage|Pump/.test(e.modo)) { x *= 0.55; w.push(`só ${e.dano} de dano: mata as pequenas`); }
+      if (e.alc === 'artefato/encantamento') { x *= 0.7; w.push('só artefato ou encantamento'); }
+      else if (e.alc === 'terreno') { x *= 0.3; w.push('só terrenos'); }
+      if (e.restr && e.restr !== 'cor') { x *= 0.8; w.push('só uma parte das criaturas'); }
+      if (e.lado) { x += 0.5; w.push('só de um lado: poupa as suas'); }
+      else if (e.poupa && A.tribe) { x += 0.5; w.push(`poupa a sua tribo (${A.tribe[0]})`); }
+      else if (e.alc !== 'artefato/encantamento' && e.alc !== 'terreno') { x *= Math.max(0.35, 1.25 - 1.1 * P.cri); w.push(`simétrico: leva junto as suas ${P.nCri} criaturas`); }
+      x += cvW <= 4 ? 0.1 : cvW >= 6 ? -0.2 : 0; if (inst) { x += 0.15; w.push('instantânea'); }
+      if (e.tras) { x *= 0.8; w.push('só no verso'); }
+      return [Math.max(0.2, x), w];
+    });
+    if (b) { v.wipe = b[0]; why.wipe = b[1].join('; '); }
+  }
+  if (rl.has('protect')) {
+    const b = melhor('protect', (e) => {
+      const w = []; let x = 0.9; const kw = e.kw || [];
+      if (inst) { x += 0.15; w.push('responde na hora'); }
+      x += cv <= 1 ? 0.2 : cv >= 4 ? -0.2 : 0;
+      if (e.todos || e.quem === 'todos') { x += 0.25; w.push('protege todas as suas'); }
+      if (e.rep === 'sempre' || e.quem === 'anexo' || (e.rep && e.rep !== 'gatilho')) { x += 0.25; w.push('fica na mesa e protege sempre'); }
+      if (e.quem === 'magica') { x -= 0.2; w.push('protege só a mágica'); }
+      if (kw.length === 1 && ['Ward', 'Regenerate', 'desvia', 'volta', 'Persist', 'Undying'].includes(kw[0])) { x -= 0.15; w.push({ Ward: 'só ward', Regenerate: 'só regenera', desvia: 'só desvia o alvo', volta: 'devolve para a mão', Persist: 'volta uma vez', Undying: 'volta uma vez' }[kw[0]]); }
+      if (kw.length >= 2) { x += 0.1; w.push(kw.join(' + ')); }
+      if (e.cond && e.rep === 'gatilho') { x *= 0.85; w.push(COND_N[e.cond] ? 'só ' + COND_N[e.cond] : 'só se algo acontecer'); }
+      if (e.tras) { x *= 0.8; w.push('só no verso'); }
+      return [Math.max(0.2, x), w];
+    });
+    if (b) { v.protect = b[0]; why.protect = b[1].join('; ') || 'proteção de uma vez'; }
+  }
+  if (rl.has('counter')) {
+    const b = melhor('counter', (e) => {
+      const w = []; let x = 1;
+      x += cv <= 2 ? 0.2 : cv >= 4 ? -0.25 : 0; w.push(`custa ${cv}`);
+      if (e.paga) { x -= 0.35; w.push('o oponente pode pagar'); }
+      if (e.alvo && e.alvo !== 'qualquer') { x -= 0.2; w.push('só alguns tipos'); }
+      if (gratis) { x += gratis; w.push('pode sair de graça'); }
+      if (e.rep && e.rep !== 'gatilho') { x += 0.2; w.push('anula mais de uma vez'); }
+      else if (e.cond) { x *= 0.7; w.push('só em certas horas'); }
+      if (e.tras) { x *= 0.8; w.push('só no verso'); }
+      return [Math.max(0.2, x), w];
+    });
+    if (b) { v.counter = b[0]; why.counter = b[1].join('; '); }
+  }
+}
 const EF = {};
 function efetiv(A, c) {
   if (!c || isLand(c)) return { v: {}, why: {} };
@@ -906,22 +1060,28 @@ function efetiv(A, c) {
   const autoSac = (l) => new RegExp('Sacrifice (this|~|' + c.name.split(',')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i').test(l);
   const rep = (rx) => o.split('\n').some(l => rx.test(l) && !autoSac(l) && /^(Whenever|At the beginning|[^:]*\{T\}[^:]*:|[^:]*\{\d*[WUBRGC]*\}[^:]*:)/.test(l.trim()));
   const custoAdj = (x, d) => x - d * Math.max(0, cv - 2);
+  const f = fx(c), flash = f ? (f._kw || []).includes('Flash') : false;
+  if (f) { efetivFx(A, c, f, { o, t, rl, cv, inst: /Instant/.test(t) || flash, cri, v, why, custoAdj }); }
   if (rl.has('ramp')) {
     const tr = tipoRamp(c), cr = custoRamp(c), w = [];
-    if (!tr && /spells? you cast [^.]*cost \{1\} less/i.test(o)) { const P = perfilDeck(A), tipo = /chosen type/i.test(o), tk = (o.match(/(Creature|Enchantment|Artifact|Instant|Sorcery|Aura|Equipment)( and \w+)? spells/i) || [])[1], nl = A.cards.filter(x => !isLand(x)), d = tipo ? P.tri : tk ? nl.filter(x => new RegExp(tk, 'i').test(x.t.split(' // ')[0])).length / (nl.length || 1) : 0.5;
+    const rz = f ? fxL(f, 'ramp').find(e => e.tipo === 'reduz') : null;
+    if (!tr && rz) { const P = perfilDeck(A), d = parteDeck(A, rz.vale || 'Card'); v.ramp = 0.2 + 0.8 * Math.min(1, d * (rz.g || 1)); w.push(d >= 0.99 ? `reduz o custo de tudo em ${rz.g || 1}` : `reduz o custo de ${Math.round(100 * d)}% do deck`); }
+    else if (!tr && f) { v.ramp = 0.1; w.push('não dá mana de verdade'); }
+    else if (!tr && /spells? you cast [^.]*cost \{1\} less/i.test(o)) { const P = perfilDeck(A), tipo = /chosen type/i.test(o), tk = (o.match(/(Creature|Enchantment|Artifact|Instant|Sorcery|Aura|Equipment)( and \w+)? spells/i) || [])[1], nl = A.cards.filter(x => !isLand(x)), d = tipo ? P.tri : tk ? nl.filter(x => new RegExp(tk, 'i').test(x.t.split(' // ')[0])).length / (nl.length || 1) : 0.5;
       v.ramp = 0.2 + 0.8 * d; w.push(`reduz em 1 o custo de ${tipo ? (A.tribe ? A.tribe[0] + ' (' + Math.round(100 * d) + '% do deck)' : 'um tipo escolhido, e o deck não é de tribo') : Math.round(100 * d) + '% do deck'}`); }
     else if (!tr) { v.ramp = 0.1; w.push('não dá mana de verdade (a etiqueta de ramp engana)'); }
     else {
       const M = mexRamp(A, c, tr, o); let x = M.nota; w.push(...M.w);
       if (/Powerstone/.test(o)) { x *= 0.5; w.push('Powerstone: a mana só paga artefato'); }
-      const so = o.match(/Spend this mana only to cast (an? )?(\w+)/i); if (so && !/creature/i.test(so[2]) && !(A.tribe && so[2].startsWith(A.tribe[0]))) { x *= 0.3; w.push(`a mana só paga ${so[2]}`); }
+      const soF = f && fxL(f, 'ramp').find(e => e.so && RAMP_ORD.includes(tipoRampFx(c, { ramp: [e] }) || '')); if (soF && !/Creature|ChosenType/.test(soF.so) && !(A.tribe && soF.so.includes(A.tribe[0]))) { x *= 0.3; w.push('a mana só paga ' + soF.so.replace(/Spell\.|Activated\.?/g, '').replace(/,/g, '/')); }
+      const so = f ? null : o.match(/Spend this mana only to cast (an? )?(\w+)/i); if (so && !/creature/i.test(so[2]) && !(A.tribe && so[2].startsWith(A.tribe[0]))) { x *= 0.3; w.push(`a mana só paga ${so[2]}`); }
       if (/gains control of this (artifact|permanent)/i.test(o)) { x *= 0.5; w.push('passa para outro jogador depois de usar'); }
       if (M.bonus) { x += M.bonus; w.push(M.bonusW); }
       v.ramp = x;
     }
     why.ramp = w.join('; ');
   }
-  if (rl.has('draw')) {
+  if (rl.has('draw') && !f) {
     const w = []; let x;
     const NUM = { a: 1, an: 1, one: 1, another: 1, two: 2, three: 3, four: 4, five: 5, seven: 7, x: 3 };
     const nM = o.match(/draws? (two|three|four|five|seven|X|\d+) cards/i), N0 = nM ? NUM[nM[1].toLowerCase()] || +nM[1] || 3 : 1;
@@ -951,7 +1111,7 @@ function efetiv(A, c) {
     if (/you lose \d+ life|pay \d+ life/i.test(o) && !/Whenever/.test(o)) w.push('custa vida');
     v.draw = Math.max(0.1, x); why.draw = w.join('; ');
   }
-  if (rl.has('removal')) {
+  if (rl.has('removal') && !f) {
     const w = []; let x = 1;
     if (inst) { x += 0.2; w.push('instantânea'); } else if (!cri && !/Enchantment|Artifact/.test(t)) { x -= 0.1; w.push('só no seu turno'); }
     x += cv <= 1 ? 0.25 : cv === 2 ? 0.15 : cv >= 5 ? -0.3 : cv === 4 ? -0.15 : 0; w.push(`custa ${cv}`);
@@ -978,7 +1138,7 @@ function efetiv(A, c) {
     if (bl) x = Math.min(x, 0.7);
     v.removal = Math.max(0.2, Math.min(1.6, x)); why.removal = w.join('; ');
   }
-  if (rl.has('wipe')) {
+  if (rl.has('wipe') && !f) {
     const w = []; let x = 1; const P = perfilDeck(A);
     const fr = (o.match(/[^.\n]*(destroy all|exile all|damage to each|each creature|all creatures|sacrifices? (a|all|each)|-\d+\/-\d+|-X\/-X)[^.\n]*/i) || [o])[0];
     const lado = /(creatures?|nonland permanents|permanents) your opponents control|each creature you don't control|non-?(Vampire|Elf|Goblin|Zombie|Human|Dragon|Angel|[A-Z][a-z]+) creatures|each opponent sacrifices/i.test(fr) || (A.tribe && new RegExp('non-?' + A.tribe[0], 'i').test(fr));
@@ -992,7 +1152,7 @@ function efetiv(A, c) {
     x += cvW <= 4 ? 0.1 : cvW >= 6 ? -0.2 : 0; if (inst) { x += 0.15; w.push('instantânea'); }
     v.wipe = Math.max(0.2, x); why.wipe = w.join('; ');
   }
-  if (rl.has('protect')) {
+  if (rl.has('protect') && !f) {
     const w = []; let x = 0.9;
     if (inst) { x += 0.15; w.push('responde na hora'); }
     x += cv <= 1 ? 0.2 : cv >= 4 ? -0.2 : 0;
@@ -1000,7 +1160,7 @@ function efetiv(A, c) {
     if (/Equipment/.test(t) || (!/Instant|Sorcery/.test(t) && !/until end of turn/.test(o))) { x += 0.25; w.push('fica na mesa e protege sempre'); }
     v.protect = Math.max(0.2, x); why.protect = w.join('; ') || 'proteção de uma vez';
   }
-  if (rl.has('counter')) {
+  if (rl.has('counter') && !f) {
     const w = []; let x = 1;
     x += cv <= 2 ? 0.2 : cv >= 4 ? -0.25 : 0; w.push(`custa ${cv}`);
     if (/unless its controller pays/i.test(o)) { x -= 0.35; w.push('o oponente pode pagar'); }
@@ -1010,9 +1170,9 @@ function efetiv(A, c) {
   }
   // o texto tem que fazer a função de verdade (as etiquetas juntam muito engano)
   const FAZ = { ramp: /Add \{|Add an amount of|adds an additional|Add (one|two|three|X|that much) mana|mana of any|Treasure|Powerstone|search your library for [^.]*(land|Forest|Plains|Island|Swamp|Mountain)|lands? cards? [^.]*onto the battlefield|costs? \{\d\} less|play an additional land/i, draw: /draws? (a|an|two|three|four|five|seven|X|\d+) cards?|draw cards|exile the top [^.]*(you may (play|cast))|put (it|that card|them) into your hand|cast [^.]*from the top of your library|[Rr]eturn [^.]*from your graveyard to your hand/i, removal: /destroy target|exile target|shuffles it into|on the (top|bottom) of (its owner's|their) library|damage to (any )?target|damage to (each|up to)|target [^.]*gets -\d|fights?|return target [^.]*owner's hand|sacrifices? (a|an) (non-?[\w-]+ )?(creature|permanent)|counters? on target|\bblights? \d/i, protect: /hexproof|indestructible|shroud|protection from|phases? out|[Pp]revent all (combat )?damage|[Cc]ounter target|[Rr]egenerate|\bward\b|can't be the target/i, counter: /[Cc]ounter target/ };
-  for (const k in FAZ) if (v[k] != null && !FAZ[k].test(o)) { v[k] = 0.15; why[k] = 'a etiqueta diz que faz, mas o texto não mostra o efeito'; }
+  if (!f) for (const k in FAZ) if (v[k] != null && !FAZ[k].test(o)) { v[k] = 0.15; why[k] = 'a etiqueta diz que faz, mas o texto não mostra o efeito'; }
   const ks = Object.keys(v).sort((a, b) => v[b] - v[a]);
-  const modal = /Choose one|choose one —/i.test(o) || o.split('\n').filter(l => autoSac(l) && /:/.test(l)).length >= 2;
+  const modal = fxModal(f) || /Choose one|choose one —/i.test(o) || o.split('\n').filter(l => autoSac(l) && /:/.test(l)).length >= 2;
   ks.slice(1).forEach(k => { v[k] = modal ? 0 : v[k] * 0.6; });
   return (cache[c.name] = { v, why });
 }

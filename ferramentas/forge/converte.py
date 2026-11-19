@@ -382,9 +382,9 @@ def funcoes_face(f, tras, alt):
             add('ramp', dict(base, tipo='terreno', g=3, tap=1 if p.get('Tapped') else 0, de=p.get('Origin', '').lower()[:9] == 'graveyard' and 'cemiterio' or 'grimorio'))
         elif api in ('Untap', 'UntapAll') and re.search(TERRA, vt or p.get('ValidCards', '')) and not eh_dele(vt or p.get('ValidCards', '')):
             add('ramp', dict(base, tipo='desvira', g=inteiro(p.get('TargetMax') or p.get('Amount'), sv, 1) if api == 'Untap' else 3))
-        elif api == 'ReplaceMana' or (api == 'R:ProduceMana' and p.get('ValidActivator', 'You') == 'You'):
-            if api == 'ReplaceMana' or not any(x['api'] == 'ReplaceMana' for x in efs):
-                add('ramp', dict(base, tipo='multiplica', g=inteiro(p.get('ReplaceAmount'), sv, 2), rep='sempre'))
+        elif api == 'ReplaceMana' and p.get('ReplaceAmount') and any(x['api'] == 'R:ProduceMana' and x['p'].get('ValidActivator') == 'You' for x in efs):
+            # só quem multiplica a SUA mana (Mana Reflection, Nyxbloom); trocar a cor (Contamination, Damping Sphere) não é ramp
+            add('ramp', dict(base, tipo='multiplica', g=inteiro(p.get('ReplaceAmount'), sv, 2), rep='sempre'))
 
         # ================= COMPRA =================
         mc = re.search(r'Draw<(\d+)/You>', p.get('Cost', ''))
@@ -438,7 +438,13 @@ def funcoes_face(f, tras, alt):
                 pass  # some e volta (Flickerwisp, blink): não é remoção
             else:
                 modo = 'destroi' if api == 'Destroy' else {'Exile': 'exila', 'Hand': 'mao', 'Library': 'grimorio', 'Graveyard': 'destroi'}[p['Destination']]
-                add('removal', dict(base, modo=modo, alc=alcance(vt), restr=restrito(vt), n=inteiro(p.get('TargetMax'), sv, 2)))
+                d = dict(base, modo=modo, alc=alcance(vt), restr=restrito(vt), n=inteiro(p.get('TargetMax'), sv, 2))
+                # o dono/controlador do alvo ganha algo em troca (Beast Within: ficha 3/3; Chaos Warp: permanente do topo)
+                if depois(e, lambda x: (x['api'] == 'Token' and re.match(r'Targeted(Controller|Owner)', x['p'].get('TokenOwner', '')))
+                          or (x['api'] in ('Dig', 'DigUntil', 'ChangeZone') and re.match(r'Targeted(Controller|Owner)', x['p'].get('Defined', '') + x['p'].get('DefinedPlayer', ''))
+                              and 'Battlefield' in x['p'].get('DestinationZone', '') + x['p'].get('FoundDestination', '') + x['p'].get('Destination', ''))):
+                    d['compensa'] = 1
+                add('removal', d)
         elif api == 'DealDamage' and alvo_dele and alcance(vt) not in ('jogador', ''):
             add('removal', dict(base, modo='dano', alc=alcance(vt), dano=inteiro(p.get('NumDmg'), sv, 4), restr=restrito(vt)))
         elif api == 'Pump' and alvo_dele and re.match(r'-', p.get('NumDef', '')):
