@@ -203,13 +203,6 @@ Sem dados de fora (EDH_LIGADO=false). Trocas e sugestões pela **efetividade** d
   | Edgar | 36 | 39: −0,5 ±1,2 | 40: **−2,0 ±1,3 (perde)** | 35: −0,4 ±0,6 |
   Leitura: as três empatam na maioria; a fórmula ganha no Krenko (mais terreno) e a ajustada perde no Edgar, mas lá o 4º corte foi o Bloodthirsty Conqueror (peça do combo) — `variaTerrenos` tira "a mais cara" sem proteger combo/comandante-chave. Pura e ajustada dão o mesmo número em 3 dos 4 decks.
 
-## Funções das cartas pelo Forge, ligado no site (19/11/2026, noite)
-- `forge-db.js` (gerado por `ferramentas/forge/converte.py` a partir dos roteiros do Forge, **GPL-3.0**: o arquivo é derivado de dados GPL, então o site herda a obrigação de manter a fonte aberta e citar o Forge; os roteiros ficam fora do git em `ferramentas/forge/src/`). Carregado no `index.html` antes do motor.
-- `analise.js`: `fx(c)` lê a carta no forge-db; `rolesOf` usa as 6 funções do Forge (ramp, draw, removal, wipe, counter, protect) só para não-terreno; `efetivFx` dá o peso por **parâmetros** (n, rep, cond, paga, alc, restr, modo, dano, todos, compensa…). Regex só quando a carta não tem dado do Forge.
-- Ciclagem não conta como compra; ramp multiplicador só quem multiplica a sua mana (Mana Reflection, Nyxbloom, Virtue of Strength).
-- Ajustes: gatilho "toda vez que um oponente…" vale 1,1 (3 oponentes, várias vezes por rodada; Rhystic Study 0,73 → 1,02); "o oponente pode pagar" ×0,9. Parâmetro novo `compensa` (o dono do alvo ganha ficha/terreno/permanente: Beast Within, Chaos Warp, Path, Generous Gift, Pongify; 54 cartas) = −0,25 na remoção, no lugar do regex antigo.
-- Gabarito `testa.py`: 161/161. Banco de 30 decks: ver resultado abaixo.
-
 ## Pendências (ordem sugerida para a próxima conversa)
 - **Novo (19/11 fim da tarde):** `variaTerrenos` (Comparar terrenos) não deve cortar peça de combo (`comboPar`) nem a carta do plano; Stangg segue negativo nas trocas (Swiftfoot → Swashbuckling, Storm Herald → Instill Energy, Red XIII → Fear of Missing Out); Mesa pune planeswalker e "olhe o topo" porque o motor ignora.
 0. **Ouvir o usuário sobre o Montar guiado** (imagens em lote e ramp sem estourar, da rodada de 19/11) e sobre as trocas pelo plano.
