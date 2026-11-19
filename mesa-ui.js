@@ -86,7 +86,7 @@ function selecionados() {
 }
 
 // ---------- tela: Mesa simulada ----------
-let RES = null, RTROCAS = null, BUSY = false;
+let RES = null, RTROCAS = null, RTERRA = null, BUSY = false;
 function painel() {
   const box = $('#mesa'); if (!box) return;
   if (!A) { box.innerHTML = ''; return; }
@@ -102,6 +102,7 @@ function painel() {
       <label class="field">Partidas <select id="m-n">${[200, 500, 1000, 2000].map(v => `<option ${+n === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
       <button class="btn primary" id="m-go" ${BUSY ? 'disabled' : ''}>Jogar as partidas</button>
       <button class="btn" id="m-tro" ${BUSY ? 'disabled' : ''}>Testar as trocas marcadas</button>
+      <button class="btn" id="m-ter" ${BUSY ? 'disabled' : ''} title="Joga a lista com a quantidade de terrenos da fórmula pura e da ajustada, contra a lista atual">Comparar terrenos (fórmula)</button>
       <button class="btn" id="m-stop" ${BUSY ? '' : 'hidden'}>Parar</button>
     </div>
     <div class="prog" id="m-prog" hidden><div></div><span class="note" id="m-prog-l"></span></div>
@@ -117,11 +118,12 @@ function painel() {
       <div class="row"><button class="btn" id="am-add">Colocar na mesa</button><span class="note" id="am-msg"></span></div>
     </details>
   </section>
-  <div id="m-out" class="tout">${RES ? resultado() : ''}${RTROCAS ? resTrocas() : ''}</div>`;
+  <div id="m-out" class="tout">${RTERRA ? resTerrenos() : ''}${RES ? resultado() : ''}${RTROCAS ? resTrocas() : ''}</div>`;
   $('#m-fmt').onchange = (e) => { store.set('formato', e.target.value); painel(); };
   $('#m-n').onchange = (e) => store.set('n', +e.target.value);
   $('#m-go').onclick = () => guard(jogar);
   $('#m-tro').onclick = () => guard(testarTrocas);
+  $('#m-ter').onclick = () => guard(testarTerrenos);
   $('#m-stop').onclick = () => para();
   $$('[data-op]').forEach(c => c.onchange = () => { const ids = $$('[data-op]').filter(x => x.checked).map(x => x.dataset.op); store.set('ops', ids); c.closest('.op').classList.toggle('on', c.checked); });
   $$('[data-del]').forEach(b => b.onclick = (e) => { e.preventDefault(); store.set('amigos', store.get('amigos', []).filter(a => a.nome !== b.dataset.del)); OPC.delete('am:' + b.dataset.del); painel(); });
@@ -171,6 +173,64 @@ async function testarTrocas() {
   window.RAIOX_TESTE = { deck: A, N, nOp: nOp(), base: r.base, todas: r.todas, pares: r.pares.map(t => ({ out: t.nomeS, inn: t.nomeE, d: t.d, se: t.se, ok: t.ok, wr: t.wr, cSai: t.cSai, cEntra: t.cEntra })), testadas: pares.map(p => p.nomeS + '→' + p.nomeE) };
   document.dispatchEvent(new CustomEvent('raiox:teste'));
   if (window.RAIOX_VOLTA === 'trocas') { window.RAIOX_VOLTA = null; setTimeout(() => { location.hash = 'trocas'; }, 400); }
+}
+
+// ---------- terrenos pela fórmula do Karsten: pura × ajustada × lista atual (19/11/2026) ----------
+
+const BASICO = { W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest' };
+function idxDe(D, nome) { let i = D.M.findIndex(m => m.nome === nome); if (i < 0) { const rec = achar(nome); if (!rec) return -1; D.M.push(modelo(rec)); i = D.M.length - 1; } return i; }
+// mais terrenos: saem as mágicas mais caras (não o comandante) e entram básicos da cor mais pedida;
+// menos terrenos: saem básicos da cor que mais sobra e entram ramp/compra baratos da lista de apoio do motor
+function variaTerrenos(D, alvo) {
+  const b = D.base.slice(), M = D.M, ci = D.cmd ? D.cmd.i : -1, L = b.filter(i => M[i].land).length, mud = [];
+  const cores = [...A.ident].filter(x => BASICO[x]);
+  const pips = cores.map(x => [x, (A.pips && A.pips[x]) || 1]);
+  const cont = {}; for (const i of b) { const n = M[i].nome; for (const x of cores) if (n === BASICO[x]) cont[x] = (cont[x] || 0) + 1; }
+  if (alvo > L) {
+    const caras = b.map((i, p) => [i, p]).filter(([i]) => !M[i].land && i !== ci).sort((x, y) => (M[y[0]].cmc || 0) - (M[x[0]].cmc || 0));
+    for (let k = 0; k < alvo - L && k < caras.length; k++) {
+      const x = cores.length ? pips.map(([c, q]) => [c, q / ((cont[c] || 0) + 1)]).sort((a, z) => z[1] - a[1])[0][0] : null;
+      const ib = idxDe(D, x ? BASICO[x] : 'Wastes'); if (ib < 0) break;
+      mud.push({ sai: M[caras[k][0]].nome, entra: M[ib].nome }); b[caras[k][1]] = ib; if (x) cont[x] = (cont[x] || 0) + 1;
+    }
+  } else if (alvo < L) {
+    const naLista = new Set(b);
+    const apoio = (D.cand || []).filter(i => !naLista.has(i) && !M[i].land).sort((x, y) => ((M[x].cmc || 0) <= 2 && (M[x].mana || M[x].ramp || M[x].dr) ? 0 : 1) - ((M[y].cmc || 0) <= 2 && (M[y].mana || M[y].ramp || M[y].dr) ? 0 : 1) || (M[x].cmc || 0) - (M[y].cmc || 0));
+    for (let k = 0; k < L - alvo && k < apoio.length; k++) {
+      const x = cores.length ? pips.map(([c, q]) => [c, (cont[c] || 0) / q]).sort((a, z) => z[1] - a[1])[0][0] : null;
+      let p = x ? b.findIndex(i => M[i].nome === BASICO[x]) : -1;
+      if (p < 0) p = b.findIndex(i => M[i].land && /Basic/.test(M[i].tl));
+      if (p < 0) break;
+      mud.push({ sai: M[b[p]].nome, entra: M[apoio[k]].nome }); b[p] = apoio[k]; if (x) cont[x]--;
+    }
+  }
+  return { base: b, mud, L };
+}
+async function testarTerrenos() {
+  const F = A.terrF; if (!F) throw new Error('Sem a conta de terrenos para este deck.');
+  const D = meuDeck(), L = D.base.filter(i => D.M[i].land).length;
+  const alvos = [['Fórmula pura', Math.round(F.pura)], ['Com os ajustes', Math.round(F.ajust)]];
+  const vs = alvos.map(([nome, alvo]) => ({ nome, alvo, ...variaTerrenos(D, alvo) }));
+  const rodar = vs.filter(v => v.mud.length);
+  const Ops = opsEscolhidos(), N = Math.max(500, +store.get('n', 500));
+  prog(0, 'Comparando terrenos');
+  const r = rodar.length ? await roda('variantes', { Dv: limpo(D), Ops, bases: rodar.map(v => v.base), N, seed: 20261120, nOp: nOp() }, (fase, p) => prog(p, `${fase}: ${Math.round(100 * p)}%`)) : null;
+  rodar.forEach((v, k) => (v.r = r.out[k]));
+  RTERRA = { N, L, vs, base: r ? r.base : null, deck: A };
+}
+function resTerrenos() {
+  if (RTERRA.deck !== A) return '';
+  const { N, L, vs, base } = RTERRA;
+  const linha = (nome, n, x, d) => `<tr><td>${esc(nome)}</td><td class="n">${n}</td><td class="n">${x ? pct(x.wr) : '—'}</td><td class="n">${d ? `<b>${pts(d.d)}</b> ±${fx(d.se)}` : '—'}</td><td class="n">${x ? fx(x.t3) : '—'}</td><td class="n">${x ? fx(x.t5) : '—'}</td><td class="n">${x && x.cmdT ? fx(x.cmdT) : '—'}</td></tr>`;
+  const ver = (v) => !v.r ? 'igual à lista atual' : v.r.d > 1.5 * v.r.se ? 'ganha da lista atual' : v.r.d < -1.5 * v.r.se ? 'perde da lista atual' : 'empate (dentro do ruído)';
+  return `<section class="panel answer"><h2>Terrenos: fórmula pura × ajustada</h2>
+    <p class="lead">${N.toLocaleString('pt-BR')} partidas para cada lista, com as mesmas cartas sorteadas, então a diferença vem da quantidade de terrenos. "Ganha" ou "perde" só quando passa de 1,5 vez o ruído.</p>
+    <div class="tw"><table><thead><tr><th>Lista</th><th>Terrenos</th><th>Vitórias</th><th>Diferença</th><th>Terrenos no T3</th><th>No T5</th><th>Comandante entra no turno</th></tr></thead><tbody>
+      ${linha('Lista atual', L, base, null)}
+      ${vs.map(v => linha(v.nome, v.alvo, v.r || base, v.r)).join('')}
+    </tbody></table></div>
+    ${vs.map(v => `<p class="note"><b>${esc(v.nome)}</b> (${v.alvo}): ${ver(v)}.${v.mud.length ? ' Para chegar nesse número: ' + v.mud.map(m => `${esc(m.sai)} → ${esc(m.entra)}`).join(', ') + '.' : ''}</p>`).join('')}
+    <p class="note">Com mais terrenos saem as mágicas mais caras e entram básicos da cor mais pedida; com menos, saem básicos e entram ramp ou compra baratos da lista de apoio do motor. A conta das duas fórmulas está na aba Análise, em Mana e curva.</p></section>`;
 }
 
 function resultado() {
@@ -418,7 +478,7 @@ document.addEventListener('click', (e) => {
 }, true);
 
 // ---------- liga com o resto do Raio-X ----------
-document.addEventListener('raiox:deck', (e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; JOGO = null; parar(); painel(); painelVivo(); });
+document.addEventListener('raiox:deck', (e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; RTERRA = null; JOGO = null; parar(); painel(); painelVivo(); });
 if (window.RAIOX && window.RAIOX.last) { A = window.RAIOX.last; painel(); painelVivo(); }
 window.addEventListener('hashchange', () => { if (location.hash !== '#aovivo') parar(); else if (A) painelVivo(); });
 pronto.then(() => { painel(); painelVivo(); });

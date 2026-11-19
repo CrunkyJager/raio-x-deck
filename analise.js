@@ -141,6 +141,7 @@ function rolesOf(c) {
   if (/Planeswalker/.test(front) || (/Creature/.test(front) && ((pw >= 5) || (pw >= 3 && /Flying|Trample|Menace|Double strike|Infect|Indestructible/i.test(o)) || /power is equal to the number|\*/.test(String(c.p || ''))))) s.add('threat');
   return s;
 }
+const fmtD = (x, d = 1) => (+x).toFixed(d).replace('.', ',');
 const isLand = (c) => /Land/.test(c.t.split(' // ')[0]);
 const isMdfcLand = (c) => !isLand(c) && /Land/.test(c.t.split(' // ')[1] || '');
 
@@ -175,10 +176,12 @@ function analyze(text, forcedCmd) {
   for (const r of ROLES) A.byRole[r.k] = [...new Set(A.byRole[r.k])].map(n => [n, counts[n] || 1]);
   const cnt = (k) => A.byRole[k].reduce((s, [, q]) => s + q, 0);
   A.cheapRamp = cards.filter(c => !isLand(c) && c.v <= 2 && rolesOf(c).has('ramp')).length;
-  A.recLands = Math.max(31, Math.min(40, Math.round(31 + 2 * A.avgMV - 0.3 * Math.max(0, A.cheapRamp - 6))));
+  A.terrF = terrenosFormula(cards, cmdCards);
+  A.recLands = Math.max(30, Math.min(42, Math.round(A.terrF.ajust)));
+  A.recPura = Math.max(30, Math.min(42, Math.round(A.terrF.pura)));
   const blue = ident.has('U');
   A.refs = [
-    { k: 'lands', n: 'Terrenos', have: A.lands + A.mdfc * 0.5, lo: A.recLands - 1, hi: A.recLands + 2, why: `Com custo médio ${A.avgMV.toFixed(2)} e ${A.cheapRamp} ramps baratos, o recomendado é por volta de ${A.recLands}. Terreno de menos trava a mão; demais faz faltar ação no fim do jogo.` },
+    { k: 'lands', n: 'Terrenos', have: A.lands + A.mdfc * 0.5, lo: A.recLands - 1, hi: A.recLands + 2, why: `Pela fórmula do Frank Karsten (custo médio ${A.avgMV.toFixed(2).replace('.', ',')}, ${A.terrF.barato} cartas de compra ou ramp de custo até 2): ${fmtD(A.terrF.pura)} pura, ${fmtD(A.terrF.ajust)} com os ajustes. A conta está em Mana e curva. Terreno de menos trava a mão; demais faz faltar ação no fim do jogo.` },
     { k: 'ramp', n: 'Ramp', have: cnt('ramp'), lo: 10, hi: 15, why: 'Mana extra cedo põe você um turno à frente da mesa. Ramp de 2 manas vale mais que o de 4.' },
     { k: 'draw', n: 'Compra de cartas', have: cnt('draw'), lo: 10, hi: 16, why: 'Em mesa de 4 jogadores, quem fica sem cartas na mão perde. Prefira fontes que compram mais de uma vez.' },
     { k: 'removal', n: 'Remoção pontual', have: cnt('removal'), lo: 8, hi: 12, why: 'Responde ao comandante dos outros e às peças que viram o jogo. Instantâneas e baratas valem mais.' },
@@ -315,7 +318,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), custoRamp: (c) => custoRamp(c), terrenosFormula: (cs, cm) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -407,6 +410,7 @@ function render(A) {
     <section class="panel"><h2>Curva de mana</h2><p class="lead">Quantas cartas (sem contar terrenos) custam 0, 1, 2… manas. Muitas cartas caras deixam os primeiros turnos vazios.</p>${curveSvg}</section>
     <section class="panel"><h2>Base de mana</h2><p class="lead">Fontes de cada cor (terrenos, pedras e criaturas de mana) contra o quanto as suas cartas pedem daquela cor. A linha clara marca o recomendado.</p>${colorRows || '<p class="note">Deck incolor.</p>'}<p class="note" style="margin-top:8px">${A.tapped} terreno(s) sempre entram virados.</p></section>
   </div>
+  ${terrenosHTML(A)}
   </div>
   <div class="sub" id="sub-plano" style="--h:268">
   <section class="panel">
@@ -481,6 +485,24 @@ function conceptFit(A, c) { if (CONC.mode === 'livre' || isLand(c)) return null;
 const namesFrom = (txt) => String(txt || '').split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
 function resolveNames(txt) { const ok = [], bad = []; for (const n of namesFrom(txt)) { const k = lookupName(n.replace(/^\d+\s*x?\s+/i, '')); k ? ok.push(k) : bad.push(n); } return { ok, bad }; }
 
+// painel "Quantos terrenos": a fórmula do Karsten pura e a ajustada lado a lado, com a conta
+function terrenosHTML(A) {
+  const F = A.terrF; if (!F) return '';
+  const lst = (a) => a.length ? a.slice(0, 14).map(n => esc(n)).join(', ') + (a.length > 14 ? ` e mais ${a.length - 14}` : '') : 'nenhuma';
+  const veredito = (tem, rec) => { const d = tem - rec; return Math.abs(d) < 1 ? ['na conta', 'good'] : d < 0 ? [`${fmtD(-d)} a menos`, d <= -2 ? 'bad' : 'warn'] : [`${fmtD(d)} a mais`, d >= 3 ? 'warn' : 'info']; };
+  const col = (tit, rec, tem, linhas, nota) => { const [v, k] = veredito(tem, Math.round(rec)); return `<div class="tf-col"><h3>${tit}</h3>
+    <div class="tiles"><div class="tile info"><b>${fmtD(rec)}</b><span>terrenos pela conta (≈ ${Math.round(rec)})</span></div><div class="tile ${k}"><b>${tem % 1 ? fmtD(tem) : tem}</b><span>no deck: ${v}</span></div></div>
+    <table class="tf-conta"><tbody>${linhas.map(([a, b]) => `<tr><td>${a}</td><td class="n">${b}</td></tr>`).join('')}</tbody></table><p class="note">${nota}</p></div>`; };
+  const base = [['base', '31,42'], [`+ 3,13 × ${fmtD(F.media, 2)} (custo médio)`, '+' + fmtD(3.13 * F.media, 2)], [`− 0,28 × ${F.barato} (compra/ramp ≤ 2)`, '−' + fmtD(0.28 * F.barato, 2)]];
+  const pura = col('Fórmula pura', F.pura, F.temPura, base.concat([['= terrenos', fmtD(F.pura, 2)]]), `No deck: ${F.lands} terrenos${F.mdfc ? ` + ${F.mdfc} de duas faces contadas inteiras` : ''}.`);
+  const ajs = F.ajustes.length ? F.ajustes.map(a => [a.t.replace(/: \+1.*/, ''), (a.v > 0 ? '+' : '−') + fmtD(Math.abs(a.v), 0)]) : [['nenhum ajuste se aplica', '+0']];
+  const ajust = col('Com os ajustes', F.ajust, F.temAjust, base.concat(ajs, [['= terrenos', fmtD(F.ajust, 2)]]), `No deck: ${F.lands} terrenos${F.mdfc ? ` + ${F.mdfc} de duas faces valendo meio terreno cada` : ''}. Ajustes: +1 se o comandante custa 6 ou mais (a fórmula só olha as 99); carta de duas faces com terreno no verso vale meio terreno.`);
+  return `<section class="panel"><h2>Quantos terrenos</h2>
+    <p class="lead">Fórmula do Frank Karsten (ChannelFireball): terrenos = 31,42 + 3,13 × custo médio das cartas que não são terreno − 0,28 × cartas de compra ou ramp que custam até 2. As duas versões ficam lado a lado; a Mesa simulada joga as duas para comparar.</p>
+    <p class="note">Conta: ${F.n} cartas que não são terreno somam ${fmtD(F.soma, 0)} manas, custo médio ${fmtD(F.media, 2)}. Ramp até 2 (${F.ramp2.length}): ${lst(F.ramp2)}. Compra até 2 (${F.compra2.length}): ${lst(F.compra2)}. Ramp que só vale uma vez ou depende de algo (rituais, Ragavan) e o que troca um terreno da mão (Mox Diamond) não entram; Everflowing Chalice conta pelo custo de um marcador (2).</p>
+    <div class="grid2">${pura}${ajust}</div>
+    <p class="note">O Raio-X usa a ajustada nas faixas e no Montar até você escolher.</p></section>`;
+}
 function renderConcept(A) {
   const on = concOn(A);
   const chips = CONCEITOS.filter(x => x.k !== 'tribe' || A.tribe).map(x => `<button class="cn lock ${on.has(x.k) ? 'on' : ''}" data-cc="${x.k}" aria-pressed="${on.has(x.k)}">${esc(x.k === 'tribe' ? 'Tribo: ' + A.tribe[0] : x.n)}</button>`).join('');
@@ -581,7 +603,7 @@ function tipoRamp(c) {
   const cond = /\b(Whenever|When) [^\n]*?(deals (combat )?damage|attacks|dies|an opponent|a player|you cast|you copy)[^\n]*(Treasure|Add \{|search your library for [^.]*land)/.test(o);
   let r = null;
   if (tg.includes('ritual')) r = 'ritual';
-  else if (/Sacrifice an? (creature|artifact|permanent)[^:\n]*: Add/.test(o)) r = null; // altar: é peça de combo, não acelera
+  else if (/Sacrifice (an?|another) (creature|artifact|permanent|[A-Z][a-z]+)\b[^:\n]*: Add/.test(o)) r = null; // altar: é peça de combo, não acelera
   else if (/Sacrifice (this|~|it)[^:\n]*: Add/.test(o) && !tapAdd) r = 'tesouro';
   else if (tg.includes('land-ramp') && /Its controller may search|that player may search|each player/i.test(o)) r = null; // Path to Exile: o terreno vai para o outro
   else if ((tg.includes('mana-rock') || (/Artifact/.test(t) && !/Creature/.test(t) && tapAdd)) && !cond) r = 'pedra';
@@ -594,6 +616,39 @@ function tipoRamp(c) {
     else if (tg.includes('ramp')) r = 'condicional';
   }
   return (TIPO_RAMP[c.name] = r);
+}
+// custo real de um ramp (19/11/2026): Everflowing Chalice custa {0}, mas cada marcador custa {2}; X (Astral Cornucopia) idem;
+// Mox Diamond custa 0, mas troca um terreno da mão: adianta uma vez, não soma um terreno — conta como ramp de 2
+function custoRamp(c) {
+  if (!c) return 99;
+  const o = c.o.split('\n//\n')[0], m = c.m.split(' // ')[0];
+  const mk = o.match(/Multikicker \{(\d+)\}/); if (mk) return c.v + +mk[1];
+  if (/\{X\}/.test(m)) return Math.max(2, c.v + 1);
+  if (trocaTerreno(c)) return Math.max(2, c.v);
+  const sp = c.v === 0 && o.match(/Suspend (\d+)/); if (sp) return +sp[1] + 1;   // Sol Talisman: suspensa, só chega turnos depois
+  return c.v;
+}
+const trocaTerreno = (c) => /discard a land card|return a land you control to its owner's hand/i.test(c.o.split('\n//\n')[0]);
+// fórmula de terrenos do Frank Karsten (ChannelFireball, 2022), a que o amigo do usuário mandou:
+// terrenos = 31,42 + 3,13 × custo médio das não-terrenos − 0,28 × (compra + ramp de custo ≤ 2)
+// Ajustada (pedido do usuário, 19/11/2026): +1 com comandante de 6 ou mais (a fórmula só olha as 99) e
+// carta de dupla face com terreno no verso vale meio terreno (na pura conta inteira).
+function terrenosFormula(cards, cmds) {
+  const nonland = cards.filter(c => !isLand(c));
+  const soma = nonland.reduce((s, c) => s + c.v, 0), n = nonland.length, media = n ? soma / n : 3;
+  const ramp2 = [], compra2 = [];
+  for (const c of nonland) {
+    if (['pedra', 'dork', 'terreno', 'tesouro'].includes(tipoRamp(c)) && custoRamp(c) <= 2 && !trocaTerreno(c)) ramp2.push(c.name);
+    else if (c.v <= 2 && rolesOf(c).has('draw')) compra2.push(c.name);
+  }
+  const barato = ramp2.length + compra2.length;
+  const pura = 31.42 + 3.13 * media - 0.28 * barato;
+  const cmdMV = Math.max(0, ...cmds.map(c => c.v));
+  const ajustes = [];
+  if (cmdMV >= 6) ajustes.push({ v: 1, t: `comandante de ${cmdMV} manas: +1 (a fórmula só olha as 99 cartas)` });
+  const ajust = pura + ajustes.reduce((s, a) => s + a.v, 0);
+  const lands = cards.filter(isLand).length, mdfc = cards.filter(isMdfcLand).length;
+  return { soma, n, media, ramp2, compra2, barato, pura, ajust, ajustes, cmdMV, lands, mdfc, temPura: lands + mdfc, temAjust: lands + mdfc * 0.5 };
 }
 // ---------- EDHREC: a LÓGICA da sinergia, aplicada à ideia de quem monta (19/11/2026) ----------
 // No EDHREC, sinergia = % dos decks de um grupo que jogam a carta MENOS % dos decks das mesmas cores em geral.
@@ -670,9 +725,9 @@ function valorPlano(A, c) {
   if (P.atk && e.haste) { v += 3; why.push(`dá ímpeto: ${P.nome} ataca no turno em que entra, sem esperar uma rodada`); }
   if (P.atk && e.extra) { v += 3; why.push(`combate extra: ${P.nome} ataca de novo (e o gatilho de ataque dispara de novo)`); }
   if (rl.has('ramp') && P.mv >= 3 && !e.anexo) {
-    const tr = tipoRamp(c);
-    if (c.v <= P.mv - 2 && (tr === 'condicional' || tr === 'ritual')) why.push(`a mana dele ${tr === 'ritual' ? 'some no fim do turno' : 'só vem se algo acontecer antes'}: não garante ${P.nome} um turno antes`);
-    else if (c.v <= P.mv - 2 && tr) { v += P.ativo ? 2 : 1; why.push(`ramp de ${c.v} mana${c.v > 1 ? 's' : ''}: põe ${P.nome} (custo ${P.mv}) na mesa um turno antes`); }
+    const tr = tipoRamp(c), cv = custoRamp(c);
+    if (cv <= P.mv - 2 && (tr === 'condicional' || tr === 'ritual')) why.push(`a mana dele ${tr === 'ritual' ? 'some no fim do turno' : 'só vem se algo acontecer antes'}: não garante ${P.nome} um turno antes`);
+    else if (cv <= P.mv - 2 && tr) { v += P.ativo ? 2 : 1; why.push(`ramp de ${cv} mana${cv > 1 ? 's' : ''}${cv !== c.v ? ' na prática' : ''}: põe ${P.nome} (custo ${P.mv}) na mesa um turno antes`); }
     else if (c.v >= P.mv && !/Creature/.test(c.t)) { v -= 1.5; why.push(`ramp de ${c.v} manas chega junto com ${P.nome} e não o acelera`); }
   }
   if (P.voltron && e.anexo) {

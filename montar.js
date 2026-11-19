@@ -462,7 +462,12 @@ const G = (() => {
     const cmdC = d.cmds.map(C).filter(Boolean), cth = new Set(on); cmdC.forEach(c => R.themesOf(c).forEach(t => cth.add(t)));
     const AP = { cmds: cmdC, uniq: cartas.map(([c]) => c), cmdThemes: cth, tribe: tb ? [tb, 10] : null };
     AP.plano = R.planoDe ? R.planoDe(AP) : null;
-    const landsT = Math.max(33, Math.min(38, Math.round(31 + 2 * media - (spells > 20 && (cnt.ramp || 0) > 10 ? 1 : 0))));
+    // terrenos pela fórmula do Karsten (pura e ajustada, lado a lado); com poucas mágicas ainda, a média fica em 3
+    const lista = []; for (const [c, q] of cartas) for (let j = 0; j < q; j++) lista.push(c);
+    const TF = R.terrenosFormula(lista, cmdC);
+    // no começo: média 3 e pelo menos 8 de compra/ramp baratos (as metas de 10 ramp e 10 compra ainda vão entrar)
+    if (spells < 15) { TF.media = 3; TF.barato = Math.max(TF.barato, 8); TF.pura = 31.42 + 3.13 * 3 - 0.28 * TF.barato; TF.ajust = TF.pura + TF.ajustes.reduce((s, a) => s + a.v, 0); TF.cedo = true; }
+    const landsT = Math.max(30, Math.min(42, Math.round(TF.ajust))), landsPura = Math.max(30, Math.min(42, Math.round(TF.pura)));
     const voltron = on.has('voltron');
     const slots = [
       { k: 'ramp', n: 'Ramp', alvo: 10, why: 'mana extra cedo põe você um turno à frente da mesa' },
@@ -475,7 +480,7 @@ const G = (() => {
     const soma = slots.reduce((s, x) => s + x.alvo, 0);
     const temaAlvo = on.size ? Math.max(12, 99 - (d.cmds.length - 1) - landsT - soma) : 0;
     if (on.size) slots.push({ k: 'tema', n: 'Cartas da ideia', alvo: temaAlvo, why: 'é o que faz o deck ser o seu deck' });
-    slots.push({ k: 'lands', n: 'Terrenos', alvo: landsT, why: `com custo médio ${media.toFixed(1).replace('.', ',')}, por volta de ${landsT} terrenos` });
+    slots.push({ k: 'lands', n: 'Terrenos', alvo: landsT, why: `pela fórmula do Frank Karsten (custo médio ${TF.media.toFixed(2).replace('.', ',')}${TF.cedo ? ', estimado até haver 15 mágicas' : ''}, ${TF.barato} de compra ou ramp até 2): ${landsPura} pura, ${landsT} com os ajustes${TF.ajustes.length ? '; ' + TF.ajustes.map(a => a.t).join('; ') : ''}. O Montar segue a ajustada` });
     for (const x of slots) x.tem = x.k === 'lands' ? lands : x.k === 'tema' ? tema : (cnt[x.k] || 0);
     const total = d.cmds.length + lands + spells;
     const vagasSpells = Math.max(0, 100 - d.cmds.length - landsT - spells);
@@ -483,7 +488,7 @@ const G = (() => {
     let edh = R.edhIdeia ? R.edhIdeia(on, I, tb) : null;
     if (edh && edh.carrega) edh.carrega.then(() => { if (D() === d && d.passo === 3) atualiza(); });
     if (edh && !edh.pags.length) edh = null;
-    return { d, I, on, tb, AP, edh, slots, lands, spells, total, usd, gc, tut, landsT, vagasSpells, media };
+    return { d, I, on, tb, AP, edh, slots, lands, spells, total, usd, gc, tut, landsT, landsPura, TF, vagasSpells, media };
   }
   let P3 = { slot: '', pag: 6 };
   const RAMP_OK = new Set(['pedra', 'dork', 'terreno', 'tesouro']);
@@ -541,7 +546,7 @@ const G = (() => {
       if (k === 'ramp') {
         const tr = R.tipoRamp(c); if (!RAMP_OK.has(tr)) continue;
         const mv = P ? P.mv : 4, alvoMv = Math.max(1, mv - 2);
-        const cv = /\{X\}/.test(c.m) ? Math.max(2, c.v + 1) : c.v;   // custo X (Astral Cornucopia, Everflowing Chalice): na prática 2 ou mais
+        const cv = R.custoRamp(c);   // custo real: X e multikicker (Astral Cornucopia, Everflowing Chalice) e Mox Diamond contam como 2
         if (c.v >= mv && mv >= 3) continue;                       // chega junto com o comandante: não acelera
         nota = RAMP_BASE[tr] + (cv <= alvoMv ? 0.35 + 0.08 * (alvoMv - cv) : -0.25) + (E.edh ? 0.5 * en : 0.2 * pop);
         if (/enters tapped|enters the battlefield tapped/.test(c.o) && tr !== 'terreno') nota -= 0.1;
@@ -574,7 +579,7 @@ const G = (() => {
     const P = E.AP.plano;
     if (k === 'ramp') {
       const tr = R.tipoRamp(c), mv = P ? P.mv : 0;
-      const quando = mv >= 3 && c.v <= mv - 2 ? `: jogada no turno ${Math.max(1, c.v)}, põe ${P.nome} (custo ${mv}) na mesa no turno ${mv - 1} em vez do ${mv}` : mv >= 3 ? `: custa ${c.v}, adianta pouco ${P.nome} (custo ${mv})` : '';
+      const quando = mv >= 3 && R.custoRamp(c) <= mv - 2 ? `: jogada no turno ${Math.max(1, R.custoRamp(c))}, põe ${P.nome} (custo ${mv}) na mesa no turno ${mv - 1} em vez do ${mv}` : mv >= 3 ? `: custa ${R.custoRamp(c)} na prática, adianta pouco ${P.nome} (custo ${mv})` : '';
       r.push((R.RAMP_N[tr] || 'ramp').replace(/^./, x => x.toUpperCase()) + (tr === 'tesouro' ? ' (ajuda uma vez, não todo turno)' : '') + quando);
     }
     if (P && R.valorPlano && k !== 'lands') for (const w of R.valorPlano(E.AP, c).why) if (!(k === 'ramp' && /^ramp de/.test(w))) r.push('Pelo plano de ' + P.nome + ': ' + w);

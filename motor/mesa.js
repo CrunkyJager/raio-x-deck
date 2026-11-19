@@ -802,6 +802,15 @@ function testaTrocas(Dv,Ops,pares,N,seed,prog,nOp){
   return{base:taxa(base),pares:out,todas};
 }
 
+/* Raio-X (19/11/2026): listas inteiras contra a atual, mesmas sementes (ex.: quantidade de terrenos pela formula pura e pela ajustada) */
+function variantes(Dv,Ops,bases,N,seed,prog,nOp){
+  let f=0;const pg=()=>{if(prog)prog('Comparando listas',++f/(bases.length+1));};
+  const res=(D,Q)=>{const R=resumoArena(D,Ops,Q);return{wr:R.wr,t3:R.t3,t5:R.t5,cmdT:R.cmdT,tMed:R.tMed};};
+  const Q0=torneio(Dv,Ops,N,seed,null,nOp),v0=Q0.map(r=>r.venc===0?1:0),r0=res(Dv,Q0);pg();
+  const out=bases.map(b=>{const D2={...Dv,base:b},Q=torneio(D2,Ops,N,seed,null,nOp),v=Q.map(r=>r.venc===0?1:0),d=dif(v0,v);pg();return{...res(D2,Q),d:d.d,se:d.se};});
+  return{base:r0,out};
+}
+
 /* estudo de trocas no formato do PDF: valor de cada carta, grade fracas x candidatas, confirmacao por tipo de mesa */
 function jogos(D,Ops,N,seed,nOp){const Q=torneio(D,Ops,N,seed,null,nOp);return{v:Q.map(r=>r.venc===0?1:0),m:Q.map(r=>r.P[0].vivo?0:1),Q};}
 const med=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
@@ -862,6 +871,7 @@ if(typeof self!=='undefined'&&typeof window==='undefined'&&typeof module==='unde
       else if(tipo==='partida'){r=arena([Dv,...Ops],seed,{log:true,T:e.data.T||20,vida:e.data.vida,nomes:e.data.nomes});}
       else if(tipo==='estudo'){r=estudo(Dv,Ops,e.data.mesas,N,seed,pg,e.data.nOp,e.data.cfg);}
       else if(tipo==='trocas'){r=testaTrocas(Dv,Ops,pares,N,seed,pg,e.data.nOp);}
+      else if(tipo==='variantes'){r=variantes(Dv,Ops,e.data.bases,N,seed,pg,e.data.nOp);}
       self.postMessage({id,r});}catch(x){self.postMessage({id,erro:String(x)+' '+(x.stack||'')});}};
 }
-if(typeof module!=='undefined')module.exports={arena,torneio,resumoArena,testaTrocas,estudo};
+if(typeof module!=='undefined')module.exports={arena,torneio,resumoArena,testaTrocas,estudo,variantes};
