@@ -315,7 +315,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -327,6 +327,9 @@ function run(forcedCmd, goTo) {
   out.innerHTML = render(A);
   wire(A); wireConcept(A); wireSwaps(A);
   document.dispatchEvent(new CustomEvent('raiox:deck', { detail: A }));
+  // EDHREC ainda não veio para este comandante: busca e refaz a análise uma vez (fica guardado 7 dias)
+  // página do comandante no EDHREC (só informação): busca uma vez e redesenha as trocas
+  if (A.cmds.length && !edhJa(edhCmdCam(A.cmds.map(c => c.name)))) edhPagina(edhCmdCam(A.cmds.map(c => c.name))).then(e => { if (e && !e.erro && LAST === A) rerenderTrocas(A); });
   const dest = goTo || 'resumo';
   if (location.hash === '#' + dest) show(dest); else location.hash = dest;
 }
@@ -554,8 +557,10 @@ function planoDe(A) {
   const nAnexo = A.uniq.filter(c => efeitos(c).anexo).length;
   const voltron = /Aura|Equipment|attached|equipped|enchanted creature/i.test(o) || (A.cmdThemes.has('voltron') && nAnexo >= 10) || (atk && nAnexo >= 12);
   const tribo = A.tribe && new RegExp('\\b' + A.tribe[0].slice(0, 3), 'i').test(o) ? A.tribe[0] : null;
-  const P = { nome, mv, atk, voltron, ativo: atk || voltron, nAnexo, tribo };
+  const goad = /\bgoad|attacks? each combat if able|can't block|Creatures your opponents control attack/i.test(o);
+  const P = { nome, mv, atk, voltron, goad, ativo: atk || voltron, nAnexo, tribo };
   const quer = [];
+  if (goad) quer.push('cartas que forçam os oponentes a se atacarem (goad) e que protegem você do ataque (pillow fort)');
   if (atk) quer.push('ímpeto (atacar no turno em que entra)');
   if (mv >= 3) quer.push(`ramp de até ${Math.max(1, mv - 2)} mana${mv - 2 > 1 ? 's' : ''}, que põe ${nome} na mesa um turno antes`);
   if (tribo) quer.push(`criaturas ${tribo} (o comandante conta com elas)`);
@@ -563,6 +568,97 @@ function planoDe(A) {
   P.quer = quer;
   return P;
 }
+// que tipo de ramp a carta é, pelo texto (a etiqueta "ramp" do Scryfall junta Path to Exile, rituais, Ragavan…)
+// pedra/dork/terreno: mana a mais todo turno, desde cedo; tesouro: mana guardada de uma vez; ritual: só no turno;
+// condicional: depende de causar dano, de o oponente fazer algo etc.; null: não é ramp
+const TIPO_RAMP = {};
+const RAMP_N = { pedra: 'pedra de mana', dork: 'criatura de mana', terreno: 'busca terreno', tesouro: 'tesouros de uma vez', ritual: 'mana só no turno', condicional: 'mana só se algo acontecer' };
+function tipoRamp(c) {
+  if (!c || isLand(c)) return null;
+  if (c.name in TIPO_RAMP) return TIPO_RAMP[c.name];
+  const o = c.o.split('\n//\n')[0].replace(/\([^)]*\)/g, ''), t = c.t.split(' // ')[0], tg = c.tags; // sem o texto de lembrete (o do tesouro tem "{T}: Add")
+  const tapAdd = /(^|\n)[^\n]*\{T\}[^:\n]*: Add /.test(o) && !/\{T\}, Sacrifice (this|~|it)[^:\n]*: Add/.test(o);
+  const cond = /\b(Whenever|When) [^\n]*?(deals (combat )?damage|attacks|dies|an opponent|a player|you cast|you copy)[^\n]*(Treasure|Add \{|search your library for [^.]*land)/.test(o);
+  let r = null;
+  if (tg.includes('ritual')) r = 'ritual';
+  else if (/Sacrifice an? (creature|artifact|permanent)[^:\n]*: Add/.test(o)) r = null; // altar: é peça de combo, não acelera
+  else if (/Sacrifice (this|~|it)[^:\n]*: Add/.test(o) && !tapAdd) r = 'tesouro';
+  else if (tg.includes('land-ramp') && /Its controller may search|that player may search|each player/i.test(o)) r = null; // Path to Exile: o terreno vai para o outro
+  else if ((tg.includes('mana-rock') || (/Artifact/.test(t) && !/Creature/.test(t) && tapAdd)) && !cond) r = 'pedra';
+  else if ((tg.includes('mana-dork') || (/Creature/.test(t) && tapAdd)) && !cond) r = 'dork';
+  else if (tg.includes('land-ramp') && /(search your library for [^.]*land[^.]*(put|onto the battlefield)|put (a|up to \w+|any number of) [^.]*land cards? [^.]*onto the battlefield)/i.test(o) && !cond) r = 'terreno';
+  else if (/Enchantment/.test(t) && tapAdd) r = 'pedra';
+  else if (tg.includes('ramp') || tg.includes('mana-doubler') || /Treasure|Add \{/.test(o)) {
+    if (cond || /Whenever|At the beginning|unless/.test(o) && !/^When [^\n]*enters/m.test(o)) r = 'condicional';
+    else if (/create (a|two|three|four|X|\w+) Treasure/i.test(o)) r = 'tesouro';
+    else if (tg.includes('ramp')) r = 'condicional';
+  }
+  return (TIPO_RAMP[c.name] = r);
+}
+// ---------- EDHREC: a LÓGICA da sinergia, aplicada à ideia de quem monta (19/11/2026) ----------
+// No EDHREC, sinergia = % dos decks de um grupo que jogam a carta MENOS % dos decks das mesmas cores em geral.
+// Usamos as páginas de TEMA por cor (json.edhrec.com/pages/tags/<tema>/<cores>.json, CORS liberado): o grupo é
+// "decks <tema> nessas cores", escolhido pela pessoa no passo 2 (ou na ideia das trocas), não o jeito mais comum do comandante.
+// De cada carta sai: syn (o quanto ela é DO TEMA) e base = inc − syn (o quanto ela é jogada nessas cores em geral: qualidade sem tema).
+// A página do comandante (pages/commanders/<slug>) só serve de informação ("como costumam jogar"), sem peso.
+// Tudo guardado 7 dias em localStorage ('raiox:edh:<caminho>').
+const EDH = {};
+const EDH_TEMA = { voltron: 'voltron', tokens: 'tokens', counters: 'plus-1-plus-1-counters', graveyard: 'graveyard', artifacts: 'artifacts', enchant: 'enchantress', spells: 'spellslinger', sac: 'aristocrats', life: 'lifegain', lands: 'landfall', combat: 'aggro', draw: 'card-draw', flying: 'flying' };
+const EDH_PLURAL = { Elf: 'elves', Dwarf: 'dwarves', Wolf: 'wolves', Werewolf: 'werewolves', Fungus: 'fungi', Sphinx: 'sphinxes', Fox: 'foxes', Mouse: 'mice', Ox: 'oxen', Octopus: 'octopuses', Djinn: 'djinn', Phoenix: 'phoenixes' };
+const EDH_COR = { '': 'colorless', W: 'mono-white', U: 'mono-blue', B: 'mono-black', R: 'mono-red', G: 'mono-green', WU: 'azorius', UB: 'dimir', BR: 'rakdos', RG: 'gruul', GW: 'selesnya', WB: 'orzhov', UR: 'izzet', BG: 'golgari', RW: 'boros', GU: 'simic', WUB: 'esper', UBR: 'grixis', BRG: 'jund', RGW: 'naya', GWU: 'bant', WBG: 'abzan', URW: 'jeskai', BGU: 'sultai', RWB: 'mardu', GUR: 'temur', WUBR: 'yore-tiller', UBRG: 'glint-eye', BRGW: 'dune-brood', RGWU: 'ink-treader', GWUB: 'witch-maw', WUBRG: 'five-color' };
+function edhCor(ident) { const ks = Object.keys(EDH_COR); const set = [...ident].sort().join(''); return EDH_COR[ks.find(k => [...k].sort().join('') === set)] || ''; }
+const edhSlug = (names) => [...names].map(n => n.split(' // ')[0]).sort().map(n => n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 -]/g, '').trim().replace(/[\s-]+/g, '-')).join('-');
+function edhLe(d) {
+  const j = d && d.container && d.container.json_dict; if (!j) return null;
+  const cards = {};
+  for (const l of j.cardlists || []) for (const v of l.cardviews || []) {
+    if (!v.potential_decks) continue;
+    const inc = v.num_decks / v.potential_decks, syn = v.synergy || 0;
+    if (!cards[v.name] || cards[v.name].inc < inc) cards[v.name] = { inc: +inc.toFixed(3), syn: +syn.toFixed(3) };
+  }
+  return { t: Date.now(), n: (j.card && j.card.num_decks) || 0, cards, tags: ((d.panels || {}).taglinks || []).slice(0, 5).map(x => [x.value, x.count]) };
+}
+function edhPagina(cam) {
+  if (!cam) return Promise.resolve(null);
+  if (EDH[cam]) return EDH[cam] instanceof Promise ? EDH[cam] : Promise.resolve(EDH[cam]);
+  try { const c = JSON.parse(localStorage.getItem('raiox:edh:' + cam) || 'null'); if (c && Date.now() - c.t < 7 * 864e5) return Promise.resolve(EDH[cam] = c); } catch (e) {}
+  return (EDH[cam] = fetch('https://json.edhrec.com/pages/' + cam + '.json').then(r => r.ok ? r.json() : null).then(d => {
+    const o = edhLe(d); if (!o) return (EDH[cam] = { erro: 1 });
+    try { localStorage.setItem('raiox:edh:' + cam, JSON.stringify(o)); } catch (e) {}
+    return (EDH[cam] = o);
+  }).catch(() => (EDH[cam] = { erro: 1 })));
+}
+function edhJa(cam) { const v = EDH[cam]; if (v && !(v instanceof Promise)) return v.erro ? null : v; try { const c = JSON.parse(localStorage.getItem('raiox:edh:' + cam) || 'null'); if (c) return (EDH[cam] = c); } catch (e) {} return null; }
+const edhCmdCam = (names) => names && names.length ? 'commanders/' + edhSlug(names) : '';
+function edhTemaCam(k, ident, tribo) {
+  const t = k === 'tribe' ? (tribo ? (EDH_PLURAL[tribo] || tribo.toLowerCase() + 's') : '') : EDH_TEMA[k];
+  if (!t) return ''; const cor = edhCor(ident); return 'tags/' + t + (cor ? '/' + cor : '');
+}
+const EDH_TEMA_N = (k, tribo) => k === 'tribe' ? 'de ' + (tribo || 'tribo') : ({ voltron: 'Voltron', tokens: 'de fichas', counters: 'de marcadores +1/+1', graveyard: 'de cemitério', artifacts: 'de artefatos', enchant: 'de encantamentos', spells: 'de mágicas', sac: 'de sacrifício', life: 'de ganho de vida', lands: 'de landfall', combat: 'de ataque (aggro)', draw: 'de compra', flying: 'de voadores' })[k] || k;
+// ideia = temas escolhidos; devolve as páginas que já chegaram e uma promessa das que faltam
+function edhIdeia(temas, ident, tribo) {
+  const cams = [...temas].map(k => [k, edhTemaCam(k, ident, tribo)]).filter(([, c]) => c);
+  const pags = cams.map(([k, cam]) => ({ k, cam, d: edhJa(cam) })).filter(x => x.d);
+  const falta = cams.filter(([, cam]) => !edhJa(cam) && !(EDH[cam] && EDH[cam].erro));
+  return { pags, cor: edhCor(ident), tribo, carrega: falta.length ? Promise.all(falta.map(([, cam]) => edhPagina(cam))) : null };
+}
+// o que a comunidade diz da carta, medido contra a IDEIA: syn = maior sinergia entre os temas; base = inclusão nas cores sem o tema
+function edhCarta(I, c) {
+  if (!I || !I.pags.length || !c) return null;
+  let best = null;
+  for (const p of I.pags) { const x = p.d.cards[c.name] || p.d.cards[c.name.split(' // ')[0]]; if (!x) continue; const r = { k: p.k, n: p.d.n, inc: x.inc, syn: x.syn, base: Math.max(0, x.inc - x.syn) }; if (!best || r.syn > best.syn) best = { ...r, base: Math.max(best ? best.base : 0, r.base) }; else best.base = Math.max(best.base, r.base); }
+  return best;
+}
+// nota: sinergia com a ideia pesa mais que a qualidade geral; fora das listas = um pouco abaixo de zero (ninguém joga nesse tema)
+const edhNota = (I, c) => { if (!I || !I.pags.length) return 0; const x = edhCarta(I, c); return x ? 1.1 * Math.max(-0.25, x.syn) + 0.7 * x.base : -0.12; };
+function edhPorque(I, c) {
+  const x = edhCarta(I, c); if (!I || !I.pags.length) return '';
+  const temas = I.pags.map(p => EDH_TEMA_N(p.k, I.tribo)).join(' / ');
+  if (!x) return `No EDHREC: não aparece nos decks ${temas} dessas cores`;
+  const pi = Math.round(100 * x.inc), pb = Math.round(100 * x.base), sy = Math.round(100 * x.syn);
+  return `Sinergia com a ideia (EDHREC): em ${pi}% dos decks ${EDH_TEMA_N(x.k, I.tribo)} dessas cores contra ${pb}% dos decks dessas cores em geral (${sy >= 0 ? '+' : ''}${sy}%: ${sy >= 15 ? 'é carta do tema' : sy <= -3 ? 'carta boa em geral, não do tema' : 'carta comum, pouco ligada ao tema'})`;
+}
+const rampFirme = (c) => ['pedra', 'dork', 'terreno'].includes(tipoRamp(c));
 function valorPlano(A, c) {
   const P = A.plano; if (!P || !c || isLand(c)) return { v: 0, why: [] };
   const cache = (A._vp = A._vp || {}); if (cache[c.name]) return cache[c.name];
@@ -570,7 +666,9 @@ function valorPlano(A, c) {
   if (P.atk && e.haste) { v += 3; why.push(`dá ímpeto: ${P.nome} ataca no turno em que entra, sem esperar uma rodada`); }
   if (P.atk && e.extra) { v += 3; why.push(`combate extra: ${P.nome} ataca de novo (e o gatilho de ataque dispara de novo)`); }
   if (rl.has('ramp') && P.mv >= 3 && !e.anexo) {
-    if (c.v <= P.mv - 2) { v += P.ativo ? 2 : 1; why.push(`ramp de ${c.v} mana${c.v > 1 ? 's' : ''}: põe ${P.nome} (custo ${P.mv}) na mesa um turno antes`); }
+    const tr = tipoRamp(c);
+    if (c.v <= P.mv - 2 && (tr === 'condicional' || tr === 'ritual')) why.push(`a mana dele ${tr === 'ritual' ? 'some no fim do turno' : 'só vem se algo acontecer antes'}: não garante ${P.nome} um turno antes`);
+    else if (c.v <= P.mv - 2 && tr) { v += P.ativo ? 2 : 1; why.push(`ramp de ${c.v} mana${c.v > 1 ? 's' : ''}: põe ${P.nome} (custo ${P.mv}) na mesa um turno antes`); }
     else if (c.v >= P.mv && !/Creature/.test(c.t)) { v -= 1.5; why.push(`ramp de ${c.v} manas chega junto com ${P.nome} e não o acelera`); }
   }
   if (P.voltron && e.anexo) {
@@ -581,13 +679,14 @@ function valorPlano(A, c) {
     if (x >= 1 && e.diz.length) why.push(`${listPt(e.diz)} por ${fmt(custo)} de mana${e.equip ? ' (contando o equipar)' : ''}: bom retorno para ${P.nome}`);
     else if (x < 0) why.push(`custa ${fmt(custo)} de mana${e.equip ? ' com o equipar' : ''} e dá pouco a ${P.nome}`);
   }
+  if (P.goad && /\bgoad|attacks? each combat if able|can't attack you|attacks you, |for each creature they control that's attacking you/i.test(c.o)) { v += 1.5; why.push(/\bgoad|each combat if able/i.test(c.o) ? `força os outros a atacar entre si, como ${P.nome}` : `segura o ataque contra você enquanto os outros brigam`); }
   if (P.tribo && subtypes(c).includes(P.tribo)) { v += 1; why.push(`é ${P.tribo}: conta para ${P.nome}`); }
   if (isTutor(c) && c.v <= 3) { v += 1.5; why.push(`tutor barato: busca a peça que ${P.nome} precisa na hora certa`); }
   if (rl.has('wipe') && (/\bnon-?(Vampire|Elf|Goblin|Zombie|[A-Z][a-z]+) creatures?|creatures your opponents control|each creature you don't control/.test(c.o) || (P.tribo && new RegExp('non-?' + P.tribo, 'i').test(c.o)))) { v += 2; why.push('limpa-mesa de um lado só: tira as criaturas dos outros e poupa as suas'); }
   if (P.voltron && e.reduz) { v += 2.5; why.push(`barateia auras/equipamentos: ${P.nome} fica armado mais cedo`); }
   if (P.voltron && e.engine) { v += 2.5; why.push('compra ou cresce a cada aura/encantamento que entra: o plano vira vantagem de cartas'); }
   if (P.voltron && rl.has('protect') && !e.anexo) { v += 1.5; why.push(`protege ${P.nome}, que carrega o deck`); }
-  if (P.ativo && c.v >= 5 && !rl.has('wipe') && !e.engine && !e.extra) { v -= 0.6 * (c.v - 4); why.push(`custa ${c.v}: chega tarde para um deck que quer atacar cedo`); }
+  if (P.ativo && !P.goad && c.v >= 5 && !rl.has('wipe') && !e.engine && !e.extra) { v -= 0.6 * (c.v - 4); why.push(`custa ${c.v}: chega tarde para um deck que quer atacar cedo`); }
   return (cache[c.name] = { v, why });
 }
 
@@ -600,8 +699,11 @@ function cutScore(A, c, needRoles) {
   const fit = conceptFit(A, c);
   if (fit !== null) s += ({ seguir: fit ? -25 : 12, preferir: fit ? -12 : 6, so: fit ? -60 : 20 })[CONC.mode] || 0;
   if (!A.cmdSupport.includes(c.name)) s += 12;
-  s += c.r ? 30 * Math.min(c.r, 20000) / 20000 : 30;
-  if (c.r && c.r < 4000) s -= 45 * (1 - c.r / 4000); // muito jogada no Commander: só sai com motivo forte
+  if (A.edh) s += 40 - 70 * edhNota(A.edh, c); // com o EDHREC: fica o que tem sinergia com a ideia ou é muito jogado nessas cores (antes: popularidade geral)
+  else {
+    s += c.r ? 30 * Math.min(c.r, 20000) / 20000 : 30;
+    if (c.r && c.r < 4000) s -= 45 * (1 - c.r / 4000); // muito jogada no Commander: só sai com motivo forte
+  }
   s -= 7 * real.length;
   if (c.gc) s += A._gcOk ? -30 : 40;
   if (A._capCard < Infinity && (c.usd || 0) > A._capCard) s += 40; // acima do teto por carta: candidata a sair
@@ -636,7 +738,7 @@ function addOk(A, c) {
 }
 function rankAdds(A, list) {
   const cmdTh = A.cmdThemes;
-  return list.filter(c => addOk(A, c)).map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = c.r || 1e6; if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; const fit = conceptFit(A, c); if (fit) s *= ({ seguir: 0.4, preferir: 0.7, so: 0.4 })[CONC.mode] || 1; if (A._capDeck < Infinity && c.usd > 1) s *= 1 + Math.min(3, c.usd / 10); const vp = valorPlano(A, c).v; s *= Math.exp(-0.45 * vp); return { c, s, th, fit, vp }; }).filter(x => !(A.plano && A.plano.ativo && x.vp <= -1.5)).filter(x => !(CONC.mode === 'so' && x.fit === false)).sort((a, b) => a.s - b.s);
+  return list.filter(c => addOk(A, c)).map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = c.r || 1e6; if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; const fit = conceptFit(A, c); if (fit) s *= ({ seguir: 0.4, preferir: 0.7, so: 0.4 })[CONC.mode] || 1; if (A._capDeck < Infinity && c.usd > 1) s *= 1 + Math.min(3, c.usd / 10); const vp = valorPlano(A, c).v; s *= Math.exp(-0.45 * vp); if (A.edh) s *= Math.exp(-2.5 * edhNota(A.edh, c)); return { c, s, th, fit, vp }; }).filter(x => !(A.plano && A.plano.ativo && x.vp <= -1.5)).filter(x => !(CONC.mode === 'so' && x.fit === false)).sort((a, b) => a.s - b.s);
 }
 function addPool(A, test, n = 30) {
   const inDeck = new Set(A.uniq.map(c => c.name).concat(A.cmds.map(c => c.name)));
@@ -649,7 +751,13 @@ function addPool(A, test, n = 30) {
   }
   return out.sort((a, b) => a.r - b.r).slice(0, n);
 }
+// temas da ideia nas trocas: os chips/texto da ideia; sem ideia, os temas que o comandante pede (lidos do texto)
+function temasTroca(A) { const on = new Set(concOn(A)); if (!on.size) for (const t of A.cmdThemes) if (EDH_TEMA[t]) on.add(t); if (A.tribe && (on.has('tribe') || A.plano && A.plano.tribo)) on.add('tribe'); return on; }
 function buildSwaps(A) {
+  A._concOn = null;
+  A.edh = edhIdeia(temasTroca(A), A.ident, A.tribe && A.tribe[0]);
+  if (A.edh.carrega) A.edh.carrega.then(() => { if (LAST === A) rerenderTrocas(A); });
+  if (!A.edh.pags.length) A.edh = null;
   A._concOn = concOn(A); A._testBad = [];
   A._tgt = +CONC.br || A.bracket; A._gcMax = { 1: 0, 2: 0, 3: 3, 4: 99 }[A._tgt];
   A._gcOk = A.gc.length < A._gcMax; A._capCard = toUsd(+CONC.tetoCarta); A._capDeck = toUsd(+CONC.teto);
@@ -662,7 +770,11 @@ function buildSwaps(A) {
   const cutsAll = A.uniq.filter(c => !isLand(c)).map(c => ({ c, s: cutScore(A, c, needRoles) })).sort((a, b) => b.s - a.s);
   const nextCut = (avoid) => cutsAll.find(x => !usedOut.has(x.c.name) && x.s > -20 && !(avoid && avoid(x.c)));
   const MAX = (CONC.br || CONC.teto || CONC.tetoCarta) ? 26 : 16;
-  const push = (sw) => { if (swaps.length >= MAX) return false; swaps.push(sw); usedOut.add(sw.out); usedIn.add(sw.inn); PRICE += usd(sw.inn) - usd(sw.out); const ci = C(sw.inn), co = C(sw.out); GC += (ci && ci.gc ? 1 : 0) - (co && co.gc ? 1 : 0); A._gcOk = GC < A._gcMax; return true; };
+  // juiz pela ideia (EDHREC, decks do tema nessas cores): troca por faixa de função (ramp alto, remoção baixa, terrenos, foco)
+  // não tira carta claramente mais ligada à ideia (ou mais jogada nessas cores) do que a que entra. Regras duras (bracket, preço, cores, teste pedido) passam.
+  const DURA = new Set(['Seu teste', 'Nível de poder', 'Preço', 'Base de mana']);
+  const push = (sw) => { if (swaps.length >= MAX) return false;
+    if (A.edh && !DURA.has(sw.goal) && edhNota(A.edh, C(sw.inn)) < edhNota(A.edh, C(sw.out)) - 0.2) { (A._vetoEdh = A._vetoEdh || []).push(sw.out + ' → ' + sw.inn); return false; } swaps.push(sw); usedOut.add(sw.out); usedIn.add(sw.inn); PRICE += usd(sw.inn) - usd(sw.out); const ci = C(sw.inn), co = C(sw.out); GC += (ci && ci.gc ? 1 : 0) - (co && co.gc ? 1 : 0); A._gcOk = GC < A._gcMax; return true; };
   const altsCut = (avoidFn) => cutsAll.filter(x => !usedOut.has(x.c.name) && x.s > -20 && !(avoidFn && avoidFn(x.c))).slice(0, 4).map(x => x.c.name);
   const label = { ramp: 'Ramp', draw: 'Compra de cartas', removal: 'Remoção pontual', wipe: 'Limpa-mesa', protect: 'Proteção', counter: 'Contramágica' };
 
@@ -926,17 +1038,33 @@ function planoTroca(A, s) {
   const d = pi.v - po.v, tom = d >= 1 ? 'adianta o plano' : d <= -1 ? 'atrasa o plano (só faça se a função que falta pesar mais)' : 'quase neutra para o plano';
   return `<dt>Pelo plano de ${esc(P.nome)}</dt><dd>${esc(bits.join('. '))}. <b>Troca ${tom}.</b></dd>`;
 }
+function edhTroca(A, s) {
+  if (!A.edh) return '';
+  const temas = A.edh.pags.map(p => EDH_TEMA_N(p.k, A.edh.tribo)).join(' / ');
+  const f = (n) => { const x = edhCarta(A.edh, C(n)); return x ? `${Math.round(100 * x.inc)}% dos decks do tema contra ${Math.round(100 * x.base)}% em geral (sinergia ${x.syn >= 0 ? '+' : ''}${Math.round(100 * x.syn)}%)` : 'não aparece nas listas do tema'; };
+  const d = edhNota(A.edh, C(s.inn)) - edhNota(A.edh, C(s.out));
+  const tom = d >= 0.12 ? 'serve mais à ideia' : d <= -0.12 ? 'a que sai serve mais à ideia: só faça se a função que falta pesar mais' : 'empate para a ideia';
+  return `<dt>Sinergia com a ideia (EDHREC, decks ${esc(temas)} ${esc(A.edh.cor)})</dt><dd>${esc(s.inn)}: ${f(s.inn)}. ${esc(s.out)}: ${f(s.out)}. <b>Troca ${tom}.</b></dd>`;
+}
+function edhBox(A) {
+  const nome = A.plano ? A.plano.nome : 'o comandante';
+  const cm = A.cmds.length ? edhJa(edhCmdCam(A.cmds.map(c => c.name))) : null;
+  const bits = [];
+  if (A.edh) bits.push(`A sinergia de cada troca é medida contra a sua ideia: decks ${A.edh.pags.map(p => EDH_TEMA_N(p.k, A.edh.tribo)).join(', ')} ${A.edh.cor} no EDHREC (quanto a carta aparece neles a mais que nos decks dessas cores em geral).`);
+  if (cm && cm.tags.length) bits.push(`Só para comparar, no EDHREC quem joga ${nome} costuma ir de: ${cm.tags.map(([t, n]) => `${t} (${n.toLocaleString('pt-BR')})`).join(', ')}. Isso não muda as trocas.`);
+  return bits.length ? `<p class="note">${esc(bits.join(' '))}</p>` : '';
+}
 function planoBox(A) {
-  const P = A.plano; if (!P || !P.ativo || !P.quer.length) return '';
-  const o = P.voltron ? `${P.nome} vence atacando e carregando auras e equipamentos` : `${P.nome} vence atacando`;
-  return `<div class="plano-box"><b>O plano de ${esc(P.nome)}</b><p>${esc(o)}. Cada turno que ele demora a entrar ou a atacar armado custa a partida. As trocas abaixo protegem e procuram o que adianta isso:</p><ul>${P.quer.map(q => `<li>${esc(q)}</li>`).join('')}</ul><p class="note">Cartas do tema não ficam só por serem do tema: uma aura cara que dá pouco pode sair, e uma barata com evasão ou proteção fica.</p></div>`;
+  const P = A.plano; if (!P || !P.ativo || !P.quer.length) return edhBox(A);
+  const o = P.goad ? `${P.nome} vence fazendo os oponentes se atacarem enquanto você fica protegido` : P.voltron ? `${P.nome} vence atacando e carregando auras e equipamentos` : `${P.nome} vence atacando`;
+  return `<div class="plano-box"><b>O plano de ${esc(P.nome)}</b><p>${esc(o)}. Cada turno que ele demora a entrar ou a atacar armado custa a partida. As trocas abaixo protegem e procuram o que adianta isso:</p><ul>${P.quer.map(q => `<li>${esc(q)}</li>`).join('')}</ul><p class="note">Cartas do tema não ficam só por serem do tema: uma aura cara que dá pouco pode sair, e uma barata com evasão ou proteção fica.</p>${edhBox(A)}</div>`;
 }
 function renderSwapCard(s, i) {
   return `<div class="swapcard${SWAP_ON[i] ? '' : ' off'}" data-sw="${i}">
     <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><button class="btn small" style="margin-left:auto" data-lockout="${esc(s.out)}" title="Trava a carta que sai e refaz as trocas">Não tirar ${esc(s.out)}</button><label class="field" style="margin:0"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
     <div class="pair">${swapBox(s.out, 'SAI')}${swapBox(s.inn, 'ENTRA')}</div>
     ${swapNums(LAST, s)}
-    <dl class="sw-why"><dt>Por que sai</dt><dd>${esc(s.whyOut)}.</dd><dt>Por que entra</dt><dd>${esc(s.whyIn)}</dd><dt>Na prática</dt><dd class="cmp">${esc(compareText(LAST, s))}</dd>${planoTroca(LAST, s)}</dl>
+    <dl class="sw-why"><dt>Por que sai</dt><dd>${esc(s.whyOut)}.</dd><dt>Por que entra</dt><dd>${esc(s.whyIn)}</dd><dt>Na prática</dt><dd class="cmp">${esc(compareText(LAST, s))}</dd>${planoTroca(LAST, s)}${edhTroca(LAST, s)}</dl>
     ${s.alts.length ? `<div class="alt"><span class="note">Prefere outra para entrar?</span><div class="links">${s.alts.map(n => `<button class="cn" data-altin="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
     ${s.altsOut.length ? `<div class="alt"><span class="note">Ou tirar outra no lugar:</span><div class="links">${s.altsOut.map(n => `<button class="cn" data-altout="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
   </div>`;

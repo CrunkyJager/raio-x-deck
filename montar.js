@@ -453,10 +453,15 @@ const G = (() => {
       if (c.gc) gc++; if (R.isTutor(c)) tut++;
       if (isLandC(c)) { lands += q; continue; }
       spells += q; sv += c.v * q;
-      for (const k of papeis(c.name)) cnt[k] = (cnt[k] || 0) + q;
+      // ramp só conta se for de verdade (pedra, criatura de mana, busca de terreno, tesouros): Ragavan e rituais não aceleram o comandante
+      for (const k of papeis(c.name)) if (k !== 'ramp' || RAMP_OK.has(R.tipoRamp(c))) cnt[k] = (cnt[k] || 0) + q;
       if (on.size && encaixa(c, on, tb).length) tema += q;
     }
     const media = spells ? sv / spells : 3;
+    // plano do comandante (o mesmo das trocas): o que adianta Nelly/Stangg/… entrar e atacar
+    const cmdC = d.cmds.map(C).filter(Boolean), cth = new Set(on); cmdC.forEach(c => R.themesOf(c).forEach(t => cth.add(t)));
+    const AP = { cmds: cmdC, uniq: cartas.map(([c]) => c), cmdThemes: cth, tribe: tb ? [tb, 10] : null };
+    AP.plano = R.planoDe ? R.planoDe(AP) : null;
     const landsT = Math.max(33, Math.min(38, Math.round(31 + 2 * media - (spells > 20 && (cnt.ramp || 0) > 10 ? 1 : 0))));
     const voltron = on.has('voltron');
     const slots = [
@@ -474,9 +479,22 @@ const G = (() => {
     for (const x of slots) x.tem = x.k === 'lands' ? lands : x.k === 'tema' ? tema : (cnt[x.k] || 0);
     const total = d.cmds.length + lands + spells;
     const vagasSpells = Math.max(0, 100 - d.cmds.length - landsT - spells);
-    return { d, I, on, tb, slots, lands, spells, total, usd, gc, tut, landsT, vagasSpells, media };
+    // sinergia com a IDEIA escolhida no passo 2 (páginas de tema do EDHREC nessas cores), não com o jeito comum do comandante
+    let edh = R.edhIdeia ? R.edhIdeia(on, I, tb) : null;
+    if (edh && edh.carrega) edh.carrega.then(() => { if (D() === d && d.passo === 3) atualiza(); });
+    if (edh && !edh.pags.length) edh = null;
+    return { d, I, on, tb, AP, edh, slots, lands, spells, total, usd, gc, tut, landsT, vagasSpells, media };
   }
   let P3 = { slot: '', pag: 6 };
+  const RAMP_OK = new Set(['pedra', 'dork', 'terreno', 'tesouro']);
+  const RAMP_BASE = { pedra: 1, terreno: 0.95, dork: 0.85, tesouro: 0.45 };
+  // preço pesa sempre (a mesma função existe barata); com orçamento definido pesa o dobro
+  function pesoPreco(c, E) {
+    const brlC = (c.usd || 0) * (R.usd || 5.56); if (brlC < 3) return 0;
+    const capC = num(E.d.alvo.tetoCarta), teto = num(E.d.alvo.teto);
+    const ref = capC || (teto ? Math.max(5, teto / 60) : 25);
+    return (capC || teto ? 0.4 : 0.22) * Math.log2(1 + brlC / ref);
+  }
   function proximo(E) {
     if (E.total >= 100) return null;
     const falta = E.slots.filter(x => x.tem < x.alvo);
@@ -511,13 +529,29 @@ const G = (() => {
       else if (land) continue;
       const ps = papeis(c.name);
       const fit = encaixa(c, E.on, E.tb);
-      if (k === 'tema') { if (!fit.length) continue; }
+      const ed = E.edh ? R.edhCarta(E.edh, c) : null, en = E.edh ? R.edhNota(E.edh, c) : 0;
+      if (k === 'tema') { if (!fit.length && !(ed && ed.syn >= 0.15)) continue; }   // sinergia alta com o tema escolhido também conta como da ideia
       else if (k !== 'lands' && k !== 'mais' && !ps.has(k)) continue;
       if (!cabeNivel(c, E)) continue;
-      // nota: popularidade (0 a 1) + encaixe na ideia + custo baixo nas funções de base
+      // nota (desde 19/11 à noite): o que a carta faz pelo plano do comandante vem antes da popularidade.
+      // Antes a popularidade mandava e o Ragavan (R$ 234, só faz tesouro se causar dano) era o 1º ramp da Nelly Borca.
       const pop = Math.max(0, 1 - Math.log10(c.r) / 5);
-      let nota = pop + (fit.length ? 0.35 + 0.1 * Math.min(2, fit.length - 1) : 0);
-      if (['ramp', 'removal', 'protect', 'counter'].includes(k) && c.v <= 2) nota += 0.12;
+      const P = E.AP.plano, vp = P && R.valorPlano ? R.valorPlano(E.AP, c).v : 0;
+      let nota;
+      if (k === 'ramp') {
+        const tr = R.tipoRamp(c); if (!RAMP_OK.has(tr)) continue;
+        const mv = P ? P.mv : 4, alvoMv = Math.max(1, mv - 2);
+        const cv = /\{X\}/.test(c.m) ? Math.max(2, c.v + 1) : c.v;   // custo X (Astral Cornucopia, Everflowing Chalice): na prática 2 ou mais
+        if (c.v >= mv && mv >= 3) continue;                       // chega junto com o comandante: não acelera
+        nota = RAMP_BASE[tr] + (cv <= alvoMv ? 0.35 + 0.08 * (alvoMv - cv) : -0.25) + (E.edh ? 0.5 * en : 0.2 * pop);
+        if (/enters tapped|enters the battlefield tapped/.test(c.o) && tr !== 'terreno') nota -= 0.1;
+      } else {
+        // com o EDHREC do comandante: inclusão + sinergia nos decks dele mandam; sem ele, popularidade geral e encaixe por palavra
+        nota = E.edh ? 1.2 * en + 0.1 * pop + (fit.length ? 0.12 : 0) : 0.45 * pop + (fit.length ? 0.35 + 0.1 * Math.min(2, fit.length - 1) : 0);
+        if (['removal', 'protect', 'counter'].includes(k) && c.v <= 2) nota += 0.12;
+      }
+      if (k !== 'lands') nota += 0.12 * Math.max(-2, Math.min(3, vp));
+      nota -= pesoPreco(c, E);
       // função que já passou da meta perde peso (no Krenko as vagas da ideia puxavam goblins de mana e o ramp ia a 25/10);
       // carta que cobre outra função ainda faltando ganha um pouco
       if (k !== 'lands') for (const r of ps) {
@@ -527,8 +561,8 @@ const G = (() => {
         else nota += 0.08;
       }
       if (k === 'lands') { const fora = [...E.I].filter(x => (c.pm || '').includes(x)).length; nota += fora >= 2 ? 0.2 : 0; if (/enters tapped\./.test(c.o) && !/unless|you may pay|If you don't/.test(c.o)) nota -= 0.15; }
+      if (out.length > 600 && !ed) { if (!E.edh) break; continue; }   // com o EDHREC, cartas pouco jogadas no geral mas deste comandante ainda entram
       out.push({ c, nota, fit, ps });
-      if (out.length > 600) break;
     }
     return out.sort((a, b) => b.nota - a.nota).slice(0, n);
   }
@@ -537,10 +571,19 @@ const G = (() => {
     const roleN = (x) => (ROLES.find(o => o.k === x) || {}).n;
     const fun = [...s.ps].filter(x => x !== 'body' && x !== 'enabler').map(roleN).filter(Boolean);
     if (fun.length && k !== 'lands') r.push('Faz: ' + fun.slice(0, 3).join(', ').toLowerCase());
+    const P = E.AP.plano;
+    if (k === 'ramp') {
+      const tr = R.tipoRamp(c), mv = P ? P.mv : 0;
+      const quando = mv >= 3 && c.v <= mv - 2 ? `: jogada no turno ${Math.max(1, c.v)}, põe ${P.nome} (custo ${mv}) na mesa no turno ${mv - 1} em vez do ${mv}` : mv >= 3 ? `: custa ${c.v}, adianta pouco ${P.nome} (custo ${mv})` : '';
+      r.push((R.RAMP_N[tr] || 'ramp').replace(/^./, x => x.toUpperCase()) + (tr === 'tesouro' ? ' (ajuda uma vez, não todo turno)' : '') + quando);
+    }
+    if (P && R.valorPlano && k !== 'lands') for (const w of R.valorPlano(E.AP, c).why) if (!(k === 'ramp' && /^ramp de/.test(w))) r.push('Pelo plano de ' + P.nome + ': ' + w);
     if (s.fit.length) r.push('Cabe na ideia: ' + s.fit.map(x => x === 'tribe' ? 'tribo ' + E.tb : (CONC().find(o => o.k === x) || {}).n || x).join(', ').toLowerCase());
-    if (k !== 'lands' && c.v <= 2 && ['ramp', 'removal', 'protect', 'counter', 'draw'].includes(k)) r.push(`custa ${c.v}: dá para jogar cedo ou junto com outra coisa`);
+    if (k !== 'lands' && c.v <= 2 && ['removal', 'protect', 'counter', 'draw'].includes(k)) r.push(`custa ${c.v}: dá para jogar cedo ou junto com outra coisa`);
     if (k === 'lands') { const cs = [...E.I].filter(x => (c.pm || '').includes(x)); if (cs.length) r.push('Dá mana ' + cs.map(x => R.COLORNAME[x].toLowerCase()).join(' e ')); if (/enters tapped\./.test(c.o) && !/unless|you may pay|If you don't/.test(c.o)) r.push('entra virado'); }
-    r.push(`Nº ${c.r.toLocaleString('pt-BR')} entre as mais jogadas no Commander`);
+    if (E.edh) { const t = R.edhPorque(E.edh, c); if (t && (k !== 'lands' || R.edhCarta(E.edh, c))) r.push(t); }
+    const brlC = (c.usd || 0) * (R.usd || 5.56); if (brlC >= 50) r.push(`cara (${R.brlTxt ? R.brlTxt(c.usd) : 'R$ ' + Math.round(brlC)}): só vale se couber no seu orçamento`);
+    r.push(`Popularidade: nº ${c.r.toLocaleString('pt-BR')} no Commander (só desempata)`);
     return r;
   }
   function pipsDeck(d) {
@@ -589,7 +632,7 @@ const G = (() => {
       corpo = `<div class="g-prox"><span class="g-rot">${k === auto ? 'Próximo passo' : 'Você escolheu'}</span>
         <h3>${esc(slot.n)}${extra ? `: ainda cabem ${falta} mágica${falta > 1 ? 's' : ''}` : slot.alvo ? `: ${falta ? `faltam ${falta} de ${slot.alvo}` : `já tem ${slot.tem} (o normal é ${slot.alvo})`}` : ''}</h3>
         ${extra ? `<p class="note">O esqueleto de funções já está completo; as vagas que sobram (100 menos os ${E.landsT} terrenos) vão para ${E.on.size ? 'mais cartas da ideia' : 'as cartas mais jogadas nas suas cores'}.</p>` : ''}
-        <p class="note">Por que importa: ${esc(slot.why)}. Sugestões nas cores do comandante${E.on.size && k !== 'lands' ? ', puxando para a ideia' : ''}${filtros.length ? ', dentro de ' + esc(filtros.join(', ')) : ''}.</p>
+        <p class="note">Por que importa: ${esc(slot.why)}. Sugestões nas cores do comandante${E.edh ? `, pela sinergia com a sua ideia (no EDHREC: quanto a carta aparece nos decks do${E.edh.pags.length > 1 ? "s temas escolhidos" : " tema escolhido"} nessas cores a mais que nos decks dessas cores em geral)` : E.on.size ? ', pela popularidade geral (os dados de tema do EDHREC não carregaram)' : ', pela popularidade geral (escolha temas no passo 2 para puxar para a ideia)'}${E.on.size && k !== 'lands' ? ', puxando para a ideia' : ''}${filtros.length ? ', dentro de ' + esc(filtros.join(', ')) : ''}.</p>
         ${bas.length ? `<div class="g-bas"><span>Completar com básicos pela cor das cartas: <b>${bas.map(([n, q]) => q + ' ' + n).join(', ')}</b></span><button class="btn small primary" id="g-bas">Pôr os ${bas.reduce((s, [, q]) => s + q, 0)} básicos</button></div><p class="note">Ou escolha terrenos especiais abaixo antes (eles dão mais de uma cor).</p>` : ''}
         <div class="g-sugs">${cartas || '<p class="note">Nenhuma sugestão cabe nos filtros (bracket, orçamento, cartas recusadas). Escolha outra etapa no trilho acima, mude o orçamento no passo 2 ou busque livre no passo 4.</p>'}</div>
         <div class="row">${lista.length ? `<button class="btn" id="g-todas">Pôr ${Math.min(lista.length, falta || lista.length) === 1 ? 'a primeira' : 'as ' + Math.min(lista.length, falta || lista.length) + ' primeiras'}</button>` : ''}<button class="btn" id="g-mais3">Ver mais sugestões</button>${Object.keys(E.d.recusadas).length ? `<button class="btn" id="g-desrec">Rever as ${Object.keys(E.d.recusadas).length} recusadas</button>` : ''}${P3.slot ? '<button class="btn" id="g-auto">Seguir a ordem sugerida</button>' : ''}</div>
@@ -648,7 +691,7 @@ const G = (() => {
     $$('[data-aceita]', root).forEach(b => b.onclick = () => { const n = b.dataset.aceita; if (!d.cartas[n]) d.cartas[n] = 1; toque(); atualiza(); });
     $$('[data-nao]', root).forEach(b => b.onclick = () => { d.recusadas[b.dataset.nao] = 1; toque(); atualiza(); });
   }
-  return { painelCores, painelIdeia, painelJunto, passos, liga, imagens, perfil, estado, sugestoes, nomeCores, salvaConceito };
+  return { painelCores, painelIdeia, painelJunto, passos, liga, imagens, perfil, estado, sugestoes, porque, nomeCores, salvaConceito };
 })();
 window.RAIOX_GUIADO = G;
 
