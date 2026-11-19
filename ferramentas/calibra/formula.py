@@ -40,7 +40,29 @@ for v in ['budget', 'exhibition', 'core', 'upgraded', 'optimized']:
 tab = {'base': {k: round(B[k], 1) for k in K}, 'baseContraAzul': round(BU, 1), 'verde': round(cor['ramp']['G'], 1), 'azulCompra': round(cor['draw']['U'], 1),
        'tema': T, 'tribos': TRB, 'bracket': {1: V['exhibition'], 2: V['core'], 3: V['upgraded'], 4: V['optimized']}, 'barato': V['budget'],
        'amostra': {'decks': len(d), 'temas': {t: len(rs) for t, rs in tm.items()}}}
+# terrenos: regressão nos decks médios. Testado com custo médio + ramp + compra + comandante de 6+: só o custo médio pesa
+# (ramp e compra ~0; erro 1,15 × 1,17 só com a média; Karsten erra 2,0 e dá ~1 a mais). Fica terrenos = a + b × custo médio,
+# e cada tema/bracket/orçamento é o resíduo médio do grupo (encolhido para 0 quando há poucos decks).
+def ols(X, y):
+    k = len(X[0]); A = [[sum(x[i] * x[j] for x in X) for j in range(k)] + [sum(x[i] * yy for x, yy in zip(X, y))] for i in range(k)]
+    for i in range(k):
+        p = max(range(i, k), key=lambda r: abs(A[r][i])); A[i], A[p] = A[p], A[i]
+        for r in range(k):
+            if r != i: f = A[r][i] / A[i][i]; A[r] = [a - f * b for a, b in zip(A[r], A[i])]
+    return [A[i][k] / A[i][i] for i in range(k)]
+todos = [r for r in d.values() if r.get('cmd')]
+lin = lambda r: [1, r['media']]
+cf = ols([lin(r) for r in todos], [r['lands'] for r in todos])
+res = lambda r: r['lands'] - sum(a * b for a, b in zip(cf, lin(r)))
+grupo = {}
+for r in todos: grupo.setdefault(r['tema'] if r['tema'].startswith('geral') else tema(r), []).append(res(r))
+r0 = mean(grupo['geral'])
+encolhe = lambda xs: round((mean(xs) - r0) * len(xs) / (len(xs) + 5), 1)   # poucos decks: puxa para 0
+tab['terrenos'] = {'a': round(cf[0] + r0, 2), 'b': round(cf[1], 2), 'tema': {t: encolhe(v) for t, v in grupo.items() if not t.startswith('geral')},
+                   'bracket': {1: encolhe(grupo['geral/exhibition']), 2: encolhe(grupo['geral/core']), 3: encolhe(grupo['geral/upgraded']), 4: encolhe(grupo['geral/optimized'])},
+                   'barato': encolhe(grupo['geral/budget'])}
 json.dump(tab, open('tabela.json', 'w'), ensure_ascii=False, indent=1)
+print('terrenos', json.dumps(tab['terrenos']))
 def prev(r):
     t, ci = tema(r), r['cmd']['ci']; o = {}
     for k in K:

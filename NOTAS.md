@@ -180,7 +180,23 @@ Sem dados de fora (EDH_LIGADO=false). Trocas e sugestões pela **efetividade** d
 - Terrenos: o padrão é a fórmula **ajustada** (decisão do usuário), a pura fica ao lado.
 - Mesa (500 partidas, todas as trocas ligadas; erro ±1,2 a ±2,2): Stangg −2,6 (antes −4,4) | Krenko −1,0 (+3,0) | Lathril −1,4 (−2,2) | Edgar −3,2 (−1,4). Tudo dentro do erro; o Edgar está no limite. Efeito colateral: a nota nova puxa muita pedra de mana para dentro (Everflowing Chalice em 3 decks, Astral Cornucopia, Diamond Lion, Grim Monolith, Mana Vault); no Edgar ela tira Cordial Vampire e Drana por pedra (−1,2 e −1,6 na mesa). Revisar se a confiabilidade/peso do T6 das pedras está alto demais.
 
+### Plano sem contar 2×, ímpeto menor e terrenos do EDHREC só para comparar (19/11/2026, fim da tarde)
+- `efPlano`: dreno não conta duas vezes (o +0,3 de dreno só quando não há dreno/hino na lista); no voltron, criatura que não entra no plano × 0,6 (Star Athlete e Longshot de 1,6 para 0,8).
+- `valorPlano`: ímpeto de planeswalker ou carta mais cara que o comandante vale +1 (era +3). Ajani e Domri saíram das trocas.
+- Terrenos: o usuário esclareceu que o número do EDHREC **não é meta**, é para comparar com a fórmula e ver a eficiência dela. Meta = Karsten ajustada. EDHREC = 31,53 + 1,28 × custo médio (erro médio 1,2 terreno nos 382 decks; a Karsten erra 2,0) + tema/bracket/orçamento (`ferramentas/calibra/formula.py`, `tabela.json`), mostrado só como texto no Montar e em Análise → Quantos terrenos, e como 3ª lista no botão **Comparar terrenos** da Mesa ("Decks médios do EDHREC"). Ajustada × EDHREC (o deck tem): Stangg 34 × 35 (35), Krenko 37 × 35 (35), Lathril 39 × 36 (34), Edgar 40 × 35 (36).
+- Tentado e descartado (`meta2`): metas como faixas pelo EDHREC. Mesa −7,0 / +2,2 / −5,0 / −1,0 (Stangg/Krenko/Edgar/Lathril).
+- Mesa (500 partidas, todas as trocas ligadas, pontos; erro ±1,2 a ±2,3): Stangg −4,8 (antes −2,6) | Krenko 0 (−1,0) | Edgar +1,0 (−3,2) | Lathril −0,8 (−1,4). O Stangg continua negativo: perde nas trocas de Swiftfoot Boots → Swashbuckling (−1,6), Storm Herald → Instill Energy (−1,4) e Red XIII → Fear of Missing Out (−1,4). O motor ignora planeswalker e "olhe o topo", então a Mesa pune walkers e cartas de seleção que a nota acha boas.
+- **Comparar terrenos** (1000 partidas por lista, mesmas cartas sorteadas; diferença em pontos de vitória contra a lista atual):
+  | Deck | Lista | Pura | Ajustada | EDHREC |
+  |---|---|---|---|---|
+  | Stangg | 35 | 34: −0,2 ±0,7 | 34: −0,2 ±0,7 | 35: igual |
+  | Krenko | 35 | 37: **+2,5 ±0,9 (ganha)** | 37: **+2,5 ±0,9 (ganha)** | 35: igual |
+  | Lathril | 35 | 39: −0,8 ±0,7 | 39: −0,8 ±0,7 | 36: −0,7 ±0,5 |
+  | Edgar | 36 | 39: −0,5 ±1,2 | 40: **−2,0 ±1,3 (perde)** | 35: −0,4 ±0,6 |
+  Leitura: as três empatam na maioria; a fórmula ganha no Krenko (mais terreno) e a ajustada perde no Edgar, mas lá o 4º corte foi o Bloodthirsty Conqueror (peça do combo) — `variaTerrenos` tira "a mais cara" sem proteger combo/comandante-chave. Pura e ajustada dão o mesmo número em 3 dos 4 decks.
+
 ## Pendências (ordem sugerida para a próxima conversa)
+- **Novo (19/11 fim da tarde):** `variaTerrenos` (Comparar terrenos) não deve cortar peça de combo (`comboPar`) nem a carta do plano; Stangg segue negativo nas trocas (Swiftfoot → Swashbuckling, Storm Herald → Instill Energy, Red XIII → Fear of Missing Out); Mesa pune planeswalker e "olhe o topo" porque o motor ignora.
 0. **Ouvir o usuário sobre o Montar guiado** (imagens em lote e ramp sem estourar, da rodada de 19/11) e sobre as trocas pelo plano.
 1. **Efetividade + triangulação**: feita (ver seção); pool de entrada limpo na 2ª rodada. Falta: Montar guiado usar `efetiv`; ainda entram cartas fora do plano em tribo (Lathril: Invasion Tactics, Night of the Sweets' Revenge, Rydia's Return) e terrenos de duas faces de verdade muito vezes (peso 0,5 depende da escolha pura × ajustada). Fórmula de terrenos: feita (lado a lado); falta o usuário olhar a comparação na Mesa e escolher pura ou ajustada. Também: mais planos além de ataque/voltron/tribo/goad (fichas, aristocratas, feitiços…).
 2. **Dados do Grimório** (`cards.json`, `decks.json`, `names.tsv`, `alias.json`, `pt.json`) para a pasta `dados/`. Estão no artefato do Edgar; precisam vir do usuário/Edgar. O código já procura por `dados/cards.json` (força/resistência certas), `dados/decks.json` (oponentes reais) e `dados/nomes-pt.json` (`{"nome em português": "English name"}`). Sem eles: resistência = força, só 4 oponentes de exemplo, nomes em português não funcionam.

@@ -179,10 +179,11 @@ function analyze(text, forcedCmd) {
   A.cheapRamp = cards.filter(c => !isLand(c) && c.v <= 2 && rolesOf(c).has('ramp')).length;
   A.terrF = terrenosFormula(cards, cmdCards);
   A.recLands = Math.max(30, Math.min(42, Math.round(A.terrF.ajust)));
+  A.recEdh = Math.max(30, Math.min(42, Math.round(A.terrF.edh)));
   A.recPura = Math.max(30, Math.min(42, Math.round(A.terrF.pura)));
   const blue = ident.has('U');
   A.refs = [
-    { k: 'lands', n: 'Terrenos', have: A.lands + A.mdfc * 0.5, lo: A.recLands - 1, hi: A.recLands + 2, why: `Pela fórmula do Frank Karsten (custo médio ${A.avgMV.toFixed(2).replace('.', ',')}, ${A.terrF.barato} cartas de compra ou ramp de custo até 2): ${fmtD(A.terrF.pura)} pura, ${fmtD(A.terrF.ajust)} com os ajustes. A conta está em Mana e curva. Terreno de menos trava a mão; demais faz faltar ação no fim do jogo.` },
+    { k: 'lands', n: 'Terrenos', have: A.lands + A.mdfc * 0.5, lo: A.recLands - 1, hi: A.recLands + 2, why: `Pela fórmula do Frank Karsten (custo médio ${A.avgMV.toFixed(2).replace('.', ',')}, ${A.terrF.barato} cartas de compra ou ramp de custo até 2): ${fmtD(A.terrF.pura)} pura, ${fmtD(A.terrF.ajust)} com os ajustes. Para comparar, os decks médios do EDHREC com esse custo médio jogam ${fmtD(A.terrF.edh)} (${String(TERR_EDH.a).replace('.', ',')} + ${String(TERR_EDH.b).replace('.', ',')} × custo médio). A conta está em Mana e curva. Terreno de menos trava a mão; demais faz faltar ação no fim do jogo.` },
     { k: 'ramp', n: 'Ramp', have: cnt('ramp'), lo: 10, hi: 15, why: 'Mana extra cedo põe você um turno à frente da mesa. Ramp de 2 manas vale mais que o de 4.' },
     { k: 'draw', n: 'Compra de cartas', have: cnt('draw'), lo: 10, hi: 16, why: 'Em mesa de 4 jogadores, quem fica sem cartas na mão perde. Prefira fontes que compram mais de uma vez.' },
     { k: 'removal', n: 'Remoção pontual', have: cnt('removal'), lo: 8, hi: 12, why: 'Responde ao comandante dos outros e às peças que viram o jogo. Instantâneas e baratas valem mais.' },
@@ -223,6 +224,13 @@ function analyze(text, forcedCmd) {
   if (A.plano.voltron) {
     const rp = A.refs.find(r => r.k === 'protect'); if (rp) Object.assign(rp, { lo: 7, hi: 14, why: `${A.plano.nome} carrega o deck: uma remoção nele leva junto as auras e equipamentos. Deck de voltron costuma ter 8–12 proteções.` });
     const rr = A.refs.find(r => r.k === 'removal'); if (rr) Object.assign(rr, { lo: 5, hi: 10, why: 'Deck que vence atacando com o comandante usa um pouco menos de remoção e mais proteção; prefira as baratas e instantâneas.' });
+  }
+  // teste (19/11/2026): faixas das funções pelas metas do Montar (decks médios do EDHREC) em vez das fixas
+  let refsMeta = false; try { refsMeta = localStorage.getItem('raiox:refsMeta') === '1'; } catch (e) {}
+  if (refsMeta && window.RAIOX_METAS) {
+    const on = new Set(A.themes.filter(t => t.cmd).map(t => t.k)); if (A.tribe) on.add('tribe');
+    const M = window.RAIOX_METAS(on, ident, { alvo: { br: '', teto: '', tetoCarta: '' } }, A.tribe ? A.tribe[0] : null);
+    for (const r of A.refs) if (M[r.k] && M[r.k].alvo != null) { const larg = r.hi - r.lo; r.lo = M[r.k].alvo; r.hi = M[r.k].alvo + larg; r.why += ` (meta pelos ${M[r.k].conta})`; }
   }
   // dependência do comandante
   const supportsCmd = (c) => [...themesOf(c, cmdThemes)].some(t => cmdThemes.has(t)) || (A.tribe && cmdCards.some(k => subtypes(k).includes(A.tribe[0])) && subtypes(c).includes(A.tribe[0]));
@@ -502,6 +510,7 @@ function terrenosHTML(A) {
     <p class="lead">Fórmula do Frank Karsten (ChannelFireball): terrenos = 31,42 + 3,13 × custo médio das cartas que não são terreno − 0,28 × cartas de compra ou ramp que custam até 2. As duas versões ficam lado a lado; a Mesa simulada joga as duas para comparar.</p>
     <p class="note">Conta: ${F.n} cartas que não são terreno somam ${fmtD(F.soma, 0)} manas, custo médio ${fmtD(F.media, 2)}. Ramp até 2 (${F.ramp2.length}): ${lst(F.ramp2)}. Compra até 2 (${F.compra2.length}): ${lst(F.compra2)}. Ramp que só vale uma vez ou depende de algo (rituais, Ragavan) e o que troca um terreno da mão (Mox Diamond) não entram; Everflowing Chalice conta pelo custo de um marcador (2).</p>
     <div class="grid2">${pura}${ajust}</div>
+    <p class="note"><b>Para comparar com a prática:</b> os decks médios do EDHREC (382 decks, os comandantes mais jogados de cada tema, tribo, bracket e orçamento) com custo médio ${fmtD(F.media, 2)} jogam ${fmtD(F.edh)} terrenos (${String(TERR_EDH.a).replace('.', ',')} + ${String(TERR_EDH.b).replace('.', ',')} × custo médio; erro médio de 1,2 terreno). É só referência: a Mesa simulada joga essa quantidade ao lado das fórmulas para medir qual rende mais.</p>
     <p class="note">O Raio-X usa a ajustada nas faixas e no Montar até você escolher.</p></section>`;
 }
 function renderConcept(A) {
@@ -568,7 +577,7 @@ function efeitos(c) {
   if (e.anexo && /(enchanted|equipped) creature deals damage equal to its power|it deals damage equal to its power|deals that much damage to each opponent/i.test(o)) { e.kv += 1.6; e.diz.push('dano extra com a força da criatura'); }
   if (e.anexo && /untap all lands you control|create a Treasure|search your library for [^.]*land/.test(o)) { e.kv += 0.6; e.diz.push('gera mana'); }
   e.extra = /additional combat phase|extra combat/i.test(o);
-  e.engine = !e.anexo && /Constellation|Whenever (an|another) (Aura|enchantment|Equipment)[^.]*(enters|you control)|Whenever you cast an? (Aura|enchantment|Equipment)|becomes attached|Whenever an? (Aura|Equipment) you control/i.test(o) && /draw|create|counter|Add /.test(o);
+  e.engine = !e.anexo && /Constellation|Whenever (an|another) (Aura|enchantment|Equipment)[^.]*(enters|you control)|Whenever you cast an? (Aura|enchantment|Equipment)|becomes attached|Whenever an? (Aura|Equipment) you control/i.test(o) && /draw|create|counter|Add |double [^.]*power|gets \+\d/.test(o); // Nylea's Colossus dobra a força
   e.reduz = /(Aura|Enchantment|Equipment)[^.]{0,30} spells?[^.]{0,30} cost \{\d\} less|Equip abilities[^.]* cost \{\d\} less|equip costs?[^.]* less/i.test(o);
   return (EFX[c.name] = e);
 }
@@ -625,9 +634,9 @@ function tipoRamp(c) {
 // Mox Diamond custa 0, mas troca um terreno da mão: adianta uma vez, não soma um terreno — conta como ramp de 2
 function custoRamp(c) {
   if (!c) return 99;
-  const o = c.o.split('\n//\n')[0], m = c.m.split(' // ')[0];
+  const o = c.o.split('\n//\n')[0].replace(/\([^)]*\)/g, ''), m = c.m.split(' // ')[0]; // sem lembrete (o do tesouro tem "{T}, Sacrifice")
   const mk = o.match(/Multikicker \{(\d+)\}/); if (mk) return c.v + +mk[1];
-  if (/\{X\}/.test(m)) return Math.max(2, c.v + 1);
+  if (/\{X\}/.test(m)) return Math.max(2, c.v + (m.match(/\{X\}/g) || []).length); // Astral Cornucopia: X=1 custa 3
   if (trocaTerreno(c)) return Math.max(2, c.v);
   const sp = c.v === 0 && o.match(/Suspend (\d+)/); if (sp) return +sp[1] + 1;   // Sol Talisman: suspensa, só chega turnos depois
   // a mana vem de uma ativação que custa mana (Dungeoneer's Pack: {2}, {T}, sacrifica: um tesouro) ou a carta entra virada: soma no custo
@@ -640,6 +649,9 @@ const trocaTerreno = (c) => /discard a land card|return a land you control to it
 // terrenos = 31,42 + 3,13 × custo médio das não-terrenos − 0,28 × (compra + ramp de custo ≤ 2)
 // Ajustada (pedido do usuário, 19/11/2026): +1 com comandante de 6 ou mais (a fórmula só olha as 99) e
 // carta de dupla face com terreno no verso vale meio terreno (na pura conta inteira).
+// terrenos pelos decks médios do EDHREC (382 decks, ferramentas/calibra): só o custo médio das mágicas explica (erro médio 1,2;
+// o Karsten erra 2,0 e dá ~1 a mais). Gerado por gera_meta.py.
+const TERR_EDH = { a: 31.53, b: 1.28 };
 function terrenosFormula(cards, cmds) {
   const nonland = cards.filter(c => !isLand(c));
   const soma = nonland.reduce((s, c) => s + c.v, 0), n = nonland.length, media = n ? soma / n : 3;
@@ -655,7 +667,8 @@ function terrenosFormula(cards, cmds) {
   if (cmdMV >= 6) ajustes.push({ v: 1, t: `comandante de ${cmdMV} manas: +1 (a fórmula só olha as 99 cartas)` });
   const ajust = pura + ajustes.reduce((s, a) => s + a.v, 0);
   const lands = cards.filter(isLand).length, mdfc = cards.filter(isMdfcLand).length;
-  return { soma, n, media, ramp2, compra2, barato, pura, ajust, ajustes, cmdMV, lands, mdfc, temPura: lands + mdfc, temAjust: lands + mdfc * 0.5 };
+  const edh = TERR_EDH.a + TERR_EDH.b * media;
+  return { soma, n, media, ramp2, compra2, barato, pura, ajust, edh, ajustes, cmdMV, lands, mdfc, temPura: lands + mdfc, temAjust: lands + mdfc * 0.5 };
 }
 // ---------- EDHREC: a LÓGICA da sinergia, aplicada à ideia de quem monta (19/11/2026) ----------
 // No EDHREC, sinergia = % dos decks de um grupo que jogam a carta MENOS % dos decks das mesmas cores em geral.
@@ -729,7 +742,12 @@ function valorPlano(A, c) {
   const P = A.plano; if (!P || !c || isLand(c)) return { v: 0, why: [] };
   const cache = (A._vp = A._vp || {}); if (cache[c.name]) return cache[c.name];
   const e = efeitos(c), why = [], rl = rolesOf(c); let v = 0;
-  if (P.atk && e.haste) { v += 3; why.push(`dá ímpeto: ${P.nome} ataca no turno em que entra, sem esperar uma rodada`); }
+  // ímpeto só antecipa o comandante se a fonte já está na mesa antes dele: planeswalker (habilidade de lealdade,
+  // um turno por vez) ou carta mais cara que o comandante chegam depois e valem pouco por isso
+  if (P.atk && e.haste) {
+    if (/Planeswalker/.test(c.t.split(' // ')[0]) || c.v > P.mv) { v += 1; why.push(`dá ímpeto, mas ${/Planeswalker/.test(c.t) ? 'pela lealdade, com o planeswalker já na mesa' : `custa ${c.v}: chega depois de ${P.nome}`}`); }
+    else { v += 3; why.push(`dá ímpeto: ${P.nome} ataca no turno em que entra, sem esperar uma rodada`); }
+  }
   if (P.atk && e.extra) { v += 3; why.push(`combate extra: ${P.nome} ataca de novo (e o gatilho de ataque dispara de novo)`); }
   if (rl.has('ramp') && P.mv >= 3 && !e.anexo) {
     const tr = tipoRamp(c), cv = custoRamp(c);
@@ -763,7 +781,14 @@ function valorPlano(A, c) {
 // velocidade, alcance, se é simétrica, se tem desvantagem) e a CONDIÇÃO é medida contra o deck
 // (Ragavan num deck que bate cedo com ímpeto vale muito; num deck lento, pouco). Popularidade não entra.
 const EF_K = ['ramp', 'draw', 'removal', 'wipe', 'protect', 'counter'];
-const OVERRUN = /creatures you control (gain [^.]*and )?get \+(X|[2-9])\/\+(X|[2-9])[^.]*until end of turn|creatures you control gain [^.]*and get \+(X|\d)\/\+(X|\d)/i;
+const OVERRUN_RX = /[^.\n]*creatures you control (gain [^.]*and )?get \+(X|\d)\/\+(X|\d)[^.\n]*/i;
+// finalizador de mesa larga (Craterhoof, Overrun): +N/+N até o fim do turno COM atropelar, ou +X/+X pelo número de criaturas/da tribo.
+// +2/+2 ou +3/+3 sem atropelar (Invasion Tactics, Rydia's Return) e X por Food/artefato não fecham o jogo.
+const OVERRUN = { test(o) {
+  const o2 = o.split('\n').filter(l => !/^\s*[+−-]?\d+:|^\s*[+−-]X:/.test(l)).join('\n'); // habilidade de lealdade (ultimate de planeswalker) não conta
+  const m = o2.match(OVERRUN_RX); if (!m || !/until end of turn/i.test(m[0] + o2)) return false; const f = m[0], pw = m[2];
+  if (/trample/i.test(f)) return pw === 'X' || +pw >= 3; const x = f.match(/X is the number of (\w+) you control/i) || o2.match(/where X is the number of (\w+) you control/i);
+  return pw === 'X' && !!x && !/^(Foods?|Clues?|Treasures?|artifacts?|lands?|enchantments?|permanents?|Forests?)$/i.test(x[1]); } };
 const semLembrete = (c) => c.o.split('\n//\n')[0].replace(/\([^)]*\)/g, '');
 function perfilDeck(A) {
   if (A._perfil) return A._perfil;
@@ -780,6 +805,7 @@ function perfilDeck(A) {
     morre: Math.min(1, nl.filter(c => /[Ss]acrifice (a|another) creature/.test(c.o)).length / 6 + cri.length / n * 0.5),
     fichas: Math.min(1, nl.filter(c => /create[^.]*tokens?/i.test(c.o)).length / 12),
     nCri: cri.length,
+    tri: A.tribe ? nl.filter(c => subtypes(c).includes(A.tribe[0]) || /Changeling/.test(c.o)).length / n : 0,
   };
   P.txt = `${cri.length} criaturas, ${cedo} de até 2 manas, ${haste} fontes de ímpeto`;
   return (A._perfil = P);
@@ -788,6 +814,13 @@ function perfilDeck(A) {
 function condDeck(A, c, o) {
   const P = perfilDeck(A), pc = (x) => Math.round(100 * x) + '%';
   const proprio = /\b(Haste|Dash|Flying|Menace|Trample)\b|can't be blocked/i.test(o);
+  // gatilho de um tipo de criatura (Invasion Tactics: "one or more Allies"): mede quanto do deck é desse tipo
+  const tp = o.match(/Whenever (?:a|an|another|one or more) (?:other )?(?:nontoken )?([A-Z][a-z]+)(?: creatures?)? you control/);
+  if (tp && !/^(Creatures?|Tokens?|Artifacts?|Lands?|Equipment|Auras?|Enchantments?|Permanents?|Vehicles?)$/.test(tp[1])) {
+    const w0 = tp[1], cand = [w0, w0.replace(/ies$/, 'y'), w0.replace(/ves$/, 'f'), w0.replace(/s$/, '')];
+    const nl = A.cards.filter(x => !isLand(x)), f = nl.filter(x => cand.some(k => subtypes(x).includes(k)) || /Changeling/.test(x.o)).length / (nl.length || 1);
+    if (!(A.tribe && cand.includes(A.tribe[0]))) return [Math.min(1, 0.1 + 1.5 * f), `só rende com ${w0}: ${pc(f)} do deck`];
+  }
   if (/Equipped creature gets \+\d\/-1/.test(o) && /equipped creature dies/i.test(o)) return [1.1, 'ela mesma mata as criaturas de resistência 1'];
   if (/deals (combat )?damage to (a player|an opponent|one or more)|Whenever [^.\n]*attacks/i.test(o)) {
     const m = Math.min(1.1, 0.3 + 0.75 * P.bate + (proprio ? 0.15 : 0));
@@ -815,7 +848,8 @@ function manaDada(A, c, o) {
   if (/Add one mana/i.test(o)) g = 1; if (/Add two/i.test(o)) g = 2; if (/Add three/i.test(o)) g = 3;
   if (/adds an additional/i.test(o)) g = 1; // Wild Growth, Utopia Sprawl: o terreno dá uma a mais
   const fe = o.match(/Add [^\n]*for each ([A-Z][a-z]+|creature|artifact)/i);
-  if (fe) { const tri = A.tribe && fe[1].toLowerCase().startsWith(A.tribe[0].toLowerCase()); g = tri || /creature/i.test(fe[1]) ? 3 : 2; w = `a mana cresce com o que está na mesa (conta ${g})`; }
+  if (/for each charge counter/i.test(o)) { g = 1; w = 'um marcador de carga (pagando o reforço uma vez)'; }
+  else if (fe) { const tri = A.tribe && fe[1].toLowerCase().startsWith(A.tribe[0].toLowerCase()); g = tri || /creature/i.test(fe[1]) ? 3 : 2; w = `a mana cresce com o que está na mesa (conta ${g})`; }
   else if (/Add an amount of|Add [^\n]*equal to|Add X mana/i.test(o)) { g = 2; w = 'a mana cresce com o tempo (conta 2)'; }
   const ca = linha ? custoN(linha.split(':')[0].replace(/\{[TQ]\}/g, '')) : 0;
   return { g, net: Math.max(0, g - ca), ca, w };
@@ -824,7 +858,8 @@ function mexRamp(A, c, tr, o) {
   const cv = c.v, cr = custoRamp(c), w = [`${RAMP_N[tr]} de ${cr}${cr !== cv ? ' na prática' : ''}`];
   const cmd = (A.cmds || [])[0], C = cmd ? cmd.v : 0;
   const D = manaDada(A, c, o); if (D.w) w.push(D.w);
-  let entra = Math.max(1, cv), mex = 0, conf = 1, g = 0, vez = false;
+  let entra = Math.max(1, cv, /Multikicker/.test(o) || /\{X\}/.test(c.m) || tr === 'terreno' || tr === 'tesouro' ? cr : 0), mex = 0, conf = 1, g = 0, vez = false;
+  const lAdd = o.split('\n').find(l => /:\s*Add/.test(l)) || '';
   if (/enters tapped/i.test(o) && /Artifact/.test(c.t)) entra += 1;
   const sp = cv === 0 && o.match(/Suspend (\d+)/); if (sp) entra = +sp[1] + 1;
   if (trocaTerreno(c)) { entra = Math.max(1, cr); w.push('troca um terreno da mão'); }
@@ -832,7 +867,10 @@ function mexRamp(A, c, tr, o) {
     g = D.net; if (D.ca) w.push(`ativar custa ${D.ca}`);
     if (tr === 'dork') { conf = 0.85; w.push('é criatura: morre no primeiro limpa-mesa (×0,85)'); }
     if (trocaTerreno(c)) { g = Math.min(g, 1); vez = true; mex = pT(entra) * 1; }
+    else if (/Sacrifice (this|~)/i.test(lAdd)) { g = D.g; vez = true; mex = g * pT(entra + 1); w.push('sacrifica para dar a mana: uma vez só'); }
+    else if (/doesn't untap during your untap step/i.test(o)) { g = D.g; vez = true; mex = g * pT(entra) + 0.2 * g * rSoma(entra + 2); w.push('não desvira sozinha: é uma rajada de mana, desvirar custa caro'); }
     else mex = g * rSoma(entra + 1);
+    if (/Discard your hand/i.test(lAdd)) { conf *= 0.35; w.push('descarta a mão inteira (×0,35)'); }
   } else if (tr === 'terreno') {
     const bf = /(two|up to two)[^.]*basic land cards?[^.]*(put them|onto the battlefield)|up to two[^.]*onto the battlefield/i.test(o) && !/put one onto the battlefield/i.test(o) ? 2 : 1;
     const mao = /into your hand/i.test(o) ? 1 : 0; g = bf;
@@ -854,7 +892,7 @@ function mexRamp(A, c, tr, o) {
   w.push(`rende ${fmtD(mex, 1)} manas pesadas até o T6`);
   let bonus = 0, bonusW = '';
   if (C >= 3 && g > 0 && tr !== 'condicional' && !/Powerstone|Spend this mana only/i.test(o)) {
-    const t = vez ? Math.max(cv, C - g) : Math.max(entra + 1, C - g);
+    const t = vez ? Math.max(entra, C - g) : Math.max(entra + 1, C - g);
     if (t < C) { const P = A.plano; bonus = P && P.ativo ? 0.3 : 0.2; bonusW = `põe ${cmd.name.split(',')[0]} na mesa um turno antes (+${fmtD(bonus, 1)})`; }
   }
   return { nota, mex, bonus, bonusW, w };
@@ -870,7 +908,9 @@ function efetiv(A, c) {
   const custoAdj = (x, d) => x - d * Math.max(0, cv - 2);
   if (rl.has('ramp')) {
     const tr = tipoRamp(c), cr = custoRamp(c), w = [];
-    if (!tr) { v.ramp = 0.1; w.push('não dá mana de verdade (a etiqueta de ramp engana)'); }
+    if (!tr && /spells? you cast [^.]*cost \{1\} less/i.test(o)) { const P = perfilDeck(A), tipo = /chosen type/i.test(o), tk = (o.match(/(Creature|Enchantment|Artifact|Instant|Sorcery|Aura|Equipment)( and \w+)? spells/i) || [])[1], nl = A.cards.filter(x => !isLand(x)), d = tipo ? P.tri : tk ? nl.filter(x => new RegExp(tk, 'i').test(x.t.split(' // ')[0])).length / (nl.length || 1) : 0.5;
+      v.ramp = 0.2 + 0.8 * d; w.push(`reduz em 1 o custo de ${tipo ? (A.tribe ? A.tribe[0] + ' (' + Math.round(100 * d) + '% do deck)' : 'um tipo escolhido, e o deck não é de tribo') : Math.round(100 * d) + '% do deck'}`); }
+    else if (!tr) { v.ramp = 0.1; w.push('não dá mana de verdade (a etiqueta de ramp engana)'); }
     else {
       const M = mexRamp(A, c, tr, o); let x = M.nota; w.push(...M.w);
       if (/Powerstone/.test(o)) { x *= 0.5; w.push('Powerstone: a mana só paga artefato'); }
@@ -883,17 +923,28 @@ function efetiv(A, c) {
   }
   if (rl.has('draw')) {
     const w = []; let x;
-    const nM = o.match(/draws? (two|three|four|five|seven|X|\d+) cards/i), N = nM ? ({ two: 2, three: 3, four: 4, five: 5, seven: 7, x: 3 })[nM[1].toLowerCase()] || +nM[1] || 3 : 1;
+    const NUM = { a: 1, an: 1, one: 1, another: 1, two: 2, three: 3, four: 4, five: 5, seven: 7, x: 3 };
+    const nM = o.match(/draws? (two|three|four|five|seven|X|\d+) cards/i), N0 = nM ? NUM[nM[1].toLowerCase()] || +nM[1] || 3 : 1;
+    // recursão (devolve do cemitério para a mão) conta como compra: é carta a mais na mão
+    const rec = !/draws? /i.test(o) && o.match(/[Rr]eturn (up to )?(a|an|one|another|two|three|X|\d+)? ?(other )?target [^.]*cards? from your graveyard to your hand/);
+    const N = rec ? NUM[(rec[2] || 'one').toLowerCase()] || +rec[2] || 1 : N0;
+    // o topo do grimório que vira carta na mão ou mágica (Twilight Prophet, Herald's Horn, Realmwalker)
+    const topo = /(reveal|look at) the top card[^\n]*into your hand|cast [^.]*from the top of your library/i.test(o);
     const loot = /draws? (a|one) card,? then (discard|exile|put) a card/i.test(o) && N === 1;
     if (loot) { x = rep(/draw/i) ? 0.45 : 0.2; w.push('compra e descarta: só filtra, não dá carta a mais'); }
-    else if (rep(/draw|exile the top|look at the top/i)) {
-      const lDraw = o.split('\n').filter(l => /draw/i.test(l)), up = lDraw.some(l => /^At the beginning of (your|each)/i.test(l.trim())), tap = lDraw.some(l => /^[^:\n]*(\{[^}]+\}|Pay \d+ life)[^:\n]*:/.test(l.trim()));
-      x = up || tap ? 1.25 : 1.1; w.push(up ? 'compra todo turno' : tap ? 'compra toda vez que você ativa' : 'compra mais de uma vez');
+    else if (rep(/draw|exile the top|look at the top|reveal the top/i) || (topo && /from the top of your library/i.test(o))) {
+      const lDraw = o.split('\n').filter(l => /draw|the top card|from the top of your library/i.test(l)), up = lDraw.some(l => /^At the beginning of (your|each)/i.test(l.trim())), tap = lDraw.some(l => /^[^:\n]*(\{[^}]+\}|Pay \d+ life)[^:\n]*:/.test(l.trim()));
+      const estat = !up && !tap && /from the top of your library/i.test(o);
+      x = up || tap || estat ? 1.25 : 1.1; w.push(up ? 'compra todo turno' : tap ? 'compra toda vez que você ativa' : estat ? 'joga do topo do grimório o tempo todo' : 'compra mais de uma vez');
+      if (/chosen type/i.test(o)) { const P = perfilDeck(A), m = Math.min(1.05, 0.2 + 1.5 * P.tri); x *= m; w.push(A.tribe ? `só pega ${A.tribe[0]}: ${Math.round(100 * P.tri)}% do deck` : 'só pega o tipo escolhido, e o deck não é de tribo'); }
+      else if (/creature card/i.test(o) && topo) { const P = perfilDeck(A), m = Math.min(1, 0.2 + 1.2 * P.cri); x *= m; w.push(`só pega criatura: ${Math.round(100 * P.cri)}% do deck`); }
+      if (/city's blessing/i.test(o)) { x *= 0.75; w.push('só com 10 permanentes na mesa (bênção da cidade)'); }
       const at = o.split('\n').find(l => /:/.test(l) && /draw/i.test(l.split(':').slice(1).join(':'))); if (tap && at) { const ca = custoN(at.split(':')[0]); if (ca >= 2) { x -= 0.15 * (ca - 1); w.push(`cada ativação custa ${ca}`); } if (/Activate only|discard|Sacrifice an?/i.test(at)) { x -= 0.25; w.push('a ativação pede algo em troca'); } }
-      if (!up && !tap) { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); }
+      if (!up && !tap && !estat) { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); }
       x = custoAdj(x, 0.08);
     } else {
-      x = custoAdj(N === 1 ? 0.4 : Math.min(1.3, 0.25 + 0.3 * N), 0.07); w.push(N > 1 ? `compra ${N} de uma vez` : 'compra uma (troca a si mesma, não dá vantagem)');
+      x = custoAdj(N === 1 ? 0.4 : Math.min(1.3, 0.25 + 0.3 * N), 0.07); w.push(rec ? `devolve ${N > 1 ? N + ' cartas' : 'uma carta'} do cemitério para a mão` : N > 1 ? `compra ${N} de uma vez` : 'compra uma (troca a si mesma, não dá vantagem)');
+      if (rec && /When [^\n]*dies/i.test(o)) { x *= 0.8; w.push('só quando ela morre'); }
       if (inst) { x += 0.1; w.push('instantânea'); }
     }
     if (/each player draws|Each player draws/.test(o)) { x *= 0.6; w.push('os oponentes compram também'); }
@@ -917,20 +968,28 @@ function efetiv(A, c) {
     const dn = o.match(/deals (\d+) damage to (any )?target/i); if (dn && !/X damage/.test(o)) { const f = +dn[1] <= 1 ? 0.5 : +dn[1] === 2 ? 0.75 : +dn[1] === 3 ? 0.9 : 1; if (f < 1) { x *= f; w.push(`só ${dn[1]} de dano`); } }
     if (/if (another|a) [^.]*with the same name/i.test(o)) { x -= 1; w.push('só funciona com outra de mesmo nome na mesa (quase nunca)'); }
     if (/[Rr]eturn target [^.]*to its owner's hand/.test(o) && !/[Dd]estroy|[Ee]xile target/.test(o)) { x -= 0.35; w.push('só devolve para a mão'); }
-    if (/(each|target) (opponent|player) sacrifices/i.test(o) && !/target (creature|permanent)/i.test(o)) { x -= 0.25; w.push('o oponente escolhe o que perde'); }
-    if (rep(/destroy|exile|damage|-\d+\/-\d+/i) && !/^When [^\n]*enters/m.test(o)) { x += 0.3; w.push('remove mais de uma vez'); }
+    if (/(each|target|that) (opponent|player) sacrifices/i.test(o) && !/target (creature|permanent)/i.test(o)) { x -= 0.25; w.push('o oponente escolhe o que perde'); }
+    if (/each player's upkeep|each player sacrifices/i.test(o)) { const nt = o.match(/sacrifices an? non-?(\w+) creature/i), poupa = nt && A.tribe && nt[1].toLowerCase().startsWith(A.tribe[0].toLowerCase().slice(0, 3));
+      if (poupa) w.push(`só os oponentes perdem: o deck é ${A.tribe[0]}, a tribo poupada`); else { x -= 0.4; w.push('você também sacrifica'); } }
+    const bl = /\bblights? \d/i.test(o); if (bl) w.push('põe −1/−1 numa criatura que o oponente escolhe');
+    if (rep(/destroy|exile|damage|-\d+\/-\d+|sacrifices/i) && !/^When [^\n]*enters/m.test(o)) { x += 0.3; w.push('remove mais de uma vez'); }
     else if (cri && /When [^\n]*enters/.test(o)) { x += 0.1; w.push('deixa um corpo na mesa'); }
     const linR = o.split('\n').find(l => /destroy|exile target|damage to (any )?target/i.test(l)) || ''; if (/^Whenever/.test(linR.trim())) { const [m, ww] = condDeck(A, c, linR); x *= m; w.push(ww); }
+    if (bl) x = Math.min(x, 0.7);
     v.removal = Math.max(0.2, Math.min(1.6, x)); why.removal = w.join('; ');
   }
   if (rl.has('wipe')) {
     const w = []; let x = 1; const P = perfilDeck(A);
     const fr = (o.match(/[^.\n]*(destroy all|exile all|damage to each|each creature|all creatures|sacrifices? (a|all|each)|-\d+\/-\d+|-X\/-X)[^.\n]*/i) || [o])[0];
-    const lado = /creatures? your opponents control|each creature you don't control|non-?(Vampire|Elf|Goblin|Zombie|Human|Dragon|Angel|[A-Z][a-z]+) creatures|each opponent sacrifices/i.test(fr) || (A.tribe && new RegExp('non-?' + A.tribe[0], 'i').test(fr));
+    const lado = /(creatures?|nonland permanents|permanents) your opponents control|each creature you don't control|non-?(Vampire|Elf|Goblin|Zombie|Human|Dragon|Angel|[A-Z][a-z]+) creatures|each opponent sacrifices/i.test(fr) || (A.tribe && new RegExp('non-?' + A.tribe[0], 'i').test(fr));
+    const ov = o.match(/Overload ((\{[^}]+\})+)/), cvW = ov ? custoN(ov[1]) : cv;
+    if (ov) { x += 0.15; w.push(`com sobrecarga custa ${cvW} e pega todas; sem ela é remoção pontual de ${cv}`); }
+    const tribo = /aren't of the chosen type|isn't of the chosen type/i.test(fr);
+    if (tribo && A.tribe) { x += 0.5; w.push(`você escolhe ${A.tribe[0]}: poupa a sua tribo`); }
     const dano = fr.match(/deals (\d+) damage to each/i); if (dano && +dano[1] <= 2) { x *= 0.55; w.push(`só ${dano[1]} de dano: mata as pequenas`); }
     if (lado) { x += 0.5; w.push('só de um lado: poupa as suas'); }
-    else if (/all creatures|each creature|all nonland permanents|all permanents|each player sacrifices/i.test(fr)) { x *= Math.max(0.35, 1.25 - 1.1 * P.cri); w.push(`simétrico: leva junto as suas ${P.nCri} criaturas`); }
-    x += cv <= 4 ? 0.1 : cv >= 6 ? -0.2 : 0; if (inst) { x += 0.15; w.push('instantânea'); }
+    else if (!(tribo && A.tribe) && (ov || tribo || /all creatures|each creature|all nonland permanents|all permanents|each player sacrifices/i.test(fr))) { x *= Math.max(0.35, 1.25 - 1.1 * P.cri); w.push(`simétrico: leva junto as suas ${P.nCri} criaturas`); }
+    x += cvW <= 4 ? 0.1 : cvW >= 6 ? -0.2 : 0; if (inst) { x += 0.15; w.push('instantânea'); }
     v.wipe = Math.max(0.2, x); why.wipe = w.join('; ');
   }
   if (rl.has('protect')) {
@@ -950,7 +1009,7 @@ function efetiv(A, c) {
     v.counter = Math.max(0.2, x); why.counter = w.join('; ');
   }
   // o texto tem que fazer a função de verdade (as etiquetas juntam muito engano)
-  const FAZ = { ramp: /Add \{|Add an amount of|adds an additional|Add (one|two|three|X|that much) mana|mana of any|Treasure|Powerstone|search your library for [^.]*(land|Forest|Plains|Island|Swamp|Mountain)|lands? cards? [^.]*onto the battlefield|costs? \{\d\} less|play an additional land/i, draw: /draws? (a|an|two|three|four|five|seven|X|\d+) cards?|draw cards|exile the top [^.]*(you may (play|cast))/i, removal: /destroy target|exile target|shuffles it into|on the (top|bottom) of (its owner's|their) library|damage to (any )?target|damage to (each|up to)|target [^.]*gets -\d|fights?|return target [^.]*owner's hand|sacrifices? (a|an) (creature|permanent)|counters? on target/i, protect: /hexproof|indestructible|shroud|protection from|phases? out|[Cc]ounter target|[Rr]egenerate|\bward\b|can't be the target/i, counter: /[Cc]ounter target/ };
+  const FAZ = { ramp: /Add \{|Add an amount of|adds an additional|Add (one|two|three|X|that much) mana|mana of any|Treasure|Powerstone|search your library for [^.]*(land|Forest|Plains|Island|Swamp|Mountain)|lands? cards? [^.]*onto the battlefield|costs? \{\d\} less|play an additional land/i, draw: /draws? (a|an|two|three|four|five|seven|X|\d+) cards?|draw cards|exile the top [^.]*(you may (play|cast))|put (it|that card|them) into your hand|cast [^.]*from the top of your library|[Rr]eturn [^.]*from your graveyard to your hand/i, removal: /destroy target|exile target|shuffles it into|on the (top|bottom) of (its owner's|their) library|damage to (any )?target|damage to (each|up to)|target [^.]*gets -\d|fights?|return target [^.]*owner's hand|sacrifices? (a|an) (non-?[\w-]+ )?(creature|permanent)|counters? on target|\bblights? \d/i, protect: /hexproof|indestructible|shroud|protection from|phases? out|[Pp]revent all (combat )?damage|[Cc]ounter target|[Rr]egenerate|\bward\b|can't be the target/i, counter: /[Cc]ounter target/ };
   for (const k in FAZ) if (v[k] != null && !FAZ[k].test(o)) { v[k] = 0.15; why[k] = 'a etiqueta diz que faz, mas o texto não mostra o efeito'; }
   const ks = Object.keys(v).sort((a, b) => v[b] - v[a]);
   const modal = /Choose one|choose one —/i.test(o) || o.split('\n').filter(l => autoSac(l) && /:/.test(l)).length >= 2;
@@ -978,11 +1037,12 @@ function efPlano(A, c) {
   let x = 0.35 + 0.3 * vp + (A.cmdSupport.includes(c.name) ? 0.35 : 0) + (rl.has('wincon') ? 0.4 : rl.has('threat') ? (/Planeswalker/.test(c.t.split(' // ')[0]) ? 0.15 : 0.4) : 0) + (A.plano && A.plano.voltron && efeitos(c).anexo ? 0.3 : 0);
   const par = comboPar(A, c); if (par) x += 1.1; // metade de um laço que ganha o jogo (lido do texto das duas)
   if (isTutor(c)) x += c.v <= 2 ? 0.7 : 0.4; // tutor: vira a peça que falta
-  if (['drain', 'amplify', 'extra', 'wincon', 'copy'].some(k => rl.has(k))) x += 0.3; // motor ou fim de jogo
   // pagamento: o gatilho bate com o que o deck faz (fichas, criaturas entrando, ataques) e o efeito fecha o jogo
   const o = semLembrete(c);
-  const hino = /(creatures|tokens|other [A-Z][a-z]+s?|[A-Z][a-z]+s) you control (get|have) \+|each (other )?creature (you control )?gets \+|shares a creature type/i.test(o);
+  const hino = /(creatures|tokens|other [A-Z][a-z]+s?|[A-Z][a-z]+s) you control (get|have) \+|each (other )?creature (you control )?gets \+|shares a creature type|counter on each (other )?(attacking )?(creature|[A-Z][a-z]+) you control/i.test(o);
   const dreno = /Whenever[^\n]*(damage to (each opponent|the player|that player|target opponent|any target|defending player)|loses? \d+ life|each opponent loses)|double the damage|deals that much damage/i.test(o);
+  // motor ou fim de jogo (o dreno lido do texto já paga abaixo: não conta duas vezes)
+  if (['amplify', 'extra', 'wincon', 'copy'].some(k => rl.has(k)) || (rl.has('drain') && !dreno && !hino)) x += 0.3;
   if (hino || dreno) { const [m] = hino && !/Whenever/i.test(o) ? [Math.min(1, 0.4 + 1.2 * perfilDeck(A).cri)] : condDeck(A, c, o); x += 0.6 * Math.min(1, m); }
   if (A.noRole.includes(c.name) || A.bodyOnly.includes(c.name)) x -= 0.3;
   // deck de tribo: criatura de fora da tribo que não conversa com o comandante é só um corpo
@@ -991,6 +1051,8 @@ function efPlano(A, c) {
   if (OVERRUN.test(o)) x += 0.4 + 0.6 * Math.min(1, perfilDeck(A).cri * 2); // fecha o jogo com a mesa larga
   if (A.tribe && /Creature/.test(c.t.split(' // ')[0]) && !subtypes(c).includes(A.tribe[0]) && !/Changeling/.test(c.o || '') && vp < 0.5 && !A.cmdSupport.includes(c.name) && !fim) x *= 0.45;
   // planeswalker que não conversa com o deck: rende pouco numa mesa de criaturas
+  // voltron: o deck ganha com o comandante armado; criatura que não arma, não protege nem conversa com ele é só mais um corpo
+  if (A.plano && A.plano.voltron && /Creature/.test(c.t.split(' // ')[0]) && vp < 0.5 && !A.cmdSupport.includes(c.name) && !fim && !efeitos(c).anexo) x *= 0.6;
   if (/Planeswalker/.test(c.t.split(' // ')[0]) && vp < 0.5 && !A.cmdSupport.includes(c.name) && !fim) x *= 0.6;
   if (efMax(A, c) >= 0.6) x *= 0.4; // o valor desta já conta na função básica
   return Math.max(0, Math.min(1.6, x));

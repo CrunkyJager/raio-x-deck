@@ -102,7 +102,7 @@ function painel() {
       <label class="field">Partidas <select id="m-n">${[200, 500, 1000, 2000].map(v => `<option ${+n === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
       <button class="btn primary" id="m-go" ${BUSY ? 'disabled' : ''}>Jogar as partidas</button>
       <button class="btn" id="m-tro" ${BUSY ? 'disabled' : ''}>Testar as trocas marcadas</button>
-      <button class="btn" id="m-ter" ${BUSY ? 'disabled' : ''} title="Joga a lista com a quantidade de terrenos da fórmula pura e da ajustada, contra a lista atual">Comparar terrenos (fórmula)</button>
+      <button class="btn" id="m-ter" ${BUSY ? 'disabled' : ''} title="Joga a lista com a quantidade de terrenos da fórmula pura, da ajustada e dos decks médios do EDHREC, contra a lista atual">Comparar terrenos (fórmula)</button>
       <button class="btn" id="m-stop" ${BUSY ? '' : 'hidden'}>Parar</button>
     </div>
     <div class="prog" id="m-prog" hidden><div></div><span class="note" id="m-prog-l"></span></div>
@@ -209,7 +209,7 @@ function variaTerrenos(D, alvo) {
 async function testarTerrenos() {
   const F = A.terrF; if (!F) throw new Error('Sem a conta de terrenos para este deck.');
   const D = meuDeck(), L = D.base.filter(i => D.M[i].land).length;
-  const alvos = [['Fórmula pura', Math.round(F.pura)], ['Com os ajustes', Math.round(F.ajust)]];
+  const alvos = [['Fórmula pura', Math.round(F.pura)], ['Com os ajustes', Math.round(F.ajust)], ['Decks médios do EDHREC', Math.round(F.edh)]];
   const vs = alvos.map(([nome, alvo]) => ({ nome, alvo, ...variaTerrenos(D, alvo) }));
   const rodar = vs.filter(v => v.mud.length);
   const Ops = opsEscolhidos(), N = Math.max(500, +store.get('n', 500));
@@ -223,14 +223,14 @@ function resTerrenos() {
   const { N, L, vs, base } = RTERRA;
   const linha = (nome, n, x, d) => `<tr><td>${esc(nome)}</td><td class="n">${n}</td><td class="n">${x ? pct(x.wr) : '—'}</td><td class="n">${d ? `<b>${pts(d.d)}</b> ±${fx(d.se)}` : '—'}</td><td class="n">${x ? fx(x.t3) : '—'}</td><td class="n">${x ? fx(x.t5) : '—'}</td><td class="n">${x && x.cmdT ? fx(x.cmdT) : '—'}</td></tr>`;
   const ver = (v) => !v.r ? 'igual à lista atual' : v.r.d > 1.5 * v.r.se ? 'ganha da lista atual' : v.r.d < -1.5 * v.r.se ? 'perde da lista atual' : 'empate (dentro do ruído)';
-  return `<section class="panel answer"><h2>Terrenos: fórmula pura × ajustada</h2>
+  return `<section class="panel answer"><h2>Terrenos: fórmula pura × ajustada × decks do EDHREC</h2>
     <p class="lead">${N.toLocaleString('pt-BR')} partidas para cada lista, com as mesmas cartas sorteadas, então a diferença vem da quantidade de terrenos. "Ganha" ou "perde" só quando passa de 1,5 vez o ruído.</p>
     <div class="tw"><table><thead><tr><th>Lista</th><th>Terrenos</th><th>Vitórias</th><th>Diferença</th><th>Terrenos no T3</th><th>No T5</th><th>Comandante entra no turno</th></tr></thead><tbody>
       ${linha('Lista atual', L, base, null)}
       ${vs.map(v => linha(v.nome, v.alvo, v.r || base, v.r)).join('')}
     </tbody></table></div>
     ${vs.map(v => `<p class="note"><b>${esc(v.nome)}</b> (${v.alvo}): ${ver(v)}.${v.mud.length ? ' Para chegar nesse número: ' + v.mud.map(m => `${esc(m.sai)} → ${esc(m.entra)}`).join(', ') + '.' : ''}</p>`).join('')}
-    <p class="note">Com mais terrenos saem as mágicas mais caras e entram básicos da cor mais pedida; com menos, saem básicos e entram ramp ou compra baratos da lista de apoio do motor. A conta das duas fórmulas está na aba Análise, em Mana e curva.</p></section>`;
+    <p class="note">Com mais terrenos saem as mágicas mais caras e entram básicos da cor mais pedida; com menos, saem básicos e entram ramp ou compra baratos da lista de apoio do motor. A conta das fórmulas está na aba Análise, em Mana e curva; a do EDHREC é a média dos decks médios com o mesmo custo médio (só para comparar).</p></section>`;
 }
 
 function resultado() {

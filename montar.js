@@ -450,7 +450,10 @@ const G = (() => {
     tema: { voltron: [-2,-3.6,-2.1,-0.6,9,-0.1], tokens: [-0.7,-2.6,0.5,-0.2,-1,0.5], counters: [-0.4,-0.7,-0.7,-0.3,1,-0.5], graveyard: [0.1,2,0.3,-0.2,-2.6,-0.4], artifacts: [2.4,1.6,-1.7,-0.6,-0.1,-0.1], enchant: [-0.9,0.8,1.2,-0.5,1.4,-1.5], spells: [1.1,7.3,1.8,-0.1,-2,1], sac: [-0.3,-3.2,1.9,1.3,-2.7,-0.3], life: [-0.9,-1.8,0.5,0.5,-2.1,0.1], lands: [2.8,-1.5,-2.4,-1.3,-2.2,-0.8], combat: [0.2,-4,0.9,0.1,2,0], draw: [0.1,10.9,-0.6,-0.3,-1.9,0.7], flying: [0.5,-2.2,-0,0.4,0.8,0.5], tribe: [-0.5,-1.1,0.5,0.3,0.3,0.2] },
     tribo: { Elf: [1.7,-1.1,0.7,-0.1,1.4,-0.9], Goblin: [-1.2,-0.7,1.4,-0.1,-1,-0.9], Zombie: [-1.2,-2.6,-0.8,1.4,-0.6,0.3], Dragon: [0.9,-2.1,1.2,0.3,-0.6,-0.4], Vampire: [-1,0.4,0.4,0.6,-1.1,-0.9], Merfolk: [-1.8,1.9,-1.3,0.8,0.4,2.6], Angel: [-0.7,-2.2,0.6,1.1,3.2,-0.9], Dinosaur: [-0.3,-0.1,1.7,0.1,0.4,-0.9], Wizard: [-0.3,0.4,1.4,0.6,-1.1,2.9], Human: [0.3,-0.4,1.4,-0.1,1.2,0.1], Sliver: [-0.8,-4.3,-1.1,-0.6,0.9,-0.4], Cat: [-1.6,-2.4,-0.1,-0.4,0.5,-0.9] },
     bracket: { 1: [-0.3,0.9,1.1,-0.2,-0.9,-0.5], 2: [-0.2,1.1,1,0.2,-0.6,-0.6], 3: [-0.1,0.1,0,0,0.1,-0.1], 4: [-1.1,-1.2,-1.2,0.1,0.8,0.6] },
-    barato: [-0.1,2.2,2.4,-0,-1.7,-0.6] };
+    barato: [-0.1,2.2,2.4,-0,-1.7,-0.6],
+    // terrenos = a + b × custo médio das mágicas (regressão nos decks médios) + a mais/a menos por tema, bracket e orçamento
+    terrenos: { a: 31.53, b: 1.28, tema: { voltron: 0.1, tokens: -0.4, counters: 0.3, graveyard: 0.4, artifacts: -1, enchant: -0.2, spells: -0.7, sac: -0.6, life: -0.3, lands: 1.9, combat: -0.5, draw: 0.1, flying: -0.5, tribe: -0.2 }, bracket: { 1: 1, 2: 0.5, 3: 0.2, 4: -0.5 }, barato: 1 } };
+  window.RAIOX_METAS = (on, I, d, tb) => metas(on, I, d, tb); // para a análise usar as mesmas metas (teste: raiox:refsMeta)
   const META_N = { voltron: 'Auras e equipamentos', tokens: 'Fichas', counters: 'Marcadores', graveyard: 'Cemitério', artifacts: 'Artefatos', enchant: 'Encantamentos', spells: 'Mágicas', sac: 'Sacrifício', life: 'Ganho de vida', lands: 'Landfall', combat: 'Ataque', draw: 'Comprar muitas', flying: 'Voar', tribe: 'Tribo' };
   // vários temas: média das diferenças dos temas marcados. Cada meta vem com a conta, para a tela mostrar.
   function metas(on, I, d, tb) {
@@ -477,6 +480,13 @@ const G = (() => {
       const conta = partes.filter((p, j) => j === 0 || Math.abs(p[1]) >= 0.05).map((p, j) => j === 0 ? `${p[0]} ${p[1].toFixed(1).replace('.', ',')}` : `${p[0]} ${f(p[1])}`).join(', ');
       out[k] = { alvo, conta: `decks médios do EDHREC: ${conta} = ${alvo}` };
     });
+    // terrenos: a + b × custo médio (no estado()) + a mais/a menos por tema, bracket e orçamento
+    const TT = META.terrenos, pl = [];
+    if (ts.length) { const v = ts.reduce((s, t) => s + (TT.tema[t] || 0), 0) / ts.length; if (Math.abs(v) >= 0.05) pl.push([ts.length > 1 ? 'temas ' + ts.map(nomeT).join(' + ') : (ts[0] === 'tribe' ? 'tribo' : 'tema ' + nomeT(ts[0])), v]); }
+    if (TT.bracket[br]) pl.push(['bracket ' + br, TT.bracket[br]]);
+    if (barato) pl.push([barato === 1 ? 'orçamento baixo' : 'orçamento médio', TT.barato * barato]);
+    const fT = (v) => (v > 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ',').replace(',0', '');
+    out.lands = { adj: pl.reduce((s, p) => s + p[1], 0), conta: pl.map(p => `${p[0]} ${fT(p[1])}`).join(', ') };
     return out;
   }
   function estado() {
@@ -503,8 +513,11 @@ const G = (() => {
     const TF = R.terrenosFormula(lista, cmdC);
     // no começo: média 3 e pelo menos 8 de compra/ramp baratos (as metas de 10 ramp e 10 compra ainda vão entrar)
     if (spells < 15) { TF.media = 3; TF.barato = Math.max(TF.barato, 8); TF.pura = 31.42 + 3.13 * 3 - 0.28 * TF.barato; TF.ajust = TF.pura + TF.ajustes.reduce((s, a) => s + a.v, 0); TF.cedo = true; }
-    const landsT = Math.max(30, Math.min(42, Math.round(TF.ajust))), landsPura = Math.max(30, Math.min(42, Math.round(TF.pura)));
     const M = metas(on, I, d, tb);
+    const landsK = Math.max(30, Math.min(42, Math.round(TF.ajust))), landsPura = Math.max(30, Math.min(42, Math.round(TF.pura)));
+    // meta = Karsten ajustada; o EDHREC (decks médios, com tema/bracket/orçamento) fica só para comparar
+    const landsT = landsK, baseT = META.terrenos.a + META.terrenos.b * TF.media, landsE = Math.max(30, Math.min(42, Math.round(baseT + M.lands.adj)));
+    const fD = (v) => v.toFixed(1).replace('.', ',').replace(',0', '');
     const slots = [
       { k: 'ramp', n: 'Ramp', why: 'mana extra cedo põe você um turno à frente da mesa' },
       { k: 'draw', n: 'Compra de cartas', why: 'em mesa de 4, quem fica sem cartas na mão perde' },
@@ -517,7 +530,7 @@ const G = (() => {
     const soma = slots.reduce((s, x) => s + x.alvo, 0);
     const temaAlvo = on.size ? Math.max(12, 99 - (d.cmds.length - 1) - landsT - soma) : 0;
     if (on.size) slots.push({ k: 'tema', n: 'Cartas da ideia', alvo: temaAlvo, why: 'é o que faz o deck ser o seu deck' });
-    slots.push({ k: 'lands', n: 'Terrenos', alvo: landsT, why: `pela fórmula do Frank Karsten (custo médio ${TF.media.toFixed(2).replace('.', ',')}${TF.cedo ? ', estimado até haver 15 mágicas' : ''}, ${TF.barato} de compra ou ramp até 2): ${landsPura} pura, ${landsT} com os ajustes${TF.ajustes.length ? '; ' + TF.ajustes.map(a => a.t).join('; ') : ''}. O Montar segue a ajustada` });
+    slots.push({ k: 'lands', n: 'Terrenos', alvo: landsT, why: `pela fórmula do Frank Karsten (custo médio ${TF.media.toFixed(2).replace('.', ',')}${TF.cedo ? ', estimado até haver 15 mágicas' : ''}, ${TF.barato} de compra ou ramp até 2): ${landsPura} pura, ${landsK} com os ajustes${TF.ajustes.length ? '; ' + TF.ajustes.map(a => a.t).join('; ') : ''}. O Montar segue a ajustada. Para comparar, os decks médios do EDHREC jogam ${landsE} (${fD(META.terrenos.a)} + ${fD(META.terrenos.b)} × custo médio = ${fD(baseT)}${M.lands.conta ? `; ${M.lands.conta}` : ''})` });
     for (const x of slots) x.tem = x.k === 'lands' ? lands : x.k === 'tema' ? tema : (cnt[x.k] || 0);
     const total = d.cmds.length + lands + spells;
     const vagasSpells = Math.max(0, 100 - d.cmds.length - landsT - spells);
