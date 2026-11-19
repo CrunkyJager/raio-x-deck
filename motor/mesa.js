@@ -29,7 +29,7 @@ function arena(Ds,seed,cfg){
     const escolha=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'';
     return{k,D,M,ci,cmdI,lib,mao,escolha,terr:[],perm:[],gy:[],vida:VIDA,tax:0,zona:cmdI>=0,cmdD:[0,0,0,0],
       vivo:true,aberta:[],tes:0,mortoT:0,causa:'',jogouT:false,
-      st:{viu:new Set(),lanc:{},cmdT:0,terrT3:0,terrT5:0,rem:0,wip:0,ctr:0,salvo:0,dano:0,danoRec:0,mortes:0,travou:0}};
+      st:{viu:new Set(),lanc:{},cmdT:0,cmdAtkT:0,armT:0,terrT3:0,terrT5:0,rem:0,wip:0,ctr:0,salvo:0,dano:0,danoRec:0,mortes:0,travou:0}};
   });
   const ordem=P.map((_,k)=>k);emb(ordem,R);
   for(const p of P)p.mao.forEach(i=>p.st.viu.add(i));
@@ -571,6 +571,7 @@ function arena(Ds,seed,cfg){
     instantaneaNoAtaque(alvo,p,at);
     if(!at.length)return;
     for(const x of p.perm)x.atk=0;for(const x of at)x.atk=1;VER++;
+    for(const x of at)if(x.cmd&&!x.tok){if(!p.st.cmdAtkT)p.st.cmdAtkT=T;if(x.anx.length&&!p.st.armT)p.st.armT=T;}
     {let pk=0;for(const y of p.perm)if(!y.tok&&p.M[y.i].pump)pk=Math.max(pk,p.M[y.i].pump);
      if(pk)for(const y of p.perm)if(y.cri&&!(!y.tok&&p.M[y.i].pump)){y.tmp=(y.tmp||0)+pk;y.tmpT=(y.tmpT??0)+pk;y.indT=1;}
      for(const x of at){const m=!x.tok&&p.M[x.i];if(m&&m.remAtk&&R()<.6){const a=melhorAlvo(p,true,'*');if(a)remove(p,a,x.i);if(m.prowl&&R()<.5)compra(p,1,'Prowl');}}}

@@ -185,6 +185,7 @@ function analyze(text, forcedCmd) {
     { k: 'wipe', n: 'Limpa-mesa', have: cnt('wipe'), lo: 2, hi: 4, why: 'Salva você quando alguém dispara na frente. Deck de criaturas usa menos; deck de controle usa mais.' },
     { k: 'protect', n: 'Proteção', have: cnt('protect'), lo: 3, hi: 8, why: 'Segura o plano quando a mesa tenta remover sua peça principal. Importa mais quanto mais o deck depende de uma criatura.' },
   ];
+  A.plano = null; // precisa de cmdThemes: preenchido mais abaixo
   if (blue) A.refs.push({ k: 'counter', n: 'Contramágica', have: cnt('counter'), lo: 2, hi: 8, why: 'Com azul, guardar mana para anular a jogada que ganharia o jogo é a melhor interação.' });
 
   // cores
@@ -213,6 +214,12 @@ function analyze(text, forcedCmd) {
   const topTribe = Object.entries(tribe).sort((a, b) => b[1] - a[1])[0];
   A.tribe = topTribe && topTribe[1] >= 10 ? topTribe : null;
   A.themes = THEMES.map(t => ({ ...t, cards: themeCount[t.k], cmd: cmdThemes.has(t.k) })).filter(t => t.cards.length >= 6 || t.cmd).sort((a, b) => (b.cmd - a.cmd) || b.cards.length - a.cards.length);
+  // plano do comandante: deck de voltron troca parte da remoção por proteção (guias pedem 8–12 proteções)
+  A.plano = planoDe(A);
+  if (A.plano.voltron) {
+    const rp = A.refs.find(r => r.k === 'protect'); if (rp) Object.assign(rp, { lo: 7, hi: 14, why: `${A.plano.nome} carrega o deck: uma remoção nele leva junto as auras e equipamentos. Deck de voltron costuma ter 8–12 proteções.` });
+    const rr = A.refs.find(r => r.k === 'removal'); if (rr) Object.assign(rr, { lo: 5, hi: 10, why: 'Deck que vence atacando com o comandante usa um pouco menos de remoção e mais proteção; prefira as baratas e instantâneas.' });
+  }
   // dependência do comandante
   const supportsCmd = (c) => [...themesOf(c, cmdThemes)].some(t => cmdThemes.has(t)) || (A.tribe && cmdCards.some(k => subtypes(k).includes(A.tribe[0])) && subtypes(c).includes(A.tribe[0]));
   const singleTarget = (c) => /Aura/.test(c.t) && /Enchant creature/.test(c.o) || /Equipment/.test(c.t);
@@ -308,7 +315,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { THEMES, themesOf, subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -507,6 +514,83 @@ function wireConcept(A) {
   $('#cc-go').onclick = () => { sync(); rerenderTrocas(A); };
 }
 
+
+// ---------- plano do comandante: o que cada carta faz por ele, lendo o texto (19/11/2026) ----------
+// Princípio: a carta vale pelo que adianta o plano (comandante cedo, atacando, forte e protegido), não por ser do tema.
+const KWV = [['double strike', 2.5, 'golpe duplo'], ["can't be blocked except", 1.5, 'quase imbloqueável'], ["can't be blocked by more than one", 0.8, 'só um bloqueia'], ["can't be blocked", 2, 'imbloqueável'], ['flying', 1.5, 'voar'], ['trample', 1.2, 'atropelar'], ['menace', 1.2, 'ameaçar'], ['first strike', 0.6, 'iniciativa'], ['hexproof', 2, 'resistência a magia'], ["can't be the target of spells or abilities your opponents", 2, 'resistência a magia'], ['shroud', 1.6, 'manto'], ['indestructible', 1.6, 'indestrutível'], ['ward', 1, 'proteção (ward)'], ['protection from', 1.4, 'proteção contra cor'], ['lifelink', 0.5, 'vínculo com a vida'], ['vigilance', 0.3, 'vigilância']];
+const EFX = {};
+const custoN = (m) => (m.match(/\{[^}]+\}/g) || []).reduce((s, x) => s + (/^\{\d+\}$/.test(x) ? +x.slice(1, -1) : /X/.test(x) ? 0 : 1), 0);
+function efeitos(c) {
+  if (EFX[c.name]) return EFX[c.name];
+  const o = c.o.split('\n//\n')[0], t = c.t.split(' // ')[0];
+  const aura = /Aura/.test(t) && /Enchant (creature|permanent|modified creature|creature you control)/.test(o), equip = /Equipment/.test(t);
+  const eqM = o.match(/\bEquip(?: [^{\n]*)? ((?:\{[^}]+\})+)/); const eq = eqM ? custoN(eqM[1]) : 0;
+  const ln = o.split('\n').filter(l => /(Enchanted|Equipped) (creature|permanent)|attached to it|enchanted creature/i.test(l)).join('\n');
+  const e = { aura, equip, anexo: aura || equip, eq, boost: 0, kv: 0, diz: [], haste: false, draw: false, volta: false, engine: false, reduz: false };
+  const b = ln.match(/gets \+(\d+|X)\/\+(\d+|X)/); if (b) { const n = b[1] === 'X' ? 2 : +b[1], m = b[2] === 'X' ? 2 : +b[2]; e.boost = (n + m) / 2 * (/for each|where X/.test(ln) ? 2.5 : 1); e.diz.push(/for each|where X/.test(ln) ? 'força que cresce com o que está preso' : `+${b[1]}/+${b[2]}`); }
+  else { const b0 = ln.match(/gets \+(\d+)\/\+0/); if (b0) { e.boost = +b0[1] / 2; e.diz.push(`+${b0[1]}/+0`); } }
+  if (/\+1\/\+1 counter on (it|enchanted|equipped)/.test(ln)) { e.boost += 1; e.diz.push('marcadores ao atacar'); }
+  const lnl = ln.toLowerCase(); const vistos = new Set();
+  for (const [k, v, n] of KWV) if (lnl.includes(k) && !vistos.has(n) && !(k === "can't be blocked" && /can't be blocked (except|by more)/.test(lnl))) { e.kv += v; vistos.add(n); e.diz.push(n); }
+  if (/Umbra armor|Totem armor/.test(o)) { e.kv += 1.6; e.diz.push('salva a criatura de ser destruída'); }
+  e.haste = /\bhaste\b/i.test(ln) || /creatures you control (have|gain) haste|creature spells you cast [^.]*haste|\briot\b|creatures you control [^.]*haste/i.test(o) || (/target creature (you control )?gains? haste/i.test(o) && c.v <= 1);
+  if (e.haste && e.anexo) e.diz.push('ímpeto');
+  e.draw = /draw (a|two|X) cards?/i.test(o); if (e.anexo && e.draw) e.diz.push('compra uma carta');
+  e.volta = /return (it|this card) to its owner's hand/.test(o) && e.anexo;
+  // efeitos de anexo que não são força nem palavra-chave
+  if (e.anexo && /When(ever)? (enchanted|equipped) creature (or another [^,]*)?dies/.test(o)) { e.kv += 1.5; e.diz.push('devolve valor se a criatura morrer'); }
+  if (e.anexo && /(enchanted|equipped) creature deals damage equal to its power|it deals damage equal to its power|deals that much damage to each opponent/i.test(o)) { e.kv += 1.6; e.diz.push('dano extra com a força da criatura'); }
+  if (e.anexo && /untap all lands you control|create a Treasure|search your library for [^.]*land/.test(o)) { e.kv += 0.6; e.diz.push('gera mana'); }
+  e.extra = /additional combat phase|extra combat/i.test(o);
+  e.engine = !e.anexo && /Constellation|Whenever (an|another) (Aura|enchantment|Equipment)[^.]*(enters|you control)|Whenever you cast an? (Aura|enchantment|Equipment)|becomes attached|Whenever an? (Aura|Equipment) you control/i.test(o) && /draw|create|counter|Add /.test(o);
+  e.reduz = /(Aura|Enchantment|Equipment)[^.]{0,30} spells?[^.]{0,30} cost \{\d\} less|Equip abilities[^.]* cost \{\d\} less|equip costs?[^.]* less/i.test(o);
+  return (EFX[c.name] = e);
+}
+function planoDe(A) {
+  const o = A.cmds.map(c => c.o.split('\n//\n')[0]).join('\n');
+  const nome = A.cmds.map(c => c.name.split(',')[0]).join(' + ') || 'o comandante';
+  const mv = A.cmds.length ? Math.max(...A.cmds.map(c => c.v)) : 0;
+  const atk = /Whenever [^.\n]{0,60}\b(attacks|deals combat damage)|attacking creature/i.test(o);
+  const nAnexo = A.uniq.filter(c => efeitos(c).anexo).length;
+  const voltron = /Aura|Equipment|attached|equipped|enchanted creature/i.test(o) || (A.cmdThemes.has('voltron') && nAnexo >= 10) || (atk && nAnexo >= 12);
+  const tribo = A.tribe && new RegExp('\\b' + A.tribe[0].slice(0, 3), 'i').test(o) ? A.tribe[0] : null;
+  const P = { nome, mv, atk, voltron, ativo: atk || voltron, nAnexo, tribo };
+  const quer = [];
+  if (atk) quer.push('ímpeto (atacar no turno em que entra)');
+  if (mv >= 3) quer.push(`ramp de até ${Math.max(1, mv - 2)} mana${mv - 2 > 1 ? 's' : ''}, que põe ${nome} na mesa um turno antes`);
+  if (tribo) quer.push(`criaturas ${tribo} (o comandante conta com elas)`);
+  if (voltron) quer.push('auras e equipamentos baratos que dão evasão, força ou proteção', 'cartas que barateiam auras/equipamentos ou compram quando eles entram', 'proteção para o comandante');
+  P.quer = quer;
+  return P;
+}
+function valorPlano(A, c) {
+  const P = A.plano; if (!P || !c || isLand(c)) return { v: 0, why: [] };
+  const cache = (A._vp = A._vp || {}); if (cache[c.name]) return cache[c.name];
+  const e = efeitos(c), why = [], rl = rolesOf(c); let v = 0;
+  if (P.atk && e.haste) { v += 3; why.push(`dá ímpeto: ${P.nome} ataca no turno em que entra, sem esperar uma rodada`); }
+  if (P.atk && e.extra) { v += 3; why.push(`combate extra: ${P.nome} ataca de novo (e o gatilho de ataque dispara de novo)`); }
+  if (rl.has('ramp') && P.mv >= 3 && !e.anexo) {
+    if (c.v <= P.mv - 2) { v += P.ativo ? 2 : 1; why.push(`ramp de ${c.v} mana${c.v > 1 ? 's' : ''}: põe ${P.nome} (custo ${P.mv}) na mesa um turno antes`); }
+    else if (c.v >= P.mv && !/Creature/.test(c.t)) { v -= 1.5; why.push(`ramp de ${c.v} manas chega junto com ${P.nome} e não o acelera`); }
+  }
+  if (P.voltron && e.anexo) {
+    const custo = c.v + (e.equip ? e.eq * 0.7 : 0);
+    const imp = e.boost * 0.6 + e.kv + (e.draw ? 1 : 0) + (e.volta ? 1 : 0) + (e.haste && P.atk ? 0 : 0);
+    const x = Math.max(-2, Math.min(3.5, imp - 0.8 * custo + 1));
+    v += x;
+    if (x >= 1 && e.diz.length) why.push(`${listPt(e.diz)} por ${fmt(custo)} de mana${e.equip ? ' (contando o equipar)' : ''}: bom retorno para ${P.nome}`);
+    else if (x < 0) why.push(`custa ${fmt(custo)} de mana${e.equip ? ' com o equipar' : ''} e dá pouco a ${P.nome}`);
+  }
+  if (P.tribo && subtypes(c).includes(P.tribo)) { v += 1; why.push(`é ${P.tribo}: conta para ${P.nome}`); }
+  if (isTutor(c) && c.v <= 3) { v += 1.5; why.push(`tutor barato: busca a peça que ${P.nome} precisa na hora certa`); }
+  if (rl.has('wipe') && (/\bnon-?(Vampire|Elf|Goblin|Zombie|[A-Z][a-z]+) creatures?|creatures your opponents control|each creature you don't control/.test(c.o) || (P.tribo && new RegExp('non-?' + P.tribo, 'i').test(c.o)))) { v += 2; why.push('limpa-mesa de um lado só: tira as criaturas dos outros e poupa as suas'); }
+  if (P.voltron && e.reduz) { v += 2.5; why.push(`barateia auras/equipamentos: ${P.nome} fica armado mais cedo`); }
+  if (P.voltron && e.engine) { v += 2.5; why.push('compra ou cresce a cada aura/encantamento que entra: o plano vira vantagem de cartas'); }
+  if (P.voltron && rl.has('protect') && !e.anexo) { v += 1.5; why.push(`protege ${P.nome}, que carrega o deck`); }
+  if (P.ativo && c.v >= 5 && !rl.has('wipe') && !e.engine && !e.extra) { v -= 0.6 * (c.v - 4); why.push(`custa ${c.v}: chega tarde para um deck que quer atacar cedo`); }
+  return (cache[c.name] = { v, why });
+}
+
 function cutScore(A, c, needRoles) {
   if (isLand(c)) return -1e9;
   const roles = rolesOf(c); const real = [...roles].filter(k => k !== 'body');
@@ -522,6 +606,7 @@ function cutScore(A, c, needRoles) {
   if (c.gc) s += A._gcOk ? -30 : 40;
   if (A._capCard < Infinity && (c.usd || 0) > A._capCard) s += 40; // acima do teto por carta: candidata a sair
   if (A.avgMV > 3.6 && c.v >= 5) s += 4 * (c.v - 4);
+  s -= 18 * valorPlano(A, c).v; // serve ao plano do comandante: fica
   for (const k of real) {
     if (needRoles.has(k)) s -= 60; // já falta: não tira
     const ref = A.refs.find(r => r.k === k); if (ref && roleCount(A, k) <= ref.lo) s -= 60; // tirar deixaria abaixo do mínimo
@@ -535,6 +620,7 @@ function whyCut(A, c) {
   else if (!A.cmdSupport.includes(c.name)) bits.push('não puxa para o tema do comandante');
   if (!c.r || c.r > 12000) bits.push('quase ninguém joga com ela no Commander');
   if (A.avgMV > 3.6 && c.v >= 5) bits.push(`custa ${c.v} numa lista que já está pesada`);
+  const vp = valorPlano(A, c); if (vp.v < 0) bits.unshift(...vp.why);
   if (!bits.length) bits.push('é das que menos contribuem entre as que sobram');
   return bits.join('; ');
 }
@@ -550,7 +636,7 @@ function addOk(A, c) {
 }
 function rankAdds(A, list) {
   const cmdTh = A.cmdThemes;
-  return list.filter(c => addOk(A, c)).map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = c.r || 1e6; if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; const fit = conceptFit(A, c); if (fit) s *= ({ seguir: 0.4, preferir: 0.7, so: 0.4 })[CONC.mode] || 1; if (A._capDeck < Infinity && c.usd > 1) s *= 1 + Math.min(3, c.usd / 10); return { c, s, th, fit }; }).filter(x => !(CONC.mode === 'so' && x.fit === false)).sort((a, b) => a.s - b.s);
+  return list.filter(c => addOk(A, c)).map(c => { const th = [...themesOf(c, cmdTh)].some(t => cmdTh.has(t)); let s = c.r || 1e6; if (th) s *= 0.45; if (c.v > Math.max(3, A.avgMV + 1)) s *= 1.6; const fit = conceptFit(A, c); if (fit) s *= ({ seguir: 0.4, preferir: 0.7, so: 0.4 })[CONC.mode] || 1; if (A._capDeck < Infinity && c.usd > 1) s *= 1 + Math.min(3, c.usd / 10); const vp = valorPlano(A, c).v; s *= Math.exp(-0.45 * vp); return { c, s, th, fit, vp }; }).filter(x => !(A.plano && A.plano.ativo && x.vp <= -1.5)).filter(x => !(CONC.mode === 'so' && x.fit === false)).sort((a, b) => a.s - b.s);
 }
 function addPool(A, test, n = 30) {
   const inDeck = new Set(A.uniq.map(c => c.name).concat(A.cmds.map(c => c.name)));
@@ -829,12 +915,28 @@ document.addEventListener('mouseover', (e) => {
 document.addEventListener('mouseout', (e) => { const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || (e.relatedTarget && b.contains(e.relatedTarget))) return; clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; });
 document.addEventListener('click', () => { clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; }, true);
 
+// o que a troca faz pelo plano do comandante (lido do texto das duas cartas)
+function planoTroca(A, s) {
+  const P = A.plano; if (!P || !P.ativo) return '';
+  const pi = valorPlano(A, C(s.inn)), po = valorPlano(A, C(s.out));
+  const bits = [];
+  if (pi.why.length) bits.push(`${s.inn}: ${pi.why.join('; ')}`);
+  if (po.why.length) bits.push(`${s.out}: ${po.why.join('; ')}`);
+  if (!bits.length) return '';
+  const d = pi.v - po.v, tom = d >= 1 ? 'adianta o plano' : d <= -1 ? 'atrasa o plano (só faça se a função que falta pesar mais)' : 'quase neutra para o plano';
+  return `<dt>Pelo plano de ${esc(P.nome)}</dt><dd>${esc(bits.join('. '))}. <b>Troca ${tom}.</b></dd>`;
+}
+function planoBox(A) {
+  const P = A.plano; if (!P || !P.ativo || !P.quer.length) return '';
+  const o = P.voltron ? `${P.nome} vence atacando e carregando auras e equipamentos` : `${P.nome} vence atacando`;
+  return `<div class="plano-box"><b>O plano de ${esc(P.nome)}</b><p>${esc(o)}. Cada turno que ele demora a entrar ou a atacar armado custa a partida. As trocas abaixo protegem e procuram o que adianta isso:</p><ul>${P.quer.map(q => `<li>${esc(q)}</li>`).join('')}</ul><p class="note">Cartas do tema não ficam só por serem do tema: uma aura cara que dá pouco pode sair, e uma barata com evasão ou proteção fica.</p></div>`;
+}
 function renderSwapCard(s, i) {
   return `<div class="swapcard${SWAP_ON[i] ? '' : ' off'}" data-sw="${i}">
     <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><button class="btn small" style="margin-left:auto" data-lockout="${esc(s.out)}" title="Trava a carta que sai e refaz as trocas">Não tirar ${esc(s.out)}</button><label class="field" style="margin:0"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
     <div class="pair">${swapBox(s.out, 'SAI')}${swapBox(s.inn, 'ENTRA')}</div>
     ${swapNums(LAST, s)}
-    <dl class="sw-why"><dt>Por que sai</dt><dd>${esc(s.whyOut)}.</dd><dt>Por que entra</dt><dd>${esc(s.whyIn)}</dd><dt>Na prática</dt><dd class="cmp">${esc(compareText(LAST, s))}</dd></dl>
+    <dl class="sw-why"><dt>Por que sai</dt><dd>${esc(s.whyOut)}.</dd><dt>Por que entra</dt><dd>${esc(s.whyIn)}</dd><dt>Na prática</dt><dd class="cmp">${esc(compareText(LAST, s))}</dd>${planoTroca(LAST, s)}</dl>
     ${s.alts.length ? `<div class="alt"><span class="note">Prefere outra para entrar?</span><div class="links">${s.alts.map(n => `<button class="cn" data-altin="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
     ${s.altsOut.length ? `<div class="alt"><span class="note">Ou tirar outra no lugar:</span><div class="links">${s.altsOut.map(n => `<button class="cn" data-altout="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
   </div>`;
@@ -925,6 +1027,7 @@ function renderSwaps(A) {
   if (!SWAPS.length) return `<section class="panel"><h2>Trocas sugeridas</h2><p>Nenhuma troca óbvia pela lista: as funções estão nas faixas, a base de mana cobre as cores e não sobraram cartas sem papel. Para afinar daqui, use a <a href="#mesa">mesa simulada</a>, que mede carta por carta.</p></section>`;
   return `<section class="panel"><h2>Trocas sugeridas</h2>
     <p class="lead">Cada troca é um par: a carta que menos contribui sai, e entra uma das mais jogadas nas suas cores para o buraco apontado no resumo. A lista final continua com 100 cartas. Desmarque o que não quiser, troque a carta que entra pelas outras opções e clique em qualquer nome para ler a carta.</p>
+    ${planoBox(A)}
     <div class="kpis sw-sum" id="sw-sum">${swapSum(A)}</div>
     <div id="sw-graf">${swapGraf(A)}</div>
     ${A._testBad && A._testBad.length ? `<p class="note" style="color:var(--warn)">Fora das cores do comandante, não dá para testar: ${esc(A._testBad.join(', '))}.</p>` : ''}
