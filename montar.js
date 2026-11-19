@@ -443,6 +443,42 @@ const G = (() => {
     }
     return out;
   }
+  // metas do Passo 3 calibradas nos decks médios do EDHREC (ferramentas/calibra, 382 decks: os 10 comandantes mais jogados de cada tema,
+  // 3 de cada tribo, e 36 comandantes em cada bracket e no orçamento baixo). Ordem: ramp, compra, remoção, limpa-mesa, proteção, contramágica.
+  // Tema/tribo/bracket/orçamento = diferença para a média geral (tema já sem o efeito da cor). Gerado por ferramentas/calibra/gera_meta.py.
+  const META = { base: [10,13.6,7.3,2.5,5.2,1.8], contraAzul: 3.7, verde: 2.1, azulCompra: 0.5,
+    tema: { voltron: [-2,-3.6,-2.1,-0.6,9,-0.1], tokens: [-0.7,-2.6,0.5,-0.2,-1,0.5], counters: [-0.4,-0.7,-0.7,-0.3,1,-0.5], graveyard: [0.1,2,0.3,-0.2,-2.6,-0.4], artifacts: [2.4,1.6,-1.7,-0.6,-0.1,-0.1], enchant: [-0.9,0.8,1.2,-0.5,1.4,-1.5], spells: [1.1,7.3,1.8,-0.1,-2,1], sac: [-0.3,-3.2,1.9,1.3,-2.7,-0.3], life: [-0.9,-1.8,0.5,0.5,-2.1,0.1], lands: [2.8,-1.5,-2.4,-1.3,-2.2,-0.8], combat: [0.2,-4,0.9,0.1,2,0], draw: [0.1,10.9,-0.6,-0.3,-1.9,0.7], flying: [0.5,-2.2,-0,0.4,0.8,0.5], tribe: [-0.5,-1.1,0.5,0.3,0.3,0.2] },
+    tribo: { Elf: [1.7,-1.1,0.7,-0.1,1.4,-0.9], Goblin: [-1.2,-0.7,1.4,-0.1,-1,-0.9], Zombie: [-1.2,-2.6,-0.8,1.4,-0.6,0.3], Dragon: [0.9,-2.1,1.2,0.3,-0.6,-0.4], Vampire: [-1,0.4,0.4,0.6,-1.1,-0.9], Merfolk: [-1.8,1.9,-1.3,0.8,0.4,2.6], Angel: [-0.7,-2.2,0.6,1.1,3.2,-0.9], Dinosaur: [-0.3,-0.1,1.7,0.1,0.4,-0.9], Wizard: [-0.3,0.4,1.4,0.6,-1.1,2.9], Human: [0.3,-0.4,1.4,-0.1,1.2,0.1], Sliver: [-0.8,-4.3,-1.1,-0.6,0.9,-0.4], Cat: [-1.6,-2.4,-0.1,-0.4,0.5,-0.9] },
+    bracket: { 1: [-0.3,0.9,1.1,-0.2,-0.9,-0.5], 2: [-0.2,1.1,1,0.2,-0.6,-0.6], 3: [-0.1,0.1,0,0,0.1,-0.1], 4: [-1.1,-1.2,-1.2,0.1,0.8,0.6] },
+    barato: [-0.1,2.2,2.4,-0,-1.7,-0.6] };
+  const META_N = { voltron: 'Auras e equipamentos', tokens: 'Fichas', counters: 'Marcadores', graveyard: 'Cemitério', artifacts: 'Artefatos', enchant: 'Encantamentos', spells: 'Mágicas', sac: 'Sacrifício', life: 'Ganho de vida', lands: 'Landfall', combat: 'Ataque', draw: 'Comprar muitas', flying: 'Voar', tribe: 'Tribo' };
+  // vários temas: média das diferenças dos temas marcados. Cada meta vem com a conta, para a tela mostrar.
+  function metas(on, I, d, tb) {
+    const ts = [...on].filter(t => META.tema[t]);
+    const dif = (t, i) => t === 'tribe' && META.tribo[tb] ? META.tribo[tb][i] : META.tema[t][i];
+    const nomeT = (t) => t === 'tribe' && tb ? 'tribo ' + tb + (META.tribo[tb] ? '' : ' (média das tribos)') : META_N[t];
+    const br = +d.alvo.br || 0, teto = num(d.alvo.teto), tetoC = num(d.alvo.tetoCarta);
+    const barato = (teto && teto <= 1000) || (tetoC && tetoC <= 15) ? 1 : (teto && teto <= 2500) || (tetoC && tetoC <= 30) ? 0.5 : 0;
+    const out = {};
+    ['ramp', 'draw', 'removal', 'wipe', 'protect', 'counter'].forEach((k, i) => {
+      if (k === 'counter' && !I.has('U')) return;
+      const partes = [];
+      let x = k === 'counter' ? META.contraAzul : META.base[i];
+      partes.push(['média geral', x]);
+      if (ts.length) { const v = ts.reduce((s, t) => s + dif(t, i), 0) / ts.length; partes.push([ts.length > 1 ? 'temas ' + ts.map(nomeT).join(' + ') + ' (média)' : (ts[0] === 'tribe' ? '' : 'tema ') + nomeT(ts[0]), v]); }
+      if (k === 'ramp') partes.push([I.has('G') ? 'tem verde' : 'sem verde', I.has('G') ? META.verde : -META.verde]);
+      if (k === 'draw') partes.push([I.has('U') ? 'tem azul' : 'sem azul', I.has('U') ? META.azulCompra : -META.azulCompra]);
+      if (META.bracket[br]) partes.push(['bracket ' + br, META.bracket[br][i]]);
+      if (barato) partes.push([barato === 1 ? 'orçamento baixo' : 'orçamento médio', META.barato[i] * barato]);
+      const tot = partes.reduce((s, p) => s + p[1], 0);
+      const min = { ramp: 6, draw: 6, removal: 4, wipe: 1, protect: 2, counter: 1 }[k];
+      const alvo = Math.max(min, Math.round(tot));
+      const f = (v) => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1).replace('.', ',').replace(',0', '');
+      const conta = partes.filter((p, j) => j === 0 || Math.abs(p[1]) >= 0.05).map((p, j) => j === 0 ? `${p[0]} ${p[1].toFixed(1).replace('.', ',')}` : `${p[0]} ${f(p[1])}`).join(', ');
+      out[k] = { alvo, conta: `decks médios do EDHREC: ${conta} = ${alvo}` };
+    });
+    return out;
+  }
   function estado() {
     const d = D(), I = ident();
     const cartas = Object.entries(d.cartas).map(([n, q]) => [C(n), q]).filter(([c]) => c);
@@ -468,15 +504,16 @@ const G = (() => {
     // no começo: média 3 e pelo menos 8 de compra/ramp baratos (as metas de 10 ramp e 10 compra ainda vão entrar)
     if (spells < 15) { TF.media = 3; TF.barato = Math.max(TF.barato, 8); TF.pura = 31.42 + 3.13 * 3 - 0.28 * TF.barato; TF.ajust = TF.pura + TF.ajustes.reduce((s, a) => s + a.v, 0); TF.cedo = true; }
     const landsT = Math.max(30, Math.min(42, Math.round(TF.ajust))), landsPura = Math.max(30, Math.min(42, Math.round(TF.pura)));
-    const voltron = on.has('voltron');
+    const M = metas(on, I, d, tb);
     const slots = [
-      { k: 'ramp', n: 'Ramp', alvo: 10, why: 'mana extra cedo põe você um turno à frente da mesa' },
-      { k: 'draw', n: 'Compra de cartas', alvo: 10, why: 'em mesa de 4, quem fica sem cartas na mão perde' },
-      { k: 'removal', n: 'Remoção pontual', alvo: 8, why: 'responde ao comandante dos outros e às peças que viram o jogo' },
-      { k: 'wipe', n: 'Limpa-mesa', alvo: on.has('tokens') || on.has('tribe') || on.has('combat') ? 2 : 3, why: 'salva você quando alguém dispara na frente' },
-      { k: 'protect', n: 'Proteção', alvo: voltron ? 6 : 4, why: 'segura o plano quando tentam remover a peça principal' },
+      { k: 'ramp', n: 'Ramp', why: 'mana extra cedo põe você um turno à frente da mesa' },
+      { k: 'draw', n: 'Compra de cartas', why: 'em mesa de 4, quem fica sem cartas na mão perde' },
+      { k: 'removal', n: 'Remoção pontual', why: 'responde ao comandante dos outros e às peças que viram o jogo' },
+      { k: 'wipe', n: 'Limpa-mesa', why: 'salva você quando alguém dispara na frente' },
+      { k: 'protect', n: 'Proteção', why: 'segura o plano quando tentam remover a peça principal' },
     ];
-    if (I.has('U')) slots.push({ k: 'counter', n: 'Contramágica', alvo: 3, why: 'anula a jogada que ganharia o jogo' });
+    if (M.counter) slots.push({ k: 'counter', n: 'Contramágica', why: 'anula a jogada que ganharia o jogo' });
+    for (const x of slots) { x.alvo = M[x.k].alvo; x.why += ` (meta pelos ${M[x.k].conta})`; }
     const soma = slots.reduce((s, x) => s + x.alvo, 0);
     const temaAlvo = on.size ? Math.max(12, 99 - (d.cmds.length - 1) - landsT - soma) : 0;
     if (on.size) slots.push({ k: 'tema', n: 'Cartas da ideia', alvo: temaAlvo, why: 'é o que faz o deck ser o seu deck' });
@@ -637,7 +674,7 @@ const G = (() => {
       corpo = `<div class="g-prox"><span class="g-rot">${k === auto ? 'Próximo passo' : 'Você escolheu'}</span>
         <h3>${esc(slot.n)}${extra ? `: ainda cabem ${falta} mágica${falta > 1 ? 's' : ''}` : slot.alvo ? `: ${falta ? `faltam ${falta} de ${slot.alvo}` : `já tem ${slot.tem} (o normal é ${slot.alvo})`}` : ''}</h3>
         ${extra ? `<p class="note">O esqueleto de funções já está completo; as vagas que sobram (100 menos os ${E.landsT} terrenos) vão para ${E.on.size ? 'mais cartas da ideia' : 'as cartas mais jogadas nas suas cores'}.</p>` : ''}
-        <p class="note">Por que importa: ${esc(slot.why)}. Sugestões nas cores do comandante${E.edh ? `, pela sinergia com a sua ideia (no EDHREC: quanto a carta aparece nos decks do${E.edh.pags.length > 1 ? "s temas escolhidos" : " tema escolhido"} nessas cores a mais que nos decks dessas cores em geral)` : E.on.size ? ', pela popularidade geral (os dados de tema do EDHREC não carregaram)' : ', pela popularidade geral (escolha temas no passo 2 para puxar para a ideia)'}${E.on.size && k !== 'lands' ? ', puxando para a ideia' : ''}${filtros.length ? ', dentro de ' + esc(filtros.join(', ')) : ''}.</p>
+        <p class="note">Por que importa: ${esc(slot.why)}. Sugestões nas cores do comandante${E.edh ? `, pela sinergia com a sua ideia (no EDHREC: quanto a carta aparece nos decks do${E.edh.pags.length > 1 ? "s temas escolhidos" : " tema escolhido"} nessas cores a mais que nos decks dessas cores em geral)` : E.on.size ? ', pela popularidade geral' : ', pela popularidade geral (escolha temas no passo 2 para puxar para a ideia)'}${E.on.size && k !== 'lands' ? ', puxando para a ideia' : ''}${filtros.length ? ', dentro de ' + esc(filtros.join(', ')) : ''}.</p>
         ${bas.length ? `<div class="g-bas"><span>Completar com básicos pela cor das cartas: <b>${bas.map(([n, q]) => q + ' ' + n).join(', ')}</b></span><button class="btn small primary" id="g-bas">Pôr os ${bas.reduce((s, [, q]) => s + q, 0)} básicos</button></div><p class="note">Ou escolha terrenos especiais abaixo antes (eles dão mais de uma cor).</p>` : ''}
         <div class="g-sugs">${cartas || '<p class="note">Nenhuma sugestão cabe nos filtros (bracket, orçamento, cartas recusadas). Escolha outra etapa no trilho acima, mude o orçamento no passo 2 ou busque livre no passo 4.</p>'}</div>
         <div class="row">${lista.length ? `<button class="btn" id="g-todas">Pôr ${Math.min(lista.length, falta || lista.length) === 1 ? 'a primeira' : 'as ' + Math.min(lista.length, falta || lista.length) + ' primeiras'}</button>` : ''}<button class="btn" id="g-mais3">Ver mais sugestões</button>${Object.keys(E.d.recusadas).length ? `<button class="btn" id="g-desrec">Rever as ${Object.keys(E.d.recusadas).length} recusadas</button>` : ''}${P3.slot ? '<button class="btn" id="g-auto">Seguir a ordem sugerida</button>' : ''}</div>

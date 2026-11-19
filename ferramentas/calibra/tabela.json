@@ -1,0 +1,292 @@
+{
+ "base": {
+  "ramp": 10.0,
+  "draw": 13.6,
+  "removal": 7.3,
+  "wipe": 2.5,
+  "protect": 5.2,
+  "counter": 1.8
+ },
+ "baseContraAzul": 3.7,
+ "verde": 2.1,
+ "azulCompra": 0.5,
+ "tema": {
+  "voltron": {
+   "ramp": -2.0,
+   "draw": -3.6,
+   "removal": -2.1,
+   "wipe": -0.6,
+   "protect": 9.0,
+   "counter": -0.1
+  },
+  "tokens": {
+   "ramp": -0.7,
+   "draw": -2.6,
+   "removal": 0.5,
+   "wipe": -0.2,
+   "protect": -1.0,
+   "counter": 0.5
+  },
+  "counters": {
+   "ramp": -0.4,
+   "draw": -0.7,
+   "removal": -0.7,
+   "wipe": -0.3,
+   "protect": 1.0,
+   "counter": -0.5
+  },
+  "graveyard": {
+   "ramp": 0.1,
+   "draw": 2.0,
+   "removal": 0.3,
+   "wipe": -0.2,
+   "protect": -2.6,
+   "counter": -0.4
+  },
+  "artifacts": {
+   "ramp": 2.4,
+   "draw": 1.6,
+   "removal": -1.7,
+   "wipe": -0.6,
+   "protect": -0.1,
+   "counter": -0.1
+  },
+  "enchant": {
+   "ramp": -0.9,
+   "draw": 0.8,
+   "removal": 1.2,
+   "wipe": -0.5,
+   "protect": 1.4,
+   "counter": -1.5
+  },
+  "spells": {
+   "ramp": 1.1,
+   "draw": 7.3,
+   "removal": 1.8,
+   "wipe": -0.1,
+   "protect": -2.0,
+   "counter": 1.0
+  },
+  "sac": {
+   "ramp": -0.3,
+   "draw": -3.2,
+   "removal": 1.9,
+   "wipe": 1.3,
+   "protect": -2.7,
+   "counter": -0.3
+  },
+  "life": {
+   "ramp": -0.9,
+   "draw": -1.8,
+   "removal": 0.5,
+   "wipe": 0.5,
+   "protect": -2.1,
+   "counter": 0.1
+  },
+  "lands": {
+   "ramp": 2.8,
+   "draw": -1.5,
+   "removal": -2.4,
+   "wipe": -1.3,
+   "protect": -2.2,
+   "counter": -0.8
+  },
+  "combat": {
+   "ramp": 0.2,
+   "draw": -4.0,
+   "removal": 0.9,
+   "wipe": 0.1,
+   "protect": 2.0,
+   "counter": 0
+  },
+  "draw": {
+   "ramp": 0.1,
+   "draw": 10.9,
+   "removal": -0.6,
+   "wipe": -0.3,
+   "protect": -1.9,
+   "counter": 0.7
+  },
+  "flying": {
+   "ramp": 0.5,
+   "draw": -2.2,
+   "removal": -0.0,
+   "wipe": 0.4,
+   "protect": 0.8,
+   "counter": 0.5
+  },
+  "tribe": {
+   "ramp": -0.5,
+   "draw": -1.1,
+   "removal": 0.5,
+   "wipe": 0.3,
+   "protect": 0.3,
+   "counter": 0.2
+  }
+ },
+ "tribos": {
+  "elves": {
+   "ramp": 1.7,
+   "draw": -1.1,
+   "removal": 0.7,
+   "wipe": -0.1,
+   "protect": 1.4,
+   "counter": -0.9
+  },
+  "goblins": {
+   "ramp": -1.2,
+   "draw": -0.7,
+   "removal": 1.4,
+   "wipe": -0.1,
+   "protect": -1.0,
+   "counter": -0.9
+  },
+  "zombies": {
+   "ramp": -1.2,
+   "draw": -2.6,
+   "removal": -0.8,
+   "wipe": 1.4,
+   "protect": -0.6,
+   "counter": 0.3
+  },
+  "dragons": {
+   "ramp": 0.9,
+   "draw": -2.1,
+   "removal": 1.2,
+   "wipe": 0.3,
+   "protect": -0.6,
+   "counter": -0.4
+  },
+  "vampires": {
+   "ramp": -1.0,
+   "draw": 0.4,
+   "removal": 0.4,
+   "wipe": 0.6,
+   "protect": -1.1,
+   "counter": -0.9
+  },
+  "merfolk": {
+   "ramp": -1.8,
+   "draw": 1.9,
+   "removal": -1.3,
+   "wipe": 0.8,
+   "protect": 0.4,
+   "counter": 2.6
+  },
+  "angels": {
+   "ramp": -0.7,
+   "draw": -2.2,
+   "removal": 0.6,
+   "wipe": 1.1,
+   "protect": 3.2,
+   "counter": -0.9
+  },
+  "dinosaurs": {
+   "ramp": -0.3,
+   "draw": -0.1,
+   "removal": 1.7,
+   "wipe": 0.1,
+   "protect": 0.4,
+   "counter": -0.9
+  },
+  "wizards": {
+   "ramp": -0.3,
+   "draw": 0.4,
+   "removal": 1.4,
+   "wipe": 0.6,
+   "protect": -1.1,
+   "counter": 2.9
+  },
+  "humans": {
+   "ramp": 0.3,
+   "draw": -0.4,
+   "removal": 1.4,
+   "wipe": -0.1,
+   "protect": 1.2,
+   "counter": 0.1
+  },
+  "slivers": {
+   "ramp": -0.8,
+   "draw": -4.3,
+   "removal": -1.1,
+   "wipe": -0.6,
+   "protect": 0.9,
+   "counter": -0.4
+  },
+  "cats": {
+   "ramp": -1.6,
+   "draw": -2.4,
+   "removal": -0.1,
+   "wipe": -0.4,
+   "protect": 0.5,
+   "counter": -0.9
+  }
+ },
+ "bracket": {
+  "1": {
+   "ramp": -0.3,
+   "draw": 0.9,
+   "removal": 1.1,
+   "wipe": -0.2,
+   "protect": -0.9,
+   "counter": -0.5,
+   "lands": 1.2
+  },
+  "2": {
+   "ramp": -0.2,
+   "draw": 1.1,
+   "removal": 1,
+   "wipe": 0.2,
+   "protect": -0.6,
+   "counter": -0.6,
+   "lands": 0.6
+  },
+  "3": {
+   "ramp": -0.1,
+   "draw": 0.1,
+   "removal": 0.0,
+   "wipe": 0,
+   "protect": 0.1,
+   "counter": -0.1,
+   "lands": 0.2
+  },
+  "4": {
+   "ramp": -1.1,
+   "draw": -1.2,
+   "removal": -1.2,
+   "wipe": 0.1,
+   "protect": 0.8,
+   "counter": 0.6,
+   "lands": -0.7
+  }
+ },
+ "barato": {
+  "ramp": -0.1,
+  "draw": 2.2,
+  "removal": 2.4,
+  "wipe": -0.0,
+  "protect": -1.7,
+  "counter": -0.6,
+  "lands": 1.3
+ },
+ "amostra": {
+  "decks": 382,
+  "temas": {
+   "voltron": 10,
+   "tokens": 10,
+   "counters": 10,
+   "graveyard": 10,
+   "artifacts": 10,
+   "enchant": 10,
+   "spells": 10,
+   "sac": 10,
+   "life": 10,
+   "lands": 10,
+   "combat": 10,
+   "draw": 10,
+   "flying": 10,
+   "tribe": 36,
+   "geral": 36
+  }
+ }
+}
