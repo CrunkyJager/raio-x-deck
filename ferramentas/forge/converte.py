@@ -326,7 +326,7 @@ def funcoes_face(f, tras, alt):
         if not vt and re.match(r'Targeted|ParentTarget', p.get('Defined', '')):  # alvo escolhido num passo anterior (TargetOnly, Tap...)
             vt = ','.join(x['p'].get('ValidTgts', '') for x in efs[:efs.index(e)] if x['ctx'] is ctx and x['p'].get('ValidTgts'))
         if not vt and re.match(r'ChosenCard|Remembered', p.get('Defined', '')) and api in ('Destroy', 'ChangeZone', 'GainControl'):
-            vt = ','.join(x['p'].get('Choices', '') for x in efs[:efs.index(e)] if x['ctx'] is ctx and x['api'] in ('ChooseCard', 'Vote') and x['p'].get('Choices'))
+            vt = ','.join((x['p'].get('Choices') or x['p'].get('VoteCard', '')) for x in efs[:efs.index(e)] if x['ctx'] is ctx and x['api'] in ('ChooseCard', 'Vote') and (x['p'].get('Choices') or x['p'].get('VoteCard')))
         quemj = jogador(p.get('Defined', ''), ctx, vt)
 
         # ================= RAMP =================
@@ -453,7 +453,7 @@ def funcoes_face(f, tras, alt):
             add('removal', dict(base, modo='edito', alc='criatura', todos=0, n=1))  # Crackling Doom: cada oponente sacrifica a escolhida
         elif api == 'GainControl' and alvo_dele and not p.get('LoseControl') and not re.search(r'EOT|UntilEndOfTurn', p.get('Duration', '')) and not p.get('Untap'):
             add('removal', dict(base, modo='rouba', alc=alcance(vt), restr=restrito(vt)))
-        elif api == 'Animate' and alvo_dele and (p.get('RemoveAllAbilities') or p.get('RemoveCardTypes')) and p.get('Duration', '') in ('Permanent', '', 'UntilHostLeavesPlay', 'UntilLoseControlOfHost'):
+        elif api == 'Animate' and alvo_dele and (p.get('RemoveAllAbilities') or p.get('RemoveCardTypes')) and p.get('Duration', '') in ('Permanent', '', 'UntilHostLeavesPlay', 'UntilLoseControlOfHost', 'AsLongAsInPlay'):
             add('removal', dict(base, modo='neutraliza', alc=alcance(vt), restr=restrito(vt)))
         elif api == 'ExchangeControl' and vt and eh_dele(vt):
             add('removal', dict(base, modo='rouba', alc=alcance(vt), restr=restrito(vt)))
@@ -518,9 +518,9 @@ def funcoes_face(f, tras, alt):
             else: add('protect', d)
         elif api in ('Protection', 'ProtectionAll') and not eh_dele(vt or p.get('ValidCards', '')):
             add('protect', dict(base, kw=['Protection'], todos=1 if api == 'ProtectionAll' else 0, quem='alvo'))
-        elif api == 'Phases' and vt and not eh_meu(vt) and (p.get('IsCurse') or p.get('WontPhaseInNormal') or eh_dele(vt)):
+        elif api == 'Phases' and vt and not eh_meu(vt) and (p.get('WontPhaseInNormal') or eh_dele(vt)):  # alvo livre (Galadriel's Dismissal) = proteção
             add('removal', dict(base, modo='some', alc=alcance(vt), restr=restrito(vt)))
-        elif api in ('Phases', 'PhasesAll') and not eh_dele(quem) and not p.get('PhaseInOrOut') and not p.get('IsCurse') and not p.get('WontPhaseInNormal') and quem not in ('Remembered', 'Self'):
+        elif api in ('Phases', 'PhasesAll') and not eh_dele(quem) and not p.get('PhaseInOrOut') and not (p.get('IsCurse') and eh_dele(vt)) and not p.get('WontPhaseInNormal') and quem not in ('Remembered', 'Self'):
             add('protect', dict(base, kw=['Phasing'], todos=1 if api == 'PhasesAll' or p.get('Defined', '').startswith('Valid ') else 0, quem='alvo'))
         elif api in ('Regenerate', 'RegenerateAll') and not eh_dele(quem):
             if p.get('Defined', '') in ('Self', '') and not vt and api == 'Regenerate': out['_si'] = 1
