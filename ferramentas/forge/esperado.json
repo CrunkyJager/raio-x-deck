@@ -1,0 +1,1193 @@
+{
+ "_leia": "Gabarito do conversor. 'tem': função -> parâmetros que pelo menos UMA entrada daquela função precisa ter ({} = só ter a função). 'nao': funções que a carta NÃO pode ter. Todo erro achado vira um caso aqui antes de ser corrigido.",
+ "Sol Ring": {
+  "tem": {
+   "ramp": {
+    "tipo": "pedra",
+    "g": 2,
+    "rep": "tap"
+   }
+  },
+  "nao": [
+   "draw",
+   "removal"
+  ]
+ },
+ "Arcane Signet": {
+  "tem": {
+   "ramp": {
+    "tipo": "pedra",
+    "g": 1
+   }
+  }
+ },
+ "Fellwar Stone": {
+  "tem": {
+   "ramp": {
+    "tipo": "pedra"
+   }
+  }
+ },
+ "Mox Amber": {
+  "tem": {
+   "ramp": {
+    "tipo": "pedra"
+   }
+  }
+ },
+ "Llanowar Elves": {
+  "tem": {
+   "ramp": {
+    "tipo": "dork",
+    "g": 1
+   }
+  }
+ },
+ "Incubation Druid": {
+  "tem": {
+   "ramp": {
+    "tipo": "dork"
+   }
+  }
+ },
+ "Arbor Elf": {
+  "tem": {
+   "ramp": {
+    "tipo": "desvira"
+   }
+  }
+ },
+ "Rishkar, Peema Renegade": {
+  "tem": {
+   "ramp": {
+    "tipo": "dork"
+   }
+  }
+ },
+ "Cultivate": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno",
+    "g": 1,
+    "mao": 1
+   }
+  },
+  "nao": [
+   "draw"
+  ]
+ },
+ "Kodama's Reach": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno",
+    "mao": 1
+   }
+  }
+ },
+ "Rampant Growth": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno"
+   }
+  }
+ },
+ "Farseek": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno"
+   }
+  }
+ },
+ "Solemn Simulacrum": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno"
+   },
+   "draw": {
+    "tipo": "compra"
+   }
+  }
+ },
+ "Splendid Reclamation": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno",
+    "de": "cemiterio"
+   }
+  }
+ },
+ "Dockside Extortionist": {
+  "tem": {
+   "ramp": {
+    "tipo": "tesouro"
+   }
+  }
+ },
+ "Smothering Tithe": {
+  "tem": {
+   "ramp": {
+    "tipo": "tesouro",
+    "rep": "gatilho"
+   }
+  }
+ },
+ "Pawn of Ulamog": {
+  "tem": {
+   "ramp": {
+    "tipo": "tesouro"
+   }
+  }
+ },
+ "Tireless Provisioner": {
+  "tem": {
+   "ramp": {
+    "tipo": "tesouro"
+   }
+  }
+ },
+ "Dark Ritual": {
+  "tem": {
+   "ramp": {
+    "tipo": "ritual"
+   }
+  }
+ },
+ "Wild Growth": {
+  "tem": {
+   "ramp": {
+    "tipo": "extra"
+   }
+  }
+ },
+ "Utopia Sprawl": {
+  "tem": {
+   "ramp": {
+    "tipo": "extra"
+   }
+  }
+ },
+ "Nyxbloom Ancient": {
+  "tem": {
+   "ramp": {
+    "tipo": "multiplica"
+   }
+  }
+ },
+ "Herald's Horn": {
+  "tem": {
+   "ramp": {
+    "tipo": "reduz"
+   },
+   "draw": {
+    "tipo": "topo"
+   }
+  }
+ },
+ "Exploration": {
+  "tem": {
+   "ramp": {
+    "tipo": "terra-extra"
+   }
+  }
+ },
+ "Path to Exile": {
+  "tem": {
+   "removal": {
+    "modo": "exila",
+    "alc": "criatura"
+   }
+  },
+  "nao": [
+   "ramp"
+  ]
+ },
+ "An Offer You Can't Refuse": {
+  "tem": {
+   "counter": {}
+  },
+  "nao": [
+   "ramp"
+  ]
+ },
+ "Abundant Growth": {
+  "tem": {
+   "draw": {}
+  },
+  "nao": [
+   "ramp"
+  ]
+ },
+ "Blasphemous Act": {
+  "tem": {
+   "wipe": {
+    "modo": "DamageAll",
+    "lado": 0
+   }
+  },
+  "nao": [
+   "ramp"
+  ]
+ },
+ "Puresteel Paladin": {
+  "nao": [
+   "ramp"
+  ]
+ },
+ "Sun Titan": {
+  "nao": [
+   "ramp",
+   "draw"
+  ]
+ },
+ "Unearth": {
+  "tem": {
+   "draw": {
+    "tipo": "ciclo"
+   }
+  },
+  "nao": [
+   "ramp"
+  ]
+ },
+ "Rhystic Study": {
+  "tem": {
+   "draw": {
+    "rep": "gatilho",
+    "paga": 1
+   }
+  }
+ },
+ "Esper Sentinel": {
+  "tem": {
+   "draw": {
+    "paga": 1
+   }
+  }
+ },
+ "Phyrexian Arena": {
+  "tem": {
+   "draw": {
+    "rep": "fase"
+   }
+  }
+ },
+ "Sylvan Library": {
+  "tem": {
+   "draw": {
+    "rep": "fase",
+    "n": 2
+   }
+  }
+ },
+ "Howling Mine": {
+  "tem": {
+   "draw": {
+    "todos": 1
+   }
+  }
+ },
+ "Dictate of Kruphix": {
+  "tem": {
+   "draw": {
+    "todos": 1
+   }
+  }
+ },
+ "Night's Whisper": {
+  "tem": {
+   "draw": {
+    "n": 2
+   }
+  }
+ },
+ "Sign in Blood": {
+  "tem": {
+   "draw": {
+    "n": 2
+   }
+  }
+ },
+ "Ponder": {
+  "tem": {
+   "draw": {}
+  }
+ },
+ "Brainstorm": {
+  "tem": {
+   "draw": {
+    "n": 3
+   }
+  }
+ },
+ "Faithless Looting": {
+  "tem": {
+   "draw": {
+    "loot": 1
+   }
+  }
+ },
+ "Windfall": {
+  "tem": {
+   "draw": {
+    "todos": 1
+   }
+  }
+ },
+ "Wheel of Fortune": {
+  "tem": {
+   "draw": {
+    "todos": 1
+   }
+  }
+ },
+ "Skullclamp": {
+  "tem": {
+   "draw": {
+    "n": 2
+   }
+  }
+ },
+ "Mystic Remora": {
+  "tem": {
+   "draw": {
+    "paga": 1
+   }
+  }
+ },
+ "Necropotence": {
+  "tem": {
+   "draw": {}
+  }
+ },
+ "Light Up the Stage": {
+  "tem": {
+   "draw": {
+    "tipo": "impulso",
+    "n": 2
+   }
+  }
+ },
+ "Jeska's Will": {
+  "tem": {
+   "draw": {
+    "tipo": "impulso"
+   },
+   "ramp": {}
+  }
+ },
+ "Bolas's Citadel": {
+  "tem": {
+   "draw": {
+    "tipo": "topo",
+    "rep": "sempre"
+   }
+  }
+ },
+ "Mystic Forge": {
+  "tem": {
+   "draw": {
+    "tipo": "topo"
+   }
+  }
+ },
+ "Fact or Fiction": {
+  "tem": {
+   "draw": {}
+  }
+ },
+ "Dig Through Time": {
+  "tem": {
+   "draw": {
+    "tipo": "cava"
+   }
+  }
+ },
+ "Coiling Oracle": {
+  "tem": {
+   "draw": {},
+   "ramp": {
+    "tipo": "terreno"
+   }
+  }
+ },
+ "Eternal Witness": {
+  "tem": {
+   "draw": {
+    "tipo": "recursao"
+   }
+  }
+ },
+ "Tireless Tracker": {
+  "tem": {
+   "draw": {
+    "tipo": "pista"
+   }
+  }
+ },
+ "Court of Grace": {
+  "tem": {
+   "draw": {
+    "tipo": "monarca"
+   }
+  }
+ },
+ "Ledger Shredder": {
+  "tem": {
+   "draw": {
+    "tipo": "conive"
+   }
+  }
+ },
+ "Chimil, the Inner Sun": {
+  "tem": {
+   "draw": {
+    "tipo": "descobre"
+   }
+  }
+ },
+ "Edric, Spymaster of Trest": {
+  "tem": {
+   "draw": {
+    "cond": "DamageDone"
+   }
+  }
+ },
+ "Kaalia, Zenith Seeker": {
+  "tem": {
+   "draw": {}
+  }
+ },
+ "Wizard Class": {
+  "tem": {
+   "draw": {}
+  }
+ },
+ "Rancor": {
+  "nao": [
+   "draw"
+  ]
+ },
+ "Chaos Warp": {
+  "tem": {
+   "removal": {
+    "modo": "grimorio",
+    "alc": "permanente"
+   }
+  },
+  "nao": [
+   "draw"
+  ]
+ },
+ "Arcane Denial": {
+  "tem": {
+   "counter": {}
+  },
+  "nao": [
+   "removal"
+  ]
+ },
+ "Swords to Plowshares": {
+  "tem": {
+   "removal": {
+    "modo": "exila",
+    "alc": "criatura",
+    "restr": ""
+   }
+  }
+ },
+ "Beast Within": {
+  "tem": {
+   "removal": {
+    "modo": "destroi",
+    "alc": "permanente"
+   }
+  }
+ },
+ "Generous Gift": {
+  "tem": {
+   "removal": {
+    "alc": "permanente"
+   }
+  }
+ },
+ "Anguished Unmaking": {
+  "tem": {
+   "removal": {
+    "modo": "exila",
+    "alc": "naoterreno"
+   }
+  }
+ },
+ "Doom Blade": {
+  "tem": {
+   "removal": {
+    "restr": "cor"
+   }
+  }
+ },
+ "Lightning Bolt": {
+  "tem": {
+   "removal": {
+    "modo": "dano",
+    "dano": 3
+   }
+  }
+ },
+ "Fire // Ice": {
+  "tem": {
+   "removal": {
+    "modo": "dano"
+   },
+   "draw": {}
+  }
+ },
+ "Brazen Borrower // Petty Theft": {
+  "tem": {
+   "removal": {
+    "modo": "mao",
+    "modal": 1
+   }
+  }
+ },
+ "Decimate": {
+  "tem": {
+   "removal": {
+    "modo": "destroi"
+   }
+  }
+ },
+ "Grave Pact": {
+  "tem": {
+   "removal": {
+    "modo": "edito",
+    "rep": "gatilho"
+   }
+  }
+ },
+ "Sheoldred, Whispering One": {
+  "tem": {
+   "removal": {
+    "modo": "edito",
+    "rep": "fase"
+   }
+  }
+ },
+ "The Eldest Reborn": {
+  "tem": {
+   "removal": {
+    "modo": "edito"
+   }
+  }
+ },
+ "Crackling Doom": {
+  "tem": {
+   "removal": {
+    "modo": "edito"
+   }
+  },
+  "nao": [
+   "wipe"
+  ]
+ },
+ "Maelstrom Pulse": {
+  "tem": {
+   "removal": {
+    "alc": "naoterreno"
+   }
+  },
+  "nao": [
+   "wipe"
+  ]
+ },
+ "Darksteel Mutation": {
+  "tem": {
+   "removal": {
+    "modo": "neutraliza"
+   }
+  }
+ },
+ "Kenrith's Transformation": {
+  "tem": {
+   "removal": {
+    "modo": "neutraliza"
+   },
+   "draw": {}
+  }
+ },
+ "Pacifism": {
+  "tem": {
+   "removal": {
+    "modo": "neutraliza"
+   }
+  }
+ },
+ "Oblivion Ring": {
+  "tem": {
+   "removal": {
+    "modo": "exila",
+    "alc": "naoterreno"
+   }
+  }
+ },
+ "Reclamation Sage": {
+  "tem": {
+   "removal": {
+    "alc": "artefato/encantamento"
+   }
+  }
+ },
+ "Flickerwisp": {
+  "nao": [
+   "removal"
+  ]
+ },
+ "Boros Charm": {
+  "tem": {
+   "protect": {
+    "todos": 1
+   }
+  },
+  "nao": [
+   "removal"
+  ]
+ },
+ "Guttersnipe": {
+  "nao": [
+   "removal"
+  ]
+ },
+ "Impact Tremors": {
+  "nao": [
+   "removal"
+  ]
+ },
+ "Animate Dead": {
+  "nao": [
+   "wipe",
+   "removal"
+  ]
+ },
+ "Necromancy": {
+  "nao": [
+   "wipe"
+  ]
+ },
+ "Wrath of God": {
+  "tem": {
+   "wipe": {
+    "modo": "DestroyAll",
+    "alc": "criatura",
+    "lado": 0
+   }
+  }
+ },
+ "Damnation": {
+  "tem": {
+   "wipe": {
+    "lado": 0
+   }
+  }
+ },
+ "Toxic Deluge": {
+  "tem": {
+   "wipe": {
+    "modo": "PumpAll"
+   }
+  }
+ },
+ "Cyclonic Rift": {
+  "tem": {
+   "removal": {
+    "modo": "mao",
+    "alc": "naoterreno",
+    "restr": ""
+   },
+   "wipe": {
+    "modo": "sobrecarga",
+    "lado": 1
+   }
+  }
+ },
+ "Vandalblast": {
+  "tem": {
+   "wipe": {
+    "modo": "sobrecarga",
+    "lado": 1
+   }
+  }
+ },
+ "Black Sun's Zenith": {
+  "tem": {
+   "wipe": {
+    "modo": "PutCounterAll"
+   }
+  }
+ },
+ "Elesh Norn, Grand Cenobite": {
+  "tem": {
+   "wipe": {
+    "modo": "estatico",
+    "lado": 1
+   }
+  }
+ },
+ "Massacre Wurm": {
+  "tem": {
+   "wipe": {
+    "lado": 1
+   }
+  }
+ },
+ "Farewell": {
+  "tem": {
+   "wipe": {
+    "modal": 1
+   }
+  }
+ },
+ "Austere Command": {
+  "tem": {
+   "wipe": {
+    "modal": 1
+   }
+  }
+ },
+ "Kindred Dominance": {
+  "tem": {
+   "wipe": {
+    "poupa": 1
+   }
+  }
+ },
+ "Living Death": {
+  "tem": {
+   "wipe": {}
+  }
+ },
+ "Counterspell": {
+  "tem": {
+   "counter": {
+    "alvo": "qualquer",
+    "paga": 0
+   }
+  }
+ },
+ "Mana Leak": {
+  "tem": {
+   "counter": {
+    "paga": 1
+   }
+  }
+ },
+ "Negate": {
+  "tem": {
+   "counter": {
+    "alvo": "Card.nonCreature"
+   }
+  }
+ },
+ "Force of Will": {
+  "tem": {
+   "counter": {
+    "alvo": "qualquer"
+   }
+  },
+  "gratis": 1
+ },
+ "Fierce Guardianship": {
+  "tem": {
+   "counter": {}
+  },
+  "gratis": 1
+ },
+ "Deadly Rollick": {
+  "tem": {
+   "removal": {}
+  },
+  "gratis": 1
+ },
+ "Venser, Shaper Savant": {
+  "tem": {
+   "counter": {
+    "volta": 1
+   },
+   "removal": {
+    "modo": "mao"
+   }
+  }
+ },
+ "Cryptic Command": {
+  "tem": {
+   "counter": {
+    "modal": 1
+   },
+   "draw": {
+    "modal": 1
+   },
+   "removal": {
+    "modal": 1
+   }
+  }
+ },
+ "Stifle": {
+  "tem": {
+   "counter": {}
+  }
+ },
+ "Heroic Intervention": {
+  "tem": {
+   "protect": {
+    "todos": 1
+   }
+  }
+ },
+ "Teferi's Protection": {
+  "tem": {
+   "protect": {
+    "todos": 1
+   }
+  }
+ },
+ "Lightning Greaves": {
+  "tem": {
+   "protect": {
+    "quem": "anexo",
+    "rep": "sempre"
+   }
+  }
+ },
+ "Swiftfoot Boots": {
+  "tem": {
+   "protect": {
+    "quem": "anexo"
+   }
+  }
+ },
+ "Mother of Runes": {
+  "tem": {
+   "protect": {
+    "rep": "tap"
+   }
+  }
+ },
+ "Deflecting Swat": {
+  "tem": {
+   "protect": {
+    "kw": [
+     "desvia"
+    ]
+   }
+  },
+  "gratis": 1
+ },
+ "Snakeskin Veil": {
+  "tem": {
+   "protect": {}
+  }
+ },
+ "Kaya's Ghostform": {
+  "tem": {
+   "protect": {
+    "kw": [
+     "volta"
+    ]
+   }
+  }
+ },
+ "Bear Umbra": {
+  "tem": {
+   "protect": {
+    "kw": [
+     "volta"
+    ]
+   },
+   "ramp": {
+    "tipo": "desvira"
+   }
+  }
+ },
+ "Ephemerate": {
+  "tem": {
+   "protect": {
+    "kw": [
+     "blink"
+    ]
+   }
+  }
+ },
+ "Golgari Charm": {
+  "tem": {
+   "protect": {
+    "todos": 1
+   },
+   "wipe": {}
+  }
+ },
+ "Conjurer's Closet": {
+  "nao": [
+   "protect",
+   "removal"
+  ]
+ },
+ "Giant Growth": {
+  "nao": [
+   "protect"
+  ]
+ },
+ "Shalai, Voice of Plenty": {
+  "tem": {
+   "protect": {}
+  }
+ },
+ "Cloudshift": {
+  "tem": {
+   "protect": {
+    "kw": [
+     "blink"
+    ]
+   }
+  }
+ },
+ "Six": {
+  "tem": {
+   "draw": {
+    "tipo": "recursao"
+   }
+  }
+ },
+ "Prismari Command": {
+  "tem": {
+   "draw": {
+    "loot": 1
+   }
+  }
+ },
+ "Loran of the Third Path": {
+  "tem": {
+   "draw": {
+    "todos": 1
+   }
+  }
+ },
+ "Archon of Cruelty": {
+  "tem": {
+   "removal": {
+    "modo": "edito"
+   },
+   "draw": {}
+  }
+ },
+ "Song of the Dryads": {
+  "tem": {
+   "removal": {
+    "modo": "neutraliza"
+   }
+  }
+ },
+ "Oko, Thief of Crowns": {
+  "tem": {
+   "removal": {
+    "modo": "neutraliza"
+   }
+  }
+ },
+ "Overlord of the Hauntwoods": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno"
+   }
+  }
+ },
+ "Martial Coup": {
+  "tem": {
+   "wipe": {
+    "poupa": 0
+   }
+  }
+ },
+ "Promise of Loyalty": {
+  "tem": {
+   "wipe": {}
+  }
+ },
+ "Chandra's Ignition": {
+  "tem": {
+   "wipe": {
+    "lado": 1
+   }
+  }
+ },
+ "Pestilence": {
+  "tem": {
+   "wipe": {
+    "rep": "act"
+   }
+  }
+ },
+ "Metalwork Colossus": {
+  "nao": [
+   "draw"
+  ]
+ },
+ "Kogla, the Titan Ape": {
+  "nao": [
+   "protect"
+  ]
+ },
+ "Yahenni, Undying Partisan": {
+  "nao": [
+   "protect"
+  ]
+ },
+ "Dramatic Reversal": {
+  "nao": [
+   "ramp"
+  ]
+ },
+ "Genesis Hydra": {
+  "nao": [
+   "ramp"
+  ]
+ },
+ "Explorer's Scope": {
+  "tem": {
+   "ramp": {
+    "tipo": "terreno"
+   }
+  },
+  "nao": [
+   "draw"
+  ]
+ },
+ "Archdruid's Charm": {
+  "nao": [
+   "draw"
+  ]
+ },
+ "Beseech the Mirror": {
+  "nao": [
+   "draw"
+  ]
+ },
+ "Navigation Orb": {
+  "nao": [
+   "draw"
+  ]
+ },
+ "Baleful Mastery": {
+  "nao": [
+   "draw"
+  ]
+ },
+ "Kozilek, Butcher of Truth": {
+  "tem": {
+   "removal": {
+    "modo": "edito",
+    "rep": "gatilho"
+   }
+  }
+ },
+ "Shark Typhoon": {
+  "tem": {
+   "draw": {
+    "tipo": "ciclo"
+   }
+  }
+ },
+ "Apex Devastator": {
+  "tem": {
+   "draw": {
+    "tipo": "cascata",
+    "n": 4
+   }
+  }
+ },
+ "Ragavan, Nimble Pilferer": {
+  "tem": {
+   "draw": {
+    "tipo": "impulso",
+    "deles": 1
+   },
+   "ramp": {
+    "tipo": "tesouro"
+   }
+  }
+ },
+ "Luminous Broodmoth": {
+  "tem": {
+   "protect": {
+    "kw": [
+     "volta"
+    ],
+    "todos": 1
+   }
+  }
+ },
+ "Oubliette": {
+  "tem": {
+   "removal": {
+    "modo": "some"
+   }
+  },
+  "nao": [
+   "protect"
+  ]
+ },
+ "Descent into Avernus": {
+  "tem": {
+   "ramp": {
+    "tipo": "tesouro",
+    "todos": 1
+   }
+  }
+ },
+ "Avenger of Zendikar": {
+  "nao": [
+   "ramp",
+   "wipe"
+  ]
+ },
+ "Craterhoof Behemoth": {
+  "nao": [
+   "wipe",
+   "protect"
+  ]
+ },
+ "Slip Out the Back": {
+  "tem": {
+   "protect": {}
+  },
+  "nao": [
+   "removal"
+  ]
+ },
+ "Galadriel's Dismissal": {
+  "tem": {
+   "protect": {}
+  },
+  "nao": [
+   "removal"
+  ]
+ },
+ "Teferi, Master of Time": {
+  "tem": {
+   "removal": {
+    "modo": "some"
+   }
+  }
+ },
+ "Council's Judgment": {
+  "tem": {
+   "removal": {
+    "modo": "exila"
+   }
+  }
+ },
+ "Kitesail Larcenist": {
+  "tem": {
+   "removal": {
+    "modo": "neutraliza"
+   }
+  }
+ }
+}
