@@ -327,7 +327,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), custoRamp: (c) => custoRamp(c), terrenosFormula: (cs, cm) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A, c) => efetiv(A, c), perfilDeck: (A) => perfilDeck(A), efPlano: (A, c) => efPlano(A, c), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), custoRamp: (c) => custoRamp(c), terrenosFormula: (cs, cm) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A, c) => efetiv(A, c), sinergia: (A, c) => sinergia(A, c), temaSin: (A) => temaSin(A), sinTema: (c, T) => sinTema(c, T), sinTexto: (A, c) => sinTexto(A, c), buildSwaps: (A) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A) => perfilDeck(A), efPlano: (A, c) => efPlano(A, c), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -1057,15 +1057,94 @@ function efPlano(A, c) {
   if (efMax(A, c) >= 0.6) x *= 0.4; // o valor desta já conta na função básica
   return Math.max(0, Math.min(1.6, x));
 }
+// ---------- sinergia com o tema (20/11/2026) ----------
+// Sem comandante: só o TEMA do deck (a ideia escolhida; sem ideia, o tema que o próprio deck mostra).
+// sinergia-db.js (gerada dos roteiros do Forge) diz o que cada carta ALIMENTA e CONSOME; a fórmula é uma só para todo tema.
+// nota numa função = mín(efetividade; TETO_EF) + S_tema + S_deck. Acima do teto, ser mais rápida não soma (Signet = Sol Ring),
+// então a carta que conversa com o tema ganha da pedra genérica. PORTA_EF: abaixo disso a carta não entra só pela sinergia.
+const SIN = window.SINERGIA || {};
+const TETO_EF = window.RAIOX_TETO ?? 1.0, PORTA_EF = window.RAIOX_PORTA ?? 0.5, PESO_SIN = window.RAIOX_PSIN ?? 0.4; // S vai de 0 a 2,5: a carta mais ligada ao tema vale até 2× na função
+const SIN_TEMA = { tokens: { f: 1, e: 0.6 }, sac: { m: 1, f: 0.5 }, counters: { c: 1 }, life: { v: 1 }, artifacts: { a: 1 }, enchant: { n: 1 }, spells: { s: 1 }, graveyard: { g: 1 }, lands: { t: 1 }, combat: { k: 1 }, voltron: { x: 1, k: 0.4 }, draw: { d: 1 }, flying: { k: 1 } };
+const SIN_NOME = { f: 'fichas', e: 'criaturas entrando', m: 'criaturas morrendo', c: 'marcadores +1/+1', v: 'ganho de vida', a: 'artefatos', n: 'encantamentos', s: 'mágicas', g: 'cemitério', t: 'terrenos entrando', k: 'ataques', x: 'auras e equipamentos', d: 'compra de cartas' };
+const sinNome = (r) => r.startsWith('T:') ? r.slice(2) : SIN_NOME[r] || r;
+const sinDe = (n) => SIN[n] || SIN[(n || '').split(' // ')[0]] || [{}, {}];
+// o tema: os conceitos marcados na ideia; sem ideia, os temas que mais aparecem nas cartas do deck (sem o comandante)
+function temaSin(A) {
+  if (A._temaSin) return A._temaSin;
+  let ks = [...concOn(A)], origem = 'ideia';
+  if (!ks.length) {
+    origem = 'deck'; const cmd = new Set(A.cmds.map(c => c.name)), nl = A.uniq.filter(c => !isLand(c) && !cmd.has(c.name)), n = {};
+    for (const c of nl) themesOf(c).forEach(t => (n[t] = (n[t] || 0) + 1));
+    const top = Object.entries(n).filter(([k]) => SIN_TEMA[k]).sort((a, b) => b[1] - a[1]);
+    if (top.length && top[0][1] >= 8) ks = top.filter(([, q], i) => i === 0 || q >= 0.7 * top[0][1]).slice(0, 2).map(([k]) => k);
+    const nCri = A.uniq.filter(c => /Creature/.test(c.t.split(' // ')[0])).length;
+    if (A.tribe && (A.tribe[1] >= 18 || A.tribe[1] >= 0.5 * nCri)) ks.push('tribe'); // tribo de verdade, não 10 humanos por acaso
+  }
+  const T = {};
+  for (const k of ks) { const w = k === 'tribe' && A.tribe ? { ['T:' + A.tribe[0]]: 1, f: 0.3 } : SIN_TEMA[k] || {}; for (const r in w) T[r] = Math.max(T[r] || 0, w[r]); }
+  const nomes = ks.map(k => k === 'tribe' ? (A.tribe ? A.tribe[0] : '') : ((CONCEITOS.find(x => x.k === k) || THEMES.find(x => x.k === k) || {}).n || k).toLowerCase()).filter(Boolean);
+  return (A._temaSin = { T, ks, nomes, origem });
+}
+// quanto a carta conversa com o tema: consome (paga por ele) vale 1, alimenta vale 0,7; as duas coisas = motor (+0,3)
+function sinTema(c, T) {
+  const [p, u] = sinDe(c.name); let su = 0, sp = 0; const rU = [], rP = [];
+  for (const r in T) { if (u[r]) { su += T[r] * u[r] / 10; rU.push(r); } if (p[r]) { sp += T[r] * p[r] / 10; rP.push(r); } }
+  let s = su + 0.7 * sp; if (su > 0 && sp > 0) s += 0.3;
+  return { s: Math.min(1.5, s), papel: su && sp ? 'motor' : su ? 'paga' : sp ? 'alimenta' : '', rU, rP };
+}
+// ligações com as outras cartas do deck: o que esta alimenta e outra consome, e o contrário (recurso do tema pesa cheio, os outros 0,3)
+function sinDeck(c, nomes, T) {
+  const [pc, uc] = sinDe(c.name); let L = 0; const quem = [];
+  for (const d of nomes) {
+    if (d === c.name) continue; const [pd, ud] = sinDe(d); let l = 0;
+    for (const r in pc) if (ud[r]) l += (T[r] != null ? T[r] : r === 'e' ? 0.1 : 0.3) * pc[r] * ud[r] / 100;
+    for (const r in uc) if (pd[r]) l += (T[r] != null ? T[r] : r === 'e' ? 0.1 : 0.3) * uc[r] * pd[r] / 100;
+    if (l > 0.25) quem.push([l, d]); L += l;
+  }
+  quem.sort((a, b) => b[0] - a[0]);
+  return { s: 1 - Math.exp(-L / 4), quem: quem.slice(0, 3).map(x => x[1]) };
+}
+// sinergia total da carta com o tema e com o deck (cache por deck)
+function sinergia(A, c) {
+  const k = A._sinC || (A._sinC = {}); if (k[c.name]) return k[c.name];
+  if (isLand(c)) return (k[c.name] = { s: 0, t: { s: 0, papel: '', rU: [], rP: [] }, d: { s: 0, quem: [] } });
+  const S = temaSin(A), cmd = new Set(A.cmds.map(x => x.name));
+  const nomes = A._sinNomes || (A._sinNomes = A.uniq.filter(x => !isLand(x) && !cmd.has(x.name)).map(x => x.name));
+  const t = sinTema(c, S.T), d = sinDeck(c, nomes, S.T);
+  return (k[c.name] = { s: t.s + d.s, t, d });
+}
+function sinTexto(A, c) {
+  const x = sinergia(A, c), S = temaSin(A); if (!S.ks.length) return '';
+  const parte = x.t.papel ? `${x.t.papel === 'motor' ? 'alimenta e consome' : x.t.papel === 'paga' ? 'paga por' : 'alimenta'} ${listPt([...new Set(x.t.rU.concat(x.t.rP))].map(sinNome))}` : 'não conversa com o tema';
+  return `Sinergia com o tema (${listPt(S.nomes)}): ${parte}${x.d.quem.length ? '; liga com ' + listPt(x.d.quem) : ''} (${fmtD(x.s, 2)})`;
+}
+// fila do Plano pelo TEMA (opção 1, escolhida pelo usuário em 20/11): a nota não pergunta mais o que o comandante quer.
+// base 0,3 + 0,5 × sinergia (0 a 2,5) + o que fecha o jogo (ameaça, finalizador, metade de combo, tutor) − corpo sem nada
+function efPlanoTema(A, c) {
+  if (!c || isLand(c)) return 0; const rl = rolesOf(c), o = semLembrete(c), S = sinergia(A, c).s;
+  let x = 0.3 + 0.5 * S;
+  if (rl.has('wincon')) x += 0.4; else if (rl.has('threat')) x += /Planeswalker/.test(c.t.split(' // ')[0]) ? 0.15 : 0.4;
+  if (['amplify', 'extra', 'copy'].some(k => rl.has(k))) x += 0.2;
+  if (OVERRUN.test(o)) x += 0.4;
+  if (comboPar(A, c)) x += 1.1;
+  if (isTutor(c)) x += c.v <= 2 ? 0.5 : 0.3;
+  if (S === 0 && (A.noRole.includes(c.name) || A.bodyOnly.includes(c.name))) x -= 0.2;
+  return Math.max(0, Math.min(1.6, x));
+}
 // valor do deck = soma, em cada função, da efetividade de cada carta × o quanto o deck ainda precisa dela (retorno decrescente)
-// + 0,15 × leitura do plano do comandante. A troca é o par (sai, entra) que mais sobe esse valor.
+// + sinergia de cada carta com o tema e o deck. A troca é o par (sai, entra) que mais sobe esse valor.
 function triangula(A, ctx) {
-  const refs = A.refs.filter(r => r.k === 'lands' || EF_K.includes(r.k)).concat([{ k: 'plano', n: 'Plano (ameaças e peças do comandante)', lo: 30, hi: 48 }]);
+  const refs = A.refs.filter(r => r.k === 'lands' || EF_K.includes(r.k)).concat([{ k: 'plano', n: 'Plano (cartas do tema e ameaças)', lo: 30, hi: 48 }]);
   const P = perfilDeck(A), ataca = (A.plano && A.plano.atk) || P.bate >= 0.35;
   if (ataca && USA_CORPOS) refs.push(REF_CORPOS);
   const listas = {}; for (const r of refs) listas[r.k] = [];
   const corpo = (c) => { const f = c.t.split(' // ')[0]; if (!/Creature/.test(f)) return null; const pw = parseInt(c.p) || 0; return Math.max(0.3, Math.min(1.3, 0.5 + 0.15 * pw + (efeitos(c).haste ? 0.2 : 0) - 0.05 * Math.max(0, c.v - 4))); };
-  const efDe = (c) => isLand(c) ? { lands: TAPPED_RX(c) ? 0.9 : 1 } : Object.assign(isMdfcLand(c) ? { lands: 0.5 } : {}, efetiv(A, c).v, efMax(A, c) >= 0.6 ? {} : { plano: efPlano(A, c) }, ataca && USA_CORPOS && corpo(c) != null ? { corpos: corpo(c) } : {});
+  // efetividade com teto (acima dele, mais rápida não soma) × (1 + PESO_SIN × sinergia), só nas funções básicas: a sinergia escolhe
+  // QUAL carta ocupa cada vaga (qual ramp, qual remoção), mas a vaga continua passando pela faixa da função. A fila do plano
+  // (30–48 cartas com peso cheio) fica sem multiplicador: lá a sinergia engolia remoção e limpa-mesa.
+  const sinM = (c) => 1 + PESO_SIN * sinergia(A, c).s;
+  const teto = (c, v) => { const m = sinM(c); return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.min(x, TETO_EF) * m])); };
+  const efDe = (c) => isLand(c) ? { lands: TAPPED_RX(c) ? 0.9 : 1 } : Object.assign(isMdfcLand(c) ? { lands: 0.5 } : {}, teto(c, efetiv(A, c).v), efMax(A, c) >= 0.6 ? {} : { plano: efPlanoTema(A, c) }, ataca && USA_CORPOS && corpo(c) != null ? { corpos: corpo(c) } : {});
   const conta = (c, q) => { const e = efDe(c); for (const k in e) if (listas[k]) for (let i = 0; i < q; i++) listas[k].push(e[k]); };
   const qtd = deckCounts(A);
   for (const c of A.uniq) conta(c, qtd[c.name] || 1);
@@ -1095,7 +1174,9 @@ function triangula(A, ctx) {
   for (const name of Object.keys(DB.cards)) {
     if (inDeck.has(name)) continue; const c = C(name); if (c.ban || !c.r || isLand(c)) continue;
     if (!c.ci.split('').every(x => !x || A.ident.has(x))) continue; if (!addOk(A, c)) continue;
-    const rl = rolesOf(c); if (!EF_K.some(k => rl.has(k)) && !(A.plano && A.plano.ativo && valorPlano(A, c).v >= 1.5)) continue;
+    // porta: carta de função básica só entra se faz a função direito; sem função básica, só se conversa com o tema (ou com o plano)
+    const rl = rolesOf(c), temF = EF_K.some(k => rl.has(k));
+    if (temF ? efMax(A, c) < PORTA_EF : !(sinTema(c, temaSin(A).T).s >= 0.6 || rl.has('wincon') || OVERRUN.test(semLembrete(c)))) continue;
     pool.push(c);
   }
   const out = [];
@@ -1121,24 +1202,26 @@ function triangula(A, ctx) {
 }
 // texto das trocas da triangulação
 function textoTri(A, b) {
-  const refOf = (k) => k === 'plano' ? { n: 'O plano (ameaças e peças do comandante)', lo: 30, hi: 48 } : k === 'corpos' ? REF_CORPOS : A.refs.find(r => r.k === k);
+  const refOf = (k) => k === 'plano' ? { n: 'O plano (cartas do tema e ameaças)', lo: 30, hi: 48 } : k === 'corpos' ? REF_CORPOS : A.refs.find(r => r.k === k);
   const pior = b.det.filter(([, d]) => d < 0).sort((x, y) => x[1] - y[1])[0], melhor = b.det.filter(([, d]) => d > 0).sort((x, y) => y[1] - x[1])[0];
   const efS = efetiv(A, b.sai), efE = efetiv(A, b.entra), vpS = valorPlano(A, b.sai), vpE = valorPlano(A, b.entra);
-  const wP = (c, vp) => vp.why[0] || (A.cmdSupport.includes(c.name) ? 'conversa com o comandante' : rolesOf(c).has('threat') ? 'é ameaça' : 'faz pouco pelo plano do comandante');
-  const ev = (k, c, e) => k === 'plano' ? efPlano(A, c) : k === 'corpos' ? (b.corpoV || {})[c.name] || 0 : (e.v[k] || 0), ew = (k, c, e, vp) => k === 'plano' ? wP(c, vp) : k === 'corpos' ? `é criatura de poder ${c.p || 0}` : (e.why[k] || 'efeito fraco');
+  const wP = (c) => { const x = sinergia(A, c); return x.t.papel ? `${x.t.papel === 'motor' ? 'alimenta e consome' : x.t.papel === 'paga' ? 'paga por' : 'alimenta'} ${listPt([...new Set(x.t.rU.concat(x.t.rP))].map(sinNome))}` : rolesOf(c).has('threat') || rolesOf(c).has('wincon') ? 'é ameaça' : 'faz pouco pelo tema do deck'; };
+  const ev = (k, c, e) => k === 'plano' ? efPlanoTema(A, c) : k === 'corpos' ? (b.corpoV || {})[c.name] || 0 : (e.v[k] || 0), ew = (k, c, e, vp) => k === 'plano' ? wP(c, vp) : k === 'corpos' ? `é criatura de poder ${c.p || 0}` : (e.why[k] || 'efeito fraco');
   const faixa = (k) => { const r = refOf(k); return r ? `${r.n} está em ${fmt(b.cnt[k])} (faixa ${r.lo}–${r.hi})` : ''; };
   let whyOut;
   if (isLand(b.sai)) whyOut = `${faixa('lands')}: um terreno a mais rende pouco; ${TAPPED_RX(b.sai) ? 'este entra virado' : 'é um básico de uma cor que tem fontes de sobra'}.`;
   else if (pior) whyOut = `${faixa(pior[0])}. Entre elas, esta é das que menos rendem: ${ew(pior[0], b.sai, efS, vpS)} (efetividade ${fmtD(ev(pior[0], b.sai, efS))}).`;
-  else whyOut = `Não cumpre nenhuma função básica do deck${vpS.why.length ? '; ' + vpS.why[0] : ''}.`;
-  if (!isLand(b.sai) && (!pior || pior[0] !== 'plano') && vpS.v < 0 && vpS.why.length) whyOut += ` Pelo plano: ${vpS.why[0]}.`;
+  else whyOut = `Não cumpre nenhuma função básica do deck.`;
   let whyIn = melhor ? `${faixa(melhor[0])}. Esta: ${ew(melhor[0], b.entra, efE, vpE)} (efetividade ${fmtD(ev(melhor[0], b.entra, efE))}).` : '';
   const outras = Object.keys(efE.v).filter(k => !melhor || k !== melhor[0]).map(k => (refOf(k) || {}).n).filter(Boolean);
   if (outras.length) whyIn += ` Também conta como ${listPt(outras.map(x => x.toLowerCase()))}.`;
-  if (vpE.v >= 1 && vpE.why.length) whyIn += ` Pelo plano: ${vpE.why[0]}.`;
   whyIn += ` Ganho da troca: +${fmtD(b.g, 2)}.`;
-  const goal = melhor ? ({ corpos: 'Criaturas', plano: 'Plano do comandante', ramp: 'Ramp', draw: 'Compra de cartas', removal: 'Remoção pontual', wipe: 'Limpa-mesa', protect: 'Proteção', counter: 'Contramágica' })[melhor[0]] || 'Efetividade' : 'Plano do comandante';
-  return { goal, whyOut, whyIn: whyIn.trim() };
+  const goal = melhor ? ({ corpos: 'Criaturas', plano: 'Cartas do tema', ramp: 'Ramp', draw: 'Compra de cartas', removal: 'Remoção pontual', wipe: 'Limpa-mesa', protect: 'Proteção', counter: 'Contramágica' })[melhor[0]] || 'Efetividade' : 'Plano do comandante';
+  // sinergia com o tema: entra no texto das duas cartas; se foi ela que mais pesou, vira o motivo da troca
+  const sS = sinergia(A, b.sai), sE = sinergia(A, b.entra), dS = sE.s - sS.s;
+  const goal2 = dS >= 1 && (!melhor || melhor[0] === 'plano' || pior && pior[0] === melhor[0]) ? 'Sinergia com o tema' : goal;
+  const tS = sinTexto(A, b.sai), tE = sinTexto(A, b.entra);
+  return { goal: goal2, whyOut: whyOut.replace(/\.$/, '') + (tS ? '. ' + tS : ''), whyIn: (whyIn.trim() + (tE ? ' ' + tE + '.' : '')).trim() };
 }
 
 function cutScore(A, c, needRoles) {
@@ -1456,7 +1539,9 @@ document.addEventListener('mouseout', (e) => { const b = e.target.closest && e.t
 document.addEventListener('click', () => { clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; }, true);
 
 // o que a troca faz pelo plano do comandante (lido do texto das duas cartas)
+const USA_CMD = false; // 20/11: as trocas seguem só o tema; o plano do comandante sai da tela (volta pondo true)
 function planoTroca(A, s) {
+  if (!USA_CMD) return '';
   const P = A.plano; if (!P || !P.ativo) return '';
   const pi = valorPlano(A, C(s.inn)), po = valorPlano(A, C(s.out));
   const bits = [];
@@ -1483,6 +1568,7 @@ function edhBox(A) {
   return bits.length ? `<p class="note">${esc(bits.join(' '))}</p>` : '';
 }
 function planoBox(A) {
+  if (!USA_CMD) return '';
   const P = A.plano; if (!P || !P.ativo || !P.quer.length) return edhBox(A);
   const o = P.goad ? `${P.nome} vence fazendo os oponentes se atacarem enquanto você fica protegido` : P.voltron ? `${P.nome} vence atacando e carregando auras e equipamentos` : `${P.nome} vence atacando`;
   return `<div class="plano-box"><b>O plano de ${esc(P.nome)}</b><p>${esc(o)}. Cada turno que ele demora a entrar ou a atacar armado custa a partida. As trocas abaixo protegem e procuram o que adianta isso:</p><ul>${P.quer.map(q => `<li>${esc(q)}</li>`).join('')}</ul><p class="note">Cartas do tema não ficam só por serem do tema: uma aura cara que dá pouco pode sair, e uma barata com evasão ou proteção fica.</p>${edhBox(A)}</div>`;
