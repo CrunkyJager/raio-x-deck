@@ -284,20 +284,35 @@ const fmt = (n) => (Number.isInteger(n) ? n : n.toFixed(1));
 // tutor para o bracket: procura carta no grimório que não seja só terreno (Rampant Growth não conta)
 const isTutor = (c) => c.tags.includes('tutor') && /search(?:es)? your library for/i.test((c.o || '').split('\n//\n')[0]) && !/land|forest|plains|island|swamp|mountain/i.test(((c.o || '').match(/search(?:es)? (?:your|their) library for [^.]*/i) || [''])[0]);
 // ---------- preços em reais ----------
-// Os preços da base vêm do Scryfall em dólar; aqui viram reais pela cotação do dia (AwesomeAPI), guardada por 12 h.
-// Sem internet para a cotação, usa a reserva abaixo.
+// Fonte principal: menor anúncio no MYP Cards, em reais (precos-myp.js, API pública; ferramentas/precos/coleta_myp.py).
+// Carta sem anúncio lá: preço do Scryfall em dólar convertido pela cotação do dia (AwesomeAPI), guardada por 12 h.
+// Por dentro tudo continua em "dólar" (campo usd): a carta do MYP vira reais ÷ cotação (aplicaMyp), e brlTxt multiplica de volta.
+// Condição da API do MYP: mostrar a fonte com link onde o preço aparece (fonteMyp / fontePrecos).
+const MYP = (window.PRECOS_MYP && window.PRECOS_MYP.p) || {};
+const MYP_DATA = window.PRECOS_MYP && window.PRECOS_MYP.data ? window.PRECOS_MYP.data.split('-').reverse().join('/') : '';
+const temMyp = (n) => MYP[n] != null;
+const fonteMyp = (txt = 'MYP Cards') => `<a class="fonte" href="https://mypcards.com" target="_blank" rel="noopener">${txt}</a>`;
+// frase de fonte para um conjunto de cartas (nomes): quantas têm preço do MYP e o que vale para as outras
+function fontePrecos(nomes) {
+  const ns = [...new Set(nomes)].filter(n => { const c = C(n); return c && !/Basic/.test(c.t || ''); });
+  const fora = ns.filter(n => !temMyp(n)).length;
+  return `Preços: menor anúncio no ${fonteMyp()}${MYP_DATA ? ` (${MYP_DATA})` : ''}` + (fora ? `; ${fora === ns.length ? 'todas' : fora} sem anúncio lá: Scryfall convertido, <span data-cotacao>${USD_BRL_INFO}</span>` : '');
+}
 let USD_BRL = 5.56, USD_BRL_INFO = 'cotação de 11/11/2026';
+const aplicaMyp = () => { for (const n in MYP) { const e = DB.cards[n]; if (e) e[F.usd] = MYP[n] / USD_BRL; } };
 const brlTxt = (usd, cents) => 'R$ ' + ((usd || 0) * USD_BRL).toLocaleString('pt-BR', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
 const brl = (usd, cents) => `<span data-usd="${usd || 0}"${cents ? ' data-cents="1"' : ''}>${brlTxt(usd, cents)}</span>`;
 const toUsd = (reais) => (reais > 0 ? reais / USD_BRL : Infinity);
 (function cotacao() {
   const pinta = () => { document.querySelectorAll('[data-usd]').forEach(el => { el.textContent = brlTxt(+el.dataset.usd, !!el.dataset.cents); }); document.querySelectorAll('[data-cotacao]').forEach(el => { el.textContent = USD_BRL_INFO; }); };
   try { const c = JSON.parse(localStorage.getItem('raiox:usdbrl') || 'null'); if (c && Date.now() - c.t < 12 * 3600e3) { USD_BRL = c.v; USD_BRL_INFO = c.info; } } catch (e) {}
+  aplicaMyp();
   fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL').then(r => r.json()).then(j => {
     const v = +(j.USDBRL && j.USDBRL.bid); if (!(v > 3 && v < 12)) return;
     const d = new Date((+j.USDBRL.timestamp || Date.now() / 1000) * 1000);
     USD_BRL = v; USD_BRL_INFO = `dólar a R$ ${v.toFixed(2).replace('.', ',')} em ${d.toLocaleDateString('pt-BR')}`;
     try { localStorage.setItem('raiox:usdbrl', JSON.stringify({ v, info: USD_BRL_INFO, t: Date.now() })); } catch (e) {}
+    aplicaMyp(); // a carta do MYP continua com o mesmo preço em reais (o que já está na tela foi calculado com a cotação anterior)
     pinta();
   }).catch(() => {});
 })();
@@ -327,7 +342,7 @@ const cardLink = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</but
 const listLinks = (arr, max = 40) => arr.slice(0, max).map(cardLink).join('') + (arr.length > max ? `<span class="note"> e mais ${arr.length - max}</span>` : '');
 
 let LAST = null;
-window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), custoRamp: (c) => custoRamp(c), terrenosFormula: (cs, cm) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, manaHTML, cardLink, isTutor, ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A, c) => efetiv(A, c), sinergia: (A, c) => sinergia(A, c), temaSin: (A) => temaSin(A), sinTema: (c, T) => sinTema(c, T), sinTexto: (A, c) => sinTexto(A, c), buildSwaps: (A) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A) => perfilDeck(A), efPlano: (A, c) => efPlano(A, c), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+window.RAIOX = { THEMES, themesOf, valorPlano: (A, c) => valorPlano(A, c), edhPagina: (c) => edhPagina(c), edhJa: (c) => edhJa(c), edhCmdCam: (n) => edhCmdCam(n), edhIdeia: (t, i, tb) => edhIdeia(t, i, tb), edhCarta: (I, c) => edhCarta(I, c), edhNota: (I, c) => edhNota(I, c), edhPorque: (I, c) => edhPorque(I, c), planoDe: (A) => planoDe(A), tipoRamp: (c) => tipoRamp(c), custoRamp: (c) => custoRamp(c), terrenosFormula: (cs, cm) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c) => efeitos(c), subtypes, CONCEITOS: null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds, goTo) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A, c) => efetiv(A, c), sinergia: (A, c) => sinergia(A, c), temaSin: (A) => temaSin(A), sinTema: (c, T) => sinTema(c, T), sinTexto: (A, c) => sinTexto(A, c), buildSwaps: (A) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A) => perfilDeck(A), efPlano: (A, c) => efPlano(A, c), imgFor: (n, v) => imgFor(n, v), imgsDe: (l) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 function run(forcedCmd, goTo) {
   const text = $('#deck-in').value;
   const A = analyze(text, forcedCmd);
@@ -373,7 +388,7 @@ function render(A) {
   <section class="head panel">
     <div class="who"><div class="cmdname">${cmdNames.map(esc).join(' + ') || 'Comandante não encontrado'}</div><div class="ident">${identHTML}</div>
       <div class="stats">
-        <div class="stat price"><span class="k">Preço do deck</span><b>${brl(A.price)}</b>${A.pricey && A.pricey.length ? `<small>Mais caras: ${A.pricey.slice(0, 3).map(c => `${esc(c.name)} (${brl(c.usd)})`).join(' · ')}</small>` : ''}<small class="cot">Preços do Scryfall convertidos: <span data-cotacao>${USD_BRL_INFO}</span></small>${''}</div>
+        <div class="stat price"><span class="k">Preço do deck</span><b>${brl(A.price)}</b>${A.pricey && A.pricey.length ? `<small>Mais caras: ${A.pricey.slice(0, 3).map(c => `${esc(c.name)} (${brl(c.usd)})`).join(' · ')}</small>` : ''}<small class="cot">${fontePrecos(A.uniq.concat(A.cmds).map(c => c.name))}</small>${''}</div>
         <div class="stat"><span class="k">Cartas</span><b>${A.total}</b></div>
         <div class="stat"><span class="k">Custo médio</span><b>${A.avgMV.toFixed(2)}</b></div>
         <div class="stat"><span class="k">Terrenos</span><b>${A.lands}</b>${A.mdfc ? `<small>+ ${A.mdfc} de duas faces</small>` : ''}</div>
@@ -429,7 +444,7 @@ function render(A) {
   </section>
   <div class="grid2">
     <section class="panel"><h2>Cartas sem papel claro</h2><p class="lead">Todas as cartas são lidas: pelas etiquetas da comunidade, pelas regras de texto e, nas que sobram, pela leitura do texto da carta. Aqui ficam as que não têm função nem conversam com os temas do deck. Clique para ver o que cada uma faz e decida.</p>${A.noRole.length ? `<div class="links">${listLinks(A.noRole)}</div>` : '<p class="note">Nenhuma. Todas as cartas têm alguma função ou tema.</p>'}${A.bodyOnly.length ? `<h3 style="margin-top:12px">Só corpo</h3><p class="note">Criaturas sem habilidade que importe para o plano. Às vezes valem pelo tipo (tribo, artefato); senão, são as primeiras candidatas a corte.</p><div class="links">${listLinks(A.bodyOnly)}</div>` : ''}</section>
-    <section class="panel"><h2>Pouco jogadas</h2><p class="lead">Cartas que quase ninguém usa no Commander. Às vezes são achados; muitas vezes existe opção melhor para a mesma função.</p>${A.obscure.length ? `<div class="links">${listLinks(A.obscure)}</div>` : '<p class="note">Nenhuma.</p>'}${A.pricey.length ? `<p class="note" style="margin-top:10px">Mais caras: ${A.pricey.map(c => `${esc(c.name)} (${brl(c.usd)})`).join(', ')}.</p>` : ''}</section>
+    <section class="panel"><h2>Pouco jogadas</h2><p class="lead">Cartas que quase ninguém usa no Commander. Às vezes são achados; muitas vezes existe opção melhor para a mesma função.</p>${A.obscure.length ? `<div class="links">${listLinks(A.obscure)}</div>` : '<p class="note">Nenhuma.</p>'}${A.pricey.length ? `<p class="note" style="margin-top:10px">Mais caras: ${A.pricey.map(c => `${esc(c.name)} (${brl(c.usd)})`).join(', ')}. ${fontePrecos(A.pricey.map(c => c.name))}.</p>` : ''}</section>
   </div>
   </div>
   </div>`;
@@ -532,7 +547,7 @@ function renderConcept(A) {
       <p class="note">As trocas mudam bastante com isso: num bracket menor saem os game changers, a destruição de terrenos e o excesso de tutores; num maior entram cartas mais fortes. Com teto de preço, nenhuma carta que entra passa dele e as caras demais saem por outras da mesma função. Deixe em branco para não limitar.</p>
       <div class="nivel-campos">
         <label class="cc-box"><b>Bracket que você quer</b><select id="cc-br">${[['', `Manter o estimado (Bracket ${A.bracket})`], ['2', 'Bracket 2 · núcleo, nível de pré-montado'], ['3', 'Bracket 3 · melhorado, até 3 game changers'], ['4', 'Bracket 4 · otimizado, sem limites']].map(([v, l]) => `<option value="${v}" ${String(CONC.br || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-        <label class="cc-box"><b>Preço máximo do deck</b><span class="reais"><i>R$</i><input id="cc-teto" class="txt" type="number" min="0" step="50" inputmode="numeric" placeholder="sem limite" value="${esc(String(CONC.teto || ''))}"></span><span class="note">Hoje: ${brl(A.price)}</span></label>
+        <label class="cc-box"><b>Preço máximo do deck</b><span class="reais"><i>R$</i><input id="cc-teto" class="txt" type="number" min="0" step="50" inputmode="numeric" placeholder="sem limite" value="${esc(String(CONC.teto || ''))}"></span><span class="note">Hoje: ${brl(A.price)} · preços do ${fonteMyp()}</span></label>
         <label class="cc-box"><b>Preço máximo por carta</b><span class="reais"><i>R$</i><input id="cc-tetoc" class="txt" type="number" min="0" step="5" inputmode="numeric" placeholder="sem limite" value="${esc(String(CONC.tetoCarta || ''))}"></span><span class="note">${A.pricey && A.pricey[0] ? `A mais cara hoje: ${esc(A.pricey[0].name)}, ${brl(A.pricey[0].usd)}` : 'Nenhuma carta cara no deck'}</span></label>
       </div>
     </div>
@@ -1259,10 +1274,13 @@ function whyCut(A, c) {
   if (!bits.length) bits.push('é das que menos contribuem entre as que sobram');
   return bits.join('; ');
 }
+// sem preço conhecido no Scryfall (nem na impressão mais barata): não pode passar por filtro de orçamento como se fosse de graça
+const semPreco = (c) => !c.usd && !/Basic/.test(c.t || '');
 // carta pode entrar? (bracket alvo e teto por carta)
 function addOk(A, c) {
   if (!A._tgt) return true;
   if ((c.usd || 0) > A._capCard) return false;
+  if (semPreco(c) && (A._capCard < Infinity || A._capDeck < Infinity)) return false; // com orçamento, carta sem preço não entra (não é de graça)
   if (c.gc && !A._gcOk) return false;
   if (A._tgt < 4 && c.tags.includes('mass-land-denial')) return false;
   if (A._tgt < 3 && c.tags.includes('extra-turn')) return false;
@@ -1296,7 +1314,7 @@ function buildSwaps(A) {
   A._gcOk = A.gc.length < A._gcMax; A._capCard = toUsd(+CONC.tetoCarta); A._capDeck = toUsd(+CONC.teto);
   let PRICE = A.price, GC = A.gc.length;
   const usd = (n) => (C(n) || {}).usd || 0;
-  const cabe = (inC, outC) => (!inC.gc || A._gcOk || (outC && outC.gc)) && (A._capDeck === Infinity || (inC.usd || 0) <= (outC ? outC.usd || 0 : 0) || PRICE + (inC.usd || 0) - (outC ? outC.usd || 0 : 0) <= A._capDeck);
+  const cabe = (inC, outC) => (!inC.gc || A._gcOk || (outC && outC.gc)) && !(semPreco(inC) && (A._capDeck < Infinity || A._capCard < Infinity)) && (A._capDeck === Infinity || (inC.usd || 0) <= (outC ? outC.usd || 0 : 0) || PRICE + (inC.usd || 0) - (outC ? outC.usd || 0 : 0) <= A._capDeck);
   const LOCK = new Set(resolveNames(CONC.lock).ok);
   const swaps = []; const usedOut = new Set(LOCK), usedIn = new Set();
   const needRoles = new Set(A.refs.filter(r => r.k !== 'lands' && r.have < r.lo).map(r => r.k));
@@ -1476,7 +1494,7 @@ function swapBox(name, tag) {
     <div><button class="cn" data-card="${esc(name)}"><b>${esc(name)}</b></button><div style="margin-top:4px">${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div>
     ${ia && ia.r ? `<p class="note" style="margin:6px 0 0">${esc(ia.r)}</p>` : ''}
     <div class="chips" style="margin-top:6px">${roles.map(r => `<span class="tag">${esc(r)}</span>`).join('')}</div>
-    <p class="note" style="margin:6px 0 0">${c.r ? `Nº ${c.r.toLocaleString('pt-BR')} entre as mais jogadas` : 'Quase não aparece em decks de Commander'}${c.usd ? ` · ${brl(c.usd, 1)}` : ''}</p></div></div>`;
+    <p class="note" style="margin:6px 0 0">${c.r ? `Nº ${c.r.toLocaleString('pt-BR')} entre as mais jogadas` : 'Quase não aparece em decks de Commander'}${c.usd ? ` · ${brl(c.usd, 1)} ${temMyp(c.name) ? `no ${fonteMyp()}` : '(Scryfall convertido)'}` : ''}</p></div></div>`;
 }
 // por que esta carta no lugar daquela: comparação direta das duas
 function roleNames(c) { return [...rolesOf(c)].filter(k => k !== 'body' && k !== 'enabler').map(k => (ROLES.find(r => r.k === k) || {}).n).filter(Boolean); }
@@ -1613,7 +1631,7 @@ function swapSum(A) {
   const brTom = tgt && tgt !== A.bracket ? 'bom' : '';
   const gcTom = gc > A._gcMax ? 'ruim' : gc !== A.gc.length ? 'bom' : '';
   return vit
-    + kpi('Preço do deck', brlTxt(A.price), Math.abs(dP) >= 1 ? brlTxt(p) : null, precoNota, precoTom)
+    + kpi('Preço do deck', brlTxt(A.price), Math.abs(dP) >= 1 ? brlTxt(p) : null, precoNota + ` · preços do ${fonteMyp()}`, precoTom)
     + kpi('Bracket', String(A.bracket), tgt && tgt !== A.bracket ? String(tgt) : null, tgt ? 'alvo que você escolheu' : 'estimado pela lista', brTom)
     + kpi('Game changers', String(A.gc.length), gc !== A.gc.length ? String(gc) : null, A._gcMax === 0 ? `o Bracket ${A._tgt} não aceita nenhuma` : A._gcMax === 3 ? 'o Bracket 3 aceita até 3' : 'o Bracket 4 não tem limite', gcTom);
 }
@@ -1791,7 +1809,7 @@ document.addEventListener('click', (e) => {
   const ia = window.PAPEIS_IA && window.PAPEIS_IA[c.name];
   pop.innerHTML = `<div class="pimg" id="pimg"><span class="note">carregando imagem…</span></div><div class="ptxt"><h3>${esc(c.name)}</h3><div>${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div><div class="oracle">${esc(c.o)}</div>${ia && ia.r ? `<p class="note"><b>O que faz:</b> ${esc(ia.r)}</p>` : ''}
     <div class="chips">${roles.map(r => `<span class="tag">${esc(r)}</span>`).join('')}${th.map(t => `<span class="tag th">${esc(t)}</span>`).join('')}${c.gc ? '<span class="tag cmd">game changer</span>' : ''}</div>
-    <p class="note">${c.r ? `Nº ${c.r.toLocaleString('pt-BR')} entre as mais jogadas no Commander` : 'Quase não aparece em decks de Commander'}${c.usd ? ` · ${brl(c.usd, 1)}` : ''}</p></div>`;
+    <p class="note">${c.r ? `Nº ${c.r.toLocaleString('pt-BR')} entre as mais jogadas no Commander` : 'Quase não aparece em decks de Commander'}${c.usd ? ` · ${brl(c.usd, 1)} ${temMyp(c.name) ? `no ${fonteMyp()}` : '(Scryfall convertido)'}` : ''}</p></div>`;
   pop.hidden = false;
   imgFor(c.name).then(src => { const box = $('#pimg'); if (!box || pop.hidden) return; box.innerHTML = src ? `<img src="${src}" alt="${esc(c.name)}">` : '<span class="note">Não deu para carregar a imagem.</span>'; });
   const r = b.getBoundingClientRect(); const pw = Math.min(620, window.innerWidth - 32);

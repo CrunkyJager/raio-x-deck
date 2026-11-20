@@ -838,6 +838,9 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 .plano-box p{margin:6px 0}
 .plano-box ul{margin:6px 0 4px 18px;padding:0}
 .plano-box li{margin:3px 0}
+/* fonte dos preços (MYP Cards): a API pede crédito visível com link */
+a.fonte{color:inherit;text-decoration:underline;text-underline-offset:2px;font-weight:600}
+.mt-fonte{align-self:end;padding-bottom:6px}
 </style>
 </head>
 <body>
@@ -873,21 +876,22 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
   <div id="out"></div>
   <div id="mesa" class="tout" data-s="mesa" hidden></div>
   <div id="aovivo" class="tout" data-s="aovivo" hidden></div>
-  <p class="note" style="margin-top:8px">Dados e imagens de cartas: Scryfall. Funções e popularidade: Scryfall e EDHREC, atualizados em 15/11/2026. As faixas de referência seguem o que decks de Commander costumam usar; são ponto de partida, não lei.</p>
+  <p class="note" style="margin-top:8px">Preços em reais: menor anúncio no <a class="fonte" href="https://mypcards.com" target="_blank" rel="noopener">MYP Cards</a> (API pública); carta sem anúncio lá usa o preço do Scryfall convertido pela cotação do dia. Dados e imagens de cartas: Scryfall. Funções e popularidade: Scryfall e EDHREC, atualizados em 15/11/2026. As faixas de referência seguem o que decks de Commander costumam usar; são ponto de partida, não lei.</p>
 </div>
 <div id="pop" class="pop" hidden></div>
 
-<script src="cards-db.js?v=202611202000"></script>
-<script src="exemplos.js?v=202611202000"></script>
-<script src="papeis-ia.js?v=202611202000"></script>
-<script src="sinergia-db.js?v=202611202000"></script>
-<script>window.RAIOX_V = "202611202000";</script>
-<script src="motor/engine.js?v=202611202000"></script>
-<script src="analise.js?v=202611202000"></script>
+<script src="cards-db.js?v=202611202100"></script>
+<script src="precos-myp.js?v=202611202100"></script>
+<script src="exemplos.js?v=202611202100"></script>
+<script src="papeis-ia.js?v=202611202100"></script>
+<script src="sinergia-db.js?v=202611202100"></script>
+<script>window.RAIOX_V = "202611202100";</script>
+<script src="motor/engine.js?v=202611202100"></script>
+<script src="analise.js?v=202611202100"></script>
 
-<script src="oponentes-edhrec.js?v=202611202000"></script>
-<script src="mesa-ui.js?v=202611202000"></script>
-<script src="montar.js?v=202611202000"></script>
+<script src="oponentes-edhrec.js?v=202611202100"></script>
+<script src="mesa-ui.js?v=202611202100"></script>
+<script src="montar.js?v=202611202100"></script>
 <script>
 /* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
 (function () { const b = document.body; b.classList.add('icwait'); let feito = false;

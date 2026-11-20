@@ -1,0 +1,2 @@
+Coleta antiga da LigaMagic (20/11/2026), NÃO USAR: a Liga não tem API, barra acesso direto (Cloudflare) e o robots.txt pede 360 s entre acessos de robô.
+Substituída por ../coleta_myp.py (API pública do MYP Cards).

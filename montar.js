@@ -178,7 +178,7 @@ function painelAnalise() {
   const curva = A.curve.map((q, v) => `<div class="col" title="Custo ${v}${v === 7 ? '+' : ''}: ${q}"><span class="col-q">${q}</span><span class="col-b"><i class="dep" style="height:${(100 * q / cmax).toFixed(1)}%"></i></span><span class="col-l">${v}${v === 7 ? '+' : ''}</span></div>`).join('');
   return `<section class="panel mt-ana"><h2>Como o deck está</h2>
     <div class="stats mt-stats">
-      <div class="stat price"><span class="k">Preço do deck</span><b>${brl(A.price)}</b><small>${teto ? `orçamento ${R.brlTxt(teto / usdBrl)}` : 'sem orçamento definido'}</small></div>
+      <div class="stat price"><span class="k">Preço do deck</span><b>${brl(A.price)}</b><small>${teto ? `orçamento ${R.brlTxt(teto / usdBrl)}` : 'sem orçamento definido'}</small><small class="cot">${R.fontePrecos(A.uniq.concat(A.cmds).map(c => c.name))}</small></div>
       <div class="stat"><span class="k">Bracket</span><b>${A.bracket}</b><small>${alvoBr ? 'quer ' + alvoBr : 'estimado'}</small></div>
       <div class="stat"><span class="k">Game changers</span><b>${A.gc.length}</b><small>${gcLim != null ? 'limite ' + gcLim : '—'}</small></div>
       <div class="stat"><span class="k">Custo médio</span><b>${A.avgMV.toFixed(2).replace('.', ',')}</b><small>${A.lands} terrenos</small></div>
@@ -355,7 +355,7 @@ const G = (() => {
         <label class="g-modo"><input type="radio" name="g-modo" value="cabe" ${P1.modo === 'cabe' ? 'checked' : ''}> estas cores ou menos</label></div>
       <div class="mt-filtros g-f1">
         <label class="mt-campo"><span>Tema</span><select id="g-tema">${temas.map(([k, n]) => `<option value="${k}" ${P1.tema === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
-        <label class="mt-campo"><span>Ordem</span><select id="g-ord"><option value="pop" ${P1.ord === 'pop' ? 'selected' : ''}>Mais jogados primeiro</option><option value="preco" ${P1.ord === 'preco' ? 'selected' : ''}>Mais baratos primeiro</option></select></label>
+        <label class="mt-campo"><span>Ordem</span><select id="g-ord"><option value="pop" ${P1.ord === 'pop' ? 'selected' : ''}>Mais jogados primeiro</option><option value="preco" ${P1.ord === 'preco' ? 'selected' : ''}>Mais baratos primeiro</option></select></label><span class="note mt-fonte">Preços: ${R.fonteMyp()}</span>
         <label class="mt-campo g-busca1"><span>Já sabe o nome? (atalho)</span><input class="txt" id="g-q1" type="search" placeholder="Nome do comandante…" value="${esc(P1.txt)}" autocomplete="off"></label>
       </div>
       <p class="note">${P1.txt ? `Busca por nome: ${l.length} comandante(s), em qualquer cor.` : `${l.length.toLocaleString('pt-BR')} comandante(s) em ${esc(nomeCores(sel))}${P1.modo === 'cabe' && sel ? ' ou menos cores' : ''}${sel == null ? ' (escolha as cores acima para filtrar)' : ''}${P1.tema ? ' com o tema escolhido' : ''}.`} Clique na imagem para ler a carta.</p>
@@ -570,6 +570,7 @@ const G = (() => {
     }
     const usdBrl = R.usd || 5.56;
     const capC = num(E.d.alvo.tetoCarta), teto = num(E.d.alvo.teto);
+    if ((capC || teto) && !c.usd && !/Basic/.test(c.t || '')) return false; // sem preço conhecido: não entra como se fosse de graça
     if (capC && (c.usd || 0) * usdBrl > capC) return false;
     if (teto) { const resto = Math.max(0, 100 - E.total - 1); if ((E.usd + (c.usd || 0) + resto * 0.25) * usdBrl > teto) return false; }
     return true;
@@ -678,7 +679,7 @@ const G = (() => {
         const c = s.c, ia = window.PAPEIS_IA && window.PAPEIS_IA[c.name];
         return `<article class="g-sug"><button class="g-img g-img-s" data-card="${esc(c.name)}" data-img="${esc(c.name)}"><span class="note">…</span></button>
           <div class="g-sug-tx"><div class="g-sug-h"><b>${esc(c.name)}</b><span class="mt-mana">${manaHTML(c.m)}</span></div>
-          <span class="note">${esc(c.t.split(' // ')[0])} · ${c.usd ? brl(c.usd, c.usd < 10) : 'sem preço'}${c.gc ? ' · <b class="mt-gc">game changer</b>' : ''}</span>
+          <span class="note">${esc(c.t.split(' // ')[0])} · ${c.usd ? brl(c.usd, c.usd < 10) + (R.temMyp(c.name) ? ' no ' + R.fonteMyp() : ' (Scryfall convertido)') : 'sem preço'}${c.gc ? ' · <b class="mt-gc">game changer</b>' : ''}</span>
           ${ia && ia.r ? `<p class="g-ia">${esc(ia.r)}</p>` : ''}
           <ul class="g-pq">${porque(s, k, E).map(t => `<li>${esc(t)}</li>`).join('')}</ul>
           <div class="row"><button class="btn primary small" data-aceita="${esc(c.name)}">Pôr no deck</button><button class="btn small" data-nao="${esc(c.name)}">Agora não</button></div></div></article>`;
