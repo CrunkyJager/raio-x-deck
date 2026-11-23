@@ -1,0 +1,33 @@
+# T07: banco de 30 decks do EDHREC (Mesa no Chrome, 200 partidas por deck). Pesado: por botão e todo domingo.
+# Não trava o site; o resultado fica no resumo e como arquivo para baixar.
+name: Banco de 30 decks
+on:
+  workflow_dispatch:
+    inputs:
+      n: { description: 'partidas por deck', default: '200' }
+  schedule:
+    - cron: '0 6 * * 0'
+permissions:
+  contents: read
+jobs:
+  banco:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: site local + banco
+        run: |
+          python3 -m http.server 8765 >/dev/null 2>&1 &
+          sleep 2
+          python3 ferramentas/calibra/banco_mesa.py ci "${{ inputs.n || '200' }}" 4 | tee banco.log
+          { echo '## Banco de 30'; echo '```'; tail -35 banco.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: banco-30
+          path: |
+            banco.log
+            ferramentas/calibra/banco_ci.json

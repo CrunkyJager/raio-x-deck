@@ -1,0 +1,42 @@
+# T07: a cada push na main roda os testes rápidos; o site (GitHub Pages) só publica se ficarem verdes.
+name: Testes e site
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_run:  # commit do robô de preços (GITHUB_TOKEN) não dispara push: republica quando ele termina
+    workflows: ['Preços MYP']
+    types: [completed]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: testa.py + partida + gabarito de planos
+        run: python3 ferramentas/ci/verifica.py
+  site:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: testes
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publica.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: . }
+      - id: publica
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,2134 @@
+{
+ "data": "2026-11-23",
+ "versao_gabarito": "T05 23/11/2026 (21 duvidosos revisados pelo Felipe)",
+ "n": 109,
+ "faltam": [],
+ "exato": 10,
+ "principal_no_gab": 18,
+ "gab_nos_prev": 24,
+ "sem_palpite": 28,
+ "fora_alcance": 69,
+ "mapa": {
+  "voltron": 1,
+  "tokens": 2,
+  "counters": 4,
+  "graveyard": 21,
+  "artifacts": 15,
+  "enchant": 15,
+  "spells": 16,
+  "sac": 9,
+  "life": 11,
+  "lands": 12,
+  "combat": 3,
+  "draw": 28
+ },
+ "linhas": [
+  {
+   "nome": "Captain America, First Avenger",
+   "ci": "WUR",
+   "gab_principal": 1,
+   "gab_sec": [],
+   "prev_principal": 1,
+   "prev_todos": [
+    1
+   ],
+   "temas": [
+    "voltron"
+   ],
+   "flags": [
+    "voltron"
+   ],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Cloud, Ex-SOLDIER",
+   "ci": "WRG",
+   "gab_principal": 1,
+   "gab_sec": [],
+   "prev_principal": 1,
+   "prev_todos": [
+    1,
+    2,
+    15,
+    3
+   ],
+   "temas": [
+    "voltron",
+    "tokens",
+    "artifacts",
+    "combat"
+   ],
+   "flags": [
+    "voltron",
+    "atk"
+   ],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Eriette of the Charmed Apple",
+   "ci": "WB",
+   "gab_principal": 1,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": 1,
+   "prev_todos": [
+    1
+   ],
+   "temas": [
+    "voltron"
+   ],
+   "flags": [
+    "voltron"
+   ],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Giada, Font of Hope",
+   "ci": "W",
+   "gab_principal": 2,
+   "gab_sec": [
+    11
+   ],
+   "prev_principal": 4,
+   "prev_todos": [
+    4
+   ],
+   "temas": [
+    "counters"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Trostani, Selesnya's Voice",
+   "ci": "WG",
+   "gab_principal": 2,
+   "gab_sec": [
+    11
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2
+   ],
+   "temas": [
+    "tokens"
+   ],
+   "flags": [],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Bello, Bard of the Brambles",
+   "ci": "RG",
+   "gab_principal": 3,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": 1,
+   "prev_todos": [
+    1,
+    15,
+    3
+   ],
+   "temas": [
+    "enchant",
+    "combat"
+   ],
+   "flags": [
+    "voltron",
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Isshin, Two Heavens as One",
+   "ci": "WBR",
+   "gab_principal": 3,
+   "gab_sec": [
+    6
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Winota, Joiner of Forces",
+   "ci": "WR",
+   "gab_principal": 3,
+   "gab_sec": [
+    25
+   ],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Ghalta, Primal Hunger",
+   "ci": "G",
+   "gab_principal": 4,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Gishath, Sun's Avatar",
+   "ci": "WRG",
+   "gab_principal": 4,
+   "gab_sec": [
+    8
+   ],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Miirym, Sentinel Wyrm",
+   "ci": "URG",
+   "gab_principal": 4,
+   "gab_sec": [
+    14
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2
+   ],
+   "temas": [
+    "tokens"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "The Gitrog, Ravenous Ride",
+   "ci": "BG",
+   "gab_principal": 4,
+   "gab_sec": [
+    13
+   ],
+   "prev_principal": 9,
+   "prev_todos": [
+    9,
+    3
+   ],
+   "temas": [
+    "sac",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Atraxa, Praetors' Voice",
+   "ci": "WUBG",
+   "gab_principal": 5,
+   "gab_sec": [
+    33
+   ],
+   "prev_principal": 11,
+   "prev_todos": [
+    11
+   ],
+   "temas": [
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Fynn, the Fangbearer",
+   "ci": "G",
+   "gab_principal": 5,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Ixhel, Scion of Atraxa",
+   "ci": "WBG",
+   "gab_principal": 5,
+   "gab_sec": [],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Lightning, Army of One",
+   "ci": "WR",
+   "gab_principal": 6,
+   "gab_sec": [
+    1
+   ],
+   "prev_principal": 11,
+   "prev_todos": [
+    11,
+    3
+   ],
+   "temas": [
+    "life",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Najeela, the Blade-Blossom",
+   "ci": "WUBRG",
+   "gab_principal": 6,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    11,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "life",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Tifa, Martial Artist",
+   "ci": "WRG",
+   "gab_principal": 6,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Clement, the Worrywort",
+   "ci": "UG",
+   "gab_principal": 7,
+   "gab_sec": [
+    14
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Goro-Goro and Satoru",
+   "ci": "UBR",
+   "gab_principal": 7,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "combat"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Yuriko, the Tiger's Shadow",
+   "ci": "UB",
+   "gab_principal": 7,
+   "gab_sec": [],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Henzie \"Toolbox\" Torre",
+   "ci": "BRG",
+   "gab_principal": 8,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Jodah, the Unifier",
+   "ci": "WUBRG",
+   "gab_principal": 8,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Pantlaza, Sun-Favored",
+   "ci": "WRG",
+   "gab_principal": 8,
+   "gab_sec": [
+    14
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Yidris, Maelstrom Wielder",
+   "ci": "UBRG",
+   "gab_principal": 8,
+   "gab_sec": [],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Zhulodok, Void Gorger",
+   "ci": "C",
+   "gab_principal": 8,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Chatterfang, Squirrel General",
+   "ci": "BG",
+   "gab_principal": 9,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2
+   ],
+   "temas": [
+    "tokens"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Meren of Clan Nel Toth",
+   "ci": "BG",
+   "gab_principal": 9,
+   "gab_sec": [
+    20
+   ],
+   "prev_principal": 21,
+   "prev_todos": [
+    21,
+    9
+   ],
+   "temas": [
+    "graveyard",
+    "sac"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Sephiroth, Fabled SOLDIER",
+   "ci": "B",
+   "gab_principal": 9,
+   "gab_sec": [],
+   "prev_principal": 9,
+   "prev_todos": [
+    9,
+    11,
+    3
+   ],
+   "temas": [
+    "sac",
+    "life",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Teysa Karlov",
+   "ci": "WB",
+   "gab_principal": 9,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    11
+   ],
+   "temas": [
+    "tokens",
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Ghyrson Starn, Kelermorph",
+   "ci": "UR",
+   "gab_principal": 10,
+   "gab_sec": [
+    16
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Ojer Axonil, Deepest Might",
+   "ci": "R",
+   "gab_principal": 10,
+   "gab_sec": [],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Purphoros, God of the Forge",
+   "ci": "R",
+   "gab_principal": 10,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Valgavoth, Harrower of Souls",
+   "ci": "BR",
+   "gab_principal": 10,
+   "gab_sec": [],
+   "prev_principal": 4,
+   "prev_todos": [
+    4
+   ],
+   "temas": [
+    "counters"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Frodo, Adventurous Hobbit // Sam, Loyal Attendant",
+   "ci": "WBG",
+   "gab_principal": 11,
+   "gab_sec": [
+    2
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    11,
+    3
+   ],
+   "temas": [
+    "combat",
+    "tokens",
+    "life"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Oloro, Ageless Ascetic",
+   "ci": "WUB",
+   "gab_principal": 11,
+   "gab_sec": [],
+   "prev_principal": 11,
+   "prev_todos": [
+    11
+   ],
+   "temas": [
+    "life"
+   ],
+   "flags": [],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Aesi, Tyrant of Gyre Strait",
+   "ci": "UG",
+   "gab_principal": 12,
+   "gab_sec": [
+    13
+   ],
+   "prev_principal": 12,
+   "prev_todos": [
+    12
+   ],
+   "temas": [
+    "lands"
+   ],
+   "flags": [],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Hearthhull, the Worldseed",
+   "ci": "BRG",
+   "gab_principal": 12,
+   "gab_sec": [
+    13
+   ],
+   "prev_principal": 15,
+   "prev_todos": [
+    15,
+    12,
+    3,
+    28
+   ],
+   "temas": [
+    "artifacts",
+    "lands",
+    "combat",
+    "draw"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Omnath, Locus of Creation",
+   "ci": "WURG",
+   "gab_principal": 12,
+   "gab_sec": [
+    13
+   ],
+   "prev_principal": 11,
+   "prev_todos": [
+    11,
+    12
+   ],
+   "temas": [
+    "life",
+    "lands"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Lord Windgrace",
+   "ci": "BRG",
+   "gab_principal": 13,
+   "gab_sec": [
+    26
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    21,
+    28
+   ],
+   "temas": [
+    "tokens",
+    "graveyard",
+    "draw"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "The Gitrog Monster",
+   "ci": "BG",
+   "gab_principal": 13,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": 12,
+   "prev_todos": [
+    12
+   ],
+   "temas": [
+    "lands"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "The Necrobloom",
+   "ci": "WBG",
+   "gab_principal": 13,
+   "gab_sec": [
+    21
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    21,
+    12
+   ],
+   "temas": [
+    "tokens",
+    "graveyard",
+    "lands"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Toph, the First Metalbender",
+   "ci": "WRG",
+   "gab_principal": 13,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": 4,
+   "prev_todos": [
+    4,
+    15,
+    3
+   ],
+   "temas": [
+    "counters",
+    "artifacts",
+    "combat"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Aminatou, the Fateshifter",
+   "ci": "WUB",
+   "gab_principal": 14,
+   "gab_sec": [
+    23
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Atraxa, Grand Unifier",
+   "ci": "WUBG",
+   "gab_principal": 14,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": 11,
+   "prev_todos": [
+    11
+   ],
+   "temas": [
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Brago, King Eternal",
+   "ci": "WU",
+   "gab_principal": 14,
+   "gab_sec": [],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Orvar, the All-Form",
+   "ci": "U",
+   "gab_principal": 14,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    16
+   ],
+   "temas": [
+    "tokens",
+    "spells"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Breya, Etherium Shaper",
+   "ci": "WUBR",
+   "gab_principal": 15,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    15,
+    11
+   ],
+   "temas": [
+    "tokens",
+    "artifacts",
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Go-Shintai of Life's Origin",
+   "ci": "WUBRG",
+   "gab_principal": 15,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    21
+   ],
+   "temas": [
+    "tokens",
+    "graveyard"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Mr. House, President and CEO",
+   "ci": "WBR",
+   "gab_principal": 15,
+   "gab_sec": [
+    32
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    15
+   ],
+   "temas": [
+    "tokens",
+    "artifacts"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Urza, Chief Artificer",
+   "ci": "WUB",
+   "gab_principal": 15,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    15
+   ],
+   "temas": [
+    "tokens",
+    "artifacts"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Zur the Enchanter",
+   "ci": "WUB",
+   "gab_principal": 15,
+   "gab_sec": [
+    25
+   ],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Fire Lord Azula",
+   "ci": "UBR",
+   "gab_principal": 16,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": 16,
+   "prev_todos": [
+    16,
+    3
+   ],
+   "temas": [
+    "spells",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Talrand, Sky Summoner",
+   "ci": "U",
+   "gab_principal": 16,
+   "gab_sec": [
+    23
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    16
+   ],
+   "temas": [
+    "tokens",
+    "spells"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Vivi Ornitier",
+   "ci": "UR",
+   "gab_principal": 16,
+   "gab_sec": [
+    17
+   ],
+   "prev_principal": 4,
+   "prev_todos": [
+    4,
+    16
+   ],
+   "temas": [
+    "counters",
+    "spells"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Prismari, the Inspiration",
+   "ci": "UR",
+   "gab_principal": 17,
+   "gab_sec": [
+    16
+   ],
+   "prev_principal": 16,
+   "prev_todos": [
+    16
+   ],
+   "temas": [
+    "spells"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Storm, Force of Nature",
+   "ci": "URG",
+   "gab_principal": 17,
+   "gab_sec": [
+    16
+   ],
+   "prev_principal": 16,
+   "prev_todos": [
+    16,
+    3
+   ],
+   "temas": [
+    "spells",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Zada, Hedron Grinder",
+   "ci": "R",
+   "gab_principal": 17,
+   "gab_sec": [
+    2
+   ],
+   "prev_principal": 16,
+   "prev_todos": [
+    16
+   ],
+   "temas": [
+    "spells"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Narset, Enlightened Master",
+   "ci": "WUR",
+   "gab_principal": 18,
+   "gab_sec": [
+    6
+   ],
+   "prev_principal": 16,
+   "prev_todos": [
+    16,
+    3
+   ],
+   "temas": [
+    "spells",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Obeka, Brute Chronologist",
+   "ci": "UBR",
+   "gab_principal": 18,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Magus Lucea Kane",
+   "ci": "URG",
+   "gab_principal": 19,
+   "gab_sec": [],
+   "prev_principal": 4,
+   "prev_todos": [
+    4,
+    16
+   ],
+   "temas": [
+    "counters",
+    "spells"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Zaxara, the Exemplary",
+   "ci": "UBG",
+   "gab_principal": 19,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    4
+   ],
+   "temas": [
+    "tokens",
+    "counters"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Zimone, Infinite Analyst",
+   "ci": "UG",
+   "gab_principal": 19,
+   "gab_sec": [],
+   "prev_principal": 4,
+   "prev_todos": [
+    4
+   ],
+   "temas": [
+    "counters"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Hashaton, Scarab's Fist",
+   "ci": "WUB",
+   "gab_principal": 20,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2
+   ],
+   "temas": [
+    "tokens"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Muldrotha, the Gravetide",
+   "ci": "UBG",
+   "gab_principal": 20,
+   "gab_sec": [
+    22
+   ],
+   "prev_principal": 21,
+   "prev_todos": [
+    21
+   ],
+   "temas": [
+    "graveyard"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Terra, Herald of Hope",
+   "ci": "WBR",
+   "gab_principal": 20,
+   "gab_sec": [
+    21
+   ],
+   "prev_principal": 21,
+   "prev_todos": [
+    21,
+    3
+   ],
+   "temas": [
+    "graveyard",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Quintorius, History Chaser",
+   "ci": "WR",
+   "gab_principal": 21,
+   "gab_sec": [
+    20
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    21,
+    3,
+    28
+   ],
+   "temas": [
+    "tokens",
+    "graveyard",
+    "combat",
+    "draw"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Sidisi, Brood Tyrant",
+   "ci": "UBG",
+   "gab_principal": 21,
+   "gab_sec": [
+    20
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    21,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "graveyard",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Teval, the Balanced Scale",
+   "ci": "UBG",
+   "gab_principal": 21,
+   "gab_sec": [
+    13
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    21,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "graveyard",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Captain N'ghathrod",
+   "ci": "UB",
+   "gab_principal": 22,
+   "gab_sec": [],
+   "prev_principal": 21,
+   "prev_todos": [
+    21,
+    3
+   ],
+   "temas": [
+    "graveyard",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Hope Estheim",
+   "ci": "WU",
+   "gab_principal": 22,
+   "gab_sec": [
+    11
+   ],
+   "prev_principal": 21,
+   "prev_todos": [
+    21,
+    11
+   ],
+   "temas": [
+    "graveyard",
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Phenax, God of Deception",
+   "ci": "UB",
+   "gab_principal": 22,
+   "gab_sec": [],
+   "prev_principal": 21,
+   "prev_todos": [
+    21
+   ],
+   "temas": [
+    "graveyard"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "The Wise Mothman",
+   "ci": "UBG",
+   "gab_principal": 22,
+   "gab_sec": [],
+   "prev_principal": 4,
+   "prev_todos": [
+    4,
+    21,
+    3
+   ],
+   "temas": [
+    "counters",
+    "graveyard",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Alela, Cunning Conqueror",
+   "ci": "UB",
+   "gab_principal": 23,
+   "gab_sec": [
+    29
+   ],
+   "prev_principal": 29,
+   "prev_todos": [
+    29,
+    2
+   ],
+   "temas": [
+    "tokens"
+   ],
+   "flags": [
+    "goad"
+   ],
+   "exato": false,
+   "principal_no_gab": true,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Hylda of the Icy Crown",
+   "ci": "WU",
+   "gab_principal": 23,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    4
+   ],
+   "temas": [
+    "tokens",
+    "counters"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Y'shtola, Night's Blessed",
+   "ci": "WUB",
+   "gab_principal": 23,
+   "gab_sec": [
+    10
+   ],
+   "prev_principal": 16,
+   "prev_todos": [
+    16,
+    11
+   ],
+   "temas": [
+    "spells",
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Avacyn, Angel of Hope",
+   "ci": "W",
+   "gab_principal": 24,
+   "gab_sec": [
+    4
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Child of Alara",
+   "ci": "WUBRG",
+   "gab_principal": 24,
+   "gab_sec": [
+    13
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Grand Arbiter Augustin IV",
+   "ci": "WU",
+   "gab_principal": 25,
+   "gab_sec": [
+    23
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Numot, the Devastator",
+   "ci": "WUR",
+   "gab_principal": 26,
+   "gab_sec": [],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Zo-Zu the Punisher",
+   "ci": "R",
+   "gab_principal": 26,
+   "gab_sec": [
+    10
+   ],
+   "prev_principal": 12,
+   "prev_todos": [
+    12
+   ],
+   "temas": [
+    "lands"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Deadpool, Trading Card",
+   "ci": "BR",
+   "gab_principal": 27,
+   "gab_sec": [
+    32
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Maralen, Fae Ascendant",
+   "ci": "UBG",
+   "gab_principal": 27,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Kefka, Court Mage",
+   "ci": "UBR",
+   "gab_principal": 28,
+   "gab_sec": [
+    23
+   ],
+   "prev_principal": 3,
+   "prev_todos": [
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Nekusar, the Mindrazer",
+   "ci": "UBR",
+   "gab_principal": 28,
+   "gab_sec": [
+    10
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Tinybones, Bauble Burglar",
+   "ci": "B",
+   "gab_principal": 28,
+   "gab_sec": [],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Xyris, the Writhing Storm",
+   "ci": "URG",
+   "gab_principal": 28,
+   "gab_sec": [
+    31
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Killian, Decisive Mentor",
+   "ci": "WB",
+   "gab_principal": 29,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": 1,
+   "prev_todos": [
+    1,
+    29,
+    15
+   ],
+   "temas": [
+    "voltron",
+    "enchant"
+   ],
+   "flags": [
+    "voltron",
+    "goad"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Nelly Borca, Impulsive Accuser",
+   "ci": "WR",
+   "gab_principal": 29,
+   "gab_sec": [],
+   "prev_principal": 29,
+   "prev_todos": [
+    29,
+    3
+   ],
+   "temas": [
+    "combat"
+   ],
+   "flags": [
+    "goad",
+    "atk"
+   ],
+   "exato": true,
+   "principal_no_gab": true,
+   "gab_nos_prev": true
+  },
+  {
+   "nome": "Queen Marchesa",
+   "ci": "WBR",
+   "gab_principal": 29,
+   "gab_sec": [
+    30
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "combat"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Tivit, Seller of Secrets",
+   "ci": "WUB",
+   "gab_principal": 29,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    15,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "artifacts",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Breena, the Demagogue",
+   "ci": "WB",
+   "gab_principal": 30,
+   "gab_sec": [
+    29
+   ],
+   "prev_principal": 4,
+   "prev_todos": [
+    4,
+    3
+   ],
+   "temas": [
+    "counters",
+    "combat"
+   ],
+   "flags": [
+    "atk"
+   ],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Pramikon, Sky Rampart",
+   "ci": "WUR",
+   "gab_principal": 30,
+   "gab_sec": [
+    23
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Gluntch, the Bestower",
+   "ci": "WG",
+   "gab_principal": 31,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    4,
+    15
+   ],
+   "temas": [
+    "tokens",
+    "counters",
+    "artifacts"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Kwain, Itinerant Meddler",
+   "ci": "WU",
+   "gab_principal": 31,
+   "gab_sec": [
+    28
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Kynaios and Tiro of Meletis",
+   "ci": "WURG",
+   "gab_principal": 31,
+   "gab_sec": [
+    30
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Ms. Bumbleflower",
+   "ci": "WUG",
+   "gab_principal": 31,
+   "gab_sec": [],
+   "prev_principal": 4,
+   "prev_todos": [
+    4,
+    28
+   ],
+   "temas": [
+    "counters",
+    "draw"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Okaun, Eye of Chaos // Zndrsplt, Eye of Wisdom",
+   "ci": "UR",
+   "gab_principal": 32,
+   "gab_sec": [],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Commodore Guff",
+   "ci": "WUR",
+   "gab_principal": 33,
+   "gab_sec": [],
+   "prev_principal": 2,
+   "prev_todos": [
+    2
+   ],
+   "temas": [
+    "tokens"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Esika, God of the Tree",
+   "ci": "WUBRG",
+   "gab_principal": 33,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Nicol Bolas, the Ravager",
+   "ci": "UBR",
+   "gab_principal": 33,
+   "gab_sec": [
+    23
+   ],
+   "prev_principal": 21,
+   "prev_todos": [
+    21,
+    28
+   ],
+   "temas": [
+    "graveyard",
+    "draw"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "K'rrik, Son of Yawgmoth",
+   "ci": "B",
+   "gab_principal": 34,
+   "gab_sec": [
+    11
+   ],
+   "prev_principal": 4,
+   "prev_todos": [
+    4,
+    11
+   ],
+   "temas": [
+    "counters",
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Kinnan, Bonder Prodigy",
+   "ci": "UG",
+   "gab_principal": 34,
+   "gab_sec": [],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Thrasios, Triton Hero // Tymna the Weaver",
+   "ci": "WUBG",
+   "gab_principal": 34,
+   "gab_sec": [
+    36
+   ],
+   "prev_principal": 11,
+   "prev_todos": [
+    11
+   ],
+   "temas": [
+    "life"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Urza, Lord High Artificer",
+   "ci": "U",
+   "gab_principal": 34,
+   "gab_sec": [
+    15
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    15
+   ],
+   "temas": [
+    "tokens",
+    "artifacts"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Knuckles the Echidna",
+   "ci": "R",
+   "gab_principal": 35,
+   "gab_sec": [
+    3
+   ],
+   "prev_principal": 2,
+   "prev_todos": [
+    2,
+    15,
+    3
+   ],
+   "temas": [
+    "tokens",
+    "artifacts",
+    "combat"
+   ],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Ramses, Assassin Lord",
+   "ci": "UB",
+   "gab_principal": 35,
+   "gab_sec": [
+    5
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Zenos yae Galvus // Shinryu, Transcendent Rival",
+   "ci": "B",
+   "gab_principal": 35,
+   "gab_sec": [
+    1
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  },
+  {
+   "nome": "Sisay, Weatherlight Captain",
+   "ci": "WUBRG",
+   "gab_principal": 36,
+   "gab_sec": [
+    34
+   ],
+   "prev_principal": null,
+   "prev_todos": [],
+   "temas": [],
+   "flags": [],
+   "exato": false,
+   "principal_no_gab": false,
+   "gab_nos_prev": false
+  }
+ ]
+}

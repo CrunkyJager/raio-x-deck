@@ -1,0 +1,2544 @@
+{
+ "versao": "T05 23/11/2026 (21 duvidosos revisados pelo Felipe)",
+ "planos": {
+  "1": "Voltron",
+  "2": "Ir largo (go-wide)",
+  "3": "Aggro",
+  "4": "Criaturas grandes (stompy)",
+  "5": "Veneno (infect/toxic)",
+  "6": "Combate extra",
+  "7": "Tempo / devolver",
+  "8": "Trapaça de custo (cheat)",
+  "9": "Aristocratas",
+  "10": "Dreno / group slug",
+  "11": "Ganho de vida que vira dano",
+  "12": "Landfall",
+  "13": "Terrenos do cemitério (lands)",
+  "14": "Blink / ETB",
+  "15": "Enchantress / artefatos (valor por tipo)",
+  "16": "Spellslinger",
+  "17": "Storm / turno explosivo",
+  "18": "Turnos extras",
+  "19": "Fireball / mágica X",
+  "20": "Reanimador",
+  "21": "Valor do cemitério (self-mill)",
+  "22": "Mill (oponentes)",
+  "23": "Controle (draw-go)",
+  "24": "Limpa e reconstrói",
+  "25": "Stax / trava",
+  "26": "Destruição de terrenos (MLD)",
+  "27": "Roubo (theft)",
+  "28": "Punir mão (wheel/descarte)",
+  "29": "Goad / política",
+  "30": "Pillow fort",
+  "31": "Group hug",
+  "32": "Caos",
+  "33": "Superamigos (planeswalkers)",
+  "34": "Combo infinito",
+  "35": "Vitória alternativa",
+  "36": "Toolbox / cadeia de tutor"
+ },
+ "sem_comandante": [],
+ "comandantes": [
+  {
+   "nome": "Captain America, First Avenger",
+   "ci": "WUR",
+   "principal": 1,
+   "principal_nome": "Voltron",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:equipment",
+   "tags_edhrec": [
+    "equipment",
+    "voltron",
+    "artifacts",
+    "aggro",
+    "historic",
+    "modified-creatures"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Cloud, Ex-SOLDIER",
+   "ci": "WRG",
+   "principal": 1,
+   "principal_nome": "Voltron",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:equipment",
+   "tags_edhrec": [
+    "equipment",
+    "voltron",
+    "modified-creatures",
+    "artifacts",
+    "aggro",
+    "extra-combats"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Eriette of the Charmed Apple",
+   "ci": "WB",
+   "principal": 1,
+   "principal_nome": "Voltron",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:auras",
+   "tags_edhrec": [
+    "auras",
+    "enchantress",
+    "lifegain",
+    "control",
+    "lifedrain",
+    "pillow-fort"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Giada, Font of Hope",
+   "ci": "W",
+   "principal": 2,
+   "principal_nome": "Ir largo (go-wide)",
+   "secundario": [
+    11
+   ],
+   "secundario_nome": [
+    "Ganho de vida que vira dano"
+   ],
+   "fonte": "edhrec:lifegain",
+   "tags_edhrec": [
+    "angels",
+    "lifegain",
+    "plus-1-plus-1-counters",
+    "flying",
+    "tokens",
+    "aggro"
+   ],
+   "duvidoso": true,
+   "nota": "anjos com marcadores: ganho de vida é tema, não plano",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Trostani, Selesnya's Voice",
+   "ci": "WG",
+   "principal": 2,
+   "principal_nome": "Ir largo (go-wide)",
+   "secundario": [
+    11
+   ],
+   "secundario_nome": [
+    "Ganho de vida que vira dano"
+   ],
+   "fonte": "edhrec:go-wide",
+   "tags_edhrec": [
+    "tokens",
+    "lifegain",
+    "populate",
+    "plus-1-plus-1-counters",
+    "go-wide",
+    "midrange"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Bello, Bard of the Brambles",
+   "ci": "RG",
+   "principal": 3,
+   "principal_nome": "Aggro",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:aggro",
+   "tags_edhrec": [
+    "enchantress",
+    "artifacts",
+    "unnatural",
+    "aggro",
+    "ramp",
+    "vehicles"
+   ],
+   "duvidoso": true,
+   "nota": "artefatos/encantamentos viram criaturas e atacam: aggro ou enchantress?",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Isshin, Two Heavens as One",
+   "ci": "WBR",
+   "principal": 3,
+   "principal_nome": "Aggro",
+   "secundario": [
+    6
+   ],
+   "secundario_nome": [
+    "Combate extra"
+   ],
+   "fonte": "edhrec:aggro",
+   "tags_edhrec": [
+    "aggro",
+    "tokens",
+    "attack-triggers",
+    "extra-combats",
+    "equipment",
+    "samurai"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Winota, Joiner of Forces",
+   "ci": "WR",
+   "principal": 3,
+   "principal_nome": "Aggro",
+   "secundario": [
+    25
+   ],
+   "secundario_nome": [
+    "Stax / trava"
+   ],
+   "fonte": "edhrec:aggro",
+   "tags_edhrec": [
+    "aggro",
+    "stax",
+    "hatebears",
+    "humans",
+    "tokens",
+    "extra-combats"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Ghalta, Primal Hunger",
+   "ci": "G",
+   "principal": 4,
+   "principal_nome": "Criaturas grandes (stompy)",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "edhrec:stompy",
+   "tags_edhrec": [
+    "ramp",
+    "aggro",
+    "stompy",
+    "dinosaurs",
+    "voltron",
+    "power-matters"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Gishath, Sun's Avatar",
+   "ci": "WRG",
+   "principal": 4,
+   "principal_nome": "Criaturas grandes (stompy)",
+   "secundario": [
+    8
+   ],
+   "secundario_nome": [
+    "Trapaça de custo (cheat)"
+   ],
+   "fonte": "edhrec:stompy",
+   "tags_edhrec": [
+    "dinosaurs",
+    "ramp",
+    "aggro",
+    "kaheera-companion",
+    "stompy",
+    "midrange"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Miirym, Sentinel Wyrm",
+   "ci": "URG",
+   "principal": 4,
+   "principal_nome": "Criaturas grandes (stompy)",
+   "secundario": [
+    14
+   ],
+   "secundario_nome": [
+    "Blink / ETB"
+   ],
+   "fonte": "edhrec:clones",
+   "tags_edhrec": [
+    "dragons",
+    "clones",
+    "tokens",
+    "flying",
+    "ramp",
+    "aggro"
+   ],
+   "duvidoso": true,
+   "nota": "copia os próprios dragões (clone, não roubo): stompy?",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "The Gitrog, Ravenous Ride",
+   "ci": "BG",
+   "principal": 4,
+   "principal_nome": "Criaturas grandes (stompy)",
+   "secundario": [
+    13
+   ],
+   "secundario_nome": [
+    "Terrenos do cemitério (lands)"
+   ],
+   "fonte": "edhrec:stompy",
+   "tags_edhrec": [
+    "lands-matter",
+    "stompy",
+    "ramp",
+    "landfall",
+    "aggro",
+    "sacrifice"
+   ],
+   "duvidoso": true,
+   "nota": "stompy com terrenos",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Atraxa, Praetors' Voice",
+   "ci": "WUBG",
+   "principal": 5,
+   "principal_nome": "Veneno (infect/toxic)",
+   "secundario": [
+    33
+   ],
+   "secundario_nome": [
+    "Superamigos (planeswalkers)"
+   ],
+   "fonte": "edhrec:infect",
+   "tags_edhrec": [
+    "infect",
+    "plus-1-plus-1-counters",
+    "planeswalkers",
+    "proliferate",
+    "phyrexians",
+    "minus-1-minus-1-counters"
+   ],
+   "duvidoso": true,
+   "nota": "proliferar serve a veneno, superamigos e marcadores",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Fynn, the Fangbearer",
+   "ci": "G",
+   "principal": 5,
+   "principal_nome": "Veneno (infect/toxic)",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "edhrec:infect",
+   "tags_edhrec": [
+    "infect",
+    "deathtouch",
+    "aggro",
+    "proliferate",
+    "plus-1-plus-1-counters",
+    "ramp"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Ixhel, Scion of Atraxa",
+   "ci": "WBG",
+   "principal": 5,
+   "principal_nome": "Veneno (infect/toxic)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:infect",
+   "tags_edhrec": [
+    "infect",
+    "phyrexians",
+    "proliferate",
+    "theft",
+    "plus-1-plus-1-counters",
+    "midrange"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Lightning, Army of One",
+   "ci": "WR",
+   "principal": 6,
+   "principal_nome": "Combate extra",
+   "secundario": [
+    1
+   ],
+   "secundario_nome": [
+    "Voltron"
+   ],
+   "fonte": "edhrec:extra-combats",
+   "tags_edhrec": [
+    "equipment",
+    "voltron",
+    "extra-combats",
+    "aggro",
+    "burn",
+    "artifacts"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Najeela, the Blade-Blossom",
+   "ci": "WUBRG",
+   "principal": 6,
+   "principal_nome": "Combate extra",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "edhrec:extra-combats",
+   "tags_edhrec": [
+    "warriors",
+    "extra-combats",
+    "aggro",
+    "tokens",
+    "combo",
+    "midrange"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Tifa, Martial Artist",
+   "ci": "WRG",
+   "principal": 6,
+   "principal_nome": "Combate extra",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "edhrec:extra-combats",
+   "tags_edhrec": [
+    "extra-combats",
+    "aggro",
+    "equipment",
+    "plus-1-plus-1-counters",
+    "voltron",
+    "legends"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Clement, the Worrywort",
+   "ci": "UG",
+   "principal": 7,
+   "principal_nome": "Tempo / devolver",
+   "secundario": [
+    14
+   ],
+   "secundario_nome": [
+    "Blink / ETB"
+   ],
+   "fonte": "edhrec:bounce",
+   "tags_edhrec": [
+    "frogs",
+    "plus-1-plus-1-counters",
+    "bounce",
+    "blink",
+    "combo",
+    "etb"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Goro-Goro and Satoru",
+   "ci": "UBR",
+   "principal": 7,
+   "principal_nome": "Tempo / devolver",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "edhrec:ninjutsu",
+   "tags_edhrec": [
+    "ninjutsu",
+    "aggro",
+    "tokens",
+    "ninjas",
+    "dragons",
+    "haste"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Yuriko, the Tiger's Shadow",
+   "ci": "UB",
+   "principal": 7,
+   "principal_nome": "Tempo / devolver",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:ninjutsu",
+   "tags_edhrec": [
+    "ninjutsu",
+    "ninjas",
+    "aggro",
+    "tempo",
+    "combo",
+    "burn"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Henzie \"Toolbox\" Torre",
+   "ci": "BRG",
+   "principal": 8,
+   "principal_nome": "Trapaça de custo (cheat)",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "edhrec:toolbox",
+   "tags_edhrec": [
+    "reanimator",
+    "aggro",
+    "umori-companion",
+    "toolbox",
+    "aristocrats",
+    "birthing-pod"
+   ],
+   "duvidoso": true,
+   "nota": "blitz barateado: trapaça ou aggro?",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Jodah, the Unifier",
+   "ci": "WUBRG",
+   "principal": 8,
+   "principal_nome": "Trapaça de custo (cheat)",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "legends",
+    "historic",
+    "cascade",
+    "aggro",
+    "plus-1-plus-1-counters",
+    "good-stuff"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Pantlaza, Sun-Favored",
+   "ci": "WRG",
+   "principal": 8,
+   "principal_nome": "Trapaça de custo (cheat)",
+   "secundario": [
+    14
+   ],
+   "secundario_nome": [
+    "Blink / ETB"
+   ],
+   "fonte": "edhrec:discover",
+   "tags_edhrec": [
+    "dinosaurs",
+    "discover",
+    "ramp",
+    "blink",
+    "aggro",
+    "stompy"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Yidris, Maelstrom Wielder",
+   "ci": "UBRG",
+   "principal": 8,
+   "principal_nome": "Trapaça de custo (cheat)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:cascade",
+   "tags_edhrec": [
+    "cascade",
+    "chaos",
+    "combo",
+    "spellslinger",
+    "storm",
+    "wheels"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Zhulodok, Void Gorger",
+   "ci": "C",
+   "principal": 8,
+   "principal_nome": "Trapaça de custo (cheat)",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:cascade",
+   "tags_edhrec": [
+    "eldrazi",
+    "cascade",
+    "big-mana",
+    "artifacts",
+    "ramp",
+    "annihilator"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Chatterfang, Squirrel General",
+   "ci": "BG",
+   "principal": 9,
+   "principal_nome": "Aristocratas",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:combo",
+   "tags_edhrec": [
+    "tokens",
+    "aristocrats",
+    "squirrels",
+    "combo",
+    "sacrifice",
+    "plus-1-plus-1-counters"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Meren of Clan Nel Toth",
+   "ci": "BG",
+   "principal": 9,
+   "principal_nome": "Aristocratas",
+   "secundario": [
+    20
+   ],
+   "secundario_nome": [
+    "Reanimador"
+   ],
+   "fonte": "edhrec:aristocrats",
+   "tags_edhrec": [
+    "reanimator",
+    "aristocrats",
+    "graveyard",
+    "sacrifice",
+    "combo",
+    "birthing-pod"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Sephiroth, Fabled SOLDIER",
+   "ci": "B",
+   "principal": 9,
+   "principal_nome": "Aristocratas",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:aristocrats",
+   "tags_edhrec": [
+    "aristocrats",
+    "sacrifice",
+    "combo",
+    "reanimator",
+    "lifegain",
+    "tokens"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Teysa Karlov",
+   "ci": "WB",
+   "principal": 9,
+   "principal_nome": "Aristocratas",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:aristocrats",
+   "tags_edhrec": [
+    "aristocrats",
+    "tokens",
+    "sacrifice",
+    "lifegain",
+    "combo",
+    "lifedrain"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Ghyrson Starn, Kelermorph",
+   "ci": "UR",
+   "principal": 10,
+   "principal_nome": "Dreno / group slug",
+   "secundario": [
+    16
+   ],
+   "secundario_nome": [
+    "Spellslinger"
+   ],
+   "fonte": "edhrec:burn",
+   "tags_edhrec": [
+    "burn",
+    "spellslinger",
+    "pingers",
+    "storm",
+    "combo",
+    "control"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Ojer Axonil, Deepest Might",
+   "ci": "R",
+   "principal": 10,
+   "principal_nome": "Dreno / group slug",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:burn",
+   "tags_edhrec": [
+    "burn",
+    "spellslinger",
+    "aggro",
+    "group-slug",
+    "pingers",
+    "stax"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Purphoros, God of the Forge",
+   "ci": "R",
+   "principal": 10,
+   "principal_nome": "Dreno / group slug",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "burn",
+    "tokens",
+    "goblins",
+    "aggro",
+    "group-slug",
+    "etb"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Valgavoth, Harrower of Souls",
+   "ci": "BR",
+   "principal": 10,
+   "principal_nome": "Dreno / group slug",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:group-slug",
+   "tags_edhrec": [
+    "group-slug",
+    "burn",
+    "plus-1-plus-1-counters",
+    "aggro",
+    "lifedrain",
+    "pingers"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Frodo, Adventurous Hobbit // Sam, Loyal Attendant",
+   "ci": "WBG",
+   "principal": 11,
+   "principal_nome": "Ganho de vida que vira dano",
+   "secundario": [
+    2
+   ],
+   "secundario_nome": [
+    "Ir largo (go-wide)"
+   ],
+   "fonte": "edhrec:lifegain",
+   "tags_edhrec": [
+    "lifegain",
+    "tokens",
+    "food",
+    "halflings",
+    "combo",
+    "artifacts"
+   ],
+   "duvidoso": true,
+   "nota": "comida/ganho de vida; ganho de vida é tema",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Oloro, Ageless Ascetic",
+   "ci": "WUB",
+   "principal": 11,
+   "principal_nome": "Ganho de vida que vira dano",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:lifegain",
+   "tags_edhrec": [
+    "lifegain",
+    "control",
+    "combo",
+    "pillow-fort",
+    "lifedrain",
+    "stax"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Aesi, Tyrant of Gyre Strait",
+   "ci": "UG",
+   "principal": 12,
+   "principal_nome": "Landfall",
+   "secundario": [
+    13
+   ],
+   "secundario_nome": [
+    "Terrenos do cemitério (lands)"
+   ],
+   "fonte": "edhrec:landfall",
+   "tags_edhrec": [
+    "lands-matter",
+    "landfall",
+    "ramp",
+    "combo",
+    "card-draw",
+    "tokens"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Hearthhull, the Worldseed",
+   "ci": "BRG",
+   "principal": 12,
+   "principal_nome": "Landfall",
+   "secundario": [
+    13
+   ],
+   "secundario_nome": [
+    "Terrenos do cemitério (lands)"
+   ],
+   "fonte": "edhrec:landfall",
+   "tags_edhrec": [
+    "lands-matter",
+    "landfall",
+    "ramp",
+    "land-destruction",
+    "sacrifice",
+    "burn"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Omnath, Locus of Creation",
+   "ci": "WURG",
+   "principal": 12,
+   "principal_nome": "Landfall",
+   "secundario": [
+    13
+   ],
+   "secundario_nome": [
+    "Terrenos do cemitério (lands)"
+   ],
+   "fonte": "edhrec:landfall",
+   "tags_edhrec": [
+    "lands-matter",
+    "landfall",
+    "ramp",
+    "tokens",
+    "combo",
+    "elementals"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Lord Windgrace",
+   "ci": "BRG",
+   "principal": 13,
+   "principal_nome": "Terrenos do cemitério (lands)",
+   "secundario": [
+    26
+   ],
+   "secundario_nome": [
+    "Destruição de terrenos (MLD)"
+   ],
+   "fonte": "edhrec:land-destruction",
+   "tags_edhrec": [
+    "lands-matter",
+    "landfall",
+    "ramp",
+    "land-destruction",
+    "graveyard",
+    "tokens"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "The Gitrog Monster",
+   "ci": "BG",
+   "principal": 13,
+   "principal_nome": "Terrenos do cemitério (lands)",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:dredge",
+   "tags_edhrec": [
+    "lands-matter",
+    "dredge",
+    "combo",
+    "graveyard",
+    "landfall",
+    "ramp"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "The Necrobloom",
+   "ci": "WBG",
+   "principal": 13,
+   "principal_nome": "Terrenos do cemitério (lands)",
+   "secundario": [
+    21
+   ],
+   "secundario_nome": [
+    "Valor do cemitério (self-mill)"
+   ],
+   "fonte": "edhrec:lands-matter",
+   "tags_edhrec": [
+    "lands-matter",
+    "tokens",
+    "dredge",
+    "landfall",
+    "reanimator",
+    "ramp"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Toph, the First Metalbender",
+   "ci": "WRG",
+   "principal": 13,
+   "principal_nome": "Terrenos do cemitério (lands)",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:lands-matter",
+   "tags_edhrec": [
+    "lands-matter",
+    "artifacts",
+    "plus-1-plus-1-counters",
+    "earthbending",
+    "landfall",
+    "ramp"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Aminatou, the Fateshifter",
+   "ci": "WUB",
+   "principal": 14,
+   "principal_nome": "Blink / ETB",
+   "secundario": [
+    23
+   ],
+   "secundario_nome": [
+    "Controle (draw-go)"
+   ],
+   "fonte": "edhrec:blink",
+   "tags_edhrec": [
+    "blink",
+    "control",
+    "combo",
+    "planeswalkers",
+    "topdeck",
+    "etb"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Atraxa, Grand Unifier",
+   "ci": "WUBG",
+   "principal": 14,
+   "principal_nome": "Blink / ETB",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:blink",
+   "tags_edhrec": [
+    "blink",
+    "combo",
+    "midrange",
+    "control",
+    "infect",
+    "good-stuff"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Brago, King Eternal",
+   "ci": "WU",
+   "principal": 14,
+   "principal_nome": "Blink / ETB",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:blink",
+   "tags_edhrec": [
+    "blink",
+    "control",
+    "combo",
+    "etb",
+    "tokens",
+    "stax"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Orvar, the All-Form",
+   "ci": "U",
+   "principal": 14,
+   "principal_nome": "Blink / ETB",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:clones",
+   "tags_edhrec": [
+    "clones",
+    "combo",
+    "spellslinger",
+    "control",
+    "cantrips",
+    "tokens"
+   ],
+   "duvidoso": true,
+   "nota": "clones; pouco roubo de verdade",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Breya, Etherium Shaper",
+   "ci": "WUBR",
+   "principal": 15,
+   "principal_nome": "Enchantress / artefatos (valor por tipo)",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:artifacts",
+   "tags_edhrec": [
+    "artifacts",
+    "tokens",
+    "combo",
+    "blink",
+    "thopters",
+    "affinity"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Go-Shintai of Life's Origin",
+   "ci": "WUBRG",
+   "principal": 15,
+   "principal_nome": "Enchantress / artefatos (valor por tipo)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:enchantress",
+   "tags_edhrec": [
+    "enchantress",
+    "shrines",
+    "tokens",
+    "pillow-fort",
+    "legends",
+    "umori-companion"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Mr. House, President and CEO",
+   "ci": "WBR",
+   "principal": 15,
+   "principal_nome": "Enchantress / artefatos (valor por tipo)",
+   "secundario": [
+    32
+   ],
+   "secundario_nome": [
+    "Caos"
+   ],
+   "fonte": "edhrec:die-roll",
+   "tags_edhrec": [
+    "treasure",
+    "tokens",
+    "artifacts",
+    "die-roll",
+    "attractions",
+    "chaos"
+   ],
+   "duvidoso": true,
+   "nota": "dado + tesouro/robôs: caos ou artefatos?",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Urza, Chief Artificer",
+   "ci": "WUB",
+   "principal": 15,
+   "principal_nome": "Enchantress / artefatos (valor por tipo)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:artifacts",
+   "tags_edhrec": [
+    "artifacts",
+    "tokens",
+    "affinity",
+    "constructs",
+    "aggro",
+    "historic"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Zur the Enchanter",
+   "ci": "WUB",
+   "principal": 15,
+   "principal_nome": "Enchantress / artefatos (valor por tipo)",
+   "secundario": [
+    25
+   ],
+   "secundario_nome": [
+    "Stax / trava"
+   ],
+   "fonte": "edhrec:stax",
+   "tags_edhrec": [
+    "enchantress",
+    "control",
+    "stax",
+    "auras",
+    "combo",
+    "voltron"
+   ],
+   "duvidoso": true,
+   "nota": "busca encantamento: enchantress, stax ou voltron?",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Fire Lord Azula",
+   "ci": "UBR",
+   "principal": 16,
+   "principal_nome": "Spellslinger",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:spellslinger",
+   "tags_edhrec": [
+    "spellslinger",
+    "combo",
+    "spell-copy",
+    "aggro",
+    "storm",
+    "burn"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Talrand, Sky Summoner",
+   "ci": "U",
+   "principal": 16,
+   "principal_nome": "Spellslinger",
+   "secundario": [
+    23
+   ],
+   "secundario_nome": [
+    "Controle (draw-go)"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "spellslinger",
+    "tokens",
+    "control",
+    "flying",
+    "counterspells",
+    "cantrips"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Vivi Ornitier",
+   "ci": "UR",
+   "principal": 16,
+   "principal_nome": "Spellslinger",
+   "secundario": [
+    17
+   ],
+   "secundario_nome": [
+    "Storm / turno explosivo"
+   ],
+   "fonte": "edhrec:spellslinger",
+   "tags_edhrec": [
+    "spellslinger",
+    "storm",
+    "burn",
+    "combo",
+    "plus-1-plus-1-counters",
+    "control"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Prismari, the Inspiration",
+   "ci": "UR",
+   "principal": 17,
+   "principal_nome": "Storm / turno explosivo",
+   "secundario": [
+    16
+   ],
+   "secundario_nome": [
+    "Spellslinger"
+   ],
+   "fonte": "edhrec:storm",
+   "tags_edhrec": [
+    "storm",
+    "spellslinger",
+    "combo",
+    "burn",
+    "spell-copy",
+    "control"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Storm, Force of Nature",
+   "ci": "URG",
+   "principal": 17,
+   "principal_nome": "Storm / turno explosivo",
+   "secundario": [
+    16
+   ],
+   "secundario_nome": [
+    "Spellslinger"
+   ],
+   "fonte": "edhrec:storm",
+   "tags_edhrec": [
+    "spellslinger",
+    "storm",
+    "spell-copy",
+    "combo",
+    "extra-combats",
+    "cantrips"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Zada, Hedron Grinder",
+   "ci": "R",
+   "principal": 17,
+   "principal_nome": "Storm / turno explosivo",
+   "secundario": [
+    2
+   ],
+   "secundario_nome": [
+    "Ir largo (go-wide)"
+   ],
+   "fonte": "edhrec:storm",
+   "tags_edhrec": [
+    "spellslinger",
+    "tokens",
+    "aggro",
+    "goblins",
+    "storm",
+    "combo"
+   ],
+   "duvidoso": true,
+   "nota": "copia mágica para cada criatura: storm ou ir largo?",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Narset, Enlightened Master",
+   "ci": "WUR",
+   "principal": 18,
+   "principal_nome": "Turnos extras",
+   "secundario": [
+    6
+   ],
+   "secundario_nome": [
+    "Combate extra"
+   ],
+   "fonte": "edhrec:extra-turns",
+   "tags_edhrec": [
+    "extra-turns",
+    "extra-combats",
+    "spellslinger",
+    "voltron",
+    "planeswalkers",
+    "combo"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Obeka, Brute Chronologist",
+   "ci": "UBR",
+   "principal": 18,
+   "principal_nome": "Turnos extras",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:extra-turns",
+   "tags_edhrec": [
+    "clones",
+    "extra-turns",
+    "reanimator",
+    "tokens",
+    "combo",
+    "theft"
+   ],
+   "duvidoso": true,
+   "nota": "termina o turno / upkeep extra",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Magus Lucea Kane",
+   "ci": "URG",
+   "principal": 19,
+   "principal_nome": "Fireball / mágica X",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:x-spells",
+   "tags_edhrec": [
+    "x-spells",
+    "plus-1-plus-1-counters",
+    "tyranids",
+    "ramp",
+    "spell-copy",
+    "hydras"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Zaxara, the Exemplary",
+   "ci": "UBG",
+   "principal": 19,
+   "principal_nome": "Fireball / mágica X",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:x-spells",
+   "tags_edhrec": [
+    "x-spells",
+    "plus-1-plus-1-counters",
+    "hydras",
+    "tokens",
+    "ramp",
+    "combo"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Zimone, Infinite Analyst",
+   "ci": "UG",
+   "principal": 19,
+   "principal_nome": "Fireball / mágica X",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:x-spells",
+   "tags_edhrec": [
+    "plus-1-plus-1-counters",
+    "x-spells",
+    "spellslinger",
+    "ramp",
+    "big-mana",
+    "hydras"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Hashaton, Scarab's Fist",
+   "ci": "WUB",
+   "principal": 20,
+   "principal_nome": "Reanimador",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:reanimator",
+   "tags_edhrec": [
+    "discard",
+    "reanimator",
+    "tokens",
+    "zombies",
+    "combo",
+    "wheels"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Muldrotha, the Gravetide",
+   "ci": "UBG",
+   "principal": 20,
+   "principal_nome": "Reanimador",
+   "secundario": [
+    22
+   ],
+   "secundario_nome": [
+    "Mill (oponentes)"
+   ],
+   "fonte": "edhrec:reanimator",
+   "tags_edhrec": [
+    "reanimator",
+    "graveyard",
+    "mill",
+    "self-mill",
+    "sacrifice",
+    "combo"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Terra, Herald of Hope",
+   "ci": "WBR",
+   "principal": 20,
+   "principal_nome": "Reanimador",
+   "secundario": [
+    21
+   ],
+   "secundario_nome": [
+    "Valor do cemitério (self-mill)"
+   ],
+   "fonte": "edhrec:reanimator",
+   "tags_edhrec": [
+    "reanimator",
+    "graveyard",
+    "self-mill",
+    "aggro",
+    "mill",
+    "aristocrats"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Quintorius, History Chaser",
+   "ci": "WR",
+   "principal": 21,
+   "principal_nome": "Valor do cemitério (self-mill)",
+   "secundario": [
+    20
+   ],
+   "secundario_nome": [
+    "Reanimador"
+   ],
+   "fonte": "edhrec:self-mill",
+   "tags_edhrec": [
+    "reanimator",
+    "tokens",
+    "graveyard",
+    "self-mill",
+    "discard",
+    "spirits"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Sidisi, Brood Tyrant",
+   "ci": "UBG",
+   "principal": 21,
+   "principal_nome": "Valor do cemitério (self-mill)",
+   "secundario": [
+    20
+   ],
+   "secundario_nome": [
+    "Reanimador"
+   ],
+   "fonte": "edhrec:self-mill",
+   "tags_edhrec": [
+    "mill",
+    "reanimator",
+    "self-mill",
+    "graveyard",
+    "dredge",
+    "tokens"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Teval, the Balanced Scale",
+   "ci": "UBG",
+   "principal": 21,
+   "principal_nome": "Valor do cemitério (self-mill)",
+   "secundario": [
+    13
+   ],
+   "secundario_nome": [
+    "Terrenos do cemitério (lands)"
+   ],
+   "fonte": "edhrec:lands-matter",
+   "tags_edhrec": [
+    "reanimator",
+    "lands-matter",
+    "mill",
+    "self-mill",
+    "graveyard",
+    "tokens"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Captain N'ghathrod",
+   "ci": "UB",
+   "principal": 22,
+   "principal_nome": "Mill (oponentes)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:mill",
+   "tags_edhrec": [
+    "mill",
+    "horrors",
+    "theft",
+    "reanimator",
+    "graveyard",
+    "control"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Hope Estheim",
+   "ci": "WU",
+   "principal": 22,
+   "principal_nome": "Mill (oponentes)",
+   "secundario": [
+    11
+   ],
+   "secundario_nome": [
+    "Ganho de vida que vira dano"
+   ],
+   "fonte": "edhrec:mill",
+   "tags_edhrec": [
+    "mill",
+    "lifegain",
+    "control",
+    "combo",
+    "plus-1-plus-1-counters",
+    "pillow-fort"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Phenax, God of Deception",
+   "ci": "UB",
+   "principal": 22,
+   "principal_nome": "Mill (oponentes)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "mill",
+    "toughness-matters",
+    "combo",
+    "control",
+    "graveyard",
+    "defenders"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "The Wise Mothman",
+   "ci": "UBG",
+   "principal": 22,
+   "principal_nome": "Mill (oponentes)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:mill",
+   "tags_edhrec": [
+    "mill",
+    "plus-1-plus-1-counters",
+    "rad-counters",
+    "mutants",
+    "reanimator",
+    "self-mill"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Alela, Cunning Conqueror",
+   "ci": "UB",
+   "principal": 23,
+   "principal_nome": "Controle (draw-go)",
+   "secundario": [
+    29
+   ],
+   "secundario_nome": [
+    "Goad / política"
+   ],
+   "fonte": "edhrec:control",
+   "tags_edhrec": [
+    "faeries",
+    "control",
+    "flying",
+    "tokens",
+    "forced-combat",
+    "flash"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Hylda of the Icy Crown",
+   "ci": "WU",
+   "principal": 23,
+   "principal_nome": "Controle (draw-go)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:control",
+   "tags_edhrec": [
+    "control",
+    "tap-untap",
+    "tokens",
+    "snow",
+    "plus-1-plus-1-counters",
+    "stax"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Y'shtola, Night's Blessed",
+   "ci": "WUB",
+   "principal": 23,
+   "principal_nome": "Controle (draw-go)",
+   "secundario": [
+    10
+   ],
+   "secundario_nome": [
+    "Dreno / group slug"
+   ],
+   "fonte": "edhrec:spellslinger",
+   "tags_edhrec": [
+    "control",
+    "spellslinger",
+    "lifegain",
+    "burn",
+    "lifedrain",
+    "combo"
+   ],
+   "duvidoso": true,
+   "nota": "dreno por valor de mana; EDHREC diz controle/spellslinger",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Avacyn, Angel of Hope",
+   "ci": "W",
+   "principal": 24,
+   "principal_nome": "Limpa e reconstrói",
+   "secundario": [
+    4
+   ],
+   "secundario_nome": [
+    "Criaturas grandes (stompy)"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "angels",
+    "land-destruction",
+    "flying",
+    "lifegain",
+    "stax",
+    "control"
+   ],
+   "duvidoso": true,
+   "nota": "escolhida à mão: indestrutível + limpa-mesa",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Child of Alara",
+   "ci": "WUBRG",
+   "principal": 24,
+   "principal_nome": "Limpa e reconstrói",
+   "secundario": [
+    13
+   ],
+   "secundario_nome": [
+    "Terrenos do cemitério (lands)"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "lands-matter",
+    "guildgates",
+    "ramp",
+    "control",
+    "gods",
+    "land-destruction"
+   ],
+   "duvidoso": true,
+   "nota": "escolhido à mão: limpa a mesa ao morrer",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Grand Arbiter Augustin IV",
+   "ci": "WU",
+   "principal": 25,
+   "principal_nome": "Stax / trava",
+   "secundario": [
+    23
+   ],
+   "secundario_nome": [
+    "Controle (draw-go)"
+   ],
+   "fonte": "edhrec:stax",
+   "tags_edhrec": [
+    "stax",
+    "control",
+    "hatebears",
+    "pillow-fort",
+    "combo",
+    "prison"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Numot, the Devastator",
+   "ci": "WUR",
+   "principal": 26,
+   "principal_nome": "Destruição de terrenos (MLD)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:land-destruction",
+   "tags_edhrec": [
+    "land-destruction",
+    "stax",
+    "control",
+    "spellslinger",
+    "artifacts",
+    "dragons"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Zo-Zu the Punisher",
+   "ci": "R",
+   "principal": 26,
+   "principal_nome": "Destruição de terrenos (MLD)",
+   "secundario": [
+    10
+   ],
+   "secundario_nome": [
+    "Dreno / group slug"
+   ],
+   "fonte": "edhrec:land-destruction",
+   "tags_edhrec": [
+    "land-destruction",
+    "burn",
+    "group-slug",
+    "stax",
+    "lands-matter",
+    "control"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Deadpool, Trading Card",
+   "ci": "BR",
+   "principal": 27,
+   "principal_nome": "Roubo (theft)",
+   "secundario": [
+    32
+   ],
+   "secundario_nome": [
+    "Caos"
+   ],
+   "fonte": "edhrec:chaos",
+   "tags_edhrec": [
+    "clones",
+    "chaos",
+    "tokens",
+    "group-slug",
+    "reanimator",
+    "burn"
+   ],
+   "duvidoso": true,
+   "nota": "troca/cópia: caos ou roubo?",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Maralen, Fae Ascendant",
+   "ci": "UBG",
+   "principal": 27,
+   "principal_nome": "Roubo (theft)",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:theft",
+   "tags_edhrec": [
+    "elves",
+    "faeries",
+    "theft",
+    "tokens",
+    "combo",
+    "flying"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Kefka, Court Mage",
+   "ci": "UBR",
+   "principal": 28,
+   "principal_nome": "Punir mão (wheel/descarte)",
+   "secundario": [
+    23
+   ],
+   "secundario_nome": [
+    "Controle (draw-go)"
+   ],
+   "fonte": "edhrec:control",
+   "tags_edhrec": [
+    "discard",
+    "combo",
+    "control",
+    "reanimator",
+    "blink",
+    "midrange"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Nekusar, the Mindrazer",
+   "ci": "UBR",
+   "principal": 28,
+   "principal_nome": "Punir mão (wheel/descarte)",
+   "secundario": [
+    10
+   ],
+   "secundario_nome": [
+    "Dreno / group slug"
+   ],
+   "fonte": "edhrec:wheels",
+   "tags_edhrec": [
+    "wheels",
+    "group-slug",
+    "burn",
+    "card-draw",
+    "discard",
+    "group-hug"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Tinybones, Bauble Burglar",
+   "ci": "B",
+   "principal": 28,
+   "principal_nome": "Punir mão (wheel/descarte)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:discard",
+   "tags_edhrec": [
+    "discard",
+    "theft",
+    "control",
+    "group-slug",
+    "reanimator",
+    "stax"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Xyris, the Writhing Storm",
+   "ci": "URG",
+   "principal": 28,
+   "principal_nome": "Punir mão (wheel/descarte)",
+   "secundario": [
+    31
+   ],
+   "secundario_nome": [
+    "Group hug"
+   ],
+   "fonte": "edhrec:wheels",
+   "tags_edhrec": [
+    "wheels",
+    "tokens",
+    "group-hug",
+    "card-draw",
+    "snakes",
+    "burn"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Killian, Decisive Mentor",
+   "ci": "WB",
+   "principal": 29,
+   "principal_nome": "Goad / política",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:forced-combat",
+   "tags_edhrec": [
+    "auras",
+    "enchantress",
+    "forced-combat",
+    "control",
+    "politics",
+    "voltron"
+   ],
+   "duvidoso": true,
+   "nota": "auras que goadam",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Nelly Borca, Impulsive Accuser",
+   "ci": "WR",
+   "principal": 29,
+   "principal_nome": "Goad / política",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:forced-combat",
+   "tags_edhrec": [
+    "forced-combat",
+    "pillow-fort",
+    "aikido",
+    "control",
+    "politics",
+    "group-hug"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Queen Marchesa",
+   "ci": "WBR",
+   "principal": 29,
+   "principal_nome": "Goad / política",
+   "secundario": [
+    30
+   ],
+   "secundario_nome": [
+    "Pillow fort"
+   ],
+   "fonte": "edhrec:monarch",
+   "tags_edhrec": [
+    "monarch",
+    "aikido",
+    "forced-combat",
+    "pillow-fort",
+    "control",
+    "politics"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Tivit, Seller of Secrets",
+   "ci": "WUB",
+   "principal": 29,
+   "principal_nome": "Goad / política",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:extra-turns",
+   "tags_edhrec": [
+    "artifacts",
+    "control",
+    "combo",
+    "extra-turns",
+    "blink",
+    "tokens"
+   ],
+   "duvidoso": true,
+   "nota": "voto + tesouros; turno extra só com Time Sieve",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Breena, the Demagogue",
+   "ci": "WB",
+   "principal": 30,
+   "principal_nome": "Pillow fort",
+   "secundario": [
+    29
+   ],
+   "secundario_nome": [
+    "Goad / política"
+   ],
+   "fonte": "edhrec:pillow-fort",
+   "tags_edhrec": [
+    "plus-1-plus-1-counters",
+    "pillow-fort",
+    "politics",
+    "group-hug",
+    "aggro",
+    "flying"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Pramikon, Sky Rampart",
+   "ci": "WUR",
+   "principal": 30,
+   "principal_nome": "Pillow fort",
+   "secundario": [
+    23
+   ],
+   "secundario_nome": [
+    "Controle (draw-go)"
+   ],
+   "fonte": "edhrec:pillow-fort",
+   "tags_edhrec": [
+    "pillow-fort",
+    "defenders",
+    "control",
+    "toughness-matters",
+    "planeswalkers",
+    "forced-combat"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Gluntch, the Bestower",
+   "ci": "WG",
+   "principal": 31,
+   "principal_nome": "Group hug",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:group-hug",
+   "tags_edhrec": [
+    "group-hug",
+    "plus-1-plus-1-counters",
+    "tokens",
+    "pillow-fort",
+    "lifegain",
+    "ramp"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Kwain, Itinerant Meddler",
+   "ci": "WU",
+   "principal": 31,
+   "principal_nome": "Group hug",
+   "secundario": [
+    28
+   ],
+   "secundario_nome": [
+    "Punir mão (wheel/descarte)"
+   ],
+   "fonte": "edhrec:group-hug",
+   "tags_edhrec": [
+    "group-hug",
+    "wheels",
+    "card-draw",
+    "control",
+    "pillow-fort",
+    "combo"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Kynaios and Tiro of Meletis",
+   "ci": "WURG",
+   "principal": 31,
+   "principal_nome": "Group hug",
+   "secundario": [
+    30
+   ],
+   "secundario_nome": [
+    "Pillow fort"
+   ],
+   "fonte": "edhrec:pillow-fort",
+   "tags_edhrec": [
+    "group-hug",
+    "lands-matter",
+    "card-draw",
+    "pillow-fort",
+    "wheels",
+    "ramp"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Ms. Bumbleflower",
+   "ci": "WUG",
+   "principal": 31,
+   "principal_nome": "Group hug",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:group-hug",
+   "tags_edhrec": [
+    "plus-1-plus-1-counters",
+    "group-hug",
+    "card-draw",
+    "control",
+    "wheels",
+    "combo"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Okaun, Eye of Chaos // Zndrsplt, Eye of Wisdom",
+   "ci": "UR",
+   "principal": 32,
+   "principal_nome": "Caos",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:chaos",
+   "tags_edhrec": [
+    "chaos",
+    "coin-flip",
+    "voltron",
+    "combo",
+    "card-draw",
+    "aggro"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Commodore Guff",
+   "ci": "WUR",
+   "principal": 33,
+   "principal_nome": "Superamigos (planeswalkers)",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:planeswalkers",
+   "tags_edhrec": [
+    "planeswalkers",
+    "control",
+    "proliferate",
+    "burn",
+    "pillow-fort",
+    "tokens"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Esika, God of the Tree",
+   "ci": "WUBRG",
+   "principal": 33,
+   "principal_nome": "Superamigos (planeswalkers)",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:planeswalkers",
+   "tags_edhrec": [
+    "planeswalkers",
+    "legends",
+    "gods",
+    "historic",
+    "enchantress",
+    "combo"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Nicol Bolas, the Ravager",
+   "ci": "UBR",
+   "principal": 33,
+   "principal_nome": "Superamigos (planeswalkers)",
+   "secundario": [
+    23
+   ],
+   "secundario_nome": [
+    "Controle (draw-go)"
+   ],
+   "fonte": "edhrec:planeswalkers",
+   "tags_edhrec": [
+    "planeswalkers",
+    "control",
+    "discard",
+    "reanimator",
+    "combo",
+    "theft"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "K'rrik, Son of Yawgmoth",
+   "ci": "B",
+   "principal": 34,
+   "principal_nome": "Combo infinito",
+   "secundario": [
+    11
+   ],
+   "secundario_nome": [
+    "Ganho de vida que vira dano"
+   ],
+   "fonte": "edhrec:combo",
+   "tags_edhrec": [
+    "combo",
+    "lifegain",
+    "self-damage",
+    "reanimator",
+    "lifedrain",
+    "devotion"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Kinnan, Bonder Prodigy",
+   "ci": "UG",
+   "principal": 34,
+   "principal_nome": "Combo infinito",
+   "secundario": [],
+   "secundario_nome": [],
+   "fonte": "edhrec:combo",
+   "tags_edhrec": [
+    "combo",
+    "ramp",
+    "midrange",
+    "artifacts",
+    "control",
+    "clones"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Thrasios, Triton Hero // Tymna the Weaver",
+   "ci": "WUBG",
+   "principal": 34,
+   "principal_nome": "Combo infinito",
+   "secundario": [
+    36
+   ],
+   "secundario_nome": [
+    "Toolbox / cadeia de tutor"
+   ],
+   "fonte": "edhrec:birthing-pod",
+   "tags_edhrec": [
+    "combo",
+    "midrange",
+    "birthing-pod",
+    "good-stuff",
+    "control",
+    "ad-nauseam"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Urza, Lord High Artificer",
+   "ci": "U",
+   "principal": 34,
+   "principal_nome": "Combo infinito",
+   "secundario": [
+    15
+   ],
+   "secundario_nome": [
+    "Enchantress / artefatos (valor por tipo)"
+   ],
+   "fonte": "edhrec:stax",
+   "tags_edhrec": [
+    "artifacts",
+    "combo",
+    "control",
+    "stax",
+    "tokens",
+    "midrange"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  },
+  {
+   "nome": "Knuckles the Echidna",
+   "ci": "R",
+   "principal": 35,
+   "principal_nome": "Vitória alternativa",
+   "secundario": [
+    3
+   ],
+   "secundario_nome": [
+    "Aggro"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "artifacts",
+    "treasure",
+    "tokens",
+    "aggro",
+    "equipment",
+    "voltron"
+   ],
+   "duvidoso": true,
+   "nota": "tem \"você ganha\", mas o deck do EDHREC joga tesouro/aggro",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Ramses, Assassin Lord",
+   "ci": "UB",
+   "principal": 35,
+   "principal_nome": "Vitória alternativa",
+   "secundario": [
+    5
+   ],
+   "secundario_nome": [
+    "Veneno (infect/toxic)"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "assassins",
+    "infect",
+    "equipment",
+    "aggro",
+    "voltron",
+    "freerunning"
+   ],
+   "duvidoso": true,
+   "nota": "tem \"você ganha\" (assassinos), deck também joga veneno",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Zenos yae Galvus // Shinryu, Transcendent Rival",
+   "ci": "B",
+   "principal": 35,
+   "principal_nome": "Vitória alternativa",
+   "secundario": [
+    1
+   ],
+   "secundario_nome": [
+    "Voltron"
+   ],
+   "fonte": "manual",
+   "tags_edhrec": [
+    "voltron",
+    "infect",
+    "aggro",
+    "equipment",
+    "control",
+    "combo"
+   ],
+   "duvidoso": true,
+   "nota": "tem \"você ganha\", deck do EDHREC é voltron",
+   "revisado_felipe": true
+  },
+  {
+   "nome": "Sisay, Weatherlight Captain",
+   "ci": "WUBRG",
+   "principal": 36,
+   "principal_nome": "Toolbox / cadeia de tutor",
+   "secundario": [
+    34
+   ],
+   "secundario_nome": [
+    "Combo infinito"
+   ],
+   "fonte": "edhrec:toolbox",
+   "tags_edhrec": [
+    "legends",
+    "combo",
+    "historic",
+    "toolbox",
+    "planeswalkers",
+    "midrange"
+   ],
+   "duvidoso": false,
+   "nota": "",
+   "revisado_felipe": false
+  }
+ ]
+}
