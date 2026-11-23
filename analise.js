@@ -949,7 +949,16 @@ const COND_N = { Attacks: 'quando ataca', DamageDone: 'quando causa dano', Damag
 // efetividade pelos parâmetros do Forge (mesma escala da leitura antiga: ~1 = carta padrão da função)
 function efetivFx(A, c, f, K) {
   const { rl, cv, inst, cri, v, why, custoAdj, o } = K, P = perfilDeck(A);
-  const melhor = (k, fn) => { let b = null; for (const e of fxL(f, k)) { const r = fn(e); if (!b || r[0] > b[0]) b = r; } return b; };
+  // planeswalker: a final só sai se ele sobreviver vários turnos; o "−" gasta lealdade. Ativação cara (Venat: 7) pesa.
+  const ajuste = (e, r) => {
+    if (e.leal === 'ult') { r[0] *= 0.3; r[1].push('só na habilidade final do planeswalker'); }
+    else if (e.leal === 'menos') { r[0] *= 0.8; r[1].push('gasta lealdade do planeswalker'); }
+    else if (e.leal === 'mais') { r[0] *= 0.85; r[1].push('planeswalker: os oponentes atacam para tirá-lo'); }
+    if (e.custo && k0 !== 'draw') { const ca = custoF(e.custo); if (ca >= 4) { r[0] -= 0.12 * (ca - 3); r[1].push(`a ativação custa ${ca}`); } }
+    return r;
+  };
+  let k0 = '';
+  const melhor = (k, fn) => { let b = null; k0 = k; for (const e of fxL(f, k)) { const r = ajuste(e, fn(e)); if (!b || r[0] > b[0]) b = r; } return b; };
   const gratis = f._gratis ? 0.2 : 0;
   if (rl.has('draw')) {
     const b = melhor('draw', (e) => {

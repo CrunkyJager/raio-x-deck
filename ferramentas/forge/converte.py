@@ -228,10 +228,13 @@ class Leitor:
             if not r:
                 continue
             ctx = {'k': 'spell'} if r[0] == 'SP' else {'k': 'act', 'cost': r[2].get('Cost', ''), 'zone': r[2].get('ActivationZone', 'Battlefield')}
+            if r[2].get('Planeswalker'):
+                ml = re.search(r'SubCounter<(\d+|X)/LOYALTY>', ctx['cost'])
+                ctx['leal'] = 'mais' if not ml else 'ult' if r[2].get('Ultimate') or (ml.group(1).isdigit() and int(ml.group(1)) >= int(f.get('Loyalty', '3') if f.get('Loyalty', '3').isdigit() else 3)) else 'menos'
             self.segue(a, ctx)
         for t in f['T']:
             d = tparams(t)
-            ctx = {'k': 'trig', 'mode': d.get('Mode', ''), 'self': d.get('ValidCard', '') in ('Card.Self', 'Creature.Self', 'Permanent.Self'),
+            ctx = {'k': 'trig', 'mode': d.get('Mode', ''), 'self': bool(re.match(r'(Card|Creature|Permanent)\.Self(\+|$)', d.get('ValidCard', ''))),
                    'vp': d.get('ValidPlayer', '') or d.get('ValidActivatingPlayer', ''), 'zone': d.get('TriggerZones', 'Battlefield'),
                    'vc': d.get('ValidCard', ''), 'dest': d.get('Destination', ''), 'origin': d.get('Origin', '')}
             self.segue(self.sv.get(d.get('Execute', '')), ctx)
@@ -255,11 +258,17 @@ class Leitor:
         return self.efs
 
 
+def custo_mana(c):
+    return sum(int(x) if x.isdigit() else 1 for x in re.findall(r'(?:(?<=\s)|^)(\d+|[WUBRGC])(?=\s|$)', c or ''))
+
+
 def repete(ctx):
     """o efeito acontece mais de uma vez?"""
     k = ctx['k']
     if k == 'act':
         c = ctx.get('cost', '')
+        if ctx.get('leal'):
+            return 'fase' if ctx['leal'] == 'mais' else 0  # +: uma vez por turno; −: gasta lealdade (poucas vezes); final: uma vez, se chegar
         if re.search(r'Sac<1/(CARDNAME|NICKNAME)[>/]|Exile<1/CARDNAME>|SacMe', c) or ctx.get('zone') not in ('Battlefield', None):
             return 0
         return 'tap' if re.search(r'(^|\s)T(\s|$)', c) else 'act'
@@ -317,7 +326,11 @@ def funcoes_face(f, tras, alt):
         cur[0] = e
         api, p, ctx = e['api'], e['p'], e['ctx']
         rp = repete(ctx)
+        if rp and ctx['k'] == 'act' and any(x['api'] == 'SetState' and x['p'].get('Defined', 'Self') == 'Self' and x['ctx'] is ctx for x in efs):
+            rp = 0  # transforma a si mesma: só uma vez
         base = {}
+        if ctx.get('leal'): base['leal'] = ctx['leal']
+        if ctx['k'] == 'act' and custo_mana(ctx.get('cost', '')) >= 4: base['custo'] = ctx.get('cost', '')
         if rp: base['rep'] = rp
         if e['modal']: base['modal'] = 1
         if ctx['k'] == 'trig' and not (ctx.get('mode') == 'ChangesZone' and ctx.get('self')) and ctx.get('mode') not in ('Chapter',):
@@ -440,13 +453,13 @@ def funcoes_face(f, tras, alt):
                 modo = 'destroi' if api == 'Destroy' else {'Exile': 'exila', 'Hand': 'mao', 'Library': 'grimorio', 'Graveyard': 'destroi'}[p['Destination']]
                 d = dict(base, modo=modo, alc=alcance(vt), restr=restrito(vt), n=inteiro(p.get('TargetMax'), sv, 2))
                 # o dono/controlador do alvo ganha algo em troca (Beast Within: ficha 3/3; Chaos Warp: permanente do topo)
-                if depois(e, lambda x: (x['api'] == 'Token' and re.match(r'Targeted(Controller|Owner)', x['p'].get('TokenOwner', '')))
+                if depois(e, lambda x: (x['api'] == 'Draw' and re.match(r'(Remembered|Targeted)(Controller|Owner)', x['p'].get('Defined', ''))) or (x['api'] == 'Token' and re.match(r'Targeted(Controller|Owner)', x['p'].get('TokenOwner', '')))
                           or (x['api'] in ('Dig', 'DigUntil', 'ChangeZone') and re.match(r'Targeted(Controller|Owner)', x['p'].get('Defined', '') + x['p'].get('DefinedPlayer', ''))
                               and 'Battlefield' in x['p'].get('DestinationZone', '') + x['p'].get('FoundDestination', '') + x['p'].get('Destination', ''))):
                     d['compensa'] = 1
                 add('removal', d)
         elif api == 'DealDamage' and alvo_dele and alcance(vt) not in ('jogador', ''):
-            add('removal', dict(base, modo='dano', alc=alcance(vt), dano=inteiro(p.get('NumDmg'), sv, 4), restr=restrito(vt)))
+            add('removal', dict(base, modo='dano', alc=alcance(vt), dano=inteiro(p.get('NumDmg'), sv, 3 if sv.get(p.get('NumDmg', ''), '').startswith('Count$') else 4), restr=restrito(vt)))
         elif api == 'Pump' and alvo_dele and re.match(r'-', p.get('NumDef', '')):
             add('removal', dict(base, modo='menos', alc=alcance(vt), dano=inteiro(p['NumDef'][1:], sv, 3), restr=restrito(vt)))
         elif api == 'PutCounter' and alvo_dele and p.get('CounterType') == 'M1M1':
