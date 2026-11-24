@@ -1,0 +1,4131 @@
+{
+ "decks": 34,
+ "copias_banco": 2859,
+ "sem_roteiro": {},
+ "cardsdb": 32726,
+ "cardsdb_no_forge": 32687,
+ "itens": [
+  {
+   "cat": "efeito",
+   "item": "Mana",
+   "copias": 686,
+   "decks": 34,
+   "cardsdb": 2147,
+   "ex": [
+    "Arcane Signet",
+    "Sol Ring",
+    "Command Tower"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "ChangesZone→Battlefield",
+   "copias": 403,
+   "decks": 34,
+   "cardsdb": 5520,
+   "ex": [
+    "Bojuka Bog",
+    "Impact Tremors",
+    "Eidolon of Blossoms"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Tap",
+   "copias": 400,
+   "decks": 34,
+   "cardsdb": 1448,
+   "ex": [
+    "Path of Ancestry",
+    "Sacred Foundry",
+    "Stomping Ground"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "Moved",
+   "copias": 392,
+   "decks": 34,
+   "cardsdb": 953,
+   "ex": [
+    "Path of Ancestry",
+    "Sacred Foundry",
+    "Stomping Ground"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Draw",
+   "copias": 381,
+   "decks": 34,
+   "cardsdb": 3508,
+   "ex": [
+    "Skullclamp",
+    "Rhystic Study",
+    "Vanquisher's Banner"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Token",
+   "copias": 363,
+   "decks": 34,
+   "cardsdb": 3233,
+   "ex": [
+    "Smothering Tithe",
+    "Beast Within",
+    "An Offer You Can't Refuse"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Library→Battlefield]",
+   "copias": 208,
+   "decks": 31,
+   "cardsdb": 476,
+   "ex": [
+    "Path to Exile",
+    "Cultivate",
+    "Farseek"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddKeyword",
+   "copias": 196,
+   "decks": 32,
+   "cardsdb": 1735,
+   "ex": [
+    "Swiftfoot Boots",
+    "Lightning Greaves",
+    "Rising of the Day"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Flying",
+   "copias": 176,
+   "decks": 26,
+   "cardsdb": 3181,
+   "ex": [
+    "Birds of Paradise",
+    "Gilded Goose",
+    "Baleful Strix"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "DealDamage",
+   "copias": 168,
+   "decks": 32,
+   "cardsdb": 2535,
+   "ex": [
+    "Impact Tremors",
+    "Talisman of Dominance",
+    "Battlefield Forge"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddPower",
+   "copias": 160,
+   "decks": 30,
+   "cardsdb": 1821,
+   "ex": [
+    "Skullclamp",
+    "Vanquisher's Banner",
+    "Rising of the Day"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Phase",
+   "copias": 155,
+   "decks": 33,
+   "cardsdb": 2074,
+   "ex": [
+    "Herald's Horn",
+    "Scrawling Crawler",
+    "Nyx Weaver"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Cleanup",
+   "copias": 151,
+   "decks": 34,
+   "cardsdb": 2523,
+   "ex": [
+    "Cultivate",
+    "Herald's Horn",
+    "Reanimate"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddToughness",
+   "copias": 142,
+   "decks": 29,
+   "cardsdb": 1441,
+   "ex": [
+    "Skullclamp",
+    "Vanquisher's Banner",
+    "Sword of the Animist"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "PutCounter",
+   "copias": 137,
+   "decks": 30,
+   "cardsdb": 3107,
+   "ex": [
+    "Evolution Witness",
+    "Setessan Champion",
+    "Elenda, the Dusk Rose"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "GainLife",
+   "copias": 127,
+   "decks": 30,
+   "cardsdb": 1701,
+   "ex": [
+    "Swords to Plowshares",
+    "Tatyova, Benthic Druid",
+    "Herald of the Pantheon"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "ChangesZone→Graveyard",
+   "copias": 123,
+   "decks": 25,
+   "cardsdb": 1310,
+   "ex": [
+    "Skullclamp",
+    "Syr Konrad, the Grim",
+    "Solemn Simulacrum"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "LoseLife",
+   "copias": 109,
+   "decks": 17,
+   "cardsdb": 1086,
+   "ex": [
+    "Reanimate",
+    "Anguished Unmaking",
+    "Blood Artist"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Pump",
+   "copias": 107,
+   "decks": 30,
+   "cardsdb": 3833,
+   "ex": [
+    "Teferi's Protection",
+    "Boros Charm",
+    "Shared Animosity"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Attacks",
+   "copias": 106,
+   "decks": 30,
+   "cardsdb": 1513,
+   "ex": [
+    "Kindred Discovery",
+    "Shared Animosity",
+    "Krenko, Tin Street Kingpin"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "PumpAll",
+   "copias": 106,
+   "decks": 31,
+   "cardsdb": 932,
+   "ex": [
+    "Heroic Intervention",
+    "Akroma's Will",
+    "Boros Charm"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "SpellCast",
+   "copias": 93,
+   "decks": 31,
+   "cardsdb": 1292,
+   "ex": [
+    "Rhystic Study",
+    "Vanquisher's Banner",
+    "Esper Sentinel"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Destroy",
+   "copias": 92,
+   "decks": 33,
+   "cardsdb": 1434,
+   "ex": [
+    "Beast Within",
+    "Vandalblast",
+    "Assassin's Trophy"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Equip",
+   "copias": 83,
+   "decks": 29,
+   "cardsdb": 608,
+   "ex": [
+    "Swiftfoot Boots",
+    "Lightning Greaves",
+    "Skullclamp"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Battlefield→Exile]",
+   "copias": 81,
+   "decks": 26,
+   "cardsdb": 758,
+   "ex": [
+    "Path to Exile",
+    "Swords to Plowshares",
+    "Anguished Unmaking"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Effect",
+   "copias": 80,
+   "decks": 28,
+   "cardsdb": 1664,
+   "ex": [
+    "Rogue's Passage",
+    "Teferi's Protection",
+    "Explore"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "ETBReplacement",
+   "copias": 74,
+   "decks": 20,
+   "cardsdb": 394,
+   "ex": [
+    "Herald's Horn",
+    "Unclaimed Territory",
+    "Secluded Courtyard"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChooseType",
+   "copias": 72,
+   "decks": 16,
+   "cardsdb": 166,
+   "ex": [
+    "Herald's Horn",
+    "Unclaimed Territory",
+    "Secluded Courtyard"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "ReduceCost",
+   "copias": 68,
+   "decks": 26,
+   "cardsdb": 491,
+   "ex": [
+    "Blasphemous Act",
+    "Herald's Horn",
+    "Herald of the Pantheon"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Library→Hand]",
+   "copias": 62,
+   "decks": 31,
+   "cardsdb": 456,
+   "ex": [
+    "Cultivate",
+    "Herald's Horn",
+    "Kodama's Reach"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Graveyard→Battlefield]",
+   "copias": 60,
+   "decks": 21,
+   "cardsdb": 750,
+   "ex": [
+    "Reanimate",
+    "Victimize",
+    "Enduring Vitality"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Vigilance",
+   "copias": 54,
+   "decks": 20,
+   "cardsdb": 736,
+   "ex": [
+    "Red XIII, Proud Warrior",
+    "Enduring Vitality",
+    "Adeline, Resplendent Cathar"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Charm",
+   "copias": 52,
+   "decks": 26,
+   "cardsdb": 788,
+   "ex": [
+    "Akroma's Will",
+    "Boros Charm",
+    "Austere Command"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "DamageDone",
+   "copias": 50,
+   "decks": 22,
+   "cardsdb": 809,
+   "ex": [
+    "Balefire Dragon",
+    "Drana, Liberator of Malakir",
+    "Bident of Thassa"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Graveyard→Hand]",
+   "copias": 49,
+   "decks": 22,
+   "cardsdb": 777,
+   "ex": [
+    "Evolution Witness",
+    "Red XIII, Proud Warrior",
+    "Nyx Weaver"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Counter",
+   "copias": 47,
+   "decks": 16,
+   "cardsdb": 504,
+   "ex": [
+    "Counterspell",
+    "An Offer You Can't Refuse",
+    "Negate"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.outro",
+   "copias": 45,
+   "decks": 23,
+   "cardsdb": 251,
+   "ex": [
+    "Realmwalker",
+    "Dryad of the Ilysian Grove",
+    "Muldrotha, the Gravetide"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Dig",
+   "copias": 44,
+   "decks": 23,
+   "cardsdb": 918,
+   "ex": [
+    "Chaos Warp",
+    "Shigeki, Jukai Visionary",
+    "Mystic Forge"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Drawn",
+   "copias": 41,
+   "decks": 14,
+   "cardsdb": 153,
+   "ex": [
+    "Smothering Tithe",
+    "Psychosis Crawler",
+    "Scrawling Crawler"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ManaReflected",
+   "copias": 40,
+   "decks": 26,
+   "cardsdb": 42,
+   "ex": [
+    "Exotic Orchard",
+    "Fellwar Stone",
+    "Incubation Druid"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Scry",
+   "copias": 40,
+   "decks": 26,
+   "cardsdb": 420,
+   "ex": [
+    "Path of Ancestry",
+    "Temple of Mystery",
+    "Viscera Seer"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Battlefield→Hand]",
+   "copias": 39,
+   "decks": 19,
+   "cardsdb": 663,
+   "ex": [
+    "Cyclonic Rift",
+    "Gruul Turf",
+    "Golgari Rot Farm"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Trample",
+   "copias": 38,
+   "decks": 15,
+   "cardsdb": 1002,
+   "ex": [
+    "Red XIII, Proud Warrior",
+    "Lightning, Army of One",
+    "Burrowguard Mentor"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "PutCounterAll",
+   "copias": 37,
+   "decks": 15,
+   "cardsdb": 285,
+   "ex": [
+    "Felidar Retreat",
+    "Belladonna Took",
+    "Avenger of Zendikar"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Mill",
+   "copias": 37,
+   "decks": 10,
+   "cardsdb": 563,
+   "ex": [
+    "Syr Konrad, the Grim",
+    "Nyx Weaver",
+    "Ripples of Undeath"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Lifelink",
+   "copias": 34,
+   "decks": 16,
+   "cardsdb": 362,
+   "ex": [
+    "Elenda, the Dusk Rose",
+    "Jukai Naturalist",
+    "Gisela, the Broken Blade"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Library→Library]",
+   "copias": 34,
+   "decks": 23,
+   "cardsdb": 97,
+   "ex": [
+    "Cultivate",
+    "Kodama's Reach",
+    "Enlightened Tutor"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Discard",
+   "copias": 33,
+   "decks": 15,
+   "cardsdb": 1011,
+   "ex": [
+    "Windfall",
+    "Frantic Search",
+    "Faithless Looting"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "CopyPermanent",
+   "copias": 33,
+   "decks": 18,
+   "cardsdb": 327,
+   "ex": [
+    "Scute Swarm",
+    "Second Harvest",
+    "The Scarab God"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Cycling",
+   "copias": 31,
+   "decks": 21,
+   "cardsdb": 299,
+   "ex": [
+    "Jetmir's Garden",
+    "Ketria Triome",
+    "Savai Triome"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Enchant",
+   "copias": 31,
+   "decks": 6,
+   "cardsdb": 1245,
+   "ex": [
+    "Wild Growth",
+    "Fraying Sanity",
+    "Fertile Ground"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Haste",
+   "copias": 30,
+   "decks": 17,
+   "cardsdb": 642,
+   "ex": [
+    "Yahenni, Undying Partisan",
+    "Craterhoof Behemoth",
+    "Aurelia, the Law Above"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddAbility",
+   "copias": 30,
+   "decks": 18,
+   "cardsdb": 316,
+   "ex": [
+    "Chromatic Lantern",
+    "Enduring Vitality",
+    "Goldspan Dragon"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "DestroyAll",
+   "copias": 27,
+   "decks": 19,
+   "cardsdb": 325,
+   "ex": [
+    "Austere Command",
+    "Ruinous Ultimatum",
+    "Organic Extinction"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "AttackersDeclared",
+   "copias": 27,
+   "decks": 14,
+   "cardsdb": 220,
+   "ex": [
+    "Anim Pakal, Thousandth Moon",
+    "Adeline, Resplendent Cathar",
+    "Aurelia, the Law Above"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.SetMaxHandSize",
+   "copias": 27,
+   "decks": 13,
+   "cardsdb": 37,
+   "ex": [
+    "Reliquary Tower",
+    "Thought Vessel",
+    "Niv-Mizzet, Visionary"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "CreateToken",
+   "copias": 25,
+   "decks": 9,
+   "cardsdb": 31,
+   "ex": [
+    "Anointed Procession",
+    "Doubling Season",
+    "Parallel Lives"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ReplaceToken",
+   "copias": 25,
+   "decks": 9,
+   "cardsdb": 34,
+   "ex": [
+    "Anointed Procession",
+    "Doubling Season",
+    "Parallel Lives"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Sacrifice",
+   "copias": 25,
+   "decks": 12,
+   "cardsdb": 788,
+   "ex": [
+    "Victimize",
+    "Grave Pact",
+    "The Gitrog Monster"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Indestructible",
+   "copias": 24,
+   "decks": 13,
+   "cardsdb": 109,
+   "ex": [
+    "Purphoros, God of the Forge",
+    "Darksteel Citadel",
+    "Goldmire Bridge"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Untap",
+   "copias": 24,
+   "decks": 12,
+   "cardsdb": 464,
+   "ex": [
+    "Frantic Search",
+    "Snap",
+    "Reconnaissance"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Flash",
+   "copias": 24,
+   "decks": 13,
+   "cardsdb": 620,
+   "ex": [
+    "Faerie Mastermind",
+    "Dictate of Kruphix",
+    "Hullbreaker Horror"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "First Strike",
+   "copias": 23,
+   "decks": 10,
+   "cardsdb": 372,
+   "ex": [
+    "Gisela, the Broken Blade",
+    "Lyra Dawnbringer",
+    "Drana, Liberator of Malakir"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddTrigger",
+   "copias": 22,
+   "decks": 14,
+   "cardsdb": 239,
+   "ex": [
+    "Windcrag Siege",
+    "Dionus, Elvish Archdruid",
+    "Conformer Shuriken"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Hand→Battlefield]",
+   "copias": 22,
+   "decks": 15,
+   "cardsdb": 220,
+   "ex": [
+    "Growth Spiral",
+    "Kodama of the East Tree",
+    "Stoneforge Mystic"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Overload",
+   "copias": 21,
+   "decks": 17,
+   "cardsdb": 27,
+   "ex": [
+    "Cyclonic Rift",
+    "Vandalblast",
+    "Damn"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Animate",
+   "copias": 21,
+   "decks": 14,
+   "cardsdb": 796,
+   "ex": [
+    "Destiny Spinner",
+    "Den of the Bugbear",
+    "Clavileño, First of the Blessed"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "DamageDoneOnce",
+   "copias": 20,
+   "decks": 11,
+   "cardsdb": 190,
+   "ex": [
+    "Kutzil, Malamet Exemplar",
+    "Thopter Spy Network",
+    "Professional Face-Breaker"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "DamageAll",
+   "copias": 20,
+   "decks": 15,
+   "cardsdb": 388,
+   "ex": [
+    "Blasphemous Act",
+    "Balefire Dragon",
+    "Vincent, Vengeful Atoner"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "ChangesZoneAll",
+   "copias": 19,
+   "decks": 11,
+   "cardsdb": 115,
+   "ex": [
+    "Elvish Warmaster",
+    "Welcoming Vampire",
+    "Caretaker's Talent"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "DelayedTrigger",
+   "copias": 19,
+   "decks": 13,
+   "cardsdb": 432,
+   "ex": [
+    "Arcane Denial",
+    "The Scarab God",
+    "The Locust God"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.SetPower",
+   "copias": 18,
+   "decks": 15,
+   "cardsdb": 343,
+   "ex": [
+    "Psychosis Crawler",
+    "Adeline, Resplendent Cathar",
+    "Wrecking Ball Arm"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Deathtouch",
+   "copias": 18,
+   "decks": 12,
+   "cardsdb": 327,
+   "ex": [
+    "Baleful Strix",
+    "Glowing One",
+    "The Master of Lake-town"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Reach",
+   "copias": 17,
+   "decks": 11,
+   "cardsdb": 425,
+   "ex": [
+    "Nyx Weaver",
+    "Kodama of the East Tree",
+    "Barret, Avalanche Leader"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Panharmonicon",
+   "copias": 17,
+   "decks": 11,
+   "cardsdb": 36,
+   "ex": [
+    "Harmonic Prodigy",
+    "Teysa Karlov",
+    "Isshin, Two Heavens as One"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Radiation",
+   "copias": 17,
+   "decks": 1,
+   "cardsdb": 22,
+   "ex": [
+    "The Wise Mothman",
+    "Mariposa Military Base",
+    "Bloatfly Swarm"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Play",
+   "copias": 16,
+   "decks": 11,
+   "cardsdb": 295,
+   "ex": [
+    "Conduit of Worlds",
+    "Etali, Primal Storm",
+    "Windbrisk Heights"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Menace",
+   "copias": 16,
+   "decks": 11,
+   "cardsdb": 392,
+   "ex": [
+    "Professional Face-Breaker",
+    "Vincent, Vengeful Atoner",
+    "Alpha Deathclaw"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "AlternativeCost",
+   "copias": 16,
+   "decks": 10,
+   "cardsdb": 143,
+   "ex": [
+    "Flawless Maneuver",
+    "Deflecting Swat",
+    "Sephara, Sky's Blade"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ReplaceCounter",
+   "copias": 16,
+   "decks": 8,
+   "cardsdb": 35,
+   "ex": [
+    "Doubling Season",
+    "Hardened Scales",
+    "Branching Evolution"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "AddCounter",
+   "copias": 16,
+   "decks": 8,
+   "cardsdb": 32,
+   "ex": [
+    "Doubling Season",
+    "Hardened Scales",
+    "Branching Evolution"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Ward",
+   "copias": 16,
+   "decks": 13,
+   "cardsdb": 195,
+   "ex": [
+    "Hexing Squelcher",
+    "Nightkin Ambusher",
+    "Strong, the Brutish Thespian"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "Counter",
+   "copias": 16,
+   "decks": 12,
+   "cardsdb": 106,
+   "ex": [
+    "Rhythm of the Wild",
+    "Destiny Spinner",
+    "Hexing Squelcher"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Attach",
+   "copias": 15,
+   "decks": 7,
+   "cardsdb": 234,
+   "ex": [
+    "Cloud, Ex-SOLDIER",
+    "Hammer of Nazahn",
+    "Hero's Blade"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "UntapAll",
+   "copias": 15,
+   "decks": 11,
+   "cardsdb": 123,
+   "ex": [
+    "Aurelia, the Warleader",
+    "Sword of Feast and Famine",
+    "Tifa, Martial Artist"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Proliferate",
+   "copias": 15,
+   "decks": 4,
+   "cardsdb": 92,
+   "ex": [
+    "Evolution Sage",
+    "Ripples of Potential",
+    "Agent Frank Horrigan"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.SetToughness",
+   "copias": 14,
+   "decks": 12,
+   "cardsdb": 282,
+   "ex": [
+    "Psychosis Crawler",
+    "Wrecking Ball Arm",
+    "Burrowguard Mentor"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ReplaceEffect",
+   "copias": 14,
+   "decks": 10,
+   "cardsdb": 148,
+   "ex": [
+    "Lightning, Army of One",
+    "The Water Crystal",
+    "Bilbo, Birthday Celebrant"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.CharacteristicDefining",
+   "copias": 14,
+   "decks": 11,
+   "cardsdb": 259,
+   "ex": [
+    "Psychosis Crawler",
+    "Adeline, Resplendent Cathar",
+    "Burrowguard Mentor"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "RepeatEach",
+   "copias": 14,
+   "decks": 9,
+   "cardsdb": 283,
+   "ex": [
+    "Tempt with Bunnies",
+    "Adeline, Resplendent Cathar",
+    "Molten Psyche"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddType",
+   "copias": 14,
+   "decks": 10,
+   "cardsdb": 268,
+   "ex": [
+    "Dryad of the Ilysian Grove",
+    "Yavimaya, Cradle of Growth",
+    "Nim Deathmantle"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "LifeGained",
+   "copias": 13,
+   "decks": 5,
+   "cardsdb": 95,
+   "ex": [
+    "Sanguine Bond",
+    "Vito, Thorn of the Dusk Rose",
+    "Well of Lost Dreams"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "PeekAndReveal",
+   "copias": 13,
+   "decks": 12,
+   "cardsdb": 150,
+   "ex": [
+    "Herald's Horn",
+    "Descendants' Path",
+    "Risen Reef"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddSVar",
+   "copias": 12,
+   "decks": 4,
+   "cardsdb": 170,
+   "ex": [
+    "Cloud, Ex-SOLDIER",
+    "Buster Sword",
+    "Conformer Shuriken"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "DamageDone",
+   "copias": 12,
+   "decks": 9,
+   "cardsdb": 200,
+   "ex": [
+    "Bloatfly Swarm",
+    "Dolmen Gate",
+    "Iroas, God of Victory"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Flashback",
+   "copias": 12,
+   "decks": 8,
+   "cardsdb": 216,
+   "ex": [
+    "Faithless Looting",
+    "Dread Return",
+    "Welcome the Dead"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Affinity",
+   "copias": 12,
+   "decks": 6,
+   "cardsdb": 76,
+   "ex": [
+    "Emry, Lurker of the Loch",
+    "Thought Monitor",
+    "Urza, Chief Artificer"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "CopySpellAbility",
+   "copias": 12,
+   "decks": 7,
+   "cardsdb": 229,
+   "ex": [
+    "Reflections of Littjara",
+    "Weaver of Harmony",
+    "Firebender Ascension"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Changeling",
+   "copias": 12,
+   "decks": 6,
+   "cardsdb": 62,
+   "ex": [
+    "Realmwalker",
+    "Mirror Entity",
+    "Taurean Mauler"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantBeCast",
+   "copias": 11,
+   "decks": 7,
+   "cardsdb": 87,
+   "ex": [
+    "Kutzil, Malamet Exemplar",
+    "Gisela, the Broken Blade",
+    "Conqueror's Flail"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "TargetOnly",
+   "copias": 11,
+   "decks": 9,
+   "cardsdb": 369,
+   "ex": [
+    "Decimate",
+    "Barret, Avalanche Leader",
+    "Codsworth, Handy Helper"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "GainControl",
+   "copias": 11,
+   "decks": 9,
+   "cardsdb": 305,
+   "ex": [
+    "Captivating Vampire",
+    "New Blood",
+    "Yuffie, Materia Hunter"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Phases",
+   "copias": 11,
+   "decks": 11,
+   "cardsdb": 56,
+   "ex": [
+    "Teferi's Protection",
+    "Ripples of Potential",
+    "Clever Concealment"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "SetState",
+   "copias": 11,
+   "decks": 8,
+   "cardsdb": 272,
+   "ex": [
+    "Bloodline Keeper",
+    "Edgar, Charmed Groom",
+    "Ojer Taq, Deepest Foundation"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Graveyard→Exile]",
+   "copias": 11,
+   "decks": 10,
+   "cardsdb": 107,
+   "ex": [
+    "Bojuka Bog",
+    "Living Death",
+    "Crypt Incursion"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "AddPhase",
+   "copias": 10,
+   "decks": 7,
+   "cardsdb": 53,
+   "ex": [
+    "Aurelia, the Warleader",
+    "Genji Glove",
+    "Tifa, Martial Artist"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Battlefield→Library]",
+   "copias": 10,
+   "decks": 10,
+   "cardsdb": 165,
+   "ex": [
+    "Chaos Warp",
+    "Lost to Legend"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "ChangesZone→Any",
+   "copias": 10,
+   "decks": 9,
+   "cardsdb": 233,
+   "ex": [
+    "Syr Konrad, the Grim",
+    "Kishla Skimmer",
+    "Rapacious Guest"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Stack→Exile]",
+   "copias": 10,
+   "decks": 10,
+   "cardsdb": 142,
+   "ex": [
+    "Teferi's Protection",
+    "Mizzix's Mastery",
+    "Bygone Marvels"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "etbCounter",
+   "copias": 9,
+   "decks": 8,
+   "cardsdb": 465,
+   "ex": [
+    "Zack Fair",
+    "Bloatfly Swarm",
+    "Rampaging Yao Guai"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Chapter",
+   "copias": 9,
+   "decks": 7,
+   "cardsdb": 236,
+   "ex": [
+    "Vault 12: The Necropolis",
+    "Awaken the Honored Dead",
+    "Of Herbs and Stewed Rabbit"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Graveyard→Battlefield]",
+   "copias": 9,
+   "decks": 7,
+   "cardsdb": 69,
+   "ex": [
+    "Hedge Shredder",
+    "Aftermath Analyst",
+    "Will of the Sultai"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Graveyard→Exile]",
+   "copias": 9,
+   "decks": 8,
+   "cardsdb": 393,
+   "ex": [
+    "The Scarab God",
+    "Patron of the Vein",
+    "Mizzix's Mastery"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Exile→Battlefield]",
+   "copias": 9,
+   "decks": 6,
+   "cardsdb": 246,
+   "ex": [
+    "Living Death",
+    "Lord of the Void",
+    "Welcome to . . ."
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Sacrificed",
+   "copias": 9,
+   "decks": 6,
+   "cardsdb": 104,
+   "ex": [
+    "Mirkwood Bats",
+    "Nuka-Cola Vending Machine",
+    "Rapacious Guest"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "BecomeMonarch",
+   "copias": 9,
+   "decks": 3,
+   "cardsdb": 61,
+   "ex": [
+    "Court of Grace",
+    "Regal Behemoth",
+    "Crown of Gondor"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Branch",
+   "copias": 8,
+   "decks": 8,
+   "cardsdb": 91,
+   "ex": [
+    "Scute Swarm",
+    "Vexing Radgull",
+    "Zurgo Stormrender"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "GenericChoice",
+   "copias": 8,
+   "decks": 8,
+   "cardsdb": 130,
+   "ex": [
+    "Tireless Provisioner",
+    "Windcrag Siege",
+    "Struggle for Project Purity"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Graveyard→Library]",
+   "copias": 8,
+   "decks": 7,
+   "cardsdb": 140,
+   "ex": [
+    "Mortuary Mire",
+    "Academy Ruins",
+    "Hall of Heliod's Generosity"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "CounterAddedOnce",
+   "copias": 8,
+   "decks": 5,
+   "cardsdb": 46,
+   "ex": [
+    "Evolution Witness",
+    "Simic Ascendancy",
+    "Exemplar of Light"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ImmediateTrigger",
+   "copias": 8,
+   "decks": 5,
+   "cardsdb": 292,
+   "ex": [
+    "Awaken the Honored Dead",
+    "Go-Shintai of Ancient Wars",
+    "Go-Shintai of Boundless Vigor"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Regenerate",
+   "copias": 8,
+   "decks": 7,
+   "cardsdb": 266,
+   "ex": [
+    "Goblin Chirurgeon",
+    "Nightscape Familiar",
+    "Zombie Master"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Convoke",
+   "copias": 7,
+   "decks": 5,
+   "cardsdb": 104,
+   "ex": [
+    "Clever Concealment",
+    "Wildfire Awakener",
+    "March of the Multitudes"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "WinsGame",
+   "copias": 7,
+   "decks": 5,
+   "cardsdb": 40,
+   "ex": [
+    "Simic Ascendancy",
+    "Halo Fountain",
+    "Call the Spirit Dragons"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Gift",
+   "copias": 7,
+   "decks": 3,
+   "cardsdb": 25,
+   "ex": [
+    "Dawn's Truce",
+    "Long River's Pull",
+    "Peerless Recycling"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantAttackUnless",
+   "copias": 7,
+   "decks": 5,
+   "cardsdb": 26,
+   "ex": [
+    "Propaganda",
+    "Sphere of Safety",
+    "Ghostly Prison"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Hand→Library]",
+   "copias": 7,
+   "decks": 2,
+   "cardsdb": 29,
+   "ex": [
+    "Teferi's Puzzle Box",
+    "Molten Psyche",
+    "Winds of Change"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "AnimateAll",
+   "copias": 6,
+   "decks": 5,
+   "cardsdb": 99,
+   "ex": [
+    "Mirror Entity",
+    "Shadowspear",
+    "Sephiroth, Fallen Hero"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantBlockBy",
+   "copias": 6,
+   "decks": 6,
+   "cardsdb": 345,
+   "ex": [
+    "Wrecking Ball Arm",
+    "Nightkin Ambusher",
+    "Feasting Hobbit"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.RemoveType",
+   "copias": 6,
+   "decks": 6,
+   "cardsdb": 26,
+   "ex": [
+    "Purphoros, God of the Forge",
+    "Athreos, God of Passage",
+    "Iroas, God of Victory"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "LifeLost",
+   "copias": 6,
+   "decks": 4,
+   "cardsdb": 18,
+   "ex": [
+    "Exquisite Blood",
+    "Mindcrank",
+    "The Master of Lake-town"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantBlock",
+   "copias": 6,
+   "decks": 5,
+   "cardsdb": 138,
+   "ex": [
+    "Gravecrawler",
+    "Carrion Feeder",
+    "Infesting Radroach"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Double Strike",
+   "copias": 6,
+   "decks": 6,
+   "cardsdb": 118,
+   "ex": [
+    "Angel of Destiny",
+    "Zetalpa, Primal Dawn",
+    "Éomer, King of Rohan"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Hideaway",
+   "copias": 6,
+   "decks": 6,
+   "cardsdb": 15,
+   "ex": [
+    "Windbrisk Heights",
+    "Mosswort Bridge",
+    "Watcher for Tomorrow"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Ascend",
+   "copias": 6,
+   "decks": 5,
+   "cardsdb": 27,
+   "ex": [
+    "Twilight Prophet",
+    "Radiant Destiny",
+    "Wayward Swordtooth"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "AttackersDeclaredOneTarget",
+   "copias": 5,
+   "decks": 5,
+   "cardsdb": 32,
+   "ex": [
+    "Akiri, Fearless Voyager",
+    "Meriadoc Brandybuck",
+    "Breena, the Demagogue"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChooseCard",
+   "copias": 5,
+   "decks": 4,
+   "cardsdb": 279,
+   "ex": [
+    "Akiri, Fearless Voyager",
+    "Liliana, Dreadhorde General",
+    "Archfiend of Depravity"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CastWithFlash",
+   "copias": 5,
+   "decks": 4,
+   "cardsdb": 52,
+   "ex": [
+    "Forge Anew",
+    "Sigarda's Aid",
+    "Singer of Swift Rivers"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "UntapOtherPlayer",
+   "copias": 5,
+   "decks": 3,
+   "cardsdb": 13,
+   "ex": [
+    "Unwinding Clock",
+    "Drumbellower",
+    "Seedborn Muse"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Storm",
+   "copias": 5,
+   "decks": 3,
+   "cardsdb": 33,
+   "ex": [
+    "Radstorm",
+    "Brain Freeze",
+    "Flusterstorm"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "SacrificeAll",
+   "copias": 5,
+   "decks": 5,
+   "cardsdb": 125,
+   "ex": [
+    "Living Death",
+    "Liliana, Dreadhorde General",
+    "Archfiend of Depravity"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Clone",
+   "copias": 5,
+   "decks": 4,
+   "cardsdb": 164,
+   "ex": [
+    "Phyrexian Metamorph",
+    "Sculpting Steel",
+    "Sarkhan, Soul Aflame"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "TapsForMana",
+   "copias": 5,
+   "decks": 4,
+   "cardsdb": 59,
+   "ex": [
+    "Wild Growth",
+    "Fertile Ground",
+    "Regal Behemoth"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "TypeCycling",
+   "copias": 5,
+   "decks": 4,
+   "cardsdb": 100,
+   "ex": [
+    "Hobbit Hole",
+    "Angel of the Ruins",
+    "Vedalken Aethermage"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Partner",
+   "copias": 5,
+   "decks": 5,
+   "cardsdb": 70,
+   "ex": [
+    "Kodama of the East Tree",
+    "Anara, Wolvid Familiar",
+    "Prava of the Steel Legion"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "BecomesTarget",
+   "copias": 5,
+   "decks": 4,
+   "cardsdb": 110,
+   "ex": [
+    "Goldspan Dragon",
+    "Scalelord Reckoner",
+    "Diffusion Sliver"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Amass",
+   "copias": 5,
+   "decks": 3,
+   "cardsdb": 71,
+   "ex": [
+    "Orcish Bowmasters",
+    "Gleaming Overseer",
+    "Dreadhorde Invasion"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Discover",
+   "copias": 5,
+   "decks": 3,
+   "cardsdb": 34,
+   "ex": [
+    "Pantlaza, Sun-Favored",
+    "Trumpeting Carnosaur",
+    "Monstrous Vortex"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Offspring",
+   "copias": 4,
+   "decks": 3,
+   "cardsdb": 20,
+   "ex": [
+    "Agate Instigator",
+    "Warren Warleader",
+    "Coruscation Mage"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "TokenCreated",
+   "copias": 4,
+   "decks": 3,
+   "cardsdb": 3,
+   "ex": [
+    "Rosie Cotton of South Lane",
+    "Mirkwood Bats"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "RemoveCounter",
+   "copias": 4,
+   "decks": 4,
+   "cardsdb": 184,
+   "ex": [
+    "Edgar, Charmed Groom",
+    "Bloatfly Swarm",
+    "Prize Pig"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Mentor",
+   "copias": 4,
+   "decks": 4,
+   "cardsdb": 19,
+   "ex": [
+    "Legion Warboss",
+    "Danny Pink",
+    "Tributary Instructor"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Nothing",
+   "copias": 4,
+   "decks": 4,
+   "cardsdb": 34,
+   "ex": [
+    "Windcrag Siege",
+    "Struggle for Project Purity",
+    "Mirrodin Besieged"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "DigUntil",
+   "copias": 4,
+   "decks": 4,
+   "cardsdb": 165,
+   "ex": [
+    "Hei Bai, Forest Guardian",
+    "Nissa, Resurgent Animist",
+    "Empty the Laboratory"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "SpellCastOrCopy",
+   "copias": 4,
+   "decks": 2,
+   "cardsdb": 29,
+   "ex": [
+    "Storm-Kiln Artist",
+    "Archmage Emeritus",
+    "Veyran, Voice of Duality"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Prowess",
+   "copias": 4,
+   "decks": 3,
+   "cardsdb": 92,
+   "ex": [
+    "Harmonic Prodigy",
+    "Stormcatch Mentor"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddStaticAbility",
+   "copias": 4,
+   "decks": 3,
+   "cardsdb": 52,
+   "ex": [
+    "Windcrag Siege",
+    "Rune of Might",
+    "Rune of Speed"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Fight",
+   "copias": 4,
+   "decks": 4,
+   "cardsdb": 145,
+   "ex": [
+    "Tolsimir, Friend to Wolves",
+    "Apex Altisaur",
+    "Gimli's Reckless Might"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "RaiseCost",
+   "copias": 4,
+   "decks": 4,
+   "cardsdb": 88,
+   "ex": [
+    "Terror of the Peaks",
+    "Kopala, Warden of Waves",
+    "Champions of the Perfect"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Battlefield→Hand]",
+   "copias": 4,
+   "decks": 2,
+   "cardsdb": 69,
+   "ex": [
+    "Aetherize",
+    "Raise the Palisade",
+    "Wave Goodbye"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Class",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 34,
+   "ex": [
+    "Fighter Class",
+    "Caretaker's Talent",
+    "Wizard Class"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "MilledAll",
+   "copias": 3,
+   "decks": 1,
+   "cardsdb": 3,
+   "ex": [
+    "The Wise Mothman",
+    "Mirelurk Queen",
+    "Screeching Scorchbeast"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Crew",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 182,
+   "ex": [
+    "Hedge Shredder",
+    "Esika's Chariot",
+    "Rolling Hamsphere"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Kicker",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 230,
+   "ex": [
+    "Tear Asunder",
+    "Aang's Journey",
+    "Thieving Skydiver"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "AddTurn",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 57,
+   "ex": [
+    "Time Sieve",
+    "Timestream Navigator",
+    "Perch Protection"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Fabricate",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 16,
+   "ex": [
+    "Marionette Apprentice",
+    "Marionette Master"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Shuffle",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 54,
+   "ex": [
+    "Urza, Lord High Artificer",
+    "Gamble"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Improvise",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 23,
+   "ex": [
+    "Organic Extinction",
+    "Whir of Invention"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Surveil",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 244,
+   "ex": [
+    "Thundering Falls",
+    "Consider",
+    "Lush Portico"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeTargets",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 43,
+   "ex": [
+    "Deflecting Swat"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Afterlife",
+   "copias": 3,
+   "decks": 1,
+   "cardsdb": 11,
+   "ex": [
+    "Indebted Spirit",
+    "Ministrant of Obligation",
+    "Orzhov Enforcer"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Partner with",
+   "copias": 3,
+   "decks": 1,
+   "cardsdb": 52,
+   "ex": [
+    "Frodo, Adventurous Hobbit",
+    "Merry, Warden of Isengard",
+    "Pippin, Warden of Isengard"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "RingTemptsYou",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 49,
+   "ex": [
+    "Frodo, Adventurous Hobbit",
+    "Call of the Ring",
+    "Boromir, Warden of the Tower"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "GainLife",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 21,
+   "ex": [
+    "Bilbo, Birthday Celebrant",
+    "The Wind Crystal",
+    "Angel of Vitality"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Meld",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 7,
+   "ex": [
+    "Gisela, the Broken Blade",
+    "Mishra, Claimed by Gix"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantBeActivated",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 34,
+   "ex": [
+    "Myrel, Shield of Argive",
+    "Linvala, Keeper of Silence",
+    "Drana and Linvala"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "RemoveFromCombat",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 27,
+   "ex": [
+    "Reconnaissance",
+    "Illusionist's Gambit"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Discarded",
+   "copias": 3,
+   "decks": 1,
+   "cardsdb": 72,
+   "ex": [
+    "Liliana's Caress",
+    "Megrim",
+    "Waste Not"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChoosePlayer",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 112,
+   "ex": [
+    "Baleful Mastery",
+    "Faramir, Prince of Ithilien",
+    "Gluntch, the Bestower"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "RollDice",
+   "copias": 3,
+   "decks": 1,
+   "cardsdb": 89,
+   "ex": [
+    "Ancient Copper Dragon",
+    "Ancient Gold Dragon",
+    "Ancient Silver Dragon"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Explore",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 41,
+   "ex": [
+    "Hakbal of the Surging Soul",
+    "Topography Tracker",
+    "Path of Discovery"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Landwalk",
+   "copias": 3,
+   "decks": 2,
+   "cardsdb": 129,
+   "ex": [
+    "Stonybrook Banneret",
+    "Cold-Eyed Selkie"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Exile→Hand]",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 62,
+   "ex": [
+    "Angel of Serenity",
+    "Watcher for Tomorrow",
+    "Champions of the Perfect"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[All→Battlefield]",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 66,
+   "ex": [
+    "Displace",
+    "Gilraen, Dúnedain Protector",
+    "Teleportation Circle"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Goad",
+   "copias": 3,
+   "decks": 3,
+   "cardsdb": 65,
+   "ex": [
+    "Taunt from the Rampart",
+    "Marisi, Breaker of the Coil",
+    "Grenzo, Havoc Raiser"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Umbra armor",
+   "copias": 3,
+   "decks": 1,
+   "cardsdb": 15,
+   "ex": [
+    "Bear Umbra",
+    "Lion Umbra",
+    "Snake Umbra"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Melee",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 13,
+   "ex": [
+    "Tifa, Martial Artist",
+    "Skyhunter Strike Force"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "MustBlock",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 27,
+   "ex": [
+    "Fighter Class",
+    "Tolsimir, Midnight's Light"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Foretell",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 51,
+   "ex": [
+    "Ultimate Magic: Holy",
+    "Ravenform"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "StoreSVar",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 51,
+   "ex": [
+    "Tempt with Bunnies"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "MoveCounter",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 32,
+   "ex": [
+    "Nesting Grounds",
+    "Forgotten Ancient"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Evolve",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 22,
+   "ex": [
+    "Fathom Mage",
+    "Gyre Sage"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Milled",
+   "copias": 2,
+   "decks": 1,
+   "cardsdb": 2,
+   "ex": [
+    "Glowing One",
+    "Infesting Radroach"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Persist",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 24,
+   "ex": [
+    "River Kelpie",
+    "Puppeteer Clique"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Eternalize",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 12,
+   "ex": [
+    "Timeless Witness",
+    "Fanatic of Rhonas"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.SetColor",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 53,
+   "ex": [
+    "Nim Deathmantle",
+    "Leyline of the Guildpact"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Investigate",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 137,
+   "ex": [
+    "Forensic Gadgeteer",
+    "Tireless Tracker"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Exile→Battlefield]",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 34,
+   "ex": [
+    "Tezzeret, Master of the Bridge"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Hand→Library]",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 41,
+   "ex": [
+    "Brainstorm"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Bestow",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 43,
+   "ex": [
+    "Indebted Spirit",
+    "Springheart Nantuko"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Choose a Background",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 32,
+   "ex": [
+    "Jaheira, Friend of the Forest",
+    "Karlach, Fury of Avernus"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Blocks",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 126,
+   "ex": [
+    "Savvy Hunter",
+    "Giggling Skitterspike"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Graveyard→Hand]",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 25,
+   "ex": [
+    "Dusk",
+    "Wrenn and Seven"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "MultiplyCounter",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 53,
+   "ex": [
+    "Mossborn Hydra",
+    "Kalonian Hydra"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "TapOrUntap",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 46,
+   "ex": [
+    "Retreat to Coralhelm",
+    "Merrow Reejerey"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Mobilize",
+   "copias": 2,
+   "decks": 1,
+   "cardsdb": 13,
+   "ex": [
+    "Voice of Victory",
+    "Zurgo Stormrender"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "LosesGame",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 44,
+   "ex": [
+    "Angel of Destiny",
+    "Mirrodin Besieged"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Myriad",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 23,
+   "ex": [
+    "Battle Angels of Tyr",
+    "Scion of Calamity"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.AddAllCreatureTypes",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 8,
+   "ex": [
+    "Maskwood Nexus"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Start your engines",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 41,
+   "ex": [
+    "Howlsquad Heavy"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Echo",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 51,
+   "ex": [
+    "Mogg War Marshal"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Library→Graveyard]",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 51,
+   "ex": [
+    "Entomb"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeText",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 12,
+   "ex": [
+    "New Blood"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Explores",
+   "copias": 2,
+   "decks": 1,
+   "cardsdb": 5,
+   "ex": [
+    "Merfolk Cave-Diver",
+    "Nicanzil, Current Conductor"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Encore",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 26,
+   "ex": [
+    "Mist Dancer",
+    "Sliver Gravemother"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.GainsAbilitiesOf",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 24,
+   "ex": [
+    "Drana and Linvala",
+    "Conspicuous Snoop"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ReplaceDamage",
+   "copias": 2,
+   "decks": 2,
+   "cardsdb": 35,
+   "ex": [
+    "Gisela, Blade of Goldnight",
+    "Temple Altisaur"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantAttack,CantBlock",
+   "copias": 2,
+   "decks": 1,
+   "cardsdb": 54,
+   "ex": [
+    "Topiary Stomper",
+    "Wayward Swordtooth"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Dash",
+   "copias": 2,
+   "decks": 1,
+   "cardsdb": 22,
+   "ex": [
+    "Flamerush Rider",
+    "Riders of Rohan"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Impending",
+   "copias": 2,
+   "decks": 1,
+   "cardsdb": 5,
+   "ex": [
+    "Overlord of the Boilerbilges",
+    "Overlord of the Hauntwoods"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "ManaExpend",
+   "copias": 2,
+   "decks": 1,
+   "cardsdb": 12,
+   "ex": [
+    "Trailtracker Scout",
+    "Wandertale Mentor"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.RemoveKeyword",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 16,
+   "ex": [
+    "Colossus Hammer"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Unattach",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 8,
+   "ex": [
+    "Akiri, Fearless Voyager"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "BecomesTargetOnce",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 4,
+   "ex": [
+    "Professor Hojo"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Ninjutsu",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 36,
+   "ex": [
+    "Yuffie, Materia Hunter"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Tiered",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 7,
+   "ex": [
+    "Cloud's Limit Break"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Warp",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 32,
+   "ex": [
+    "Exalted Sunborn"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Ravenous",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 12,
+   "ex": [
+    "Jacked Rabbit"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Untaps",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 29,
+   "ex": [
+    "Mesmeric Orb"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "Mill",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 2,
+   "ex": [
+    "The Water Crystal"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "BecomeMonstrous",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 19,
+   "ex": [
+    "Alpha Deathclaw"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "CounterAdded",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 18,
+   "ex": [
+    "Fathom Mage"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "GainLifeRadiation",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 1,
+   "ex": [
+    "Strong, the Brutish Thespian"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Command→Hand]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 3,
+   "ex": [
+    "Command Beacon"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Connive",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 48,
+   "ex": [
+    "Lethal Scheme"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Delve",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 28,
+   "ex": [
+    "Afterlife from the Loam"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Dredge",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 14,
+   "ex": [
+    "Life from the Loam"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.RemoveCreatureTypes",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 26,
+   "ex": [
+    "Nim Deathmantle"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "MayEffectFromOpeningHand",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 27,
+   "ex": [
+    "Leyline of the Guildpact"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Suspend",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 70,
+   "ex": [
+    "Resurgent Belief"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Activations",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 3,
+   "ex": [
+    "Birgi, God of Storytelling"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Stack→Hand]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 29,
+   "ex": [
+    "Hullbreaker Horror"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "ManaConvert",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 14,
+   "ex": [
+    "Quicksilver Elemental"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Soulbond",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 25,
+   "ex": [
+    "Tandem Lookout"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Cumulative upkeep",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 79,
+   "ex": [
+    "Mystic Remora"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "RevealHand",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 72,
+   "ex": [
+    "Gitaxian Probe"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "RearrangeTopOfLibrary",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 32,
+   "ex": [
+    "Ponder"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Morph",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 153,
+   "ex": [
+    "Grim Haruspex"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Devoid",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 132,
+   "ex": [
+    "Sifter of Skulls"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "UnlockDoor",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 24,
+   "ex": [
+    "Funeral Room"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChooseNumber",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 52,
+   "ex": [
+    "Well of Lost Dreams"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Devour",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 23,
+   "ex": [
+    "Feasting Hobbit"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Skulk",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 14,
+   "ex": [
+    "Gollum, Obsessed Stalker"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "RingTemptsYou",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 9,
+   "ex": [
+    "Call of the Ring"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Aftermath",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 27,
+   "ex": [
+    "Dusk"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Exile→Graveyard]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 7,
+   "ex": [
+    "Valakut Exploration"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Saddle",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 30,
+   "ex": [
+    "Caustic Bronco"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Battle cry",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 14,
+   "ex": [
+    "Hero of Bladehold"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "AbilityTriggered",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 4,
+   "ex": [
+    "Firebender Ascension"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Miracle",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 17,
+   "ex": [
+    "Reforge the Soul"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Cipher",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 15,
+   "ex": [
+    "Whispering Madness"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChooseColor",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 124,
+   "ex": [
+    "Nykthos, Shrine to Nyx"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantSacrifice",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 11,
+   "ex": [
+    "Angel of Jubilation"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantPayLife",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 3,
+   "ex": [
+    "Angel of Jubilation"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantBlockUnless",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 9,
+   "ex": [
+    "Archangel of Tithes"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Battlefield→Exile]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 86,
+   "ex": [
+    "Farewell"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Champion",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 12,
+   "ex": [
+    "Wren's Run Packmaster"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "CounterPlayerAddedAll",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 8,
+   "ex": [
+    "All Will Be One"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Split second",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 21,
+   "ex": [
+    "Siege Smash"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Strive",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 20,
+   "ex": [
+    "Twinflame"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "DamageAll",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 9,
+   "ex": [
+    "Hordewing Skaab"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Intimidate",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 23,
+   "ex": [
+    "Mikaeus, the Unhallowed"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.RemoveAllAbilities",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 47,
+   "ex": [
+    "Poppet Stitcher"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Command→Battlefield]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 2,
+   "ex": [
+    "Hellkite Courser"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Battlefield→Command]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 1,
+   "ex": [
+    "Hellkite Courser"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Hexproof",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 91,
+   "ex": [
+    "Silumgar, the Drifting Death"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "Explore",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 2,
+   "ex": [
+    "Topography Tracker"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "TapAll",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 2,
+   "ex": [
+    "Deeproot Pilgrimage"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantAttack",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 115,
+   "ex": [
+    "Angelic Arbiter"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantGainLife",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 18,
+   "ex": [
+    "Archfiend of Despair"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.GainsValidAbilities",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 5,
+   "ex": [
+    "Drana and Linvala"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "DigMultiple",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 11,
+   "ex": [
+    "Kaalia, Zenith Seeker"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "AttackerUnblocked",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 36,
+   "ex": [
+    "Master of Cruelties"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "CARDNAME can only attack alone.",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 1,
+   "ex": [
+    "Master of Cruelties"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "SetLife",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 37,
+   "ex": [
+    "Master of Cruelties"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Protection",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 53,
+   "ex": [
+    "Mother of Runes"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[All→Exile]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 60,
+   "ex": [
+    "Valgavoth, Terror Eater"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Exile→Graveyard]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 20,
+   "ex": [
+    "Bronzebeak Foragers"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Poison",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 32,
+   "ex": [
+    "Etali, Primal Conqueror"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "AbilityCast",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 42,
+   "ex": [
+    "Runic Armasaur"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Rebound",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 34,
+   "ex": [
+    "Ephemerate"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "AlternateAdditionalCost",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 44,
+   "ex": [
+    "Thunderherd Migration"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "Draw",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 37,
+   "ex": [
+    "Bard, King of Dale"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "OptionalAttackCost",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 28,
+   "ex": [
+    "Combat Celebrant"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "DamagePreventedOnce",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 1,
+   "ex": [
+    "Selfless Squire"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ProtectionAll",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 11,
+   "ex": [
+    "Éowyn, Fearless Knight"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Multikicker",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 18,
+   "ex": [
+    "Marshal's Anthem"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Cascade",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 37,
+   "ex": [
+    "The First Sliver"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Replicate",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 19,
+   "ex": [
+    "Hatchery Sliver"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "IgnoreLegendRule",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 9,
+   "ex": [
+    "Sliver Gravemother"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Bookkeeping",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 97,
+   "ex": [
+    "Patriarch's Bidding"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "AttackerBlocked",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 123,
+   "ex": [
+    "Brimaz, King of Oreskos"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Companion",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 10,
+   "ex": [
+    "Kaheera, the Orphanguard"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "AttackRestrict",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 7,
+   "ex": [
+    "Mirri, Weatherlight Duelist"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Stack→Library]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 21,
+   "ex": [
+    "White Sun's Zenith"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Station",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 66,
+   "ex": [
+    "Uthros, Titanic Godcore"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "AlterAttribute",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 116,
+   "ex": [
+    "Case of the Locked Hothouse"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "TapAll",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 72,
+   "ex": [
+    "Nature's Will"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Library→Library]",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 28,
+   "ex": [
+    "Sunbird's Invocation"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Escalate",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 9,
+   "ex": [
+    "Collective Resistance"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Vanishing",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 20,
+   "ex": [
+    "Dreamtide Whale"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Fog",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 32,
+   "ex": [
+    "Spore Frog"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Unearth",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 56,
+   "ex": [
+    "Molten Gatekeeper"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "EndOfTurn",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 9,
+   "ex": [
+    "Stangg, Echo Warrior"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Living Weapon",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 19,
+   "ex": [
+    "Nettlecyst"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Reconfigure",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 17,
+   "ex": [
+    "Lizard Blades"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "MinMaxBlocker",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 41,
+   "ex": [
+    "Alpha Authority"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "CantTarget",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 28,
+   "ex": [
+    "Canopy Cover"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Plot",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 33,
+   "ex": [
+    "Demonic Ruckus"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "ActivateAbilityAsIfHaste",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 4,
+   "ex": [
+    "Thousand-Year Elixir"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.GainsAbilitiesOfZones",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 18,
+   "ex": [
+    "Conspicuous Snoop"
+   ]
+  },
+  {
+   "cat": "gatilho",
+   "item": "Cycled",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 75,
+   "ex": [
+    "Gempalm Incinerator"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Protection from blue",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 17,
+   "ex": [
+    "Goblin Piledriver"
+   ]
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.RemoveLandTypes",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 21,
+   "ex": [
+    "Blood Moon"
+   ]
+  },
+  {
+   "cat": "efeito",
+   "item": "Blight",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 6,
+   "ex": [
+    "High Perfect Morcant"
+   ]
+  },
+  {
+   "cat": "substituição",
+   "item": "LifeReduced",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 8,
+   "ex": [
+    "Bloodletter of Aclazotz"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Protection from white",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 32,
+   "ex": [
+    "Malakir Bloodwitch"
+   ]
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Madness",
+   "copias": 1,
+   "decks": 1,
+   "cardsdb": 61,
+   "ex": [
+    "Markov Baron"
+   ]
+  }
+ ],
+ "so_cardsdb": [
+  {
+   "cat": "palavra-chave",
+   "item": "Defender",
+   "cardsdb": 310
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Command→Exile]",
+   "cardsdb": 159
+  },
+  {
+   "cat": "substituição",
+   "item": "Untap",
+   "cardsdb": 155
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Hand→Exile]",
+   "cardsdb": 123
+  },
+  {
+   "cat": "gatilho",
+   "item": "TurnFaceUp",
+   "cardsdb": 121
+  },
+  {
+   "cat": "gatilho",
+   "item": "Taps",
+   "cardsdb": 115
+  },
+  {
+   "cat": "efeito",
+   "item": "PreventDamage",
+   "cardsdb": 113
+  },
+  {
+   "cat": "estática",
+   "item": "MustAttack",
+   "cardsdb": 98
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZone[Library→Exile]",
+   "cardsdb": 83
+  },
+  {
+   "cat": "efeito",
+   "item": "FlipCoin",
+   "cardsdb": 71
+  },
+  {
+   "cat": "efeito",
+   "item": "Reveal",
+   "cardsdb": 69
+  },
+  {
+   "cat": "efeito",
+   "item": "NameCard",
+   "cardsdb": 68
+  },
+  {
+   "cat": "efeito",
+   "item": "ChooseSource",
+   "cardsdb": 66
+  },
+  {
+   "cat": "gatilho",
+   "item": "AttackerBlockedByCreature",
+   "cardsdb": 63
+  },
+  {
+   "cat": "efeito",
+   "item": "DamageResolve",
+   "cardsdb": 62
+  },
+  {
+   "cat": "gatilho",
+   "item": "Always",
+   "cardsdb": 59
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Protection",
+   "cardsdb": 56
+  },
+  {
+   "cat": "efeito",
+   "item": "Repeat",
+   "cardsdb": 49
+  },
+  {
+   "cat": "efeito",
+   "item": "Debuff",
+   "cardsdb": 48
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Protection from black",
+   "cardsdb": 48
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "StickerSheet",
+   "cardsdb": 48
+  },
+  {
+   "cat": "gatilho",
+   "item": "DamageDealtOnce",
+   "cardsdb": 47
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "You may choose not to untap CARDNAME during your untap step.",
+   "cardsdb": 46
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Infect",
+   "cardsdb": 45
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Disguise",
+   "cardsdb": 43
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Protection from red",
+   "cardsdb": 42
+  },
+  {
+   "cat": "estática",
+   "item": "Continuous.GainControl",
+   "cardsdb": 42
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Fear",
+   "cardsdb": 40
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Graveyard→Library]",
+   "cardsdb": 39
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Shadow",
+   "cardsdb": 39
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Buyback",
+   "cardsdb": 39
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Toxic",
+   "cardsdb": 37
+  },
+  {
+   "cat": "efeito",
+   "item": "Venture",
+   "cardsdb": 37
+  },
+  {
+   "cat": "efeito",
+   "item": "PutSticker",
+   "cardsdb": 36
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Bushido",
+   "cardsdb": 36
+  },
+  {
+   "cat": "efeito",
+   "item": "Earthbend",
+   "cardsdb": 36
+  },
+  {
+   "cat": "estática",
+   "item": "OptionalCost",
+   "cardsdb": 36
+  },
+  {
+   "cat": "efeito",
+   "item": "Empower",
+   "cardsdb": 35
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Evoke",
+   "cardsdb": 35
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Nightbound",
+   "cardsdb": 35
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Daybound",
+   "cardsdb": 35
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Exalted",
+   "cardsdb": 34
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Shroud",
+   "cardsdb": 34
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Mutate",
+   "cardsdb": 34
+  },
+  {
+   "cat": "efeito",
+   "item": "Vote",
+   "cardsdb": 33
+  },
+  {
+   "cat": "efeito",
+   "item": "Incubate",
+   "cardsdb": 33
+  },
+  {
+   "cat": "gatilho",
+   "item": "LandPlayed",
+   "cardsdb": 33
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Entwine",
+   "cardsdb": 32
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Escape",
+   "cardsdb": 32
+  },
+  {
+   "cat": "estática",
+   "item": "CanAttackDefender",
+   "cardsdb": 32
+  },
+  {
+   "cat": "gatilho",
+   "item": "Mutates",
+   "cardsdb": 32
+  },
+  {
+   "cat": "efeito",
+   "item": "ManifestDread",
+   "cardsdb": 32
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Megamorph",
+   "cardsdb": 31
+  },
+  {
+   "cat": "efeito",
+   "item": "ExchangeControl",
+   "cardsdb": 30
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Splice",
+   "cardsdb": 30
+  },
+  {
+   "cat": "efeito",
+   "item": "Manifest",
+   "cardsdb": 29
+  },
+  {
+   "cat": "efeito",
+   "item": "Clash",
+   "cardsdb": 29
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Flanking",
+   "cardsdb": 29
+  },
+  {
+   "cat": "efeito",
+   "item": "TwoPiles",
+   "cardsdb": 29
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Horsemanship",
+   "cardsdb": 28
+  },
+  {
+   "cat": "gatilho",
+   "item": "Transformed",
+   "cardsdb": 28
+  },
+  {
+   "cat": "efeito",
+   "item": "EachDamage",
+   "cardsdb": 27
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Doctor's companion",
+   "cardsdb": 27
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Sneak",
+   "cardsdb": 27
+  },
+  {
+   "cat": "efeito",
+   "item": "PermanentCreature",
+   "cardsdb": 26
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Firebending",
+   "cardsdb": 26
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Soulshift",
+   "cardsdb": 26
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Wither",
+   "cardsdb": 26
+  },
+  {
+   "cat": "efeito",
+   "item": "ChangeZoneAll[Exile→Library]",
+   "cardsdb": 25
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Disturb",
+   "cardsdb": 25
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Level up",
+   "cardsdb": 25
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Backup",
+   "cardsdb": 25
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Modular",
+   "cardsdb": 24
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Banding",
+   "cardsdb": 24
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Craft",
+   "cardsdb": 24
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Bloodthirst",
+   "cardsdb": 23
+  },
+  {
+   "cat": "gatilho",
+   "item": "Scry",
+   "cardsdb": 23
+  },
+  {
+   "cat": "efeito",
+   "item": "TakeInitiative",
+   "cardsdb": 23
+  },
+  {
+   "cat": "palavra-chave",
+   "item": "Exploit",
+   "cardsdb": 23
+  },
+  {
+   "cat": "gatilho",
+   "item": "Exploited",
+   "cardsdb": 23
+  }
+ ],
+ "curva": [
+  [
+   0,
+   0,
+   0.0
+  ],
+  [
+   10,
+   797,
+   27.876880027981812
+  ],
+  [
+   20,
+   1019,
+   35.64183280867436
+  ],
+  [
+   30,
+   1384,
+   48.40853445260581
+  ],
+  [
+   50,
+   1797,
+   62.85414480587618
+  ],
+  [
+   75,
+   2113,
+   73.9069604756908
+  ],
+  [
+   100,
+   2310,
+   80.797481636936
+  ],
+  [
+   150,
+   2586,
+   90.45120671563484
+  ],
+  [
+   200,
+   2718,
+   95.0682056663169
+  ],
+  [
+   328,
+   2859,
+   100.0
+  ]
+ ]
+}

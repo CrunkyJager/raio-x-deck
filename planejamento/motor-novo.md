@@ -72,6 +72,13 @@ Tudo no CI (GitHub Actions da T07).
 ### 3.7 Migração
 O motor novo responde à **mesma API do Worker** (torneio, partida, jogar, estudo, trocas, analisar, variantes). Na tela, chave "motor novo (beta)" até passar nos testes; aí vira padrão e o velho sai (`engine.js`/`mesa.js`/`forge-motor.js`/`lacunas.js`).
 
+### Ordem do núcleo pela cobertura (T11, 24/11 — `planejamento/cobertura.md`)
+Banco de 30 + 4 exemplos: 2859 cópias não básicas, todas com roteiro no Forge; 328 tipos de item. Implementando os K mais frequentes, as cópias que ficam inteiras: K=10 → 28%, 30 → 48%, 50 → 63%, 100 → 81%, 150 → 91%, 200 → 95%.
+- Topo: Mana (686), gatilho de entrar (403), Tap (400), substituição Moved (392 = terreno que entra virado), Draw (381), Token (363), ChangeZone Library→Battlefield (208, ramp de terreno).
+- **Ajuste na ordem:** a substituição "entra virado" (Moved/ETBReplacement) é a 5ª coisa mais comum → vai já na T14 (terrenos), não espera a T19. As outras substituições são raras (CreateToken 25, AddCounter 16).
+- Gatilhos (T17): entrar 403, fase/etapa 155, morrer/ir ao cemitério 123, ataque 106, mágica conjurada 93, dano 50, compra 41.
+- Estáticas (T18): AddKeyword 196, AddPower/Toughness 160/142, ReduceCost 68.
+
 ## 4. Tarefas (no roadmap, fase F7)
 T11 Cobertura · T12 Formato RX · T13 Conversor v1 · T14 Núcleo: estado, turno, mana · T15 Pilha e prioridade · T16 Combate · T17 Gatilhos · T18 Estáticas e camadas · T19 Substituição e custos alternativos · T20 Conversor v2 (≥95% do banco) · T21 IA jogadora · T22 Worker + Mesa no motor novo · T23 Testes no CI e desempenho · T24 Migração e aposentar o velho.
 Total estimado: 20–25 sessões · R$ 0.
