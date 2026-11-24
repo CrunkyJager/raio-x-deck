@@ -134,12 +134,22 @@
   // ---------- ações do jogador ativo na fase principal (prioridade de verdade = T15) ----------
   function acoesPrincipais(e, j) {
     const J = e.jogs[j], ops = [{ a: 'passar' }];
-    if (J.terrenos < 1 && !e.pilha.length)                            // CR 305.2 (terreno extra: T18)
+    if (J.terrenos < terrenosPorTurno(e, j) && !e.pilha.length)       // CR 305.2 (+ Exploration, Azusa: 305.2a)
       for (const id of J.zonas.mao) if (M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id });
     for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
     return ops;
   }
   M.acoesPrincipais = acoesPrincipais;
+  // terrenos por turno: 1 + estáticas terraExtra de quem controla (lidas aqui até as camadas da T18)
+  function terrenosPorTurno(e, j) {
+    let n = 1;
+    for (const id of e.campo) {
+      const o = e.objs[id]; if (o.ctrl !== j) continue;
+      for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'terraExtra' && s.afeta === 'voce' && typeof s.qtd === 'number') n += s.qtd;
+    }
+    return n;
+  }
+  M.terrenosPorTurno = terrenosPorTurno;
 
   // jogar terreno (CR 305.1: ação especial). "Entra virado" (CR 614.1c) com condição e "a menos que pague".
   function jogarTerreno(e, j, id) {
@@ -161,8 +171,29 @@
   function entrar(e, id, { virada }) {
     const o = M.mover(e, id, 'campo', { virada });
     M.log(e, e.jogs[o.ctrl].nome, 'joga', o.n, virada ? '(virado)' : '');
+    escolhaAoEntrar(e, o);
     // gatilhos de entrar (Temple: vidência) = T17
   }
+  // "ao entrar, escolha uma cor / um tipo de criatura" (CR 614.12: é substituição, já entra com a escolha)
+  function escolhaAoEntrar(e, o) {
+    for (const s of M.dadoDe(e, o).subst || []) {
+      if (s.ev !== 'entra' || !s.emVez) continue;
+      for (const f of s.emVez) {
+        if (f.op !== 'escolher') continue;
+        let ops;
+        if (f.o === 'cor') ops = (f.cores || 'WUBRG').split('').map(c => ({ a: 'cor', v: c }));
+        else if (f.o === 'tipoCriatura') {     // opções = tipos das criaturas do próprio deck (lista finita e útil)
+          const t = new Set();
+          for (const x of Object.values(e.objs)) if (x.dono === o.dono && M.temTipo(e, x, 'Creature')) (M.dadoDe(e, x).sub || []).forEach(s2 => t.add(s2));
+          ops = [...t].sort().map(v => ({ a: 'tipo', v }));
+          if (!ops.length) continue;
+        } else continue;
+        e.perg = { j: o.ctrl, tipo: 'escolha', ops, ctx: { id: o.id, o: f.o } };
+        return;
+      }
+    }
+  }
+  M.escolhaAoEntrar = escolhaAoEntrar;
 
   // ---------- respostas ----------
   const RESP = {
@@ -182,6 +213,10 @@
       const f = p.ctx.faltam - 1;
       if (f > 0) e.perg = { j: p.j, tipo: 'descartar', ops: e.jogs[p.j].zonas.mao.map(id => ({ a: 'descartar', id })), ctx: { faltam: f } };
       else limpar(e);
+    },
+    escolha(e, p, op) {
+      const o = e.objs[p.ctx.id];
+      if (o) o.escolha = p.ctx.o === 'cor' ? { cor: op.v } : { tipo: op.v };
     },
     lenda(e, p, op) { for (const id of p.ctx.ids) if (id !== op.id) M.mover(e, id, 'cemiterio'); },
     cmdZona(e, p, op) { if (op.a === 'comando') M.mover(e, p.ctx.id, 'comando'); },

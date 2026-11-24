@@ -85,7 +85,8 @@
     if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
     const de = M.listaDe(e, o), k = de.indexOf(id);
     if (k >= 0) de.splice(k, 1);
-    Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {}, doente: true, ctrl: o.dono });
+    Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {}, doente: true, ctrl: o.dono, escolha: null });
+    if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
     const para = M.listaDe(e, o);
     if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
     if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);        // CR 903.9a olha "desde a última checagem"

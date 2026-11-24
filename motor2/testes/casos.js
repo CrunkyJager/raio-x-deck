@@ -174,6 +174,33 @@ caso('614.1c', 'Blooming Marsh: virado com 3+ outros terrenos', () => {
   M.avancar(f); resp(f, o => o.a === 'terreno'); ok(f.objs[f.campo[3]].virada, 'com 3');
 });
 
+caso('305.2a', 'Exploration: 2 terrenos; Azusa: 3', () => {
+  const e = cena({ campo: [[0, 'Exploration']], mao: enche(4, 'Forest').map(n => [0, n]) });
+  M.avancar(e); resp(e, o => o.a === 'terreno'); resp(e, o => o.a === 'terreno');
+  igual(opsDe(e, 'terreno').length, 0);
+  const f = cena({ campo: [[0, 'Azusa, Lost but Seeking']], mao: enche(4, 'Forest').map(n => [0, n]) });
+  igual(M.terrenosPorTurno(f, 0), 3); igual(M.terrenosPorTurno(f, 1), 1, 'só de quem controla');
+});
+caso('614.12', 'Thriving Grove: escolhe cor (não verde) ao entrar; dá G ou a escolhida', () => {
+  const e = cena({ mao: [[0, 'Thriving Grove']] });
+  M.avancar(e); resp(e, o => o.a === 'terreno');
+  igual(e.perg.tipo, 'escolha'); igual(e.perg.ops.map(o => o.v).join(''), 'WUBR');
+  resp(e, o => o.v === 'B');
+  const g = e.objs[e.campo[0]]; ok(g.virada); g.virada = false;
+  igual(M.fontesDeMana(e, 0)[0].pacotes.map(M.fmtMana), ['G', 'B']);
+  M.mover(e, g.id, 'mao'); igual(g.escolha, null, 'escolha some ao mudar de zona (400.7)');
+});
+caso('106.6', 'mana restrita (Unclaimed Territory) não entra na reserva comum; o {C} sim', () => {
+  const e = cena({ campo: [[0, 'Unclaimed Territory']] });
+  igual(M.fontesDeMana(e, 0).map(f => f.pacotes.map(M.fmtMana).join()), ['C']);
+});
+caso('306.5b', 'planeswalker entra com a lealdade impressa e não morre nas ABE', () => {
+  const e = cena({ campo: [[0, 'Chandra, Torch of Defiance']] });
+  const o = e.objs[e.campo[0]]; igual(o.marc.lealdade, 4);
+  M.avancar(e); igual(e.campo.length, 1);
+  o.marc.lealdade = 0; e.turno.passar = false; M.abe(e); igual(e.campo.length, 0, '704.5i');
+});
+
 // ---------- mana e custos ----------
 caso('605.3', 'Temple: escolhe B ou G; Gruul Turf: R e G juntos', () => {
   const e = cena({ campo: [[0, 'Temple of Malady'], [0, 'Gruul Turf']] });
@@ -212,6 +239,12 @@ caso('601.2g', 'plano guarda a fonte flexível: {G}{B} com Forest + Command Towe
   const pl = M.planoMana(e, 0, { p: ['G', 'B'] });
   ok(pl); ok(M.pagarComPlano(e, 0, { p: ['G', 'B'] }));
   ok(e.campo.every(id => e.objs[id].virada)); igual(M.somaMana(e.jogs[0].reserva), 0);
+});
+caso('107.3', 'custo com X: {X}{R} com X=3 pede 4', () => {
+  const r = { ...M.zeroMana(), R: 4 };
+  ok(M.pagarDaReserva(r, { x: 1, p: ['R'] }, { x: 3 })); ok(!M.pagarDaReserva(r, { x: 1, p: ['R'] }, { x: 4 }));
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Sol Ring']] });
+  ok(M.planoMana(e, 0, { x: 1, p: ['R'] }, { x: 3 })); igual(M.planoMana(e, 0, { x: 1, p: ['R'] }, { x: 4 }), null);
 });
 caso('903.8', 'imposto do comandante: +{2} por conjuração anterior', () => {
   const e = cena({ cmd: ['Krenko, Mob Boss'] });

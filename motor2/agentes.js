@@ -27,6 +27,7 @@
       }
       case 'aMenosQue': return p.ops.length > 1 && J.vida > 10 ? 1 : 0;
       case 'cmdZona': return 0;
+      case 'escolha': { const k = p.ops.findIndex(op => op.a === 'cor' && J.ci.includes(op.v)); return k >= 0 ? k : 0; }
       default: return 0;
     }
   };

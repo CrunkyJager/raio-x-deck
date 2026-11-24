@@ -236,6 +236,7 @@ Botão **"Jogar você mesmo"** na Mesa ao vivo: o motor pergunta, a tela respond
 Motor próprio pelas regras (CR 06/11/2026), lê `cartas-rx.js`; o velho (`motor/`) segue congelado até a T24.
 - `estado.js` (estado clonável com semente própria, zonas, mover = objeto novo CR 400.7, filtros/condições RX), `mana.js` (reserva, habilidades de mana, pagar com híbrido/phyrexiano, imposto 903.8, plano de quais fontes virar), `turno.js` (mulligan London 103.5, etapas CR 500, terreno 305 com "entra virado" condicional, ações de estado 704 + 903.9a/903.10a, jogador sai 800.4), `agentes.js` (aleatório, básico, `lerLista`).
 - Ponto único de pergunta: `e.perg = {j, tipo, ops}` → `M.responder(e, k)` continua de onde parou; `M.avancar(e, parar)` para no meio (testes).
+- Parte 2 (24/11): terreno extra (Exploration/Azusa), cor/tipo escolhido ao entrar (Thriving, Unclaimed Territory), lealdade inicial, custo X; mana restrita (`so`) fica fora da reserva comum até a T15. Conversor: Thriving ganhou {G}/cor escolhida (excluindo a cor certa) e mana restrita deixou de sair como livre (banco 85,4→85,0% sem falta: agora avisa).
 - Ainda não: pilha/conjurar (T15), combate (T16), gatilhos (T17), estáticas (T18), substituições com escolha e 903.9b como pergunta (T19).
 - Testes: `node motor2/testes/casos.js` (41 casos com número da CR) e `node motor2/testes/fuzz.js` (invariantes); os dois no `raiox-testes`.
 

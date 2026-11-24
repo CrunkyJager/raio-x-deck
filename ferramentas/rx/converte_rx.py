@@ -495,6 +495,8 @@ def prod(v):
         return 'escolhida'
     if m := re.fullmatch(r'Combo ((?:[WUBRGC] ?)+)', v):
         return m.group(1).split()
+    if m := re.fullmatch(r'Combo ((?:[WUBRGC] )+)Chosen', v):   # Thriving: {G} ou a cor escolhida
+        return m.group(1).split() + ['escolhida']
     if re.fullmatch(r'[WUBRGC]', v):
         return [v]
     return None
@@ -642,6 +644,18 @@ def efeito(api, d, ctx, falta):
         if p is None:
             falta.append('Mana:' + d.get('Produced', '')); return []
         fx = {'op': 'mana', 'prod': p, 'qtd': q('Amount')}
+        if d.get('RestrictValid'):   # "gaste esta mana só para…" (antes saía como mana livre)
+            rv = d['RestrictValid'].replace('+ChosenType', '+escolhido')
+            fs = []
+            for x in rv.split(','):
+                b_, _, r_ = x.partition('.')
+                tipo = {'Spell': 'Card', 'Card': 'Card'}.get(b_)
+                if tipo is None: falta.append('Mana:RestrictValid:' + x); fs = None; break
+                f_ = filtro(r_.replace('+escolhido', '') or 'Card', falta) if r_ else {}
+                if '+escolhido' in x or 'ChosenType' in x: f_['sub'] = ['escolhido']
+                fs.append(f_)
+            fx['so'] = fs[0] if fs and len(fs) == 1 else {'tipo': ['Card']}   # sem filtro certo: marca restrita mesmo assim
+            if fs and len(fs) > 1: falta.append('Mana:RestrictValid:varios')
     elif api == 'ManaReflected':
         fx = {'op': 'mana', 'prod': 'refletida', 'qtd': 1}
     elif api in ('Regenerate', 'RegenerateAll'):
@@ -1496,7 +1510,12 @@ def etb_repl(arg, f, falta):
     if r and r[1] == 'ChooseType' and r[2].get('Type') == 'Creature':
         return {'ev': 'entra', 'quem': {'este': True}, 'emVez': [{'op': 'escolher', 'quem': 'voce', 'o': 'tipoCriatura'}]}
     if r and r[1] == 'ChooseColor':
-        return {'ev': 'entra', 'quem': {'este': True}, 'emVez': [{'op': 'escolher', 'quem': 'voce', 'o': 'cor'}]}
+        fx = {'op': 'escolher', 'quem': 'voce', 'o': 'cor'}
+        ex = [x.strip().lower() for x in r[2].get('Exclude', '').split(',') if x.strip()]
+        if ex:   # Thriving Grove: "uma cor que não seja verde" → cores permitidas
+            NOME = {'white': 'W', 'blue': 'U', 'black': 'B', 'red': 'R', 'green': 'G'}
+            fx['cores'] = ''.join(c for c in 'WUBRG' if c not in {NOME.get(x) for x in ex})
+        return {'ev': 'entra', 'quem': {'este': True}, 'emVez': [fx]}
     if r and r[1] == 'PutCounter' and r[2].get('ETB') == 'True':
         # Giada / Metallic Mimic: cada outro X seu entra com marcador(es) a mais
         partes = sv.split(':')

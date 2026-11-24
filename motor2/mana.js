@@ -8,7 +8,9 @@
   // prod: lista = escolher 1 (Temple: B ou G) · 'qualquer' · 'comandante' (identidade, CR 903.4f: sem cor → nada)
   // 'refletida' (Exotic Orchard: o que terrenos de oponentes poderiam produzir) · 'escolhida' (cor escolhida ao entrar: T19)
   M.coresDeProd = (e, o, prod) => {
-    if (Array.isArray(prod)) return prod;
+    const esc = o.escolha && o.escolha.cor;                         // cor escolhida ao entrar (Thriving, Coldsteel Heart)
+    if (Array.isArray(prod)) return [...new Set(prod.flatMap(c => c === 'escolhida' ? (esc ? [esc] : []) : [c]))];
+    if (prod === 'escolhida') return esc ? [esc] : [];
     if (prod === 'qualquer') return CORES;
     if (prod === 'comandante') return CORES.filter(c => e.jogs[o.ctrl].ci.includes(c));
     if (prod === 'refletida') {
@@ -21,13 +23,14 @@
       }
       return TIPOS.filter(c => s.has(c) && c !== 'C');   // CR 106.7: só tipos; incolor não é cor — Orchard dá cores
     }
-    return null;    // 'escolhida' e o que mais vier: ainda não
+    return null;
   };
 
   M.pacotesDe = (e, o, atv, ctx = {}) => {
     let pac = [M.zeroMana()];
     for (const f of atv.fx || []) {
       if (f.op !== 'mana') return null;              // habilidade de mana com efeito extra: T17/T19
+      if (f.so) return null;                         // mana restrita ("só para criatura do tipo…"): reserva separada na T15
       if (f.se && !M.condicao(e, f.se, { voce: o.ctrl, este: o.id })) continue;
       const cs = M.coresDeProd(e, o, f.prod);
       const q = M.qtd(e, f.qtd, { voce: o.ctrl, este: o.id, x: ctx.x });

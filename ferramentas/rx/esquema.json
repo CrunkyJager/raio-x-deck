@@ -987,6 +987,10 @@
     "com": {
      "$ref": "#/$defs/objeto",
      "description": "lutar: com quem"
+    },
+    "so": {
+     "$ref": "#/$defs/filtro",
+     "description": "mana: só pode ser gasta em mágica/habilidade que bata no filtro (Unclaimed Territory, Cavern of Souls)"
     }
    },
    "additionalProperties": false,
