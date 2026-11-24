@@ -1,5 +1,5 @@
 {
- "_nota": "T12 — gabarito do formato RX: 20 cartas difíceis escritas à mão a partir do Oracle (cards-db) e da CR. O conversor (T13/T20) tem que chegar nisto; testa_rx.py compara. Escolha: comandantes dos exemplos + cartas que forçam cada parte do formato (custo alternativo, 'a menos que pague', substituição, eminência, sobrecarga, modal com condição, aventura, cópia de ficha anexada).",
+ "_nota": "T12 — gabarito do formato RX: 20 cartas difíceis escritas à mão a partir do Oracle (cards-db) e da CR. O conversor (T13/T20) tem que chegar nisto; testa_rx.py compara. Escolha: comandantes dos exemplos + cartas que forçam cada parte do formato (custo alternativo, 'a menos que pague', substituição, eminência, sobrecarga, modal com condição, aventura, cópia de ficha anexada). | T13 parte 2 (24/11): +24 cartas comuns (Sol Ring, Swords, Beast Within, Chaos Warp…) conferidas à mão — Beast Within/Chaos Warp/Eternal Witness/Toxic Deluge pegaram 4 bugs.",
  "cartas": [
   {
    "n": "Anje's Ravager",
@@ -1172,6 +1172,704 @@
        "qtd": 2
       }
      ]
+    }
+   ]
+  },
+  {
+   "n": "Sol Ring",
+   "custo": {
+    "g": 1
+   },
+   "vm": 1,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "fx": [
+      {
+       "op": "mana",
+       "prod": [
+        "C"
+       ],
+       "qtd": 2
+      }
+     ],
+     "deMana": true
+    }
+   ]
+  },
+  {
+   "n": "Swords to Plowshares",
+   "custo": {
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 1,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Instant"
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Creature"
+      ],
+      "zona": "campo"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "exilar",
+     "em": {
+      "alvo": 0
+     }
+    },
+    {
+     "op": "ganharVida",
+     "quem": "controlador",
+     "qtd": {
+      "conta": "poderDoAlvo",
+      "alvo": 0
+     },
+     "em": {
+      "alvo": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": "Beast Within",
+   "custo": {
+    "g": 2,
+    "p": [
+     "G"
+    ]
+   },
+   "vm": 3,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Instant"
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Permanent"
+      ],
+      "zona": "campo"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "destruir",
+     "em": {
+      "alvo": 0
+     }
+    },
+    {
+     "op": "ficha",
+     "quem": "controlador",
+     "qtd": 1,
+     "token": {
+      "pt": [
+       3,
+       3
+      ],
+      "cores": "G",
+      "tipos": [
+       "Creature"
+      ],
+      "sub": [
+       "Beast"
+      ]
+     },
+     "em": {
+      "alvo": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": "Evolving Wilds",
+   "vm": 0,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Land"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true,
+      "sacrificar": "este"
+     },
+     "fx": [
+      {
+       "op": "buscar",
+       "quem": "voce",
+       "f": {
+        "tipo": [
+         "Land"
+        ],
+        "super": [
+         "Basic"
+        ]
+       },
+       "qtd": 1,
+       "para": "campo",
+       "virada": true
+      },
+      {
+       "op": "embaralhar",
+       "quem": "voce"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Swiftfoot Boots",
+   "custo": {
+    "g": 2
+   },
+   "vm": 2,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "sub": [
+    "Equipment"
+   ],
+   "kw": [
+    {
+     "k": "equipar",
+     "custo": {
+      "g": 1
+     }
+    }
+   ],
+   "est": [
+    {
+     "modo": "continuo",
+     "afeta": "equipada",
+     "kw": [
+      {
+       "k": "pressa"
+      },
+      {
+       "k": "antimagia"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Lightning Greaves",
+   "custo": {
+    "g": 2
+   },
+   "vm": 2,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "sub": [
+    "Equipment"
+   ],
+   "kw": [
+    {
+     "k": "equipar",
+     "custo": {
+      "g": 0
+     }
+    }
+   ],
+   "est": [
+    {
+     "modo": "continuo",
+     "afeta": "equipada",
+     "kw": [
+      {
+       "k": "pressa"
+      },
+      {
+       "k": "manto"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Chaos Warp",
+   "custo": {
+    "g": 2,
+    "p": [
+     "R"
+    ]
+   },
+   "vm": 3,
+   "ci": "R",
+   "cores": "R",
+   "tipos": [
+    "Instant"
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Permanent"
+      ],
+      "zona": "campo"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "mover",
+     "em": {
+      "alvo": 0
+     },
+     "para": "grimorio"
+    },
+    {
+     "op": "embaralhar",
+     "quem": "dono",
+     "em": {
+      "alvo": 0
+     }
+    },
+    {
+     "op": "cavar",
+     "quem": "dono",
+     "olha": 1,
+     "pega": "tudo",
+     "para": "campo",
+     "resto": "grimorio",
+     "f": {
+      "tipo": [
+       "Permanent"
+      ]
+     },
+     "em": {
+      "alvo": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": "Arcane Signet",
+   "custo": {
+    "g": 2
+   },
+   "vm": 2,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "fx": [
+      {
+       "op": "mana",
+       "prod": "comandante",
+       "qtd": 1
+      }
+     ],
+     "deMana": true
+    }
+   ]
+  },
+  {
+   "n": "Counterspell",
+   "custo": {
+    "p": [
+     "U",
+     "U"
+    ]
+   },
+   "vm": 2,
+   "ci": "U",
+   "cores": "U",
+   "tipos": [
+    "Instant"
+   ],
+   "alvos": [
+    {
+     "f": "magica"
+    }
+   ],
+   "fx": [
+    {
+     "op": "anular",
+     "em": {
+      "alvo": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": "Command Tower",
+   "vm": 0,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Land"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "fx": [
+      {
+       "op": "mana",
+       "prod": "comandante",
+       "qtd": 1
+      }
+     ],
+     "deMana": true
+    }
+   ]
+  },
+  {
+   "n": "Rampant Growth",
+   "custo": {
+    "g": 1,
+    "p": [
+     "G"
+    ]
+   },
+   "vm": 2,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Sorcery"
+   ],
+   "fx": [
+    {
+     "op": "buscar",
+     "quem": "voce",
+     "f": {
+      "tipo": [
+       "Land"
+      ],
+      "super": [
+       "Basic"
+      ]
+     },
+     "qtd": 1,
+     "para": "campo",
+     "virada": true
+    },
+    {
+     "op": "embaralhar",
+     "quem": "voce"
+    }
+   ]
+  },
+  {
+   "n": "Heroic Intervention",
+   "custo": {
+    "g": 1,
+    "p": [
+     "G"
+    ]
+   },
+   "vm": 2,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Instant"
+   ],
+   "fx": [
+    {
+     "op": "modificar",
+     "em": {
+      "todos": {
+       "tipo": [
+        "Permanent"
+       ],
+       "ctrl": "voce",
+       "zona": "campo"
+      }
+     },
+     "kw": [
+      {
+       "k": "antimagia"
+      },
+      {
+       "k": "indestrutivel"
+      }
+     ],
+     "dura": "fimDoTurno"
+    }
+   ]
+  },
+  {
+   "n": "Demonic Tutor",
+   "custo": {
+    "g": 1,
+    "p": [
+     "B"
+    ]
+   },
+   "vm": 2,
+   "ci": "B",
+   "cores": "B",
+   "tipos": [
+    "Sorcery"
+   ],
+   "fx": [
+    {
+     "op": "buscar",
+     "quem": "voce",
+     "f": {},
+     "qtd": 1,
+     "para": "mao"
+    },
+    {
+     "op": "embaralhar",
+     "quem": "voce"
+    }
+   ]
+  },
+  {
+   "n": "Eternal Witness",
+   "custo": {
+    "g": 1,
+    "p": [
+     "G",
+     "G"
+    ]
+   },
+   "vm": 3,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Creature"
+   ],
+   "sub": [
+    "Human",
+    "Shaman"
+   ],
+   "pt": [
+    2,
+    1
+   ],
+   "gat": [
+    {
+     "ev": "entra",
+     "quem": {
+      "este": true
+     },
+     "alvos": [
+      {
+       "f": {
+        "zona": "cemiterio",
+        "dono": "voce"
+       }
+      }
+     ],
+     "fx": [
+      {
+       "op": "mover",
+       "em": {
+        "alvo": 0
+       },
+       "para": "mao",
+       "talvez": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Toxic Deluge",
+   "custo": {
+    "g": 2,
+    "p": [
+     "B"
+    ]
+   },
+   "vm": 3,
+   "ci": "B",
+   "cores": "B",
+   "tipos": [
+    "Sorcery"
+   ],
+   "custoAd": {
+    "vida": "X"
+   },
+   "fx": [
+    {
+     "op": "modificar",
+     "em": {
+      "todos": {
+       "tipo": [
+        "Creature"
+       ],
+       "zona": "campo"
+      }
+     },
+     "p": {
+      "conta": "X",
+      "mult": -1
+     },
+     "r": {
+      "conta": "X",
+      "mult": -1
+     },
+     "dura": "fimDoTurno"
+    }
+   ]
+  },
+  {
+   "n": "Mind Stone",
+   "custo": {
+    "g": 2
+   },
+   "vm": 2,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "fx": [
+      {
+       "op": "mana",
+       "prod": [
+        "C"
+       ],
+       "qtd": 1
+      }
+     ],
+     "deMana": true
+    },
+    {
+     "custo": {
+      "virar": true,
+      "sacrificar": "este",
+      "mana": {
+       "g": 1
+      }
+     },
+     "fx": [
+      {
+       "op": "comprar",
+       "quem": "voce",
+       "qtd": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Reliquary Tower",
+   "vm": 0,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Land"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "fx": [
+      {
+       "op": "mana",
+       "prod": [
+        "C"
+       ],
+       "qtd": 1
+      }
+     ],
+     "deMana": true
+    }
+   ],
+   "est": [
+    {
+     "modo": "maoMax",
+     "afeta": "voce",
+     "qtd": "tudo"
+    }
+   ]
+  },
+  {
+   "n": "Generous Gift",
+   "custo": {
+    "g": 2,
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 3,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Instant"
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Permanent"
+      ],
+      "zona": "campo"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "destruir",
+     "em": {
+      "alvo": 0
+     }
+    },
+    {
+     "op": "ficha",
+     "quem": "controlador",
+     "qtd": 1,
+     "token": {
+      "pt": [
+       3,
+       3
+      ],
+      "cores": "G",
+      "tipos": [
+       "Creature"
+      ],
+      "sub": [
+       "Elephant"
+      ]
+     },
+     "em": {
+      "alvo": 0
+     }
     }
    ]
   }

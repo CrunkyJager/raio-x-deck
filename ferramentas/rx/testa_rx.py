@@ -21,7 +21,7 @@ PEND = os.path.join(AQUI, 'pendentes_rx.json')
 if os.path.exists(PEND):
     PENDENTES = json.load(open(PEND))
 
-BASE = ('n', 'custo', 'vm', 'ci', 'cores', 'tipos', 'super', 'sub', 'pt', 'leal', 'forma')
+BASE = ('n', 'custo', 'vm', 'ci', 'cores', 'tipos', 'super', 'sub', 'pt', 'leal', 'forma', 'custoAd')
 BLOCOS = {'base': BASE, 'kw': ('kw',), 'atv': ('atv',), 'gat': ('gat',), 'est': ('est',),
           'subst': ('subst',), 'fx': ('fx', 'alvos'), 'faces': ('faces',)}
 

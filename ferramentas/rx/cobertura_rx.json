@@ -1,156 +1,24 @@
 {
  "copias": 2859,
- "inteiras": 1922,
- "pct": 67.2,
+ "inteiras": 2234,
+ "pct": 78.1,
  "sem_carta": {},
  "falta_top": [
   [
    "qtd:X",
-   56
-  ],
-  [
-   "API:CopyPermanent",
-   26
-  ],
-  [
-   "Effect sem estática conhecida",
-   22
-  ],
-  [
-   "S:AddPower:X",
-   20
-  ],
-  [
-   "T:ChangesZoneAll",
-   19
-  ],
-  [
-   "API:DelayedTrigger",
-   18
-  ],
-  [
-   "API:Animate",
-   18
-  ],
-  [
-   "S:AddToughness:X",
-   17
-  ],
-  [
-   "S:Continuous:AffectedZone",
-   17
-  ],
-  [
-   "S:Continuous:AffectedZone,MayPlay",
-   17
-  ],
-  [
-   "API:Play",
-   16
-  ],
-  [
-   "S:AlternativeCost",
-   16
-  ],
-  [
-   "R:Counter",
-   16
-  ],
-  [
-   "API:Attach",
    15
-  ],
-  [
-   "filtro:.TopLibrary",
-   15
-  ],
-  [
-   "NumAtt:+X",
-   15
-  ],
-  [
-   "S:Continuous:AffectedZone,MayLookAt",
-   14
-  ],
-  [
-   "S:Panharmonicon",
-   14
-  ],
-  [
-   "S:Continuous sem Affected",
-   14
-  ],
-  [
-   "API:RepeatEach",
-   14
-  ],
-  [
-   "S:CantBeCast",
-   13
   ],
   [
    "API:Radiation",
+   13
+  ],
+  [
+   "Effect sem estática conhecida",
    12
   ],
   [
    "R:DamageDone",
-   12
-  ],
-  [
-   "S:Continuous:AddSVar",
    11
-  ],
-  [
-   "API:TargetOnly",
-   11
-  ],
-  [
-   "API:SetState",
-   11
-  ],
-  [
-   "API:CopySpellAbility",
-   11
-  ],
-  [
-   "Defined:Remembered",
-   10
-  ],
-  [
-   "qtd:Y",
-   10
-  ],
-  [
-   "NumDef:+X",
-   10
-  ],
-  [
-   "filtro:Card.Self,Enchantment.Other+YouCtrl",
-   10
-  ],
-  [
-   "S:Continuous:AddType",
-   10
-  ],
-  [
-   "API:AddPhase",
-   9
-  ],
-  [
-   "K:etbCounter",
-   9
-  ],
-  [
-   "K:Chapter",
-   9
-  ],
-  [
-   "filtro:.IsRemembered",
-   9
-  ],
-  [
-   "API:ChooseType",
-   9
   ],
   [
    "Mana:R G",
@@ -161,11 +29,15 @@
    8
   ],
   [
+   "API:Branch",
+   8
+  ],
+  [
    "T:CounterAddedOnce",
    8
   ],
   [
-   "Defined:TriggeredAttackerLKICopy",
+   "API:ImmediateTrigger",
    8
   ],
   [
@@ -173,8 +45,8 @@
    8
   ],
   [
-   "filtro:.modified",
-   7
+   "API:BecomeMonarch",
+   8
   ],
   [
    "S:CastWithFlash",
@@ -185,19 +57,11 @@
    7
   ],
   [
-   "API:Branch",
-   7
-  ],
-  [
-   "filtro:.wasCast",
-   7
-  ],
-  [
    "Mana:U B",
    7
   ],
   [
-   "API:ImmediateTrigger",
+   "filtro:.cmcLEX",
    7
   ],
   [
@@ -209,7 +73,7 @@
    7
   ],
   [
-   "API:BecomeMonarch",
+   "R:Moved",
    7
   ],
   [
@@ -233,16 +97,152 @@
    6
   ],
   [
-   "filtro:.counters_GE1_P1P1",
+   "K:ETBReplacement:PutCounter",
    6
   ],
   [
-   "filtro:.cmcLEX",
+   "filtro:.YouCtrl$GreatestCardPower",
    6
   ],
   [
-   "R:Moved",
-   6
+   "API:ChooseCard",
+   5
+  ],
+  [
+   "S:UntapOtherPlayer",
+   5
+  ],
+  [
+   "Mana:G U",
+   5
+  ],
+  [
+   "T:ChangesZone Graveyard->Any",
+   5
+  ],
+  [
+   "API:SacrificeAll",
+   5
+  ],
+  [
+   "T:TapsForMana",
+   5
+  ],
+  [
+   "API:Amass",
+   5
+  ],
+  [
+   "API:Discover",
+   5
+  ],
+  [
+   "S:Continuous:IsPresent",
+   4
+  ],
+  [
+   "Mana:R W",
+   4
+  ],
+  [
+   "S:Continuous:Condition",
+   4
+  ],
+  [
+   "Condition:ConditionPhases",
+   4
+  ],
+  [
+   "K:Offspring",
+   4
+  ],
+  [
+   "T:TokenCreated",
+   4
+  ],
+  [
+   "filtro:.doesNotShareNameWith OtherYourBattlefield",
+   4
+  ],
+  [
+   "K:ETBReplacement:GenericChoice",
+   4
+  ],
+  [
+   "DealDamage:Defined:TriggeredDefender.Opponent & Valid Planes",
+   4
+  ],
+  [
+   "API:DigUntil",
+   4
+  ],
+  [
+   "Mana:U R",
+   4
+  ],
+  [
+   "T:SpellCastOrCopy",
+   4
+  ],
+  [
+   "filtro:.ExiledWithSource",
+   4
+  ],
+  [
+   "S:Continuous:AddStaticAbility",
+   4
+  ],
+  [
+   "S:Continuous:CheckSVar,SVarCompare",
+   4
+  ],
+  [
+   "filtro:.IsNotChosenType",
+   4
+  ],
+  [
+   "API:Fight",
+   4
+  ],
+  [
+   "filtro:.ControlledBy TriggeredTarget",
+   4
+  ],
+  [
+   "S:RaiseCost",
+   4
+  ],
+  [
+   "S:CantAttack",
+   4
+  ],
+  [
+   "filtro:.sharesCreatureTypeWith TriggeredAttacker",
+   4
+  ],
+  [
+   "Defined:Targeted",
+   3
+  ],
+  [
+   "filtro:.AttachedTo Creature",
+   3
+  ],
+  [
+   "S:Continuous:SetPower,SetToughness",
+   3
+  ],
+  [
+   "Mana:G W",
+   3
+  ],
+  [
+   "filtro:.powerGTbasePower",
+   3
+  ],
+  [
+   "K:Class",
+   3
   ]
  ]
 }

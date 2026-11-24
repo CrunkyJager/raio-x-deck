@@ -148,6 +148,10 @@
   "forge": {
    "type": "string",
    "description": "arquivo de origem no Forge (rastreio, GPL-3)"
+  },
+  "custoAd": {
+   "$ref": "#/$defs/custoAtv",
+   "description": "custo adicional para conjurar (além da mana)"
   }
  },
  "$defs": {
@@ -209,7 +213,43 @@
           "cartasNaMao",
           "oponentes",
           "marcadoresNoEste",
-          "evento"
+          "evento",
+          "X",
+          "jogadores",
+          "resistDoEste",
+          "vmDoEste",
+          "lembrados",
+          "suaVida",
+          "vidaInicial",
+          "cartasNoGrimorio",
+          "energia",
+          "convergir",
+          "dominio",
+          "devocao",
+          "impostoCmd",
+          "seusTurnos",
+          "resolvidasNoTurno",
+          "magiasNoTurno",
+          "coresDoEste",
+          "resistDoAlvo",
+          "marcadoresNoEvento",
+          "maoDoAlvo",
+          "vidaDoAlvo",
+          "tipoMaisComum",
+          "maiorEntreJogadores",
+          "entrouNoTurno",
+          "resultado",
+          "se",
+          "numeroEscolhido",
+          "vidaGanhaNoTurno",
+          "compradasNoTurno",
+          "atacantes",
+          "coresDoEvento",
+          "ataquesNoTurno",
+          "grimorioDoAlvo",
+          "marcadoresSeus",
+          "vezesKicker",
+          "maoDoEvento"
          ]
         }
        ]
@@ -222,6 +262,32 @@
       },
       "alvo": {
        "type": "integer"
+      },
+      "metade": {
+       "type": "boolean",
+       "description": "divide por 2 (arredonda p/ baixo)"
+      },
+      "cond": {
+       "type": "string",
+       "description": "conta 'se': condição (kicked, promisedgift, morbid…)"
+      },
+      "sim": {
+       "type": "integer"
+      },
+      "nao": {
+       "type": "integer"
+      },
+      "prop": {
+       "enum": [
+        "cores",
+        "somaPoder",
+        "maiorPoder",
+        "somaResist",
+        "somaVm",
+        "nomesDiferentes",
+        "tiposDiferentes"
+       ],
+       "description": "em vez de contar objetos: propriedade do conjunto"
       }
      }
     }
@@ -238,7 +304,8 @@
     "controlador",
     "doEvento",
     "atacado",
-    "proximo"
+    "proximo",
+    "cadaAtual"
    ],
    "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado"
   },
@@ -286,14 +353,18 @@
      "enum": [
       "voce",
       "oponente",
-      "qualquer"
+      "qualquer",
+      "alvo",
+      "cadaAtual"
      ]
     },
     "dono": {
      "enum": [
       "voce",
       "oponente",
-      "qualquer"
+      "qualquer",
+      "alvo",
+      "cadaAtual"
      ]
     },
     "cor": {
@@ -332,6 +403,37 @@
       "este"
      ],
      "description": "aura/equipamento anexado a esta carta"
+    },
+    "topo": {
+     "type": "boolean",
+     "description": "carta do topo do grimório"
+    },
+    "lembrada": {
+     "type": "boolean",
+     "description": "objeto lembrado pelo efeito"
+    },
+    "modificada": {
+     "type": "boolean",
+     "description": "equipada, encantada ou com marcador"
+    },
+    "conjurada": {
+     "type": "boolean",
+     "description": "foi conjurada (não só posta)"
+    },
+    "ouEste": {
+     "type": "boolean",
+     "description": "a própria carta também conta (\"este ou outro X\")"
+    },
+    "comMarcador": {
+     "type": "string",
+     "description": "tem ao menos 1 marcador deste tipo"
+    },
+    "kw": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "tem estas palavras-chave"
     }
    }
   },
@@ -496,7 +598,14 @@
      "type": "boolean"
     },
     "vida": {
-     "type": "integer"
+     "oneOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "const": "X"
+      }
+     ]
     },
     "exilarDe": {
      "$ref": "#/$defs/zona"
@@ -690,10 +799,10 @@
      "description": "marcador: +1/+1, -1/-1, loyalty, charge…"
     },
     "p": {
-     "type": "integer"
+     "$ref": "#/$defs/qtd"
     },
     "r": {
-     "type": "integer"
+     "$ref": "#/$defs/qtd"
     },
     "kw": {
      "type": "array",
@@ -728,7 +837,8 @@
       "jogador",
       "numero",
       "carta",
-      "modo"
+      "modo",
+      "tipo"
      ],
      "description": "escolher: o quê"
     },
@@ -779,6 +889,69 @@
     },
     "semPilha": {
      "type": "boolean"
+    },
+    "pagando": {
+     "$ref": "#/$defs/custoAtv",
+     "description": "só faz se o controlador pagar este custo"
+    },
+    "a": {
+     "$ref": "#/$defs/objeto",
+     "description": "anexar: a quem"
+    },
+    "tipos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "sub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "cores": {
+     "type": "string"
+    },
+    "habil": {
+     "type": "object",
+     "properties": {
+      "atv": {
+       "type": "array"
+      },
+      "gat": {
+       "type": "array"
+      }
+     }
+    },
+    "semHabil": {
+     "type": "boolean"
+    },
+    "gat": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/gat"
+     },
+     "description": "efeitoTemporario: gatilhos que valem pela duração"
+    },
+    "emblema": {
+     "type": "boolean"
+    },
+    "novoAlvo": {
+     "type": "boolean",
+     "description": "copiarMagica: pode escolher novos alvos"
+    },
+    "tirar": {
+     "type": "boolean",
+     "description": "marcador: remover em vez de pôr"
+    },
+    "fase": {
+     "enum": [
+      "combate",
+      "principal",
+      "turno"
+     ],
+     "description": "faseExtra: qual"
     }
    },
    "additionalProperties": false,
@@ -841,6 +1014,10 @@
       "criadas",
       "este"
      ]
+    },
+    "naoLendaria": {
+     "type": "boolean",
+     "description": "cópia sem o supertipo lendário"
     }
    }
   },
@@ -894,6 +1071,70 @@
       "madness",
       "evoke"
      ]
+    },
+    "conta": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "q"
+     ],
+     "properties": {
+      "q": {
+       "$ref": "#/$defs/qtd"
+      },
+      "min": {
+       "type": "integer"
+      },
+      "max": {
+       "type": "integer"
+      },
+      "igual": {
+       "type": "integer"
+      }
+     },
+     "description": "a contagem q compara (min/max/igual)"
+    },
+    "existe": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "f"
+     ],
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "min": {
+       "type": "integer"
+      },
+      "max": {
+       "type": "integer"
+      },
+      "igual": {
+       "type": "integer"
+      }
+     },
+     "description": "quantos objetos batem no filtro (padrão: ≥1)"
+    },
+    "objBate": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "em": {
+       "$ref": "#/$defs/objeto"
+      },
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "nao": {
+       "type": "boolean"
+      }
+     },
+     "description": "o objeto referido bate (ou não) no filtro"
+    },
+    "palavra": {
+     "type": "string",
+     "description": "condição nomeada: metalcraft, blessing, maxspeed…"
     }
    }
   },
@@ -1055,7 +1296,8 @@
       "marcadorPosto",
       "alvoDe",
       "vira",
-      "zonaVarios"
+      "zonaVarios",
+      "capitulo"
      ]
     },
     "quem": {
@@ -1122,6 +1364,22 @@
     "por": {
      "$ref": "#/$defs/filtro",
      "description": "alvoDe: o que mira (mágica, habilidade)"
+    },
+    "grupo": {
+     "type": "boolean",
+     "description": "dispara uma vez para o grupo que muda de zona junto"
+    },
+    "proximoTurno": {
+     "type": "boolean",
+     "description": "gatilho atrasado: só no próximo turno"
+    },
+    "nesteTurno": {
+     "type": "boolean",
+     "description": "gatilho atrasado: vale só neste turno"
+    },
+    "n": {
+     "type": "integer",
+     "description": "capitulo: número do capítulo da saga"
     }
    }
   },
@@ -1151,7 +1409,10 @@
       "vidaNaoMuda",
       "protecaoJogador",
       "ptDefinido",
-      "danoNaoPrevenivel"
+      "danoNaoPrevenivel",
+      "podeJogar",
+      "podeOlhar",
+      "dobraGatilho"
      ]
     },
     "afeta": {
@@ -1171,10 +1432,10 @@
      ]
     },
     "p": {
-     "type": "integer"
+     "$ref": "#/$defs/qtd"
     },
     "r": {
-     "type": "integer"
+     "$ref": "#/$defs/qtd"
     },
     "pt": {
      "type": "array"
@@ -1214,6 +1475,41 @@
     "camada": {
      "type": "string",
      "description": "CR 613: '1','2','3','4','5','6','7a'…'7d'; o conversor preenche"
+    },
+    "de": {
+     "$ref": "#/$defs/zona"
+    },
+    "limite": {
+     "type": "integer"
+    },
+    "gratis": {
+     "type": "boolean"
+    },
+    "pBase": {
+     "$ref": "#/$defs/qtd",
+     "description": "poder definido (CDA, camada 7a)"
+    },
+    "rBase": {
+     "$ref": "#/$defs/qtd"
+    },
+    "pagar": {
+     "$ref": "#/$defs/custoAtv",
+     "description": "custoAlternativo: o que paga em vez do custo de mana"
+    },
+    "f": {
+     "$ref": "#/$defs/filtro",
+     "description": "naoPodeConjurar: quais mágicas"
+    },
+    "evs": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "dobraGatilho: só gatilhos destes eventos"
+    },
+    "causa": {
+     "$ref": "#/$defs/filtro",
+     "description": "dobraGatilho: objeto que causa o evento"
     }
    }
   },
@@ -1261,6 +1557,10 @@
       },
       "prevenir": {
        "type": "boolean"
+      },
+      "impedir": {
+       "type": "boolean",
+       "description": "o evento não acontece (não pode ser anulada)"
       }
      }
     },
@@ -1280,6 +1580,16 @@
     },
     "talvez": {
      "type": "boolean"
+    },
+    "jog": {
+     "$ref": "#/$defs/jogador"
+    },
+    "combate": {
+     "type": "boolean"
+    },
+    "por": {
+     "$ref": "#/$defs/filtro",
+     "description": "fonte do evento"
     }
    }
   }
