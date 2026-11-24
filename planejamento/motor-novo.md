@@ -63,6 +63,8 @@ Python, em `ferramentas/rx/` (reaproveita `params`/`le_arquivo` do `converte.py`
 - **Combate** multijogador: atacar jogador/planeswalker/batalha, bloqueio, primeiro ataque, atropelar, toque mortífero, dano de comandante 21.
 - **Commander**: zona de comando, 40 vidas, identidade de cor, regra de substituição do comandante.
 
+- **Feito na T14 parte 1 (24/11):** `motor2/` estado, mana, turno (sem pilha/combate), ABE, Commander; 41 casos de regra com CR, fuzz 0 erros, ~2,2 mil turnos/s no node. Conversor: "entra virado" agora leva a condição (`se`) — ~147 terrenos (check/fast/slow lands, castelos) entravam sempre virados; gabarito 50/50. Parte 2: terreno extra/est simples que o turno usa, mana 'escolhida', custo X, e deixar a API pronta para a T15 (conjurar).
+
 ### 3.4 Decisões: um só ponto de pergunta
 O núcleo nunca decide: toda escolha vira `pergunta {tipo, ops}` para um **agente** (IA ou humano). Com estado clonável, o humano responde e o motor **continua de onde parou** (acaba o "roda do zero" da T08). A tela da T08/T09 (botões, revisão lance a lance, dica ao vivo) é reaproveitada.
 

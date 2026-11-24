@@ -2431,6 +2431,107 @@
      }
     }
    ]
+  },
+  {
+   "n": "Dragonskull Summit",
+   "vm": 0,
+   "ci": "BR",
+   "cores": "",
+   "tipos": [
+    "Land"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "deMana": true,
+     "fx": [
+      {
+       "op": "mana",
+       "prod": [
+        "B",
+        "R"
+       ],
+       "qtd": 1
+      }
+     ]
+    }
+   ],
+   "subst": [
+    {
+     "ev": "entra",
+     "quem": {
+      "este": true
+     },
+     "muda": {
+      "virada": true
+     },
+     "se": {
+      "existe": {
+       "f": {
+        "ctrl": "voce",
+        "sub": [
+         "Mountain",
+         "Swamp"
+        ],
+        "zona": "campo"
+       },
+       "igual": 0
+      }
+     }
+    }
+   ]
+  },
+  {
+   "n": "Blooming Marsh",
+   "vm": 0,
+   "ci": "BG",
+   "cores": "",
+   "tipos": [
+    "Land"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "deMana": true,
+     "fx": [
+      {
+       "op": "mana",
+       "prod": [
+        "B",
+        "G"
+       ],
+       "qtd": 1
+      }
+     ]
+    }
+   ],
+   "subst": [
+    {
+     "ev": "entra",
+     "quem": {
+      "este": true
+     },
+     "muda": {
+      "virada": true
+     },
+     "se": {
+      "existe": {
+       "f": {
+        "ctrl": "voce",
+        "tipo": [
+         "Land"
+        ],
+        "zona": "campo"
+       },
+       "min": 3
+      }
+     }
+    }
+   ]
   }
  ]
 }

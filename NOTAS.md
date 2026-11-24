@@ -232,6 +232,13 @@ Botão **"Jogar você mesmo"** na Mesa ao vivo: o motor pergunta, a tela respond
 - **Banco de 30 com a trava**: média −0,39 ±0,19 (`banco_trava`). O `banco_atual` (19/11) não serve de comparação: as trocas mudaram em 20/11 (sinergia + preços MYP), 0/30 listas iguais. Comparado igual por igual com o código sem a T08 (`banco_hoje`, mesmas trocas 28/28): +0,00 ±0,21 → diferença −0,44 ±0,29, dentro do ruído. Rin&Seri −9/−10 já acontece sem a trava (Beastmaster Ascension → Garruk's Uprising): problema das trocas por sinergia, a investigar.
 - Teste no Chrome headless: `LD_LIBRARY_PATH=$HOME/.local/pwlibs/usr/lib/x86_64-linux-gnu ~/.venv-pw/bin/python ...` (libs sem sudo).
 
+## Motor novo `motor2/` (T14 parte 1, 24/11/2026)
+Motor próprio pelas regras (CR 06/11/2026), lê `cartas-rx.js`; o velho (`motor/`) segue congelado até a T24.
+- `estado.js` (estado clonável com semente própria, zonas, mover = objeto novo CR 400.7, filtros/condições RX), `mana.js` (reserva, habilidades de mana, pagar com híbrido/phyrexiano, imposto 903.8, plano de quais fontes virar), `turno.js` (mulligan London 103.5, etapas CR 500, terreno 305 com "entra virado" condicional, ações de estado 704 + 903.9a/903.10a, jogador sai 800.4), `agentes.js` (aleatório, básico, `lerLista`).
+- Ponto único de pergunta: `e.perg = {j, tipo, ops}` → `M.responder(e, k)` continua de onde parou; `M.avancar(e, parar)` para no meio (testes).
+- Ainda não: pilha/conjurar (T15), combate (T16), gatilhos (T17), estáticas (T18), substituições com escolha e 903.9b como pergunta (T19).
+- Testes: `node motor2/testes/casos.js` (41 casos com número da CR) e `node motor2/testes/fuzz.js` (invariantes); os dois no `raiox-testes`.
+
 ## Pendências (ordem sugerida para a próxima conversa)
 - **Novo (24/11):** trocas por sinergia derrubam Rin&Seri (−9 no banco de 30: Beastmaster Ascension → Garruk's Uprising); T09 análise da partida (roadmap).
 - **Novo (20/11):** (a) força do efeito na sinergia (o que o gatilho faz: compra/dreno/ficha > +1/+1 nela mesma > vida); (b) Montar guiado (passo 3) usar a mesma nota (hoje: popularidade + plano do comandante); (c) **terrenos básicos no Montar**: só aparecem no fim (botão "Completar com básicos"), dividem pelos símbolos e não pelas fontes de cada cor (`colorNeed` da Análise) e não descontam as fontes dos terrenos especiais — confirmar com o usuário o que ele esperava; (d) a condição do ramp (Pitiless Plunderer) medida contra o tema, não só contra as cartas que já estão no deck.

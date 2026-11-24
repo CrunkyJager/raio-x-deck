@@ -1414,6 +1414,8 @@ def substituicao(r, f, falta):
     if ev == 'Moved' and d.get('ValidCard') == 'Card.Self' and d.get('Destination') == 'Battlefield' \
             and rw and rw[1] == 'Tap' and rw[2].get('ETB') == 'True':
         s = {'ev': 'entra', 'quem': {'este': True}, 'muda': {'virada': True}}
+        se = condicao(rw[2], {'sv': f['SVar'], 'alvos': [], 'ultAlvo': -1, 'depois': [], 'busca': None}, falta)
+        if se: s['se'] = se          # Dragonskull Summit: só vira se não controla Pântano/Montanha
         if rw[2].get('UnlessCost'):
             c, _ = custo_atv(rw[2]['UnlessCost'], falta)
             s['aMenosQue'] = {'quem': 'voce', 'custo': c}
