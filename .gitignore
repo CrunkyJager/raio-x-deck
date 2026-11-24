@@ -3,3 +3,7 @@ ferramentas/forge/faltam.txt
 __pycache__/
 ferramentas/sinergia/efeitos.json
 ferramentas/precos/myp-bruto.json
+
+# backups e logs locais
+*.bak-*
+ferramentas/calibra/*.log

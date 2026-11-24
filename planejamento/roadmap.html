@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raio-X: Plano de Ação</title>
+<style>
+:root{
+  --bg:#f6f5f1; --panel:#ffffff; --ink:#1d1f24; --muted:#5f6470; --line:#dcd9d0;
+  --accent:#b8860b; --accent-ink:#ffffff; --chip:#efece4;
+  --p1:#b3261e; --p2:#a15c00; --p3:#3b6e3b;
+  --f0:#6b5b95; --f1:#2f6f8f; --f2:#b8860b; --f3:#3b7d4f; --f4:#a0522d; --f5:#4a6fa5; --f6:#8a3d6b; --f7:#7a3b2e;
+  --done:#3b7d4f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171c; --panel:#1e2128; --ink:#e8e6e1; --muted:#a3a7b0; --line:#323642;
+    --accent:#e0b03a; --accent-ink:#1a1a1a; --chip:#2a2e37;
+    --p1:#ef6b62; --p2:#e0a043; --p3:#7cc07c;
+    --f0:#a596d6; --f1:#5fb0d6; --f2:#e0b03a; --f3:#6cc287; --f4:#e08a5a; --f5:#86a8e0; --f6:#d47fb2; --f7:#d9826e;
+    --done:#6cc287;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171c; --panel:#1e2128; --ink:#e8e6e1; --muted:#a3a7b0; --line:#323642;
+  --accent:#e0b03a; --accent-ink:#1a1a1a; --chip:#2a2e37;
+  --p1:#ef6b62; --p2:#e0a043; --p3:#7cc07c;
+  --f0:#a596d6; --f1:#5fb0d6; --f2:#e0b03a; --f3:#6cc287; --f4:#e08a5a; --f5:#86a8e0; --f6:#d47fb2; --f7:#d9826e;
+  --done:#6cc287;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:24px 16px 8px;max-width:1400px;margin:0 auto}
+h1{margin:0 0 4px;font-size:24px}
+.sub{color:var(--muted);margin:0 0 12px;max-width:900px}
+nav{display:flex;gap:6px;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:0 16px 12px;border-bottom:1px solid var(--line)}
+nav button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+main{max-width:1400px;margin:0 auto;padding:16px}
+section{display:none} section.on{display:block}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+h2{font-size:18px;margin:0 0 10px} h3{font-size:15px;margin:0 0 6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.kpi{border-left:4px solid var(--accent);padding:8px 12px;background:var(--chip);border-radius:6px}
+.kpi b{display:block;font-size:14px}
+.kpi span{color:var(--muted);font-size:13px}
+.fbadge{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;color:#fff;white-space:nowrap}
+.pr{font-size:11px;font-weight:700;border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.pr.P1{color:var(--p1)} .pr.P2{color:var(--p2)} .pr.P3{color:var(--p3)}
+/* roadmap */
+.rm{overflow-x:auto}
+.rm table{border-collapse:collapse;width:100%;min-width:760px}
+.rm th,.rm td{border-bottom:1px solid var(--line);padding:6px 4px;font-size:13px;text-align:left;vertical-align:middle}
+.rm th.w{text-align:center;color:var(--muted);font-weight:500;width:7%}
+.bar{height:22px;border-radius:5px;opacity:.9}
+.mk{font-size:13px;color:var(--muted)}
+.phase-card{border-top:4px solid var(--accent)}
+.phase-card ul{margin:6px 0 0;padding-left:18px}
+/* kanban */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filters select,.filters button{font:inherit;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.board{display:grid;grid-template-columns:repeat(5,minmax(230px,1fr));gap:10px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--chip);border-radius:10px;padding:8px;min-height:200px}
+.col h3{display:flex;justify-content:space-between;font-size:14px;padding:2px 4px 8px}
+.col.over{outline:2px dashed var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:grab}
+.card .t{font-weight:600;font-size:14px;margin:4px 0}
+.card .m{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.card select{font-size:12px;margin-top:6px;width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:2px}
+/* 5w2h */
+.tbl{overflow-x:auto}
+.tbl table{border-collapse:collapse;width:100%;min-width:1100px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:8px;vertical-align:top;font-size:13px;text-align:left}
+.tbl th{background:var(--chip);position:sticky;top:0}
+.tbl td:first-child{font-weight:600;min-width:180px}
+/* modal */
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);max-width:720px;width:calc(100% - 32px);padding:0}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.dl{padding:18px}
+.dl dl{display:grid;grid-template-columns:120px 1fr;gap:6px 12px;margin:12px 0 0}
+.dl dt{font-weight:700;color:var(--muted)}
+.dl dd{margin:0}
+.close{float:right;font:inherit;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:8px;padding:4px 10px;cursor:pointer}
+.note{color:var(--muted);font-size:13px}
+.risk td:nth-child(2),.risk td:nth-child(3){white-space:nowrap}
+@media (max-width:700px){ .board{grid-template-columns:repeat(5,85vw)} .dl dl{grid-template-columns:1fr} h1{font-size:20px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Raio-X do Deck: plano de ação</h1>
+  <p class="sub">Objetivo: transformar o Raio-X num produto oficial (site com domínio, instalável) que decida o deck pelo que cada carta faz e quanto pesa, <b>para qualquer plano de jogo</b>, e que funcione e melhore <b>sem depender do Claude</b>. Ponto de partida: 23/11/2026, diagnóstico da Breena.</p>
+</header>
+<nav id="tabs">
+  <button data-t="visao" class="on">Visão geral</button>
+  <button data-t="roadmap">Roadmap</button>
+  <button data-t="kanban">Kanban</button>
+  <button data-t="w2h">5W2H</button>
+  <button data-t="riscos">Riscos e decisões</button>
+</nav>
+<main>
+
+<section id="visao" class="on">
+  <div class="panel">
+    <h2>Por que este plano existe</h2>
+    <p>A Breena (group hug, caos e um pouco de stax) saiu como "vence atacando com auras e equipamentos". O problema não está na Breena. Ele mostrou quatro falhas de base:</p>
+    <div class="grid2">
+      <div class="kpi"><b>1. O plano nasceu do Stangg</b><span>Só o voltron foi desenvolvido de verdade; os outros planos são uma linha cada. Foi sobreajuste a um exemplo.</span></div>
+      <div class="kpi"><b>2. Plano em vários <code>if</code> espalhados</b><span><code>planoDe</code>, <code>valorPlano</code>, <code>planoBox</code> e as faixas. Um plano novo mexe em quatro lugares.</span></div>
+      <div class="kpi"><b>3. A ideia não manda no plano</b><span>A ideia tem só 14 temas, achados por palavra-chave. O plano lê o comandante com regex ("attacks", sem saber quem ataca).</span></div>
+      <div class="kpi"><b>4. O Forge descarta o que importa</b><span>Ficam só seis funções. Não sabe quem age, quem ganha, se é simétrico, trava ou aleatório. A Breena ficou só com "Flying".</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Princípios (valem para toda tarefa)</h2>
+    <div class="grid2">
+      <div class="kpi"><b>Medir antes de mexer</b><span>Toda mudança roda contra o gabarito e o banco de decks. Melhorou e não piorou nada: entra.</span></div>
+      <div class="kpi"><b>Regra é dado, não código</b><span>Planos, sinônimos e pesos ficam em arquivos que dá para editar sem programar.</span></div>
+      <div class="kpi"><b>Dado estruturado antes de regex</b><span>Forge e Scryfall primeiro. A regex fica de reserva e é contada.</span></div>
+      <div class="kpi"><b>"Não sei" é melhor que errado</b><span>Toda decisão mostra de onde veio. Na dúvida, perguntar a ideia.</span></div>
+      <div class="kpi"><b>Nada de exemplo como critério</b><span>Stangg, Krenko, Lathril, Edgar e Breena não servem de critério; a medida é o banco amplo.</span></div>
+      <div class="kpi"><b>Roda sozinho</b><span>Testes e atualização de dados no GitHub Actions. O conhecimento fica no repositório.</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Como saber que deu certo (indicadores)</h2>
+    <div class="grid2">
+      <div class="kpi"><b>Acerto de plano no gabarito</b><span>Linha de base medida na tarefa T06; meta definida depois de medir (proposta: 85% ou mais)</span></div>
+      <div class="kpi"><b>Gabarito de funções (<code>testa.py</code>)</b><span>Sempre 100%; cresce com as marcas novas</span></div>
+      <div class="kpi"><b>Banco de 30 decks</b><span>Nenhuma mudança piora a média sem explicação aprovada</span></div>
+      <div class="kpi"><b>Cartas lidas por regex</b><span>Medidas e caindo a cada rodada (T15)</span></div>
+      <div class="kpi"><b>Coleção nova</b><span>Entra sem trabalho manual (T16)</span></div>
+      <div class="kpi"><b>Teste da Breena</b><span>Acerta group hug + caos + stax sem nenhuma regra com o nome dela</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="panel rm">
+    <h2>Roadmap por fase</h2>
+    <p class="note">Semanas estimadas, contando de 24/11/2026 e umas 2 a 3 sessões por semana. É ordem de prioridade, não prazo fechado. F2 e F3 andam juntas.</p>
+    <table id="rmTable"></table>
+  </div>
+  <div class="grid2" id="phaseCards"></div>
+</section>
+
+<section id="kanban">
+  <div class="filters">
+    <label>Fase <select id="fFase"><option value="">Todas</option></select></label>
+    <label>Prioridade <select id="fPr"><option value="">Todas</option><option>P1</option><option>P2</option><option>P3</option></select></label>
+    <button id="reset" title="Volta as colunas ao estado inicial deste plano">Restaurar colunas</button>
+    <span class="note">Arraste os cartões ou use o seletor. Clique no título para ver o 5W2H. As posições ficam salvas só neste navegador.</span>
+  </div>
+  <div class="board" id="board"></div>
+</section>
+
+<section id="w2h">
+  <div class="filters">
+    <label>Fase <select id="wFase"><option value="">Todas</option></select></label>
+  </div>
+  <div class="tbl panel"><table id="wTable"></table></div>
+</section>
+
+<section id="riscos">
+  <div class="panel tbl risk">
+    <h2>Riscos</h2>
+    <table id="rTable"></table>
+  </div>
+  <div class="panel">
+    <h2>Decisões que são do Felipe</h2>
+    <ol id="decList"></ol>
+  </div>
+</section>
+</main>
+
+<dialog id="dlg"><div class="dl" id="dlgBody"></div></dialog>
+
+<script>
+const FASES = {
+  F0:{n:'F0 · Diagnóstico e chão firme', c:'--f0', ini:1, fim:1, meta:'Saber o que pode (licenças) e conseguir rodar os testes aqui.',
+      entrega:['Resumo das licenças com link e trecho','Node instalado e testes atuais rodando','Modelo do produto decidido']},
+  F1:{n:'F1 · Base que se garante sozinha', c:'--f1', ini:1, fim:3, meta:'Ter como medir o acerto e travar qualquer piora automaticamente.',
+      entrega:['Lista de planos definida','Gabarito de planos (80 a 100 comandantes)','Linha de base do sistema atual','Testes automáticos no GitHub','Skill e guia de trabalho']},
+  F2:{n:'F2 · Planos como dado', c:'--f2', ini:3, fim:5, meta:'A ideia escrita manda no plano, e os planos vivem num catálogo.',
+      entrega:['planos.js com o voltron migrado sem mudar resultado','Ordem ideia → palpite → "não sei"','Planos novos: política/goad, group hug, stax, caos, pillow fort…','Planos combinados com peso']},
+  F3:{n:'F3 · Leitura estruturada das cartas', c:'--f3', ini:3, fim:6, meta:'Cada carta descrita por quem age, quem ganha e o efeito, sem regex.',
+      entrega:['Conversor do Forge com gatilhos','Marcas: simétrico, trava, goad, aleatório, troca de controle','Regex só de reserva e medida','Atualização semanal automática']},
+  F4:{n:'F4 · Aprender com quem usa', c:'--f4', ini:6, fim:7, meta:'Os erros reais viram casos de teste.',
+      entrega:['Botão "isso está errado"','Rotina de triagem para o gabarito']},
+  F5:{n:'F5 · Código que outra pessoa mantém', c:'--f5', ini:7, fim:8, meta:'Separar o analise.js e documentar a arquitetura.',
+      entrega:['Módulos: dados, regras, motor, tela','ARQUITETURA.md e guia de contribuição']},
+  F6:{n:'F6 · Lançamento', c:'--f6', ini:8, fim:10, meta:'Domínio, app instalável, créditos e teste com jogadores.',
+      entrega:['Cópia local do EDHREC ou permissão','PWA','Domínio + página de créditos e licenças','Beta com 5 a 10 jogadores']},
+  F7:{n:'F7 · Motor próprio', c:'--f7', ini:2, fim:8, meta:'Motor do zero com regras completas e formato de carta próprio; a Mesa prova os pesos sem atalho.',
+      entrega:['Formato de carta RX + conversor Forge/Scryfall','Núcleo: turno, pilha, prioridade, combate, gatilhos, camadas, substituição','IA que joga com os pesos do Raio-X','Mesma API do Worker; motor velho aposentado']},
+};
+const MARCOS = [
+  {s:3, t:'Linha de base medida: sabemos quanto o sistema erra'},
+  {s:5, t:'Teste da Breena: plano certo sem regra com o nome dela'},
+  {s:6, t:'Coleção nova entra sozinha'},
+  {s:10,t:'Beta público'},
+];
+const COLS = [['backlog','Backlog'],['proximo','Próximo'],['fazendo','Fazendo'],['revisao','Revisão do Felipe'],['feito','Feito']];
+
+// o quê, por quê, quem, onde, quando, como, quanto
+const T = [
+ {id:'T00',f:'F0',p:'P1',col:'feito',t:'Diagnóstico do caso Breena',
+  o:'Entender por que o plano da Breena saiu voltron.', pq:'O deck foi montado para testar o sistema; o erro mostrou falhas de base.', q:'Claude analisou; Felipe direcionou.', on:'analise.js (planoDe, CONCEITOS), forge-db.js', qd:'23/11/2026', cm:'Leitura do código e varredura de todos os comandantes do banco: uns 20 caem no mesmo erro.', qt:'Feito.'},
+ {id:'T01',f:'F0',p:'P1',col:'proximo',t:'Conferir licenças e regras de uso',
+  o:'Resumir o que pode e o que não pode: Forge (GPL-3), política de conteúdo de fã da Wizards, Scryfall, EDHREC e LigaMagic.', pq:'Pode mudar o caminho: abrir o código, monetizar, copiar dados do EDHREC.', q:'Claude pesquisa na fonte; Felipe decide.', on:'planejamento/licencas.md', qd:'Semana 1', cm:'Ler os textos oficiais e registrar link, trecho e o que isso significa para o Raio-X. Nada de memória.', qt:'1 sessão · R$ 0'},
+ {id:'T02',f:'F0',p:'P1',col:'proximo',t:'Instalar o Node e rodar os testes atuais',
+  o:'Deixar lacunas.js, partida.js e testa.py rodando neste PC.', pq:'Hoje o node nem está instalado aqui; teste que não roda não protege nada.', q:'Claude.', on:'WSL do PC do Felipe', qd:'Semana 1', cm:'Instalar o Node LTS, rodar os testes e anotar o resultado como referência.', qt:'0,5 sessão · R$ 0'},
+ {id:'T03',f:'F0',p:'P2',col:'backlog',t:'Decidir o modelo do produto',
+  o:'Nome, domínio, gratuito, com doação ou com anúncio.', pq:'As licenças (T01) limitam o que dá para cobrar; o modelo muda prioridades de F6.', q:'Felipe.', on:'Decisões (aba Riscos)', qd:'Depois de T01', cm:'Claude apresenta opções com o que cada licença permite; Felipe escolhe.', qt:'Conversa curta · R$ 0'},
+ {id:'T04',f:'F1',p:'P1',col:'proximo',t:'Definir a lista de planos',
+  o:'Nome, definição curta e fonte de cada plano: voltron, política/goad, group hug, stax, caos, pillow fort, fichas, aristocratas, mágicas, cemitério, artefatos, encantamentos, landfall, marcadores, tribo, combo…', pq:'O gabarito e o catálogo precisam do mesmo vocabulário.', q:'Claude propõe com fonte (tags e temas do EDHREC, guias); Felipe aprova.', on:'planejamento/planos.md (vira planos.js em F2)', qd:'Semana 1–2', cm:'Partir dos temas do EDHREC; juntar sinônimos; separar plano (como ganha) de tema (o que o deck tem).', qt:'1 sessão · R$ 0'},
+ {id:'T05',f:'F1',p:'P1',col:'backlog',t:'Montar o gabarito de planos',
+  o:'De 80 a 100 comandantes de cores e arquétipos variados, cada um com o plano ou os planos esperados.', pq:'Sem gabarito ninguém mede se o sistema acerta o plano.', q:'Claude monta; Felipe revisa os duvidosos.', on:'ferramentas/gabarito/planos.json', qd:'Semana 2', cm:'Base nas tags do EDHREC de cada comandante, com revisão humana. Incluir de propósito os casos difíceis (politica, group hug, stax). Os 4 exemplos não servem de critério.', qt:'2 sessões · R$ 0'},
+ {id:'T06',f:'F1',p:'P1',col:'backlog',t:'Medir a linha de base',
+  o:'Rodar o sistema de hoje contra o gabarito.', pq:'Saber de onde partimos e que tipo de erro domina.', q:'Claude.', on:'ferramentas/gabarito/ (relatório)', qd:'Semana 2–3', cm:'Script que passa cada comandante pelo planoDe e compara; relatório com % de acerto e erros agrupados.', qt:'0,5 sessão · R$ 0'},
+ {id:'T07',f:'F1',p:'P1',col:'backlog',t:'Testes automáticos no GitHub (Actions)',
+  o:'A cada push: testa.py, gabarito de planos e banco de 30 decks. Se piorar, não publica.', pq:'A qualidade passa a depender do teste, não da memória de alguém.', q:'Claude configura; Felipe aprova o primeiro push.', on:'.github/workflows/', qd:'Semana 3', cm:'Workflow com Node e Python; resumo do resultado no próprio PR/commit; publicação do Pages só com testes verdes.', qt:'1 sessão · R$ 0 (Actions grátis para repositório público)'},
+ {id:'T27',f:'F1',p:'P1',col:'proximo',t:'Modo partida jogável',
+  o:'Você joga contra um deck no site: mulligan, mão, terrenos, mágicas com alvo, combate e pilha na mesma tela da Mesa; o motor joga pelo outro lado.', pq:'Validar se os decks de base de cada arquétipo são bons de verdade jogando contra eles; no beta os amigos colocam os decks deles e dão feedback.', q:'Claude constrói; Felipe joga e aprova.', on:'mesa-ui.js + motor/ (decisões do humano no lugar da IA)', qd:'Logo depois da T07', cm:'Começar pelo mínimo jogável (mão, terreno, conjurar, atacar/bloquear) e crescer para alvo, pilha e respostas; mesmo motor das partidas simuladas, testes da T07 iguais.', qt:'6–10 sessões · R$ 0'},
+ {id:'T28',f:'F1',p:'P1',col:'backlog',t:'Análise da partida (como no xadrez)',
+  o:'No fim da partida, botão Analisar: para cada escolha sua o motor testa as opções (Monte Carlo, 100–200 partidas cada, grimório e mãos dos outros re-embaralhados) e classifica: melhor jogada, boa, imprecisão, erro, erro grave — pela % de vitória perdida, com o motivo em português (ex.: “Fling no jogador em vez de matar o Krenko: −13% de vitória, o Krenko gerou 6 fichas depois”). Opcional: dica ao vivo durante a partida.', pq:'Pedido do Felipe (23/11): ver as melhores jogadas que o jogador poderia fazer, sem trapacear com o que está escondido.', q:'Claude constrói; Felipe joga e aprova.', on:'motor/worker.js (busca), mesa-ui.js (selo da dica + revisão)', qd:'Depois da T27', cm:'Busca por amostragem (Monte Carlo) sobre as escolhas do humano; nunca usa a ordem real do grimório nem a mão dos oponentes; botão liga/desliga; sem travar a tela.', qt:'2 sessões · R$ 0'},
+ {id:'T29',f:'F7',p:'P1',col:'backlog',t:'Cobertura do Forge nos nossos decks',
+  o:'Medir quais gatilhos, efeitos, estáticas, substituições e palavras-chave aparecem nas cartas do cards-db e do banco de 30, por frequência.', pq:'Define a ordem do núcleo: primeiro o que mais aparece nos decks de verdade.', q:'Claude.', on:'ferramentas/rx/cobertura.py', qd:'Depois da anterior', cm:'Ler os roteiros do Forge (já baixados em src/); tabela por modo com exemplos.', qt:'0,5–1 sessão · R$ 0'},
+ {id:'T30',f:'F7',p:'P1',col:'backlog',t:'Formato de carta RX',
+  o:'Esquema JSON próprio (kw, atv, gat, est, sub, fx, faces, filtros) + 20 cartas difíceis escritas à mão como gabarito (Anje’s Ravager, Stangg, Krenko…).', pq:'Um formato só para o motor e para os pesos; nada de inglês no motor.', q:'Claude.', on:'planejamento/motor-novo.md + ferramentas/rx/esquema.json, esperado_rx.json', qd:'Depois da anterior', cm:'Vocabulário fechado de op (os ~67 efeitos que cobrem 95%); campo falta para o que não entende.', qt:'1 sessão · R$ 0'},
+ {id:'T31',f:'F7',p:'P1',col:'backlog',t:'Conversor Forge/Scryfall → RX (v1)',
+  o:'Permanentes simples, mágicas, ativadas, palavras-chave e custos.', pq:'Sai a regex e o forge-motor.js pela metade.', q:'Claude.', on:'ferramentas/rx/converte_rx.py → cartas-rx.js', qd:'Depois da anterior', cm:'Reaproveitar params/le_arquivo do converte.py; testa_rx.py 100% antes de commit.', qt:'2 sessões · R$ 0'},
+ {id:'T32',f:'F7',p:'P1',col:'backlog',t:'Núcleo 1: estado, turno, mana',
+  o:'Estado clonável, zonas, fases e passos, reserva de mana e custos, ações baseadas em estado, regras do Commander.', pq:'Chão do motor; clonar o estado é o que a IA e a análise usam.', q:'Claude.', on:'motor2/', qd:'Depois da anterior', cm:'Casos de regra com número da CR (T25) desde o primeiro dia.', qt:'2 sessões · R$ 0'},
+ {id:'T33',f:'F7',p:'P1',col:'backlog',t:'Núcleo 2: pilha e prioridade',
+  o:'Lançar e ativar, alvos, passar prioridade, responder, resolver, anular.', pq:'Sem pilha não existe resposta nem instantânea de verdade.', q:'Claude.', on:'motor2/', qd:'Depois da anterior', cm:'CR 405, 601, 602, 608; casos de regra.', qt:'2 sessões · R$ 0'},
+ {id:'T34',f:'F7',p:'P1',col:'backlog',t:'Núcleo 3: combate',
+  o:'Ataque multijogador (jogador/planeswalker/batalha), bloqueio, primeiro ataque, atropelar, toque mortífero, deve atacar, dano de comandante.', pq:'Onde o motor velho mais erra (Anje’s Ravager).', q:'Claude.', on:'motor2/', qd:'Depois da anterior', cm:'CR 506–511; casos de regra.', qt:'1–2 sessões · R$ 0'},
+ {id:'T35',f:'F7',p:'P1',col:'backlog',t:'Núcleo 4: gatilhos',
+  o:'Eventos do núcleo, fila APNAP, gatilhos atrasados e reflexivos, condição de intervenção.', pq:'Metade dos efeitos dos decks são gatilhos (ChangesZone, Phase, Attacks, SpellCast).', q:'Claude.', on:'motor2/', qd:'Depois da anterior', cm:'CR 603; ordem por frequência da T29.', qt:'2 sessões · R$ 0'},
+ {id:'T36',f:'F7',p:'P1',col:'backlog',t:'Núcleo 5: estáticas e camadas',
+  o:'Lordes, anexos, ganhar habilidade, cópia, controle, P/T 7a–7d, timestamps e dependência.', pq:'Conserta por regra o Stangg 36 bilhões e as auras/equipamentos.', q:'Claude.', on:'motor2/', qd:'Depois da anterior', cm:'CR 613; casos de regra.', qt:'2 sessões · R$ 0'},
+ {id:'T37',f:'F7',p:'P1',col:'backlog',t:'Núcleo 6: substituição e custos alternativos',
+  o:'Em vez de / prevenção, madness, flashback, kicker, evoke, convoke, imposto do comandante.', pq:'Fecha as regras completas.', q:'Claude.', on:'motor2/', qd:'Depois da anterior', cm:'CR 614–616, 702; casos de regra.', qt:'2 sessões · R$ 0'},
+ {id:'T38',f:'F7',p:'P1',col:'backlog',t:'Conversor v2: gatilhos, estáticas, substituições',
+  o:'Converter o resto do Forge para RX até ≥95% das cartas do banco de 30 sem falta.', pq:'Cobertura medida, não adivinhada.', q:'Claude.', on:'ferramentas/rx/', qd:'Depois da anterior', cm:'Relatório de cobertura no CI; o mesmo RX passa a alimentar os pesos (absorve a T13).', qt:'2 sessões · R$ 0'},
+ {id:'T39',f:'F7',p:'P1',col:'backlog',t:'IA que joga',
+  o:'Avaliação do estado + política por tipo de pergunta, valor das cartas pelos pesos do Raio-X, Monte Carlo nas decisões grandes.', pq:'É onde a Mesa prova os pesos.', q:'Claude.', on:'motor2/ia.js', qd:'Depois da anterior', cm:'Reaproveitar analisa/explica da T28 em cima do clone.', qt:'2 sessões · R$ 0'},
+ {id:'T40',f:'F7',p:'P1',col:'backlog',t:'Worker e Mesa no motor novo',
+  o:'Mesma API do Worker (torneio, partida, jogar, estudo, trocas, analisar, variantes); humano continua de onde parou; chave motor novo (beta) na tela.', pq:'A tela da T27/T28 serve igual; troca sem quebrar o site.', q:'Claude.', on:'motor2/worker.js, mesa-ui.js', qd:'Depois da anterior', cm:'Comparar lado a lado com o velho nos 4 exemplos.', qt:'1–2 sessões · R$ 0'},
+ {id:'T41',f:'F7',p:'P1',col:'backlog',t:'Testes no CI e desempenho',
+  o:'Casos de regra, fumaça por carta, fuzz de invariantes e meta de ≥10 partidas/s por núcleo.', pq:'Travar piora automaticamente.', q:'Claude.', on:'ferramentas/ci/', qd:'Depois da anterior', cm:'GitHub Actions da T07.', qt:'1 sessão · R$ 0'},
+ {id:'T42',f:'F7',p:'P1',col:'backlog',t:'Migração e aposentar o motor velho',
+  o:'Banco de 30 e análise da T28 no motor novo, decks de oponente próprios (sai o oponentes-edhrec.js), motor novo vira padrão, sai engine.js/mesa.js/forge-motor.js/lacunas.js.', pq:'Um motor só.', q:'Claude.', on:'repo inteiro', qd:'Depois da anterior', cm:'Só depois da T41 verde e do ok do Felipe.', qt:'1 sessão · R$ 0'},
+ {id:'T08',f:'F1',p:'P1',col:'proximo',t:'Skill raio-x e guia de trabalho',
+  o:'Roteiro de como ler uma carta, como mexer em plano e como validar. Skill leve (~1,5–2 mil tokens) no molde do /sac + scripts: raiox-retomar, raiox-fim (gasto + andamento + retomar), raiox-testes (linha de base resumida).', pq:'Toda sessão segue o mesmo padrão de qualidade; outra pessoa usa o mesmo guia.', q:'Claude escreve; Felipe aprova.', on:'CONTRIBUINDO.md no repositório + skill que aponta para ele', qd:'Semana 3', cm:'O conhecimento fica no repositório; a skill só aponta para o guia e obriga a rodar a validação.', qt:'0,5 sessão · R$ 0'},
+ {id:'T09',f:'F2',p:'P1',col:'backlog',t:'Catálogo planos.js',
+  o:'Cada plano declara sinônimos, tag do EDHREC, o que quer (funções com peso), faixas e texto do quadro.', pq:'Plano novo vira uma entrada, não quatro if espalhados.', q:'Claude.', on:'planos.js; analise.js lê dele', qd:'Semana 3–4', cm:'Migrar primeiro voltron, ataque, goad e tribo SEM mudar resultado (banco igual), só depois acrescentar planos.', qt:'2 sessões · R$ 0'},
+ {id:'T10',f:'F2',p:'P1',col:'backlog',t:'A ideia manda no plano',
+  o:'Ordem: ideia escrita → palpite pelos dados do comandante (Forge + EDHREC) → "não sei, me diga a ideia".', pq:'Hoje a ideia só mexe na sinergia e o plano ignora o que você escreveu.', q:'Claude.', on:'analise.js (planoDe, painel da ideia), montar.js', qd:'Semana 4', cm:'Quadro mostra a fonte do plano; o próprio deck nunca serve de prova do plano; texto do quadro vem do catálogo.', qt:'1–2 sessões · R$ 0'},
+ {id:'T11',f:'F2',p:'P1',col:'backlog',t:'Planos novos',
+  o:'Política/goad, group hug, stax, caos, pillow fort; depois fichas, aristocratas, mágicas.', pq:'Sem eles o sistema empurra todo deck para ataque/voltron.', q:'Claude propõe com fonte; Felipe aprova.', on:'planos.js + casos no gabarito', qd:'Semana 4–5', cm:'Cada plano entra com fonte, com o que quer e com casos no gabarito. O peso por carta usa as marcas da T14.', qt:'2–3 sessões · R$ 0'},
+ {id:'T12',f:'F2',p:'P2',col:'backlog',t:'Planos combinados com peso',
+  o:'Por exemplo: group hug 50% + caos 30% + stax 20%.', pq:'Decks reais misturam planos; a Breena é um deles.', q:'Claude.', on:'planos.js, valorPlano', qd:'Semana 5', cm:'Nota da carta = soma ponderada das notas por plano; tela mostra a mistura.', qt:'1 sessão · R$ 0'},
+ {id:'T13',f:'F3',p:'P1',col:'backlog',t:'Conversor do Forge com gatilhos',
+  o:'Guardar evento (ataque, dano, conjuração, morte…), quem age, quem ganha e o efeito. Absorvida pela T38 (formato RX alimenta os pesos).', pq:'É o que diferencia "Breena ataca" de "um jogador ataca um oponente".', q:'Claude.', on:'ferramentas/forge/converte.py → forge-db.js', qd:'Semana 3–5', cm:'Ler os parâmetros do roteiro do Forge (Mode, ValidCard, ValidAttackingPlayer…); casos novos no esperado.json.', qt:'2–3 sessões · R$ 0'},
+ {id:'T14',f:'F3',p:'P1',col:'backlog',t:'Marcas novas por carta',
+  o:'Simétrico (todos ganham), trava (e quem sofre mais), goad, aleatório, troca de controle.', pq:'Sem isso não há peso para cartas de group hug, stax e caos.', q:'Claude.', on:'converte.py, testa.py', qd:'Semana 5–6', cm:'Marcas vindas do Forge, cada uma com casos no gabarito de funções.', qt:'2 sessões · R$ 0'},
+ {id:'T15',f:'F3',p:'P2',col:'backlog',t:'Regex só de reserva, e medida',
+  o:'Relatório de quantas cartas caem na regex e quais.', pq:'O que não é medido volta a crescer.', q:'Claude.', on:'ferramentas/ (relatório) + CI', qd:'Semana 6', cm:'Contador no CI; meta de queda a cada rodada.', qt:'1 sessão · R$ 0'},
+ {id:'T16',f:'F3',p:'P1',col:'backlog',t:'Atualização semanal automática',
+  o:'Baixar Scryfall e Forge, regenerar os dados, testar e publicar se passar.', pq:'Coleção nova sai a cada poucos meses; hoje depende de alguém rodar o conversor.', q:'Robô (Actions agendado); Felipe recebe aviso se falhar.', on:'.github/workflows/dados.yml', qd:'Semana 6', cm:'Cron semanal; abre PR com o diff dos dados; publica só com testes verdes.', qt:'1 sessão · R$ 0'},
+ {id:'T17',f:'F4',p:'P2',col:'backlog',t:'Botão "isso está errado"',
+  o:'Usuário marca plano, troca ou função errada, com comentário.', pq:'Os erros reais de quem usa viram casos de teste.', q:'Claude; Felipe cria a planilha.', on:'Apps Script + planilha (mesma técnica do EMEIC)', qd:'Semana 6–7', cm:'Envia comandante, lista, o que saiu e o que a pessoa esperava. Sem dados pessoais.', qt:'1–2 sessões · R$ 0'},
+ {id:'T18',f:'F4',p:'P2',col:'backlog',t:'Triagem das correções',
+  o:'Rotina para revisar correções e transformar as válidas em casos do gabarito.', pq:'Correção sem revisão pode ensinar errado.', q:'Felipe revisa; script prepara.', on:'ferramentas/gabarito/', qd:'Semana 7 em diante', cm:'Script lista correções novas agrupadas; aprovada vira caso.', qt:'0,5 sessão + 15 min/semana'},
+ {id:'T19',f:'F5',p:'P2',col:'backlog',t:'Separar o analise.js',
+  o:'Módulos: dados, regras, leitura de carta, motor, tela.', pq:'Arquivo único com tudo misturado só eu consigo mexer.', q:'Claude.', on:'Repositório inteiro', qd:'Semana 7–8', cm:'Mudança mecânica protegida pelos testes da T07: resultado idêntico antes e depois.', qt:'2–3 sessões · R$ 0'},
+ {id:'T20',f:'F5',p:'P3',col:'backlog',t:'Documentar a arquitetura',
+  o:'ARQUITETURA.md: como os dados fluem e onde mexer para cada coisa.', pq:'Outra pessoa entra no projeto sem precisar de mim.', q:'Claude.', on:'ARQUITETURA.md', qd:'Semana 8', cm:'Diagrama simples e um roteiro "quero adicionar um plano".', qt:'1 sessão · R$ 0'},
+ {id:'T21',f:'F6',p:'P2',col:'backlog',t:'EDHREC: cópia local ou permissão',
+  o:'Parar de depender do json.edhrec.com ao vivo.', pq:'Não há API oficial; pode mudar ou bloquear e o site quebra.', q:'Claude; Felipe decide se pede permissão.', on:'dados/edhrec/', qd:'Semana 8', cm:'Depende do que T01 disser sobre os termos de uso.', qt:'1 sessão · R$ 0'},
+ {id:'T22',f:'F6',p:'P3',col:'backlog',t:'App instalável (PWA)',
+  o:'Instalar no PC e no celular, funcionar sem internet.', pq:'Experiência de software sem manter programa de desktop.', q:'Claude.', on:'manifest + service worker', qd:'Semana 9', cm:'Cache dos dados e do site.', qt:'1 sessão · R$ 0'},
+ {id:'T23',f:'F6',p:'P2',col:'backlog',t:'Domínio e página de créditos',
+  o:'Domínio próprio no GitHub Pages; página com créditos e licenças (Forge GPL, Scryfall, Wizards).', pq:'Cara de produto oficial e obrigações das licenças cumpridas.', q:'Felipe registra o domínio; Claude configura.', on:'registro.br + configurações do Pages', qd:'Semana 9', cm:'Depende de T03.', qt:'0,5 sessão · custo do domínio (conferir no registro.br)'},
+ {id:'T24',f:'F6',p:'P2',col:'backlog',t:'Beta com jogadores',
+  o:'De 5 a 10 pessoas usando com os próprios decks.', pq:'O teste que nenhum gabarito substitui.', q:'Felipe convida; botão da T17 coleta.', on:'Site', qd:'Semana 10', cm:'Pedir decks de planos variados; correções entram pela T18.', qt:'2 semanas de uso · R$ 0'},
+ {id:'T25',f:'F1',p:'P1',col:'proximo',t:'Regras do Magic consultáveis',
+  o:'Regras Completas e regras do Commander baixadas da fonte oficial, script regra <número|palavra> que devolve só o trecho e índice curto das seções que o motor e a análise usam.', pq:'Não errar regra de memória sem pagar 250 mil tokens lendo o manual.', q:'Claude.', on:'regras/ + ~/.local/bin/regra', qd:'Semana 1–2', cm:'Texto oficial da Wizards (txt) + índice na skill; consulta por grep.', qt:'0,5 sessão · R$ 0'},
+ {id:'T26',f:'F1',p:'P2',col:'backlog',t:'Base de documentação (docs/)',
+  o:'README, ARQUITETURA, DECISOES/ (uma página por decisão), CHANGELOG; NOTAS.md repartido aos poucos.', pq:'Projeto sério: qualquer um (ou outra sessão) entende sem ler o código.', q:'Claude; Felipe traz projetos do amigo DEV como modelo.', on:'docs/', qd:'Depois da T08', cm:'Estudar só a casca (README/docs) dos projetos do amigo e copiar o padrão.', qt:'1 sessão · R$ 0'},
+];
+
+const RISCOS = [
+ ['Licença do Forge (GPL-3) obriga código aberto','Alta','Certa','Manter o repositório público e créditos visíveis; decidir monetização sabendo disso (T01, T03).'],
+ ['EDHREC muda ou bloqueia o acesso','Alta','Média','Cópia local dos dados ou permissão (T21); o sistema funciona sem EDHREC, só perde a segunda opinião.'],
+ ['Política de fã da Wizards limita monetização','Média','Média','Conferir antes de escolher o modelo (T01, T03).'],
+ ['Gabarito enviesado (só decks populares)','Alta','Média','Incluir casos difíceis de propósito; revisão do Felipe; correções do beta (T05, T18).'],
+ ['Forge demora a ter cartas novas','Média','Alta','Regex de reserva medida (T15); atualização semanal (T16).'],
+ ['Refatorar quebra o que funciona','Média','Média','Só refatorar depois dos testes automáticos, com resultado idêntico (T07 antes de T19).'],
+ ['Motor de regras completas é grande (20–25 sessões) e lento','Alta','Alta','Cobertura pela frequência nos nossos decks (T29); motor velho segue no ar até a T41 passar; meta de desempenho medida no CI.'],
+ ['Escopo cresce (motor, Mesa, preços)','Média','Alta','Mesa e motor são prova, não assunto; novidades entram no backlog com prioridade.'],
+];
+const DECISOES = [
+ 'Modelo do produto: gratuito, doação ou anúncio (depois da T01).',
+ 'Nome e domínio.',
+ 'Aprovar a lista de planos (T04) e revisar os duvidosos do gabarito (T05).',
+ 'Meta de acerto de plano, depois de ver a linha de base (T06).',
+ 'Pedir ou não permissão ao EDHREC (T21).',
+ 'Quem participa do beta (T24).',
+];
+
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fcol = f=>`var(${FASES[f].c})`;
+const badge = f=>`<span class="fbadge" style="background:${fcol(f)}">${f}</span>`;
+
+// tabs
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id===b.dataset.t));
+  try{localStorage.setItem('rx-tab',b.dataset.t)}catch(e){}
+});
+try{const t=localStorage.getItem('rx-tab'); if(t){const b=document.querySelector(`#tabs button[data-t="${t}"]`); b&&b.click();}}catch(e){}
+
+// roadmap
+(function(){
+  const W=10; let h='<tr><th>Fase</th>'+Array.from({length:W},(_,i)=>`<th class="w">S${i+1}</th>`).join('')+'</tr>';
+  for(const [k,f] of Object.entries(FASES)){
+    h+=`<tr><td>${badge(k)} ${esc(f.n.split('· ')[1])}</td>`;
+    for(let s=1;s<=W;s++){
+      if(s===f.ini) h+=`<td colspan="${f.fim-f.ini+1}"><div class="bar" style="background:${fcol(k)}" title="${esc(f.meta)}"></div></td>`;
+      else if(s>f.ini && s<=f.fim) continue; else h+='<td></td>';
+    }
+    h+='</tr>';
+  }
+  h+='<tr><td><b>Marcos</b></td>';
+  for(let s=1;s<=W;s++){const m=MARCOS.filter(x=>x.s===s); h+=`<td class="mk" title="${esc(m.map(x=>x.t).join(' · '))}">${m.length?'◆':''}</td>`}
+  h+='</tr>';
+  $('#rmTable').innerHTML=h;
+  $('#phaseCards').innerHTML=Object.entries(FASES).map(([k,f])=>`<div class="panel phase-card" style="border-top-color:${fcol(k)}"><h3>${esc(f.n)} <span class="note">(S${f.ini}${f.fim>f.ini?'–S'+f.fim:''})</span></h3><p>${esc(f.meta)}</p><b class="note">Entregas</b><ul>${f.entrega.map(e=>`<li>${esc(e)}</li>`).join('')}</ul><p class="note">${T.filter(t=>t.f===k).map(t=>t.id).join(', ')}</p></div>`).join('')
+    +`<div class="panel"><h3>Marcos</h3><ul>${MARCOS.map(m=>`<li><b>S${m.s}</b>: ${esc(m.t)}</li>`).join('')}</ul></div>`;
+})();
+
+// fase filters
+for(const sel of ['#fFase','#wFase']) $(sel).innerHTML+=Object.entries(FASES).map(([k,f])=>`<option value="${k}">${esc(f.n)}</option>`).join('');
+
+// kanban state
+const KEY='rx-kanban-v1';
+let pos={}; try{pos=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){pos={}}
+const colOf=t=>pos[t.id]||t.col;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(pos))}catch(e){}};
+
+function renderBoard(){
+  const ff=$('#fFase').value, fp=$('#fPr').value;
+  const vis=T.filter(t=>(!ff||t.f===ff)&&(!fp||t.p===fp));
+  $('#board').innerHTML=COLS.map(([k,n])=>{
+    const cs=vis.filter(t=>colOf(t)===k);
+    return `<div class="col" data-col="${k}"><h3>${n}<span class="note">${cs.length}</span></h3>${cs.map(t=>`
+      <div class="card" draggable="true" data-id="${t.id}" style="border-left-color:${fcol(t.f)}">
+        <div class="m">${badge(t.f)} <span class="pr ${t.p}">${t.p}</span> <span>${t.id}</span></div>
+        <div class="t"><a href="#" data-open="${t.id}" style="color:inherit">${esc(t.t)}</a></div>
+        <div class="m">${esc(t.qd)} · ${esc(t.qt)}</div>
+        <select data-mv="${t.id}" aria-label="Mover ${esc(t.t)}">${COLS.map(([c,cn])=>`<option value="${c}"${c===k?' selected':''}>${cn}</option>`).join('')}</select>
+      </div>`).join('')}</div>`;
+  }).join('');
+}
+$('#board').addEventListener('dragstart',e=>{const c=e.target.closest('.card'); if(c) e.dataTransfer.setData('text/plain',c.dataset.id)});
+$('#board').addEventListener('dragover',e=>{const c=e.target.closest('.col'); if(c){e.preventDefault(); c.classList.add('over')}});
+$('#board').addEventListener('dragleave',e=>{const c=e.target.closest('.col'); if(c) c.classList.remove('over')});
+$('#board').addEventListener('drop',e=>{const c=e.target.closest('.col'); if(!c)return; e.preventDefault(); pos[e.dataTransfer.getData('text/plain')]=c.dataset.col; save(); renderBoard()});
+$('#board').addEventListener('change',e=>{const id=e.target.dataset.mv; if(id){pos[id]=e.target.value; save(); renderBoard()}});
+document.addEventListener('click',e=>{const a=e.target.closest('[data-open]'); if(a){e.preventDefault(); openTask(a.dataset.open)}});
+$('#fFase').onchange=renderBoard; $('#fPr').onchange=renderBoard;
+$('#reset').onclick=()=>{pos={}; save(); renderBoard()};
+
+function openTask(id){
+  const t=T.find(x=>x.id===id); const cn=Object.fromEntries(COLS)[colOf(t)];
+  $('#dlgBody').innerHTML=`<button class="close" onclick="dlg.close()">Fechar</button>
+    <div class="m note">${badge(t.f)} <span class="pr ${t.p}">${t.p}</span> ${t.id} · ${esc(FASES[t.f].n)} · ${cn}</div>
+    <h2 style="margin-top:8px">${esc(t.t)}</h2>
+    <dl><dt>O quê</dt><dd>${esc(t.o)}</dd><dt>Por quê</dt><dd>${esc(t.pq)}</dd><dt>Quem</dt><dd>${esc(t.q)}</dd>
+    <dt>Onde</dt><dd>${esc(t.on)}</dd><dt>Quando</dt><dd>${esc(t.qd)}</dd><dt>Como</dt><dd>${esc(t.cm)}</dd><dt>Quanto</dt><dd>${esc(t.qt)}</dd></dl>`;
+  $('#dlg').showModal();
+}
+
+// 5w2h table
+function renderW(){
+  const ff=$('#wFase').value;
+  $('#wTable').innerHTML='<tr><th>Tarefa</th><th>O quê</th><th>Por quê</th><th>Quem</th><th>Onde</th><th>Quando</th><th>Como</th><th>Quanto</th></tr>'+
+    T.filter(t=>!ff||t.f===ff).map(t=>`<tr><td>${badge(t.f)} <span class="pr ${t.p}">${t.p}</span> ${t.id}<br>${esc(t.t)}</td><td>${esc(t.o)}</td><td>${esc(t.pq)}</td><td>${esc(t.q)}</td><td>${esc(t.on)}</td><td>${esc(t.qd)}</td><td>${esc(t.cm)}</td><td>${esc(t.qt)}</td></tr>`).join('');
+}
+$('#wFase').onchange=renderW;
+
+$('#rTable').innerHTML='<tr><th>Risco</th><th>Impacto</th><th>Chance</th><th>Resposta</th></tr>'+RISCOS.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('');
+$('#decList').innerHTML=DECISOES.map(d=>`<li>${esc(d)}</li>`).join('');
+
+renderBoard(); renderW();
+</script>
+</body>
+</html>
