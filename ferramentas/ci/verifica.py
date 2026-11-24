@@ -38,7 +38,7 @@ else:
     linhas.append(f"| partida erros | {err} | 0 | {'✔' if err == 0 else '✘'} |")
     if err: falhas.append(f'partida.js com {err} erros:\n' + out[-1500:])
 
-# 2b) modo jogável (T27): um "humano robô" responde as perguntas do motor; a partida tem que chegar ao fim sem erro
+# 2b) modo jogável (T08): um "humano robô" responde as perguntas do motor; a partida tem que chegar ao fim sem erro
 for dk in ('Stangg', 'Krenko', 'Lathril', 'Edgar'):
     rc, out = roda(['node', 'ferramentas/jogavel.js', dk, '20', '1'])
     m = re.search(r'(\d+)/(\d+) partidas até o fim, erros (\d+)', out)

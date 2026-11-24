@@ -9,3 +9,6 @@ Consequências para as próximas tarefas:
 - Pôr LICENSE (GPL-3) + aviso de não oficial antes de divulgar (T26 / publicação).
 - T04/T05: sinais de plano não podem depender do EDHREC no site.
 - Trocar oponentes-edhrec.js por decks próprios/abertos (anotar como tarefa nova no roadmap).
+
+# Renumeração das tarefas (24/11/2026 — Felipe)
+O número agora segue a ordem de execução. Antigo → novo: T27→T08 (partida jogável), T28→T09 (análise estilo xadrez), T25→T10 (regras), T29–T42→T11–T24 (motor próprio, F7), T08→T25 (guia), T26 igual, T09–T24→T27–T42. Commits antigos citam os números velhos.

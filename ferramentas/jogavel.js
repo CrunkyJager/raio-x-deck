@@ -1,4 +1,4 @@
-// T27: testa o modo jogável fora do navegador. Um "humano robô" responde cada pergunta do motor
+// T08: testa o modo jogável fora do navegador. Um "humano robô" responde cada pergunta do motor
 // (mulligan, terreno, lançar, ataque, bloqueio, descarte) e a partida tem que chegar ao fim sem erro.
 // Uso: node ferramentas/jogavel.js [Deck] [partidas] [semente]
 const fs = require('fs'), path = require('path'), vm = require('vm'), raiz = path.join(__dirname, '..');
