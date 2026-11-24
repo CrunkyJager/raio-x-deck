@@ -249,7 +249,9 @@
           "grimorioDoAlvo",
           "marcadoresSeus",
           "vezesKicker",
-          "maoDoEvento"
+          "maoDoEvento",
+          "vidaPerdidaOpsNoTurno",
+          "vidaPerdidaNoTurno"
          ]
         }
        ]
@@ -288,6 +290,10 @@
         "tiposDiferentes"
        ],
        "description": "em vez de contar objetos: propriedade do conjunto"
+      },
+      "de": {
+       "type": "string",
+       "description": "devocao: cores (W U B R G); marcadores*: tipo do marcador"
       }
      }
     }
@@ -355,7 +361,8 @@
       "oponente",
       "qualquer",
       "alvo",
-      "cadaAtual"
+      "cadaAtual",
+      "doEvento"
      ]
     },
     "dono": {
@@ -364,7 +371,8 @@
       "oponente",
       "qualquer",
       "alvo",
-      "cadaAtual"
+      "cadaAtual",
+      "doEvento"
      ]
     },
     "cor": {
@@ -442,13 +450,13 @@
    "additionalProperties": false,
    "properties": {
     "min": {
-     "type": "integer"
+     "$ref": "#/$defs/qtd"
     },
     "max": {
-     "type": "integer"
+     "$ref": "#/$defs/qtd"
     },
     "igual": {
-     "type": "integer"
+     "$ref": "#/$defs/qtd"
     }
    }
   },
@@ -494,6 +502,13 @@
     },
     "dividir": {
      "type": "boolean"
+    },
+    "jog": {
+     "enum": [
+      "jogador",
+      "oponente"
+     ],
+     "description": "alvo pode ser também um jogador (f OU jog)"
     }
    }
   },
@@ -686,7 +701,12 @@
       "faseExtra",
       "turnoExtra",
       "ganharJogo",
-      "perderJogo"
+      "perderJogo",
+      "regenerar",
+      "virarMonarca",
+      "descobrir",
+      "vigiar",
+      "lutar"
      ]
     },
     "talvez": {
@@ -952,6 +972,21 @@
       "turno"
      ],
      "description": "faseExtra: qual"
+    },
+    "tiraKw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     },
+     "description": "animar: perde estas palavras-chave"
+    },
+    "todosTipos": {
+     "type": "boolean",
+     "description": "animar: ganha todos os tipos de criatura"
+    },
+    "com": {
+     "$ref": "#/$defs/objeto",
+     "description": "lutar: com quem"
     }
    },
    "additionalProperties": false,
@@ -1135,6 +1170,10 @@
     "palavra": {
      "type": "string",
      "description": "condição nomeada: metalcraft, blessing, maxspeed…"
+    },
+    "monarca": {
+     "type": "boolean",
+     "description": "você é o monarca"
     }
    }
   },
@@ -1204,7 +1243,8 @@
       "prole",
       "capitulo",
       "classe",
-      "entraComMarcador"
+      "entraComMarcador",
+      "tumulto"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1223,6 +1263,10 @@
     },
     "f": {
      "$ref": "#/$defs/filtro"
+    },
+    "pagar": {
+     "$ref": "#/$defs/custoAtv",
+     "description": "resguardo com custo que não é mana (pagar vida)"
     }
    }
   },
@@ -1297,7 +1341,11 @@
       "alvoDe",
       "vira",
       "zonaVarios",
-      "capitulo"
+      "capitulo",
+      "saiCemiterio",
+      "fichaCriada",
+      "viraParaMana",
+      "descarta"
      ]
     },
     "quem": {
@@ -1380,6 +1428,18 @@
     "n": {
      "type": "integer",
      "description": "capitulo: número do capítulo da saga"
+    },
+    "umAlvo": {
+     "type": "boolean",
+     "description": "atacantesDeclarados: todos atacando o mesmo jogador"
+    },
+    "marc": {
+     "type": "string",
+     "description": "marcadorPosto: tipo do marcador"
+    },
+    "ouCopia": {
+     "type": "boolean",
+     "description": "conjura: também quando copia"
     }
    }
   },
@@ -1412,7 +1472,8 @@
       "danoNaoPrevenivel",
       "podeJogar",
       "podeOlhar",
-      "dobraGatilho"
+      "dobraGatilho",
+      "ataqueCusta"
      ]
     },
     "afeta": {
@@ -1467,7 +1528,8 @@
      "$ref": "#/$defs/qtd"
     },
     "custo": {
-     "$ref": "#/$defs/mana"
+     "$ref": "#/$defs/mana",
+     "description": "ataqueCusta: quanto paga por criatura atacante (+ qtd se for {X})"
     },
     "se": {
      "$ref": "#/$defs/cond"
@@ -1510,6 +1572,38 @@
     "causa": {
      "$ref": "#/$defs/filtro",
      "description": "dobraGatilho: objeto que causa o evento"
+    },
+    "tiraTipo": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "continuo: perde estes tipos (deus com devoção baixa)"
+    },
+    "contra": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "jog": {
+       "$ref": "#/$defs/jogador"
+      },
+      "f": {
+       "$ref": "#/$defs/filtro"
+      }
+     },
+     "description": "naoPodeAtacar/ataqueCusta: o defensor (jogador e/ou permanente)"
+    },
+    "aoMirar": {
+     "type": "boolean",
+     "description": "aumentaCusto: só mágicas/habilidades que miram o afetado"
+    },
+    "quem": {
+     "$ref": "#/$defs/jogador",
+     "description": "aumentaCusto: de quem são as mágicas"
+    },
+    "deHabil": {
+     "type": "boolean",
+     "description": "aumentaCusto: vale para habilidades, não mágicas"
     }
    }
   },
@@ -1550,7 +1644,11 @@
        "type": "integer"
       },
       "marcadores": {
-       "type": "object"
+       "type": "object",
+       "additionalProperties": {
+        "$ref": "#/$defs/qtd"
+       },
+       "description": "entra com estes marcadores a mais: {tipo: qtd}"
       },
       "para": {
        "$ref": "#/$defs/zona"
@@ -1561,6 +1659,29 @@
       "impedir": {
        "type": "boolean",
        "description": "o evento não acontece (não pode ser anulada)"
+      },
+      "maisFicha": {
+       "$ref": "#/$defs/token",
+       "description": "cria também esta ficha (Peregrin Took)"
+      },
+      "trocaPor": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/token"
+       },
+       "description": "em vez disso cria uma de cada (Academy Manufactor)"
+      },
+      "metade": {
+       "type": "boolean",
+       "description": "dano cai à metade, arredondada para baixo"
+      },
+      "teto": {
+       "type": "integer",
+       "description": "no máximo N (previne todo menos N)"
+      },
+      "maisQtd": {
+       "type": "integer",
+       "description": "quantas fichas a mais (padrão 1)"
       }
      }
     },
@@ -1590,6 +1711,9 @@
     "por": {
      "$ref": "#/$defs/filtro",
      "description": "fonte do evento"
+    },
+    "se": {
+     "$ref": "#/$defs/cond"
     }
    }
   }

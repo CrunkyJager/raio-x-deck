@@ -1,5 +1,5 @@
 {
- "_nota": "T12 — gabarito do formato RX: 20 cartas difíceis escritas à mão a partir do Oracle (cards-db) e da CR. O conversor (T13/T20) tem que chegar nisto; testa_rx.py compara. Escolha: comandantes dos exemplos + cartas que forçam cada parte do formato (custo alternativo, 'a menos que pague', substituição, eminência, sobrecarga, modal com condição, aventura, cópia de ficha anexada). | T13 parte 2 (24/11): +24 cartas comuns (Sol Ring, Swords, Beast Within, Chaos Warp…) conferidas à mão — Beast Within/Chaos Warp/Eternal Witness/Toxic Deluge pegaram 4 bugs.",
+ "_nota": "T12 — gabarito do formato RX: 20 cartas difíceis escritas à mão a partir do Oracle (cards-db) e da CR. O conversor (T13/T20) tem que chegar nisto; testa_rx.py compara. Escolha: comandantes dos exemplos + cartas que forçam cada parte do formato (custo alternativo, 'a menos que pague', substituição, eminência, sobrecarga, modal com condição, aventura, cópia de ficha anexada). | T13 parte 2 (24/11): +24 cartas comuns (Sol Ring, Swords, Beast Within, Chaos Warp…) conferidas à mão — Beast Within/Chaos Warp/Eternal Witness/Toxic Deluge pegaram 4 bugs. | T13 parte 2 rodada 3 (24/11): +10 comuns (Signet, Propaganda, Stoneforge, Brainstorm, Consider, Golgari Charm, Peregrin, Purphoros, Scute Swarm, Seedborn) conferidas à mão — pegaram mover sem objeto (49 no banco) e devoção sem cor.",
  "cartas": [
   {
    "n": "Anje's Ravager",
@@ -1869,6 +1869,565 @@
      },
      "em": {
       "alvo": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": "Gruul Signet",
+   "custo": {
+    "g": 2
+   },
+   "vm": 2,
+   "ci": "RG",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true,
+      "mana": {
+       "g": 1
+      }
+     },
+     "fx": [
+      {
+       "op": "mana",
+       "prod": [
+        "R"
+       ],
+       "qtd": 1
+      },
+      {
+       "op": "mana",
+       "prod": [
+        "G"
+       ],
+       "qtd": 1
+      }
+     ],
+     "deMana": true
+    }
+   ]
+  },
+  {
+   "n": "Propaganda",
+   "custo": {
+    "g": 2,
+    "p": [
+     "U"
+    ]
+   },
+   "vm": 3,
+   "ci": "U",
+   "cores": "U",
+   "tipos": [
+    "Enchantment"
+   ],
+   "est": [
+    {
+     "modo": "ataqueCusta",
+     "afeta": {
+      "tipo": [
+       "Creature"
+      ],
+      "zona": "campo"
+     },
+     "contra": {
+      "jog": "voce"
+     },
+     "custo": {
+      "g": 2
+     }
+    }
+   ]
+  },
+  {
+   "n": "Stoneforge Mystic",
+   "custo": {
+    "g": 1,
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 2,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Creature"
+   ],
+   "sub": [
+    "Kor",
+    "Artificer"
+   ],
+   "pt": [
+    1,
+    2
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true,
+      "mana": {
+       "g": 1,
+       "p": [
+        "W"
+       ]
+      }
+     },
+     "fx": [
+      {
+       "op": "mover",
+       "f": {
+        "sub": [
+         "Equipment"
+        ],
+        "zona": "mao",
+        "dono": "voce"
+       },
+       "qtd": 1,
+       "para": "campo",
+       "de": "mao"
+      }
+     ]
+    }
+   ],
+   "gat": [
+    {
+     "ev": "entra",
+     "quem": {
+      "este": true
+     },
+     "fx": [
+      {
+       "op": "buscar",
+       "quem": "voce",
+       "f": {
+        "sub": [
+         "Equipment"
+        ]
+       },
+       "qtd": 1,
+       "para": "mao",
+       "talvez": true
+      },
+      {
+       "op": "embaralhar",
+       "quem": "voce"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Brainstorm",
+   "custo": {
+    "p": [
+     "U"
+    ]
+   },
+   "vm": 1,
+   "ci": "U",
+   "cores": "U",
+   "tipos": [
+    "Instant"
+   ],
+   "fx": [
+    {
+     "op": "comprar",
+     "quem": "voce",
+     "qtd": 3
+    },
+    {
+     "op": "mover",
+     "f": {
+      "zona": "mao",
+      "dono": "voce"
+     },
+     "qtd": 2,
+     "para": "grimorio",
+     "de": "mao"
+    }
+   ]
+  },
+  {
+   "n": "Consider",
+   "custo": {
+    "p": [
+     "U"
+    ]
+   },
+   "vm": 1,
+   "ci": "U",
+   "cores": "U",
+   "tipos": [
+    "Instant"
+   ],
+   "fx": [
+    {
+     "op": "vigiar",
+     "quem": "voce",
+     "qtd": 1
+    },
+    {
+     "op": "comprar",
+     "quem": "voce",
+     "qtd": 1
+    }
+   ]
+  },
+  {
+   "n": "Golgari Charm",
+   "custo": {
+    "p": [
+     "B",
+     "G"
+    ]
+   },
+   "vm": 2,
+   "ci": "BG",
+   "cores": "BG",
+   "tipos": [
+    "Instant"
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Enchantment"
+      ],
+      "zona": "campo"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "modal",
+     "escolhe": {
+      "min": 1,
+      "max": 1
+     },
+     "modos": [
+      [
+       {
+        "op": "modificar",
+        "em": {
+         "todos": {
+          "tipo": [
+           "Creature"
+          ],
+          "zona": "campo"
+         }
+        },
+        "p": -1,
+        "r": -1,
+        "dura": "fimDoTurno"
+       }
+      ],
+      [
+       {
+        "op": "destruir",
+        "em": {
+         "alvo": 0
+        }
+       }
+      ],
+      [
+       {
+        "op": "regenerar",
+        "em": {
+         "todos": {
+          "tipo": [
+           "Creature"
+          ],
+          "ctrl": "voce",
+          "zona": "campo"
+         }
+        }
+       }
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Peregrin Took",
+   "custo": {
+    "g": 2,
+    "p": [
+     "G"
+    ]
+   },
+   "vm": 3,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Creature"
+   ],
+   "super": [
+    "Legendary"
+   ],
+   "sub": [
+    "Halfling",
+    "Citizen"
+   ],
+   "pt": [
+    2,
+    3
+   ],
+   "atv": [
+    {
+     "custo": {
+      "sacrificar": {
+       "f": {
+        "sub": [
+         "Food"
+        ]
+       },
+       "qtd": 3
+      }
+     },
+     "fx": [
+      {
+       "op": "comprar",
+       "quem": "voce",
+       "qtd": 1
+      }
+     ]
+    }
+   ],
+   "subst": [
+    {
+     "ev": "ficha",
+     "quem": {
+      "ctrl": "voce"
+     },
+     "muda": {
+      "maisFicha": {
+       "nome": "Food"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "n": "Purphoros, God of the Forge",
+   "custo": {
+    "g": 3,
+    "p": [
+     "R"
+    ]
+   },
+   "vm": 4,
+   "ci": "R",
+   "cores": "R",
+   "tipos": [
+    "Enchantment",
+    "Creature"
+   ],
+   "super": [
+    "Legendary"
+   ],
+   "sub": [
+    "God"
+   ],
+   "pt": [
+    6,
+    5
+   ],
+   "kw": [
+    {
+     "k": "indestrutivel"
+    }
+   ],
+   "atv": [
+    {
+     "custo": {
+      "mana": {
+       "g": 2,
+       "p": [
+        "R"
+       ]
+      }
+     },
+     "fx": [
+      {
+       "op": "modificar",
+       "em": {
+        "todos": {
+         "tipo": [
+          "Creature"
+         ],
+         "ctrl": "voce",
+         "zona": "campo"
+        }
+       },
+       "p": 1,
+       "dura": "fimDoTurno"
+      }
+     ]
+    }
+   ],
+   "gat": [
+    {
+     "ev": "entra",
+     "quem": {
+      "tipo": [
+       "Creature"
+      ],
+      "outro": true,
+      "ctrl": "voce"
+     },
+     "fx": [
+      {
+       "op": "dano",
+       "quem": "cadaOponente",
+       "qtd": 2
+      }
+     ]
+    }
+   ],
+   "est": [
+    {
+     "modo": "continuo",
+     "se": {
+      "conta": {
+       "q": {
+        "conta": "devocao",
+        "de": "R"
+       },
+       "max": 4
+      }
+     },
+     "tiraTipo": [
+      "Creature"
+     ],
+     "afeta": "este"
+    }
+   ]
+  },
+  {
+   "n": "Scute Swarm",
+   "custo": {
+    "g": 2,
+    "p": [
+     "G"
+    ]
+   },
+   "vm": 3,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Creature"
+   ],
+   "sub": [
+    "Insect"
+   ],
+   "pt": [
+    1,
+    1
+   ],
+   "gat": [
+    {
+     "ev": "entra",
+     "quem": {
+      "tipo": [
+       "Land"
+      ],
+      "ctrl": "voce"
+     },
+     "fx": [
+      {
+       "op": "ficha",
+       "quem": "voce",
+       "qtd": 1,
+       "token": {
+        "copiaDe": "este"
+       },
+       "se": {
+        "conta": {
+         "q": {
+          "conta": {
+           "tipo": [
+            "Land"
+           ],
+           "ctrl": "voce",
+           "zona": "campo"
+          }
+         },
+         "min": 6
+        }
+       }
+      },
+      {
+       "op": "ficha",
+       "quem": "voce",
+       "qtd": 1,
+       "token": {
+        "pt": [
+         1,
+         1
+        ],
+        "cores": "G",
+        "tipos": [
+         "Creature"
+        ],
+        "sub": [
+         "Insect"
+        ]
+       },
+       "se": {
+        "conta": {
+         "q": {
+          "conta": {
+           "tipo": [
+            "Land"
+           ],
+           "ctrl": "voce",
+           "zona": "campo"
+          }
+         },
+         "max": 5
+        }
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Seedborn Muse",
+   "custo": {
+    "g": 3,
+    "p": [
+     "G",
+     "G"
+    ]
+   },
+   "vm": 5,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Creature"
+   ],
+   "sub": [
+    "Spirit"
+   ],
+   "pt": [
+    2,
+    4
+   ],
+   "est": [
+    {
+     "modo": "desviraNoTurnoDeOutro",
+     "afeta": {
+      "tipo": [
+       "Permanent"
+      ],
+      "ctrl": "voce",
+      "zona": "campo"
      }
     }
    ]

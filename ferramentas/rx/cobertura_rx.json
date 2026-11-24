@@ -1,104 +1,24 @@
 {
  "copias": 2859,
- "inteiras": 2234,
- "pct": 78.1,
+ "inteiras": 2442,
+ "pct": 85.4,
  "sem_carta": {},
  "falta_top": [
   [
    "qtd:X",
-   15
+   16
   ],
   [
    "API:Radiation",
-   13
+   15
   ],
   [
    "Effect sem estática conhecida",
-   12
-  ],
-  [
-   "R:DamageDone",
-   11
-  ],
-  [
-   "Mana:R G",
-   8
-  ],
-  [
-   "R:CreateToken",
-   8
-  ],
-  [
-   "API:Branch",
-   8
-  ],
-  [
-   "T:CounterAddedOnce",
-   8
-  ],
-  [
-   "API:ImmediateTrigger",
-   8
-  ],
-  [
-   "API:Regenerate",
-   8
-  ],
-  [
-   "API:BecomeMonarch",
-   8
-  ],
-  [
-   "S:CastWithFlash",
-   7
-  ],
-  [
-   "API:WinsGame",
-   7
-  ],
-  [
-   "Mana:U B",
-   7
-  ],
-  [
-   "filtro:.cmcLEX",
-   7
-  ],
-  [
-   "S:CantAttackUnless",
-   7
-  ],
-  [
-   "Mana:W B",
    7
   ],
   [
    "R:Moved",
    7
-  ],
-  [
-   "API:AnimateAll",
-   6
-  ],
-  [
-   "T:AttackersDeclaredOneTarget",
-   6
-  ],
-  [
-   "S:AddKeyword:Ward:2",
-   6
-  ],
-  [
-   "S:Continuous:CheckSVar,RemoveType,SVarCompare",
-   6
-  ],
-  [
-   "S:CantBlock",
-   6
-  ],
-  [
-   "K:ETBReplacement:PutCounter",
-   6
   ],
   [
    "filtro:.YouCtrl$GreatestCardPower",
@@ -109,23 +29,7 @@
    5
   ],
   [
-   "S:UntapOtherPlayer",
-   5
-  ],
-  [
-   "Mana:G U",
-   5
-  ],
-  [
-   "T:ChangesZone Graveyard->Any",
-   5
-  ],
-  [
    "API:SacrificeAll",
-   5
-  ],
-  [
-   "T:TapsForMana",
    5
   ],
   [
@@ -133,15 +37,7 @@
    5
   ],
   [
-   "API:Discover",
-   5
-  ],
-  [
    "S:Continuous:IsPresent",
-   4
-  ],
-  [
-   "Mana:R W",
    4
   ],
   [
@@ -150,14 +46,6 @@
   ],
   [
    "Condition:ConditionPhases",
-   4
-  ],
-  [
-   "K:Offspring",
-   4
-  ],
-  [
-   "T:TokenCreated",
    4
   ],
   [
@@ -177,14 +65,6 @@
    4
   ],
   [
-   "Mana:U R",
-   4
-  ],
-  [
-   "T:SpellCastOrCopy",
-   4
-  ],
-  [
    "filtro:.ExiledWithSource",
    4
   ],
@@ -193,27 +73,11 @@
    4
   ],
   [
-   "S:Continuous:CheckSVar,SVarCompare",
-   4
-  ],
-  [
    "filtro:.IsNotChosenType",
    4
   ],
   [
-   "API:Fight",
-   4
-  ],
-  [
-   "filtro:.ControlledBy TriggeredTarget",
-   4
-  ],
-  [
-   "S:RaiseCost",
-   4
-  ],
-  [
-   "S:CantAttack",
+   "filtro:.inZoneBattlefield",
    4
   ],
   [
@@ -225,15 +89,15 @@
    3
   ],
   [
+   "filtro:.equipped",
+   3
+  ],
+  [
    "filtro:.AttachedTo Creature",
    3
   ],
   [
    "S:Continuous:SetPower,SetToughness",
-   3
-  ],
-  [
-   "Mana:G W",
    3
   ],
   [
@@ -243,6 +107,142 @@
   [
    "K:Class",
    3
+  ],
+  [
+   "API:GenericChoice",
+   3
+  ],
+  [
+   "Defined:You & Valid Permanent.YouCtrl",
+   3
+  ],
+  [
+   "filtro:.PromisedGift",
+   3
+  ],
+  [
+   "T:MilledAll",
+   3
+  ],
+  [
+   "filtro:.milledThisTurn",
+   3
+  ],
+  [
+   "qtd:Y",
+   3
+  ],
+  [
+   "filtro:.doesNotShareNameWith YourGraveyard",
+   3
+  ],
+  [
+   "K:ETBReplacement:Clone",
+   3
+  ],
+  [
+   "filtro:Shaman.YouCtrl,Wizard.Other+YouCtrl",
+   3
+  ],
+  [
+   "API:ChangeTargets",
+   3
+  ],
+  [
+   "filtro:Creature.Other+YouCtrl,Planeswalker.YouCtrl+Other,Car",
+   3
+  ],
+  [
+   "API:RingTemptsYou",
+   3
+  ],
+  [
+   "R:GainLife",
+   3
+  ],
+  [
+   "API:Meld",
+   3
+  ],
+  [
+   "S:CantBeActivated",
+   3
+  ],
+  [
+   "API:RemoveFromCombat",
+   3
+  ],
+  [
+   "API:ChoosePlayer",
+   3
+  ],
+  [
+   "filtro:.sharesCreatureTypeWith",
+   3
+  ],
+  [
+   "KW:HIDDEN CARDNAME can't block.",
+   3
+  ],
+  [
+   "API:RollDice",
+   3
+  ],
+  [
+   "K:Landwalk",
+   3
+  ],
+  [
+   "API:Goad",
+   3
+  ],
+  [
+   "filtro:.ControlledBy TriggeredDefendingPlayer",
+   2
+  ],
+  [
+   "qtd:Z",
+   2
+  ],
+  [
+   "DamageAll:Defined:",
+   2
+  ],
+  [
+   "S:AlternativeCost",
+   2
+  ],
+  [
+   "API:MoveCounter",
+   2
+  ],
+  [
+   "PutCounter sem CounterType",
+   2
+  ],
+  [
+   "R:DamageDone",
+   2
+  ],
+  [
+   "T:Milled",
+   2
+  ],
+  [
+   "Defined:TriggeredSourceLKICopy",
+   2
+  ],
+  [
+   "filtro:.counters_EQ0_P1P1",
+   2
+  ],
+  [
+   "Defined:You",
+   2
+  ],
+  [
+   "Cost:Return<1/CARDNAME>",
+   2
   ]
  ]
 }

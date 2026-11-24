@@ -29,13 +29,14 @@ KW = {'Flying': 'voar', 'Vigilance': 'vigilancia', 'Trample': 'atropelar', 'Life
       'Hexproof': 'antimagia', 'Shroud': 'manto', 'Changeling': 'metamorfo', 'Defender': 'defensor', 'Storm': 'tempestade',
       'Prowess': 'proeza', 'Ascend': 'ascender', 'Melee': 'corpo-a-corpo', 'Evolve': 'evoluir', 'Persist': 'persistir',
       'Myriad': 'miriade', 'Partner': 'parceiro', 'Choose a Background': 'escolhaAntecedente', 'Mentor': 'mentor',
-      'Convoke': 'convocar', 'Improvise': 'improvisar', 'Umbra armor': 'armaduraUmbra', 'Offspring': 'prole'}
+      'Convoke': 'convocar', 'Improvise': 'improvisar', 'Umbra armor': 'armaduraUmbra', 'Riot': 'tumulto'}
 # palavra-chave com custo de mana depois de ':'
 KWC = {'Equip': 'equipar', 'Cycling': 'ciclar', 'Overload': 'sobrecarga', 'Flashback': 'flashback',
        'Madness': 'loucura', 'Kicker': 'chute', 'Foretell': 'prever', 'Eternalize': 'eternizar', 'Echo': 'eco',
        'Encore': 'bis', 'Crew': 'tripular', 'Fabricate': 'fabricar', 'Afterlife': 'posVida', 'Mobilize': 'mobilizar',
        'Hideaway': 'esconderijo', 'Affinity': 'afinidade', 'Ward': 'resguardo', 'Enchant': 'encantar',
-       'Partner with': 'parceiroCom', 'TypeCycling': 'cicloTipo', 'Protection': 'protecao', 'Gift': 'ofertaPresente'}
+       'Partner with': 'parceiroCom', 'TypeCycling': 'cicloTipo', 'Protection': 'protecao', 'Gift': 'ofertaPresente',
+       'Offspring': 'prole'}
 KW_N = {'tripular', 'fabricar', 'posVida', 'mobilizar', 'esconderijo'}  # parâmetro é número, não custo
 
 
@@ -158,6 +159,15 @@ def filtro(v, falta, zona=None):
                    .rstrip('.+').replace('.+', '.'), falta, zona)
         f['ouEste'] = True
         return f
+    if len(alts) > 1:   # Creature.Angel+YouCtrl,Creature.Demon+YouCtrl → um filtro com sub [Angel, Demon]
+        sep = [(a.partition('.')[0], tuple(sorted(x for x in re.split(r'[+.]', a.partition('.')[2]) if x))) for a in alts]
+        subs = [[x for x in qs if re.fullmatch(r'[A-Z][a-z]+', x) and x not in TIPOS and x not in ('Other', 'Self', 'Permanent', 'Token', 'Legendary', 'Basic', 'Snow', 'Historic', 'Nonbasic')] for _, qs in sep]
+        resto = {(b_, tuple(x for x in qs if x not in sb)) for (b_, qs), sb in zip(sep, subs)}
+        if len(resto) == 1 and all(len(sb) == 1 for sb in subs):
+            b_, r_ = resto.pop()
+            f = filtro(b_ + ('.' + '+'.join(r_) if r_ else ''), falta, zona)
+            f['sub'] = sorted({sb[0] for sb in subs})
+            return f
     f = {}
     quals = None
     for a in alts:
@@ -178,6 +188,8 @@ def filtro(v, falta, zona=None):
     for q in quals or ():
         if q in ('Self', 'StrictlySelf'):
             f['este'] = True
+        elif q in ('ControlledBy TriggeredTarget', 'ControlledBy TriggeredPlayer', 'ControlledBy TriggeredDefender'):
+            f['ctrl'] = 'doEvento'           # Hellkite Tyrant / Balefire Dragon: do jogador atingido
         elif q == 'YouDontCtrl':
             f['ctrl'] = 'oponente'
         elif q == 'untapped':
@@ -239,6 +251,11 @@ def filtro(v, falta, zona=None):
             k = {'cmc': 'vm', 'power': 'poder', 'toughness': 'resist'}[m.group(1)]
             n, op = int(m.group(3)), m.group(2)
             f[k] = {'GE': {'min': n}, 'GT': {'min': n + 1}, 'LE': {'max': n}, 'LT': {'max': n - 1}, 'EQ': {'igual': n}}[op]
+        elif (m := re.fullmatch(r'(cmc|power|toughness)(LE|GE|EQ)([A-Z]\w*)', q)) and m.group(3) in _SV:
+            # Whir of Invention: vm ≤ X (X pago ou contagem da carta)
+            k = {'cmc': 'vm', 'power': 'poder', 'toughness': 'resist'}[m.group(1)]
+            v = qtd(m.group(3), _SV, falta, {'ultAlvo': -1})
+            f[k] = {{'GE': 'min', 'LE': 'max', 'EQ': 'igual'}[m.group(2)]: v}
         elif q in TIPOS or q in ('Permanent', 'Token'):  # Card.Creature
             f.setdefault('tipo', []).append(q)
         elif re.fullmatch(r'[A-Z][a-z]+', q):  # Card.Vampire: subtipo como qualificador
@@ -287,6 +304,7 @@ CONTA_FIXA = {
     'Count$YouDrewThisTurn': 'compradasNoTurno', 'TriggerObjectsAttackers$Amount': 'atacantes',
     'TriggeredCard$CardNumColors': 'coresDoEvento', 'Count$CardNumAttacksThisTurn': 'ataquesNoTurno',
     'TargetedPlayer$CardsInLibrary': 'grimorioDoAlvo', 'Count$AttackersDeclared': 'atacantes',
+    'Count$LifeOppsLostThisTurn': 'vidaPerdidaOpsNoTurno', 'Count$LifeYouLostThisTurn': 'vidaPerdidaNoTurno',
     'Count$RememberedSize': 'lembrados', 'Count$TimesKicked': 'vezesKicker', 'TriggeredPlayer$CardsInHand': 'maoDoEvento',
 }
 CONTA_RE = [
@@ -301,7 +319,7 @@ CONTA_RE = [
     (r'TargetedPlayer\$CardsInHand', 'maoDoAlvo'), (r'TargetedPlayer\$LifeTotal', 'vidaDoAlvo'),
     (r'Count\$MostProminentCreatureType .*', 'tipoMaisComum'),
     (r'PlayerCountPlayers\$Highest.*|PlayerCount\w*\$Highest.*', 'maiorEntreJogadores'),
-    (r'Count\$Devotion\.\w+', 'devocao'), (r'Count\$YourCounters\w+', 'marcadoresSeus'),
+    (r'Count\$Devotion\.\w+', 'devocao'), (r'Count\$DevotionDual\.\w+\.\w+', 'devocao'), (r'Count\$YourCounters\w+', 'marcadoresSeus'),
     (r'TriggerCount\$.*', 'evento'), (r'Count\$ThisTurnEntered_.*', 'entrouNoTurno'),
 ]
 OPS = re.compile(r'/(Plus|Times|Twice|Thrice|Minus|Negative|HalfUp|HalfDown|Half|Double)(?:\.(-?\w+))?$')
@@ -370,7 +388,7 @@ def conta(sv, svars, falta, ctx, prof=0):
         sub = svars.get(m.group(1))
         return fecha(conta(sub, svars, falta, ctx, prof + 1)) if sub else None
     if m := re.fullmatch(r'Count\$(Kicked|PromisedGift|Bargained|Evoked|Foretold|Blitzed|Surge|Morbid|Revolt|'
-                         r'Threshold|Delirium|Metalcraft|Ferocious|Raid|Hellbent|Landfall|wasCast|IfCastInOwnMainPhase)\.(-?\d+)\.(-?\d+)', sv):
+                         r'Threshold|Delirium|Metalcraft|Ferocious|Raid|Hellbent|Landfall|wasCast|wasCastFromGraveyard|wasCastFromExile|Monarch|IfCastInOwnMainPhase)\.(-?\d+)\.(-?\d+)', sv):
         return fecha({'conta': 'se', 'cond': m.group(1).lower(), 'sim': int(m.group(2)), 'nao': int(m.group(3))})
     prop = None
     if m := re.fullmatch(r'(Count\$(?:Valid|Type)\w*\s*[^/$]+)\$(Colors|CardPower|CardToughness|CardManaCost|GreatestPower|SumPower|DifferentCardNames_|CreatureType)', sv):
@@ -396,6 +414,12 @@ def conta(sv, svars, falta, ctx, prof=0):
             q = {'conta': c}
             if c in ('vmDoAlvo', 'poderDoAlvo', 'resistDoAlvo'):
                 q['alvo'] = max(ctx['ultAlvo'], 0)
+            if c == 'devocao' and (m := re.search(r'Devotion(?:Dual)?\.([\w.]+)', sv)):   # devoção a vermelho / a W e B
+                cs = [COR.get(x.capitalize(), x) for x in re.split(r'And|_|\.', m.group(1)) if x]
+                q['de'] = ''.join(cs)
+            elif c in ('marcadoresNoEste', 'marcadoresNoEvento', 'marcadoresSeus') and \
+                    (m := re.search(r'(?:Counters\.|Counters)(\w+)$', sv)):
+                q['de'] = marc(m.group(1))
             return fecha(q)
     return None
 
@@ -414,11 +438,16 @@ def alvo_de(d, ctx, falta, zona):
         f = 'jogador'
     elif vt == 'Opponent':
         f = 'oponente'
+    elif any(x in ('Player', 'Opponent') for x in vt.split(',')):
+        # Go-Shintai: "jogador ou planeswalker" → jog + f (um OU outro)
+        jg = [x for x in vt.split(',') if x in ('Player', 'Opponent')]
+        f = filtro(','.join(x for x in vt.split(',') if x not in jg), falta, zona)
+        a = {'f': f, 'jog': 'oponente' if jg == ['Opponent'] else 'jogador'}
     else:
         f = filtro(vt, falta, zona)
         if zona == 'cemiterio' and 'dono' not in f:
             f['dono'] = 'qualquer'
-    a = {'f': f}
+    a = locals().get('a') or {'f': f}
     if 'TargetMin' in d:
         a['min'] = qtd(d['TargetMin'], ctx['sv'], falta, ctx)
         if not isinstance(a['min'], int): a.pop('min')
@@ -449,6 +478,8 @@ def em_de(d, ctx, falta, zona='campo'):
         return {'alvo': ctx['ultAlvo']}
     if df in ('DelayTriggerRemembered', 'DelayTriggerRememberedLKI', 'Remembered', 'Imprinted', 'Sacrificed', 'Discarded', 'Exiled', 'RememberedLKI', 'SacrificedCards'):
         return 'anterior'                # o objeto do custo / do efeito anterior
+    if df.startswith('Valid '):          # Golgari Charm: Defined$ Valid Creature.YouCtrl
+        return {'todos': filtro(df[6:], falta, zona)}
     if df:
         falta.append('Defined:' + df)
     return None
@@ -603,11 +634,35 @@ def efeito(api, d, ctx, falta):
     fx = None
     if api == 'Mana':
         p = prod(d.get('Produced'))
+        cores = (d.get('Produced') or '').split()
+        if p is None and len(cores) > 1 and all(re.fullmatch(r'[WUBRGC]', x) for x in cores):
+            # 'R G' = adiciona as duas (Signet, karoo): um fx por símbolo
+            ctx['_extra'] = ctx.get('_extra', []) + [{'op': 'mana', 'prod': [x], 'qtd': 1} for x in cores[1:]]
+            p = [cores[0]]
         if p is None:
             falta.append('Mana:' + d.get('Produced', '')); return []
         fx = {'op': 'mana', 'prod': p, 'qtd': q('Amount')}
     elif api == 'ManaReflected':
         fx = {'op': 'mana', 'prod': 'refletida', 'qtd': 1}
+    elif api in ('Regenerate', 'RegenerateAll'):
+        em = {'todos': filtro(d.get('ValidCards', 'Creature'), falta, 'campo')} if api == 'RegenerateAll' \
+            else em_de(d, ctx, falta) or 'este'
+        fx = {'op': 'regenerar', 'em': em}
+    elif api == 'Surveil':
+        fx = {'op': 'vigiar', 'quem': quem or 'voce', 'qtd': q('Amount')}
+    elif api == 'Fight':
+        # Apex Altisaur: este (ou o do evento) luta com o alvo
+        df = d.get('Defined', 'Self')
+        a1 = 'este' if df == 'Self' else 'doEvento' if df.startswith('Triggered') else em_de({'Defined': df}, ctx, falta)
+        a2 = em_de({k: v for k, v in d.items() if k != 'Defined'}, ctx, falta)
+        if a1 is None or a2 is None: falta.append('Fight:' + df)
+        fx = {'op': 'lutar', 'em': a1 or 'este', 'com': a2 or 'anterior'}
+    elif api == 'WinsGame':
+        fx = {'op': 'ganharJogo', 'quem': quem or 'voce'}
+    elif api == 'BecomeMonarch':
+        fx = {'op': 'virarMonarca', 'quem': quem or 'voce'}
+    elif api == 'Discover':
+        fx = {'op': 'descobrir', 'quem': 'voce', 'qtd': q('Num')}
     elif api == 'Draw':
         fx = {'op': 'comprar', 'quem': quem or 'voce', 'qtd': q('NumCards')}
     elif api == 'Discard':
@@ -646,7 +701,12 @@ def efeito(api, d, ctx, falta):
     elif api in ('PutCounter', 'PutCounterAll'):
         em = {'todos': filtro(d.get('ValidCards', 'Permanent'), falta, 'campo')} if api == 'PutCounterAll' \
             else em_de(d, ctx, falta) or 'este'
-        fx = {'op': 'marcador', 'em': em, 'tipoMarc': marc(d.get('CounterType', '')), 'qtd': q('CounterNum')}
+        if d.get('Adapt'):   # adaptar N: se não tiver +1/+1, põe N
+            fx = {'op': 'marcador', 'em': em, 'tipoMarc': '+1/+1', 'qtd': q('Adapt'),
+                  'se': {'objBate': {'em': 'este', 'f': {'comMarcador': '+1/+1'}, 'nao': True}}}
+        else:
+            if not d.get('CounterType'): falta.append('PutCounter sem CounterType')
+            fx = {'op': 'marcador', 'em': em, 'tipoMarc': marc(d.get('CounterType', '')), 'qtd': q('CounterNum')}
     elif api == 'PeekAndReveal':
         # olhar o topo; se bater, pode revelar e pôr na mão (a ChangeZone seguinte é a mesma ação)
         fx = {'op': 'cavar', 'quem': 'voce', 'olha': q('PeekAmount'), 'pega': 1, 'para': 'mao', 'resto': 'grimorio'}
@@ -688,7 +748,9 @@ def efeito(api, d, ctx, falta):
     elif api in ('Tap', 'Untap'):
         fx = {'op': 'virar' if api == 'Tap' else 'desvirar', 'em': em_de(d, ctx, falta)}
     elif api == 'GainControl':
-        fx = {'op': 'ganharControle', 'em': em_de(d, ctx, falta), 'sobControle': 'voce'}
+        em = {'todos': filtro(d['AllValid'], falta, 'campo')} if d.get('AllValid') else em_de(d, ctx, falta)
+        if em is None: falta.append('GainControl sem objeto')
+        fx = {'op': 'ganharControle', 'em': em, 'sobControle': 'voce'}
         if d.get('LoseControl') == 'EOT' or d.get('Duration') == 'UntilEndOfTurn':
             fx['dura'] = 'fimDoTurno'
     elif api in ('Pump', 'PumpAll'):
@@ -783,9 +845,14 @@ def efeito(api, d, ctx, falta):
         if d.get('NextTurn') == 'True': g['proximoTurno'] = True
         if d.get('ThisTurn') == 'True': g['nesteTurno'] = True
         fx = {'op': 'gatilhoAtrasado', 'quando': g}
-    elif api == 'Animate':
-        em = em_de(d, ctx, falta) or 'este'
+    elif api in ('Animate', 'AnimateAll'):
+        em = {'todos': filtro(d.get('ValidCards', 'Creature'), falta, 'campo')} if api == 'AnimateAll' \
+            else em_de(d, ctx, falta) or 'este'
         fx = {'op': 'animar', 'em': em}
+        if d.get('RemoveKeywords'):
+            ks = kw_lista(d['RemoveKeywords'], falta)
+            if ks: fx['tiraKw'] = ks
+        if d.get('AddAllCreatureTypes') == 'True': fx['todosTipos'] = True
         if d.get('Power') is not None: fx['p'] = q('Power')
         if d.get('Toughness') is not None: fx['r'] = q('Toughness')
         tps = [t for t in re.split(r'[,& ]+', d.get('Types', '')) if t]
@@ -924,10 +991,34 @@ def mudazona(api, d, ctx, falta):
             em['todos']['dono'] = 'voce'
     else:
         em = em_de(d, ctx, falta, de or 'campo')
+    escolha = None
+    if em is None and not d.get('ValidTgts'):
+        df = d.get('Defined', '')
+        if d.get('ChangeType') or (d.get('ChangeNum') and not df):
+            # escolhe N cartas da zona que batem no filtro (Stoneforge, karoo, Brainstorm, Command Beacon)
+            de = de or (o[0] if o else None)              # Six: Graveyard,Exile → a primeira
+            fz = filtro(d.get('ChangeType', 'Card'), falta, de or 'campo')
+            if de and de != 'campo': fz.setdefault('dono', 'voce')
+            elif 'ctrl' not in fz: fz['ctrl'] = 'voce'
+            escolha = {'f': fz, 'qtd': qtd(d.get('ChangeNum', '1'), ctx['sv'], falta, ctx)}
+        elif not df:
+            em = 'este'                                   # Bloodghast, Reassembling Skeleton
+        elif df == 'Parent':
+            em = 'este'                                   # a própria mágica (White Sun's Zenith)
+        elif df == 'ChosenCard':
+            em = 'escolhida'
+        elif df in ('ExiledWith', 'DelayTriggerRememberedLKI', 'DelayTriggerRemembered'):
+            em = 'anterior'                               # o que este exilou / lembrou
+        else:
+            falta.append('ChangeZone:Defined:' + df)
+        if em is not None and falta and falta[-1] == 'Defined:' + df:
+            falta.pop()                                   # em_de não conhecia; resolvido aqui
     op = 'exilar' if para == 'exilio' and de == 'campo' else 'mover'
     fx = {'op': op}
     if em is not None:
         fx['em'] = em
+    if escolha:
+        fx.update(escolha)
     if op == 'mover':
         fx['para'] = para
         if de and de != 'campo' and not (isinstance(em, dict) and 'alvo' in em):
@@ -973,6 +1064,42 @@ def cadeia(kind_api_d, ctx, falta, fx_out):
                 cadeia(sub, ctx, falta, m)
                 modos.append(m)
             fx_out.append({'op': 'modal', 'escolhe': escolhe(d, ctx, falta), 'modos': modos})
+        elif api == 'Branch':
+            # Scute Swarm: se a condição vale, faz o ramo True; senão, o False
+            cd = {k.replace('Branch', ''): v for k, v in d.items() if k.startswith('Branch')}
+            cd = {('ConditionCheckSVar' if k == 'ConditionSVar' else 'ConditionSVarCompare' if k == 'ConditionSVarCompare' else k): v
+                  for k, v in cd.items()}
+            se = condicao(cd, ctx, falta)
+            if not se or set(se) != {'conta'}:
+                falta.append('Branch:' + ','.join(sorted(d)))
+            else:
+                c = se['conta']; neg = {'q': c['q']}
+                if 'min' in c and isinstance(c['min'], int): neg['max'] = c['min'] - 1
+                elif 'max' in c and isinstance(c['max'], int): neg['min'] = c['max'] + 1
+                else: falta.append('Branch:compara')
+                for lado, cond in (('TrueSubAbility', c), ('FalseSubAbility', neg)):
+                    if not d.get(lado): continue
+                    m = []
+                    cadeia(params(ctx['sv'].get(d[lado], '')), ctx, falta, m)
+                    for e in m: e['se'] = {**e.get('se', {}), 'conta': cond}
+                    fx_out.extend(m)
+        elif api == 'ImmediateTrigger':
+            # "quando fizer" (gatilho reflexivo): paga o custo → faz o Execute
+            m = []
+            ex = params(ctx['sv'].get(d.get('Execute', ''), ''))
+            if not ex: falta.append('ImmediateTrigger:Execute')
+            else: cadeia(ex, ctx, falta, m)
+            pg = None
+            if d.get('Cost'): pg, _ = custo_atv(d['Cost'], falta)
+            elif d.get('UnlessCost') and d.get('UnlessSwitched') == 'True': pg, _ = custo_atv(d['UnlessCost'], falta)
+            elif d.get('UnlessCost'): falta.append('ImmediateTrigger:UnlessCost')
+            if pg and m:
+                m[0]['pagando'] = pg
+                for e in m[1:]: e['se'] = {**e.get('se', {}), 'pagou': True}
+            se = condicao(d, ctx, falta)
+            if se:
+                for e in m: e['se'] = {**e.get('se', {}), **se}
+            fx_out.extend(m)
         else:
             for e in efeito(api, d, ctx, falta):
                 ant = fx_out[-1] if fx_out else None
@@ -1019,6 +1146,8 @@ def gatilho(t, f, falta):
             g['ev'] = 'sai'
         elif de == 'Graveyard':
             g['ev'] = 'vaiCemiterio'
+        elif o == 'Graveyard':
+            g['ev'] = 'saiCemiterio'     # Teval: cartas deixam seu cemitério
         else:
             falta.append(f'T:ChangesZone {o}->{de}'); return None
     elif modo == 'Phase':
@@ -1032,10 +1161,31 @@ def gatilho(t, f, falta):
         g['ev'] = 'ataca'
     elif modo == 'AttackersDeclared':
         g['ev'] = 'atacantesDeclarados'
+    elif modo == 'AttackersDeclaredOneTarget':   # uma ou mais atacam o mesmo jogador
+        g['ev'] = 'atacantesDeclarados'; g['umAlvo'] = True
+        vc = d.get('ValidAttackers', '')
+        if jogador(d.get('AttackedTarget', ''), None): g['jog'] = jogador(d['AttackedTarget'])
+    elif modo in ('CounterAdded', 'CounterAddedOnce'):
+        g['ev'] = 'marcadorPosto'
+        if modo == 'CounterAddedOnce': g['grupo'] = True     # um ou mais marcadores de uma vez
+        if d.get('CounterType'): g['marc'] = marc(d['CounterType'])
+        vc = re.sub(r'\+inZoneBattlefield', '', vc)
+    elif modo == 'TokenCreated':
+        g['ev'] = 'fichaCriada'; vc = d.get('ValidToken', '')
+    elif modo == 'Discarded':
+        g['ev'] = 'descarta'
+        if re.search(r'(^|[+.])OppOwn', vc): g['jog'] = 'oponente'
+        elif re.search(r'(^|[+.])YouOwn', vc): g['jog'] = 'voce'
+        vc = re.sub(r'\+?(OppOwn|YouOwn)', '', vc).rstrip('.')
+        if vc == 'Card': vc = ''
+    elif modo == 'TapsForMana':
+        g['ev'] = 'viraParaMana'
+        if d.get('Activator') == 'You': g['jog'] = 'voce'
     elif modo == 'Blocks':
         g['ev'] = 'bloqueia'
-    elif modo == 'SpellCast':
+    elif modo in ('SpellCast', 'SpellCastOrCopy'):
         g['ev'] = 'conjura'
+        if modo == 'SpellCastOrCopy': g['ouCopia'] = True
         vap = d.get('ValidActivatingPlayer', '')
         if vap:
             g['jog'] = {'You': 'voce', 'Opponent': 'oponente', 'Player': 'cadaJogador'}.get(vap, 'cadaJogador')
@@ -1080,6 +1230,10 @@ def gatilho(t, f, falta):
     if ctx['alvos']:
         g['alvos'] = ctx['alvos']
     se = condicao({k: v for k, v in d.items() if k != 'Condition' or v != 'PlayerTurn'}, ctx, falta)
+    if d.get('CheckDefinedPlayer') == 'You.isMonarch':
+        se = {**(se or {}), 'monarca': True}
+    elif d.get('CheckDefinedPlayer'):
+        falta.append('T:CheckDefinedPlayer:' + d['CheckDefinedPlayer'])
     if d.get('Condition') == 'PlayerTurn' or d.get('PlayerTurn') == 'True':
         se = {**(se or {}), 'turno': 'seu'}
     if se:
@@ -1118,8 +1272,13 @@ def estatica(s, f, falta):
             se = condicao({k: d.pop(k) for k in ('IsPresent', 'PresentCompare', 'PresentZone') if k in d},
                           {'sv': f['SVar'], 'ultAlvo': -1}, falta)
             if se: e['se'] = se
+        if d.get('CheckSVar'):
+            e['se'] = {**e.get('se', {}), 'conta': {'q': qtd(d.pop('CheckSVar'), f['SVar'], falta, {'ultAlvo': -1}),
+                                                   **compara(d.pop('SVarCompare', 'GE1'), falta)}}
         if d.get('AddType'):
             e['tipo'] = d.pop('AddType').split(' & ')
+        if d.get('RemoveType'):
+            e['tiraTipo'] = d.pop('RemoveType').split(' & ')
         if d.get('SetMaxHandSize') or d.get('AdjustLandPlays'):
             pass
         elif d.get('AffectedDefined') in ('Equipped', 'Enchanted'):
@@ -1134,9 +1293,11 @@ def estatica(s, f, falta):
             if k in d:
                 e[c] = qtd(d[k].lstrip('+'), f['SVar'], falta, {'ultAlvo': -1})
         if d.get('AddKeyword'):
-            ks = [{'k': KW[k]} for k in d['AddKeyword'].split(' & ') if k in KW]
+            ks = []
             for k in d['AddKeyword'].split(' & '):
-                if k not in KW: falta.append('S:AddKeyword:' + k)
+                if k in KW: ks.append({'k': KW[k]})
+                elif k.partition(':')[0] in KWC and (kk := palavra(k, [])): ks.append(kk)
+                else: falta.append('S:AddKeyword:' + k)
             if ks: e['kw'] = ks
         if d.get('AddAbility') or d.get('AddTrigger'):
             h = habil_dada(d, f['SVar'], falta)
@@ -1170,6 +1331,17 @@ def estatica(s, f, falta):
             if d.get('Activator') == 'You': e['afeta']['ctrl'] = 'voce'
         e['qtd'] = qtd(d.get('Amount'), f['SVar'], falta, {'ultAlvo': -1})
         return e
+    if m == 'RaiseCost' and d.get('ValidTarget'):
+        # Terror of the Peaks / Kopala: mágicas (ou habilidades) que miram o seu custam mais
+        vt = re.sub(r'\+inZoneBattlefield', '', d['ValidTarget'])
+        e = {'modo': 'aumentaCusto', 'afeta': 'este' if vt == 'Card.Self' else filtro(vt, falta, 'campo'), 'aoMirar': True}
+        if d.get('Activator', '').endswith('Opponent'): e['quem'] = 'cadaOponente'
+        if d.get('Type') == 'Ability': e['deHabil'] = True
+        if d.get('Cost'):
+            e['pagar'], _ = custo_atv(d['Cost'], falta)
+        else:
+            e['qtd'] = qtd(d.get('Amount', '1'), f['SVar'], falta, {'ultAlvo': -1})
+        return e
     if m == 'CantChangeLife':
         return {'modo': 'vidaNaoMuda', 'afeta': jogador(d.get('ValidPlayer'), 'voce') or 'voce'}
     if m == 'CantPreventDamage':
@@ -1201,6 +1373,32 @@ def estatica(s, f, falta):
             e['evs'] = evs
         if d.get('ValidCause'): e['causa'] = filtro(d['ValidCause'], falta)
         return e
+    if m in ('CantAttack', 'CantBlock', 'CantAttackUnless', 'CastWithFlash', 'UntapOtherPlayer') and not d.get('UnlessDefender') \
+            and not d.get('DefenderNotNearestToYouInChosenDirection'):
+        modo = {'CantAttack': 'naoPodeAtacar', 'CantBlock': 'naoPodeBloquear', 'CantAttackUnless': 'ataqueCusta',
+                'CastWithFlash': 'conjurarComLampejo', 'UntapOtherPlayer': 'desviraNoTurnoDeOutro'}[m]
+        vc = d.pop('ValidCard', 'Card.Self')
+        e = {'modo': modo, 'afeta': 'este' if vc in ('Card.Self', 'Creature.Self') else 'equipada'
+             if vc in ('Creature.EnchantedBy', 'Creature.EquippedBy', 'Card.EnchantedBy', 'Card.AttachedBy')
+             else filtro(vc, falta, 'pilha' if m == 'CastWithFlash' else 'campo')}
+        if m == 'CastWithFlash' and d.get('Caster') == 'You' and isinstance(e['afeta'], dict): e['afeta']['ctrl'] = 'voce'
+        if d.get('Target'):              # contra quem não pode atacar (você, seus planeswalkers…)
+            tg = d.pop('Target').split(',')
+            jg = [x for x in tg if jogador(x, None)]
+            e['contra'] = {'jog': jogador(jg[0])} if len(jg) == 1 else {}
+            if ob := [x for x in tg if x not in jg]: e['contra']['f'] = filtro(','.join(ob), falta)
+        if m == 'CantAttackUnless':
+            c = d.pop('Cost', '0')
+            e['custo'] = mana_forge(c) if mana_forge(c) is not None else (falta.append('S:CantAttackUnless:' + c) or {})
+            if c == 'X' and f['SVar'].get('X'):
+                e['custo'] = {'g': 0}; e['qtd'] = qtd('X', f['SVar'], falta, {'ultAlvo': -1})   # Sphere of Safety: {X}, X = contagem
+        sv = {'sv': f['SVar'], 'ultAlvo': -1}
+        cd = {k: d.pop(k) for k in ('IsPresent', 'PresentCompare', 'PresentZone', 'Condition') if k in d}
+        if d.get('CheckSVar'): cd['ConditionCheckSVar'] = d.pop('CheckSVar'); cd['ConditionSVarCompare'] = d.pop('SVarCompare', 'GE1')
+        if se := condicao(cd, sv, falta): e['se'] = se
+        resto = set(d) - {'Mode', 'Description', 'Secondary', 'ValidSA', 'Caster', 'EffectZone', 'AILogic'}
+        if resto: falta.append(f'S:{m}:' + ','.join(sorted(resto)))
+        return e
     if m == 'MustAttack':
         return {'modo': 'deveAtacar', 'afeta': 'este'}
     if m == 'CantBlockBy':
@@ -1231,6 +1429,40 @@ def substituicao(r, f, falta):
         s = {'ev': 'ficha', 'quem': filtro(d.get('ValidToken', 'Card.YouCtrl'), falta), 'muda': {'mult': 2}}
         if rw[2].get('Amount', '').isdigit(): s['muda'] = {'soma': int(rw[2]['Amount'])}
         return s
+    if ev == 'CreateToken' and rw and rw[1] == 'ReplaceToken' and rw[2].get('Type') in ('AddToken', 'ReplaceToken') \
+            and rw[2].get('TokenScript'):
+        fs = [ficha_de({'TokenScript': t}, falta) for t in rw[2]['TokenScript'].split(',')]
+        vt = d.get('ValidToken', 'Card.YouCtrl')
+        if d.get('ValidPlayer') == 'You' and 'YouCtrl' not in vt:
+            vt = ','.join(x + ('+YouCtrl' if '.' in x else '.YouCtrl') for x in vt.split(','))
+        if rw[2]['Type'] == 'AddToken':   # Peregrin Took: aquelas fichas + mais uma
+            muda = {'maisFicha': fs[0]}
+            if rw[2].get('Amount', '1') != '1': muda['maisQtd'] = int(rw[2]['Amount'])
+        else:                              # Academy Manufactor: em vez disso, uma de cada
+            muda = {'trocaPor': fs}
+        return {'ev': 'ficha', 'quem': filtro(vt, falta), 'muda': muda}
+    if ev == 'DamageDone' and rw and rw[1] in ('ReplaceEffect', 'ReplaceDamage') and \
+            (rw[1] == 'ReplaceDamage' or rw[2].get('VarName') == 'DamageAmount'):
+        y = f['SVar'].get(rw[2].get('VarValue') or rw[2].get('Amount', ''), '')
+        muda = None
+        if rw[1] == 'ReplaceEffect':
+            k = {'Twice': 2, 'Thrice': 3}.get(y.rpartition('/')[2]) if y.startswith('ReplaceCount$DamageAmount/') else None
+            if k: muda = {'mult': k}
+        elif y == 'ReplaceCount$DamageAmount/HalfUp':
+            muda = {'metade': True}          # previne metade arredondada p/ cima → fica a metade p/ baixo
+        elif m := re.fullmatch(r'ReplaceCount\$DamageAmount/Minus\.(\d+)', y):
+            muda = {'teto': int(m.group(1))}  # previne todo menos N
+        if muda:
+            s = {'ev': 'dano', 'muda': muda}
+            if d.get('ValidSource') and d['ValidSource'] not in ('Card,Emblem',):
+                s['por'] = filtro(','.join(x for x in d['ValidSource'].split(',') if not x.startswith('Emblem')), falta)
+            vt = [x for x in d.get('ValidTarget', '').split(',') if x and x not in ('Permanent', 'Player')]
+            jg = [x for x in vt if jogador(x, None)]
+            if len(jg) == 1: s['jog'] = jogador(jg[0])   # jog + quem juntos = a esse jogador OU a esse objeto
+            elif jg: falta.append('dano:jogadores ' + ','.join(jg))
+            if ob := [x for x in vt if x not in jg]: s['quem'] = filtro(','.join(ob), falta)
+            if d.get('IsCombat') == 'True': s['combate'] = True
+            return s
     if ev == 'Counter' and d.get('Layer') == 'CantHappen':
         if d.get('ValidCard') == 'Card.Self':
             q = {'este': True}
@@ -1263,6 +1495,16 @@ def etb_repl(arg, f, falta):
         return {'ev': 'entra', 'quem': {'este': True}, 'emVez': [{'op': 'escolher', 'quem': 'voce', 'o': 'tipoCriatura'}]}
     if r and r[1] == 'ChooseColor':
         return {'ev': 'entra', 'quem': {'este': True}, 'emVez': [{'op': 'escolher', 'quem': 'voce', 'o': 'cor'}]}
+    if r and r[1] == 'PutCounter' and r[2].get('ETB') == 'True':
+        # Giada / Metallic Mimic: cada outro X seu entra com marcador(es) a mais
+        partes = sv.split(':')
+        vc = partes[3] if len(partes) > 3 else 'Card.Self'
+        q = qtd(r[2].get('CounterNum', '1'), f['SVar'], falta, {'ultAlvo': -1})
+        sb = {'ev': 'entra', 'quem': {'este': True} if vc in ('Card.Self', 'Creature.Self') else filtro(vc, falta),
+              'muda': {'marcadores': {marc(r[2].get('CounterType', 'P1P1')): q}}}   # q pode ser contagem (Giada)
+        se = condicao(r[2], {'sv': f['SVar'], 'ultAlvo': -1}, falta)
+        if se: sb['se'] = se
+        return sb
     falta.append('K:ETBReplacement:' + (r[1] if r else sv))
     return None
 
@@ -1287,6 +1529,9 @@ def palavra(k, falta):
         elif kk['k'] == 'cicloTipo':
             kk['tipo'] = a0; c = mana_forge(arg.split(':')[1]) if ':' in arg else None
             if c is not None: kk['custo'] = c
+        elif kk['k'] == 'resguardo' and mana_forge(arg) is None and '<' in arg:
+            c, _ = custo_atv(arg, falta)          # Ward—Pay 2 life
+            kk['pagar'] = c
         else:
             c = mana_forge(a0)
             if c is None:
@@ -1331,7 +1576,12 @@ def habil_dada(d, sv, falta):
     return h
 
 
+_SV = {}   # SVars da face em conversão (filtro com 'cmcLEX' precisa)
+
+
 def face_rx(f, falta):
+    global _SV
+    _SV = f['SVar']
     out = {}
     ESP = ('ETBReplacement:', 'etbCounter:', 'Chapter:')
     kws = [x for x in (palavra(k, falta) for k in f['K'] if not k.startswith(ESP)) if x]
