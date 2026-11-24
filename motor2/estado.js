@@ -121,7 +121,7 @@
   };
 
   // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
-  const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm']);
+  const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder']);
   M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
   const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
   M.bate = (e, o, f, ctx = {}) => {
@@ -141,6 +141,7 @@
     if (f.comandante !== undefined && !!o.cmd !== !!f.comandante) return false;
     if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
     if (f.vm && !compara(d.vm || 0, f.vm)) return false;
+    if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
     return true;
   };
   const quemBate = (e, j, q, voce) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : true;

@@ -58,11 +58,67 @@
         return b;
       }
       case 'aMenosQue': return p.ops.length > 1 && J.vida > 10 ? 1 : 0;
+      case 'atacar': return atacarBasico(e, p);
+      case 'bloquear': return bloquearBasico(e, p);
+      case 'ordemDano': {               // o mais caro leva o letal primeiro
+        let b = 0, bv = -1;
+        p.ops.forEach((op, i) => { const v = M.dadoDe(e, o(op.id)).vm || 0; if (v > bv) { bv = v; b = i; } });
+        return b;
+      }
       case 'cmdZona': return 0;
       case 'escolha': { const k = p.ops.findIndex(op => op.a === 'cor' && J.ci.includes(op.v)); return k >= 0 ? k : 0; }
       default: return 0;
     }
   };
+
+  // ataque: no oponente com menos vida, com quem não morre de graça num bloqueio (sem troca) e tem poder > 0
+  function atacarBasico(e, p) {
+    const a = p.j, vit = M.vivos(e).filter(j => j !== a && p.ops.some(op => op.jog === j)).sort((x, y) => e.jogs[x].vida - e.jogs[y].vida)[0];
+    const pronto = p.ops.findIndex(op => op.a === 'pronto');
+    if (vit === undefined) return Math.max(0, pronto);
+    const bloqs = e.campo.map(id => e.objs[id]).filter(b => M.podeBloquear(e, b, vit));
+    const seguro = id => {
+      const at = e.objs[id], pa = M.poder(e, at), ra = M.resistencia(e, at);
+      if (pa <= 0) return false;
+      return !bloqs.some(b => M.bloqueiaEste(e, b, at) && M.poder(e, b) >= ra && !(pa >= M.resistencia(e, b) || M.temKw(e, at, 'toqueMortifero')));
+    };
+    const meus = p.ops.filter(op => op.a === 'atacar' && op.jog === vit);
+    const bons = meus.filter(op => seguro(op.id));
+    const todos = p.ops.findIndex(op => op.a === 'todos' && op.jog === vit);
+    if (todos >= 0 && bons.length && bons.length === meus.length) return todos;
+    if (bons.length) return p.ops.indexOf(bons[0]);
+    if (pronto >= 0) return pronto;
+    return Math.max(0, p.ops.findIndex(op => op.a === 'atacar'));                  // tem que atacar (508.1d)
+  }
+  // bloqueio: bloqueia quando o bloqueador sobrevive ou troca por algo que vale mais; bloqueia "de sacrifício" quando
+  // o dano que passa mata
+  function bloquearBasico(e, p) {
+    const d = p.j, o = id => e.objs[id], vm = x => M.dadoDe(e, x).vm || 0;
+    const ja = new Set(p.ctx.bl.map(x => x[1]));
+    const pronto = p.ops.findIndex(op => op.a === 'pronto');
+    if (pronto < 0) {                                                               // ameaça com um só: põe outro ou desfaz
+      const k = p.ops.findIndex(op => op.a === 'bloquear' && p.ctx.bl.some(x => x[1] === op.atk));
+      return k >= 0 ? k : Math.max(0, p.ops.findIndex(op => op.a === 'desfazer'));
+    }
+    let melhor = -1, mv = 0;
+    p.ops.forEach((op, i) => {
+      if (op.a !== 'bloquear' || ja.has(op.atk)) return;
+      const b = o(op.id), at = o(op.atk);
+      if (M.temKw(e, at, 'ameaca')) return;
+      const pa = M.poder(e, at), mata = pa >= M.resistencia(e, b) || (M.temKw(e, at, 'toqueMortifero') && pa > 0);
+      const troca = M.poder(e, b) >= M.resistencia(e, at) || (M.temKw(e, b, 'toqueMortifero') && M.poder(e, b) > 0);
+      const v = !mata ? 3 + (troca ? 2 : 0) : troca && vm(at) >= vm(b) ? 1 + (vm(at) - vm(b)) / 10 : 0;
+      if (v > mv) { mv = v; melhor = i; }
+    });
+    if (melhor >= 0) return melhor;
+    const passa = p.ctx.atacantes.filter(id => !ja.has(id)).reduce((s, id) => s + Math.max(0, M.poder(e, o(id))), 0);
+    if (passa >= e.jogs[d].vida) {                                                  // vai morrer: para o maior
+      let k = -1, kv = -1;
+      p.ops.forEach((op, i) => { if (op.a === 'bloquear' && !ja.has(op.atk) && !M.temKw(e, o(op.atk), 'ameaca') && M.poder(e, o(op.atk)) > kv) { kv = M.poder(e, o(op.atk)); k = i; } });
+      if (k >= 0) return k;
+    }
+    return pronto;
+  }
 
   // lista no formato Moxfield/Arena: "Commander\n1 X\n\nDeck\n1 Y..."
   M.lerLista = texto => {

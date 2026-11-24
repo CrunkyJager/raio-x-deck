@@ -89,6 +89,7 @@
     const T = e.turno, a = T.ativo, J = e.jogs[a];
     if (J.saiu) return;                                               // CR 800.4j: turno segue sem jogador ativo
     switch (T.passo) {
+      case 'atacantes': case 'bloqueadores': case 'dano': M.acaoCombate(e); break;   // combate.js (CR 508–510)
       case 'desvirar':                                                // CR 502.2–502.3
         J.terrenos = 0;
         for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { o.virada = false; o.doente = false; } }
@@ -121,8 +122,8 @@
   function proximoPasso(e) {
     const T = e.turno;
     M.esvaziarReservas(e);                                            // CR 106.4
-    let i = PASSOS.indexOf(T.passo) + 1;
-    if (PASSOS[i] === 'bloqueadores') i = PASSOS.indexOf('fimCombate'); // CR 508.8: sem atacantes pula bloqueio e dano (ataque = T16)
+    const pula = M.depoisDoPasso(e, T.passo);                         // 508.8 sem atacantes → fim do combate; 510.4 2ª etapa
+    let i = pula ? PASSOS.indexOf(pula) : PASSOS.indexOf(T.passo) + 1;
     T.feito = false; T.prio = null;
     if (i < PASSOS.length) { T.passo = PASSOS[i]; return; }
     // próximo turno: próximo jogador na ordem que ainda está no jogo (CR 800.4k)

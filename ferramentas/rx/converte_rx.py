@@ -1416,7 +1416,18 @@ def estatica(s, f, falta):
     if m == 'MustAttack':
         return {'modo': 'deveAtacar', 'afeta': 'este'}
     if m == 'CantBlockBy':
-        return {'modo': 'naoPodeSerBloqueada', 'afeta': 'este'}
+        # ValidAttacker = quem não pode ser bloqueado; ValidBlocker = por quem (Amrou Kithkin: poder 3+). Antes saía
+        # imbloqueável total para qualquer CantBlockBy (T16). Atacante que não é ela mesma → falta.
+        va = d.pop('ValidAttacker', None)
+        if va not in ('Creature.Self', 'Card.Self'):
+            falta.append('S:CantBlockBy:' + (va or '-')); return None
+        e = {'modo': 'naoPodeSerBloqueada', 'afeta': 'este'}
+        if vb := d.pop('ValidBlocker', None):
+            n0 = len(falta); e['por'] = filtro(vb, falta, 'campo')
+            if len(falta) > n0: falta[n0:] = ['S:CantBlockBy:ValidBlocker:' + vb]
+        resto = set(d) - {'Mode', 'Description', 'Secondary', 'EffectZone', 'AILogic'}
+        if resto: falta.append('S:CantBlockBy:' + ','.join(sorted(resto)))
+        return e
     falta.append('S:' + m)
     return None
 

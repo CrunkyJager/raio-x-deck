@@ -174,6 +174,7 @@
     return o;
   }
   M.criarFicha = criarFicha;
+  M.danoEm = (e, o, q, fd) => danoEm(e, o, q, fd);
   function danoEm(e, alvoObj, q, fonte) {
     if (M.temTipo(e, alvoObj, 'Planeswalker')) alvoObj.marc.lealdade = (alvoObj.marc.lealdade || 0) - q;   // CR 120.3c
     if (M.temTipo(e, alvoObj, 'Creature')) { alvoObj.dano += q; if ((fonte.kw || []).some(k => k.k === 'toqueMortifero')) alvoObj.mortal = true; }   // 120.3e, 702.2b
