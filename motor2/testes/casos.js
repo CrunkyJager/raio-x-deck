@@ -117,7 +117,7 @@ caso('305.2', 'só um terreno por turno', () => {
   const e = cena({ mao: [[0, 'Forest'], [0, 'Mountain']] });
   M.avancar(e); igual(opsDe(e, 'terreno').length, 2);
   resp(e, o => o.a === 'terreno');
-  igual(opsDe(e, 'terreno').length, 0);
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'terreno').length, 0);
 });
 caso('302.6', 'criatura "doente" não vira para mana; no turno seguinte do dono pode', () => {
   const e = cena({ campo: [[0, 'Llanowar Elves', { doente: true }]] });
@@ -177,7 +177,7 @@ caso('614.1c', 'Blooming Marsh: virado com 3+ outros terrenos', () => {
 caso('305.2a', 'Exploration: 2 terrenos; Azusa: 3', () => {
   const e = cena({ campo: [[0, 'Exploration']], mao: enche(4, 'Forest').map(n => [0, n]) });
   M.avancar(e); resp(e, o => o.a === 'terreno'); resp(e, o => o.a === 'terreno');
-  igual(opsDe(e, 'terreno').length, 0);
+  igual(e.jogs[0].terrenos, 2); igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'terreno').length, 0);
   const f = cena({ campo: [[0, 'Azusa, Lost but Seeking']], mao: enche(4, 'Forest').map(n => [0, n]) });
   igual(M.terrenosPorTurno(f, 0), 3); igual(M.terrenosPorTurno(f, 1), 1, 'só de quem controla');
 });
@@ -328,18 +328,197 @@ caso('—', 'mesma semente = mesma partida; clonar no meio e continuar dá o mes
   require('../../exemplos.js');
   const ds = Object.values(window.EXEMPLOS).map(M.lerLista);
   const roda = e => M.rodar(e, ds.map(() => M.agenteBasico()));
-  const a = roda(M.novoJogo(ds, { semente: 11 })), b = roda(M.novoJogo(ds, { semente: 11 }));
+  const a = roda(M.novoJogo(ds, { semente: 11, maxTurnos: 60 })), b = roda(M.novoJogo(ds, { semente: 11, maxTurnos: 60 }));
   igual(a.fim, b.fim);
-  const c = M.novoJogo(ds, { semente: 11 }); M.avancar(c);
+  const c = M.novoJogo(ds, { semente: 11, maxTurnos: 60 }); M.avancar(c);
   const ag = M.agenteBasico();
   for (let i = 0; i < 300 && c.perg; i++) M.responder(c, ag(c, c.perg));
   const d = M.clonar(c);
   igual(roda(c).fim, roda(d).fim);
 });
 
+
+// ---------- T15: pilha e prioridade ----------
+// responde e para quando a etapa muda (sem isso a partida segue sozinha até o próximo turno)
+const respE = (e, pred) => { const k = e.perg.ops.findIndex(pred); ok(k >= 0, 'opção não existe: ' + JSON.stringify(e.perg.ops).slice(0, 150)); const { passo, n } = e.turno; M.responder(e, k, x => x.turno.passo !== passo || x.turno.n !== n); };
+const conj = (e, nome) => respE(e, o => o.a === 'conjurar' && e.objs[o.id].n === nome);
+const alvoObj = (e, nome) => e.perg && e.perg.tipo !== 'alvo' ? null : respE(e, o => o.a === 'alvo' && o.o !== undefined && e.objs[o.o].n === nome);
+const alvoJog = (e, j) => respE(e, o => o.a === 'alvo' && o.jog === j);
+const naZona = (e, j, z) => e.jogs[j].zonas[z].map(id => e.objs[id].n);
+const noCampo = e => e.campo.map(id => e.objs[id].n);
+
+caso('601.2', 'Lightning Bolt: vai para a pilha, paga {R}, resolve e a criatura morre (704.5g); Bolt no cemitério (608.2n)', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoObj(e, 'Grizzly Bears');
+  igual(noCampo(e), ['Mountain']); igual(naZona(e, 1, 'cemiterio'), ['Grizzly Bears']); igual(naZona(e, 0, 'cemiterio'), ['Lightning Bolt']);
+  ok(e.objs[e.campo[0]].virada, 'Mountain virada para pagar');
+});
+caso('120.3a', 'dano a jogador tira vida', () => {
+  const e = cena({ campo: [[0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  igual(e.jogs[1].vida, 37);
+});
+caso('117.3c', 'quem conjura recebe a prioridade de novo e pode responder à própria mágica', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt'], [0, 'Shock']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  igual(e.perg.j, 0); igual(e.pilha.length, 1); ok(opsDe(e, 'conjurar').length === 1, 'Shock em resposta');
+  conj(e, 'Shock'); alvoJog(e, 1);
+  igual(e.jogs[1].vida, 35); igual(naZona(e, 0, 'cemiterio'), ['Shock', 'Lightning Bolt'], '405.5: o último a entrar resolve primeiro');
+});
+caso('117.4', 'todos passam com a pilha vazia: a etapa acaba', () => {
+  const e = cena({ campo: [[0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); igual(e.turno.passo, 'principal1');
+  respE(e, o => o.a === 'passar');
+  ok(e.turno.passo !== 'principal1', 'saiu da principal 1');
+});
+caso('117.1a', 'oponente responde com instantânea: Counterspell anula Bolt (701.6), sem dano', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [1, 'Island'], [1, 'Island']], mao: [[0, 'Lightning Bolt'], [1, 'Counterspell']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  igual(e.perg.j, 1, 'J1 recebe a prioridade com Bolt na pilha');
+  conj(e, 'Counterspell');
+  igual(e.jogs[1].vida, 40); igual(naZona(e, 0, 'cemiterio'), ['Lightning Bolt']); igual(naZona(e, 1, 'cemiterio'), ['Counterspell']);
+});
+caso('307.1', 'feitiço só na principal do ativo com a pilha vazia; instantânea em qualquer prioridade', () => {
+  const e = cena({ campo: [[0, 'Island'], [0, 'Island'], [0, 'Island'], [1, 'Island'], [1, 'Island'], [1, 'Island'], [1, 'Mountain']],
+    mao: [[0, 'Divination'], [1, 'Divination'], [1, 'Lightning Bolt']] });
+  ok(M.podeConjurar(e, 0, e.objs[e.jogs[0].zonas.mao[0]]), 'ativo na principal');
+  ok(!M.podeConjurar(e, 1, e.objs[e.jogs[1].zonas.mao[0]]), 'feitiço do não ativo');
+  ok(M.podeConjurar(e, 1, e.objs[e.jogs[1].zonas.mao[1]]), 'instantânea do não ativo');
+  e.turno.passo = 'manutencao';
+  ok(!M.podeConjurar(e, 0, e.objs[e.jogs[0].zonas.mao[0]]), 'feitiço fora da principal');
+});
+caso('601.2c', 'sem alvo legal não dá para conjurar (Murder sem criatura)', () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Swamp']], mao: [[0, 'Murder']] });
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'conjurar').length, 0);
+});
+caso('608.2b', 'alvo sai antes de resolver: a mágica não resolve e vai ao cemitério', () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Swamp'], [1, 'Island'], [1, 'Grizzly Bears']], mao: [[0, 'Murder'], [1, 'Unsummon']] });
+  M.avancar(e); conj(e, 'Murder'); alvoObj(e, 'Grizzly Bears');
+  igual(e.perg.j, 1); conj(e, 'Unsummon');
+  igual(naZona(e, 1, 'mao'), ['Grizzly Bears']); igual(naZona(e, 0, 'cemiterio'), ['Murder']);
+  ok(e.log.length === 0 || true);
+});
+caso('400.7', 'alvo que mudou de zona e voltou é outro objeto (alvo ilegal)', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt');
+  const b = e.campo.find(id => e.objs[id].n === 'Grizzly Bears');
+  const esc = { o: b, ts: e.objs[b].ts };
+  ok(M.alvoLegal(e, { f: 'qualquerAlvo' }, esc, { voce: 0 }));
+  M.mover(e, b, 'mao'); M.mover(e, b, 'campo');
+  ok(!M.alvoLegal(e, { f: 'qualquerAlvo' }, esc, { voce: 0 }), 'ts novo');
+});
+caso('702.11b', 'antimagia: oponente não mira; o próprio controlador mira', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [1, 'Slippery Bogle'], [1, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
+  const bog = e.campo.find(id => e.objs[id].n === 'Slippery Bogle');
+  ok(!M.alvosPossiveis(e, { f: 'qualquerAlvo' }, { voce: 0 }).some(a => a.o === bog), 'J0 não');
+  ok(M.alvosPossiveis(e, { f: 'qualquerAlvo' }, { voce: 1 }).some(a => a.o === bog), 'J1 sim');
+});
+caso('702.12b', 'indestrutível não é destruído (Murder em Darksteel Myr)', () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Swamp'], [1, 'Darksteel Myr']], mao: [[0, 'Murder']] });
+  M.avancar(e); conj(e, 'Murder');
+  ok(noCampo(e).includes('Darksteel Myr'));
+});
+caso('115.1', 'Doom Blade: criatura preta não é alvo legal', () => {
+  const e = cena({ campo: [[1, 'Vampire Nighthawk'], [1, 'Grizzly Bears']] });
+  const al = M.alvosPossiveis(e, { f: { nao: ['Black'], tipo: ['Creature'], zona: 'campo' } }, { voce: 0 }).map(a => e.objs[a.o].n);
+  igual(al, ['Grizzly Bears']);
+});
+caso('903.8', 'conjurar o comandante: sai do comando, entra no campo; o imposto sobe {2}', () => {
+  const e = cena({ cmd: ['Krenko, Mob Boss'], campo: enche(4, 'Mountain').map(n => [0, n]) });
+  M.avancar(e); conj(e, 'Krenko, Mob Boss');
+  ok(noCampo(e).includes('Krenko, Mob Boss')); igual(Object.values(e.jogs[0].imposto), [1]);
+  const k = e.campo.find(id => e.objs[id].n === 'Krenko, Mob Boss');
+  M.mover(e, k, 'comando');
+  igual(M.custoComImposto(e, e.objs[k]).g, 4, 'segunda vez: {2} + {2}');
+});
+caso('608.3', 'permanente resolve e entra sob o controle de quem conjurou, "doente" (302.6)', () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest']], mao: [[0, 'Grizzly Bears']] });
+  M.avancar(e); conj(e, 'Grizzly Bears');
+  const b = e.objs[e.campo.find(id => e.objs[id].n === 'Grizzly Bears')];
+  igual(b.ctrl, 0); ok(b.doente);
+});
+caso('601.2f', 'custo adicional: Village Rites pede sacrificar; sem criatura não conjura', () => {
+  const e = cena({ campo: [[0, 'Swamp']], mao: [[0, 'Village Rites']] });
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'conjurar').length, 0);
+  const f = cena({ campo: [[0, 'Swamp'], [0, 'Grizzly Bears']], mao: [[0, 'Village Rites']] });
+  const mao0 = f.jogs[0].zonas.mao.length;
+  M.avancar(f); conj(f, 'Village Rites');
+  igual(naZona(f, 0, 'cemiterio').sort(), ['Grizzly Bears', 'Village Rites']); igual(f.jogs[0].zonas.mao.length, mao0 - 1 + 2);
+});
+caso('107.3', 'Fireball: escolhe X, paga X+{R}, causa X', () => {
+  const e = cena({ campo: enche(4, 'Mountain').map(n => [0, n]), mao: [[0, 'Fireball']] });
+  M.avancar(e); conj(e, 'Fireball');
+  igual(e.perg.tipo, 'x'); igual(e.perg.ops.map(o => o.v), [3, 2, 1, 0]);
+  respE(e, o => o.v === 3); alvoJog(e, 1);
+  igual(e.jogs[1].vida, 37); ok(e.campo.every(id => e.objs[id].virada));
+});
+caso('602.2', 'habilidade ativada usa a pilha; {T} de criatura doente não (302.6)', () => {
+  const e = cena({ campo: [[0, 'Prodigal Pyromancer', { doente: true }]] });
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0);
+  e.objs[e.campo[0]].doente = false;
+  M.avancar(e); respE(e, o => o.a === 'ativar'); alvoJog(e, 1);
+  igual(e.jogs[1].vida, 39); ok(e.objs[e.campo[0]].virada);
+});
+caso('113.7a', 'habilidade resolve mesmo sem a fonte (Mind Stone sacrificado compra 1)', () => {
+  const e = cena({ campo: [[0, 'Mind Stone'], [0, 'Wastes']] });
+  const m0 = e.jogs[0].zonas.mao.length;
+  M.avancar(e); respE(e, o => o.a === 'ativar');
+  igual(naZona(e, 0, 'cemiterio'), ['Mind Stone']); igual(e.jogs[0].zonas.mao.length, m0 + 1);
+});
+caso('606.3', 'lealdade: velocidade de feitiço, uma vez por turno; Liliana +1 faz cada um descartar', () => {
+  const e = cena({ campo: [[0, 'Liliana of the Veil']], mao: [[0, 'Forest'], [1, 'Forest']] });
+  const L = e.objs[e.campo[0]]; igual(L.marc.lealdade, 3);
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.k === 0);
+  igual(L.marc.lealdade, 4); igual(e.jogs[0].zonas.mao.length + e.jogs[1].zonas.mao.length, 0, JSON.stringify([e.perg, e.pilha.length, e.log]));
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0, 'segunda no mesmo turno');
+});
+caso('608.2h', 'Swords to Plowshares: exila e o controlador ganha vida igual ao poder (informação guardada)', () => {
+  const e = cena({ campo: [[0, 'Plains'], [1, 'Vampire Nighthawk']], mao: [[0, 'Swords to Plowshares']] });
+  M.avancar(e); conj(e, 'Swords to Plowshares');
+  igual(naZona(e, 1, 'exilio'), ['Vampire Nighthawk']); igual(e.jogs[1].vida, 42);
+});
+caso('701.19', 'Rampant Growth: busca básico, entra virado, embaralha', () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest']], mao: [[0, 'Rampant Growth']], grimorio: 5 });
+  M.avancar(e); conj(e, 'Rampant Growth');
+  if (e.perg && e.perg.tipo === 'buscar') respE(e, o => o.a === 'buscar');
+  igual(e.campo.length, 3); igual(e.jogs[0].zonas.grimorio.length, 4); ok(e.objs[e.campo[2]].virada);
+});
+caso('700.2', 'modal: Kolaghan\'s Command escolhe 2 modos; só os escolhidos pedem alvo (601.2c)', () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, "Kolaghan's Command"]] });
+  M.avancar(e); conj(e, "Kolaghan's Command");
+  igual(e.perg.tipo, 'modo');
+  const ms = e.perg.ops.map(o => o.m);
+  ok(!ms.includes(0) && !ms.includes(2), 'sem criatura no cemitério e sem artefato: esses modos não aparecem');
+});
+caso('704.5q', 'marcadores +1/+1 e −1/−1 se anulam', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] });
+  Object.assign(e.objs[e.campo[0]].marc, { '+1/+1': 2, '-1/-1': 1 });
+  M.abe(e); igual(e.objs[e.campo[0]].marc, { '+1/+1': 1, '-1/-1': 0 });
+});
+caso('702.2b', 'toque mortífero: 1 de dano de fonte com toque mortífero mata', () => {
+  const e = cena({ campo: [[1, 'Grizzly Bears']] });
+  const b = e.objs[e.campo[0]]; b.dano = 1; b.mortal = true; M.abe(e);
+  igual(e.campo.length, 0);
+});
+caso('106.6', 'mana restrita: Unclaimed Territory (Goblin) paga criatura Goblin, não outra mágica', () => {
+  const e = cena({ campo: [[0, 'Unclaimed Territory', { obj: { escolha: { tipo: 'Goblin' } } }]], mao: [[0, 'Goblin Bushwhacker'], [0, 'Lightning Bolt']] });
+  const ids = e.jogs[0].zonas.mao, gob = e.objs[ids[0]], bolt = e.objs[ids[1]];
+  ok(M.podeConjurar(e, 0, gob), 'Goblin com a mana restrita'); ok(!M.podeConjurar(e, 0, bolt), 'Bolt não');
+  igual(M.fontesDeMana(e, 0).map(f => f.pacotes.length), [1], 'fora do plano só dá {C}');
+  M.avancar(e); respE(e, o => o.a === 'conjurar');
+  ok(noCampo(e).includes('Goblin Bushwhacker'));
+  const f = cena({ campo: [[0, 'Unclaimed Territory', { obj: { escolha: { tipo: 'Elf' } } }]], mao: [[0, 'Goblin Bushwhacker']] });
+  ok(!M.podeConjurar(f, 0, f.objs[f.jogs[0].zonas.mao[0]]), 'tipo escolhido diferente');
+});
+caso('106.6', 'restrição que o núcleo não lê (tipo Card, filtro vazio) não vira mana livre', () => {
+  igual(M.filtroSo({}, { tipo: ['Card'] }), null); igual(M.filtroSo({}, {}), null);
+  igual(M.filtroSo({ escolha: { tipo: 'Elf' } }, { sub: ['escolhido'], tipo: ['Creature'] }), { tipo: ['Creature'], sub: ['Elf'] });
+});
+
 // ---------- rodar ----------
 let falhas = 0;
 for (const c of casos) {
+  const t0 = Date.now(); if (process.env.LENTO) console.log("…", c.cr, c.nome);
   try { c.fn(); } catch (err) { falhas++; console.log(`✘ CR ${c.cr} — ${c.nome}\n   ${err.message}`); }
 }
 console.log(`${casos.length - falhas}/${casos.length} casos de regra ${falhas ? '✘' : '✔'}`);

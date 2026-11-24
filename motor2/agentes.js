@@ -19,11 +19,43 @@
         p.ops.forEach((op, k) => { const v = terra(op.id) ? 0.5 : (M.dadoDe(e, o(op.id)).vm || 0); if (v > bv) { bv = v; b = k; } });
         return b;
       }
-      case 'acao': {
+      case 'acao': {                    // terreno (desvirado primeiro) → a mágica mais cara → habilidade de {T}/lealdade → passa
         const k = p.ops.findIndex(op => op.a === 'terreno' && !(M.dadoDe(e, o(op.id)).subst || []).length);
         if (k >= 0) return k;
         const k2 = p.ops.findIndex(op => op.a === 'terreno');
-        return k2 >= 0 ? k2 : 0;
+        if (k2 >= 0) return k2;
+        const meu = e.turno.ativo === p.j;
+        let b = -1, bv = -1;
+        p.ops.forEach((op, i) => {
+          if (op.a !== 'conjurar') return;
+          const d = M.dadoDe(e, o(op.id)), inst = (d.tipos || []).includes('Instant');
+          if (!meu && !inst) return;
+          if (inst && !d.alvos && !meu) return;            // instantânea sem alvo: no próprio turno
+          if ((d.vm || 0) > bv) { bv = d.vm || 0; b = i; }
+        });
+        if (b >= 0) return b;
+        if (meu) {
+          const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.dadoDe(e, o(op.id)).atv[op.k]; return a.lealdade !== undefined || a.custo.virar; })());
+          if (k3 >= 0) return k3;
+        }
+        return 0;
+      }
+      case 'alvo': {                    // jogador: o oponente com menos vida; objeto: o mais caro de um oponente
+        let b = 0, bv = -Infinity;
+        p.ops.forEach((op, i) => {
+          let v;
+          if (op.a === 'pronto') v = -1;
+          else if (op.jog !== undefined) v = op.jog === p.j ? -5 : 100 - e.jogs[op.jog].vida;
+          else { const x = o(op.o); v = (x.ctrl === p.j ? -10 : 10) + (M.dadoDe(e, x).vm || 0); }
+          if (v > bv) { bv = v; b = i; }
+        });
+        return b;
+      }
+      case 'buscar': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
+      case 'sacrificar': case 'custo': {
+        let b = 0, bv = Infinity;
+        p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
+        return b;
       }
       case 'aMenosQue': return p.ops.length > 1 && J.vida > 10 ? 1 : 0;
       case 'cmdZona': return 0;

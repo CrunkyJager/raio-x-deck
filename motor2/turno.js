@@ -16,11 +16,12 @@
       if (parar && parar(e)) break;
       const T = e.turno;
       if (T.passo === 'mulligan') { passoMulligan(e); continue; }
-      if (!T.feito) { T.feito = true; acaoDoTurno(e); if (e.perg || e.fim) break; }
-      M.abe(e); if (e.perg || e.fim) break;
-      if (PRINCIPAL.has(T.passo) && !T.passar && !e.jogs[T.ativo].saiu) {
-        const ops = acoesPrincipais(e, T.ativo);
-        if (ops.length > 1) { e.perg = { j: T.ativo, tipo: 'acao', ops }; break; }
+      if (!T.feito) { T.feito = true; T.prio = null; acaoDoTurno(e); if (e.perg || e.fim) break; }
+      M.abe(e); if (e.perg || e.fim) break;                            // CR 117.5: ações de estado antes da prioridade
+      if (M.temPrioridadeNoPasso(T.passo) && !(T.prio && T.prio.acabou)) {
+        const r = M.passoPrioridade(e);
+        if (r === 'fim') T.prio.acabou = true;
+        if (r !== 'fim') continue;
       }
       proximoPasso(e);
     }
@@ -32,7 +33,8 @@
     if (!p) throw new Error('não há pergunta');
     if (!(k >= 0 && k < p.ops.length)) throw new Error(`resposta fora das opções (${p.tipo}): ${k}`);
     e.perg = null;
-    RESP[p.tipo](e, p, p.ops[k]);
+    if (p.proc) M.continuarProc(e, k);
+    else RESP[p.tipo](e, p, p.ops[k]);
     return M.avancar(e, parar);
   };
 
@@ -103,7 +105,7 @@
     }
   }
   function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
-    for (const id of e.campo) e.objs[id].dano = 0;
+    for (const id of e.campo) { e.objs[id].dano = 0; e.objs[id].mortal = false; }
   }
   // tamanho máximo de mão (CR 402.2: 7) — Reliquary Tower e cia. (est maoMax) lidos aqui até as camadas da T18
   function maoMax(e, j) {
@@ -121,7 +123,7 @@
     M.esvaziarReservas(e);                                            // CR 106.4
     let i = PASSOS.indexOf(T.passo) + 1;
     if (PASSOS[i] === 'bloqueadores') i = PASSOS.indexOf('fimCombate'); // CR 508.8: sem atacantes pula bloqueio e dano (ataque = T16)
-    T.feito = false; T.passar = false;
+    T.feito = false; T.prio = null;
     if (i < PASSOS.length) { T.passo = PASSOS[i]; return; }
     // próximo turno: próximo jogador na ordem que ainda está no jogo (CR 800.4k)
     const n = e.jogs.length;
@@ -131,15 +133,8 @@
     if (T.n > e.cfg.maxTurnos) e.fim = { vencedor: null, motivo: 'limite de turnos' };
   }
 
-  // ---------- ações do jogador ativo na fase principal (prioridade de verdade = T15) ----------
-  function acoesPrincipais(e, j) {
-    const J = e.jogs[j], ops = [{ a: 'passar' }];
-    if (J.terrenos < terrenosPorTurno(e, j) && !e.pilha.length)       // CR 305.2 (+ Exploration, Azusa: 305.2a)
-      for (const id of J.zonas.mao) if (M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id });
-    for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
-    return ops;
-  }
-  M.acoesPrincipais = acoesPrincipais;
+  // ---------- ações de quem tem prioridade: M.opcoesPrioridade (pilha.js) ----------
+  M.acoesPrincipais = (e, j) => M.opcoesPrioridade(e, j);
   // terrenos por turno: 1 + estáticas terraExtra de quem controla (lidas aqui até as camadas da T18)
   function terrenosPorTurno(e, j) {
     let n = 1;
@@ -151,72 +146,36 @@
   }
   M.terrenosPorTurno = terrenosPorTurno;
 
-  // jogar terreno (CR 305.1: ação especial). "Entra virado" (CR 614.1c) com condição e "a menos que pague".
-  function jogarTerreno(e, j, id) {
-    const o = e.objs[id], d = M.dadoDe(e, o), ctx = { voce: j, este: id };
+  // jogar terreno (CR 305.1: ação especial, não usa a pilha). "Entra virado" (CR 614.1c) e escolha ao entrar em
+  // M.decidirEntrada (efeitos.js), que pergunta pelo processo.
+  M.PROC.terreno = (e, P, ask) => {
+    const j = P.j, o = e.objs[P.id];
     if (o.zona !== 'mao' || o.dono !== j || !M.temTipo(e, o, 'Land')) throw new Error('terreno ilegal');
+    const plano = M.decidirEntrada(e, P.id, j, {}, ask);
+    e.proc = null;
     e.jogs[j].terrenos++;
-    const s = (d.subst || []).find(x => x.ev === 'entra' && x.muda && x.muda.virada && x.quem && x.quem.este);
-    if (s && M.condicao(e, s.se, ctx) && s.aMenosQue) {
-      const ops = [{ a: 'naoPagar' }];
-      const c = s.aMenosQue.custo;
-      if (c.vida && e.jogs[j].vida >= c.vida) ops.push({ a: 'pagar' });            // CR 119.4
-      if (c.revelar) for (const r of M.objetosQue(e, { ...c.revelar.f, dono: 'voce' }, ctx)) if (r.id !== id) ops.push({ a: 'revelar', rid: r.id });
-      e.perg = { j, tipo: 'aMenosQue', ops, ctx: { id, vida: c.vida || 0 } };
-      return;
-    }
-    entrar(e, id, { virada: !!(s && M.condicao(e, s.se, ctx)) });
-  }
+    M.aplicarEntrada(e, plano);
+    M.agiu(e, j);                                                     // CR 117.3c
+  };
+  const jogarTerreno = (e, j, id) => M.iniciarProc(e, { tp: 'terreno', j, id });
   M.jogarTerreno = jogarTerreno;
-  function entrar(e, id, { virada }) {
-    const o = M.mover(e, id, 'campo', { virada });
-    M.log(e, e.jogs[o.ctrl].nome, 'joga', o.n, virada ? '(virado)' : '');
-    escolhaAoEntrar(e, o);
-    // gatilhos de entrar (Temple: vidência) = T17
-  }
-  // "ao entrar, escolha uma cor / um tipo de criatura" (CR 614.12: é substituição, já entra com a escolha)
-  function escolhaAoEntrar(e, o) {
-    for (const s of M.dadoDe(e, o).subst || []) {
-      if (s.ev !== 'entra' || !s.emVez) continue;
-      for (const f of s.emVez) {
-        if (f.op !== 'escolher') continue;
-        let ops;
-        if (f.o === 'cor') ops = (f.cores || 'WUBRG').split('').map(c => ({ a: 'cor', v: c }));
-        else if (f.o === 'tipoCriatura') {     // opções = tipos das criaturas do próprio deck (lista finita e útil)
-          const t = new Set();
-          for (const x of Object.values(e.objs)) if (x.dono === o.dono && M.temTipo(e, x, 'Creature')) (M.dadoDe(e, x).sub || []).forEach(s2 => t.add(s2));
-          ops = [...t].sort().map(v => ({ a: 'tipo', v }));
-          if (!ops.length) continue;
-        } else continue;
-        e.perg = { j: o.ctrl, tipo: 'escolha', ops, ctx: { id: o.id, o: f.o } };
-        return;
-      }
-    }
-  }
-  M.escolhaAoEntrar = escolhaAoEntrar;
 
   // ---------- respostas ----------
   const RESP = {
     mulligan(e, p, op) { const m = e.mull; if (op.a === 'mulligan') m.querem.push(p.j); m.i++; },
     fundo(e, p, op) { M.mover(e, op.id, 'grimorio', { topo: false }); e.mull.fundo[p.j]--; },
     acao(e, p, op) {
-      if (op.a === 'passar') e.turno.passar = true;
+      if (op.a === 'passar') M.passar(e);
       else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id);
-      else if (op.a === 'mana') M.ativarMana(e, p.j, op.id, op.k, op.escolha);
-    },
-    aMenosQue(e, p, op) {
-      if (op.a === 'pagar') e.jogs[p.j].vida -= p.ctx.vida;
-      entrar(e, p.ctx.id, { virada: op.a === 'naoPagar' });
+      else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
+      else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id);
+      else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
     },
     descartar(e, p, op) {
       M.mover(e, op.id, 'cemiterio');
       const f = p.ctx.faltam - 1;
       if (f > 0) e.perg = { j: p.j, tipo: 'descartar', ops: e.jogs[p.j].zonas.mao.map(id => ({ a: 'descartar', id })), ctx: { faltam: f } };
       else limpar(e);
-    },
-    escolha(e, p, op) {
-      const o = e.objs[p.ctx.id];
-      if (o) o.escolha = p.ctx.o === 'cor' ? { cor: op.v } : { tipo: op.v };
     },
     lenda(e, p, op) { for (const id of p.ctx.ids) if (id !== op.id) M.mover(e, id, 'cemiterio'); },
     cmdZona(e, p, op) { if (op.a === 'comando') M.mover(e, p.ctx.id, 'comando'); },
@@ -239,14 +198,17 @@
         const o = e.objs[id];
         if (M.temTipo(e, o, 'Creature')) {
           const r = M.resistencia(e, o);
-          if (r <= 0 || o.dano >= r) morrem.push(id);                  // regenerar = T19
+          if (r <= 0) morrem.push(id);                                   // CR 704.5f
+          else if ((o.dano >= r || (o.mortal && o.dano > 0)) && !M.temKw(e, o, 'indestrutivel')) morrem.push(id);   // 704.5g–h; regenerar = T19
         }
         if (M.temTipo(e, o, 'Planeswalker') && (o.marc.lealdade || 0) <= 0) morrem.push(id);
       }
-      for (const id of morrem) { M.mover(e, id, 'cemiterio'); mudou = true; }
-      for (const id in e.objs) {
-        const o = e.objs[id];
-        if (o.ficha && o.zona !== 'campo') { const l = M.listaDe(e, o), k = l.indexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[id]; mudou = true; }
+      for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
+      // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
+      for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
+      while (e.fichasFora && e.fichasFora.length) {
+        const o = e.objs[e.fichasFora.pop()];
+        if (o && o.ficha && o.zona !== 'campo') { const l = M.listaDe(e, o), k = l.indexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[o.id]; mudou = true; }
       }
       for (const j of perdem) { M.sair(e, j, 'perdeu'); mudou = true; }
       if (e.fim) return;

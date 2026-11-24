@@ -1,0 +1,424 @@
+// motor2/pilha.js — prioridade (CR 117), pilha (CR 405), alvos (CR 115), conjurar (CR 601), ativar (CR 602),
+// resolver (CR 608: alvo ilegal 608.2b, informação guardada 608.2h) e o "processo com perguntas" que eles usam.
+(function (M) {
+  'use strict';
+  const PRINCIPAL = new Set(['principal1', 'principal2']);
+  const PAUSA = { pausa: true };
+
+  // ---------- processo com perguntas ----------
+  // Conjurar, ativar e resolver pedem várias escolhas seguidas. O processo roda de novo do início a cada resposta,
+  // com as respostas já dadas gravadas (P.resp). Regra de quem escreve um passo: PERGUNTAR TUDO ANTES DE MEXER NO
+  // ESTADO. Na resolução cada efeito é um passo (P.i): ao terminar um efeito as respostas zeram.
+  // Ganho: desistir no meio (custo que não fecha) não deixa nada pela metade — CR 727 (voltar atrás) de graça.
+  function rodarProc(e) {
+    const P = e.proc, A = { ip: 0 };
+    const ask = (j, tipo, ops, ctx) => {
+      if (A.ip < P.resp.length) return ops[P.resp[A.ip++]];
+      if (!ops.length) throw new Error('pergunta sem opções: ' + tipo);
+      if (ops.length === 1) { P.resp.push(0); A.ip++; return ops[0]; }     // uma opção só: não pergunta
+      e.perg = { j, tipo, ops, ctx, proc: true };
+      throw PAUSA;
+    };
+    ask.etapa = () => { P.resp = []; A.ip = 0; };
+    try { PROC[P.tp](e, P, ask); } catch (err) { if (err !== PAUSA) throw err; }
+  }
+  M.iniciarProc = (e, proc) => { e.proc = { ...proc, resp: [] }; rodarProc(e); };
+  M.continuarProc = (e, k) => { e.proc.resp.push(k); rodarProc(e); };
+
+  // ---------- leitura ----------
+  M.temKw = (e, o, k) => (M.dadoDe(e, o).kw || []).some(x => x.k === k);
+  const ehMagica = o => o.zona === 'pilha' && !o.hab;
+  const vivo = (e, j) => !e.jogs[j].saiu;
+
+  // velocidade (CR 307.1, 117.1a): mágica de feitiço só na principal do ativo com a pilha vazia
+  M.velFeitico = (e, j) => j === e.turno.ativo && PRINCIPAL.has(e.turno.passo) && !e.pilha.length;
+
+  // ---------- alvos (CR 115) ----------
+  // escolha de alvo: {o: id, ts} (objeto) ou {jog: j}. O ts prende o objeto: mudou de zona → objeto novo (CR 400.7)
+  const TIPOS_ALVO_OBJ = ['Creature', 'Planeswalker', 'Battle'];
+  M.alvoSuportado = a => {
+    const f = a.f;
+    if (a.dividir) return false;                                    // dividir dano: T16/T19
+    if (typeof f === 'string') return ['qualquerAlvo', 'jogador', 'oponente', 'magica'].includes(f);
+    return M.filtroOk(f);
+  };
+  // pode ser alvo de quem controla a mágica/habilidade? antimagia (CR 702.11b) e manto (CR 702.18a); proteção = T18
+  const alcancavel = (e, o, voce) => !(M.temKw(e, o, 'manto') || (M.temKw(e, o, 'antimagia') && o.ctrl !== voce));
+  M.alvoLegal = (e, a, esc, ctx) => {
+    const f = a.f, voce = ctx.voce;
+    if (esc.jog !== undefined) {
+      if (!vivo(e, esc.jog)) return false;
+      if (f === 'qualquerAlvo' || f === 'jogador' || a.jog === 'jogador') return true;
+      if (f === 'oponente' || a.jog === 'oponente') return esc.jog !== voce;
+      return false;
+    }
+    const o = e.objs[esc.o];
+    if (!o || o.ts !== esc.ts) return false;                         // mudou de zona: não é mais o mesmo objeto
+    if (f === 'magica') return ehMagica(o);
+    if (o.zona === 'campo' && !alcancavel(e, o, voce)) return false;
+    if (f === 'qualquerAlvo') return o.zona === 'campo' && TIPOS_ALVO_OBJ.some(t => M.temTipo(e, o, t));
+    if (typeof f === 'string') return false;
+    if (o.hab) return false;
+    const ff = f.zona ? f : { ...f, zona: 'campo' };
+    return M.bate(e, o, ff, ctx);
+  };
+  M.alvosPossiveis = (e, a, ctx) => {
+    const r = [], f = a.f;
+    const jog = f === 'qualquerAlvo' || f === 'jogador' || f === 'oponente' || a.jog;
+    if (jog) for (const J of e.jogs) if (M.alvoLegal(e, a, { jog: J.i }, ctx)) r.push({ jog: J.i });
+    let ids;
+    if (f === 'magica') ids = e.pilha;
+    else if (f === 'qualquerAlvo') ids = e.campo;
+    else if (typeof f === 'string') ids = [];
+    else ids = M.objetosQue(e, f.zona ? f : { ...f, zona: 'campo' }, ctx).map(o => o.id);
+    for (const id of ids) { const esc = { o: id, ts: e.objs[id].ts }; if (M.alvoLegal(e, a, esc, ctx)) r.push(esc); }
+    return r;
+  };
+  // índices de alvo que os efeitos usam (modal: só os modos escolhidos pedem alvo, CR 601.2c)
+  const alvosUsados = fx => {
+    const s = new Set();
+    const anda = v => {
+      if (!v || typeof v !== 'object') return;
+      if (Array.isArray(v)) { v.forEach(anda); return; }
+      if (typeof v.alvo === 'number') s.add(v.alvo);
+      for (const k in v) if (k !== 'modos') anda(v[k]);
+    };
+    anda(fx);
+    return [...s].sort((a, b) => a - b);
+  };
+
+  // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
+  const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'tirarMarcador']);
+  M.custoSuportado = c => {
+    for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
+    if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
+    if (c && c.sacrificar && c.sacrificar !== 'este' && !M.filtroOk(c.sacrificar.f || {})) return false;
+    return true;
+  };
+  // candidatos a sacrificar/descartar de um custo
+  const candSac = (e, j, c, fonte) => M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });
+  const candDesc = (e, j, fora) => e.jogs[j].zonas.mao.filter(id => id !== fora);
+  // custo fora da mana dá para pagar agora? (antes da mana: o que sai daqui não paga mana)
+  function custoFisicoOk(e, j, o, c, { daMao } = {}) {
+    if (!c) return true;
+    const J = e.jogs[j];
+    if ((c.virar || c.desvirar) && o) {                              // CR 302.6: criatura sem pressa não usa {T}/{Q}
+      if (c.virar && o.virada) return false;
+      if (c.desvirar && !o.virada) return false;
+      if (M.temTipo(e, o, 'Creature') && o.doente && !M.temKw(e, o, 'pressa')) return false;
+    }
+    if (c.vida && J.vida < c.vida) return false;                     // CR 119.4
+    if (c.sacrificar && c.sacrificar !== 'este' && !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1)) return false;
+    if (c.descartar && candDesc(e, j, daMao).length < c.descartar) return false;
+    if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
+    return true;
+  }
+
+  // mana possível de um jogador (limite de cima, rápido): reserva + o máximo de cada fonte de virar
+  function manaMax(e, j, excluir, para) {
+    let t = M.somaMana(e.jogs[j].reserva);
+    for (const f of M.fontesDeMana(e, j, { soVirar: true, para })) if (!excluir || !excluir.includes(f.id)) t += Math.max(...f.pacotes.map(M.somaMana));
+    return t;
+  }
+  const vidaPhy = (e, j) => Math.max(0, e.jogs[j].vida - 1);        // phyrexiano: o plano pode gastar vida sem morrer
+  const plano = (e, j, custo, x, excluir, para) => M.planoMana(e, j, custo, { x, vidaDisp: vidaPhy(e, j), excluir, para });
+  // maior X pagável (CR 107.3): sobe enquanto o plano fecha
+  function maxX(e, j, custo, excluir, para, teto = 30) {
+    let x = 0;
+    while (x < teto && plano(e, j, custo, x + 1, excluir, para)) x++;
+    return x;
+  }
+
+  // ---------- o que pode ser conjurado ----------
+  const FORA = new Set(['faces', 'forma']);
+  M.podeConjurar = (e, j, o) => {
+    const d = M.dadoDe(e, o);
+    if (o.dono !== j) return false;
+    if (!(o.zona === 'mao' || (o.zona === 'comando' && o.cmd))) return false;
+    if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
+    if (FORA.size && Object.keys(d).some(k => FORA.has(k))) return false;   // duas faces/aventura: T19
+    if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
+    const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
+    if (!inst && !M.velFeitico(e, j)) return false;
+    if (d.fx && !M.fxSuportado(d.fx)) return false;
+    if (!M.ehPermanente(e, o) && !(d.fx && d.fx.length)) return false;   // mágica sem efeito lido: não conjura à toa
+    if (modalTopo(d) && M.modosViaveis(e, j, d) < ((d.fx[0].escolhe || {}).min ?? 1)) return false;
+    if (d.custoAd && !M.custoSuportado(d.custoAd)) return false;
+    if (d.custoAd && !custoFisicoOk(e, j, null, d.custoAd, { daMao: o.id })) return false;
+    const ctx = { voce: j, este: o.id };
+    for (const i of alvosUsados(modalTopo(d) ? [] : d.fx || [])) {
+      const a = (d.alvos || [])[i];
+      if (!a || !M.alvoSuportado(a)) return false;
+      if ((a.min ?? 1) > 0 && M.alvosPossiveis(e, a, ctx).length < (a.min ?? 1)) return false;   // CR 601.2c
+    }
+    const custo = M.custoComImposto(e, o);
+    if (M.vmDe(custo) > manaMax(e, j, null, o) + Math.floor(vidaPhy(e, j) / 2)) return false;
+    return !!plano(e, j, custo, 0, null, o);
+  };
+  const modalTopo = d => d.fx && d.fx.length === 1 && d.fx[0].op === 'modal';
+
+  // ---------- o que pode ser ativado (CR 602.2; lealdade CR 606) ----------
+  M.podeAtivar = (e, j, o, k) => {
+    const d = M.dadoDe(e, o), a = (d.atv || [])[k];
+    if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
+    if ((d.falta || []).some(s => s.startsWith('Cost'))) return false;   // custo que o conversor não leu: não ativa errado
+    if (!M.custoSuportado(a.custo) || !(a.fx && a.fx.length) || !M.fxSuportado(a.fx, { topo: false })) return false;
+    if (a.lealdade !== undefined) {                                     // CR 606.3: feitiço, uma por turno por permanente
+      if (!M.velFeitico(e, j) || o.lealTurno === e.turno.n) return false;
+      if (a.lealdade < 0 && (o.marc.lealdade || 0) < -a.lealdade) return false;
+    } else if (a.vel === 'feitico' && !M.velFeitico(e, j)) return false;
+    if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
+    if (!custoFisicoOk(e, j, o, a.custo)) return false;
+    const ctx = { voce: j, este: o.id };
+    for (const i of alvosUsados(a.fx)) {
+      const al = (a.alvos || [])[i];
+      if (!al || !M.alvoSuportado(al)) return false;
+      if ((al.min ?? 1) > 0 && M.alvosPossiveis(e, al, ctx).length < (al.min ?? 1)) return false;
+    }
+    if (a.custo.mana) {
+      const ex = a.custo.virar || a.custo.sacrificar === 'este' ? [o.id] : [];
+      if (!plano(e, j, a.custo.mana, 0, ex)) return false;
+    }
+    return true;
+  };
+
+  // ---------- prioridade (CR 117) ----------
+  M.temPrioridadeNoPasso = passo => passo !== 'desvirar' && passo !== 'limpeza';   // CR 502.4, 514.3
+  M.proxVivo = (e, j) => { const n = e.jogs.length; let p = j; do p = (p + 1) % n; while (e.jogs[p].saiu && p !== j); return p; };
+
+  // opções de quem tem prioridade. O núcleo só pergunta quando há algo além de passar e virar mana.
+  M.opcoesPrioridade = (e, j) => {
+    M.memo = {};                                                        // nada muda enquanto lista: fontes de mana uma vez só
+    try { return opcoes(e, j); } finally { M.memo = null; }
+  };
+  function opcoes(e, j) {
+    const J = e.jogs[j], ops = [{ a: 'passar' }];
+    if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))      // CR 305.2 (+ 305.2a)
+      for (const id of J.zonas.mao) if (M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id });
+    for (const id of [...J.zonas.mao, ...J.zonas.comando]) if (M.podeConjurar(e, j, e.objs[id])) ops.push({ a: 'conjurar', id });
+    for (const id of e.campo) {
+      const o = e.objs[id]; if (o.ctrl !== j) continue;
+      (M.dadoDe(e, o).atv || []).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
+    }
+    for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
+    return ops;
+  }
+
+  // um passo do laço de prioridade; devolve true se perguntou ou mudou algo
+  M.passoPrioridade = e => {
+    const T = e.turno;
+    if (!T.prio) T.prio = { j: T.ativo, n: 0 };                          // CR 117.3a: o ativo recebe primeiro
+    const P = T.prio, vivos = M.vivos(e).length;
+    if (e.jogs[P.j].saiu) P.j = M.proxVivo(e, P.j);
+    if (P.n >= vivos) {                                                 // CR 117.4: todos passaram em sequência
+      if (e.pilha.length) { M.resolverTopo(e); P.j = T.ativo; P.n = 0; if (e.jogs[P.j].saiu) P.j = M.proxVivo(e, P.j); return 'resolveu'; }
+      return 'fim';                                                     // pilha vazia: acaba a etapa
+    }
+    const ops = M.opcoesPrioridade(e, P.j);
+    if (ops.some(o => o.a !== 'passar' && o.a !== 'mana')) { e.perg = { j: P.j, tipo: 'acao', ops }; return 'perg'; }
+    M.passar(e);
+    return 'passou';
+  };
+  M.passar = e => { const P = e.turno.prio; P.n++; P.j = M.proxVivo(e, P.j); };
+  M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   // CR 117.3c: quem age recebe de novo
+
+  // ---------- conjurar (CR 601.2) ----------
+  // Ordem da CR: anunciar (move para a pilha), modos, X, alvos, custos. Aqui as escolhas vêm primeiro e a carta só
+  // vai para a pilha quando tudo fecha — o resultado é o mesmo (nada do jogo muda entre um passo e outro).
+  function escolherAlvos(e, j, d, fx, ctx, ask) {
+    const esc = [];
+    for (const i of alvosUsados(fx)) {
+      const a = d.alvos[i], min = a.min ?? 1, max = a.max ?? 1, lista = [];
+      while (lista.length < max) {
+        const ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3
+        if (lista.length >= min) ops.unshift({ a: 'pronto' });
+        if (!ops.length) break;
+        const r = ask(j, 'alvo', ops, { i, de: ctx.este });
+        if (r.a === 'pronto') break;
+        lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts });
+      }
+      esc[i] = lista;
+    }
+    return esc;
+  }
+  const mesmo = (x, y) => (x.jog !== undefined ? x.jog === y.jog : x.o === y.o);
+
+  // modo dá para escolher: efeitos que o núcleo sabe e alvos com opção legal (CR 601.2c)
+  function modoViavel(e, j, d, fx) {
+    if (!M.fxSuportado(fx, { topo: false })) return false;
+    return alvosUsados(fx).every(i => { const a = (d.alvos || [])[i]; return a && M.alvoSuportado(a) && ((a.min ?? 1) === 0 || M.alvosPossiveis(e, a, { voce: j }).length >= (a.min ?? 1)); });
+  }
+  M.modosViaveis = (e, j, d) => d.fx[0].modos.filter(m => modoViavel(e, j, d, m)).length;
+  function escolherModos(e, j, d, f, ask) {
+    const es = f.escolhe || { min: 1, max: 1 }, n = f.modos.length;
+    let max = es.max ?? 1;
+    if (es.maxSe && M.condicao(e, es.maxSe.se, { voce: j })) max = es.maxSe.max;
+    const modos = [];
+    while (modos.length < Math.min(max, n)) {
+      const ops = [];
+      if (modos.length >= (es.min ?? 1)) ops.push({ a: 'pronto' });
+      for (let m = 0; m < n; m++) if (!modos.includes(m) && modoViavel(e, j, d, f.modos[m])) ops.push({ a: 'modo', m });   // CR 700.2d
+      if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto')) break;
+      const r = ask(j, 'modo', ops, {});
+      if (r.a === 'pronto') break;
+      modos.push(r.m);
+    }
+    return modos.sort((a, b) => a - b);
+  }
+  // fx efetivo: modal no topo → só os modos escolhidos, em ordem (CR 700.2)
+  const fxEfetivo = (d, fx, modos) => modos && fx.length === 1 && fx[0].op === 'modal' ? modos.flatMap(m => fx[0].modos[m]) : fx;
+
+  // custo físico com escolha (sacrificar X, descartar)
+  function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
+    const r = { sac: [], desc: [] };
+    if (c.sacrificar && c.sacrificar !== 'este') {
+      for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
+        const ops = candSac(e, j, c, fonte).filter(o => !r.sac.includes(o.id)).map(o => ({ a: 'sacrificar', id: o.id }));
+        r.sac.push(ask(j, 'custo', ops, { o: 'sacrificar' }).id);
+      }
+    }
+    if (c.descartar) {
+      for (let i = 0; i < c.descartar; i++) {
+        const ops = candDesc(e, j, daMao).filter(id => !r.desc.includes(id)).map(id => ({ a: 'descartar', id }));
+        r.desc.push(ask(j, 'custo', ops, { o: 'descartar' }).id);
+      }
+    }
+    return r;
+  }
+  function pagarFisico(e, j, o, c, esc) {
+    const J = e.jogs[j];
+    if (c.virar) o.virada = true;
+    if (c.desvirar) o.virada = false;
+    if (c.vida) J.vida -= c.vida;
+    if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
+    for (const id of esc.sac) M.mover(e, id, 'cemiterio');            // CR 701.21
+    for (const id of esc.desc) M.mover(e, id, 'cemiterio');
+    if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
+    if (c.exilarEste) M.mover(e, o.id, 'exilio');
+  }
+  function pagarMana(e, j, pl, custo, x) {
+    for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
+    const pg = M.pagarDaReserva(e.jogs[j].reserva, custo, { x, vidaDisp: pl.vida });
+    e.jogs[j].reserva = pg.resto; e.jogs[j].vida -= pg.vida;
+  }
+
+  const PROC = {
+    conjurar(e, P, ask) {
+      const j = P.j, o = e.objs[P.id], d = M.dadoDe(e, o), ctx = { voce: j, este: o.id };
+      const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask) : null;          // CR 601.2b
+      const fx = fxEfetivo(d, d.fx || [], modos);
+      const custo = M.custoComImposto(e, o);
+      let x = 0;
+      if (custo.x) {                                                                    // CR 601.2b: anuncia o X
+        const mx = maxX(e, j, custo, null, o);
+        x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
+      }
+      const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask);                     // CR 601.2c
+      const fis = d.custoAd ? escolherCustoFisico(e, j, d.custoAd, null, o.id, ask) : { sac: [], desc: [] };
+      const pl = plano(e, j, custo, x, fis.sac, o);                                     // CR 601.2g: mana antes de pagar
+      e.proc = null;
+      if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(custo não fecha)'); return; }   // CR 727: volta atrás
+      const doComando = o.zona === 'comando';
+      M.mover(e, o.id, 'pilha'); o.ctrl = j;                                            // CR 601.2a
+      o.pil = { x, alvos, modos, ctrl: j };
+      pagarMana(e, j, pl, custo, x);                                                    // CR 601.2h
+      if (d.custoAd) pagarFisico(e, j, o, d.custoAd, fis);
+      if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
+      e.turno.magias = (e.turno.magias || 0) + 1;
+      M.log(e, e.jogs[j].nome, 'conjura', o.n, x ? `(X=${x})` : '', descAlvos(e, alvos));
+      M.agiu(e, j);                                                                     // CR 601.2i → 117.3c
+    },
+
+    ativar(e, P, ask) {
+      const j = P.j, o = e.objs[P.id], d = M.dadoDe(e, o), a = d.atv[P.k], c = a.custo, ctx = { voce: j, este: o.id };
+      const ex = c.virar || c.sacrificar === 'este' ? [o.id] : [];
+      let x = 0;
+      if (c.mana && c.mana.x) {
+        const mx = maxX(e, j, c.mana, ex);
+        x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
+      }
+      const alvos = escolherAlvos(e, j, a, a.fx, { ...ctx, x }, ask);                   // CR 602.2b → 601.2c
+      const fis = escolherCustoFisico(e, j, c, o.id, null, ask);
+      const pl = c.mana ? plano(e, j, c.mana, x, [...ex, ...fis.sac]) : { passos: [], vida: 0 };
+      e.proc = null;
+      if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
+      // a habilidade vai para a pilha independente da fonte (CR 113.7a): leva o texto e o que sabia da fonte
+      const id = e.prox++;
+      const h = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {}, doente: false, cmd: false,
+        hab: { fonte: o.id, fonteTs: o.ts, k: P.k, fx: a.fx, alvos: a.alvos || [], ficha: o.ficha || null },
+        pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) } } };
+      e.objs[id] = h; e.pilha.push(id);
+      if (c.mana) pagarMana(e, j, pl, c.mana, x);
+      pagarFisico(e, j, o, c, fis);
+      if (a.lealdade !== undefined) { o.marc.lealdade = (o.marc.lealdade || 0) + a.lealdade; o.lealTurno = e.turno.n; }   // CR 606.4
+      if (a.limite === 'umaPorTurno') (o.usos = o.usos || {})[P.k] = e.turno.n;
+      M.log(e, e.jogs[j].nome, 'ativa', o.n, descAlvos(e, alvos));
+      M.agiu(e, j);
+    },
+
+    // CR 608.2: resolve o objeto do topo
+    resolver(e, P, ask) {
+      const o = e.objs[P.id], pil = o.pil, j = pil.ctrl;
+      const d = o.hab ? { fx: o.hab.fx, alvos: o.hab.alvos } : M.dadoDe(e, o);
+      const fx = fxEfetivo(d, d.fx || [], pil.modos);
+      if (!P.checou) {
+        P.checou = true;
+        // CR 608.2b: alvos que ficaram ilegais; se TODOS ficaram, não resolve
+        const ctx0 = { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x };
+        P.ilegal = {};
+        let tem = 0, legais = 0;
+        (pil.alvos || []).forEach((lista, i) => (lista || []).forEach((esc, k) => {
+          tem++;
+          if (M.alvoLegal(e, d.alvos[i], esc, ctx0)) legais++; else P.ilegal[i + ':' + k] = true;
+        }));
+        // CR 608.2h: o que se sabe dos alvos agora (o efeito pode tirá-los do campo no meio)
+        pil.lki = pil.lki || {};
+        pil.lki.alvos = (pil.alvos || []).map(l => (l || []).map(esc => esc.o !== undefined && e.objs[esc.o] ? lkiDe(e, e.objs[esc.o]) : null));
+        if (tem && !legais) { e.proc = null; M.log(e, o.n, 'não resolve: alvos ilegais'); tirarDaPilha(e, o); return; }
+        P.i = 0;
+      }
+      const ctx = { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id };
+      while (P.i < fx.length) {
+        M.executar(e, fx[P.i], ctx, ask);
+        P.i++; ask.etapa();
+        if (e.fim) { e.proc = null; return; }
+      }
+      tirarDaPilha(e, o, true, ask);
+      e.proc = null;
+    },
+  };
+  M.PROC = PROC;
+
+  // CR 608.3 (permanente entra no campo), 608.2n (instantânea/feitiço vai ao cemitério do dono), 113.7 (habilidade some)
+  function tirarDaPilha(e, o, resolveu, ask) {
+    if (o.hab) { const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); delete e.objs[o.id]; return; }
+    if (resolveu && M.ehPermanente(e, o)) {
+      const plano = M.decidirEntrada(e, o.id, o.pil.ctrl, {}, ask);   // pergunta antes de mexer
+      o.pil = null;
+      M.aplicarEntrada(e, plano);
+      return;
+    }
+    o.pil = null;
+    M.mover(e, o.id, 'cemiterio');
+  }
+  M.tirarDaPilha = tirarDaPilha;
+
+  M.resolverTopo = e => {
+    const id = e.pilha[e.pilha.length - 1];
+    M.iniciarProc(e, { tp: 'resolver', id });
+  };
+  M.conjurar = (e, j, id) => M.iniciarProc(e, { tp: 'conjurar', j, id });
+  M.ativar = (e, j, id, k) => M.iniciarProc(e, { tp: 'ativar', j, id, k });
+
+  // anular (CR 701.6): a mágica sai da pilha para o cemitério do dono; habilidade some
+  M.anular = (e, id) => { const o = e.objs[id]; if (!o || o.zona !== 'pilha') return; o.pil = null; tirarDaPilha(e, o, false); };
+
+  function lkiDe(e, o) {
+    return { id: o.id, ts: o.ts, n: o.n, ctrl: o.ctrl, dono: o.dono, poder: M.poder(e, o), resist: M.resistencia(e, o), vm: M.dadoDe(e, o).vm || 0, marc: { ...o.marc } };
+  }
+  M.lkiDe = lkiDe;
+  function descAlvos(e, alvos) {
+    const t = (alvos || []).flat().filter(Boolean).map(a => a.jog !== undefined ? e.jogs[a.jog].nome : (e.objs[a.o] || {}).n);
+    return t.length ? '→ ' + t.join(', ') : '';
+  }
+})(globalThis.MOTOR2 = globalThis.MOTOR2 || {});

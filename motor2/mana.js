@@ -26,11 +26,31 @@
     return null;
   };
 
+  // filtro da mana restrita → filtro RX que o núcleo entende (null = restrição que ainda não sabe: a fonte não é usada)
+  // 'escolhido' = o tipo escolhido ao entrar (Cavern of Souls, Unclaimed Territory); 'Legendary' veio como sub
+  M.filtroSo = (o, so) => {
+    const k = Object.keys(so);
+    if (!k.length || k.some(x => x !== 'tipo' && x !== 'sub')) return null;
+    const f = {};
+    if (so.tipo) { if (so.tipo.includes('Card')) return null; f.tipo = so.tipo; }
+    if (so.sub) {
+      if (so.sub.some(x => x === 'Kicked' || x === 'Colorless')) return null;
+      if (so.sub.includes('Legendary')) f.super = ['Legendary'];
+      const sub = so.sub.filter(x => x !== 'Legendary').map(x => x === 'escolhido' ? o.escolha && o.escolha.tipo : x);
+      if (sub.some(x => !x)) return null;
+      if (sub.length) f.sub = sub;
+    }
+    return f;
+  };
   M.pacotesDe = (e, o, atv, ctx = {}) => {
     let pac = [M.zeroMana()];
     for (const f of atv.fx || []) {
       if (f.op !== 'mana') return null;              // habilidade de mana com efeito extra: T17/T19
-      if (f.so) return null;                         // mana restrita ("só para criatura do tipo…"): reserva separada na T15
+      if (f.so) {                                    // mana restrita (CR 106.6): só no plano de quem paga 'para', e se bater
+        const fs = M.filtroSo(o, f.so);
+        if (!fs) return null;
+        if (!ctx.para || !M.bate(e, ctx.para, fs, { voce: o.ctrl })) continue;
+      }
       if (f.se && !M.condicao(e, f.se, { voce: o.ctrl, este: o.id })) continue;
       const cs = M.coresDeProd(e, o, f.prod);
       const q = M.qtd(e, f.qtd, { voce: o.ctrl, este: o.id, x: ctx.x });
@@ -61,15 +81,18 @@
   };
 
   // habilidades de mana disponíveis de um jogador: [{id, k, pacotes}]
-  M.fontesDeMana = (e, j, { soVirar = false } = {}) => {
+  M.fontesDeMana = (e, j, { soVirar = false, para = null } = {}) => {
+    const mk = M.memo && 'f' + j + (soVirar ? 'v' : '') + (para ? 'p' + para.id : '');
+    if (mk && M.memo[mk]) return M.memo[mk];
     const r = [];
+    if (mk) M.memo[mk] = r;
     for (const id of e.campo) {
       const o = e.objs[id];
       if (o.ctrl !== j) continue;
       (M.dadoDe(e, o).atv || []).forEach((a, k) => {
         if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo)) return;
         if (soVirar && Object.keys(a.custo).some(x => x !== 'virar')) return;
-        const p = M.pacotesDe(e, o, a);
+        const p = M.pacotesDe(e, o, a, { para });
         if (p && p.length && p.some(x => soma(x) > 0)) r.push({ id, k, pacotes: p });
       });
     }
@@ -77,10 +100,10 @@
   };
 
   // ativar habilidade de mana (CR 605.3: não usa a pilha)
-  M.ativarMana = (e, j, id, k, escolha = 0) => {
+  M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
     const o = e.objs[id], a = M.dadoDe(e, o).atv[k];
     if (o.ctrl !== j || !a.deMana || !M.podeCustoAtv(e, o, a.custo)) throw new Error('mana ilegal: ' + o.n);
-    const p = M.pacotesDe(e, o, a)[escolha];
+    const p = M.pacotesDe(e, o, a, { para })[escolha];
     pagarCustoAtv(e, o, a.custo);
     const R = e.jogs[j].reserva;
     for (const c of TIPOS) R[c] += p[c];
@@ -150,33 +173,36 @@
   // ---- plano: quais fontes ativar para pagar um custo (a IA e a conjuração da T15 usam) ----
   // Busca em profundidade: fontes menos flexíveis primeiro (Floresta antes de Command Tower), poda por quantidade.
   // Retorna {passos:[{id,k,escolha}], resto, vida} ou null.
-  M.planoMana = (e, j, custo, { x = 0, vidaDisp = 0, limite = 4000 } = {}) => {
+  M.planoMana = (e, j, custo, { x = 0, vidaDisp = 0, limite = 4000, excluir = null, para = null } = {}) => {
     const R = e.jogs[j].reserva;
     const direto = M.pagarDaReserva(R, custo, { x, vidaDisp });
     if (direto) return { passos: [], ...direto };
     const s = simbolos(custo, x);
     // unidades de mana que faltam no mínimo (phyrexiano pode sair em vida; 2/cor conta 1 se vier na cor)
     const precisa = Math.max(0, s.g + s.cor.length + s.hib.length + s.dois.length + s.fir.length - Math.floor(vidaDisp / 2));
-    const fontes = M.fontesDeMana(e, j, { soVirar: true })
+    const fontes = M.fontesDeMana(e, j, { soVirar: true, para }).filter(f => !excluir || !excluir.includes(f.id))
       .map(f => ({ ...f, max: Math.max(...f.pacotes.map(soma)), flex: f.pacotes.length }))
       .sort((a, b) => a.flex - b.flex || b.max - a.max);
     const sufixo = []; let acc = 0;
     for (let i = fontes.length - 1; i >= 0; i--) { acc += fontes[i].max; sufixo[i] = acc; }
     let nos = 0;
-    const passos = [], r = { ...R };
+    const passos = [], r = { ...R }, usados = new Set();
     const dfs = (i, tem) => {
       if (++nos > limite) return null;
       if (tem >= precisa) { const p = M.pagarDaReserva(r, custo, { x, vidaDisp }); if (p) return { passos: passos.slice(), ...p }; }
       if (i >= fontes.length || tem + sufixo[i] < precisa) return null;
       const f = fontes[i];
+      if (usados.has(f.id)) return dfs(i + 1, tem);                 // mesma permanente com 2 habilidades de {T}: vira uma vez só
+      usados.add(f.id);
       for (let k = 0; k < f.pacotes.length; k++) {
         const p = f.pacotes[k];
         for (const c of TIPOS) r[c] += p[c];
-        passos.push({ id: f.id, k: f.k, escolha: k });
+        passos.push({ id: f.id, k: f.k, escolha: k, para });
         const v = dfs(i + 1, tem + soma(p)); if (v) return v;
         passos.pop();
         for (const c of TIPOS) r[c] -= p[c];
       }
+      usados.delete(f.id);
       return dfs(i + 1, tem);
     };
     return dfs(0, soma(R));
@@ -186,7 +212,7 @@
   M.pagarComPlano = (e, j, custo, opc = {}) => {
     const pl = M.planoMana(e, j, custo, opc);
     if (!pl) return false;
-    for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha);
+    for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
     const pg = M.pagarDaReserva(e.jogs[j].reserva, custo, opc);
     e.jogs[j].reserva = pg.resto; e.jogs[j].vida -= pg.vida;
     return true;

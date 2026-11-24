@@ -26,7 +26,7 @@ function invariantes(e) {
 let turnos = 0, perguntas = 0, erros = 0;
 const t0 = Date.now();
 for (let i = 0; i < N; i++) {
-  const e = M.novoJogo(ds, { semente: 1000 + i });
+  const e = M.novoJogo(ds, { semente: 1000 + i, maxTurnos: 60 })   // sem combate (T16): Krenko dobra fichas sem parar; 60 turnos bastam;
   const ag = i % 2 ? M.agenteAleatorio() : M.agenteBasico();
   try {
     M.avancar(e);

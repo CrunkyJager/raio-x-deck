@@ -85,11 +85,12 @@
     if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
     const de = M.listaDe(e, o), k = de.indexOf(id);
     if (k >= 0) de.splice(k, 1);
-    Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {}, doente: true, ctrl: o.dono, escolha: null });
+    Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {}, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null });
     if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
     const para = M.listaDe(e, o);
     if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
-    if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);        // CR 903.9a olha "desde a última checagem"
+    if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
+    if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
     return o;
   };
 
@@ -121,6 +122,8 @@
 
   // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
   const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm']);
+  M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
+  const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
   M.bate = (e, o, f, ctx = {}) => {
     for (const k in f) if (!FILTRO_OK.has(k)) throw new Error('filtro sem suporte no motor2: ' + k);
     const d = M.dadoDe(e, o), voce = ctx.voce;
@@ -128,12 +131,12 @@
     if (f.outro && o.id === ctx.este) return false;
     if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
     if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
-    if (f.nao && f.nao.some(t => (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha))) return false;
+    if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha))) return false;
     if (f.sub && !f.sub.some(s => (d.sub || []).includes(s))) return false;
     if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
     if (f.ctrl && !quemBate(e, o.ctrl, f.ctrl, voce)) return false;
     if (f.dono && !quemBate(e, o.dono, f.dono, voce)) return false;
-    if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => (d.cores || '').includes(c))) return false;
+    if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => (d.cores || '').includes(COR_NOME[c] || c))) return false;
     if (f.virada !== undefined && !!o.virada !== !!f.virada) return false;
     if (f.comandante !== undefined && !!o.cmd !== !!f.comandante) return false;
     if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
@@ -154,6 +157,13 @@
     else ids = e.jogs.flatMap(j => z === 'qualquer' ? ZONAS_JOG.flatMap(k => j.zonas[k]) : j.zonas[z]);
     const ff = z === 'campo' && !f.zona ? { ...f, zona: 'campo' } : f;
     return ids.map(id => e.objs[id]).filter(o => M.bate(e, o, ff, ctx));
+  };
+
+  // há pelo menos n objetos no campo que batem? (para no n-ésimo: campo com mil fichas não custa mil)
+  M.temPeloMenos = (e, f, ctx, n) => {
+    let c = 0;
+    for (const id of e.campo) if (M.bate(e, e.objs[id], f, ctx) && ++c >= n) return true;
+    return false;
   };
 
   // ---- quantidade RX (número, X, {conta:filtro}) ----

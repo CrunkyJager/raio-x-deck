@@ -65,6 +65,8 @@ Python, em `ferramentas/rx/` (reaproveita `params`/`le_arquivo` do `converte.py`
 
 - **Feito na T14 parte 1 (24/11):** `motor2/` estado, mana, turno (sem pilha/combate), ABE, Commander; 41 casos de regra com CR, fuzz 0 erros, ~2,2 mil turnos/s no node. Conversor: "entra virado" agora leva a condição (`se`) — ~147 terrenos (check/fast/slow lands, castelos) entravam sempre virados; gabarito 50/50. **Parte 2 feita:** terreno extra, cor/tipo escolhido ao entrar, lealdade inicial, X; campo novo `so` no esquema (mana restrita, 198 roteiros; filtros da restrição ainda grosseiros → T20). Custos adicionais que pedem escolher objeto (sacrificar X, descartar) vão com a ativação na T15. 46 casos.
 
+- **Feito na T15 (24/11):** pilha e prioridade (CR 117, 405, 601, 602, 606, 608), alvos com timestamp (115, 400.7, 608.2b), 18 efeitos mais comuns do banco, mana restrita no plano de pagamento, processo com perguntas (repete com as respostas gravadas). 72 casos; fuzz 0 erros; ~220 turnos/s (otimizar na T23).
+
 ### 3.4 Decisões: um só ponto de pergunta
 O núcleo nunca decide: toda escolha vira `pergunta {tipo, ops}` para um **agente** (IA ou humano). Com estado clonável, o humano responde e o motor **continua de onde parou** (acaba o "roda do zero" da T08). A tela da T08/T09 (botões, revisão lance a lance, dica ao vivo) é reaproveitada.
 
