@@ -109,15 +109,19 @@ def mana_forge(s):
 def custo_atv(s, falta):
     """Cost$ do Forge → custoAtv RX (+ lealdade)"""
     c, mana, leal = {}, [], None
-    for t in (s or '').split():
+    for t in re.findall(r'\S+<[^>]*>|\S+', s or ''):
         if t == 'T':
             c['virar'] = True
         elif t == 'Q':
             c['desvirar'] = True
-        elif re.fullmatch(r'Sac<1/(CARDNAME|NICKNAME)>', t):
+        elif re.fullmatch(r'Sac<1/(CARDNAME|NICKNAME)(/[^>]*)?>', t):
             c['sacrificar'] = 'este'
         elif m := re.fullmatch(r'Sac<(\d+)/([^/>]+)(?:/[^>]*)?>', t):
             c['sacrificar'] = {'f': filtro(m.group(2), falta), 'qtd': int(m.group(1))}
+        elif m := re.fullmatch(r'Exile<1/(CARDNAME|NICKNAME)>', t):
+            c['exilarEste'] = True
+        elif m := re.fullmatch(r'Reveal<(\d+)/([^/>]+)(?:/[^>]*)?>', t):
+            c['revelar'] = {'f': filtro(m.group(2).replace(';', ','), falta, 'mao'), 'qtd': int(m.group(1))}
         elif m := re.fullmatch(r'PayLife<(\d+)>', t):
             c['vida'] = int(m.group(1))
         elif m := re.fullmatch(r'Discard<(\d+)/[^>]*>', t):
@@ -202,6 +206,8 @@ def filtro(v, falta, zona=None):
             f['comandante'] = True
         elif q in COR:
             f['cor'] = COR[q]
+        elif m := re.fullmatch(r'!(\w+)', q):
+            f.setdefault('nao', []).append(m.group(1).capitalize())
         elif m := re.fullmatch(r'non(\w+)', q):
             n = m.group(1)
             f.setdefault('nao', []).append(n)  # nonLand, nonBasic, nonBlack… (cor fica pelo nome)
@@ -209,6 +215,8 @@ def filtro(v, falta, zona=None):
             k = {'cmc': 'vm', 'power': 'poder', 'toughness': 'resist'}[m.group(1)]
             n, op = int(m.group(3)), m.group(2)
             f[k] = {'GE': {'min': n}, 'GT': {'min': n + 1}, 'LE': {'max': n}, 'LT': {'max': n - 1}, 'EQ': {'igual': n}}[op]
+        elif q in TIPOS or q in ('Permanent', 'Token'):  # Card.Creature
+            f.setdefault('tipo', []).append(q)
         elif re.fullmatch(r'[A-Z][a-z]+', q):  # Card.Vampire: subtipo como qualificador
             f.setdefault('sub', []).append(q)
         else:
@@ -237,6 +245,13 @@ def qtd(v, svars, falta, ctx):
         return 1
     if re.fullmatch(r'-?\d+', v):
         return int(v)
+    if v == 'All':
+        return 'tudo'
+    if v.startswith('-') and v[1:] in svars:
+        r = qtd(v[1:], svars, falta, ctx)
+        if isinstance(r, int): return -r
+        if isinstance(r, dict) and 'mult' not in r: return {**r, 'mult': -1}
+        falta.append(f'qtd:{v}'); return 1
     sv = svars.get(v, '')
     if m := re.fullmatch(r'Number\$(\d+)', sv):
         return int(m.group(1))
@@ -257,6 +272,16 @@ def qtd(v, svars, falta, ctx):
         return {'conta': 'poderDoAlvo', 'alvo': max(ctx['ultAlvo'], 0)}
     if sv == 'Count$OppsInGame' or sv == 'PlayerCountOpponents$Amount':
         return {'conta': 'oponentes'}
+    if sv == 'Count$CardPower':
+        return {'conta': 'poderDoEste'}
+    if sv in ('TriggeredCard$CardPower', 'TriggeredCardLKICopy$CardPower'):
+        return {'conta': 'poderDoEvento'}
+    if sv in ('TriggeredCard$CardToughness', 'TriggeredCardLKICopy$CardToughness'):
+        return {'conta': 'resistDoEvento'}
+    if sv in ('TriggeredCard$CardManaCost', 'TriggeredCardLKICopy$CardManaCost'):
+        return {'conta': 'vmDoEvento'}
+    if m := re.fullmatch(r'Count\$CardCounters\.(\w+)', sv):
+        return {'conta': 'marcadoresNoEste'}
     if sv == 'TriggerCount$DamageAmount':
         return {'conta': 'danoCausado'}
     if sv == 'TriggerCount$LifeAmount':
@@ -432,6 +457,8 @@ def efeito(api, d, ctx, falta):
         if p is None:
             falta.append('Mana:' + d.get('Produced', '')); return []
         fx = {'op': 'mana', 'prod': p, 'qtd': q('Amount')}
+    elif api == 'ManaReflected':
+        fx = {'op': 'mana', 'prod': 'refletida', 'qtd': 1}
     elif api == 'Draw':
         fx = {'op': 'comprar', 'quem': quem or 'voce', 'qtd': q('NumCards')}
     elif api == 'Discard':
@@ -478,6 +505,9 @@ def efeito(api, d, ctx, falta):
         if d.get('RevealOptional') == 'True': fx['talvez'] = True
         fx['revelar'] = True
         ctx['espiou'] = True
+    elif api == 'Effect' and any(re.search(r'MayPlay\$ True', ctx['sv'].get(x.strip(), '')) and 'IsRemembered' in ctx['sv'].get(x.strip(), '')
+                                 for x in (d.get('StaticAbilities') or '').split(',')):
+        fx = {'op': 'jogar', 'em': 'anterior', 'talvez': True, 'dura': DURA.get(d.get('Duration', ''), 'fimDoTurno')}
     elif api == 'Effect':
         fx = {'op': 'efeitoTemporario', 'dura': DURA.get(d.get('Duration', ''), 'fimDoTurno'), 'est': []}
         for s in (d.get('StaticAbilities') or '').split(','):
@@ -491,6 +521,8 @@ def efeito(api, d, ctx, falta):
         fx = {'op': 'fasear', 'em': em}
     elif api == 'Proliferate':
         fx = {'op': 'proliferar', 'quem': 'voce'}
+    elif api in ('TapAll', 'UntapAll'):
+        fx = {'op': 'virar' if api == 'TapAll' else 'desvirar', 'em': {'todos': filtro(d.get('ValidCards', 'Permanent'), falta, 'campo')}}
     elif api in ('Tap', 'Untap'):
         fx = {'op': 'virar' if api == 'Tap' else 'desvirar', 'em': em_de(d, ctx, falta)}
     elif api == 'GainControl':
@@ -505,9 +537,10 @@ def efeito(api, d, ctx, falta):
             fx['em'] = em_de(d, ctx, falta) or 'este'
         for k, c in (('NumAtt', 'p'), ('NumDef', 'r')):
             if k in d:
+                antes = len(falta)
                 v = qtd(d[k].lstrip('+'), sv, falta, ctx)
-                if isinstance(v, int): fx[c] = v
-                else: falta.append(f'{k}:{d[k]}')
+                if isinstance(v, int) and len(falta) == antes: fx[c] = v
+                elif len(falta) == antes: falta.append(f'{k}:{d[k]}')
         if d.get('KW'):
             ks = kw_lista(d['KW'], falta)
             if ks: fx['kw'] = ks
@@ -756,8 +789,12 @@ def estatica(s, f, falta):
     m = d.get('Mode', '')
     if m == 'Continuous':
         e = {'modo': 'continuo'}
-        if d.get('AffectedDefined') in ('Equipped', 'Enchanted'):
+        if d.get('SetMaxHandSize') or d.get('AdjustLandPlays'):
+            pass
+        elif d.get('AffectedDefined') in ('Equipped', 'Enchanted'):
             e['afeta'] = 'equipada'
+        elif d.get('AffectedDefined') == 'Self':
+            e['afeta'] = 'este'
         elif d.get('Affected'):
             e['afeta'] = 'este' if d['Affected'] == 'Card.Self' else filtro(d['Affected'], falta, 'campo')
         else:
@@ -771,6 +808,26 @@ def estatica(s, f, falta):
             for k in d['AddKeyword'].split(' & '):
                 if k not in KW: falta.append('S:AddKeyword:' + k)
             if ks: e['kw'] = ks
+        if d.get('AddAbility') or d.get('AddTrigger'):
+            h = habil_dada(d, f['SVar'], falta)
+            if h: e['habil'] = h
+            d.pop('AddAbility', None); d.pop('AddTrigger', None)
+        if d.get('AdjustLandPlays', '').isdigit() and d.get('Affected') == 'You':
+            e = {'modo': 'terraExtra', 'afeta': 'voce', 'qtd': int(d.pop('AdjustLandPlays'))}
+            d.pop('Affected')
+            if set(d) - {'Mode', 'Description'}:
+                falta.append('S:Continuous:' + ','.join(sorted(set(d) - {'Mode', 'Description'})))
+            return e
+        if d.get('SetMaxHandSize'):
+            mh = d.pop('SetMaxHandSize')
+            e = {'modo': 'maoMax', 'afeta': jogador(d.get('Affected'), 'voce') or 'voce',
+                 'qtd': 'tudo' if mh == 'Unlimited' else int(mh) if mh.isdigit() else 7}
+            d.pop('Affected', None)
+            if set(d) - {'Mode', 'Description'}:
+                falta.append('S:Continuous:' + ','.join(sorted(set(d) - {'Mode', 'Description'})))
+            return e
+        if d.get('Condition') == 'PlayerTurn':
+            e['se'] = {'turno': 'seu'}; d.pop('Condition')
         if set(d) - {'Mode', 'Affected', 'AffectedDefined', 'AddPower', 'AddToughness', 'AddKeyword', 'Description', 'EffectZone'}:
             falta.append('S:Continuous:' + ','.join(sorted(set(d) - {'Mode', 'Affected', 'AffectedDefined', 'AddPower', 'AddToughness', 'AddKeyword', 'Description'})))
         return e
@@ -787,6 +844,9 @@ def estatica(s, f, falta):
         return {'modo': 'vidaNaoMuda', 'afeta': jogador(d.get('ValidPlayer'), 'voce') or 'voce'}
     if m == 'CantPreventDamage':
         return {'modo': 'danoNaoPrevenivel', 'afeta': 'cadaJogador'}
+    if m == 'Panharmonicon' and d.get('Destination') == 'Battlefield':
+        e = {'modo': 'dobraGatilhoEntrar', 'afeta': filtro(d.get('ValidCause') or d.get('ValidCard', 'Permanent'), falta, 'campo')}
+        return e
     if m == 'MustAttack':
         return {'modo': 'deveAtacar', 'afeta': 'este'}
     if m == 'CantBlockBy':
@@ -806,6 +866,13 @@ def substituicao(r, f, falta):
             c, _ = custo_atv(rw[2]['UnlessCost'], falta)
             s['aMenosQue'] = {'quem': 'voce', 'custo': c}
         return s
+    if ev == 'AddCounter' and rw and rw[1] == 'ReplaceCounter':
+        vc = re.sub(r'\+inZoneBattlefield', '', d.get('ValidCard', 'Permanent.YouCtrl'))
+        y = f['SVar'].get(rw[2].get('Amount', ''), '')
+        if y in ('ReplaceCount$CounterNum/Twice', 'ReplaceCount$CounterNum/Times.2'):
+            return {'ev': 'marcador', 'quem': filtro(vc, falta), 'muda': {'mult': 2}}
+        if m := re.fullmatch(r'ReplaceCount\$CounterNum/Plus\.(\d+)', y):
+            return {'ev': 'marcador', 'quem': filtro(vc, falta), 'muda': {'soma': int(m.group(1))}}
     if ev == 'CreateToken' and rw and rw[1] == 'ReplaceToken' and rw[2].get('Type') == 'Amount':
         s = {'ev': 'ficha', 'quem': filtro(d.get('ValidToken', 'Card.YouCtrl'), falta), 'muda': {'mult': 2}}
         if rw[2].get('Amount', '').isdigit(): s['muda'] = {'soma': int(rw[2]['Amount'])}
@@ -858,6 +925,38 @@ def palavra(k, falta):
 
 
 # ------------------------------------------------------------------ carta inteira
+def monta_atv(api, d, ctx, efs, falta):
+    c, leal = custo_atv(d.get('Cost', ''), falta)
+    at = {'custo': c, 'fx': efs}
+    if ctx['alvos']: at['alvos'] = ctx['alvos']
+    if api in ('Mana', 'ManaReflected'): at['deMana'] = True
+    if d.get('SorcerySpeed') == 'True': at['vel'] = 'feitico'
+    if d.get('ActivationZone'): at['zona'] = ZONA.get(d['ActivationZone'], 'qualquer')
+    if d.get('ActivationLimit') == '1': at['limite'] = 'umaPorTurno'
+    if leal is not None: at['lealdade'] = leal
+    return at
+
+
+def habil_dada(d, sv, falta):
+    """AddAbility$/AddTrigger$ de uma estática → {'atv': [...], 'gat': [...]}"""
+    h = {}
+    for nome in (d.get('AddAbility') or '').split('&'):
+        r = params(sv.get(nome.strip(), '')) if nome.strip() else None
+        if not r:
+            if nome.strip(): falta.append('AddAbility:' + nome.strip())
+            continue
+        ctx = {'sv': sv, 'alvos': [], 'ultAlvo': -1, 'depois': [], 'busca': None}
+        efs = []
+        cadeia(r, ctx, falta, efs)
+        h.setdefault('atv', []).append(monta_atv(r[1], r[2], ctx, efs, falta))
+    for nome in (d.get('AddTrigger') or '').split('&'):
+        t = sv.get(nome.strip(), '') if nome.strip() else ''
+        if t:
+            g = gatilho(t, {'SVar': sv}, falta)
+            if g: h.setdefault('gat', []).append(g)
+    return h
+
+
 def face_rx(f, falta):
     out = {}
     kws = [x for x in (palavra(k, falta) for k in f['K'] if not k.startswith('ETBReplacement:')) if x]
@@ -876,15 +975,7 @@ def face_rx(f, falta):
                 continue
             fx, alvos = efs, ctx['alvos']
         else:
-            c, leal = custo_atv(d.get('Cost', ''), falta)
-            at = {'custo': c, 'fx': efs}
-            if ctx['alvos']: at['alvos'] = ctx['alvos']
-            if api == 'Mana': at['deMana'] = True
-            if d.get('SorcerySpeed') == 'True': at['vel'] = 'feitico'
-            if d.get('ActivationZone'): at['zona'] = ZONA.get(d['ActivationZone'], 'qualquer')
-            if d.get('ActivationLimit') == '1': at['limite'] = 'umaPorTurno'
-            if leal is not None: at['lealdade'] = leal
-            atv.append(at)
+            atv.append(monta_atv(api, d, ctx, efs, falta))
     # terreno com subtipo básico: a habilidade de mana é implícita (CR 305.6)
     tl = f.get('Types', '').split()
     if 'Land' in tl:

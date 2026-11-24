@@ -199,6 +199,10 @@
         {
          "enum": [
           "vmDoAlvo",
+          "vmDoEvento",
+          "poderDoEste",
+          "poderDoEvento",
+          "resistDoEvento",
           "poderDoAlvo",
           "danoCausado",
           "vidaGanha",
@@ -477,6 +481,20 @@
     "descartar": {
      "type": "integer"
     },
+    "revelar": {
+     "type": "object",
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "qtd": {
+       "type": "integer"
+      }
+     }
+    },
+    "exilarEste": {
+     "type": "boolean"
+    },
     "vida": {
      "type": "integer"
     },
@@ -599,6 +617,7 @@
        "enum": [
         "qualquer",
         "comandante",
+        "refletida",
         "escolhida"
        ]
       },
@@ -1120,6 +1139,7 @@
       "aumentaCusto",
       "maoMax",
       "dobraGatilhoEntrar",
+      "terraExtra",
       "custoAlternativo",
       "naoPodeConjurar",
       "deveAtacar",
