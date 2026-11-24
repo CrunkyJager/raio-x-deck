@@ -36,3 +36,6 @@ Resumo: dá pra fazer um **site grátis com anúncio/doação/apoio**. **Cobrar 
 4. Preço: só lista para a LigaMagic, sem preço próprio.
 
 *Não é parecer jurídico; é leitura literal dos textos acima na data.*
+
+## Regras do Magic (regras/cr.txt, T10)
+- Comprehensive Rules baixadas de magic.wizards.com/en/rules (txt de 06/11/2026), texto da Wizards: usar só como consulta do motor, citando a fonte; entra no mesmo cuidado da Fan Content Policy (grátis, sem paywall). regras/commander.txt: resumo da página do formato + banidas/Game Changers do Scryfall.

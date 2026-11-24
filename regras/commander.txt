@@ -1,0 +1,147 @@
+# Regras do Commander (fonte: magic.wizards.com/en/formats/commander, baixado 24/11/2026)
+# Regras formais: cr.txt seção 903. Banidas/Game Changers: Scryfall (banned:commander, is:gamechanger).
+
+This format is for four players per game and deck sizes are 99 cards + 1 commander card. The game duration for this format should be about 20 minutes per player. The Commander format is all about picking your hero and building a deck around them. In this casual, multiplayer format, you choose a legendary creature or artifact to serve as your commander and build the rest of your deck around their color identity and unique abilities. Players are only allowed one of each card in their deck, with the exception of basic lands, but they can use cards from throughout Magic 's history. Color Identity A card's color identity can come from any part of that card, including its casting cost and any mana symbols in its text. Every card in your Commander deck must only use mana symbols that also appear on your commander. Colorless cards are allowed as well. Command Zone This is where your commander resides during the game when they are not in play. At the start of the game, each player puts their commander face up into the command zone. A commander can be cast from the command zone for its normal costs, plus an additional two mana for each previous time it's been cast from the command zone this game. If your commander would be put into your library, hand, graveyard or exile from anywhere, you may return it to your command zone instead. Commander Damage A player that's been dealt 21 or more combat damage by the same commander over the course of the game loses the game. The commander is tracked across zone changes for this purpose (for example, if one player takes control of another player's commander, any damage that commander already dealt is still counted). PLAY FREE-FOR-ALL MULTIPLAYER If you're playing a game of Commander with three or more people, you play against each other in a free-for-all multiplayer format. Each player starts with 40 life, places their commander face-up in their command zone, and draws a hand of seven cards. Players are seated randomly in a circle and turns progress one player at a time in clockwise order around the table. During gameplay, a player may choose to attack any other player, regardless of their position on the table, and can also choose to attack multiple different players during their attack phase. Permanents, spells, and abilities can also target any player around the table (as long as they don't explicitly say they must be used on "you"). 
+
+## Brackets
+
+
+## Banidas no Commander (83)
+Adriana's Valor
+Advantageous Proclamation
+Amulet of Quoz
+Ancestral Recall
+Assemble the Rank and Vile
+Backup Plan
+Balance
+Black Lotus
+Brago's Favor
+Bronze Tablet
+Channel
+Chaos Orb
+Cleanse
+Contract from Below
+Crusade
+Darkpact
+Demonic Attorney
+Dockside Extortionist
+Double Stroke
+Echoing Boon
+Emissary's Ploy
+Emrakul, the Aeons Torn
+Erayo, Soratami Ascendant // Erayo's Essence
+Falling Star
+Fastbond
+Flash
+Golos, Tireless Pilgrim
+Griselbrand
+Hired Heist
+Hold the Perimeter
+Hullbreacher
+Hymn of the Wilds
+Immediate Action
+Imprison
+Incendiary Dissent
+Invoke Prejudice
+Iona, Shield of Emeria
+Iterative Analysis
+Jeweled Bird
+Jeweled Lotus
+Jihad
+Karakas
+Leovold, Emissary of Trest
+Library of Alexandria
+Limited Resources
+Mana Crypt
+Mox Emerald
+Mox Jet
+Mox Pearl
+Mox Ruby
+Mox Sapphire
+Muzzio's Preparations
+Nadu, Winged Wisdom
+Natural Unity
+Paradox Engine
+Power Play
+Pradesh Gypsies
+Primeval Titan
+Prophet of Kruphix
+Rebirth
+Recurring Nightmare
+Rofellos, Llanowar Emissary
+Secrets of Paradise
+Secret Summoning
+Sentinel Dispatch
+Shahrazad
+Sovereign's Realm
+Stone-Throwing Devils
+Summoner's Bond
+Sundering Titan
+Sylvan Primordial
+Tempest Efreet
+Time Vault
+Time Walk
+Timmerian Fiends
+Tinker
+Tolarian Academy
+Trade Secrets
+Unexpected Potential
+Upheaval
+Weight Advantage
+Worldknit
+Yawgmoth's Bargain
+
+## Game Changers (53)
+Ad Nauseam
+Ancient Tomb
+Aura Shards
+Biorhythm
+Bolas's Citadel
+Braids, Cabal Minion
+Chrome Mox
+Coalition Victory
+Consecrated Sphinx
+Crop Rotation
+Cyclonic Rift
+Demonic Tutor
+Drannith Magistrate
+Enlightened Tutor
+Farewell
+Field of the Dead
+Fierce Guardianship
+Force of Will
+Gaea's Cradle
+Gamble
+Gifts Ungiven
+Glacial Chasm
+Grand Arbiter Augustin IV
+Grim Monolith
+Humility
+Imperial Seal
+Intuition
+Jeska's Will
+Lion's Eye Diamond
+Mana Vault
+Mishra's Workshop
+Mox Diamond
+Mystical Tutor
+Narset, Parter of Veils
+Natural Order
+Necropotence
+Notion Thief
+Opposition Agent
+Orcish Bowmasters
+Panoptic Mirror
+Rhystic Study
+Seedborn Muse
+Serra's Sanctum
+Smothering Tithe
+Survival of the Fittest
+Teferi's Protection
+Tergrid, God of Fright // Tergrid's Lantern
+Thassa's Oracle
+The One Ring
+The Tabernacle at Pendrell Vale
+Underworld Breach
+Vampiric Tutor
+Worldly Tutor
