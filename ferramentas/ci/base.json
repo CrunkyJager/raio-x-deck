@@ -1,6 +1,15 @@
 {
- "_nota": "Linha de base da T07 (23/11/2026). Melhorou de propósito → atualizar aqui no mesmo commit.",
+ "_nota": "Linha de base da T27 (24/11/2026: custo de sacrifício e trava no motor). Melhorou de propósito → atualizar aqui no mesmo commit.",
  "testa": "161/161",
- "partida": {"Stangg": 17.5, "Krenko": 34.5, "Lathril": 8.5, "Edgar Markov": 38.0, "turno": 9.1},
- "gabarito": {"exato": 10, "principal_no_gab": 18, "gab_nos_prev": 24}
+ "partida": {"Stangg": 26.5,
+  "Krenko": 29.5,
+  "Lathril": 7.0,
+  "Edgar Markov": 36.0,
+  "turno": 8.7
+ },
+ "gabarito": {
+  "exato": 10,
+  "principal_no_gab": 18,
+  "gab_nos_prev": 24
+ }
 }

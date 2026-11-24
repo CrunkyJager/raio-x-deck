@@ -12,13 +12,36 @@ function arena(Ds,seed,cfg){
     if(u&&u.t===T&&u.k===k&&u.base===txt){u.n=(u.n||1)+1;u.txt=`${txt} (×${u.n})`;if(P&&quadros.length&&quadros[quadros.length-1].log===log.length){quadros.pop();foto(k);}return;}
     log.push({t:T,k,tp,txt,base:txt,c:c??-1,a:alvo??-1});if(P)foto(k);};
 
+  /* jogador humano (T27): cfg.humano={k,esc}. Cada decisão dele lê a próxima resposta de esc; acabou a lista,
+     o motor para e devolve a pergunta (throw). A tela responde e roda de novo do zero com a mesma semente:
+     tudo se repete igual até a pergunta nova. Sem cfg.humano nada muda. */
+  const HU=cfg.humano||null,HK=HU?HU.k:-1,HE=HU?HU.esc||[]:[];let HI=0;
+  const ehH=p=>p&&p.k===HK;
+  /* humano no controle (23/11): o motor nunca escolhe por ele, só mostra as opções.
+     AV>0 = só avaliando (nota/checagem), sem perguntar. ORIG = carta que pede a escolha. */
+  let AV=0,ORIG='';const aval=f=>{AV++;try{return f();}finally{AV--;}};
+  const pergH=p=>ehH(p)&&!AV;
+  function escolhe(p,titulo,cands,opcional,txtNao){const ops=cands.map((c,j)=>({v:j,n:c.n}));if(opcional)ops.push({v:-1,n:txtNao||'Nenhum'});
+    const r=pede('escolha',{x:{n:titulo},ops});if(r===-1&&opcional)return null;const c=cands[r];if(!c)throw new Error('escolha inválida');return c.val;}
+  const quer=(p,txt)=>!pergH(p)||escolhe(p,txt,[{n:'Sim',val:true}],true,'Não')===true;
+  /* a cada decisão tira uma foto (respondida ou não), para os quadros serem os mesmos em toda rodada; a tela
+     pede desde=quantos já mostrou e recebe só os lances novos (passos), para mostrar um por vez */
+  const HD=HU?HU.desde||0:0;
+  const pede=(tipo,info)=>{if(P)foto(HK);if(HI<HE.length)return HE[HI++];
+    const q={tipo,n:HI,t:T,...info};if(P){q.quadro=quadros[quadros.length-1];q.nq=quadros.length;q.passos=quadros.slice(HD,-1).map(Q=>({Q,ev:log[Q.log-1]||null}));}q.log=log.slice(-40);
+    const e=new Error('pergunta');e.raioxPergunta=q;throw e;};
+
   /* ---------- jogadores ---------- */
   P=Ds.map((D,k)=>{
     const M=D.M,cmdI=D.cmd?D.cmd.i:-1,ci=cmdI>=0?(M[cmdI].ci||''):'';
     let lib=D.base.slice();emb(lib,R);
     const nL=v=>v.filter(i=>M[i].land).length;
     let mao=lib.slice(0,7);
-    if(nL(mao)<2||nL(mao)>5){lib=D.base.slice();emb(lib,R);mao=lib.slice(0,7);
+    if(k===HK){let nm=0;const nomes=v=>v.map(i=>({v:i,n:M[i].frente||M[i].nome}));
+      while(nm<6&&pede('mulligan',{mao:nomes(mao),nm,ops:[{v:0,n:'Ficar com a mão'},{v:1,n:'Mulligan'}]})){nm++;lib=D.base.slice();emb(lib,R);mao=lib.slice(0,7);}
+      for(let j=0;j<nm;j++){const f=pede('fundo',{mao:nomes(mao),falta:nm-j,ops:nomes(mao)});const x=mao.indexOf(f);if(x<0)throw new Error('fundo: carta fora da mão');
+        mao.splice(x,1);lib.splice(lib.indexOf(f),1);lib.push(f);}}
+    else if(nL(mao)<2||nL(mao)>5){lib=D.base.slice();emb(lib,R);mao=lib.slice(0,7);
       /* segundo mulligan (London, 19/11/2026): 7 novas e uma volta para o fundo. Antes ficava com qualquer mão e
          o deck travava em 1–2 terrenos (o Lathril morria no turno 5 sem jogar nada) */
       if(nL(mao)<2||nL(mao)>5){lib=D.base.slice();emb(lib,R);mao=lib.slice(0,7);
@@ -94,9 +117,19 @@ function arena(Ds,seed,cfg){
   }
 
   /* ---------- mana ---------- */
+  /* terreno da mão para a mesa. Terreno que gera 2+ manas ({T}: Add {R}{G}, Karoo/Sol) vira 2 fontes (l.mana);
+     "return a land you control to its owner's hand" (Karoo) devolve outro terreno, de preferência um já virado (23/11/2026) */
+  function baixaTerr(p,b){
+    const m=p.M[b],t=m.txt||'',l={cor:m.cor||'',tap:/enters (?:the battlefield )?tapped/i.test(t)&&!/unless/i.test(t),i:b};
+    const a=t.match(/\{T\}: Add ((?:\{[WUBRGC]\}){2,})(?:\.|$)/i);if(a)l.mana=a[1].match(/[WUBRGC]/gi).map(c=>c.toUpperCase()==='C'?'':c.toUpperCase());
+    p.terr.push(l);diz(p.k,'terreno',`baixa ${nomeC(p,b)} (${p.terr.length} terrenos)`,b);
+    if(/when (?:this land|[^.]*?) enters[^.]*return a land you control to its owner's hand/i.test(t)){
+      const os=p.terr.filter(x=>x!==l&&x.i!=null);const v=os.find(x=>x.tap&&!x.mana)||os.find(x=>!x.mana)||os[0]||l;
+      p.terr.splice(p.terr.indexOf(v),1);p.mao.push(v.i);diz(p.k,'terreno',`${nomeC(p,b)} devolve ${nomeC(p,v.i)} para a mão`,v.i);}
+  }
   function fontes(p){
     const u=[],lant=tem(p,'lant'),na=p.perm.filter(x=>!x.tok&&p.M[x.i].a).length;
-    for(const l of p.terr)if(!l.tap)u.push({s:lant?ANY:l.cor,o:l});
+    for(const l of p.terr)if(!l.tap){if(l.mana)l.mana.slice(l.usou||0).forEach(c=>u.push({s:lant?ANY:c,o:l,n:l.mana.length}));else u.push({s:lant?ANY:l.cor,o:l});}
     for(const x of p.perm){if(x.tok||x.tap)continue;const m=p.M[x.i];
       if(m.mana&&!(m.cri&&x.sick))for(let j=0;j<m.mana;j++)u.push({s:m.cor||'',o:x,n:m.mana});
       if(m.manaX&&!(m.cri&&x.sick)){const n=m.manaX==='enc'?p.perm.filter(z=>z.i>=0&&mOf(z).ench).length:P.reduce((s,o)=>s+(o.vivo?o.perm.filter(z=>z.cri&&ehTipo(o,z,m.manaX)).length:0),0);for(let j=0;j<n;j++)u.push({s:ANY,o:x,n});}
@@ -132,14 +165,21 @@ function arena(Ds,seed,cfg){
     for(const x of pip){let bi=-1;for(let j=0;j<U.length;j++){const u=U[j].s;if(usado[j]||!u||!tem1(u,x))continue;if(bi<0||u.length<U[bi].s.length)bi=j;}if(bi<0)return null;usado[bi]=1;us.push(bi);}
     return us;
   }
-  function pode(p,i,U,ehCmd,extra){const c=custo(p,i,ehCmd);const tot=c.g+c.pip.length+(extra||0);if(tot>U.length)return false;return casa(c.pip,U)!==null;}
+  function sacOps(p,i){const m=p.M[i];if(!m||!m.cSac)return null;const t=m.cSac.t;return p.perm.filter(x=>!x.an&&(t==='p'||(t==='c'?x.cri:(x.i>=0&&!x.tok&&p.M[x.i].a))));}
+  /* IA: para efeito que usa o poder do sacrificado, a de mais poder (sem ser o comandante); senão a de menor valor */
+  function escolheSac(p,i){const os=sacOps(p,i);if(!os||!os.length)return null;const m=p.M[i];const usaP=(m.hab||[]).some(h=>h.q==='sp'&&JSON.stringify(h.e).includes('sac.'));
+    let b=null,bv=-1e9;for(const x of os){const v=usaP?poderDe(p,x)-(x.cmd?20:0)-(x.tok?0:1):-(valor(p,x)+(x.cmd?20:0));if(v>bv){bv=v;b=x;}}return b;}
+  let SACU=null;
+  function pagaSac(p,i,x){SACU={sacP:x.cri?poderDe(p,x):0,sacR:x.cri?resDe(p,x):0,sacC:x.i>=0&&!x.tok?(p.M[x.i].cmc||0):0};
+    diz(p.k,'magia',`${NOM[p.k]} sacrifica ${nomeX(p,x)} para ${nomeC(p,i)}`,i);morre(p,x,false,-1,true);}
+  function pode(p,i,U,ehCmd,extra){const sq=sacOps(p,i);if(sq&&!sq.length)return false;const c=custo(p,i,ehCmd);const tot=c.g+c.pip.length+(extra||0);if(tot>U.length)return false;return casa(c.pip,U)!==null;}
   function paga(p,i,U,ehCmd,extra){
     const c=custo(p,i,ehCmd);const tot=c.g+c.pip.length+(extra||0);if(tot>U.length)return false;
     const us=casa(c.pip,U);if(us===null)return false;
     const fora=[];us.sort((a,b)=>b-a).forEach(j=>fora.push(U.splice(j,1)[0]));
     let g=tot-c.pip.length;U.sort((a,b)=>(a.o==='tes')-(b.o==='tes')||a.s.length-b.s.length);
     while(g-->0&&U.length)fora.push(U.shift());
-    for(const f of fora){if(f.o==='tes')p.tes--;else if(f.o.cri!==undefined){f.o.usou=(f.o.usou||0)+1;if(!f.n||f.o.usou>=f.n)f.o.tap=true;}else f.o.tap=true;}
+    for(const f of fora){if(f.o==='tes')p.tes--;else if(f.o.cri!==undefined||f.n){f.o.usou=(f.o.usou||0)+1;if(!f.n||f.o.usou>=f.n)f.o.tap=true;}else f.o.tap=true;}
     return true;
   }
   const pagaG=(p,U,k)=>{if(U.length<k)return false;U.sort((a,b)=>a.s.length-b.s.length);for(const f of U.splice(0,k)){if(f.o==='tes')p.tes--;else f.o.tap=true;}return true;};
@@ -199,22 +239,30 @@ function arena(Ds,seed,cfg){
     if(FUNDO>8){if(k>=0)laco(P[k]);return;}FUNDO++;for(const q of P){if(!q.vivo||q===o)continue;for(const z of q.perm.slice())for(const h of habs(z))if(h.q==='opPerde')faz(q,z,h.e,{n});}FUNDO--;}
   const habs=z=>{if(z.i<0||(z.tok&&!z.cop))return NADA;const m=mOf(z);return m&&m.hab?m.hab:NADA;};
   const NADA=[];
-  function contN(q,z,n,ctx){if(typeof n==='number')return n;if(n==='x')return ctx.n||0;if(n==='dano')return ctx.dano||0;if(n==='poder')return ctx.poder??(z&&z.cri?poderDe(q,z):0);if(n==='t')return ctx.t||0;
+  function contN(q,z,n,ctx){if(typeof n==='number')return n;if(n==='sac.poder')return ctx.sacP||0;if(n==='sac.res')return ctx.sacR||0;if(n==='sac.cmc')return ctx.sacC||0;if(n==='x')return ctx.n||0;if(n==='dano')return ctx.dano||0;if(n==='poder')return ctx.poder??(z&&z.cri?poderDe(q,z):0);if(n==='t')return ctx.t||0;
     if(String(n).startsWith('tipo:')){const t=n.slice(5);return q.perm.filter(w=>w.cri&&ehTipo(q,w,t)).length;}
     if(String(n).startsWith('atk:')){const t=n.slice(4);return q.perm.filter(w=>w.cri&&w.atk&&ehTipo(q,w,t)).length;}
     if(n==='cri')return q.perm.filter(w=>w.cri).length;
     if(n==='maiorTipo'){const c={};let b=0;for(const w of q.perm)if(w.cri)for(const t of tiposX(w))if(t!=='*'){c[t]=(c[t]||0)+1;if(c[t]>b)b=c[t];}return b;}
     return 1;}
-  function melhorMeu(q,f){let b=null,bv=-1e9;for(const x of q.perm){if(!x.cri||x.sacFim||(f&&!f(x)))continue;const v=poderDe(q,x)+(x.cmd?5:0)+(x.atk?2:0);if(v>bv){bv=v;b=x;}}return b;}
+  function melhorMeu(q,f){if(pergH(q)){const cs=q.perm.filter(x=>x.cri&&!x.sacFim&&(!f||f(x))).map(x=>({n:`${nomeX(q,x)} (${poderDe(q,x)}/${resDe(q,x)})`,val:x}));return cs.length?escolhe(q,`${ORIG||'Efeito'}: escolha uma criatura sua`,cs,false):null;}
+    let b=null,bv=-1e9;for(const x of q.perm){if(!x.cri||x.sacFim||(f&&!f(x)))continue;const v=poderDe(q,x)+(x.cmd?5:0)+(x.atk?2:0);if(v>bv){bv=v;b=x;}}return b;}
   function danoQualquer(q,n,origem,nomeF){
     /* criatura que morre com o dano e vale a pena; senão o oponente com menos vida */
     let b=null,bv=3;for(const o of opsDe(q))for(const x of o.perm){if(!x.cri||protegido(o,x)||indes(o,x))continue;if(resDe(o,x)<=n){const v=valor(o,x);if(v>bv){bv=v;b={o,x};}}}
-    const ops=opsDe(q);if(!ops.length)return;const fraco=ops.slice().sort((a,c)=>a.vida-c.vida)[0];
+    const ops=opsDe(q);if(!ops.length)return;let fraco=ops.slice().sort((a,c)=>a.vida-c.vida)[0];
+    /* jogador humano escolhe o alvo (23/11): oponente ou criatura de oponente */
+    if(ehH(q)){const os=[];for(const o of ops)os.push({v:os.length,n:`${NOM[o.k]} (${o.vida} de vida)`,o});
+      for(const o of ops)for(const x of o.perm)if(x.cri&&!protegido(o,x))os.push({v:os.length,n:`${nomeX(o,x)} de ${NOM[o.k]} (${poderDe(o,x)}/${resDe(o,x)})`,o,x});
+      const r=pede('alvo',{x:{n:nomeF,dano:n},ops:os.map(a=>({v:a.v,n:a.n}))});const a=os[r];if(!a)throw new Error('alvo inválido');
+      if(a.x){if(resDe(a.o,a.x)<=n&&!indes(a.o,a.x)){morre(a.o,a.x,false,q.k);diz(q.k,'remo',`${nomeF} causa ${n} de dano em ${nomeX(a.o,a.x)}`,origem,a.o.k);}
+        else{diz(q.k,'remo',`${nomeF} causa ${n} de dano em ${nomeX(a.o,a.x)} (não morre)`,origem,a.o.k);}return;}
+      b=null;fraco=a.o;}
     if(b&&fraco.vida>n){morre(b.o,b.x,false,q.k);diz(q.k,'remo',`${nomeF} causa ${n} de dano em ${nomeX(b.o,b.x)}`,origem,b.o.k);}
-    else{perde(fraco,n,q.k);q.st.dano+=n;}
+    else{perde(fraco,n,q.k);q.st.dano+=n;diz(q.k,'dano',`${nomeF} causa ${n} de dano em ${NOM[fraco.k]}`,origem,fraco.k);}
   }
   function faz(q,z,e,ctx){
-    if(!q.vivo||!e)return;ctx=ctx||{};VER++;const nm=z?nomeX(q,z):'';const org=z&&z.i>=0?z.i:-1;
+    if(!q.vivo||!e)return;ctx=ctx||{};VER++;const nm=z?nomeX(q,z):ORIG;if(z)ORIG=nm;const org=z&&z.i>=0?z.i:-1;
     if(e.gemeo&&z){gemeo(q,z,ctx);}
     if(e.fic){const f=e.fic;let n=contN(q,z,f.n,ctx);if(f.porCont)n*=2;
       if(n>0){const t=ficha(q,n,f.p,f.t,f.tipos&&f.tipos.length?f.tipos.map(w=>w[0].toUpperCase()+w.slice(1)).join(' '):'Ficha',{tipos:f.tipos,kw:f.kw,sac:f.sac});
@@ -248,7 +296,7 @@ function arena(Ds,seed,cfg){
     if(e.combate&&!q.combX){q.combX=1;}
     if(e.terra){for(let j=0;j<e.terra;j++)q.terr.push({cor:q.ci||'',tap:true,b:1});}
     if(e.recupera){const j=q.gy.findIndex(g=>{const m=q.M[g];return e.recupera==='anexo'?(m.aura||m.eq):(m.tipos||[]).includes(e.recupera);});if(j>=0){const c=q.gy.splice(j,1)[0];q.mao.push(c);diz(q.k,'magia',`${nm}: ${nomeC(q,c)} volta do cemitério pra mão`);}}
-    if(e.descobre){const lim=e.descobre;for(let j=q.lib.length-1;j>=0;j--){const c=q.lib[j],m=q.M[c];if(m.land||(m.cmc||0)>lim)continue;q.lib.splice(j,1);diz(q.k,'magia',`${nm}: descobre ${nomeC(q,c)}`);if(m.r||(m.aura&&!melhorHost(q,m)))q.mao.push(c);else resolve(q,c,false);break;}}
+    if(e.descobre){const lim=e.descobre;for(let j=q.lib.length-1;j>=0;j--){const c=q.lib[j],m=q.M[c];if(m.land||(m.cmc||0)>lim)continue;q.lib.splice(j,1);diz(q.k,'magia',`${nm}: descobre ${nomeC(q,c)}`);if(m.r||(m.aura&&!aval(()=>melhorHost(q,m))))q.mao.push(c);else resolve(q,c,false);break;}}
     if(e.tempestade){for(const g of q.gy.slice()){const m=q.M[g];if(!m.aura||m.auraMa)continue;const h=melhorHost(q,m);if(!h)break;q.gy.splice(q.gy.indexOf(g),1);const y=entra(q,g,false);y.exFim=1;anexa(y,h);}}
     if(e.papel&&ctx.x&&ctx.x.cri){const y=novo(q,-1,{nome:'Papel real',tok:true,papel:1});q.perm.push(y);anexa(y,ctx.x);}
     if(e.hexMod){for(const w of q.perm)if(w.cri&&modif(w))(w.kwT||(w.kwT=new Set())).add('hexproof');}
@@ -287,6 +335,8 @@ function arena(Ds,seed,cfg){
   }
   function melhorHost(p,m,ignora){
     if(m.auraMa){const a=melhorAlvo(p,true,'c');return a?a.x:null;}
+    if(pergH(p)){const cs=p.perm.filter(x=>x.cri&&x!==ignora&&!x.sacFim&&!x.an&&!(m.aura==='m'&&!modif(x))).map(x=>({n:`${nomeX(p,x)} (${poderDe(p,x)}/${resDe(p,x)})`,val:x}));
+      return cs.length?escolhe(p,`${ORIG||'Anexar'}: em qual criatura?`,cs,false):null;}
     const clamp=m.da&&m.da.t<0;
     let b=null,bv=-1e9;
     for(const x of p.perm){if(!x.cri||x===ignora||x.sacFim||x.an)continue;if(m.aura==='m'&&!modif(x))continue;
@@ -315,14 +365,15 @@ function arena(Ds,seed,cfg){
     for(const z of p.perm.slice()){if(z.i<0||z.tok||!z.cri)continue;const m=p.M[z.i];
       for(const h of m.hab||[]){
         /* pump ativado só com mana (Ezuri, Elvish Warmaster): antes do combate, uma vez por turno, com 3+ do tipo prontos para atacar */
-        if(h.q==='pump'){if(z.pumpT===T||p.perm.filter(w=>w.cri&&!w.tap&&!w.sick&&ehTipo(p,w,h.tipo)).length<3||!pagaG(p,U,h.custo))continue;z.pumpT=T;faz(p,z,h.e,{});continue;}
+        if(h.q==='pump'){const H=pergH(p);if(z.pumpT===T||(!H&&p.perm.filter(w=>w.cri&&!w.tap&&!w.sick&&ehTipo(p,w,h.tipo)).length<3)||(H&&U.length<h.custo)||(H&&!quer(p,`Ativar ${nomeC(p,z.i)} (${h.custo} de mana)?`))||!pagaG(p,U,h.custo))continue;z.pumpT=T;faz(p,z,h.e,{});continue;}
         if(h.q!=='tap'||!pronto(z))continue;
-        if(h.dez){const el=p.perm.filter(w=>w!==z&&w.cri&&!w.tap&&ehTipo(p,w,h.dez));if(el.length<10)continue;for(const w of el.slice(0,10))w.tap=true;z.tap=true;diz(p.k,'magia',`${nomeC(p,z.i)} vira 10 elfos: cada oponente perde 10`,z.i);faz(p,z,h.e,{});continue;}
-        if(h.e.fic&&contN(p,z,h.e.fic.n,{})<2&&poderDe(p,z)>=2)continue;
+        if(h.dez){const el=p.perm.filter(w=>w!==z&&w.cri&&!w.tap&&ehTipo(p,w,h.dez));if(el.length<10||!quer(p,`${nomeC(p,z.i)}: virar 10 elfos (cada oponente perde 10)?`))continue;for(const w of el.slice(0,10))w.tap=true;z.tap=true;diz(p.k,'magia',`${nomeC(p,z.i)} vira 10 elfos: cada oponente perde 10`,z.i);faz(p,z,h.e,{});continue;}
+        if(!pergH(p)&&h.e.fic&&contN(p,z,h.e.fic.n,{})<2&&poderDe(p,z)>=2)continue;
+        if(pergH(p)&&((h.custo&&U.length<h.custo)||!quer(p,`Virar ${nomeC(p,z.i)} e usar a habilidade${h.custo?` (${h.custo} de mana)`:''}?`)))continue;
         if(h.custo&&!pagaG(p,U,h.custo))continue;
         z.tap=true;faz(p,z,h.e,{});
-        if(elixir&&h.e.fic&&U.length>=1&&pagaG(p,U,1)){z.tap=false;diz(p.k,'magia','Thousand-Year Elixir desvira '+nomeC(p,z.i));faz(p,z,h.e,{});z.tap=true;}}
-      if(m.kiki&&pronto(z)){let b=null,bv=-1;for(const w of p.perm)if(w.cri&&!w.tok&&w!==z&&!p.M[w.i].leg){const v=valor(p,w)+((p.M[w.i].hab||[]).some(h=>h.q==='etb')||p.M[w.i].tok?4:0);if(v>bv){bv=v;b=w;}}
+        if(elixir&&h.e.fic&&U.length>=1&&quer(p,`Thousand-Year Elixir: desvirar ${nomeC(p,z.i)} (1 de mana)?`)&&pagaG(p,U,1)){z.tap=false;diz(p.k,'magia','Thousand-Year Elixir desvira '+nomeC(p,z.i));faz(p,z,h.e,{});z.tap=true;}}
+      if(m.kiki&&pronto(z)){let b=null,bv=-1;if(pergH(p)){const cs=p.perm.filter(w=>w.cri&&!w.tok&&w!==z&&!p.M[w.i].leg).map(w=>({n:nomeX(p,w),val:w}));b=cs.length?escolhe(p,'Kiki-Jiki: copiar qual criatura?',cs,true,'Não usar'):null;}else for(const w of p.perm)if(w.cri&&!w.tok&&w!==z&&!p.M[w.i].leg){const v=valor(p,w)+((p.M[w.i].hab||[]).some(h=>h.q==='etb')||p.M[w.i].tok?4:0);if(v>bv){bv=v;b=w;}}
         if(b){z.tap=true;const mb=p.M[b.i];const c=novo(p,-1,{nome:'Cópia de '+nomeC(p,b.i),cri:true,p:mb.p||0,t:mb.t||1,tok:true,tipos:mb.tipos||[],kw:[...(mb.kws||[]),'haste'],sacFim:1,sick:false});p.perm.push(c);
           diz(p.k,'ficha',`Kiki-Jiki copia ${nomeC(p,b.i)}`,z.i);if(mb.tok)ficha(p,mb.tokN||1,mb.tokP||1,mb.tokT||1,null,{tipos:mb.tipos&&mb.tipos.includes('goblin')?['goblin']:[]});entrou(p,c);}}}
   }
@@ -333,7 +384,11 @@ function arena(Ds,seed,cfg){
       const ok=w=>w.cri&&w!==z&&!w.cmd&&ehTipo(p,w,S.tipo);
       const ops=opsDe(p);if(!ops.length)return;const fraco=ops.slice().sort((a,c)=>a.vida-c.vida)[0];
       const pool=p.perm.filter(ok);const letal=S.dano>0&&pool.length*S.dano>=fraco.vida&&(!S.custo||U.length>=S.custo*Math.ceil(fraco.vida/S.dano));
-      const vai=letal?pool:fimT?pool.filter(w=>w.sacFim):[];
+      let vai=letal?pool:fimT?pool.filter(w=>w.sacFim):[];
+      if(pergH(p)){vai=[];const H=[];for(;;){const cs=p.perm.filter(w=>ok(w)&&!H.includes(w)).map(w=>({n:`${nomeX(p,w)}${w.sacFim?' (some no fim do turno)':''}`,val:w}));if(!cs.length||(S.custo&&U.length<S.custo))break;
+          const w=escolhe(p,`${nomeC(p,z.i)}: sacrificar${S.dano?` (${S.dano} de dano cada)`:''}${S.custo?` — ${S.custo} de mana cada`:''}`,cs,true,'Parar');if(!w)break;H.push(w);
+          if(S.custo&&!pagaG(p,U,S.custo))break;ORIG=nomeC(p,z.i);morre(p,w,false,p.k,true);if(S.dano)danoQualquer(p,S.dano,z.i,nomeC(p,z.i));if(!fraco.vivo)break;}
+        if(H.length)diz(p.k,'magia',`${nomeC(p,z.i)}: sacrifica ${H.length} criatura${H.length>1?'s':''}`,z.i);checa();continue;}
       let n=0;for(const w of vai){if(S.custo&&!pagaG(p,U,S.custo))break;if(!fraco.vivo&&S.dano)break;morre(p,w,false,p.k,true);n++;if(S.dano)danoQualquer(p,S.dano,z.i,nomeC(p,z.i));}
       if(n)diz(p.k,'magia',`${nomeC(p,z.i)}: sacrifica ${n} criatura${n>1?'s':''}`,z.i);checa();}
   }
@@ -368,7 +423,11 @@ function arena(Ds,seed,cfg){
   function serve(o,x,tp){if(x.cop||x.papel)return false;if(tp==='*')return true;const m=x.tok?{}:o.M[x.i];
     return (tp.includes('c')&&x.cri)||(tp.includes('a')&&m.a)||(tp.includes('e')&&m.ench);}
   function melhorAlvo(p,soCri,tp){
-    let b=null,bv=2.5;tp=tp||'*';
+    tp=tp||'*';
+    if(pergH(p)){const cs=[];for(const o of opsDe(p))for(const x of o.perm){if(soCri&&!x.cri)continue;if(!serve(o,x,tp))continue;if(protegido(o,x))continue;if(!x.tok&&wardBloqueia(p,o,x))continue;
+        cs.push({n:`${nomeX(o,x)} de ${NOM[o.k]}${x.cri?` (${poderDe(o,x)}/${resDe(o,x)})`:''}`,val:{o,x}});}
+      return cs.length?escolhe(p,`${ORIG||'Efeito'}: escolha o alvo`,cs,true,'Sem alvo'):null;}
+    let b=null,bv=2.5;
     for(const o of opsDe(p))for(const x of o.perm){if(soCri&&!x.cri)continue;if(!serve(o,x,tp))continue;if(protegido(o,x))continue;if(!x.tok&&wardBloqueia(p,o,x))continue;
       const v=valor(o,x)*(1+0.15*(forca(o)>=forca(p)));if(v>bv){bv=v;b={o,x};}}
     return b;
@@ -380,7 +439,7 @@ function arena(Ds,seed,cfg){
     for(const o of opsDe(dono)){
       if(peso<6)continue;
       for(const c of o.mao){const m=o.M[c];if(!m.pr||!m.pr.ctr)continue;
-        if(!pode(o,c,o.aberta,false))continue;paga(o,c,o.aberta,false);
+        if(!pode(o,c,o.aberta,false))continue;if(!quer(o,`Anular ${nomeC(dono,i)} com ${nomeC(o,c)}?`))continue;paga(o,c,o.aberta,false);
         o.mao.splice(o.mao.indexOf(c),1);o.gy.push(c);o.st.ctr++;
         diz(o.k,'resp',`${NOM[o.k]} anula ${nomeC(dono,i)} com ${nomeC(o,c)}`);return true;}
     }
@@ -391,7 +450,7 @@ function arena(Ds,seed,cfg){
     for(const c of o.mao){const m=o.M[c];if(!m.pr)continue;
       if(tipo==='r'&&!m.pr.r)continue;if(tipo==='w'&&!m.pr.w)continue;if(tipo==='x'&&!m.pr.x)continue;
       if(m.pr.k==='um'&&tipo!=='r')continue;
-      if(!pode(o,c,o.aberta,false))continue;paga(o,c,o.aberta,false);
+      if(!pode(o,c,o.aberta,false))continue;if(!quer(o,`Responder com ${nomeC(o,c)} para se proteger${x?` (${nomeX(o,x)})`:''}?`))continue;paga(o,c,o.aberta,false);
       o.mao.splice(o.mao.indexOf(c),1);o.gy.push(c);o.st.salvo++;
       diz(o.k,'resp',`${NOM[o.k]} responde com ${nomeC(o,c)} e se protege`);
       for(const h of m.hab||[])if(h.q==='sp')faz(o,null,h.e,{x:x||melhorMeu(o)});
@@ -429,7 +488,7 @@ function arena(Ds,seed,cfg){
     }
   }
   function resolve(p,i,ehCmd){
-    const m=p.M[i];
+    const m=p.M[i];ORIG=nomeC(p,i);
     p.st.lanc[i]=(p.st.lanc[i]||0)+1;
     lancou(p,i);
     if(!m.land&&!(m.pip&&m.pip.length)){for(const y of p.perm)if(!y.tok&&p.M[y.i].uginX){const a=melhorAlvo(p,false,'*');if(a)remove(p,a,y.i);}}
@@ -449,7 +508,7 @@ function arena(Ds,seed,cfg){
       if(m.ramp){for(let j=0;j<m.ramp;j++)p.terr.push({cor:p.ci||'',tap:true,b:1});}
       if(m.tok)ficha(p,m.tokN||1,m.tokP||1,m.tokT||1);
       if(m.tut)tutor(p,m.tut);
-      for(const h of m.hab||[])if(h.q==='sp'&&!h.e.fichaDono)faz(p,null,h.e,{x:melhorMeu(p)});
+      ORIG=nomeC(p,i);{let xx;const cx={...(SACU||{})};Object.defineProperty(cx,'x',{get(){return xx===undefined?(xx=melhorMeu(p)):xx;},set(v){xx=v;},enumerable:true});for(const h of m.hab||[])if(h.q==='sp'&&!h.e.fichaDono)faz(p,null,h.e,cx);}SACU=null;
       p.gy.push(i);
     }else{
       let host=null;
@@ -471,13 +530,16 @@ function arena(Ds,seed,cfg){
       const t=tt.t;if(t!=='*'&&!((t.includes('a')&&c.a)||(t.includes('c')&&c.cri)||(t.includes('e')&&c.ench)||(t.includes('i')&&c.sp)))continue;
       let v=nota(p,p.lib[j],true);for(const ix of pecas[p.k])if(ix.includes(p.lib[j])&&ix.some(q=>q!==p.lib[j]&&(p.mao.includes(q)||p.perm.some(x=>x.i===q)||q===p.cmdI)))v+=30;
       if(v>bv){bv=v;b=j;}}
+    if(pergH(p)){const cs=[];for(let j=0;j<p.lib.length;j++){const c=p.M[p.lib[j]];if(c.land)continue;const t=tt.t;if(t!=='*'&&!((t.includes('a')&&c.a)||(t.includes('c')&&c.cri)||(t.includes('e')&&c.ench)||(t.includes('i')&&c.sp)))continue;cs.push({n:nomeC(p,p.lib[j]),val:j});}
+      cs.sort((a,c)=>a.n.localeCompare(c.n));const v=cs.length?escolhe(p,`${ORIG||'Busca'}: qual carta buscar?`,cs,true,'Não buscar'):null;b=v==null?-1:v;}
     if(b<0)return;const c=p.lib.splice(b,1)[0];
     if(tt.campo&&!p.M[c].sp){entra(p,c);diz(p.k,'tutor',`busca ${nomeC(p,c)} direto pro campo`);}
     else{p.mao.push(c);p.st.viu.add(c);diz(p.k,'tutor',`busca ${nomeC(p,c)}`);}
     emb(p.lib,R);
   }
   /* quanto vale lancar a carta agora */
-  function nota(p,i,ehCmd){
+  function nota(p,i,ehCmd){return aval(()=>nota0(p,i,ehCmd));}
+  function nota0(p,i,ehCmd){
     const m=p.M[i];if(m.land)return -1;
     if(m.r||(m.pr&&!m.wip))return -1;
     const fo=forca(p),maxO=Math.max(0,...opsDe(p).map(forca)),cedo=T<=6;
@@ -504,6 +566,8 @@ function arena(Ds,seed,cfg){
     if(m.lorde)for(const L of m.lorde){const n=p.perm.filter(x=>x.cri&&ehTipo(p,x,L.tipo)).length;v+=n*((L.p+L.t)*0.35+L.kw.length*0.3)+(L.mana?n*0.8:0);}
     if(m.disX)v+=cedo?5:2;
     if(m.hab&&m.hab.length)v+=Math.min(6,m.hab.length*2);
+    if(m.cSac){const x=escolheSac(p,i);if(!x)return -1;const sp=x.cri?poderDe(p,x):0,ef=JSON.stringify((m.hab||[]).map(h=>h.e));
+      if(/"dano(Alvo|Op)":"sac\.poder"/.test(ef)){if(sp<3)return -1;v+=sp;}v-=x.tok?0.5:valor(p,x)/3;if(v<=1)return -1;}
     if(m.sac||m.kiki||m.brasao)v+=3;
     if(ehCmd===true&&p.cmdI===i)v+=4;
     if(fo+6<maxO&&m.cri)v+=1.5;
@@ -514,10 +578,31 @@ function arena(Ds,seed,cfg){
     let U=fontes(p);
     for(let volta=0;volta<30;volta++){
       let b=null,bv=0;
+      if(ehH(p)){const ops=[...new Set(p.mao)].filter(i=>!p.M[i].land&&pode(p,i,U,false)).map(i=>({v:i,n:nomeC(p,i),lac:(p.M[i].lac||[]).length}));
+        if(p.zona&&p.cmdI>=0&&pode(p,p.cmdI,U,true))ops.push({v:'cmd',n:nomeC(p,p.cmdI)+' (comandante'+(p.tax?`, taxa +${p.tax}`:'')+')'});
+        /* equipar na sua vez (23/11/2026): o humano escolhe o equipamento e a criatura; antes o motor equipava sozinho */
+        const cuEq=(y,h)=>{const m=mOf(y);let cu=m.eq;if(h&&h.anx.some(w=>{const mw=mOf(w);return mw&&mw.sb;}))cu=Math.max(0,cu-3);return cu;};
+        const hostsEq=y=>p.perm.filter(x=>x.cri&&!x.an&&x!==y.an&&x!==y);
+        for(const y of p.perm){const m=mOf(y);if(!m||!m.eq||y.tok)continue;const hs=hostsEq(y);if(hs.length&&hs.some(h=>U.length>=cuEq(y,h)))ops.push({v:'eq'+p.perm.indexOf(y),n:`Equipar ${nomeC(p,y.i)} (${m.eq})`});}
+        if(!ops.length)break;ops.push({v:-1,n:'Passar'});
+        const e=pede('lanca',{mana:U.length,ops});if(e===-1)break;
+        if(typeof e==='string'&&e.slice(0,2)==='eq'){const y=p.perm[+e.slice(2)];if(!y||!ops.some(o=>o.v===e))throw new Error('equipamento fora da mesa');
+          const hs=hostsEq(y).filter(h=>U.length>=cuEq(y,h)),livre=p.perm.filter(z=>!z.an);
+          const r=pede('equipar',{x:{n:nomeC(p,y.i)},ops:hs.map(h=>({v:p.perm.indexOf(h),pi:livre.indexOf(h),n:nomeX(p,h),p:poderDe(p,h),t:resDe(p,h)})).concat([{v:-1,n:'Cancelar'}])});
+          if(r>=0){const h=p.perm[r];if(!hs.includes(h))throw new Error('criatura inválida para equipar');
+            if(pagaG(p,U,cuEq(y,h))){anexa(y,h);diz(p.k,'magia',`${NOM[p.k]} equipa ${nomeC(p,y.i)} em ${nomeX(p,h)}`,y.i);checa();if(!p.vivo)return;}}
+          U=fontes(p);continue;}
+        if(e==='cmd')b={i:p.cmdI,cmd:true};else{if(!ops.some(o=>o.v===e))throw new Error('não dá para lançar');b={i:e,cmd:false};}}
+      else{
       for(const i of new Set(p.mao)){const v=nota(p,i);if(v<=bv||!pode(p,i,U,false))continue;b={i,cmd:false};bv=v;}
-      if(p.zona&&p.cmdI>=0){const v=nota(p,p.cmdI,true);if(v>bv&&pode(p,p.cmdI,U,true)){b={i:p.cmdI,cmd:true};bv=v;}}
+      if(p.zona&&p.cmdI>=0){const v=nota(p,p.cmdI,true);if(v>bv&&pode(p,p.cmdI,U,true)){b={i:p.cmdI,cmd:true};bv=v;}}}
       if(!b)break;
+      SACU=null;let xs=null;if(p.M[b.i].cSac){const os=sacOps(p,b.i);let x;
+        if(ehH(p)){const livre=p.perm.filter(z=>!z.an);const r=pede('sacrificar',{x:{n:nomeC(p,b.i)},ops:os.map(h=>({v:p.perm.indexOf(h),pi:livre.indexOf(h),n:nomeX(p,h),p:h.cri?poderDe(p,h):0,t:h.cri?resDe(p,h):0}))});if(r===-1){U=fontes(p);continue;}x=p.perm[r];if(!os.includes(x))throw new Error('não dá para sacrificar isso');}
+        else x=escolheSac(p,b.i);
+        if(!x)break;xs=x;}
       paga(p,b.i,U,b.cmd);U=fontes(p);
+      if(xs)pagaSac(p,b.i,xs);
       if(b.cmd){p.zona=false;if(!p.st.cmdT)p.st.cmdT=T;}else p.mao.splice(p.mao.indexOf(b.i),1);
       const m=p.M[b.i],peso=(m.wip?8:0)+(m.cri?(m.p||0):0)+(b.cmd?3:0)+(m.tut?3:0)+(m.cada||m.gat?3:0);
       diz(p.k,'magia',`${NOM[p.k]} lança ${nomeC(p,b.i)}${b.cmd?' (comandante'+(p.tax?`, taxa +${p.tax}`:'')+')':''}`,b.i);
@@ -525,7 +610,7 @@ function arena(Ds,seed,cfg){
       resolve(p,b.i,b.cmd);
       checa();if(!p.vivo)return;
     }
-    U=fontes(p);equipa(p,U);if(!p.vivo)return;
+    U=fontes(p);if(!ehH(p))equipa(p,U);if(!p.vivo)return;
     p.aberta=fontes(p);
   }
 
@@ -545,9 +630,14 @@ function arena(Ds,seed,cfg){
     const ops=opsDe(p);if(!ops.length)return;
     let at=p.perm.filter(x=>x.cri&&(!x.sick||temKw(p,x,'haste'))&&!x.tap&&poderDe(p,x)>0&&(x.tok||!p.M[x.i].dfd)&&!preso(x));
     if(!at.length)return;
+    let alvo=null;
+    if(ehH(p)){const e=pede('ataque',{ops:at.map((x,j)=>({v:j,pi:p.perm.filter(y=>!y.an).indexOf(x),n:nomeX(p,x),p:poderDe(p,x),t:resDe(p,x)})),alvos:ops.map(o=>({v:o.k,n:NOM[o.k],vida:o.vida}))});
+      if(!e||!e.at||!e.at.length)return;alvo=ops.find(o=>o.k===e.alvo);if(!alvo)throw new Error('alvo do ataque inválido');
+      at=e.at.map(j=>at[j]).filter(Boolean);}
+    else{
     /* alvo: quem da pra matar, senao o mais forte com vida baixa */
     const total=at.reduce((s,x)=>s+poderDe(p,x),0);
-    let alvo=null,bv=-1e9;
+    let bv=-1e9;
     for(const o of ops){const bl=o.perm.filter(x=>x.cri&&!x.tap).length;
       /* bate em quem ameaça mais (força na mesa), um pouco em quem já está machucado */
       let v=forca(o)*0.8+(VIDA-o.vida)*0.35-bl*1.2+R()*4;
@@ -564,10 +654,10 @@ function arena(Ds,seed,cfg){
       if(p.vida<=perigo*1.5&&at.length>2){const n=Math.min(at.length-1,Math.ceil(at.length/3));
         const fica=at.filter(x=>!temKw(p,x,'vigilance')).sort((a,b)=>resDe(p,b)-resDe(p,a)||poderDe(p,a)-poderDe(p,b)).slice(0,n);
         at=at.filter(x=>!fica.includes(x));}
-      if(!at.length)return;}
+      if(!at.length)return;}}
     /* nao manda quem morre de graca pra bloqueador maior */
     const blq=alvo.perm.filter(x=>x.cri&&!x.tap&&!preso(x));
-    at=at.filter(x=>{if(x.tok&&blq.length>at.length)return true;if(!bloqueiam(p,x,alvo,blq).length)return true;
+    if(!ehH(p))at=at.filter(x=>{if(x.tok&&blq.length>at.length)return true;if(!bloqueiam(p,x,alvo,blq).length)return true;
       return !blq.some(b=>poderDe(alvo,b)>=resDe(p,x)&&resDe(alvo,b)>poderDe(p,x)&&!(b.tok&&poderDe(p,x)>=3))||poderDe(p,x)>=5||at.length>=blq.length+2;});
     if(!at.length)return;
     instantaneaNoAtaque(alvo,p,at);
@@ -576,7 +666,7 @@ function arena(Ds,seed,cfg){
     for(const x of at)if(x.cmd&&!x.tok){if(!p.st.cmdAtkT)p.st.cmdAtkT=T;if(x.anx.length&&!p.st.armT)p.st.armT=T;}
     {let pk=0;for(const y of p.perm)if(!y.tok&&p.M[y.i].pump)pk=Math.max(pk,p.M[y.i].pump);
      if(pk)for(const y of p.perm)if(y.cri&&!(!y.tok&&p.M[y.i].pump)){y.tmp=(y.tmp||0)+pk;y.tmpT=(y.tmpT??0)+pk;y.indT=1;}
-     for(const x of at){const m=!x.tok&&p.M[x.i];if(m&&m.remAtk&&R()<.6){const a=melhorAlvo(p,true,'*');if(a)remove(p,a,x.i);if(m.prowl&&R()<.5)compra(p,1,'Prowl');}}}
+     for(const x of at){const m=!x.tok&&p.M[x.i];if(m&&m.remAtk&&(pergH(p)?quer(p,`${nomeC(p,x.i)} atacou: usar a remoção?`):R()<.6)){const a=melhorAlvo(p,true,'*');if(a)remove(p,a,x.i);if(m.prowl&&R()<.5)compra(p,1,'Prowl');}}}
     for(const x of at)if(!temKw(p,x,'vigilance'))x.tap=true;
     diz(p.k,'ataque',`${NOM[p.k]} ataca ${NOM[alvo.k]} com ${at.length} criatura${at.length>1?'s':''}${extra?' (combate extra)':''}`,-1,alvo.k);
     /* gatilhos de ataque */
@@ -605,7 +695,9 @@ function arena(Ds,seed,cfg){
       const sobraVida=alvo.vida-dano-fila;fila-=pw;
       const pode=bloqueiam(p,x,alvo,livres);
       let b=null;
-      if(pode.length){
+      if(pode.length&&ehH(alvo)){const e=pede('bloqueio',{x:{n:nomeX(p,x),p:pw,t:resDe(p,x),de:NOM[p.k]},ops:pode.map(y=>({v:alvo.perm.indexOf(y),pi:alvo.perm.filter(z=>!z.an).indexOf(y),n:nomeX(alvo,y),p:poderDe(alvo,y),t:resDe(alvo,y)})).concat([{v:-1,n:'Não bloquear'}])});
+        if(e>=0){b=alvo.perm[e];if(!pode.includes(b))throw new Error('bloqueador inválido');}}
+      else if(pode.length){
         const mata=pode.filter(y=>poderDe(alvo,y)>=resDe(p,x)||temKw(alvo,y,'deathtouch'));
         const sobra=mata.filter(y=>resDe(alvo,y)>pw&&!k('deathtouch'));
         if(sobra.length)b=sobra[0];
@@ -665,7 +757,7 @@ function arena(Ds,seed,cfg){
 
   /* ---------- turno ---------- */
   function joga(p,primeiro){
-    for(const l of p.terr)l.tap=false;
+    for(const l of p.terr){l.tap=false;l.usou=0;}
     for(const x of p.perm){if(!(x.anx||[]).some(y=>{const m=mOf(y);return m&&m.auraMa&&/doesn't untap/i.test(m.txt);}))x.tap=false;x.sick=false;x.usou=0;x.dano=0;x.atk=0;x.kwT=null;}
     p.combX=0;VER++;
     for(const q of vivos())if(q!==p&&tem(q,'clock')){for(const y of q.perm)if(!y.tok&&q.M[y.i].a)y.tap=false;q.aberta=fontes(q);}
@@ -684,13 +776,15 @@ function arena(Ds,seed,cfg){
     if(!p.vivo)return;
     /* terreno: o que da a cor que falta na mao */
     const ls=p.mao.filter(i=>p.M[i].land);
-    if(ls.length){
+    if(ls.length&&ehH(p)){const b=pede('terreno',{ops:[...new Set(ls)].map(i=>({v:i,n:nomeC(p,i)})).concat([{v:-1,n:'Não baixar terreno'}])});
+      if(b>=0){if(!ls.includes(b))throw new Error('terreno fora da mão');p.mao.splice(p.mao.indexOf(b),1);const m=p.M[b];
+        baixaTerr(p,b);}}
+    else if(ls.length){
       const falta={};for(const i of p.mao){const m=p.M[i];if(m.land)continue;for(const c of m.pip||[])for(const ch of c)falta[ch]=(falta[ch]||0)+1;}
       const tem_=new Set(p.terr.map(l=>l.cor).join(''));
-      let b=ls[0],bv=-1;for(const i of ls){const cor=p.M[i].cor||'';let v=0;for(const ch of cor)if(!tem_.has(ch))v+=(falta[ch]||0)+.5;if(cor===ANY)v+=1;if(v>bv){bv=v;b=i;}}
+      let b=ls[0],bv=-1;for(const i of ls){const cor=p.M[i].cor||'';let v=0;for(const ch of cor)if(!tem_.has(ch))v+=(falta[ch]||0)+.5;if(cor===ANY)v+=1;if(/return a land you control to its owner's hand/i.test(p.M[i].txt||''))v=p.terr.length?v+1:-9;if(v>bv){bv=v;b=i;}}
       p.mao.splice(p.mao.indexOf(b),1);
-      const m=p.M[b];p.terr.push({cor:m.cor||'',tap:/enters (?:the battlefield )?tapped/i.test(m.txt)&&!/unless/i.test(m.txt),i:b});
-      diz(p.k,'terreno',`baixa ${nomeC(p,b)} (${p.terr.length} terrenos)`,b);
+      baixaTerr(p,b);
     }
     {const mi=p.gy.findIndex(j=>p.M[j].metalrec);if(mi>=0&&p.perm.filter(x=>!x.tok&&p.M[x.i].a).length>=6){const sac=p.perm.filter(x=>!x.tok&&p.M[x.i].a&&!p.M[x.i].mana&&!p.M[x.i].cri&&!x.cmd).slice(0,2);if(sac.length===2){for(const s of sac)morre(p,s,true);p.mao.push(p.gy.splice(mi,1)[0]);diz(p.k,'magia','Metalwork Colossus volta pra mão');}}}
     if(combo(p))return;
@@ -708,13 +802,15 @@ function arena(Ds,seed,cfg){
     {const sai=p.perm.filter(x=>x.sacFim||x.exFim);if(sai.length){for(const x of sai)if(p.perm.includes(x))morre(p,x,!!x.exFim,-1,true);if(sai.some(x=>x.sacFim&&x.cri))diz(p.k,'morte',`fim do turno: ${sai.filter(x=>x.cri).length} ficha${sai.length>1?'s':''} temporária${sai.length>1?'s':''} sacrificada${sai.length>1?'s':''}`);}}
     checa();if(!p.vivo)return;
     /* descarte */
+    while(ehH(p)&&p.mao.length>7&&!tem(p,'semLimite')){const e=pede('descarte',{falta:p.mao.length-7,ops:p.mao.map(i=>({v:i,n:nomeC(p,i)}))});
+      const j=p.mao.indexOf(e);if(j<0)throw new Error('descarte fora da mão');p.gy.push(p.mao.splice(j,1)[0]);}
     while(p.mao.length>7&&!tem(p,'semLimite')){let w=0,wv=1e9;p.mao.forEach((i,j)=>{const v=p.M[i].land?(p.terr.length>=6?-1:5):nota(p,i);if(v<wv){wv=v;w=j;}});p.gy.push(p.mao.splice(w,1)[0]);}
     p.aberta=fontes(p);
   }
   function quadro(k){if(LOG)foto(k);}
   function foto(k){
     quadros.push({t:T,k,log:log.length,j:P.map(p=>({vida:p.vida,vivo:p.vivo,terr:p.terr.length,tes:p.tes,mao:p.mao.slice(),lib:p.lib.length,zona:p.zona,tax:p.tax,cmdD:p.cmdD.slice(),
-      perm:p.perm.filter(x=>!x.an).map(x=>{const o={n:nomeX(p,x),p:x.cri?poderDe(p,x):null,t:x.cri?resDe(p,x):null,c:x.cmd?1:0,tok:x.tok?1:0,tap:x.tap?1:0,atk:x.atk?1:0,i:x.tok&&!x.cop?-1:x.i};
+      perm:p.perm.filter(x=>!x.an).map((x,pi)=>{const o={pi,n:nomeX(p,x),p:x.cri?poderDe(p,x):null,t:x.cri?resDe(p,x):null,c:x.cmd?1:0,tok:x.tok?1:0,tap:x.tap?1:0,atk:x.atk?1:0,i:x.tok&&!x.cop?-1:x.i};
         if(x.cri){const b0=x.tok&&x.i<0?{p:x.p,t:x.t}:{p:p.M[x.i].p||0,t:p.M[x.i].t||0};o.bp=o.p-b0.p*(temKw(p,x,'double strike')?2:1);o.bt=o.t-b0.t;if(x.cont)o.ct=x.cont;
           const kw=[...bon(p,x).kw].filter(k=>k!=='evasao'&&k!=='imbloq');if(kw.length)o.kw=kw;}
         if(x.anx&&x.anx.length)o.an=x.anx.map(y=>({n:y.papel?'Papel real':nomeX(P[y.k],y),i:y.papel?-1:y.i,cop:y.cop?1:0,de:y.k!==p.k?y.k:undefined}));
@@ -871,6 +967,7 @@ if(typeof self!=='undefined'&&typeof window==='undefined'&&typeof module==='unde
     try{let r;const pg=(fase,p)=>self.postMessage({id,prog:{fase,p}});
       if(tipo==='torneio'){const Q=torneio(Dv,Ops,N,seed,pg,e.data.nOp);r=resumoArena(Dv,Ops,Q);}
       else if(tipo==='partida'){r=arena([Dv,...Ops],seed,{log:true,T:e.data.T||20,vida:e.data.vida,nomes:e.data.nomes});}
+      else if(tipo==='jogar'){try{r={fim:arena([Dv,...Ops],seed,{log:true,T:e.data.T||20,vida:e.data.vida,nomes:e.data.nomes,humano:{k:0,esc:e.data.esc||[],desde:e.data.desde||0}})};}catch(x){if(!x.raioxPergunta)throw x;r={perg:x.raioxPergunta};}}
       else if(tipo==='estudo'){r=estudo(Dv,Ops,e.data.mesas,N,seed,pg,e.data.nOp,e.data.cfg);}
       else if(tipo==='trocas'){r=testaTrocas(Dv,Ops,pares,N,seed,pg,e.data.nOp);}
       else if(tipo==='variantes'){r=variantes(Dv,Ops,e.data.bases,N,seed,pg,e.data.nOp);}

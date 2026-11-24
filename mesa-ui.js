@@ -33,10 +33,10 @@ function achar(nome) {
 const limpo = (D) => ({ M: D.M, base: D.base, cmd: D.cmd, nome: D.nome || '', cand: D.cand, vazio: D.vazio, extras: D.extras || [] });
 
 // ---------- motor no Worker ----------
-let WK = null, WID = 0; const WP = new Map();
+let WK = null, WID = 0, WV = 0; const WP = new Map();
 function roda(tipo, msg, prog) {
   if (!WK) {
-    WK = new Worker('motor/worker.js?v=' + (window.RAIOX_V || '1'));
+    WK = new Worker('motor/worker.js?v=' + (WV || window.RAIOX_V || '1'));
     WK.onmessage = (e) => { const p = WP.get(e.data.id); if (!p) return; if (e.data.prog) { if (p.prog) p.prog(e.data.prog.fase, e.data.prog.p); return; } WP.delete(e.data.id); e.data.erro ? p.rej(new Error(e.data.erro)) : p.res(e.data.r); };
     WK.onerror = (e) => { for (const [id, p] of WP) { p.rej(new Error(e.message || 'o motor parou')); WP.delete(id); } WK = null; };
   }
@@ -309,6 +309,7 @@ function painelVivo() {
       ${Array.from({ length: nO }, (_, k) => `<label class="field">Oponente ${k + 1} <select data-vop="${k}">${ops.map(o => `<option value="${esc(o.id)}" ${sel[k] === o.id ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select></label>`).join('')}
       ${trocasOn().length ? `<label class="field">Seu deck <select id="v-tro"><option value="0" ${vivoComTrocas() ? '' : 'selected'}>Lista atual</option><option value="1" ${vivoComTrocas() ? 'selected' : ''}>Com as ${trocasOn().length} trocas marcadas</option></select></label>` : ''}
       <button class="btn" id="v-sort">Sortear oponentes</button>
+      <button class="btn" id="v-eu" title="Você decide mulligan, terreno, o que lançar, ataques, bloqueios e descartes; o resto o motor faz por você">${JG ? 'Recomeçar jogando' : 'Jogar você mesmo'}</button>
       <button class="btn primary" id="v-go">${JOGO ? 'Jogar outra partida' : 'Jogar uma partida'}</button>
     </div>
   </section>
@@ -318,7 +319,9 @@ function painelVivo() {
   $$('[data-vop]').forEach(s => s.onchange = () => store.set('vivoOps', $$('[data-vop]').map(x => x.value)));
   $('#v-sort').onclick = () => { const ids = ops.map(o => o.id).filter(id => id !== 'ex:' + meuCmd()); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } store.set('vivoOps', ids.slice(0, nO)); painelVivo(); };
   const vt = $('#v-tro'); if (vt) vt.onchange = () => store.set('vivoTrocas', vt.value);
-  $('#v-go').onclick = jogaPartida;
+  $('#v-go').onclick = () => { JG = null; jogaPartida(); };
+  $('#v-eu').onclick = jogaEu;
+  if (JG) { avancaEu(); return; }
   if (JOGO) { ligaControles(); vaiPara(PASSO); }
   if (window.RAIOX_VIVO_JA) { window.RAIOX_VIVO_JA = false; setTimeout(() => { const g = $('#v-go'); if (g && !g.disabled) g.click(); }, 60); }
 }
@@ -342,6 +345,234 @@ async function jogaPartida() {
     $('#v-mesa').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (e) { $('#v-mesa').innerHTML = `<div class="verdict v-bad">O motor falhou: ${esc(e.message).slice(0, 300)}</div>`; }
   b.disabled = false; b.textContent = 'Jogar outra partida';
+}
+// ---------- T27: você joga (o motor pergunta, a tela responde e o motor refaz a partida do zero com a mesma semente) ----------
+let JG = null;
+async function jogaEu() {
+  await pronto; parar(); JOGO = null;
+  const ops = listaOps(); const ids = $$('[data-vop]').map(x => x.value); store.set('vivoOps', ids);
+  const Ops = ids.map(id => opDe(ops.find(o => o.id === id)));
+  NOMES = [meuCmd(), ...ids.map(id => ops.find(o => o.id === id).nome)];
+  const Dv = deckVivo(); JOGO_TROCAS = vivoComTrocas() ? trocasOn().length : 0;
+  const Ms = [Dv.M, ...Ops.map(o => o.M)];
+  const cmdNome = Ms.map((M, k) => { const D = k ? Ops[k - 1] : Dv; return D.cmd ? (M[D.cmd.i].frente || M[D.cmd.i].nome) : ''; });
+  JG = { msg: { Dv, Ops, seed: (Math.random() * 4294967296) >>> 0, T: 20, vida: +store.get('vivoVida', 40), nomes: ['Você', ...ids.map(id => ops.find(o => o.id === id).nome)] }, esc: [], Ms, cmdNome, q: null, visto: 0, sel: new Set(), alvo: null };
+  const b = $('#v-eu'); if (b) { b.disabled = true; b.textContent = 'Buscando as cartas…'; }
+  await Promise.race([buscaImagens(Ms.flatMap(M => M.map(m => m.nome))), new Promise(r => setTimeout(r, 6000))]);
+  if (b) { b.disabled = false; b.textContent = 'Recomeçar jogando'; }
+  avancaEu();
+}
+async function avancaEu() {
+  const box = $('#v-mesa'); if (!JG || !box) return;
+  let r;
+  try { r = await roda('jogar', Object.assign({}, JG.msg, { esc: JG.esc, desde: JG.visto })); }
+  catch (e) { box.innerHTML = `<div class="verdict v-bad">O motor falhou: ${esc(e.message).slice(0, 300)}</div>`; JG = null; return; }
+  if (!JG) return;
+  if (r.perg) {
+    const q = r.perg; JG.q = q; JG.sel = new Set(); JG.alvo = q.alvos ? q.alvos[0].v : null;
+    // os lances novos (sobretudo dos oponentes) aparecem um por vez antes da pergunta
+    const ps = (q.passos || []).filter(p => p.ev && p.ev.tp !== 'compra');
+    if (q.nq) JG.visto = q.nq;
+    if (ps.length) { JG.resumo = ps.map(p => p.ev); await mostraPassos(ps); }
+    if (!JG || JG.q !== q) return;
+    desenhaEu(); rolaMesa(); JG.antes = contaPerm(q.quadro); return;
+  }
+  // acabou: vira a Mesa ao vivo normal, para rever a partida inteira lance a lance
+  const G = JG; JG = null;
+  JOGO = r.fim; JOGO.Ms = G.Ms; JOGO.cmdNome = G.cmdNome; PASSO = 0; PREV = null;
+  const v = JOGO.venc, txt = v === 0 ? 'Você venceu!' : v >= 0 ? `Venceu ${NOMES[v]}.` : 'Ninguém venceu em 20 turnos.';
+  box.innerHTML = `<div class="verdict ${v === 0 ? 'v-good' : 'v-bad'}">${esc(txt)} Reveja a partida abaixo, lance a lance.</div>` + mesaHTML();
+  ligaControles(); vaiPara(JOGO.quadros.length - 1);
+  const g = $('#v-eu'); if (g) g.textContent = 'Jogar você mesmo';
+}
+// ritmo: cada lance fica na mesa um tempo (lento/normal/rápido) e dá para pular
+const JVEL = { clique: 0, lento: 3500, normal: 2200, rapido: 900 };
+const JVN = { clique: 'passo a passo', lento: 'lento', normal: 'normal', rapido: 'rápido' };
+const jVel = () => { const v = store.get('jVel2', 'clique'); return v in JVEL ? v : 'clique'; };
+async function mostraPassos(ps) {
+  const q = JG.q; JG.pula = false;
+  for (let j = 0; j < ps.length; j++) {
+    if (!JG || JG.q !== q || JG.pula) return;
+    const { Q, ev } = ps[j];
+    $('#v-mesa').innerHTML = mesaEuHTML(Q, { ev, fila: ps.length - j - 1 });
+    ligaMesaEu();
+    const ms = JVEL[jVel()], tm = ev.tp === 'turno' ? Math.max(ms, 1200) : ms;
+    await new Promise(res => { JG.acorda = res; if (tm) setTimeout(res, tm); });
+  }
+}
+// quantas cópias de cada permanente cada jogador tinha na sua última decisão (o que passou disso é "novo")
+function contaPerm(Q) { return Q ? Q.j.map(p => { const m = {}; p.perm.forEach(x => { m[x.n] = (m[x.n] || 0) + 1; }); return m; }) : null; }
+function marcaNovos(p, k) { const a = JG.antes && JG.antes[k]; if (!a) return () => false; const vist = {}; return (x) => { vist[x.n] = (vist[x.n] || 0) + 1; return vist[x.n] > (a[x.n] || 0); }; }
+// placar do jogador: terrenos livres/total, criaturas e poder em mesa
+function placar(p) { const cri = p.perm.filter(x => x.p != null), pod = cri.reduce((s, x) => s + (x.p || 0), 0), liv = p.tl.filter(l => !l.tap).length;
+  return `<div class="ja-pl"><span title="Terrenos em campo (desvirados entre parênteses)">◆ <b>${p.terr}</b> terreno${p.terr === 1 ? '' : 's'} <i>(${liv} livre${liv === 1 ? '' : 's'})</i></span><span title="Criaturas em campo e poder somado">⚔ <b>${cri.length}</b> criatura${cri.length === 1 ? '' : 's'} <i>(poder ${pod})</i></span><span title="Cartas na mão"><b>${p.mao.length}</b> na mão</span></div>`; }
+function resumoHTML() { const R = (JG.resumo || []).filter(e => e.tp !== 'turno'); if (!R.length) return '';
+  const por = new Map(); R.forEach(e => { if (!por.has(e.k)) por.set(e.k, []); por.get(e.k).push(e); });
+  return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span>${[...por].map(([k, es]) => `<div><b>${esc(k === 0 ? 'Você' : NOMES[k] || '')}</b><ul>${es.map(e => `<li><span class="vt ${esc(e.tp)}">${TP[e.tp] || '•'}</span>${esc(e.txt)}</li>`).join('')}</ul></div>`).join('')}</div>`; }
+function desenhaEu() { $('#v-mesa').innerHTML = mesaEuHTML(JG.q.quadro, { q: JG.q }); ligaMesaEu(); }
+// no começo da partida a mesa rola para a tela inteira, longe do cabeçalho
+function rolaMesa() { const m = $('.ja'); if (m && !JG.rolou) { JG.rolou = true; const nav = document.querySelector('nav, .tabs'), h = nav ? nav.getBoundingClientRect().height : 0; window.scrollTo({ top: m.getBoundingClientRect().top + scrollY - h - 16, behavior: 'smooth' }); } }
+function responde(v) { if (!JG) return; JG.esc.push(v); JG.q = null; $$('.ja button').forEach(b => b.disabled = true); avancaEu(); }
+
+const PERG = {
+  mulligan: (q) => `Sua mão inicial${q.nm ? ` (depois de ${q.nm} mulligan${q.nm > 1 ? 's' : ''})` : ''}. Fica com ela?`,
+  fundo: (q) => `Clique na carta que vai para o fundo do grimório (falta${q.falta > 1 ? 'm' : ''} ${q.falta}).`,
+  terreno: () => 'Clique no terreno que quer baixar.',
+  lanca: (q) => `Sua fase principal · ${q.mana} de mana. Clique no que quer lançar.`,
+  ataque: () => 'Combate: escolha o oponente e clique nas criaturas que atacam.',
+  equipar: (q) => `Clique na criatura que vai receber ${q.x.n}.`,
+  escolha: (q) => q.x.n,
+  alvo: (q) => `${q.x.n}: ${q.x.dano} de dano — escolha o alvo.`,
+  sacrificar: (q) => `${q.x.n} pede um sacrifício: clique no que vai sacrificar.`,
+  bloqueio: (q) => `${q.x.de} ataca você com ${q.x.n} (${q.x.p}/${q.x.t}). Clique na criatura que bloqueia.`,
+  descarte: (q) => `Fim do turno: clique na carta para descartar (falta${q.falta > 1 ? 'm' : ''} ${q.falta}).`,
+};
+const FASES = [['mulligan', 'Mão'], ['terreno', 'Terreno'], ['lanca', 'Principal'], ['ataque', 'Combate'], ['bloqueio', 'Bloqueio'], ['descarte', 'Fim']];
+// carta da mesa jogável: botão próprio (data-h = o que o clique faz); botão direito ou a lupa ampliam
+function jc(nome, o = {}) {
+  const im = o.tok ? null : imgDe(nome);
+  const cls = ['jc', o.tap ? 'tap' : '', o.atk ? 'atk' : '', o.cmd ? 'cmd' : '', o.ok ? 'ok' : '', o.sel ? 'sel' : '', o.cls || ''].join(' ');
+  const face = im ? `<img src="${esc(im[0])}" alt="${esc(nome)}" data-zoom="${esc(im[1])}">` : `<span class="mtok"><b>${esc(nome)}</b>${o.tok ? '<i>ficha</i>' : ''}</span>`;
+  const pt = o.p != null ? `<span class="mpt">${o.p}/${o.t}</span>` : '';
+  const q = (o.q > 1 ? `<em class="jq">×${o.q}</em>` : '') + (o.lac ? `<em class="jlac" title="O motor ainda ignora parte do texto desta carta: ela pode gastar a mana sem fazer tudo">⚠</em>` : '');
+  return `<button class="${cls}" ${o.h != null ? `data-h="${esc(String(o.h))}"` : ''} title="${esc(nome)}${o.ok ? ' — clique para escolher' : ''}">${face}${pt}${q}</button>`;
+}
+// terrenos viram fichas: "Mountain ×3 · 2 virados" (clique amplia a carta)
+function gruposTerra(p, M) {
+  const g = new Map();
+  p.tl.forEach(l => { const n = l.i != null && M[l.i] ? (M[l.i].frente || M[l.i].nome) : 'Terreno'; const x = g.get(n) || { n, q: 0, tap: 0 }; x.q++; if (l.tap) x.tap++; g.set(n, x); });
+  return [...g.values()];
+}
+function terrasHTML(p, M, pp) {
+  const antes = pp ? new Map(gruposTerra(pp, M).map(x => [x.n, x.q])) : null;
+  return gruposTerra(p, M).map(x => { const im = imgDe(x.n), nv = antes && x.q > (antes.get(x.n) || 0);
+    return `<span class="ja-tc ${x.tap === x.q ? 'tap' : ''} ${nv ? 'entra' : ''}" ${im ? `data-zoom="${esc(im[1])}"` : ''} data-n="${esc(x.n)}" title="${esc(x.n)}: ${x.q} em campo, ${x.q - x.tap} livre${x.q - x.tap === 1 ? '' : 's'}">${esc(x.n)} <b>×${x.q}</b>${x.tap ? `<i>${x.tap} virado${x.tap > 1 ? 's' : ''}</i>` : ''}</span>`; }).join('') || '<span class="vazio">sem terrenos</span>';
+}
+// lugares na mesa: você embaixo à esquerda e a vez segue no sentido horário
+const LUGAR = { 2: ['s0', 's1'], 3: ['s0', 's1', 's2'], 4: ['s0', 's1', 's2', 's3'] };
+function jaLugarHTML(k, p, c) {
+  const G = JG, M = G.Ms[k], eu = k === 0, cmd = G.cmdNome[k], ci = cmd ? imgDe(cmd) : null, q = c.q, ev = c.ev;
+  const pp = c.prev ? c.prev.j[k] : null, d = pp ? p.vida - pp.vida : 0;
+  const vez = ev ? ev.k === k : c.Q && c.Q.k === k, alvo = (ev && ev.a === k && ev.k !== k) || (!eu && c.alvoOk && G.alvo === k);
+  const escolhe = !eu && c.alvoOk && q.alvos.some(a => a.v === k);
+  const nv = marcaNovos(p, k), novo = new Set(p.perm.filter(x => nv(x)).map(x => x.pi));
+  // o que entrou desde o quadro anterior ganha a animação de entrada
+  const ant = pp ? contaPerm({ j: [pp] })[0] : null, vis = {};
+  const entrou = (x) => { if (!ant) return false; vis[x.n] = (vis[x.n] || 0) + 1; return vis[x.n] > (ant[x.n] || 0); };
+  const cls = (x, base) => [base, novo.has(x.pi) ? 'novo' : '', entrou(x) ? 'entra' : ''].join(' ');
+  const cri = p.perm.filter(x => x.p != null), out = p.perm.filter(x => x.p == null);
+  const criH = cri.map(x => { const ok = eu && c.okPi.has(x.pi), sel = eu && c.atkSel.has(x.pi);
+    return jc(x.n, { tap: x.tap, atk: x.atk || sel, cmd: x.c, tok: x.tok && !(x.i >= 0), p: x.p, t: x.t, ok, sel, h: ok ? 'p' + x.pi : null, cls: cls(x, 'pq') }); }).join('');
+  const outH = out.map(x => jc(x.n, { tap: x.tap, tok: x.tok, cls: cls(x, 'mini') })).join('');
+  const av = eu ? `<button class="ja-av ${c.cmdOk ? 'ok' : ''}" ${c.cmdOk ? 'data-h="cmd"' : ''} style="${ci ? `background-image:url('${esc(ci[2])}')` : ''}" title="${esc(cmd)}${c.cmdOk ? ' — clique para lançar da zona de comando' : ''}"></button>`
+    : `<span class="ja-av" style="${ci ? `background-image:url('${esc(ci[2])}')` : ''}" title="${esc(cmd)}"></span>`;
+  const cmdD = Math.max(0, ...p.cmdD);
+  return `<div class="ja-lug ${LUGAR[G.Ms.length][k]} ${eu ? 'eu' : ''} ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${escolhe ? 'escolhe' : ''} ${p.vivo ? '' : 'morto'}" ${eu ? '' : `data-alvo="${k}"`}>
+    <div class="ja-oh">${av}<span class="ja-nm"><b>${esc(eu ? 'Você' : NOMES[k])}</b>${cmd && (eu || cmd !== NOMES[k]) ? `<small>${esc(cmd)}</small>` : ''}</span>
+      <span class="ja-vida ${d ? 'bate' : ''}">${p.vida}${d ? `<i class="ja-flut ${d < 0 ? 'neg' : 'pos'}">${d > 0 ? '+' : ''}${d}</i>` : ''}</span></div>
+    ${placar(p)}
+    <div class="ja-os"><span>grimório ${p.lib}</span><span>cemitério ${p.gy}</span>${p.zona && cmd ? '<span>comandante na zona</span>' : ''}${cmdD ? `<span class="mau">dano de comandante ${cmdD}/21</span>` : ''}</div>
+    <div class="ja-terras">${terrasHTML(p, M, pp)}</div>
+    <div class="ja-row cri">${criH}</div>
+    ${outH ? `<div class="ja-row">${outH}</div>` : ''}
+    ${p.vivo ? '' : '<div class="s-x">fora</div>'}
+  </div>`;
+}
+function mesaEuHTML(Q, o) {
+  const q = o.q, ev = o.ev, G = JG, n = G.Ms.length;
+  const nome = (k, i) => { const m = G.Ms[k][i]; return m ? (m.frente || m.nome) : '?'; };
+  const okMao = new Set(), okPi = new Set(), alvoOk = q && q.tipo === 'ataque';
+  if (q && ['terreno', 'lanca', 'descarte'].includes(q.tipo)) q.ops.forEach(x => { if (typeof x.v === 'number' && x.v >= 0) okMao.add(x.v); });
+  if (q && (q.tipo === 'ataque' || q.tipo === 'bloqueio' || q.tipo === 'equipar' || q.tipo === 'sacrificar')) q.ops.forEach(x => { if (x.pi >= 0) okPi.add(x.pi); });
+  const atkSel = new Set(q && q.tipo === 'ataque' ? [...G.sel].map(j => q.ops[j].pi) : []);
+  const P = Q ? Q.j : null, me = P ? P[0] : null;
+  const cmdOk = !!(q && q.tipo === 'lanca' && q.ops.some(x => x.v === 'cmd'));
+  const prev = G.ultQ && G.ultQ !== Q ? G.ultQ : null; G.ultQ = Q;
+  const c = { Q, q, ev, okPi, atkSel, alvoOk, cmdOk, prev };
+  const lugares = P ? P.map((p, k) => jaLugarHTML(k, p, c)).join('') : '';
+  // sua mão: leque fixo embaixo da mesa
+  const maoIs = q && q.mao ? q.mao.map(c => c.v) : me ? me.mao : [];
+  const lacs = new Set(q && q.tipo === 'lanca' ? q.ops.filter(x => x.lac).map(x => x.v) : []);
+  const maoH = maoIs.map((i, j) => { const ok = okMao.has(i) || (q && q.tipo === 'fundo');
+    return `<span class="ja-mc" style="--r:${(j - (maoIs.length - 1) / 2) * 3}deg">${jc(nome(0, i), { ok, h: ok ? 'm' + i : null, cls: 'mao', lac: lacs.has(i) })}</span>`; }).join('');
+  const fase = q ? q.tipo : '';
+  const fasesH = `<div class="ja-fases">${FASES.map(([t, r]) => `<span class="${fase === t ? 'on' : ''}">${r}</span>`).join('')}</div>`;
+  // centro da mesa: a sua pergunta, ou o lance que está acontecendo com a carta grande
+  let meio;
+  if (q) {
+    const bt = [];
+    if (q.tipo === 'mulligan') bt.push(`<button class="btn primary" data-b="0">Ficar com a mão</button><button class="btn" data-b="1">Mulligan</button>`);
+    if (q.tipo === 'terreno') bt.push(`<button class="btn" data-b="-1">Não baixar terreno</button>`);
+    if (q.tipo === 'lanca') { q.ops.filter(x => typeof x.v === 'string' && x.v.slice(0, 2) === 'eq').forEach(x => bt.push(`<button class="btn small" data-b="${esc(x.v)}">🗡 ${esc(x.n)}</button>`));
+      bt.push(`<button class="btn primary" data-b="-1">Passar ▶</button>`); }
+    if (q.tipo === 'equipar' || q.tipo === 'sacrificar') bt.push(`<button class="btn" data-b="-1">Cancelar</button>`);
+    if (q.tipo === 'ataque') { const an = (q.alvos.find(a => a.v === G.alvo) || q.alvos[0] || {}).n || '';
+      bt.push(`<div class="ja-alvos"><span class="c-k">Atacar quem?</span>${q.alvos.map(a => `<button class="btn small ${a.v === G.alvo ? 'primary' : ''}" data-alvo="${a.v}">${esc(a.n)} ♥${a.vida}</button>`).join('')}</div>`);
+      bt.push(`<button class="btn small" data-b="todos">Todas as criaturas</button><button class="btn primary" data-b="atk" ${G.sel.size ? '' : 'disabled'}>⚔ Atacar ${esc(an)} com ${G.sel.size}</button><button class="btn" data-b="nao">Não atacar</button>`); }
+    if (q.tipo === 'bloqueio') bt.push(`<button class="btn" data-b="-1">Não bloquear</button>`);
+    if (q.tipo === 'escolha') q.ops.forEach(x => bt.push(`<button class="btn${x.v === -1 ? '' : ' primary'}" data-b="${x.v}">${esc(x.n)}</button>`));
+    if (q.tipo === 'alvo') q.ops.forEach(x => bt.push(`<button class="btn" data-b="${x.v}">🎯 ${esc(x.n)}</button>`));
+    const atkIm = q.tipo === 'bloqueio' ? imgDe(q.x.n) : null;
+    meio = `<div class="ja-meio perg"><span class="c-k">Sua vez de decidir · turno ${q.t}</span>
+      ${atkIm ? `<img class="ja-evim" src="${esc(atkIm[1] || atkIm[0])}" alt="${esc(q.x.n)}" data-zoom="${esc(atkIm[1])}">` : ''}<p><b>${esc(PERG[q.tipo] ? PERG[q.tipo](q) : q.tipo)}</b></p>
+      <div class="j-ops">${bt.join('')}</div>
+      <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length ? '' : 'disabled'}>↶ Desfazer</button><button class="btn small" data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
+  } else if (ev) {
+    const Mk = G.Ms[ev.k] || [], nc = ev.c >= 0 && Mk[ev.c] ? (Mk[ev.c].frente || Mk[ev.c].nome) : null, im = nc ? imgDe(nc) : null;
+    const quem = ev.k === 0 ? 'Você' : NOMES[ev.k] || '';
+    const ctl = `<div class="j-ops"><button class="btn primary" data-b="prox">Próximo ▶${o.fila ? ` (faltam ${o.fila})` : ''}</button><select class="vsel" id="ja-vel" aria-label="Velocidade">${Object.keys(JVEL).map(k => `<option value="${k}" ${jVel() === k ? 'selected' : ''}>${JVN[k]}</option>`).join('')}</select>
+      <button class="btn small" data-b="pula">Pular para minha vez ⏭</button></div>`;
+    meio = ev.tp === 'turno'
+      ? `<div class="ja-meio ev turno"><div class="ja-ban"><b>Turno ${Q.t}</b><span>vez de ${esc(quem)}</span></div>${ctl}</div>`
+      : `<div class="ja-meio ev ${esc(ev.tp)}"><span class="c-k"><span class="vt ${esc(ev.tp)}">${TP[ev.tp] || '•'}</span>${esc(TPN[ev.tp] || ev.tp)} · ${esc(quem)}</span>
+      <div class="ja-palco">${im ? `<img class="ja-evim lanca" src="${esc(im[1] || im[0])}" alt="${esc(nc)}" data-zoom="${esc(im[1])}">` : ''}</div><p>${txtLance(ev, quem)}</p>${ctl}</div>`;
+  } else meio = '<div class="ja-meio"><p>A partida vai começar.</p></div>';
+  const logH = (q ? q.log : []).slice(-14).map(l => `<li><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span><span>${esc(l.txt)}</span></li>`).join('');
+  return `<section class="ja n${n}">
+    <div class="ja-mesa">${lugares}<div class="ja-centro">${meio}</div></div>
+    ${fasesH}
+    <div class="ja-mao">${maoH}</div>
+    ${q ? `<div class="ja-lado">${resumoHTML()}<details class="ja-hist"><summary>Histórico</summary><ol class="ja-log">${logH}</ol></details></div>` : ''}
+  </section>`;
+}
+function ligaMesaEu() {
+  const q = JG && JG.q; const box = $('.ja'); if (!box) return;
+  box.oncontextmenu = (e) => { const im = e.target.closest('[data-zoom]'); if (!im) return; e.preventDefault(); zoomCarta(im.dataset.zoom, im.alt || im.dataset.n); };
+  box.onclick = (e) => {
+    if (!JG) return;
+    const b = e.target.closest('[data-b]'), h = e.target.closest('[data-h]'), al = e.target.closest('[data-alvo]');
+    if (b) {
+      const v = b.dataset.b;
+      if (v === 'prox') { JG.acorda && JG.acorda(); return; }
+      if (v === 'pula') { JG.pula = true; JG.acorda && JG.acorda(); return; }
+      if (v === 'desf') { JG.esc.pop(); JG.visto = 1e9; JG.q = null; avancaEu(); return; }
+      if (v === 'sai') { JG = null; painelVivo(); return; }
+      // recarregar só o motor (23/11): worker novo com ?v= novo baixa engine/mesa/forge-motor de novo; a partida refaz com as mesmas escolhas
+      if (v === 'motor') { para(); WV = Date.now(); JG.visto = 1e9; JG.q = null; avancaEu(); return; }
+      if (!q) return;
+      if (v === 'todos') { q.ops.forEach((_, j) => JG.sel.add(j)); desenhaEu(); return; }
+      if (v === 'atk') { responde({ alvo: JG.alvo, at: [...JG.sel].map(j => q.ops[j].v) }); return; }
+      if (v === 'nao') { responde({ alvo: q.alvos[0].v, at: [] }); return; }
+      if (v.slice(0, 2) === 'eq') { responde(v); return; }
+      responde(+v); return;
+    }
+    if (!q) { const im = e.target.closest('[data-zoom]'); if (im) zoomCarta(im.dataset.zoom, im.alt || im.dataset.n); return; }
+    if (h) {
+      const v = h.dataset.h;
+      if (v === 'cmd') { responde('cmd'); return; }
+      if (v[0] === 'm') { const i = +v.slice(1); responde(i); return; }
+      if (v[0] === 'p') { const pi = +v.slice(1), j = q.ops.findIndex(x => x.pi === pi);
+        if (q.tipo === 'bloqueio' || q.tipo === 'equipar' || q.tipo === 'sacrificar') { responde(q.ops[j].v); return; }
+        if (JG.sel.has(j)) JG.sel.delete(j); else JG.sel.add(j); desenhaEu(); return; }
+    }
+    if (al && q.tipo === 'ataque' && q.alvos.some(a => a.v === +al.dataset.alvo)) { JG.alvo = +al.dataset.alvo; desenhaEu(); return; }
+    const im = e.target.closest('[data-zoom]'); if (im) zoomCarta(im.dataset.zoom, im.alt || im.dataset.n);
+  };
+  const vel = $('#ja-vel'); if (vel) vel.onchange = () => store.set('jVel2', vel.value);
+}
+function zoomCarta(src, alt) {
+  const z = document.createElement('div'); z.className = 'zoom'; z.innerHTML = `<div class="zoom-box solo"><button class="btn small zoom-x">Fechar ✕</button><div class="zoom-img"><img src="${esc(src)}" alt="${esc(alt || '')}"></div></div>`;
+  z.onclick = () => z.remove(); document.body.appendChild(z);
 }
 function mesaHTML() {
   const n = JOGO.quadros[0].j.length;
@@ -437,14 +668,14 @@ function centroHTML(Q, ev) {
   </div>`;
 }
 function lugarHTML(p, k, ev, pv) {
-  const M = JOGO.Ms[k]; const nome = (i) => (M[i] ? (M[i].frente || M[i].nome) : '?');
+  const G = JG || JOGO; const M = G.Ms[k]; const nome = (i) => (M[i] ? (M[i].frente || M[i].nome) : '?');
   const antes = new Set(pv ? pv.perm.map(x => x.n + '|' + x.i) : []);
   const cri = p.perm.filter(x => x.p != null).sort((a, b) => b.c - a.c || (b.p || 0) - (a.p || 0));
   const out = p.perm.filter(x => x.p == null);
   const novo = (x) => pv && !antes.has(x.n + '|' + x.i);
   const vez = ev && ev.k === k, alvo = ev && ev.a === k && ev.k !== k;
   const dv = pv ? p.vida - pv.vida : 0;
-  const cmd = JOGO.cmdNome[k]; const cmdIm = cmd ? imgDe(cmd) : null;
+  const cmd = G.cmdNome[k]; const cmdIm = cmd ? imgDe(cmd) : null;
   const me = k === 0;
   // terrenos: as cartas de verdade, agrupadas por nome (×2, ×3…), com quantas estão viradas
   const pvT = pv ? pv.tl.length : p.tl.length;
@@ -479,7 +710,7 @@ document.addEventListener('click', (e) => {
 }, true);
 
 // ---------- liga com o resto do Raio-X ----------
-document.addEventListener('raiox:deck', (e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; RTERRA = null; JOGO = null; parar(); painel(); painelVivo(); });
+document.addEventListener('raiox:deck', (e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; RTERRA = null; JOGO = null; JG = null; parar(); painel(); painelVivo(); });
 if (window.RAIOX && window.RAIOX.last) { A = window.RAIOX.last; painel(); painelVivo(); }
 window.addEventListener('hashchange', () => { if (location.hash !== '#aovivo') parar(); else if (A) painelVivo(); });
 pronto.then(() => { painel(); painelVivo(); });

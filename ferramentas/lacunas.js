@@ -4,7 +4,7 @@
 // Rode antes e depois de mexer no motor: os números têm que cair.
 const path = require('path'), raiz = path.join(__dirname, '..');
 global.window = global;
-require(path.join(raiz, 'cards-db.js')); require(path.join(raiz, 'exemplos.js'));
+require(path.join(raiz, 'cards-db.js')); require(path.join(raiz, 'forge-motor.js')); require(path.join(raiz, 'exemplos.js'));
 const E = require(path.join(raiz, 'motor/engine.js'));
 const DB = window.CARD_DB, F = Object.fromEntries(DB.fields.map((f, i) => [f, i]));
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();

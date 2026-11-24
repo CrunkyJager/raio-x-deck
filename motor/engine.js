@@ -192,9 +192,45 @@ function modelo(r){
   m.r=m.sp&&!m.dr&&!m.ramp&&!m.sham&&!m.ret&&!m.tok&&!m.pr&&!m.rem&&!m.wip&&!m.tut&&!m.wake;
   if(m.x&&m.sp&&!m.tut)m.r=true;
   lerHab(m);
+  forgeMotor(m);
   m.kws=kw?kw.split(/,\s*/).map(k=>k.replace(/ \{\d\}$/,'')):[];
   m.lac=lacunas(m);
+  /* trava (23/11): mágica com texto que o motor não entende não é lançada pela IA (antes gastava a mana e não fazia nada) */
+  if(TRAVA&&m.sp&&!m.fm&&m.lac.length)m.r=true;
   return m;
+}
+
+
+/* ===== Forge -> motor (23/11/2026). As peças da mágica vêm do roteiro do Forge (forge-motor.js, gerado por
+   ferramentas/forge/motor_db.py): custo adicional (sacrificar), efeito, alvo e número. Se o motor sabe fazer TODAS as
+   peças, elas substituem o que o regex leu; senão fica o regex de reserva (e a trava acima). */
+const FM_=()=>(typeof self!=='undefined'&&self.FORGE_MOTOR)||(typeof globalThis!=='undefined'&&globalThis.FORGE_MOTOR)||null;
+const SAC_TIPO={Creature:'c','Creature.Other':'c',Artifact:'a',Permanent:'p','Artifact.Creature':'c','Creature.YouCtrl':'c'};
+function fmPeca(e,k){
+  const n=e.n,a=e.alvo||'',d=e.def||'';
+  if(n==='?')return false;
+  const op=/Opponent/.test(d)&&/Player/.test(d)||d==='Opponent';
+  if(e.api==='DealDamage'){if(n==null)return false;
+    if(op){k.danoOp=n;return true;}
+    if(/^Any$|Player|Planeswalker/.test(a)){k.danoAlvo=n;return true;}
+    if(/^Creature/.test(a)){k.danoCri=n;return true;}return false;}
+  if(e.api==='Draw'){if(n==null||!(d===''||d==='You')||a)return false;k.dr=n;return true;}
+  if(e.api==='GainLife'){if(n==null||!(d===''||d==='You'))return false;k.vida=n;return true;}
+  if(e.api==='LoseLife'){if(n==null)return false;if(op){k.dren=n;return true;}if(/Player|Opponent/.test(a)){k.dren=n;k.drenUm=1;return true;}return false;}
+  if(e.api==='Destroy'){if(!/Creature|Permanent|Artifact|Enchantment/.test(a))return false;k.rem=/^(Artifact|Enchantment)/.test(a)?.5:1;return true;}
+  return false;
+}
+var TRAVA=1;
+function forgeMotor(m){
+  const F=FM_();if(!F||!m.sp)return;const r=F[m.frente]||F[m.nome];if(!r)return;
+  const k={};for(const e of r.e)if(!fmPeca(e,k))return;
+  if(r.c&&r.c.sac){const t=SAC_TIPO[r.c.sac[1]];if(!t||r.c.sac[0]!==1)return;m.cSac={t,outro:/Other/.test(r.c.sac[1])?1:0};}
+  m.fm=1;m.lido=new Set(frasesDe(m.txt));
+  m.hab=(m.hab||[]).filter(h=>h.q!=='sp');delete m.dr;delete m.rem;
+  if(k.rem){m.rem=k.rem;delete k.rem;}
+  if(k.dr!=null&&typeof k.dr==='number'&&!Object.keys(k).some(x=>x!=='dr')){m.dr=k.dr;delete k.dr;}
+  if(Object.keys(k).length)m.hab.push({q:'sp',e:k});
+  m.r=false;
 }
 
 /* ===== Raio-X: leitor de habilidades (pendência 7). Daqui em diante o motor é do Raio-X, não mais cópia fiel do Grimório.

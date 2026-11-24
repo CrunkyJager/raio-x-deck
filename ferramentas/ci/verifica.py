@@ -38,6 +38,14 @@ else:
     linhas.append(f"| partida erros | {err} | 0 | {'✔' if err == 0 else '✘'} |")
     if err: falhas.append(f'partida.js com {err} erros:\n' + out[-1500:])
 
+# 2b) modo jogável (T27): um "humano robô" responde as perguntas do motor; a partida tem que chegar ao fim sem erro
+for dk in ('Stangg', 'Krenko', 'Lathril', 'Edgar'):
+    rc, out = roda(['node', 'ferramentas/jogavel.js', dk, '20', '1'])
+    m = re.search(r'(\d+)/(\d+) partidas até o fim, erros (\d+)', out)
+    ok = rc == 0 and m and m.group(1) == m.group(2) and m.group(3) == '0'
+    linhas.append(f"| jogável {dk} | {m.group(0) if m else 'falhou'} | 20/20, erros 0 | {'✔' if ok else '✘'} |")
+    if not ok: falhas.append(f'jogavel.js {dk} falhou:\n' + out[-1500:])
+
 # 3) gabarito de planos (T05/T06): não pode cair
 gab = os.path.join(RAIZ, 'ferramentas/gabarito')
 guarda = {f: open(os.path.join(gab, f), encoding='utf-8').read() for f in ('linha-base.json', 'linha-base.md')}

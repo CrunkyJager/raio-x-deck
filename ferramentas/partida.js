@@ -4,7 +4,7 @@
 //                            node ferramentas/partida.js Stangg 1 7        (semente 7)
 const fs = require('fs'), path = require('path'), vm = require('vm'), raiz = path.join(__dirname, '..');
 const ctx = { console, window: {} }; ctx.window = ctx; vm.createContext(ctx);
-for (const f of ['cards-db.js', 'exemplos.js', 'motor/engine.js', 'motor/mesa.js']) vm.runInContext(fs.readFileSync(path.join(raiz, f), 'utf8'), ctx, { filename: f });
+for (const f of ['cards-db.js', 'forge-motor.js', 'exemplos.js', 'motor/engine.js', 'motor/mesa.js']) vm.runInContext(fs.readFileSync(path.join(raiz, f), 'utf8'), ctx, { filename: f });
 const DB = ctx.CARD_DB, F = Object.fromEntries(DB.fields.map((f, i) => [f, i]));
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 const IDX = {}; for (const k of Object.keys(DB.cards)) { IDX[norm(k)] = k; IDX[norm(k.split(' // ')[0])] = k; }
