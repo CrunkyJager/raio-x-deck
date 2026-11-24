@@ -171,6 +171,7 @@
     const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, virada, dano: 0, marc: {}, doente: true, cmd: false, ficha: { ...tok, n } };
     e.objs[id] = o; e.campo.push(id);
     if (tok.leal) o.marc.lealdade = tok.leal;
+    if (M.evento) M.evento(e, { ev: 'zona', id, de: null, para: 'campo' });
     return o;
   }
   M.criarFicha = criarFicha;
@@ -215,7 +216,7 @@
         else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
       },
     },
-    ganharVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) e.jogs[j].vida += q; } },   // CR 119.3
+    ganharVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { e.jogs[j].vida += q; if (q > 0) M.evento(e, { ev: 'ganhaVida', j, q }); } } },   // CR 119.3
     perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) e.jogs[j].vida -= q; } },
     anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
     ficha: {                                                          // CR 111

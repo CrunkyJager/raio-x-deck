@@ -241,6 +241,7 @@
     }
     return esc;
   }
+  M.escolherAlvos = escolherAlvos; M.alvosUsados = fx => alvosUsados(fx);
   const mesmo = (x, y) => (x.jog !== undefined ? x.jog === y.jog : x.o === y.o);
 
   // modo dá para escolher: efeitos que o núcleo sabe e alvos com opção legal (CR 601.2c)
@@ -321,6 +322,7 @@
       const doComando = o.zona === 'comando';
       M.mover(e, o.id, 'pilha'); o.ctrl = j;                                            // CR 601.2a
       o.pil = { x, alvos, modos, ctrl: j };
+      M.evento(e, { ev: 'conjura', id: o.id, j });                                      // 601.2i: "quando conjura"
       pagarMana(e, j, pl, custo, x);                                                    // CR 601.2h
       if (d.custoAd) pagarFisico(e, j, o, d.custoAd, fis);
       if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
@@ -363,6 +365,7 @@
       const fx = fxEfetivo(d, d.fx || [], pil.modos);
       if (!P.checou) {
         P.checou = true;
+        if (!M.gatilhoAindaVale(e, o)) { e.proc = null; M.log(e, o.n, 'não resolve: condição do gatilho falhou (603.4)'); tirarDaPilha(e, o); return; }
         // CR 608.2b: alvos que ficaram ilegais; se TODOS ficaram, não resolve
         const ctx0 = { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x };
         P.ilegal = {};

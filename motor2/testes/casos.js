@@ -29,7 +29,7 @@ function cena({ jogs = 2, cmd = [], campo = [], mao = [], grimorio = 30, passo =
   };
   for (const [j, n, o] of campo) por(j, n, o);
   for (const [j, n] of mao) por(j, n, { zona: 'mao' });
-  e.abeNovo = [];
+  e.abeNovo = []; e.pend = []; e.lote = [];
   e.por = por;
   return e;
 }
@@ -658,6 +658,34 @@ caso('903.10a', 'dano de combate do comandante conta por comandante; 21 perde', 
   const k = objN(e, 0, 'Krenko, Mob Boss'); e.jogs[1].danoCmd[k.id] = 18;
   ate(e, 'atacar'); atacaCom(e, k); fecha(e, 'atacar'); M.avancar(e);
   ok(e.fim && e.fim.vencedor === 0, 'não perdeu por dano de comandante');
+});
+
+// ---------- gatilhos (T17, CR 603) ----------
+const contaLog = (e, txt) => e.log.filter(l => l.includes(txt)).length;
+caso('603.2', 'Phyrexian Rager entra: gatilho na pilha, resolve: compra 1 e perde 1', () => {
+  const e = cena({ mao: [[0, 'Phyrexian Rager']] }); e.cfg.log = true;
+  const id = e.jogs[0].zonas.mao[0], m0 = e.jogs[0].zonas.mao.length;
+  M.entrarPermanente(e, id, 0); M.avancar(e);
+  igual(e.pilha.length, 0, 'pilha'); igual(e.jogs[0].vida, 39); igual(e.jogs[0].zonas.mao.length, m0);   // saiu 1, comprou 1
+  igual(contaLog(e, 'gatilho de Phyrexian Rager'), 1);
+});
+caso('603.10a', 'Blood Artist morre junto com outra criatura: olha para trás e dispara as duas vezes', () => {
+  const e = cena({ campo: [[0, 'Blood Artist'], [1, 'Grizzly Bears']] }); e.cfg.log = true;
+  for (const id of e.campo) e.objs[id].dano = 5;
+  M.avancar(e);
+  igual(contaLog(e, 'gatilho de Blood Artist'), 2);
+});
+caso('603.2', 'Young Pyromancer: conjurar instantânea cria a ficha antes da mágica resolver', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Young Pyromancer']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  igual(e.campo.filter(id => e.objs[id].ficha).length, 1); igual(e.jogs[1].vida, 37);
+});
+caso('603.3b', 'manutenção: Phyrexian Arena só na do controlador', () => {
+  const e = cena({ campo: [[0, 'Phyrexian Arena']], passo: 'final' });
+  passarAte(e, 'principal1');                        // turno do jogador 1: nada
+  igual(e.jogs[0].vida, 40);
+  passarAte(e, 'final'); passarAte(e, 'principal1');  // de volta ao jogador 0
+  igual(e.turno.ativo, 0); igual(e.jogs[0].vida, 39);
 });
 
 // ---------- rodar ----------

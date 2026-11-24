@@ -18,7 +18,8 @@
       if (T.passo === 'mulligan') { passoMulligan(e); continue; }
       if (!T.feito) { T.feito = true; T.prio = null; acaoDoTurno(e); if (e.perg || e.fim) break; }
       M.abe(e); if (e.perg || e.fim) break;                            // CR 117.5: ações de estado antes da prioridade
-      if (M.temPrioridadeNoPasso(T.passo) && !(T.prio && T.prio.acabou)) {
+      if (M.porGatilhos(e)) { if (e.perg || e.fim) break; continue; }  // CR 603.3b: gatilhos na pilha, depois as ABE de novo
+      if ((M.temPrioridadeNoPasso(T.passo) || (T.passo === 'limpeza' && e.pilha.length)) && !(T.prio && T.prio.acabou)) {
         const r = M.passoPrioridade(e);
         if (r === 'fim') T.prio.acabou = true;
         if (r !== 'fim') continue;
@@ -125,12 +126,13 @@
     const pula = M.depoisDoPasso(e, T.passo);                         // 508.8 sem atacantes → fim do combate; 510.4 2ª etapa
     let i = pula ? PASSOS.indexOf(pula) : PASSOS.indexOf(T.passo) + 1;
     T.feito = false; T.prio = null;
-    if (i < PASSOS.length) { T.passo = PASSOS[i]; return; }
+    if (i < PASSOS.length) { T.passo = PASSOS[i]; M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return; }
     // próximo turno: próximo jogador na ordem que ainda está no jogo (CR 800.4k)
     const n = e.jogs.length;
     let p = T.ativo;
     do p = (p + 1) % n; while (e.jogs[p].saiu);
     T.ativo = p; T.n++; T.passo = 'desvirar';
+    M.evento(e, { ev: 'fase', passo: 'desvirar', ativo: p });
     if (T.n > e.cfg.maxTurnos) e.fim = { vencedor: null, motivo: 'limite de turnos' };
   }
 

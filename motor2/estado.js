@@ -41,7 +41,7 @@
       v: 1, ts: 0, prox: 1, rng: (cfg.semente ?? 1) >>> 0,
       cfg: { log: !!cfg.log, maxTurnos: cfg.maxTurnos || 400 },
       turno: { n: 0, ativo: 0, passo: 'mulligan', feito: false, primeiro: 0 },
-      jogs: [], objs: {}, campo: [], pilha: [], perg: null, fim: null, log: [], mull: null, abeNovo: [],
+      jogs: [], objs: {}, campo: [], pilha: [], perg: null, fim: null, log: [], mull: null, abeNovo: [], pend: [], lote: [],
     };
     decks.forEach((d, i) => {
       const j = {
@@ -83,6 +83,7 @@
   M.mover = (e, id, zona, { topo = true, virada = false } = {}) => {
     const o = e.objs[id];
     if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
+    const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
     const de = M.listaDe(e, o), k = de.indexOf(id);
     if (k >= 0) de.splice(k, 1);
     Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {}, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null });
@@ -90,6 +91,7 @@
     const para = M.listaDe(e, o);
     if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
     if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
+    if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap });   // gatilhos.js
     if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
     return o;
   };
@@ -101,6 +103,7 @@
       const g = J.zonas.grimorio;
       if (!g.length) { J.comprouVazio = true; continue; }
       M.mover(e, g[g.length - 1], 'mao');
+      if (M.evento) M.evento(e, { ev: 'compra', j });
     }
   };
 

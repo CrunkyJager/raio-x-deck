@@ -86,6 +86,8 @@
       if (!kw(e, o, 'vigilancia')) o.virada = true;                                          // 508.1f
       C.atk.push({ id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [], bloqueado: false });
     }
+    for (const r of C.atk) M.evento(e, { ev: 'ataca', id: r.id, def: r.def });          // 508.3a
+    if (C.atk.length) M.evento(e, { ev: 'atacantesDeclarados', j: a, n: C.atk.length });
     if (C.atk.length) M.log(e, e.jogs[a].nome, 'ataca com', C.atk.map(r => e.objs[r.id].n + '→' + (r.alvo.jog !== undefined ? e.jogs[r.alvo.jog].nome : e.objs[r.alvo.o].n)).join(', '));
   };
 
@@ -127,6 +129,7 @@
     }
     e.proc = null;
     const pares = cands.filter(id => bl[id] !== undefined).map(id => [id, bl[id]]);
+    for (const [id, i] of pares) M.evento(e, { ev: 'bloqueia', id, atk: C.atk[i].id });   // 509.3
     for (const [id, i] of pares) { C.atk[i].bloq.push({ id, ts: e.objs[id].ts }); C.atk[i].bloqueado = true; }   // 509.1h
     C.bloqueou = C.bloqueou || {}; C.bloqueou[d] = true;
     if (pares.length) M.log(e, e.jogs[d].nome, 'bloqueia:', pares.map(([id, i]) => e.objs[id].n + '×' + e.objs[C.atk[i].id].n).join(', '));
@@ -221,9 +224,10 @@
         if (protegeDe(e, o, fd)) continue;                                                   // 702.16e
         M.danoEm(e, o, g.q, fd);
       }
+      M.evento(e, { ev: 'dano', fonte: g.fonte.id, combate: true, q: g.q, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: g.alvo.o }) });   // 510.3a
       if (kw(e, g.fonte, 'vinculoVida')) vida[g.fonte.ctrl] = (vida[g.fonte.ctrl] || 0) + g.q;   // 702.15b
     }
-    for (const j in vida) if (!e.jogs[j].saiu) e.jogs[j].vida += vida[j];
+    for (const j in vida) if (!e.jogs[j].saiu) { e.jogs[j].vida += vida[j]; M.evento(e, { ev: 'ganhaVida', j: +j, q: vida[j] }); }
     if (golpes.length) M.log(e, 'dano de combate:', golpes.map(g => g.fonte.n + '→' + (g.alvo.jog !== undefined ? e.jogs[g.alvo.jog].nome : e.objs[g.alvo.o].n) + ' ' + g.q).join(', '));
   }
   // "você tem proteção" (protecaoJogador) só do tipo tudo: o resto ainda não é lido
