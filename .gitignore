@@ -7,3 +7,6 @@ ferramentas/precos/myp-bruto.json
 # backups e logs locais
 *.bak-*
 ferramentas/calibra/*.log
+
+# T13: gerado por ferramentas/rx/converte_rx.py (11 MB); entra no git quando o motor novo usar
+cartas-rx.js

@@ -163,7 +163,7 @@
      "type": "array",
      "items": {
       "type": "string",
-      "pattern": "^([WUBRGCS]|[WUBRG2]/[WUBRGP])$"
+      "pattern": "^([WUBRGCS]|[WUBRGC2]/[WUBRGP]|[WUBRG]/[WUBRG]/P)$"
      }
     },
     "x": {
@@ -903,6 +903,7 @@
       "resguardo",
       "rachadura",
       "antimagia",
+      "manto",
       "metamorfo",
       "defensor",
       "equipar",
