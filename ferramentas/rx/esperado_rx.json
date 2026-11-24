@@ -1,0 +1,1179 @@
+{
+ "_nota": "T12 — gabarito do formato RX: 20 cartas difíceis escritas à mão a partir do Oracle (cards-db) e da CR. O conversor (T13/T20) tem que chegar nisto; testa_rx.py compara. Escolha: comandantes dos exemplos + cartas que forçam cada parte do formato (custo alternativo, 'a menos que pague', substituição, eminência, sobrecarga, modal com condição, aventura, cópia de ficha anexada).",
+ "cartas": [
+  {
+   "n": "Anje's Ravager",
+   "custo": {
+    "g": 2,
+    "p": [
+     "R"
+    ]
+   },
+   "vm": 3,
+   "ci": "R",
+   "cores": "R",
+   "tipos": [
+    "Creature"
+   ],
+   "sub": [
+    "Vampire",
+    "Berserker"
+   ],
+   "pt": [
+    3,
+    3
+   ],
+   "kw": [
+    {
+     "k": "loucura",
+     "custo": {
+      "g": 1,
+      "p": [
+       "R"
+      ]
+     }
+    }
+   ],
+   "est": [
+    {
+     "modo": "deveAtacar",
+     "afeta": "este"
+    }
+   ],
+   "gat": [
+    {
+     "ev": "ataca",
+     "quem": {
+      "este": true
+     },
+     "fx": [
+      {
+       "op": "descartar",
+       "quem": "voce",
+       "qtd": "maoInteira"
+      },
+      {
+       "op": "comprar",
+       "quem": "voce",
+       "qtd": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Stangg, Echo Warrior",
+   "custo": {
+    "g": 2,
+    "p": [
+     "R",
+     "G"
+    ]
+   },
+   "vm": 4,
+   "ci": "RG",
+   "cores": "RG",
+   "tipos": [
+    "Creature"
+   ],
+   "super": [
+    "Legendary"
+   ],
+   "sub": [
+    "Human",
+    "Warrior"
+   ],
+   "pt": [
+    3,
+    4
+   ],
+   "gat": [
+    {
+     "ev": "ataca",
+     "quem": {
+      "este": true
+     },
+     "fx": [
+      {
+       "op": "ficha",
+       "quem": "voce",
+       "qtd": 1,
+       "virada": true,
+       "atacando": true,
+       "token": {
+        "nome": "Stangg Twin",
+        "pt": [
+         3,
+         4
+        ],
+        "cores": "RG",
+        "tipos": [
+         "Creature"
+        ],
+        "super": [
+         "Legendary"
+        ],
+        "sub": [
+         "Human",
+         "Warrior"
+        ]
+       }
+      },
+      {
+       "op": "repetirCada",
+       "cada": {
+        "sub": [
+         "Aura",
+         "Equipment"
+        ],
+        "anexadoA": "este"
+       },
+       "fx": [
+        {
+         "op": "ficha",
+         "quem": "voce",
+         "qtd": 1,
+         "token": {
+          "copiaDe": "cadaAtual",
+          "anexadaA": "criadas"
+         }
+        }
+       ]
+      },
+      {
+       "op": "gatilhoAtrasado",
+       "quando": {
+        "ev": "fase",
+        "passo": "final",
+        "deQuem": "cadaJogador",
+        "fx": [
+         {
+          "op": "sacrificar",
+          "em": "criadas"
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Krenko, Mob Boss",
+   "custo": {
+    "g": 2,
+    "p": [
+     "R",
+     "R"
+    ]
+   },
+   "vm": 4,
+   "ci": "R",
+   "cores": "R",
+   "tipos": [
+    "Creature"
+   ],
+   "super": [
+    "Legendary"
+   ],
+   "sub": [
+    "Goblin",
+    "Warrior"
+   ],
+   "pt": [
+    3,
+    3
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "fx": [
+      {
+       "op": "ficha",
+       "quem": "voce",
+       "qtd": {
+        "conta": {
+         "sub": [
+          "Goblin"
+         ],
+         "ctrl": "voce",
+         "zona": "campo"
+        }
+       },
+       "token": {
+        "pt": [
+         1,
+         1
+        ],
+        "cores": "R",
+        "tipos": [
+         "Creature"
+        ],
+        "sub": [
+         "Goblin"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Lathril, Blade of the Elves",
+   "custo": {
+    "g": 2,
+    "p": [
+     "B",
+     "G"
+    ]
+   },
+   "vm": 4,
+   "ci": "BG",
+   "cores": "BG",
+   "tipos": [
+    "Creature"
+   ],
+   "super": [
+    "Legendary"
+   ],
+   "sub": [
+    "Elf",
+    "Noble"
+   ],
+   "pt": [
+    2,
+    3
+   ],
+   "kw": [
+    {
+     "k": "ameaca"
+    }
+   ],
+   "gat": [
+    {
+     "ev": "dano",
+     "quem": {
+      "este": true
+     },
+     "combate": true,
+     "aJogador": true,
+     "fx": [
+      {
+       "op": "ficha",
+       "quem": "voce",
+       "qtd": {
+        "conta": "danoCausado"
+       },
+       "token": {
+        "pt": [
+         1,
+         1
+        ],
+        "cores": "G",
+        "tipos": [
+         "Creature"
+        ],
+        "sub": [
+         "Elf",
+         "Warrior"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true,
+      "virarOutros": {
+       "f": {
+        "sub": [
+         "Elf"
+        ],
+        "ctrl": "voce",
+        "virada": false
+       },
+       "qtd": 10
+      }
+     },
+     "fx": [
+      {
+       "op": "perderVida",
+       "quem": "cadaOponente",
+       "qtd": 10
+      },
+      {
+       "op": "ganharVida",
+       "quem": "voce",
+       "qtd": 10
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Edgar Markov",
+   "custo": {
+    "g": 3,
+    "p": [
+     "R",
+     "W",
+     "B"
+    ]
+   },
+   "vm": 6,
+   "ci": "WBR",
+   "cores": "WBR",
+   "tipos": [
+    "Creature"
+   ],
+   "super": [
+    "Legendary"
+   ],
+   "sub": [
+    "Vampire",
+    "Knight"
+   ],
+   "pt": [
+    4,
+    4
+   ],
+   "kw": [
+    {
+     "k": "primeiroAtaque"
+    },
+    {
+     "k": "pressa"
+    }
+   ],
+   "gat": [
+    {
+     "ev": "conjura",
+     "jog": "voce",
+     "quem": {
+      "sub": [
+       "Vampire"
+      ],
+      "outro": true
+     },
+     "zonaAtiva": [
+      "comando",
+      "campo"
+     ],
+     "fx": [
+      {
+       "op": "ficha",
+       "quem": "voce",
+       "qtd": 1,
+       "token": {
+        "pt": [
+         1,
+         1
+        ],
+        "cores": "B",
+        "tipos": [
+         "Creature"
+        ],
+        "sub": [
+         "Vampire"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "ev": "ataca",
+     "quem": {
+      "este": true
+     },
+     "fx": [
+      {
+       "op": "marcador",
+       "em": {
+        "todos": {
+         "sub": [
+          "Vampire"
+         ],
+         "ctrl": "voce",
+         "zona": "campo"
+        }
+       },
+       "tipoMarc": "+1/+1",
+       "qtd": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Rhystic Study",
+   "custo": {
+    "g": 2,
+    "p": [
+     "U"
+    ]
+   },
+   "vm": 3,
+   "ci": "U",
+   "cores": "U",
+   "tipos": [
+    "Enchantment"
+   ],
+   "gat": [
+    {
+     "ev": "conjura",
+     "jog": "oponente",
+     "fx": [
+      {
+       "op": "comprar",
+       "quem": "voce",
+       "qtd": 1,
+       "talvez": true,
+       "aMenosQue": {
+        "quem": "doEvento",
+        "custo": {
+         "mana": {
+          "g": 1
+         }
+        }
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Smothering Tithe",
+   "custo": {
+    "g": 3,
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 4,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Enchantment"
+   ],
+   "gat": [
+    {
+     "ev": "compra",
+     "jog": "oponente",
+     "fx": [
+      {
+       "op": "ficha",
+       "quem": "voce",
+       "qtd": 1,
+       "token": {
+        "nome": "Treasure"
+       },
+       "aMenosQue": {
+        "quem": "doEvento",
+        "custo": {
+         "mana": {
+          "g": 2
+         }
+        }
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Skullclamp",
+   "custo": {
+    "g": 1
+   },
+   "vm": 1,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "sub": [
+    "Equipment"
+   ],
+   "kw": [
+    {
+     "k": "equipar",
+     "custo": {
+      "g": 1
+     }
+    }
+   ],
+   "est": [
+    {
+     "modo": "continuo",
+     "afeta": "equipada",
+     "p": 1,
+     "r": -1
+    }
+   ],
+   "gat": [
+    {
+     "ev": "morre",
+     "quem": {
+      "equipada": true
+     },
+     "fx": [
+      {
+       "op": "comprar",
+       "quem": "voce",
+       "qtd": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Cultivate",
+   "custo": {
+    "g": 2,
+    "p": [
+     "G"
+    ]
+   },
+   "vm": 3,
+   "ci": "G",
+   "cores": "G",
+   "tipos": [
+    "Sorcery"
+   ],
+   "fx": [
+    {
+     "op": "buscar",
+     "quem": "voce",
+     "f": {
+      "tipo": [
+       "Land"
+      ],
+      "super": [
+       "Basic"
+      ]
+     },
+     "qtd": 2,
+     "revelar": true,
+     "destinos": [
+      {
+       "para": "campo",
+       "qtd": 1,
+       "virada": true
+      },
+      {
+       "para": "mao",
+       "qtd": 1
+      }
+     ]
+    },
+    {
+     "op": "embaralhar",
+     "quem": "voce"
+    }
+   ]
+  },
+  {
+   "n": "Path to Exile",
+   "custo": {
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 1,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Instant"
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Creature"
+      ],
+      "zona": "campo"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "exilar",
+     "em": {
+      "alvo": 0
+     }
+    },
+    {
+     "op": "buscar",
+     "quem": "controlador",
+     "em": {
+      "alvo": 0
+     },
+     "talvez": true,
+     "f": {
+      "tipo": [
+       "Land"
+      ],
+      "super": [
+       "Basic"
+      ]
+     },
+     "qtd": 1,
+     "para": "campo",
+     "virada": true
+    },
+    {
+     "op": "embaralhar",
+     "quem": "controlador",
+     "em": {
+      "alvo": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": "Herald's Horn",
+   "custo": {
+    "g": 3
+   },
+   "vm": 3,
+   "ci": "",
+   "cores": "",
+   "tipos": [
+    "Artifact"
+   ],
+   "subst": [
+    {
+     "ev": "entra",
+     "quem": {
+      "este": true
+     },
+     "emVez": [
+      {
+       "op": "escolher",
+       "quem": "voce",
+       "o": "tipoCriatura"
+      }
+     ]
+    }
+   ],
+   "est": [
+    {
+     "modo": "reduzCusto",
+     "afeta": {
+      "tipo": [
+       "Creature"
+      ],
+      "sub": [
+       "escolhido"
+      ],
+      "ctrl": "voce",
+      "zona": "pilha"
+     },
+     "qtd": 1
+    }
+   ],
+   "gat": [
+    {
+     "ev": "fase",
+     "passo": "manutencao",
+     "deQuem": "voce",
+     "fx": [
+      {
+       "op": "cavar",
+       "quem": "voce",
+       "olha": 1,
+       "pega": 1,
+       "talvez": true,
+       "revelar": true,
+       "f": {
+        "tipo": [
+         "Creature"
+        ],
+        "sub": [
+         "escolhido"
+        ]
+       },
+       "para": "mao",
+       "resto": "grimorio"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Anointed Procession",
+   "custo": {
+    "g": 3,
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 4,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Enchantment"
+   ],
+   "subst": [
+    {
+     "ev": "ficha",
+     "quem": {
+      "ctrl": "voce"
+     },
+     "muda": {
+      "mult": 2
+     }
+    }
+   ]
+  },
+  {
+   "n": "Cyclonic Rift",
+   "custo": {
+    "g": 1,
+    "p": [
+     "U"
+    ]
+   },
+   "vm": 2,
+   "ci": "U",
+   "cores": "U",
+   "tipos": [
+    "Instant"
+   ],
+   "kw": [
+    {
+     "k": "sobrecarga",
+     "custo": {
+      "g": 6,
+      "p": [
+       "U"
+      ]
+     }
+    }
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Permanent"
+      ],
+      "nao": [
+       "Land"
+      ],
+      "ctrl": "oponente",
+      "zona": "campo"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "mover",
+     "em": {
+      "alvo": 0
+     },
+     "para": "mao"
+    }
+   ]
+  },
+  {
+   "n": "Teferi's Protection",
+   "custo": {
+    "g": 2,
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 3,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Instant"
+   ],
+   "fx": [
+    {
+     "op": "efeitoTemporario",
+     "dura": "proximoTurnoSeu",
+     "est": [
+      {
+       "modo": "vidaNaoMuda",
+       "afeta": "voce"
+      },
+      {
+       "modo": "protecaoJogador",
+       "afeta": "voce",
+       "kw": [
+        {
+         "k": "protecao",
+         "de": "tudo"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "op": "fasear",
+     "em": {
+      "todos": {
+       "tipo": [
+        "Permanent"
+       ],
+       "ctrl": "voce",
+       "zona": "campo"
+      }
+     }
+    },
+    {
+     "op": "exilar",
+     "em": "este"
+    }
+   ]
+  },
+  {
+   "n": "Akroma's Will",
+   "custo": {
+    "g": 3,
+    "p": [
+     "W"
+    ]
+   },
+   "vm": 4,
+   "ci": "W",
+   "cores": "W",
+   "tipos": [
+    "Instant"
+   ],
+   "fx": [
+    {
+     "op": "modal",
+     "escolhe": {
+      "min": 1,
+      "max": 1,
+      "maxSe": {
+       "se": {
+        "controla": {
+         "f": {
+          "comandante": true,
+          "zona": "campo"
+         },
+         "min": 1
+        }
+       },
+       "max": 2
+      }
+     },
+     "modos": [
+      [
+       {
+        "op": "modificar",
+        "em": {
+         "todos": {
+          "tipo": [
+           "Creature"
+          ],
+          "ctrl": "voce",
+          "zona": "campo"
+         }
+        },
+        "kw": [
+         {
+          "k": "voar"
+         },
+         {
+          "k": "vigilancia"
+         },
+         {
+          "k": "golpeDuplo"
+         }
+        ],
+        "dura": "fimDoTurno"
+       }
+      ],
+      [
+       {
+        "op": "modificar",
+        "em": {
+         "todos": {
+          "tipo": [
+           "Creature"
+          ],
+          "ctrl": "voce",
+          "zona": "campo"
+         }
+        },
+        "kw": [
+         {
+          "k": "vinculoVida"
+         },
+         {
+          "k": "indestrutivel"
+         },
+         {
+          "k": "protecao",
+          "de": "cadaCor"
+         }
+        ],
+        "dura": "fimDoTurno"
+       }
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Sacred Foundry",
+   "vm": 0,
+   "ci": "WR",
+   "cores": "",
+   "tipos": [
+    "Land"
+   ],
+   "sub": [
+    "Mountain",
+    "Plains"
+   ],
+   "atv": [
+    {
+     "custo": {
+      "virar": true
+     },
+     "deMana": true,
+     "fx": [
+      {
+       "op": "mana",
+       "prod": [
+        "R",
+        "W"
+       ],
+       "qtd": 1
+      }
+     ]
+    }
+   ],
+   "subst": [
+    {
+     "ev": "entra",
+     "quem": {
+      "este": true
+     },
+     "muda": {
+      "virada": true
+     },
+     "aMenosQue": {
+      "quem": "voce",
+      "custo": {
+       "vida": 2
+      }
+     }
+    }
+   ]
+  },
+  {
+   "n": "Blasphemous Act",
+   "custo": {
+    "g": 8,
+    "p": [
+     "R"
+    ]
+   },
+   "vm": 9,
+   "ci": "R",
+   "cores": "R",
+   "tipos": [
+    "Sorcery"
+   ],
+   "est": [
+    {
+     "modo": "reduzCusto",
+     "afeta": "este",
+     "qtd": {
+      "conta": {
+       "tipo": [
+        "Creature"
+       ],
+       "ctrl": "qualquer",
+       "zona": "campo"
+      }
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "dano",
+     "em": {
+      "todos": {
+       "tipo": [
+        "Creature"
+       ],
+       "zona": "campo"
+      }
+     },
+     "qtd": 13
+    }
+   ]
+  },
+  {
+   "n": "Impact Tremors",
+   "custo": {
+    "g": 1,
+    "p": [
+     "R"
+    ]
+   },
+   "vm": 2,
+   "ci": "R",
+   "cores": "R",
+   "tipos": [
+    "Enchantment"
+   ],
+   "gat": [
+    {
+     "ev": "entra",
+     "quem": {
+      "tipo": [
+       "Creature"
+      ],
+      "ctrl": "voce"
+     },
+     "fx": [
+      {
+       "op": "dano",
+       "quem": "cadaOponente",
+       "qtd": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "n": "Reanimate",
+   "custo": {
+    "p": [
+     "B"
+    ]
+   },
+   "vm": 1,
+   "ci": "B",
+   "cores": "B",
+   "tipos": [
+    "Sorcery"
+   ],
+   "alvos": [
+    {
+     "f": {
+      "tipo": [
+       "Creature"
+      ],
+      "zona": "cemiterio",
+      "dono": "qualquer"
+     }
+    }
+   ],
+   "fx": [
+    {
+     "op": "mover",
+     "em": {
+      "alvo": 0
+     },
+     "para": "campo",
+     "sobControle": "voce"
+    },
+    {
+     "op": "perderVida",
+     "quem": "voce",
+     "qtd": {
+      "conta": "vmDoAlvo",
+      "alvo": 0
+     }
+    }
+   ]
+  },
+  {
+   "n": "Bonecrusher Giant",
+   "custo": {
+    "g": 2,
+    "p": [
+     "R"
+    ]
+   },
+   "vm": 3,
+   "ci": "R",
+   "cores": "R",
+   "tipos": [
+    "Creature"
+   ],
+   "sub": [
+    "Giant"
+   ],
+   "pt": [
+    4,
+    3
+   ],
+   "forma": "aventura",
+   "gat": [
+    {
+     "ev": "alvoDe",
+     "quem": {
+      "este": true
+     },
+     "fx": [
+      {
+       "op": "dano",
+       "quem": "doEvento",
+       "qtd": 2
+      }
+     ],
+     "por": {
+      "tipo": [
+       "Spell"
+      ]
+     }
+    }
+   ],
+   "faces": [
+    {
+     "n": "Stomp",
+     "custo": {
+      "g": 1,
+      "p": [
+       "R"
+      ]
+     },
+     "tipos": [
+      "Instant"
+     ],
+     "sub": [
+      "Adventure"
+     ],
+     "alvos": [
+      {
+       "f": "qualquerAlvo"
+      }
+     ],
+     "fx": [
+      {
+       "op": "efeitoTemporario",
+       "dura": "fimDoTurno",
+       "est": [
+        {
+         "modo": "danoNaoPrevenivel",
+         "afeta": "cadaJogador"
+        }
+       ]
+      },
+      {
+       "op": "dano",
+       "em": {
+        "alvo": 0
+       },
+       "qtd": 2
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

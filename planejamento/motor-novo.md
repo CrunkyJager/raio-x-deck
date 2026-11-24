@@ -42,6 +42,9 @@ JSON por carta, gerado; nada de texto em inglês no motor.
 - Carta que o conversor não entende inteira sai com `"falta":[...]` — o motor joga o que entendeu e a tela avisa "não modelado: …". Nunca regex no motor.
 - **O mesmo formato alimenta os pesos do analise.js** (substitui o forge-db aos poucos; a T31 vira parte disto).
 
+- **Feito na T12 (24/11):** `ferramentas/rx/esquema.json` (JSON Schema 2020-12: blocos kw/atv/gat/est/subst/fx/faces; 40 ops, 19 eventos de gatilho, 17 modos de estática, 9 de substituição, 57 palavras-chave; filtro, qtd, cond, custo) + `esperado_rx.json` (20 cartas difíceis à mão: os 4 comandantes + Anje, Rhystic, Tithe, Skullclamp, Cultivate, Path, Herald's Horn, Anointed Procession, Cyclonic Rift, Teferi's Protection, Akroma's Will, Sacred Foundry, Blasphemous Act, Impact Tremors, Reanimate, Bonecrusher) + `valida_rx.py` (esquema + nome/vm/identidade/tipos/poder contra o cards-db; 20/20).
+- Decisões do formato: identidade em ordem WUBRG; o que a regra já faz não vai no fx (sobrecarga troca alvo por cada — CR 702.96; aventura/loucura/flashback pela regra); "a menos que pague" é campo `aMenosQue` do fx (Rhystic, Tithe, terreno de choque); eminência = `zonaAtiva:["comando","campo"]`; tipo escolhido ao entrar = `sub:["escolhido"]`; campos `_obs` livres para nota.
+
 ### 3.2 Conversor Forge + Scryfall → RX
 Python, em `ferramentas/rx/` (reaproveita `params`/`le_arquivo` do `converte.py`). Scryfall dá nome, custo, tipos, identidade, legalidade; Forge dá o comportamento. Gabarito `esperado_rx.json` (cartas à mão) e `testa_rx.py` 100% antes de commit. Relatório de cobertura: % das cartas do cards-db e do banco de 30 sem `falta`.
 
