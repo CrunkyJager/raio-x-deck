@@ -139,8 +139,10 @@
     "aventura",
     "split",
     "modal",
-    "flip"
-   ]
+    "flip",
+    "fundir"
+   ],
+   "description": "fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela"
   },
   "falta": {
    "type": "array",
@@ -339,10 +341,12 @@
           "maiorVidaPerdidaOpNoTurno",
           "vidaPerdidaNoTurno",
           "maiorDescarte",
-          "resolucoesDestaHabNoTurno"
+          "resolucoesDestaHabNoTurno",
+          "atacantesEmVoce"
          ]
         }
-       ]
+       ],
+       "description": "atacantesEmVoce: criaturas que atacaram você ou um planeswalker seu NESTE TURNO (no ev atacantesDeclarados = as deste ataque: Mangara, Firemane Commando, Struggle Enclave; no final do turno do oponente: Faramir)"
       },
       "mult": {
        "type": "integer"
@@ -460,7 +464,7 @@
      "description": "o jogador que é o alvo N (vários alvos)"
     }
    ],
-   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários"
+   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots)"
   },
   "filtro": {
    "type": "object",
@@ -516,7 +520,8 @@
       "qualquer",
       "alvo",
       "cadaAtual",
-      "doEvento"
+      "doEvento",
+      "atacado"
      ]
     },
     "dono": {
@@ -526,7 +531,8 @@
       "qualquer",
       "alvo",
       "cadaAtual",
-      "doEvento"
+      "doEvento",
+      "atacado"
      ]
     },
     "cor": {
@@ -647,6 +653,21 @@
     "nome": {
      "type": "string",
      "description": "nome exato da carta (Oracle, face da frente); para 'named <esta carta>' escrever o próprio nome (Ancestral Anger, Wedding Ring)"
+    },
+    "tipoEmComum": {
+     "oneOf": [
+      {
+       "enum": [
+        "este",
+        "comandante",
+        "doEvento"
+       ]
+      },
+      {
+       "$ref": "#/$defs/filtro"
+      }
+     ],
+     "description": "compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)"
     }
    }
   },
@@ -737,6 +758,15 @@
     "porOponente": {
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
+    },
+    "opcao": {
+     "enum": [
+      "chute",
+      "semChute",
+      "presente",
+      "semPresente"
+     ],
+     "description": "o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)"
     }
    }
   },
@@ -913,6 +943,26 @@
       }
      },
      "description": "pôr marcador neste como custo (Devoted Druid: -1/-1)"
+    },
+    "devolver": {
+     "oneOf": [
+      {
+       "const": "este"
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "f": {
+         "$ref": "#/$defs/filtro"
+        },
+        "qtd": {
+         "type": "integer"
+        }
+       }
+      }
+     ],
+     "description": "devolver à mão do dono como custo: 'este' (Shigeki) ou {f, qtd} uma permanente sua que bate no filtro (Master Transmuter, Mina and Denn)"
     }
    }
   },
@@ -990,8 +1040,10 @@
       "explorar",
       "amassar",
       "popular",
-      "incitar"
-     ]
+      "incitar",
+      "fundir"
+     ],
+     "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)"
     },
     "talvez": {
      "type": "boolean"
@@ -1361,6 +1413,10 @@
     "fonte": {
      "$ref": "#/$defs/objeto",
      "description": "op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
+    },
+    "transformada": {
+     "type": "boolean",
+     "description": "op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)"
     }
    },
    "additionalProperties": false,
@@ -1939,9 +1995,10 @@
       "podeOlhar",
       "dobraGatilho",
       "ataqueCusta",
-      "naoPodeAtivar"
+      "naoPodeAtivar",
+      "deveBloquear"
      ],
-     "description": "naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta"
+     "description": "naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
     },
     "afeta": {
      "oneOf": [
@@ -2086,6 +2143,10 @@
     "cores": {
      "type": "string",
      "description": "continuo: o objeto passa a ter SÓ estas cores (Nim Deathmantle 'B'; Leyline of the Guildpact 'WUBRG')"
+    },
+    "atacante": {
+     "$ref": "#/$defs/objeto",
+     "description": "deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)"
     }
    }
   },

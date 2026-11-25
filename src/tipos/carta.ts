@@ -54,7 +54,10 @@ export interface Carta {
    * outra face: dupla face, aventura, split, modal
    */
   faces?: RxFace[];
-  forma?: 'normal' | 'duplaFace' | 'aventura' | 'split' | 'modal' | 'flip';
+  /**
+   * fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela
+   */
+  forma?: 'normal' | 'duplaFace' | 'aventura' | 'split' | 'modal' | 'flip' | 'fundir';
   /**
    * frases do Oracle (texto original, em inglês) que o motor ainda não sabe fazer; o motor joga o resto e a tela avisa
    */
@@ -125,6 +128,9 @@ export type RxQtd =
   | number
   | ('X' | 'maoInteira' | 'tudo')
   | {
+      /**
+       * atacantesEmVoce: criaturas que atacaram você ou um planeswalker seu NESTE TURNO (no ev atacantesDeclarados = as deste ataque: Mangara, Firemane Commando, Struggle Enclave; no final do turno do oponente: Faramir)
+       */
       conta:
         | RxFiltro
         | (
@@ -183,6 +189,7 @@ export type RxQtd =
             | 'vidaPerdidaNoTurno'
             | 'maiorDescarte'
             | 'resolucoesDestaHabNoTurno'
+            | 'atacantesEmVoce'
           );
       mult?: number;
       soma?: number;
@@ -228,7 +235,7 @@ export type RxQtd =
     };
 
 /**
- * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários
+ * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots)
  */
 export type RxJogador =
   | (
@@ -277,8 +284,8 @@ export interface RxFiltro {
    */
   sub?: string[];
   super?: string[];
-  ctrl?: 'voce' | 'oponente' | 'qualquer' | 'alvo' | 'cadaAtual' | 'doEvento';
-  dono?: 'voce' | 'oponente' | 'qualquer' | 'alvo' | 'cadaAtual' | 'doEvento';
+  ctrl?: 'voce' | 'oponente' | 'qualquer' | 'alvo' | 'cadaAtual' | 'doEvento' | 'atacado';
+  dono?: 'voce' | 'oponente' | 'qualquer' | 'alvo' | 'cadaAtual' | 'doEvento' | 'atacado';
   /**
    * cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)
    */
@@ -367,6 +374,10 @@ export interface RxFiltro {
    * nome exato da carta (Oracle, face da frente); para 'named <esta carta>' escrever o próprio nome (Ancestral Anger, Wedding Ring)
    */
   nome?: string;
+  /**
+   * compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)
+   */
+  tipoEmComum?: ('este' | 'comandante' | 'doEvento') | RxFiltro;
 }
 
 export interface RxCompara {
@@ -397,6 +408,10 @@ export interface RxAlvo {
    * um alvo para cada oponente (até 1 de cada)
    */
   porOponente?: boolean;
+  /**
+   * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
+   */
+  opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
 }
 
 /**
@@ -463,6 +478,15 @@ export interface RxCustoAtv {
     tipo?: string;
     qtd?: number;
   };
+  /**
+   * devolver à mão do dono como custo: 'este' (Shigeki) ou {f, qtd} uma permanente sua que bate no filtro (Master Transmuter, Mina and Denn)
+   */
+  devolver?:
+    | 'este'
+    | {
+        f?: RxFiltro;
+        qtd?: number;
+      };
 }
 
 export type RxDura = 'fimDoTurno' | 'proximoTurnoSeu' | 'enquantoAnexado' | 'enquantoNoCampo' | 'sempre';
@@ -473,6 +497,9 @@ export type RxFxs = RxFx[];
  * um efeito. Campos comuns: talvez (o jogador pode escolher não fazer), quem (jogador que faz/recebe), em (objeto afetado), qtd, se (condição), aMenosQue (outro jogador paga para impedir)
  */
 export interface RxFx {
+  /**
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)
+   */
   op:
     | 'mana'
     | 'comprar'
@@ -524,7 +551,8 @@ export interface RxFx {
     | 'explorar'
     | 'amassar'
     | 'popular'
-    | 'incitar';
+    | 'incitar'
+    | 'fundir';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -710,6 +738,10 @@ export interface RxFx {
    * op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
    */
   fonte?: RxObjeto;
+  /**
+   * op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)
+   */
+  transformada?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -1053,7 +1085,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta
+   * naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
    */
   modo:
     | 'continuo'
@@ -1078,7 +1110,8 @@ export interface RxEst {
     | 'podeOlhar'
     | 'dobraGatilho'
     | 'ataqueCusta'
-    | 'naoPodeAtivar';
+    | 'naoPodeAtivar'
+    | 'deveBloquear';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1158,6 +1191,10 @@ export interface RxEst {
    * continuo: o objeto passa a ter SÓ estas cores (Nim Deathmantle 'B'; Leyline of the Guildpact 'WUBRG')
    */
   cores?: string;
+  /**
+   * deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)
+   */
+  atacante?: RxObjeto;
 }
 
 /**

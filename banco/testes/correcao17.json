@@ -1,0 +1,33 @@
+{
+ "bloco": "correcao17",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do pente geral (FARSEER): custoAtv `devolver`; jogador defensor = `atacado` (já existia em jogador; agora também em filtro ctrl/dono); conta `atacantesEmVoce`; est `deveBloquear` (+ `atacante`); alvo `opcao` (chute/semChute/presente/semPresente); filtro `tipoEmComum`; op `fundir` + forma `fundir` (faces[0] = a carta fundida); fx `transformada` no mover. Seguem falta: Nightkin Ambusher (marcador no jogador), Faramir Prince (escolher UM oponente), Brutal Hordechief (você escolhe os bloqueios), Tolsimir (atacou neste combate ≈ está atacando), Shigeki (nº de alvos = X), Conformer Shuriken (diferença de poder). Shared Animosity conta − 1 (ela mesma). Hanweir Garrison e Bruna têm só o lembrete; a fusão está na outra metade (Hanweir Battlements e Phyrexian Dragon Engine não estão no banco)",
+ "casos": [
+  {"carta": "Master Transmuter", "situacao": "você controla Sol Ring e tem um artefato de VM 6 na mão; paga {U}, vira e devolve o Sol Ring", "espera": "o Sol Ring volta à mão como CUSTO (antes da pilha) e o artefato da mão entra no campo"},
+  {"carta": "Mina and Denn, Wildborn", "situacao": "ativa devolvendo um terreno seu", "espera": "o terreno volta à mão como custo; a criatura alvo ganha atropelar até o fim do turno; dá para jogar o terreno de novo com o terreno extra"},
+  {"carta": "Shigeki, Jukai Visionary", "situacao": "ativa {1}{G}, vira e devolve a Shigeki", "espera": "a Shigeki vai para a mão como custo; mesmo se a habilidade for anulada ela já está na mão; revela 4 e põe um terreno virado"},
+  {"carta": "Silumgar, the Drifting Death", "situacao": "4 jogadores; seu Dragão ataca o oponente A", "espera": "só as criaturas de A ganham −1/−1; as de B e C não"},
+  {"carta": "Trailblazer's Boots", "situacao": "a equipada ataca o oponente A (só terrenos básicos); B tem um terreno não básico", "espera": "pode ser bloqueada: vale o terreno do jogador defensor (A), não o de B"},
+  {"carta": "Mangara, the Diplomat", "situacao": "oponente ataca com 3 criaturas: 1 em você e 2 em outro jogador", "espera": "não compra (só 1 atacando você); se 2 atacam você, compra 1"},
+  {"carta": "Firemane Commando", "situacao": "oponente A ataca o oponente B com 2 criaturas; depois, noutro turno, B ataca você com 2", "espera": "A compra 1; B não compra (atacou você)"},
+  {"carta": "Struggle for Project Purity", "situacao": "modo Enclave; um oponente ataca com 3, sendo 2 em você", "espera": "ele recebe 4 marcadores rad (2 × as que atacam você); se ninguém ataca você, nada"},
+  {"carta": "Faramir, Prince of Ithilien", "situacao": "no final do turno do oponente, ele te atacou com 1 criatura naquele turno", "espera": "você não compra e cria três fichas 1/1 brancas Human Soldier; se não atacou você, compra 1"},
+  {"carta": "Fighter Class", "situacao": "nível 3; sua criatura 5/5 ataca; você mira uma criatura 1/1 desvirada do defensor", "espera": "a 1/1 tem de bloquear aquela atacante se puder"},
+  {"carta": "Tolsimir, Midnight's Light", "situacao": "Tolsimir e Voja atacam; mira uma criatura de oponente", "espera": "ela bloqueia o Voja se puder; se Tolsimir não ataca, o gatilho não dispara"},
+  {"carta": "Brutal Hordechief", "situacao": "paga {3}{R/W}{R/W} antes do combate e ataca", "espera": "as criaturas dos oponentes bloqueiam neste turno se puderem"},
+  {"carta": "Long River's Pull", "situacao": "na pilha só uma mágica de instantâneo; você não promete o presente", "espera": "não há alvo válido (sem presente só mágica de criatura); com o presente, anula a instantânea e o oponente compra 1"},
+  {"carta": "Wear Down", "situacao": "promete o presente; há 2 artefatos de oponentes", "espera": "o oponente compra 1; destrói os 2 artefatos"},
+  {"carta": "Tear Asunder", "situacao": "conjurada com chute; o oponente tem uma criatura e nenhum artefato/encantamento", "espera": "exila a criatura (com chute o alvo é permanente não terreno); sem chute não poderia mirar a criatura"},
+  {"carta": "Descendants' Path", "situacao": "você controla um Elf; o topo é um Elf Druid; depois, num outro turno, o topo é um Goblin", "espera": "revela; conjura o Elf de graça; o Goblin não pode ser conjurado e vai para o fundo"},
+  {"carta": "Folk Hero", "situacao": "comandante Elf Warrior; você conjura um Warrior e depois um Elf no mesmo turno; antes, uma mágica instantânea", "espera": "a instantânea não dispara; o Warrior compra 1; o Elf não (uma vez por turno)"},
+  {"carta": "Path of Ancestry", "situacao": "comandante Goblin; gasta a mana numa criatura Goblin e, noutro turno, numa criatura Elf", "espera": "vidência 1 só com o Goblin"},
+  {"carta": "Shared Animosity", "situacao": "atacam 3 Goblins e 1 Elf", "espera": "cada Goblin ganha +2/+0; o Elf ganha +0/+0"},
+  {"carta": "Wolf-Skull Shaman", "situacao": "na sua manutenção o topo é um Elf; noutro turno é um terreno", "espera": "com o Elf cria um Lobo 2/2 verde; com o terreno, nada"},
+  {"carta": "Gisela, the Broken Blade", "situacao": "você é dono e controla Gisela e Bruna no início do seu passo final", "espera": "as duas são exiladas e entra Brisela 9/10 (voar, primeiro ataque, vigilância, vínculo com a vida); oponentes não conjuram mágicas de VM ≤ 3"},
+  {"carta": "Mishra, Claimed by Gix", "situacao": "Mishra e Phyrexian Dragon Engine atacam; 4 atacantes", "espera": "cada oponente perde 4 e você ganha 4; depois as duas fundem em Mishra, Lost to Phyrexia, virada e atacando, e o 'entra' dela dispara (escolhe 3 modos)"},
+  {"carta": "Ajani, Nacatl Pariah", "situacao": "morre uma ficha Cat Warrior sua; você aceita", "espera": "Ajani é exilado e volta transformado (planeswalker novo, lealdade inicial 3, sem enjoo de invocação para ativar)"},
+  {"carta": "Ojer Taq, Deepest Foundation", "situacao": "Ojer Taq morre", "espera": "volta ao campo virado já como Temple of Civilization (não entra como criatura)"},
+  {"carta": "Welcome to . . .", "situacao": "capítulo III", "espera": "destrói os Walls; a Saga é exilada e volta transformada em Jurassic Park (objeto novo)"}
+ ]
+}
