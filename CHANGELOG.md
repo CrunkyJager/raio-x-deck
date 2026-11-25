@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.19.0 — 25/11/2026 · banco com 1061 cartas
+Testes: valida 1061/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok.
+- **Banco (B):** bloco 19 (901–950, 50 casos: Living Death, Liesa, Luminous Broodmoth, Lotus Cobra…) e bloco 20 (951–1000, 50 casos: Meren, Mikaeus, Mirari's Wake, Mizzix's Mastery…).
+- **Esquema (lotes dos blocos 17–20, regra ≥3 ocorrências):** cond `maisTerrenosOponente` e `primeiroCombate`, gat `recebe` (quem recebe o dano), gat ev `explora`, `ate` com contagem, fx mana `ficaNoTurno`; ficha com nome + P/R já cabia. O resto fica em `falta`. O motor ainda não lê esses campos (fila do A).
+
 ## v0.18.0 — 25/11/2026 · página toda em componentes Svelte (T43 d fechada)
 Testes: valida 961/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · lacunas = base · verifica verde · build ok.
 - **Estrutura (A, T43 d):** janelas da análise (prévia, detalhe da carta, zoom) em `src/telas/Janelas.svelte`; a saída inteira (Resumo, Trocas, Análise) em `src/telas/Saida.svelte`; saíram do analise.ts o render(), o wire() e os innerHTML. Trocar comandante e a leitura do Claude ficam no Resumo. A Mesa segue em .js até a T09.

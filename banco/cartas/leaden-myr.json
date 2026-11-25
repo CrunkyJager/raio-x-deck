@@ -1,0 +1,1 @@
+{"v":2,"n":"Leaden Myr","id":"f62cabf0-df0d-4c4f-a93a-9340967d1775","oracleHash":"a426e2ff","custo":{"g":2},"vm":2,"ci":"B","cores":"","tipos":["Creature","Artifact"],"sub":["Myr"],"pt":[1,1],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["B"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco19.json"}}
