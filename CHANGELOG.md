@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.33.0 — 25/11/2026 · motor conta ataques e obriga bloqueio
+Testes: valida 1645/0 · check 0 erros · Vitest 198/198 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 965/1645.
+- **Motor (A, item 6c):** contas de atacantes, atacantes em você e ataques no turno (Mangara, Firemane, Alesha, Windbrisk, Faramir); bloqueio obrigatório (509.1c), que a IA cumpre; filtro "tipo em comum" (metamorfo conta como todos); mover a carta transformada (712.14a) e mover esta do cemitério/exílio (Ojer Taq, Ajani). Fundir (meld) ainda fica de fora.
+
 ## v0.32.0 — 25/11/2026 · deck da Ivora inteiro no banco; motor joga descarte, loucura e ciclar
 Testes: valida 1645/0 · check 0 erros · Vitest 194/194 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 958/1645.
 - **Banco (B, T20 blocos 32/33):** as 60 cartas do deck da Ivora que faltavam (Ivora, Insatiable Heir, Inti, Magmakin Artillerist, Containment Construct, Kozilek, Ulamog, Brallin, Neheb, Spider-Man…), 50 casos; o deck inteiro (75) está no banco. Lote decidido: correção 18 (descartadasNoTurno, ev nivel, outro alvo / outros oponentes) na fila do B.
