@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.10.0 — 25/11/2026 · banco com 511 cartas; sagas
+Testes: valida 511/0 · check 0 erros · Vitest verde · testa 161/161 · verifica verde · build ok.
+- **Banco (B):** bloco 9 (fila 401–450, 49 casos); primeiras sagas (kw capitulo + gat capitulo); oraculo.nossas() reconhece "A // B".
+- **Esquema:** est `sub` (Ashaya: Forest é subtipo) e token.pt com contagem fixada ao criar (Assemble the Entmoot X/X).
+
 ## v0.9.0 — 25/11/2026 · o motor joga cartas de várias faces
 Testes: valida 461/0 · check 0 erros · Vitest 145/145 (fuzz erros 0) · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
 - **Motor (A, T43 faces):** modal (a face de terreno gasta a jogada de terreno, 712.9), dupla face com transformar (mesmo objeto, marcadores ficam, 701.27), aventura (exílio e depois a criatura, 716.3), split (uma metade, 709.3) e fusão (só da mão, 702.102). 8 casos de regra com as cartas do banco. Ficou de fora: Fire dividir à escolha, Stomp, P/R '*' do Beanstalk Giant.

@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.10.0: B bloco 9 (f77de36, 511 cartas). Leituras ok: Avacyn Angel of Horror doEvento, Bello filtro nao Equipment/Aura. Recusadas → esquema: Ashaya (est.sub), Entmoot (token.pt com qtd; 1ª tentativa com oneOf quebrou 72 cartas → anyOf).
 - 25/11 · FARSEER · v0.9.0: A T43 faces (00919fc) + B correção faces/d20 (fed6dd7). Antes, v0.8.0 falhou no CI (mede.js precisa de typescript, job rodava verifica antes do npm ci) → acc7cd2. Limites do motor: Fire dividir (T16), Stomp efeitoTemporario, Beanstalk P/R '*'.
 - 25/11 · FARSEER · v0.8.0: B bloco 8 (6384c50) + faces (0d20549, 461 cartas) + A analise.ts estrito (ccfe2a0). Felipe pediu 2 cartas de cada forma (MDFC, transforma, aventura, split) já testadas. Esquema: fusao, ate 'qualquer', dado N; Gisela é Meld, não Fuse (falta). Leituras ok: Access Tunnel, Angel of Destiny (vidaMin 55, só Commander), Ainok.
 - 25/11 · FARSEER · v0.7.0: B bloco 7 (b4dfc9b, 403 cartas). Leituras ok: Wheel and Deal (alvos 0..qualquer, quem {alvo:0} para todos), Teferi's Puzzle Box (conta 'resultado'). Addendum recusado (turno seu + conjurada aceitava o combate) → cond conjuradaNaPrincipal (3092ced). B no bloco 8; A recebeu os usos novos do bloco 7 para conferir no motor.
