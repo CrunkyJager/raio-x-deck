@@ -1,0 +1,1 @@
+{"v":2,"n":"Leonin Abunas","id":"10064324-34a0-47eb-a58e-01db10234ed9","oracleHash":"b0dc3b1a","custo":{"g":3,"p":["W"]},"vm":4,"ci":"W","cores":"W","tipos":["Creature"],"sub":["Cat","Cleric"],"pt":[2,5],"est":[{"modo":"continuo","afeta":{"tipo":["Artifact"],"ctrl":"voce","zona":"campo"},"kw":[{"k":"antimagia"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco35.json"}}
