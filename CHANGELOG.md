@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.25.0 — 25/11/2026 · banco com 1461 cartas (blocos 27/28, correção 11)
+Testes: valida 1461/0 · check 0 erros · Vitest 160/160 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 763/1461.
+- **Banco (B):** bloco 27 (1301–1350, 50 casos), correção 11 (Mirrodin Besieged, Windcrag Siege, Struggle, Marisi, Taunt from the Rampart, Junk Winder, Tamiyo), bloco 28 (1351–1400, 50 casos: The One Ring, Ur-Dragon, Gitrog, Great Henge, Tireless Tracker…). Esquema: `modoEscolhido`, `incitar`, `naoDesvira`.
+- **Mesa ao vivo (beta):** cobertura do motor novo refeita com o banco 1461.
+
 ## v0.24.0 — 25/11/2026 · Mesa ao vivo no motor novo (beta) e banco com 1361 cartas
 Testes: valida 1361/0 · check 0 erros · Vitest 160/160 · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 713/1361.
 - **Mesa ao vivo (A, T22 parte 1):** chave "Motor novo (beta)", desligada por padrão. Com ela ligada, a partida roda no motor novo com o banco próprio, e o registro mostra os gatilhos (⚡), os efeitos (✧), as camadas mudando P/R e palavras-chave (▲) e as habilidades (⚙). Dá para jogar você mesmo e continuar de onde parou. Cartas fora do banco jogam só o corpo (selo ⓘ).

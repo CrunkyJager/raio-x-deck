@@ -35,3 +35,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · 872f2e9: merge T20 blocos 1–3 + 62 cartas dos casos de regra.
 - 25/11 · FARSEER · 0ba06f4: merge T43 (a)+(b).
 - 25/11 · Felipe · banco próprio sem Forge; Vite+TS+Svelte 5; 2 adeptos "sem virar várzea".
+- 25/11 · FARSEER · v0.25.0: B bloco 27, correção 11, bloco 28 (3b4eb15) → 1461 cartas; cobertura refeita (763 inteiras).
