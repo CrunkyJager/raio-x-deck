@@ -26,6 +26,8 @@ jobs:
         with: { node-version: '22' }
       - name: testa.py + partida + gabarito de planos
         run: python3 ferramentas/ci/verifica.py
+      - name: tipos (svelte-check) e build do Vite (T43)
+        run: npm ci && npm run check && npm run build
   site:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: testes
@@ -35,8 +37,12 @@ jobs:
       url: ${{ steps.publica.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: build do Vite (T43) → dist/
+        run: npm ci && npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
-        with: { path: . }
+        with: { path: dist }
       - id: publica
         uses: actions/deploy-pages@v5

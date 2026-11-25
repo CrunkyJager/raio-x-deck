@@ -960,6 +960,7 @@ a.fonte{color:inherit;text-decoration:underline;text-underline-offset:2px;font-w
   <p class="note" style="margin-top:8px">Preços em reais: menor anúncio no <a class="fonte" href="https://mypcards.com" target="_blank" rel="noopener">MYP Cards</a> (API pública); carta sem anúncio lá usa o preço do Scryfall convertido pela cotação do dia. Dados e imagens de cartas: Scryfall. Funções e popularidade: Scryfall e EDHREC, atualizados em 15/11/2026. As faixas de referência seguem o que decks de Commander costumam usar; são ponto de partida, não lei.</p>
 </div>
 <div id="pop" class="pop" hidden></div>
+<div id="rx-app"></div>
 
 <script src="cards-db.js?v=202611240900"></script>
 <script src="precos-myp.js?v=202611240900"></script>
@@ -974,6 +975,7 @@ a.fonte{color:inherit;text-decoration:underline;text-underline-offset:2px;font-w
 <script src="oponentes-edhrec.js?v=202611240900"></script>
 <script src="mesa-ui.js?v=202611240900"></script>
 <script src="montar.js?v=202611240900"></script>
+<script type="module" src="/src/main.ts"></script>
 <script>
 /* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
 (function () { const b = document.body; b.classList.add('icwait'); let feito = false;

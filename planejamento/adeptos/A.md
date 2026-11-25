@@ -1,4 +1,5 @@
 # Adepto A — T43 estrutura
-Feito: —
-Agora: começar
-Dúvidas: —
+Feito (a): Vite 8.1.7 + Svelte 5.57.3 + TS 6.0.3 (svelte-check ainda não aceita TS 7), vitest 5.1.0; `npm run dev|build|check|tipos|test`. `npm run tipos` gera `src/tipos/carta.ts` (21 tipos) de `banco/esquema.json`. Scripts clássicos do index.html + `motor/` + `dados/` copiados como estão para `dist/` (plugin no vite.config.ts); casca Svelte em `src/` monta em `#rx-app`. Pages publica `dist/` (build no CI). Fumaça no Chromium: fonte × dist com as mesmas 10 trocas do Stangg, Mesa 200 partidas ok, só os 404 de `dados/` que já existiam. raiox-testes = linha de base (161/161; 26.5/29.5/7.0/36.0 t8.7 e0; lacunas 1/34/22/31; 95/95; fuzz e0).
+Agora: (b) motor2 → src/motor em TS.
+Dúvidas: (1) Pages passa a ter só o site: `regras/`, `planejamento/`, `banco/` saem da URL pública (ninguém linka). (2) `?v=`/RAIOX_V não troquei (quem publica é o merge).
+Obs.: trabalho no worktree `~/raio-x-deck-t43` para não mexer na árvore suja da main; `cartas-rx.js`/`forge-db.js` lá são links para os da main (fora do git).
