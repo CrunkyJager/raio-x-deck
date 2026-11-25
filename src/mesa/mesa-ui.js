@@ -44,7 +44,21 @@ function roda(tipo, msg, prog) {
   }
   const id = ++WID; return new Promise((res, rej) => { WP.set(id, { res, rej, prog }); WK.postMessage(Object.assign({ id, tipo }, msg)); });
 }
-function para() { if (WK) { WK.terminate(); WK = null; } for (const [id, p] of WP) { p.rej(new Error('parado')); WP.delete(id); } }
+function para() { if (WK) { WK.terminate(); WK = null; } if (WK2) { WK2.terminate(); WK2 = null; } for (const [id, p] of WP) { p.rej(new Error('parado')); WP.delete(id); } }
+// T22 (beta): motor novo (src/motor, banco próprio) só na Mesa ao vivo, pela chave "motor novo (beta)"; o velho segue o padrão
+let WK2 = null;
+const motorNovo = () => String(store.get('vivoMotor', '0')) === '1';
+function rodaNovo(tipo, msg) {
+  if (!WK2) {
+    WK2 = new Worker(new URL('./worker-novo.ts', import.meta.url), { type: 'module' });
+    WK2.onmessage = (e) => { const p = WP.get(e.data.id); if (!p) return; WP.delete(e.data.id); e.data.erro ? p.rej(new Error(e.data.erro)) : p.res(e.data.r); };
+    WK2.onerror = (e) => { for (const [id, p] of WP) { p.rej(new Error(e.message || 'o motor novo parou')); WP.delete(id); } WK2 = null; };
+  }
+  const id = ++WID; return new Promise((res, rej) => { WP.set(id, { res, rej }); WK2.postMessage(Object.assign({ id, tipo }, msg)); });
+}
+const rodaVivo = (tipo, msg) => (motorNovo() ? rodaNovo(tipo, msg) : roda(tipo, msg));
+// o motor novo diz carta a carta o que não joga (ou que veio da reserva, fora do banco): vira o selo ⓘ (m.lac)
+const comLacs = (Ms, lacs) => (lacs ? Ms.map((M, k) => M.map((m, i) => ({ ...m, lac: (lacs[k] && lacs[k][i]) || null }))) : Ms);
 
 // ---------- seu deck e os oponentes ----------
 let A = null, EU = null, OPC = new Map();
@@ -286,8 +300,8 @@ function resTrocas() {
 
 // ---------- tela: Mesa ao vivo ----------
 let JOGO_TROCAS = 0, JOGO = null, PASSO = 0, TIMER = null, NOMES = [], PREV = null;
-const TP = { turno: '⟳', terreno: '◆', magia: '✦', remo: '✕', wipe: '☄', resp: '⟲', ataque: '⚔', bloqueio: '⛨', dano: '♥', morte: '☠', compra: '+', tutor: '⌕', combo: '∞', fim: '★' };
-const TPN = { turno: 'Novo turno', terreno: 'Terreno', magia: 'Mágica', remo: 'Remoção', wipe: 'Limpa-mesa', resp: 'Resposta', ataque: 'Ataque', bloqueio: 'Bloqueio', dano: 'Dano', morte: 'Morte', compra: 'Compra', tutor: 'Busca', combo: 'Combo', fim: 'Fim de jogo' };
+const TP = { gatilho: '⚡', efeito: '✧', camada: '▲', habil: '⚙', turno: '⟳', terreno: '◆', magia: '✦', remo: '✕', wipe: '☄', resp: '⟲', ataque: '⚔', bloqueio: '⛨', dano: '♥', morte: '☠', compra: '+', tutor: '⌕', combo: '∞', fim: '★' };
+const TPN = { gatilho: 'Gatilho', efeito: 'Efeito', camada: 'Camadas (P/R e habilidades)', habil: 'Habilidade', turno: 'Novo turno', terreno: 'Terreno', magia: 'Mágica', remo: 'Remoção', wipe: 'Limpa-mesa', resp: 'Resposta', ataque: 'Ataque', bloqueio: 'Bloqueio', dano: 'Dano', morte: 'Morte', compra: 'Compra', tutor: 'Busca', combo: 'Combo', fim: 'Fim de jogo' };
 
 // imagens do Scryfall: o carregador em lote e o cache ficam no analise.js (um só para a página)
 const IMGS = window.RAIOX.imgCache;
@@ -310,6 +324,8 @@ function painelVivo() {
       <label class="field">Vida <select id="v-vida">${[40, 30, 20].map(v => `<option ${+vida === v ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
       ${Array.from({ length: nO }, (_, k) => `<label class="field">Oponente ${k + 1} <select data-vop="${k}">${ops.map(o => `<option value="${esc(o.id)}" ${sel[k] === o.id ? 'selected' : ''}>${esc(o.nome)}</option>`).join('')}</select></label>`).join('')}
       ${trocasOn().length ? `<label class="field">Seu deck <select id="v-tro"><option value="0" ${vivoComTrocas() ? '' : 'selected'}>Lista atual</option><option value="1" ${vivoComTrocas() ? 'selected' : ''}>Com as ${trocasOn().length} trocas marcadas</option></select></label>` : ''}
+      <label class="field v-beta" title="Joga com o motor novo do Raio-X (regras do Magic, cartas do banco próprio): o registro mostra cada gatilho, efeito e P/R mudando pelas camadas. Carta com ⓘ: o motor novo ainda não a joga inteira.">
+        <input type="checkbox" id="v-novo" ${motorNovo() ? 'checked' : ''}> Motor novo <small>(beta)</small></label>
       <button class="btn" id="v-sort">Sortear oponentes</button>
       <button class="btn" id="v-eu" title="Você decide mulligan, terreno, o que lançar, ataques, bloqueios e descartes; o resto o motor faz por você">${JG ? 'Recomeçar jogando' : 'Jogar você mesmo'}</button>
       <button class="btn primary" id="v-go">${JOGO ? 'Jogar outra partida' : 'Jogar uma partida'}</button>
@@ -318,6 +334,7 @@ function painelVivo() {
   <div id="v-mesa">${JOGO ? mesaHTML() : ''}</div>`;
   $('#v-fmt').onchange = (e) => { store.set('vivoFmt', e.target.value); store.set('vivoOps', null); painelVivo(); };
   $('#v-vida').onchange = (e) => store.set('vivoVida', +e.target.value);
+  $('#v-novo').onchange = (e) => { store.set('vivoMotor', e.target.checked ? '1' : '0'); JOGO = null; JG = null; parar(); painelVivo(); };
   $$('[data-vop]').forEach(s => s.onchange = () => store.set('vivoOps', $$('[data-vop]').map(x => x.value)));
   $('#v-sort').onclick = () => { const ids = ops.map(o => o.id).filter(id => id !== 'ex:' + meuCmd()); for (let i = ids.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } store.set('vivoOps', ids.slice(0, nO)); painelVivo(); };
   const vt = $('#v-tro'); if (vt) vt.onchange = () => store.set('vivoTrocas', vt.value);
@@ -337,10 +354,10 @@ async function jogaPartida() {
     const seed = (Math.random() * 4294967296) >>> 0;
     const Dv = deckVivo(); JOGO_TROCAS = vivoComTrocas() ? trocasOn().length : 0;
     const Ms = [Dv.M, ...Ops.map(o => o.M)];
-    const jogo = roda('partida', { Dv, Ops, seed, T: 20, vida: +store.get('vivoVida', 40), nomes: ['Você', ...ids.map(id => ops.find(o => o.id === id).nome)] });
+    const jogo = rodaVivo('partida', { Dv, Ops, seed, T: 20, vida: +store.get('vivoVida', 40), nomes: ['Você', ...ids.map(id => ops.find(o => o.id === id).nome)] });
     b.textContent = 'Buscando as cartas…';
     const imgs = buscaImagens(Ms.flatMap(M => M.map(m => m.nome)));
-    JOGO = await jogo; JOGO.Ms = Ms; JOGO.cmdNome = Ms.map((M, k) => { const D = k ? Ops[k - 1] : Dv; return D.cmd ? (M[D.cmd.i].frente || M[D.cmd.i].nome) : ''; });
+    JOGO = await jogo; JOGO.Ms = comLacs(Ms, JOGO.lacs); JOGO.cmdNome = Ms.map((M, k) => { const D = k ? Ops[k - 1] : Dv; return D.cmd ? (M[D.cmd.i].frente || M[D.cmd.i].nome) : ''; });
     await Promise.race([imgs, new Promise(r => setTimeout(r, 6000))]);
     PASSO = 0; PREV = null; parar();
     $('#v-mesa').innerHTML = mesaHTML(); ligaControles(); vaiPara(0);
@@ -367,9 +384,10 @@ async function jogaEu() {
 async function avancaEu() {
   const box = $('#v-mesa'); if (!JG || !box) return;
   let r;
-  try { r = await roda('jogar', Object.assign({}, JG.msg, { esc: JG.esc, desde: JG.visto })); }
+  try { r = await rodaVivo('jogar', Object.assign({}, JG.msg, { esc: JG.esc, desde: JG.visto })); }
   catch (e) { box.innerHTML = `<div class="verdict v-bad">O motor falhou: ${esc(e.message).slice(0, 300)}</div>`; JG = null; return; }
   if (!JG) return;
+  const lacsN = r.perg ? r.perg.lacs : r.fim && r.fim.lacs; if (lacsN && !JG.lacs) { JG.lacs = 1; JG.Ms = comLacs(JG.Ms, lacsN); }
   if (r.perg) {
     const q = r.perg; JG.q = q; JG.sel = new Set(); JG.alvo = q.alvos ? q.alvos[0].v : null;
     // os lances novos (sobretudo dos oponentes) aparecem um por vez antes da pergunta
@@ -420,7 +438,7 @@ const PERG = {
   mulligan: (q) => `Sua mão inicial${q.nm ? ` (depois de ${q.nm} mulligan${q.nm > 1 ? 's' : ''})` : ''}. Fica com ela?`,
   fundo: (q) => `Clique na carta que vai para o fundo do grimório (falta${q.falta > 1 ? 'm' : ''} ${q.falta}).`,
   terreno: () => 'Clique no terreno que quer baixar.',
-  lanca: (q) => `Sua fase principal · ${q.mana} de mana. Clique no que quer lançar.`,
+  lanca: (q) => q.resp ? `Você pode responder · ${q.mana} de mana. Clique no que quer lançar, ou passe.` : `Sua fase principal · ${q.mana} de mana. Clique no que quer lançar.`,
   ataque: () => 'Combate: escolha o oponente e clique nas criaturas que atacam.',
   equipar: (q) => `Clique na criatura que vai receber ${q.x.n}.`,
   escolha: (q) => q.x.n,
