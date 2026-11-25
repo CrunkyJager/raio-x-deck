@@ -37,3 +37,6 @@
 | Devoted Druid (bloco 12) | "Put a -1/-1 counter on this creature:" como custo | custoAtv pôr marcador | decidido FARSEER: custoAtv `porMarcador {tipo, qtd}` |
 | Demon of Fate's Design (bloco 12) | "life equal to the sacrificed creature's mana value" | vm do sacrificado | decidido FARSEER: conta `vmDoSacrificado` |
 | Curiosity (bloco 12) | "Whenever enchanted creature deals damage to an opponent" | gatilho na Aura + dano só a oponente | decidido FARSEER: gat NA Aura com `quem {equipada:true}` (a criatura anexada) + gat `aOponente`; quem compra = voce |
+| Drivnod, Carnage Dominus (bloco 13) | "Exile three creature cards from your graveyard:" | custoAtv `exilarDe` só tem a zona: falta quantidade e filtro (também delve/escape) | proposta: `exilarDe {zona, f, qtd}` |
+| Dour Port-Mage (bloco 13) | "leave the battlefield without dying" | gat `sai` que não conta morte | proposta: gat `naoMorre: true` (ou ev `saiSemMorrer`) |
+| tipoMarc (bloco 13) | nomes de marcador misturados (crescimento, corpse…) | um padrão | feito no bloco 13: nomes em inglês do Oracle, como no esquema (charge, gold, bloodline, indestructible; Simic Ascendancy `crescimento` → `growth`) |

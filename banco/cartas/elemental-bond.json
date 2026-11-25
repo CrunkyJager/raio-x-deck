@@ -1,0 +1,1 @@
+{"v":2,"n":"Elemental Bond","id":"d9a7e5a6-3e41-4fc6-987a-18fe1b9d67dd","oracleHash":"3230d02b","custo":{"g":2,"p":["G"]},"vm":3,"ci":"G","cores":"G","tipos":["Enchantment"],"gat":[{"ev":"entra","quem":{"tipo":["Creature"],"ctrl":"voce","poder":{"min":3}},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco13.json"}}

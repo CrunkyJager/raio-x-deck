@@ -1,0 +1,1 @@
+{"v":2,"n":"Dolmen Gate","id":"d53d000f-c92f-4d70-ae60-8be3791da8a2","oracleHash":"e081cd70","custo":{"g":2},"vm":2,"ci":"","cores":"","tipos":["Artifact"],"subst":[{"ev":"dano","quem":{"tipo":["Creature"],"ctrl":"voce","zona":"campo","atacando":true},"combate":true,"muda":{"prevenir":true}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco13.json"}}

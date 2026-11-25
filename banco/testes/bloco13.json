@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco13",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 601–650 (Dimir Aqueduct … Emperor Mihail II)",
+ "casos": [
+  {
+   "carta": "Dimir Aqueduct",
+   "situacao": "entra com outro terreno seu no campo",
+   "espera": "entra virada e volta um terreno seu para a mão; vira para U e B juntos"
+  },
+  {
+   "carta": "Dionus, Elvish Archdruid",
+   "situacao": "no seu turno você vira um Elfo seu para mana duas vezes",
+   "espera": "na primeira ele desvira e ganha +1/+1; na segunda não (uma vez por turno); no turno do oponente nada"
+  },
+  {
+   "carta": "Diregraf Captain",
+   "situacao": "outro Zumbi seu morre",
+   "espera": "o oponente alvo perde 1; os outros Zumbis seus têm +1/+1"
+  },
+  {
+   "carta": "Diregraf Colossus",
+   "situacao": "entra com 3 cartas de Zumbi no seu cemitério; depois você conjura um Zumbi",
+   "espera": "entra com 3 marcadores +1/+1; a magia de Zumbi cria uma ficha 2/2 virada"
+  },
+  {
+   "carta": "Displace",
+   "situacao": "exila duas criaturas suas com gatilho de entrar",
+   "espera": "as duas voltam ao campo e os gatilhos de entrar disparam; com 0 alvos não faz nada"
+  },
+  {
+   "carta": "Dolmen Gate",
+   "situacao": "suas criaturas atacam e são bloqueadas",
+   "espera": "o dano de combate nelas é prevenido; as que bloqueiam suas criaturas levam dano normal"
+  },
+  {
+   "carta": "Doomed Traveler",
+   "situacao": "morre",
+   "espera": "cria uma ficha 1/1 Spirit branca com voar"
+  },
+  {
+   "carta": "Door of Destinies",
+   "situacao": "escolhe Elf e conjura dois Elfos e um Goblin",
+   "espera": "2 marcadores charge; seus Elfos ganham +2/+2; o Goblin não conta nem ganha"
+  },
+  {
+   "carta": "Dour Port-Mage",
+   "situacao": "ativa devolvendo outra criatura sua à mão",
+   "espera": "a criatura volta para a mão e você compra 1 (gatilho de sair)"
+  },
+  {
+   "carta": "Dour Port-Mage",
+   "situacao": "duas criaturas suas saem ao mesmo tempo (exiladas)",
+   "espera": "compra só 1 (um ou mais = um gatilho); morte também dispara (falta)"
+  },
+  {
+   "carta": "Dovin's Veto",
+   "situacao": "o oponente tenta anular o Veto",
+   "espera": "o Veto não é anulado e anula a magia não criatura alvo"
+  },
+  {
+   "carta": "Dracogenesis",
+   "situacao": "você tem um Dragão de vm 6 na mão",
+   "espera": "pode conjurá-lo sem pagar o custo de mana"
+  },
+  {
+   "carta": "Dragon's Hoard",
+   "situacao": "entra um Dragão seu, depois vira com 1 marcador gold",
+   "espera": "ganha 1 gold; virando e tirando o gold compra 1"
+  },
+  {
+   "carta": "Dragonlord Dromoka",
+   "situacao": "no seu turno o oponente tenta conjurar uma mágica instantânea",
+   "espera": "não pode; no turno dele pode; ninguém anula o Dromoka"
+  },
+  {
+   "carta": "Dragonlord's Servant",
+   "situacao": "conjura um Dragão de vm 5",
+   "espera": "custa 1 a menos"
+  },
+  {
+   "carta": "Dragonspeaker Shaman",
+   "situacao": "conjura um Dragão de vm 5 com Dragonlord's Servant",
+   "espera": "custa 3 a menos (2 + 1)"
+  },
+  {
+   "carta": "Drana, Liberator of Malakir",
+   "situacao": "ataca com mais duas criaturas e causa dano ao jogador (primeiro ataque)",
+   "espera": "as três atacantes ganham +1/+1 antes do dano normal"
+  },
+  {
+   "carta": "Dread Return",
+   "situacao": "flashback sacrificando três criaturas",
+   "espera": "volta a criatura alvo do cemitério ao campo e a Dread Return vai para o exílio"
+  },
+  {
+   "carta": "Dreadhorde Invasion",
+   "situacao": "sua manutenção; um Zumbi ficha 6/6 seu ataca",
+   "espera": "perde 1 de vida (amass em falta); o Zumbi ganha vínculo com a vida"
+  },
+  {
+   "carta": "Dreamtide Whale",
+   "situacao": "um oponente conjura a segunda mágica do turno",
+   "espera": "você prolifera; na primeira e na terceira não"
+  },
+  {
+   "carta": "Drivnod, Carnage Dominus",
+   "situacao": "uma criatura morre e dispara um gatilho de morte de um permanente seu (Blood Artist)",
+   "espera": "o gatilho dispara duas vezes"
+  },
+  {
+   "carta": "Drossforge Bridge",
+   "situacao": "entra",
+   "espera": "entra virada; é indestrutível; vira para B ou R"
+  },
+  {
+   "carta": "Drownyard Temple",
+   "situacao": "está no cemitério e você paga 3",
+   "espera": "volta ao campo virada"
+  },
+  {
+   "carta": "Drumbellower",
+   "situacao": "no passo de desvirar de um oponente",
+   "espera": "suas criaturas desviram"
+  },
+  {
+   "carta": "Dualcaster Mage",
+   "situacao": "entra com lampejo em resposta a um Lightning Bolt do oponente",
+   "espera": "copia o Bolt; você pode escolher o alvo novo da cópia"
+  },
+  {
+   "carta": "Dusk // Dawn",
+   "situacao": "conjura Dusk com criaturas 3/3, 2/2 e 5/1",
+   "espera": "morrem a 3/3 e a 5/1; a 2/2 fica"
+  },
+  {
+   "carta": "Dusk // Dawn",
+   "situacao": "conjura Dawn do cemitério",
+   "espera": "voltam para a mão as criaturas de poder 2 ou menos do seu cemitério (aftermath em falta)"
+  },
+  {
+   "carta": "Dusk Legion Sergeant",
+   "situacao": "sacrifica e depois um Vampiro não ficha seu morre",
+   "espera": "o Vampiro volta com um marcador −1/−1 (persistir); ficha de Vampiro não"
+  },
+  {
+   "carta": "Dusk Legion Zealot",
+   "situacao": "entra",
+   "espera": "você compra 1 e perde 1"
+  },
+  {
+   "carta": "Dwarven Mine",
+   "situacao": "entra com três outras Montanhas suas",
+   "espera": "entra desvirada e cria uma ficha 1/1 Dwarf vermelha"
+  },
+  {
+   "carta": "Dwarven Mine",
+   "situacao": "entra com duas outras Montanhas",
+   "espera": "entra virada e não cria ficha"
+  },
+  {
+   "carta": "Earthshaker Dreadmaw",
+   "situacao": "entra com dois outros Dinossauros seus",
+   "espera": "compra 2"
+  },
+  {
+   "carta": "Echo of Eons",
+   "situacao": "flashback",
+   "espera": "cada jogador embaralha mão e cemitério no grimório e compra 7"
+  },
+  {
+   "carta": "Edgar, Charmed Groom",
+   "situacao": "morre",
+   "espera": "volta ao campo transformado em Edgar Markov's Coffin"
+  },
+  {
+   "carta": "Edgar, Charmed Groom",
+   "situacao": "Coffin na sua manutenção pela terceira vez",
+   "espera": "cria a terceira ficha 1/1 Vampire com vínculo, tira os 3 marcadores bloodline e transforma de volta em Edgar"
+  },
+  {
+   "carta": "Edric, Spymaster of Trest",
+   "situacao": "a criatura de um oponente causa dano de combate a outro oponente seu",
+   "espera": "o controlador da criatura pode comprar 1; dano a você não dispara"
+  },
+  {
+   "carta": "Efficient Construction",
+   "situacao": "conjura uma mágica de artefato",
+   "espera": "cria uma ficha 1/1 Thopter artefato com voar"
+  },
+  {
+   "carta": "Elanor Gardner",
+   "situacao": "entra; no seu passo final",
+   "espera": "cria uma Food; no final pode buscar um terreno básico virado (a condição de sacrificar Food está em falta)"
+  },
+  {
+   "carta": "Elas il-Kor, Sadistic Pilgrim",
+   "situacao": "outra criatura sua entra e depois morre",
+   "espera": "você ganha 1; depois cada oponente perde 1"
+  },
+  {
+   "carta": "Electroduplicate",
+   "situacao": "copia uma criatura sua",
+   "espera": "a ficha tem pressa e é sacrificada no início do passo final"
+  },
+  {
+   "carta": "Elemental Bond",
+   "situacao": "entram uma criatura sua 3/3 e uma 2/2",
+   "espera": "compra 1 (só a de poder 3)"
+  },
+  {
+   "carta": "Elenda's Hierophant",
+   "situacao": "você ganha vida duas vezes e depois ela morre como 3/3",
+   "espera": "fica 3/3 e cria três fichas 1/1 Vampire com vínculo com a vida"
+  },
+  {
+   "carta": "Elspeth, Storm Slayer",
+   "situacao": "+1",
+   "espera": "cria duas fichas 1/1 Soldier (dobro)"
+  },
+  {
+   "carta": "Elspeth, Storm Slayer",
+   "situacao": "0 com três criaturas suas",
+   "espera": "cada uma ganha +1/+1 e voar até o seu próximo turno"
+  },
+  {
+   "carta": "Elvish Archdruid",
+   "situacao": "você controla o Archdruid e mais dois Elfos",
+   "espera": "vira para GGG; os outros dois Elfos têm +1/+1"
+  },
+  {
+   "carta": "Elvish Warmaster",
+   "situacao": "entram dois Elfos juntos e depois mais um no mesmo turno",
+   "espera": "cria uma só ficha 1/1 Elf Warrior (um ou mais, uma vez por turno)"
+  },
+  {
+   "carta": "Emeria Angel",
+   "situacao": "um terreno seu entra",
+   "espera": "pode criar uma ficha 1/1 Bird com voar"
+  },
+  {
+   "carta": "Emeria Shepherd",
+   "situacao": "entra uma Plains sua com um encantamento no seu cemitério",
+   "espera": "pode devolver o encantamento ao campo; com terreno que não é Plains, só para a mão"
+  },
+  {
+   "carta": "Emeria, the Sky Ruin",
+   "situacao": "sua manutenção com sete Plains",
+   "espera": "pode devolver uma criatura do seu cemitério ao campo; com seis não"
+  },
+  {
+   "carta": "Emperor Mihail II",
+   "situacao": "topo do grimório é um Merfolk; você o conjura de lá e paga 1",
+   "espera": "pode conjurar do topo e cria uma ficha 1/1 Merfolk azul"
+  }
+ ]
+}
