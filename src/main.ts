@@ -6,6 +6,7 @@
 import { mount, unmount } from 'svelte';
 import App from './App.svelte';
 import Resumo from './telas/Resumo.svelte';
+import TelaAnalise from './telas/Analise.svelte';
 import type { Analise } from './analise/analise';
 
 // A casca (App.svelte) vai primeiro e direto no <body>, antes do primeiro <script>, no mesmo lugar onde o HTML
@@ -15,12 +16,11 @@ mount(App, { target: document.body, anchor: document.body.querySelector('script'
 // Telas em componente que o analise.ts desenha a cada análise (ver telas() lá): monta no lugar do <template>
 // e desmonta a anterior, porque o #out inteiro é refeito a cada run().
 const vivas: Record<string, ReturnType<typeof mount>> = {};
-window.RAIOX_TELAS = {
-  resumo(lugar: Element, A: Analise) {
-    if (vivas.resumo) unmount(vivas.resumo);
-    vivas.resumo = mount(Resumo, { target: lugar.parentNode as Element, anchor: lugar, props: { A } });
-  },
+const tela = (nome: string, C: typeof Resumo) => (lugar: Element, A: Analise) => {
+  if (vivas[nome]) unmount(vivas[nome]);
+  vivas[nome] = mount(C, { target: lugar.parentNode as Element, anchor: lugar, props: { A } });
 };
+window.RAIOX_TELAS = { resumo: tela('resumo', Resumo), analise: tela('analise', TelaAnalise) };
 
 async function sobe(nome: string, carrega: () => Promise<unknown>) {
   try { await carrega(); } catch (err) { console.error(`Raio-X: ${nome} não subiu`, err); }
