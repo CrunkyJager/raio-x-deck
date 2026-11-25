@@ -733,6 +733,10 @@ export interface RxToken {
    * gatilhos da ficha (Circle of Power, Cornered by Black Mages)
    */
   gat?: RxGat[];
+  /**
+   * estáticas da própria ficha; afeta 'este' = a ficha (Construct +1/+1 por artefato: continuo; Gnome Soldier P/R = artefatos e/ou criaturas: ptDefinido)
+   */
+  est?: RxEst[];
 }
 
 /**

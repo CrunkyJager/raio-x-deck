@@ -1,0 +1,48 @@
+{
+ "bloco": "correcao12",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do bloco 28 (FARSEER): campo token.est (estáticas da própria ficha) nos Constructs (Digsite Engineer, Simulacrum Synthesizer, os dois Urza) e no Gnome Soldier das duas faces de Thousand Moons Smithy; Wind Crystal sem o subst vidaMuda (dobrava a perda); Trailblazer's Boots sem a falta do supertipo",
+ "casos": [
+  {
+   "carta": "Digsite Engineer",
+   "situacao": "você conjura um artefato e paga {2}; você controla 4 artefatos",
+   "espera": "cria um Construct que fica 4/4 (+1/+1 por artefato, est na ficha)"
+  },
+  {
+   "carta": "Simulacrum Synthesizer",
+   "situacao": "entra outro artefato seu de VM 3; você controla 3 artefatos",
+   "espera": "cria um Construct 3/3 (contando a própria ficha e o Synthesizer)"
+  },
+  {
+   "carta": "Urza, Chief Artificer",
+   "situacao": "seu fim de turno com 2 artefatos",
+   "espera": "cria um Construct que fica 3/3 (os 2 + a própria ficha)"
+  },
+  {
+   "carta": "Urza, Lord High Artificer",
+   "situacao": "entra sem outros artefatos",
+   "espera": "cria um Construct 1/1 (só ele mesmo é artefato)"
+  },
+  {
+   "carta": "Thousand Moons Smithy",
+   "situacao": "entra; você controla 2 artefatos/criaturas além da ficha",
+   "espera": "cria Gnome Soldier com P/R = 3 (ptDefinido na ficha)"
+  },
+  {
+   "carta": "Barracks of the Thousand",
+   "situacao": "você conjura uma criatura artefato; controla 4 artefatos e/ou criaturas",
+   "espera": "cria Gnome Soldier que fica 5/5 contando a si mesma"
+  },
+  {
+   "carta": "The Wind Crystal",
+   "situacao": "você ganharia 3 de vida; você perderia 3 de vida",
+   "espera": "ganha 3 (o dobro é falta); perde 3 (não dobra mais a perda)"
+  },
+  {
+   "carta": "Trailblazer's Boots",
+   "situacao": "equipada; oponente controla só terrenos básicos",
+   "espera": "pode ser bloqueada (o filtro nao Basic pega o supertipo)"
+  }
+ ]
+}
