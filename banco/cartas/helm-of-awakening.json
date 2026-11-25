@@ -1,0 +1,1 @@
+{"v":2,"n":"Helm of Awakening","id":"f2fcef65-4873-4b1f-a257-b8648097c990","oracleHash":"c87022b8","custo":{"g":2},"vm":2,"ci":"","cores":"","tipos":["Artifact"],"est":[{"modo":"reduzCusto","afeta":{"tipo":["Spell"],"ctrl":"qualquer","zona":"pilha"},"qtd":1}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco35.json"}}

@@ -1,0 +1,108 @@
+{
+ "bloco": "bloco34",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "deck do Ultra Magnus/Ultron do Edigar (pedido do Felipe pelo FARSEER), parte 1: Ultra Magnus … Cryptothrall",
+ "casos": [
+  {
+   "carta": "Ultra Magnus, Tactician // Ultra Magnus, Armored Carrier",
+   "situacao": "ataca e põe da mão uma criatura artefato virada e atacando; no fim do combate converte",
+   "espera": "a criatura entra atacando; no fim do combate Ultra Magnus vira o Armored Carrier; ao atacar com o Carrier, as atacantes ficam indestrutíveis e, com poder total ≥ 8, converte de volta"
+  },
+  {
+   "carta": "Ultron, Artificial Malevolence",
+   "situacao": "entra Sol Ring sob seu controle e você paga {2}",
+   "espera": "cria uma ficha cópia do Sol Ring, que também é criatura 2/2 Robot Villain"
+  },
+  {
+   "carta": "Krang, Utrom Warlord",
+   "situacao": "você controla Krang e uma criatura artefato",
+   "espera": "a outra criatura artefato tem voar, atropelar, indestrutível e pressa"
+  },
+  {
+   "carta": "Memnarch, the Warden",
+   "situacao": "entra; depois ataca com 5 artefatos seus (contando os Myr)",
+   "espera": "cria 2 Myr 1/1 artefato; ao atacar compra 5"
+  },
+  {
+   "carta": "Mycosynth Golem",
+   "situacao": "com o Golem e 3 outros artefatos, conjura uma criatura artefato de {6}",
+   "espera": "a criatura custa {2} (4 a menos, só genérico); o próprio Golem custa 1 a menos por artefato"
+  },
+  {
+   "carta": "Metalwork Colossus",
+   "situacao": "Sol Ring e Thran Dynamo no campo (vm 1 + 4); depois, no cemitério, sacrifica 2 artefatos",
+   "espera": "custa {6}; do cemitério volta à mão"
+  },
+  {
+   "carta": "Blightsteel Colossus",
+   "situacao": "vai ao cemitério (descarte ou morte)",
+   "espera": "é embaralhado no grimório do dono em vez disso"
+  },
+  {
+   "carta": "Darksteel Forge",
+   "situacao": "um oponente destrói todos os artefatos",
+   "espera": "os artefatos de quem controla a Forge ficam"
+  },
+  {
+   "carta": "Platinum Angel",
+   "situacao": "em campo, você chega a 0 de vida",
+   "espera": "Mesa: perde (falta); análise: proteção sem efeito no motor"
+  },
+  {
+   "carta": "Darksteel Angel",
+   "situacao": "um efeito põe marcador -1/-1 numa criatura sua",
+   "espera": "o marcador não é posto"
+  },
+  {
+   "carta": "Arcee, Sharpshooter // Arcee, Acrobatic Coupe",
+   "situacao": "Arcee com 1 marcador +1/+1; paga {1} e tira o marcador mirando uma criatura",
+   "espera": "1 de dano na criatura; Arcee vira a Acrobatic Coupe"
+  },
+  {
+   "carta": "Ratchet, Field Medic // Ratchet, Rescue Racer",
+   "situacao": "você ganha 3 de vida com Sol Ring (vm 1) no cemitério",
+   "espera": "Ratchet converte; Sol Ring volta ao campo virado; quando um artefato seu (não ficha) vai do campo ao cemitério, o Racer converte de volta, 1 vez por turno"
+  },
+  {
+   "carta": "Alibou, Ancient Witness",
+   "situacao": "ataca com 2 criaturas artefato (Sol Ring virado também)",
+   "espera": "X = 3 artefatos virados: 3 de dano em qualquer alvo e vidência 3"
+  },
+  {
+   "carta": "Ancient Stone Idol",
+   "situacao": "conjurada com 4 criaturas atacando; depois morre",
+   "espera": "custa {6}; ao morrer cria Construct 6/12 com atropelar"
+  },
+  {
+   "carta": "Brilliant Restoration",
+   "situacao": "3 artefatos e 1 encantamento no seu cemitério",
+   "espera": "os 4 voltam ao campo"
+  },
+  {
+   "carta": "Buried Ruin",
+   "situacao": "paga {2}, vira e sacrifica mirando um artefato no seu cemitério",
+   "espera": "o artefato volta à mão"
+  },
+  {
+   "carta": "Canoptek Spyder",
+   "situacao": "entra uma criatura artefato sua (não ficha); depois um Veículo; depois uma ficha artefato",
+   "espera": "compra 1, compra 1, nada"
+  },
+  {
+   "carta": "Cloud Key",
+   "situacao": "entra; depois você conjura um artefato",
+   "espera": "o artefato custa {1} a menos"
+  },
+  {
+   "carta": "Cradle Clearcutter",
+   "situacao": "em campo (3/6), vira",
+   "espera": "dá {G}{G}{G}"
+  },
+  {
+   "carta": "Cryptothrall",
+   "situacao": "oponente tenta mirar outra criatura artefato sua",
+   "espera": "não pode: ela tem resguardo (hexproof)"
+  }
+ ]
+}
