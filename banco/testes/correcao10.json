@@ -1,0 +1,18 @@
+{
+ "bloco": "correcao10",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do bloco 26 (decisão FARSEER, ae0c6d7): ficha porJogadorAtacado na Soaring Lightbringer. Adeline e Ainok ficam com repetirCada cadaOponente (o Oracle é 'for each opponent', não 'por jogador atacado'); pergunta aberta ao FARSEER.",
+ "casos": [
+  {
+   "carta": "Soaring Lightbringer",
+   "situacao": "você ataca dois oponentes (A e B) no mesmo combate",
+   "espera": "cria duas fichas Glimmer 1/1 viradas, uma atacando A e outra atacando B"
+  },
+  {
+   "carta": "Soaring Lightbringer",
+   "situacao": "mesa de 4; você ataca só o oponente A",
+   "espera": "cria uma ficha Glimmer 1/1 virada atacando A"
+  }
+ ]
+}
