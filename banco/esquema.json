@@ -196,6 +196,45 @@
   "impostoPorAlvo": {
    "$ref": "#/$defs/mana",
    "description": "custo a mais para cada alvo além do primeiro (Fireball)"
+  },
+  "niveis": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "n",
+     "custo"
+    ],
+    "properties": {
+     "n": {
+      "type": "integer",
+      "description": "nível (2, 3…); o nível 1 é o resto da carta"
+     },
+     "custo": {
+      "$ref": "#/$defs/mana"
+     },
+     "est": {
+      "type": "array",
+      "items": {
+       "$ref": "#/$defs/est"
+      }
+     },
+     "gat": {
+      "type": "array",
+      "items": {
+       "$ref": "#/$defs/gat"
+      }
+     },
+     "atv": {
+      "type": "array",
+      "items": {
+       "$ref": "#/$defs/atv"
+      }
+     }
+    }
+   },
+   "description": "Classe: ganhar o nível como feitiço pagando o custo (716)"
   }
  },
  "$defs": {
@@ -571,6 +610,10 @@
     "poderAcimaBase": {
      "type": "boolean",
      "description": "poder maior que o poder base"
+    },
+    "historico": {
+     "type": "boolean",
+     "description": "artefato, lendário ou Saga (Excalibur)"
     }
    }
   },
@@ -900,7 +943,9 @@
       "virarMonarca",
       "descobrir",
       "vigiar",
-      "lutar"
+      "lutar",
+      "moverMarcador",
+      "tentarAnel"
      ]
     },
     "talvez": {
@@ -1004,7 +1049,7 @@
        }
       }
      },
-     "description": "buscar com divisão (Cultivate: 1 no campo virado, 1 na mão)"
+     "description": "buscar com divisão (Cultivate: 1 no campo virado, 1 na mão); também no cavar (Expressive Iteration: 1 na mão, 1 no fundo, 1 no exílio jogável)"
     },
     "token": {
      "$ref": "#/$defs/token"
@@ -1207,6 +1252,30 @@
     "soConjurar": {
      "type": "boolean",
      "description": "op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)"
+    },
+    "ateAchar": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "f"
+     ],
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "qtd": {
+       "$ref": "#/$defs/qtd"
+      }
+     },
+     "description": "cavar: revela do topo ATÉ achar qtd cartas que batem em f (Empty the Laboratory, Etali); o resto vai conforme `resto`"
+    },
+    "paraObj": {
+     "$ref": "#/$defs/objeto",
+     "description": "moverMarcador: o objeto que recebe os marcadores (o `em` é de onde saem; Forgotten Ancient)"
+    },
+    "aleatorio": {
+     "type": "boolean",
+     "description": "descartar ao acaso (Gamble)"
     }
    },
    "additionalProperties": false,
@@ -1419,6 +1488,10 @@
     "monarca": {
      "type": "boolean",
      "description": "você é o monarca"
+    },
+    "portadorDoAnel": {
+     "type": "boolean",
+     "description": "você tem um Portador do Anel (o Anel te tentou)"
     }
    }
   },
@@ -1618,7 +1691,8 @@
       "inicioCombate",
       "final",
       "principal1",
-      "principal2"
+      "principal2",
+      "fimCombate"
      ],
      "description": "ev fase"
     },
@@ -1871,7 +1945,7 @@
     },
     "deHabil": {
      "type": "boolean",
-     "description": "aumentaCusto: vale para habilidades, não mágicas"
+     "description": "aumentaCusto/reduzCusto: vale para habilidades, não mágicas (Forensic Gadgeteer)"
     },
     "por": {
      "$ref": "#/$defs/filtro",

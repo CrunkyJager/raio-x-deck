@@ -40,3 +40,16 @@
 | Drivnod, Carnage Dominus (bloco 13) | "Exile three creature cards from your graveyard:" | exilarDe com filtro e qtd | decidido FARSEER: custoAtv `exilarDe` aceita a zona OU `{zona, f, qtd}` |
 | Dour Port-Mage (bloco 13) | "leave the battlefield without dying" | gat sai sem morte | decidido FARSEER: gat `naoMorre: true` com ev `sai` |
 | tipoMarc (bloco 13) | nomes de marcador | padrão | decidido FARSEER: inglês do Oracle (growth, charge…) |
+
+## Decisões do lote do bloco 15 (FARSEER 25/11)
+- rad: SEM campo novo; marcador `rad` em jogador (op marcador) + regra do motor no início da principal 1 (fila do A).
+- revelar até achar: fx `ateAchar {f, qtd}` no cavar.
+- historic: filtro `historico: true`.
+- mover marcadores: op `moverMarcador` (`em` = de onde, `paraObj` = quem recebe, `tipoMarc`, `qtd`).
+- fim de combate: passo `fimCombate`.
+- Anel: op `tentarAnel` + cond `portadorDoAnel`.
+- Classe: `niveis: [{n, custo, est/gat/atv}]` na carta.
+- exílio jogável: `destinos` vale também no cavar (Expressive Iteration).
+- ao acaso: fx `aleatorio: true` no descartar.
+- deHabil vale também no reduzCusto (Forensic Gadgeteer).
+- Ficam em `falta` por ora (≤2 cartas): rebound, Room, monstruoso, meld, dash.
