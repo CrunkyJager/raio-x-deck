@@ -1,0 +1,283 @@
+{
+ "bloco": "bloco11",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 501–550, escritas do Oracle; mesmo formato do bloco1.json",
+ "casos": [
+  {
+   "carta": "Castle Embereth",
+   "situacao": "sem Montanha / com Montanha",
+   "espera": "entra virado / desvirado; {1}{R}{R},{T}: suas criaturas +1/+0"
+  },
+  {
+   "carta": "Casualties of War",
+   "situacao": "oponente com artefato, criatura, encantamento, terreno e planeswalker",
+   "espera": "escolhe de 1 a 5 modos; destrói um de cada tipo escolhido"
+  },
+  {
+   "carta": "Cathars' Crusade",
+   "situacao": "3 criaturas suas; entra a quarta",
+   "espera": "1 marcador +1/+1 em cada uma das 4"
+  },
+  {
+   "carta": "Cauldron of Essence",
+   "situacao": "morre uma criatura sua",
+   "espera": "cada oponente perde 1, você ganha 1"
+  },
+  {
+   "carta": "Cauldron of Essence",
+   "situacao": "{1}{B}{G}, vira, sacrifica criatura; no combate",
+   "espera": "não ativa (só como feitiço); na principal devolve criatura do seu cemitério ao campo"
+  },
+  {
+   "carta": "Cemetery Reaper",
+   "situacao": "2 Zumbis seus",
+   "espera": "os outros Zumbis +1/+1; {2}{B},{T}: exila criatura de qualquer cemitério e cria Zumbi 2/2"
+  },
+  {
+   "carta": "Cemetery Tampering",
+   "situacao": "manutenção com 18 cartas no cemitério; moe 3",
+   "espera": "21 cartas: pode jogar de graça a carta escondida"
+  },
+  {
+   "carta": "Cemetery Tampering",
+   "situacao": "manutenção com 10 cartas; moe 3",
+   "espera": "13: não joga a escondida"
+  },
+  {
+   "carta": "Cephalid Coliseum",
+   "situacao": "{T}: U",
+   "espera": "1 de dano em você"
+  },
+  {
+   "carta": "Cephalid Coliseum",
+   "situacao": "6 cartas no cemitério / 7",
+   "espera": "não ativa / alvo compra 3 e descarta 3"
+  },
+  {
+   "carta": "Champion of Dusk",
+   "situacao": "entra com 3 Vampiros seus (contando ele)",
+   "espera": "compra 3, perde 3"
+  },
+  {
+   "carta": "Champion of the Perished",
+   "situacao": "entra outro Zumbi seu / Zumbi de oponente",
+   "espera": "+1 marcador / nada"
+  },
+  {
+   "carta": "Champion's Helm",
+   "situacao": "equipando criatura lendária / comum",
+   "espera": "+2/+2 e antimagia / só +2/+2"
+  },
+  {
+   "carta": "Champions of Minas Tirith",
+   "situacao": "entra",
+   "espera": "você vira monarca"
+  },
+  {
+   "carta": "Charismatic Conqueror",
+   "situacao": "oponente põe criatura desvirada e não vira",
+   "espera": "você cria Vampiro 1/1 com vínculo com a vida"
+  },
+  {
+   "carta": "Charismatic Conqueror",
+   "situacao": "oponente vira a criatura que entrou",
+   "espera": "não cria ficha"
+  },
+  {
+   "carta": "Chief of the Foundry",
+   "situacao": "2 criaturas artefato e um Sol Ring",
+   "espera": "as criaturas artefato +1/+1 (o Sol Ring não muda nada)"
+  },
+  {
+   "carta": "Chimil, the Inner Sun",
+   "situacao": "sua mágica e o oponente tenta anular",
+   "espera": "não pode ser anulada"
+  },
+  {
+   "carta": "Chimil, the Inner Sun",
+   "situacao": "sua etapa final",
+   "espera": "descobrir 5"
+  },
+  {
+   "carta": "Chivalric Alliance",
+   "situacao": "ataca com 1 / com 2",
+   "espera": "nada / compra 1"
+  },
+  {
+   "carta": "Chivalric Alliance",
+   "situacao": "{2} e descarta",
+   "espera": "Cavaleiro 2/2 branco e azul com vigilância"
+  },
+  {
+   "carta": "Choked Estuary",
+   "situacao": "revela Island da mão / não revela",
+   "espera": "entra desvirado / virado"
+  },
+  {
+   "carta": "Cid, Freeflier Pilot",
+   "situacao": "conjura Equipamento de 3",
+   "espera": "custa 2"
+  },
+  {
+   "carta": "Cid, Freeflier Pilot",
+   "situacao": "seu turno / turno do oponente",
+   "espera": "voa / não voa"
+  },
+  {
+   "carta": "Circle of Power",
+   "situacao": "2 Wizards seus",
+   "espera": "compra 2, perde 2, Wizard 0/1; Wizards +1/+0 e vínculo com a vida no turno"
+  },
+  {
+   "carta": "Clavileño, First of the Blessed",
+   "situacao": "ataca com Vampiro",
+   "espera": "o Vampiro vira Demônio; ao morrer compra 1 e cria Vampiro Demônio 4/3 voador virado"
+  },
+  {
+   "carta": "Cleansing Nova",
+   "situacao": "modo 1 / modo 2",
+   "espera": "destrói todas as criaturas / todos os artefatos e encantamentos"
+  },
+  {
+   "carta": "Cleaver Skaab",
+   "situacao": "{3},{T}, sacrifica Zumbi 4/4",
+   "espera": "2 fichas cópia do Zumbi sacrificado"
+  },
+  {
+   "carta": "Clever Concealment",
+   "situacao": "alvo 3 permanentes não terreno seus",
+   "espera": "as 3 faseiam até o seu próximo turno"
+  },
+  {
+   "carta": "Cloud, Ex-SOLDIER",
+   "situacao": "entra com Equipamento seu",
+   "espera": "anexa a ele"
+  },
+  {
+   "carta": "Cloud, Ex-SOLDIER",
+   "situacao": "ataca com 2 criaturas equipadas; Cloud 7/7",
+   "espera": "compra 2 e 2 Tesouros"
+  },
+  {
+   "carta": "Cloud, Midgar Mercenary",
+   "situacao": "entra",
+   "espera": "busca Equipamento para a mão"
+  },
+  {
+   "carta": "Cloud, Midgar Mercenary",
+   "situacao": "equipado; gatilho do Equipamento anexado",
+   "espera": "dispara 2 vezes"
+  },
+  {
+   "carta": "Cloudkin Seer",
+   "situacao": "entra",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Cloudshredder Sliver",
+   "situacao": "2 Slivers seus",
+   "espera": "os 2 voam e têm pressa"
+  },
+  {
+   "carta": "Codsworth, Handy Helper",
+   "situacao": "comandante seu é alvo do oponente",
+   "espera": "resguardo {2}"
+  },
+  {
+   "carta": "Codsworth, Handy Helper",
+   "situacao": "{T}: WW",
+   "espera": "só para Aura ou Equipamento"
+  },
+  {
+   "carta": "Cold-Eyed Selkie",
+   "situacao": "causa 3 de combate a jogador",
+   "espera": "pode comprar 3"
+  },
+  {
+   "carta": "Collective Inferno",
+   "situacao": "escolhe Goblin; Goblin seu causa 2",
+   "espera": "causa 4"
+  },
+  {
+   "carta": "Colossal Grave-Reaver",
+   "situacao": "moe 3 com 2 criaturas",
+   "espera": "uma das criaturas vai ao campo"
+  },
+  {
+   "carta": "Colossus Hammer",
+   "situacao": "equipado",
+   "espera": "+10/+10; equipar 8"
+  },
+  {
+   "carta": "Combat Celebrant",
+   "situacao": "ataca e exerce",
+   "espera": "desvira as outras suas e combate extra (uma vez por turno)"
+  },
+  {
+   "carta": "Command Beacon",
+   "situacao": "{T}, sacrifica",
+   "espera": "comandante da zona de comando para a mão"
+  },
+  {
+   "carta": "Commissar Severina Raine",
+   "situacao": "ataca com mais 3",
+   "espera": "cada oponente perde 3"
+  },
+  {
+   "carta": "Commissar Severina Raine",
+   "situacao": "{2}, sacrifica outra criatura",
+   "espera": "ganha 2 e compra 1"
+  },
+  {
+   "carta": "Communal Brewing",
+   "situacao": "entra mirando 2 oponentes",
+   "espera": "cada um compra 1; 3 marcadores ingredient"
+  },
+  {
+   "carta": "Communal Brewing",
+   "situacao": "3 ingredient; conjura criatura",
+   "espera": "entra com 3 marcadores +1/+1 a mais"
+  },
+  {
+   "carta": "Composer of Spring",
+   "situacao": "entra encantamento com 3 / 6 encantamentos",
+   "espera": "terreno da mão virado / criatura ou terreno da mão virado"
+  },
+  {
+   "carta": "Conqueror's Flail",
+   "situacao": "equipada; permanentes seus de 3 cores",
+   "espera": "+3/+3; oponentes não conjuram no seu turno"
+  },
+  {
+   "carta": "Consider",
+   "situacao": "—",
+   "espera": "vigiar 1, compra 1"
+  },
+  {
+   "carta": "Constricting Sliver",
+   "situacao": "entra Sliver seu",
+   "espera": "pode exilar criatura do oponente até o Sliver sair"
+  },
+  {
+   "carta": "Coppercoat Vanguard",
+   "situacao": "2 outros Humanos seus",
+   "espera": "+1/+0 e resguardo {1}"
+  },
+  {
+   "carta": "Copperline Gorge",
+   "situacao": "2 outros terrenos / 3",
+   "espera": "desvirado / virado"
+  },
+  {
+   "carta": "Cordial Vampire",
+   "situacao": "morre criatura de oponente",
+   "espera": "+1 marcador em cada Vampiro seu"
+  },
+  {
+   "carta": "Cornered by Black Mages",
+   "situacao": "alvo oponente",
+   "espera": "sacrifica criatura à escolha dele; você cria Wizard 0/1"
+  }
+ ]
+}
