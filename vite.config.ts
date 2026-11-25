@@ -7,7 +7,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { cpSync, existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const PASTAS = ['motor', 'dados'];   // motor/worker.js (importScripts) e dados/*.json (fetch, opcional)
+const PASTAS = ['motor', 'dados', 'planejamento'];   // motor/worker.js (importScripts), dados/*.json (fetch, opcional) e o roadmap (planejamento/roadmap.html, acompanhado pelo site)
 
 function classicos(): Plugin {
   let saida = 'dist';
