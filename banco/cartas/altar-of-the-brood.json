@@ -1,0 +1,1 @@
+{"v":2,"n":"Altar of the Brood","id":"c3aafcdd-c890-4971-b8a9-5bfcad794c0b","oracleHash":"346bce62","custo":{"g":1},"vm":1,"ci":"","cores":"","tipos":["Artifact"],"gat":[{"ev":"entra","quem":{"tipo":["Permanent"],"outro":true,"ctrl":"voce"},"fx":[{"op":"moer","quem":"cadaOponente","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco8.json"}}
