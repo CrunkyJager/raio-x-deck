@@ -10,3 +10,7 @@ ferramentas/calibra/*.log
 
 # T13: gerado por ferramentas/rx/converte_rx.py (11 MB); entra no git quando o motor novo usar
 cartas-rx.js
+
+# T43: Vite
+node_modules/
+dist/

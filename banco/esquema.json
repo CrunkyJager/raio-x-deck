@@ -192,6 +192,10 @@
     }
    },
    "description": "rastreio de quem escreveu e quando"
+  },
+  "impostoPorAlvo": {
+   "$ref": "#/$defs/mana",
+   "description": "custo a mais para cada alvo além do primeiro (Fireball)"
   }
  },
  "$defs": {
@@ -336,24 +340,61 @@
        "description": "devocao: cores (W U B R G); marcadores*: tipo do marcador"
       }
      }
+    },
+    {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "ate"
+     ],
+     "properties": {
+      "ate": {
+       "oneOf": [
+        {
+         "type": "integer"
+        },
+        {
+         "const": "X"
+        }
+       ]
+      }
+     },
+     "description": "de 0 a N, quem age escolhe (\"up to N\")"
     }
    ]
   },
   "jogador": {
-   "enum": [
-    "voce",
-    "oponente",
-    "cadaOponente",
-    "cadaJogador",
-    "alvoJogador",
-    "dono",
-    "controlador",
-    "doEvento",
-    "atacado",
-    "proximo",
-    "cadaAtual"
+   "oneOf": [
+    {
+     "enum": [
+      "voce",
+      "oponente",
+      "cadaOponente",
+      "cadaJogador",
+      "alvoJogador",
+      "dono",
+      "controlador",
+      "doEvento",
+      "atacado",
+      "proximo",
+      "cadaAtual"
+     ]
+    },
+    {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "alvo"
+     ],
+     "properties": {
+      "alvo": {
+       "type": "integer"
+      }
+     },
+     "description": "o jogador que é o alvo N (vários alvos)"
+    }
    ],
-   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado"
+   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários"
   },
   "filtro": {
    "type": "object",
@@ -482,6 +523,14 @@
       "type": "string"
      },
      "description": "tem estas palavras-chave"
+    },
+    "nomeUnico": {
+     "type": "boolean",
+     "description": "não tem o mesmo nome de outra permanente que você controla"
+    },
+    "poderAcimaBase": {
+     "type": "boolean",
+     "description": "poder maior que o poder base"
     }
    }
   },
@@ -538,10 +587,25 @@
      "type": "integer"
     },
     "max": {
-     "type": "integer"
+     "oneOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "const": "qualquer"
+      }
+     ]
     },
     "dividir": {
-     "type": "boolean"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "igual"
+      }
+     ],
+     "description": "true = quem conjura divide; 'igual' = dividido igualmente, arredondado para baixo (Fireball)"
     },
     "jog": {
      "enum": [
@@ -549,6 +613,10 @@
       "oponente"
      ],
      "description": "alvo pode ser também um jogador (f OU jog)"
+    },
+    "modo": {
+     "type": "integer",
+     "description": "alvo só existe se o modo N (fx modal) for escolhido"
     }
    }
   },
@@ -1031,6 +1099,27 @@
     "so": {
      "$ref": "#/$defs/filtro",
      "description": "mana: só pode ser gasta em mágica/habilidade que bata no filtro (Unclaimed Territory, Cavern of Souls)"
+    },
+    "aoGastar": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "fx": {
+       "$ref": "#/$defs/fxs"
+      }
+     },
+     "description": "op mana: gatilho quando a mana é gasta numa mágica que bate em f (Path of Ancestry)"
+    },
+    "naoAnulavel": {
+     "type": "boolean",
+     "description": "op mana: a mágica paga com esta mana não pode ser anulada (Cavern of Souls)"
+    },
+    "soConjurar": {
+     "type": "boolean",
+     "description": "op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)"
     }
    },
    "additionalProperties": false,
@@ -1300,7 +1389,7 @@
     },
     "de": {
      "type": "string",
-     "description": "proteção de/resguardo: cor, 'tudo', tipo"
+     "description": "proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo"
     },
     "tipo": {
      "type": "string"
@@ -1345,7 +1434,8 @@
     },
     "limite": {
      "enum": [
-      "umaPorTurno"
+      "umaPorTurno",
+      "umaPorTurnoPorJogador"
      ]
     },
     "deMana": {
@@ -1354,6 +1444,10 @@
     },
     "lealdade": {
      "type": "integer"
+    },
+    "se": {
+     "$ref": "#/$defs/cond",
+     "description": "\"Activate only if …\""
     }
    }
   },
@@ -1438,7 +1532,8 @@
     },
     "limite": {
      "enum": [
-      "umaPorTurno"
+      "umaPorTurno",
+      "umaPorTurnoPorJogador"
      ]
     },
     "talvez": {
@@ -1484,6 +1579,14 @@
     "ouCopia": {
      "type": "boolean",
      "description": "conjura: também quando copia"
+    },
+    "de": {
+     "$ref": "#/$defs/zona",
+     "description": "zona de origem do objeto que mudou de zona"
+    },
+    "naoDe": {
+     "$ref": "#/$defs/zona",
+     "description": "\"from anywhere other than …\""
     }
    }
   },
@@ -1648,6 +1751,10 @@
     "deHabil": {
      "type": "boolean",
      "description": "aumentaCusto: vale para habilidades, não mágicas"
+    },
+    "por": {
+     "$ref": "#/$defs/filtro",
+     "description": "naoPodeSerBloqueada / naoPodeBloquear: filtro de QUEM bloqueia (Amrou Kithkin)"
     }
    }
   },
@@ -1758,6 +1865,10 @@
     },
     "se": {
      "$ref": "#/$defs/cond"
+    },
+    "marc": {
+     "type": "string",
+     "description": "tipo do marcador ('+1/+1', 'loyalty'…)"
     }
    }
   },
@@ -1900,6 +2011,10 @@
     "custoAd": {
      "$ref": "#/$defs/custoAtv",
      "description": "custo adicional para conjurar (além da mana)"
+    },
+    "impostoPorAlvo": {
+     "$ref": "#/$defs/mana",
+     "description": "custo a mais para cada alvo além do primeiro (Fireball)"
     }
    },
    "description": "outra face (dupla face, aventura, split, modal): mesmos campos da carta, sem v/id/oracleHash/rev"
