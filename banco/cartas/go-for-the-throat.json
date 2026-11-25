@@ -1,0 +1,1 @@
+{"v":2,"n":"Go for the Throat","id":"2f092562-9e17-43cd-aeb8-d0567f99363e","oracleHash":"47e79460","custo":{"g":1,"p":["B"]},"vm":2,"ci":"B","cores":"B","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature"],"nao":["Artifact"],"zona":"campo"}}],"fx":[{"op":"destruir","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
