@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.29.0 — 25/11/2026 · motor lê redução de custo e a fonte do dano; esquema do pente geral
+Testes: valida 1585/0 · check 0 erros · Vitest 180/180 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 851/1585.
+- **Motor (A):** redução de custo (601.2f) em mágicas e habilidades, inclusive símbolos coloridos (Morophon) e tipo escolhido (Herald's Horn); fx dano com `fonte` (o alvo ou o objeto do evento causa o dano, com toque mortífero e vínculo dele) e filtro `nome`.
+- **Banco (B):** correção 17, o lote do pente geral (25 cartas): custo `devolver`, defensor (`atacado` no filtro), conta `atacantesEmVoce`, `deveBloquear`, alvo `opcao` (chute/presente), filtro `tipoEmComum`, `fundir` (Brisela, Mishra), mover `transformada`. O motor ainda não lê esses campos (próximos itens do A).
+
 ## v0.28.0 — 25/11/2026 · T20 fechada: banco cobre os 30 decks; motor lê ganho de vida e "descartar esta carta"
 Testes: valida 1585/0 · check 0 erros · Vitest 173/173 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 825/1585.
 - **Banco (B):** correção 16 (fx dano `fonte` e filtro `nome`: Chandra's Ignition, Warstorm Surge, Wrathful Raptors, Ingris, Dragon Tempest, Scourge of Valkas, Ancestral Anger, Wedding Ring). Pente geral: as 1538 cartas dos 30 decks do banco de teste estão todas no banco (T20 fechada); top 10 das faltas no pedidos-esquema.md.
