@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.12.0: B bloco 11 (84c3622) + correção 2 (d502535) + bloco 12 (af44002), 661 cartas. Leituras ok: Cleaver Skaab, Communal Brewing, Grave-Reaver, Charismatic Conqueror (ou de verdade), Diffusion Sliver, Demon, Devoted Druid. Recusada: Curiosity (gatilho dado à criatura → gat na Aura + aOponente). Esquema 671dcd0 e dd94fec.
 - 25/11 · FARSEER · v0.11.0: B correção Ashaya/Entmoot (00a4d1e) + bloco 10 (adb6e65, 561 cartas) + A motor (517f291), montar.ts (6acd3a9) e casca Svelte (84663c7). Leituras: Brood Sliver e Bloom Tender ok; Boromir Human-ou-artefato fica como falta; Calix recusado → filtro encantada. Pedidos de esquema do bloco 10 (custoAtv.vida com contagem, vida de oponente ≤ N, vida perdida por um oponente) ficam para decidir.
 - 25/11 · FARSEER · v0.10.0: B bloco 9 (f77de36, 511 cartas). Leituras ok: Avacyn Angel of Horror doEvento, Bello filtro nao Equipment/Aura. Recusadas → esquema: Ashaya (est.sub), Entmoot (token.pt com qtd; 1ª tentativa com oneOf quebrou 72 cartas → anyOf).
 - 25/11 · FARSEER · v0.9.0: A T43 faces (00919fc) + B correção faces/d20 (fed6dd7). Antes, v0.8.0 falhou no CI (mede.js precisa de typescript, job rodava verifica antes do npm ci) → acc7cd2. Limites do motor: Fire dividir (T16), Stomp efeitoTemporario, Beanstalk P/R '*'.

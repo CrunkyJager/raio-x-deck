@@ -1,0 +1,73 @@
+{
+ "bloco": "correcao2",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "correção das decisões do FARSEER (v0.11.0): tipoTodos (Urza, Chief of the Foundry, Thopter Spy Network, Weaver of Harmony), vida vmDoEvento (Citadel), vidaOponenteMax (Bloodghast), maiorVidaPerdidaOpNoTurno (Bloodchief), token.gat (Circle, Cornered), comEquipamento (Cloud)",
+ "casos": [
+  {
+   "carta": "Urza, Chief Artificer",
+   "situacao": "você controla uma criatura artefato, uma criatura não artefato e um artefato não criatura",
+   "espera": "ameaça só na criatura artefato; a afinidade conta 1 (tipoTodos)"
+  },
+  {
+   "carta": "Urza, Chief Artificer",
+   "situacao": "duas criaturas artefato no campo ao conjurar",
+   "espera": "custa {1} a menos por cada uma: 2 a menos"
+  },
+  {
+   "carta": "Chief of the Foundry",
+   "situacao": "Ornithopter, um Sol Ring e uma criatura não artefato",
+   "espera": "só o Ornithopter ganha +1/+1; o próprio Chief não"
+  },
+  {
+   "carta": "Thopter Spy Network",
+   "situacao": "uma criatura artefato e uma criatura comum causam dano de combate a um jogador",
+   "espera": "compra 1 carta; se só a criatura comum causar dano, não compra"
+  },
+  {
+   "carta": "Weaver of Harmony",
+   "situacao": "uma criatura encantamento e uma criatura comum",
+   "espera": "só a criatura encantamento ganha +1/+1"
+  },
+  {
+   "carta": "Bolas's Citadel",
+   "situacao": "topo do grimório é uma mágica de valor de mana 4",
+   "espera": "pode conjurar pagando 4 de vida em vez do custo de mana"
+  },
+  {
+   "carta": "Bolas's Citadel",
+   "situacao": "topo do grimório é um terreno",
+   "espera": "pode jogar o terreno (sem pagar vida)"
+  },
+  {
+   "carta": "Bloodghast",
+   "situacao": "um oponente com 10 de vida / todos com 11 ou mais",
+   "espera": "tem pressa / não tem pressa"
+  },
+  {
+   "carta": "Bloodchief Ascension",
+   "situacao": "dois oponentes perderam 1 de vida cada no turno",
+   "espera": "não põe marcador (nenhum perdeu 2)"
+  },
+  {
+   "carta": "Bloodchief Ascension",
+   "situacao": "um oponente perdeu 3 de vida no turno",
+   "espera": "pode pôr um marcador de missão na etapa final"
+  },
+  {
+   "carta": "Circle of Power",
+   "situacao": "resolve; depois você conjura uma mágica não criatura",
+   "espera": "ficha Wizard 0/1 causa 1 de dano a cada oponente"
+  },
+  {
+   "carta": "Cornered by Black Mages",
+   "situacao": "resolve; depois você conjura uma criatura",
+   "espera": "a ficha Wizard não causa dano"
+  },
+  {
+   "carta": "Cloud, Ex-SOLDIER",
+   "situacao": "ataca com uma criatura equipada e uma encantada (sem equipamento)",
+   "espera": "compra 1 carta (comEquipamento)"
+  }
+ ]
+}
