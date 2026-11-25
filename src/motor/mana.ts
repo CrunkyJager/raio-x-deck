@@ -20,7 +20,7 @@ M.coresDeProd = (e, o, prod) => {
     for (const id of e.campo) {
       const t = e.objs[id];
       if ((t.ctrl === o.ctrl) !== meus || !M.temTipo(e, t, 'Land')) continue;
-      for (const a of M.dadoDe(e, t).atv || []) if (a.deMana) for (const f of a.fx || [])
+      for (const a of M.atvDe(e, t)) if (a.deMana) for (const f of a.fx || [])
         if (f.op === 'mana' && f.prod !== 'refletida' && f.prod !== 'deSeusTerrenos') (M.coresDeProd(e, t, f.prod) || []).forEach(c => s.add(c));
     }
     return TIPOS.filter(c => s.has(c) && (meus || c !== 'C'));
@@ -70,7 +70,7 @@ const CUSTO_OK = new Set(['virar', 'mana', 'sacrificar', 'vida']);
 M.podeCustoAtv = (e, o, c) => {
   for (const k in c) if (!CUSTO_OK.has(k)) return false;
   if (c.sacrificar && c.sacrificar !== 'este') return false;
-  if (c.virar && (o.virada || (o.doente && M.temTipo(e, o, 'Creature')))) return false;   // CR 302.6
+  if (c.virar && (o.virada || (o.doente && M.temTipo(e, o, 'Creature') && !M.temKw(e, o, 'pressa')))) return false;   // CR 302.6, 702.10
   if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida)) return false; // CR 119.4
   if (c.mana && !M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana)) return false;
   return true;
@@ -91,7 +91,7 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
   for (const id of e.campo) {
     const o = e.objs[id];
     if (o.ctrl !== j) continue;
-    (M.dadoDe(e, o).atv || []).forEach((a, k) => {
+    M.atvDe(e, o).forEach((a, k) => {
       if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo)) return;
       if (soVirar && Object.keys(a.custo).some(x => x !== 'virar')) return;
       const p = M.pacotesDe(e, o, a, { para });
@@ -103,7 +103,7 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
 
 // ativar habilidade de mana (CR 605.3: não usa a pilha)
 M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
-  const o = e.objs[id], a = M.dadoDe(e, o).atv[k];
+  const o = e.objs[id], a = M.atvDe(e, o)[k];
   if (o.ctrl !== j || !a.deMana || !M.podeCustoAtv(e, o, a.custo)) throw new Error('mana ilegal: ' + o.n);
   const p = M.pacotesDe(e, o, a, { para })[escolha];
   pagarCustoAtv(e, o, a.custo);

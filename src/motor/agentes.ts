@@ -35,8 +35,13 @@ M.agenteBasico = () => (e, p) => {
         if ((d.vm || 0) > bv) { bv = d.vm || 0; b = i; }
       });
       if (b >= 0) return b;
+      if (meu) {                      // equipar (CR 702.6): o Equipamento que não está preso a ninguém
+        const ke = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._equipar && !M.anexadoA(e, o(op.id))
+          && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));   // já na pilha: espera resolver
+        if (ke >= 0) return ke;
+      }
       if (meu) {
-        const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.dadoDe(e, o(op.id)).atv[op.k]; return a.lealdade !== undefined || a.custo.virar; })());
+        const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || a.custo.virar; })());
         if (k3 >= 0) return k3;
       }
       return 0;

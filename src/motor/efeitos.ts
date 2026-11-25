@@ -18,7 +18,7 @@ const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 &
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
     && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo'].includes(k)));
-const emOk = v => v === undefined || v === 'este' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
+const emOk = v => v === undefined || v === 'este' || v === 'equipada' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
   && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
 M.seOk = seOk;
@@ -43,6 +43,10 @@ function objsDe(e, f, ctx) {
   if (typeof v.alvo === 'number') {
     return (ctx.alvos[v.alvo] || []).map((a, k) => ctx.ilegal[v.alvo + ':' + k] || a.o === undefined ? null : e.objs[a.o])
       .filter(o => o && (ctx.alvos[v.alvo].find(a => a.o === o.id) || {}).ts === o.ts);
+  }
+  if (v === 'equipada') {                                            // o objeto a que a fonte está presa (CR 301.5a, 303.4a)
+    const F = e.objs[ctx.este], t = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? M.anexadoA(e, F) : null;
+    return t ? [t] : [];
   }
   if (v.todos) return M.objetosQue(e, v.todos.zona ? v.todos : { ...v.todos, zona: 'campo' }, ctx);
   throw new Error('em sem suporte: ' + JSON.stringify(v));
@@ -283,6 +287,25 @@ const H = {
     },
   },
   desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) o.virada = false; } },
+  // CR 701.3: prende o Equipamento/Aura (em) ao objeto a. Equipamento só em criatura e nunca em si mesmo (301.5c);
+  // Aura só no que o encantar permite (303.4a); preso ao mesmo objeto = nada acontece (701.3b).
+  anexar: {
+    campos: ['a'],
+    ok: f => f.em !== undefined && emOk(f.a) && f.a !== undefined && (f.a === 'este' || typeof f.a.alvo === 'number'),
+    fx(e, f, ctx) {
+      const t = objsDe(e, { em: f.a }, ctx).find(o => o.zona === 'campo'); if (!t) return;
+      for (const o of objsDe(e, f, ctx)) {
+        if (o.zona !== 'campo' || o.id === t.id) continue;
+        const d = M.dadoDe(e, o), sub = d.sub || [];
+        if (sub.includes('Equipment')) { if (!M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) continue; }
+        else if (sub.includes('Aura')) { const k = (d.kw || []).find(x => x.k === 'encantar'); if (!k || !k.f || !M.bate(e, t, { ...k.f, zona: 'campo' }, ctx)) continue; }
+        else continue;
+        if (o.anexo && o.anexo.id === t.id && o.anexo.ts === t.ts) continue;
+        o.anexo = { id: t.id, ts: t.ts }; e.vCamada = (e.vCamada || 0) + 1;
+        M.log(e, o.n, 'anexado a', t.n);
+      }
+    },
+  },
   descartar: {                                                      // CR 701.9: quem descarta escolhe
     qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira',
     fx(e, f, ctx, ask) {

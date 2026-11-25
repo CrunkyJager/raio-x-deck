@@ -203,7 +203,7 @@ const modalTopo = d => d.fx && d.fx.length === 1 && d.fx[0].op === 'modal';
 
 // ---------- o que pode ser ativado (CR 602.2; lealdade CR 606) ----------
 M.podeAtivar = (e, j, o, k) => {
-  const d = M.dadoDe(e, o), a = (d.atv || [])[k];
+  const d = M.dadoDe(e, o), a = M.atvDe(e, o)[k];
   if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
   if ((d.falta || []).some(s => s.startsWith('Cost'))) return false;   // custo que o conversor não leu: não ativa errado
   if (!M.custoSuportado(a.custo) || !(a.fx && a.fx.length) || !M.fxSuportado(a.fx, { topo: false })) return false;
@@ -251,7 +251,7 @@ function opcoes(e, j) {
       if (M.podeConjurar(e, j, e.objs[id], face)) ops.push(face === undefined ? { a: 'conjurar', id } : { a: 'conjurar', id, face });
   for (const id of e.campo) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
-    (M.dadoDe(e, o).atv || []).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
+    M.atvDe(e, o).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   return ops;
@@ -400,7 +400,7 @@ const PROC = {
   },
 
   ativar(e, P, ask) {
-    const j = P.j, o = e.objs[P.id], d = M.dadoDe(e, o), a = d.atv[P.k], c = a.custo, ctx = { voce: j, este: o.id };
+    const j = P.j, o = e.objs[P.id], a = M.atvDe(e, o)[P.k], c = a.custo, ctx = { voce: j, este: o.id };
     const ex = c.virar || c.sacrificar === 'este' ? [o.id] : [];
     let x = 0;
     if (c.mana && c.mana.x) {
