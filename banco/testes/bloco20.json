@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco20",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 951–1000 (Mardu Ascendancy … Mondrak, Glory Dominus)",
+ "casos": [
+  {
+   "carta": "Mardu Ascendancy",
+   "situacao": "uma criatura não-ficha sua ataca; depois sacrifica",
+   "espera": "cria um Goblin 1/1 virado e atacando; suas criaturas ganham +0/+3"
+  },
+  {
+   "carta": "Marionette Master",
+   "situacao": "um artefato seu vai do campo ao cemitério",
+   "espera": "o oponente alvo perde vida igual ao poder dela; fabricar 3"
+  },
+  {
+   "carta": "Mariposa Military Base",
+   "situacao": "entra; depois {5} e vira",
+   "espera": "pode entrar virada com 2 rad; compra 1 (o desconto por rad é falta)"
+  },
+  {
+   "carta": "Marisi, Breaker of the Coil",
+   "situacao": "entra",
+   "espera": "nada escrito (não conjurar no combate e incitar são falta)"
+  },
+  {
+   "carta": "Marshal's Anthem",
+   "situacao": "entra com chute pago e uma criatura no cemitério",
+   "espera": "devolve a criatura ao campo; suas criaturas têm +1/+1"
+  },
+  {
+   "carta": "Martyr of Dusk",
+   "situacao": "morre",
+   "espera": "cria um Vampiro 1/1 branco com vínculo com a vida"
+  },
+  {
+   "carta": "Marwyn, the Nurturer",
+   "situacao": "outro Elfo seu entra; depois vira",
+   "espera": "marcador +1/+1 nela; dá G igual ao poder"
+  },
+  {
+   "carta": "Masked Vandal",
+   "situacao": "entra, exila uma criatura do seu cemitério",
+   "espera": "exila um artefato ou encantamento do oponente"
+  },
+  {
+   "carta": "Mass Appeal",
+   "situacao": "você tem 3 Humanos",
+   "espera": "compra 3"
+  },
+  {
+   "carta": "Master Transmuter",
+   "situacao": "{U}, vira",
+   "espera": "pode pôr um artefato da mão no campo (devolver um como custo é falta)"
+  },
+  {
+   "carta": "Master of Cruelties",
+   "situacao": "entra",
+   "espera": "primeiro ataque e toque mortífero (atacar sozinha e vida vira 1 são falta)"
+  },
+  {
+   "carta": "Master of Dark Rites",
+   "situacao": "vira e sacrifica outra criatura",
+   "espera": "dá BBB só para Vampiro, Clérigo ou Demônio"
+  },
+  {
+   "carta": "Master of Etherium",
+   "situacao": "você tem 4 artefatos e outra criatura artefato",
+   "espera": "fica 4/4; a outra ganha +1/+1"
+  },
+  {
+   "carta": "Master of the Feast",
+   "situacao": "sua manutenção",
+   "espera": "cada oponente compra 1"
+  },
+  {
+   "carta": "Master of the Pearl Trident",
+   "situacao": "você tem outro Tritão",
+   "espera": "ele tem +1/+1 e caminhada na ilha"
+  },
+  {
+   "carta": "Mavren Fein, Dusk Apostle",
+   "situacao": "dois Vampiros não-ficha seus atacam",
+   "espera": "cria um Vampiro 1/1 branco com vínculo com a vida"
+  },
+  {
+   "carta": "Megantic Sliver",
+   "situacao": "você tem outro Sliver 1/1",
+   "espera": "ele fica 4/4"
+  },
+  {
+   "carta": "Megrim",
+   "situacao": "um oponente descarta",
+   "espera": "ele leva 2"
+  },
+  {
+   "carta": "Memorial to Folly",
+   "situacao": "{2}{B}, vira e sacrifica com criatura no cemitério",
+   "espera": "entra virada; devolve a criatura à mão"
+  },
+  {
+   "carta": "Meren of Clan Nel Toth",
+   "situacao": "2 criaturas suas morreram; seu passo final mirando criatura de valor 2",
+   "espera": "ganha 2 marcadores de experiência; a criatura volta ao campo (valor maior vai para a mão)"
+  },
+  {
+   "carta": "Merfolk Cave-Diver",
+   "situacao": "uma criatura sua explora",
+   "espera": "nada escrito (gatilho de explorar é falta)"
+  },
+  {
+   "carta": "Merfolk Mistbinder",
+   "situacao": "você tem outro Tritão",
+   "espera": "ele tem +1/+1"
+  },
+  {
+   "carta": "Merfolk Skydiver",
+   "situacao": "entra mirando sua criatura; depois {3}{G}{U}",
+   "espera": "marcador +1/+1 nela; prolifera"
+  },
+  {
+   "carta": "Merfolk Sovereign",
+   "situacao": "vira mirando um Tritão",
+   "espera": "ele não pode ser bloqueado neste turno; outros Tritões +1/+1"
+  },
+  {
+   "carta": "Meriadoc Brandybuck",
+   "situacao": "dois Hobbits seus atacam",
+   "espera": "cria uma Comida"
+  },
+  {
+   "carta": "Merrow Commerce",
+   "situacao": "seu passo final",
+   "espera": "desvira seus Tritões"
+  },
+  {
+   "carta": "Merrow Reejerey",
+   "situacao": "você conjura um Tritão mirando um permanente",
+   "espera": "pode virar ou desvirar o alvo"
+  },
+  {
+   "carta": "Merry, Warden of Isengard",
+   "situacao": "dois artefatos seus entram",
+   "espera": "cria um Soldado 1/1 branco com vínculo com a vida (uma vez por turno)"
+  },
+  {
+   "carta": "Mesmeric Orb",
+   "situacao": "um permanente desvira",
+   "espera": "nada escrito (gatilho de desvirar é falta)"
+  },
+  {
+   "carta": "Metallic Mimic",
+   "situacao": "entra escolhendo Elfo; depois outro Elfo seu entra",
+   "espera": "o Elfo entra com um marcador +1/+1 a mais; ela é Elfo"
+  },
+  {
+   "carta": "Metropolis Reformer",
+   "situacao": "um oponente mira você",
+   "espera": "você tem antimagia (ganhar vida pelo dano sofrido é falta)"
+  },
+  {
+   "carta": "Might of the Meek",
+   "situacao": "mirando sua criatura com um Mouse seu",
+   "espera": "atropelar e +1/+0 até o fim do turno; compra 1"
+  },
+  {
+   "carta": "Miirym, Sentinel Wyrm",
+   "situacao": "outro Dragão não-ficha seu entra",
+   "espera": "cria uma ficha cópia não lendária dele"
+  },
+  {
+   "carta": "Mikaeus, the Unhallowed",
+   "situacao": "um Humano causa dano a você",
+   "espera": "destrói o Humano; suas outras não-Humanas +1/+1"
+  },
+  {
+   "carta": "Mikokoro, Center of the Sea",
+   "situacao": "{2}, vira",
+   "espera": "cada jogador compra 1"
+  },
+  {
+   "carta": "Mina and Denn, Wildborn",
+   "situacao": "{R}{G} mirando uma criatura",
+   "espera": "ela ganha atropelar; você joga um terreno extra por turno"
+  },
+  {
+   "carta": "Mindcrank",
+   "situacao": "um oponente perde 3 de vida",
+   "espera": "ele mói 3"
+  },
+  {
+   "carta": "Mindwrack Harpy",
+   "situacao": "início do seu combate",
+   "espera": "cada jogador mói 3"
+  },
+  {
+   "carta": "Ministrant of Obligation",
+   "situacao": "morre",
+   "espera": "pós-vida 2: dois Espíritos 1/1 brancos e pretos voadores"
+  },
+  {
+   "carta": "Mirari's Wake",
+   "situacao": "você vira um terreno para mana",
+   "espera": "dá 1 mana a mais; suas criaturas +1/+1"
+  },
+  {
+   "carta": "Mirelurk Queen",
+   "situacao": "entra mirando um jogador; depois uma carta não-terreno é moída",
+   "espera": "ele ganha 2 rad; compra 1 e marcador +1/+1 nela"
+  },
+  {
+   "carta": "Mirri, Weatherlight Duelist",
+   "situacao": "ataca",
+   "espera": "primeiro ataque (as restrições de bloqueio e ataque são falta)"
+  },
+  {
+   "carta": "Mirrodin Besieged",
+   "situacao": "você conjura um artefato; seu passo final com 15 artefatos no cemitério",
+   "espera": "cria um Myr 1/1; compra, descarta e o oponente alvo perde o jogo"
+  },
+  {
+   "carta": "Mishra, Claimed by Gix",
+   "situacao": "você ataca com 3 criaturas",
+   "espera": "cada oponente perde 3 e você ganha 3 (meld é falta)"
+  },
+  {
+   "carta": "Mist Dancer",
+   "situacao": "você tem outro Tritão",
+   "espera": "ele tem +1/+0 e voar; bis {5}{U}{U}"
+  },
+  {
+   "carta": "Mistrise Village",
+   "situacao": "{U}, vira; depois conjura uma mágica",
+   "espera": "a mágica não pode ser anulada; entra virada sem Montanha ou Floresta"
+  },
+  {
+   "carta": "Mizzix's Mastery",
+   "situacao": "mirando uma instantânea no cemitério",
+   "espera": "exila e pode conjurá-la grátis; a Mastery vai para o exílio"
+  },
+  {
+   "carta": "Mogg War Marshal",
+   "situacao": "entra e depois morre",
+   "espera": "cria um Goblin 1/1 cada vez; eco {1}{R}"
+  },
+  {
+   "carta": "Molten Gatekeeper",
+   "situacao": "outra criatura sua entra",
+   "espera": "cada oponente leva 1 (desenterrar é falta)"
+  },
+  {
+   "carta": "Mondrak, Glory Dominus",
+   "situacao": "você criaria uma ficha",
+   "espera": "cria duas"
+  }
+ ]
+}

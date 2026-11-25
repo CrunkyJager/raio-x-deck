@@ -129,3 +129,51 @@ Contagem: banco 961 cartas / fila 624 ainda não escritas.
 | Companion | 1 | 0 | Kaheera | deixar falta | |
 | custo com dois filtros (um Pântano E uma Floresta) | 1 | 0 | Jarad (escrito 2 entre Pântano/Floresta) | deixar falta | |
 | um de cada subtipo no cavar | 1 | 0 | Kaalia, Zenith Seeker (escrito até 3 entre os tipos) | deixar falta | |
+
+## Faltas em lote (bloco 19, para o FARSEER decidir junto)
+Contagem: banco 1011 cartas / fila 574 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| cond "oponente controla mais terrenos que você" | 3 | 2 | Archaeomancer's Map, Land Tax, Loyal Warhound (escritos sem a condição) | cond `maisTerrenosOponente` (soma ao lote do bloco 18) | |
+| mana gasta na mágica | 2 | 0 | Liberator (escrito sem a condição), Mana Sculpt (escrito com vmDoAlvo) | conta `manaGasta` ou deixar vm | |
+| afflict | 1 | 0 | Lazotep Sliver | kw `aflingir` n + gat "fica bloqueada" | |
+| conivir | 1 | 0 | Lethal Scheme ("cada criatura que convocou") | deixar falta | |
+| dragar | 1 | 0 | Life from the Loam | deixar falta | |
+| travar habilidades ativadas | 1 | 0 | Linvala, Keeper of Silence | est `naoPodeAtivar` com afeta | |
+| continuo que muda cor / todas as cores | 1 | 0 | Leyline of the Guildpact (também mão inicial) | deixar falta | |
+| "um de cada tipo de permanente" | 1 | 0 | Liliana, Dreadhorde General −9 | deixar falta | |
+| N-ésima do topo | 1 | 0 | Lost to Legend (escrito no topo) | deixar falta | |
+| subst de dano a jogador E aos permanentes dele | 1 | 0 | Lightning, Army of One (escrito só o jogador) | subst `jog` valer para os permanentes dele (`eSeus`) | |
+| N atacantes contra você | 1 | 0 | Mangara (escrito sem a condição) | deixar falta | |
+| mágica incolor no filtro | 1 | 0 | Liberator (escrito só artefato) | filtro `incolor` | |
+| exilada virada para baixo | 1 | 3 | Lobelia | deixar falta | |
+
+## Faltas em lote (bloco 20, para o FARSEER decidir junto)
+Contagem: banco 1061 cartas / fila 524 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| gatilho "é causado dano A esta" (enrage, ganhar o dano) | 2 | 4 | Apex Altisaur, Metropolis Reformer (Marauding Raptor e Body of Knowledge já escritos de outro jeito) | gat dano com `em` (quem recebe) além do `quem` (fonte) | |
+| gatilho "uma criatura sua explora" | 1 | 3 | Merfolk Cave-Diver | gat ev `explora` | |
+| devolver permanente à mão como custo | 2 | 0 | Master Transmuter, Mina and Denn | custoAtv `devolver {f, qtd}` | |
+| multikicker (alvos até vezesKicker) | 1 | 0 | Marshal's Anthem (escrito: quantos quiser) | alvo `max` aceitar qtd | |
+| incitar (goad) | 1 | 0 | Marisi | deixar falta | |
+| gatilho de desvirar | 1 | 0 | Mesmeric Orb | deixar falta | |
+| desenterrar (unearth) | 1 | 0 | Molten Gatekeeper | deixar falta | |
+| ataca sozinha / não bloqueada / vida vira 1 | 1 | 0 | Master of Cruelties | deixar falta | |
+| restrição de bloqueio e ataque | 1 | 0 | Mirri | deixar falta | |
+| naoPodeConjurar só no combate | 1 | 0 | Marisi | deixar falta | |
+| modo escolhido ao entrar (Mirran/Phyrexian) | 2 | 0 | Windcrag Siege, Mirrodin Besieged (os dois modos escritos) | cond `escolhido` com o nome do modo | |
+
+## Decisões dos lotes dos blocos 17–20 (FARSEER 25/11)
+Regra: 3 ou mais ocorrências (banco + fila) → campo novo; o resto fica em `falta`.
+- cond `maisTerrenosOponente`: `"algum"` (Land Tax, Loyal Warhound) ou `"doEvento"` (Archaeomancer's Map). Reescrever as 3 cartas.
+- gat `recebe` (filtro de quem RECEBE o dano no ev `dano`; `quem` continua = fonte). Enrage → `recebe {este: true}`. Reescrever Apex Altisaur e Metropolis Reformer.
+- gat ev `explora` (`quem` = a criatura que explorou). Reescrever Merfolk Cave-Diver.
+- ficha com nome + P/R: o esquema JÁ aceita `token {nome, pt, …}` (nome só como rótulo). Reescrever Ingris e Kher Keep.
+- qtd `ate` aceita contagem (`{"ate": {"conta": …}}`). Reescrever Kyoshi Island Plaza.
+- cond `primeiroCombate`. Reescrever Genji Glove e Karlach.
+- fx mana `ficaNoTurno`. Reescrever Birgi e Klauth.
+- Kalonian Hydra: a leitura com repetirCada fica (sem op nova).
+- Ficam em `falta`: bestow, prowl, velocidade, fichaCriadaNoTurno, combate do oponente, Hei Bai, Hordewing, alvo "ou Ugin", Kess/Kotis, Junk Winder, Inkshield, Companion, Jarad, Kaalia, mana gasta (Mana Sculpt segue com vmDoAlvo), afflict, conivir, dragar, naoPodeAtivar, Leyline, Liliana −9, N-ésima do topo, Lightning (eSeus), Mangara, incolor, Lobelia, devolver no custo, multikicker, goad, desvirar, unearth, Master of Cruelties, Mirri, Marisi, modo escolhido ao entrar.

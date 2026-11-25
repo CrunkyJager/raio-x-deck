@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco19",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 901–950 (Lazotep Sliver … Marcus, Mutant Mayor)",
+ "casos": [
+  {
+   "carta": "Lazotep Sliver",
+   "situacao": "um Sliver não-ficha seu morre",
+   "espera": "amass Slivers 2: ficha Sliver Army 0/0 com 2 marcadores +1/+1 (afflict é falta)"
+  },
+  {
+   "carta": "Leaden Myr",
+   "situacao": "vira",
+   "espera": "dá B"
+  },
+  {
+   "carta": "Leaf-Crowned Visionary",
+   "situacao": "você conjura um Elfo e paga {G}",
+   "espera": "compra 1; seus outros Elfos têm +1/+1"
+  },
+  {
+   "carta": "Legion Lieutenant",
+   "situacao": "você tem outro Vampiro 2/2",
+   "espera": "ele fica 3/3"
+  },
+  {
+   "carta": "Legion Warboss",
+   "situacao": "início do seu combate",
+   "espera": "cria um Goblin 1/1 vermelho com pressa que tem que atacar; mentor"
+  },
+  {
+   "carta": "Leonin Warleader",
+   "situacao": "ataca",
+   "espera": "cria 2 Gatos 1/1 brancos com vínculo com a vida, virados e atacando"
+  },
+  {
+   "carta": "Lethal Scheme",
+   "situacao": "conjurada mirando uma criatura do oponente",
+   "espera": "destrói a criatura (conivir é falta)"
+  },
+  {
+   "carta": "Leyline of the Guildpact",
+   "situacao": "você tem uma Floresta",
+   "espera": "ela é também Planície, Ilha, Pântano e Montanha (todas as cores e mão inicial são falta)"
+  },
+  {
+   "carta": "Liberator, Urza's Battlethopter",
+   "situacao": "você conjura uma mágica",
+   "espera": "põe um marcador +1/+1 no Liberator; artefatos podem ser conjurados com lampejo"
+  },
+  {
+   "carta": "Liesa, Forgotten Archangel",
+   "situacao": "outra criatura não-ficha sua morre; uma criatura do oponente morreria",
+   "espera": "a sua volta à mão no próximo passo final; a do oponente vai para o exílio"
+  },
+  {
+   "carta": "Life from the Loam",
+   "situacao": "3 terrenos no cemitério",
+   "espera": "devolve os 3 à mão (dragar é falta)"
+  },
+  {
+   "carta": "Lightning, Army of One",
+   "situacao": "causa dano de combate a um jogador",
+   "espera": "até seu próximo turno, o dano a esse jogador é dobrado"
+  },
+  {
+   "carta": "Liliana's Caress",
+   "situacao": "um oponente descarta uma carta",
+   "espera": "ele perde 2"
+  },
+  {
+   "carta": "Liliana's Mastery",
+   "situacao": "entra",
+   "espera": "cria 2 Zumbis 2/2 pretos, que ficam 3/3"
+  },
+  {
+   "carta": "Liliana, Death's Majesty",
+   "situacao": "−3 com uma criatura no cemitério",
+   "espera": "ela volta ao campo e é também um Zumbi preto; +1 cria Zumbi 2/2 e mói 2"
+  },
+  {
+   "carta": "Liliana, Dreadhorde General",
+   "situacao": "uma criatura sua morre; −4",
+   "espera": "compra 1; cada jogador sacrifica 2 criaturas"
+  },
+  {
+   "carta": "Linvala, Keeper of Silence",
+   "situacao": "entra",
+   "espera": "voa (travar habilidades ativadas é falta)"
+  },
+  {
+   "carta": "Living Death",
+   "situacao": "criaturas nos cemitérios e no campo",
+   "espera": "exila as do cemitério, sacrifica as do campo, as exiladas entram no campo"
+  },
+  {
+   "carta": "Llanowar Wastes",
+   "situacao": "vira",
+   "espera": "dá C, ou B/G com 1 de dano a você"
+  },
+  {
+   "carta": "Lobelia, Defender of Bag End",
+   "situacao": "entra; depois vira e sacrifica um artefato",
+   "espera": "exila o topo de cada oponente; modo 2: cada oponente perde 2 e você ganha 2"
+  },
+  {
+   "carta": "Loot, Exuberant Explorer",
+   "situacao": "{4}{G}{G}, vira, com 5 terrenos",
+   "espera": "olha 6, pode pôr no campo uma criatura de valor de mana até 5; terreno extra por turno"
+  },
+  {
+   "carta": "Loran of the Third Path",
+   "situacao": "entra mirando um artefato; depois vira",
+   "espera": "destrói o artefato; você e o oponente alvo compram 1"
+  },
+  {
+   "carta": "Lord of Atlantis",
+   "situacao": "há outro Tritão",
+   "espera": "ele tem +1/+1 e caminhada na ilha"
+  },
+  {
+   "carta": "Lord of the Accursed",
+   "situacao": "{1}{B}, vira",
+   "espera": "todos os Zumbis ganham ameaça; seus outros Zumbis têm +1/+1"
+  },
+  {
+   "carta": "Lord of the Undead",
+   "situacao": "{1}{B}, vira, Zumbi no cemitério",
+   "espera": "devolve o Zumbi à mão; outros Zumbis têm +1/+1"
+  },
+  {
+   "carta": "Lord of the Void",
+   "situacao": "causa dano de combate a um jogador",
+   "espera": "exila 7 do topo dele e põe uma criatura delas no campo sob seu controle"
+  },
+  {
+   "carta": "Losheel, Clockwork Scholar",
+   "situacao": "duas criaturas artefato suas entram; depois atacam",
+   "espera": "compra 1 (uma vez por turno); o dano de combate a elas é prevenido"
+  },
+  {
+   "carta": "Lossarnach Captain",
+   "situacao": "um Humano seu entra; sua manutenção",
+   "espera": "vira uma criatura do oponente; cria um Human Soldier 1/1 branco"
+  },
+  {
+   "carta": "Lost to Legend",
+   "situacao": "mirando um artefato do oponente",
+   "espera": "vai para o grimório do dono (quarta do topo é falta)"
+  },
+  {
+   "carta": "Lotho, Corrupt Shirriff",
+   "situacao": "um jogador conjura a 2ª mágica do turno",
+   "espera": "você perde 1 e cria um Tesouro"
+  },
+  {
+   "carta": "Lotus Cobra",
+   "situacao": "um terreno seu entra",
+   "espera": "dá 1 mana de qualquer cor"
+  },
+  {
+   "carta": "Lotus Petal",
+   "situacao": "vira e sacrifica",
+   "espera": "dá 1 mana de qualquer cor"
+  },
+  {
+   "carta": "Loyal Warhound",
+   "situacao": "entra",
+   "espera": "busca uma Planície básica virada e embaralha (a condição de terrenos é falta)"
+  },
+  {
+   "carta": "Luminarch Ascension",
+   "situacao": "passo final do oponente sem você perder vida; com 4 marcadores, {1}{W}",
+   "espera": "põe um marcador quest; cria um Anjo 4/4 branco voador"
+  },
+  {
+   "carta": "Luminous Broodmoth",
+   "situacao": "uma criatura sua sem voar morre",
+   "espera": "volta ao campo com um marcador flying"
+  },
+  {
+   "carta": "Lush Portico",
+   "situacao": "entra",
+   "espera": "entra virada, vigia 1; vira para G ou W"
+  },
+  {
+   "carta": "Lyra, Archangel of Dawn",
+   "situacao": "você ganha vida",
+   "espera": "marcador +1/+1 em cada Anjo seu"
+  },
+  {
+   "carta": "Maelstrom of the Spirit Dragon",
+   "situacao": "{4}, vira e sacrifica",
+   "espera": "busca um Dragão, revela e põe na mão; a mana de qualquer cor só para Dragão/Omen"
+  },
+  {
+   "carta": "Magic Damper",
+   "situacao": "mirando sua criatura virada",
+   "espera": "+1/+1, antimagia até o fim do turno e desvira"
+  },
+  {
+   "carta": "Mana Geyser",
+   "situacao": "oponentes com 6 terrenos virados",
+   "espera": "dá 6 R"
+  },
+  {
+   "carta": "Mana Sculpt",
+   "situacao": "anula uma mágica de 4 com um Mago seu",
+   "espera": "na sua próxima fase principal você ganha 4 C"
+  },
+  {
+   "carta": "Managorger Hydra",
+   "situacao": "um jogador conjura uma mágica",
+   "espera": "marcador +1/+1 nela"
+  },
+  {
+   "carta": "Manaweft Sliver",
+   "situacao": "você tem outro Sliver",
+   "espera": "ele vira para mana de qualquer cor"
+  },
+  {
+   "carta": "Mangara, the Diplomat",
+   "situacao": "um oponente conjura a 2ª mágica do turno",
+   "espera": "você compra 1"
+  },
+  {
+   "carta": "Many Partings",
+   "situacao": "resolve",
+   "espera": "busca um terreno básico, revela, põe na mão, embaralha e cria uma Comida"
+  },
+  {
+   "carta": "Marauding Raptor",
+   "situacao": "um Dinossauro seu entra",
+   "espera": "causa 2 de dano a ele e ganha +2/+0 até o fim do turno; criaturas custam 1 a menos"
+  },
+  {
+   "carta": "March of Progress",
+   "situacao": "mirando sua criatura artefato",
+   "espera": "cria uma ficha cópia dela (sobrecarga: cada uma)"
+  },
+  {
+   "carta": "March of the Canonized",
+   "situacao": "X=3; manutenção com devoção ao branco e preto 7",
+   "espera": "cria 3 Vampiros 1/1 com vínculo; cria um Vampire Demon 4/3 voador"
+  },
+  {
+   "carta": "March of the Multitudes",
+   "situacao": "X=4 com convocar",
+   "espera": "cria 4 Soldados 1/1 brancos com vínculo com a vida"
+  },
+  {
+   "carta": "Marcus, Mutant Mayor",
+   "situacao": "sua criatura sem marcador causa dano de combate a um jogador",
+   "espera": "põe +1/+1 nela; se já tinha marcador, compra 1"
+  }
+ ]
+}

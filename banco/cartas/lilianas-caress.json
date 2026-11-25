@@ -1,0 +1,1 @@
+{"v":2,"n":"Liliana's Caress","id":"a4aec0d6-13fa-4709-b1a9-2f483f032744","oracleHash":"26aa326e","custo":{"g":1,"p":["B"]},"vm":2,"ci":"B","cores":"B","tipos":["Enchantment"],"gat":[{"ev":"descarta","jog":"oponente","fx":[{"op":"perderVida","quem":"doEvento","qtd":2}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco19.json"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Lotus Cobra","id":"8ad91f64-ccab-4edc-bd54-b2ee9267d614","oracleHash":"74eec319","custo":{"g":1,"p":["G"]},"vm":2,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Snake"],"pt":[2,1],"gat":[{"ev":"entra","quem":{"tipo":["Land"],"ctrl":"voce"},"fx":[{"op":"mana","prod":"qualquer","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco19.json"}}

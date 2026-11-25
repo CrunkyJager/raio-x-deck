@@ -207,7 +207,10 @@ export type RxQtd =
       de?: string;
     }
   | {
-      ate: number | 'X' | 'qualquer';
+      /**
+       * N, X, 'qualquer' ou uma contagem (Kyoshi Island Plaza: até o nº de Shrines)
+       */
+      ate: number | 'X' | 'qualquer' | RxQtd;
     }
   | {
       /**
@@ -649,6 +652,10 @@ export interface RxFx {
    */
   aleatorio?: boolean;
   /**
+   * op mana: a mana não some entre passos e fases até o fim do turno (Birgi, Klauth)
+   */
+  ficaNoTurno?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -752,6 +759,14 @@ export interface RxCond {
    * você tem um Portador do Anel (o Anel te tentou)
    */
   portadorDoAnel?: boolean;
+  /**
+   * oponente controla mais terrenos que você: 'algum' = algum oponente (Land Tax, Loyal Warhound); 'doEvento' = o jogador do evento (Archaeomancer's Map)
+   */
+  maisTerrenosOponente?: 'algum' | 'doEvento';
+  /**
+   * é a primeira fase de combate do turno (Genji Glove, Karlach)
+   */
+  primeiroCombate?: boolean;
 }
 
 export interface RxKw {
@@ -877,7 +892,8 @@ export interface RxGat {
     | 'fichaCriada'
     | 'viraParaMana'
     | 'descarta'
-    | 'moe';
+    | 'moe'
+    | 'explora';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -956,6 +972,10 @@ export interface RxGat {
    * "from anywhere other than …"
    */
   naoDe?: RxZona;
+  /**
+   * ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)
+   */
+  recebe?: RxFiltro;
 }
 
 export interface RxEst {

@@ -393,7 +393,7 @@
      ],
      "properties": {
       "ate": {
-       "oneOf": [
+       "anyOf": [
         {
          "type": "integer"
         },
@@ -402,8 +402,12 @@
         },
         {
          "const": "qualquer"
+        },
+        {
+         "$ref": "#/$defs/qtd"
         }
-       ]
+       ],
+       "description": "N, X, 'qualquer' ou uma contagem (Kyoshi Island Plaza: até o nº de Shrines)"
       }
      },
      "description": "de 0 a N, quem age escolhe (\"up to N\")"
@@ -1295,6 +1299,10 @@
     "aleatorio": {
      "type": "boolean",
      "description": "descartar ao acaso (Gamble)"
+    },
+    "ficaNoTurno": {
+     "type": "boolean",
+     "description": "op mana: a mana não some entre passos e fases até o fim do turno (Birgi, Klauth)"
     }
    },
    "additionalProperties": false,
@@ -1511,6 +1519,17 @@
     "portadorDoAnel": {
      "type": "boolean",
      "description": "você tem um Portador do Anel (o Anel te tentou)"
+    },
+    "maisTerrenosOponente": {
+     "enum": [
+      "algum",
+      "doEvento"
+     ],
+     "description": "oponente controla mais terrenos que você: 'algum' = algum oponente (Land Tax, Loyal Warhound); 'doEvento' = o jogador do evento (Archaeomancer's Map)"
+    },
+    "primeiroCombate": {
+     "type": "boolean",
+     "description": "é a primeira fase de combate do turno (Genji Glove, Karlach)"
     }
    }
   },
@@ -1689,7 +1708,8 @@
       "fichaCriada",
       "viraParaMana",
       "descarta",
-      "moe"
+      "moe",
+      "explora"
      ]
     },
     "naoMorre": {
@@ -1802,6 +1822,10 @@
     "naoDe": {
      "$ref": "#/$defs/zona",
      "description": "\"from anywhere other than …\""
+    },
+    "recebe": {
+     "$ref": "#/$defs/filtro",
+     "description": "ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)"
     }
    }
   },

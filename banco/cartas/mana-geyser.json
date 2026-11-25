@@ -1,0 +1,1 @@
+{"v":2,"n":"Mana Geyser","id":"a8dba58b-2956-492e-ae30-49db2ae68e53","oracleHash":"68c2b222","custo":{"g":3,"p":["R","R"]},"vm":5,"ci":"R","cores":"R","tipos":["Sorcery"],"fx":[{"op":"mana","prod":["R"],"qtd":{"conta":{"tipo":["Land"],"ctrl":"oponente","zona":"campo","virada":true}}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco19.json"}}
