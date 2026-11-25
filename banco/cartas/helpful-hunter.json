@@ -1,0 +1,1 @@
+{"v":2,"n":"Helpful Hunter","id":"c0864adb-e9aa-40b6-91ff-a0646193e887","oracleHash":"a0958f48","custo":{"g":1,"p":["W"]},"vm":2,"ci":"W","cores":"W","tipos":["Creature"],"sub":["Cat"],"pt":[1,1],"gat":[{"ev":"entra","quem":{"este":true},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco17.json"}}

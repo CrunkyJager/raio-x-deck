@@ -1,0 +1,118 @@
+{
+ "bloco": "correcao4",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "correção das decisões do FARSEER no lote do bloco 15 (main 0372ad4): tentarAnel/portadorDoAnel, niveis de Classe, ateAchar, historico, destinos no cavar, fimCombate, moverMarcador, descartar aleatorio; e do lote do bloco 16 (main f253a01): poderDoSacrificado, popular, explorar, amassar, gat moe, alvo porOponente, marcador rad",
+ "casos": [
+  {
+   "carta": "Boromir, Warden of the Tower",
+   "situacao": "sacrifica o Boromir",
+   "espera": "suas criaturas ganham indestrutível até o fim do turno e o Anel te tenta"
+  },
+  {
+   "carta": "Call of the Ring",
+   "situacao": "sua manutenção",
+   "espera": "o Anel te tenta (pagar 2 de vida ao escolher o Portador é falta)"
+  },
+  {
+   "carta": "Frodo, Adventurous Hobbit",
+   "situacao": "ataca depois de você ganhar 3 de vida no turno, sem Portador",
+   "espera": "o Anel te tenta e, já com Portador, você compra 1"
+  },
+  {
+   "carta": "Frodo, Adventurous Hobbit",
+   "situacao": "ataca sem ter ganhado vida no turno",
+   "espera": "nada acontece"
+  },
+  {
+   "carta": "Caretaker's Talent",
+   "situacao": "nível 3 com uma ficha 1/1 sua",
+   "espera": "a ficha fica 3/3; no nível 1 ela fica 1/1"
+  },
+  {
+   "carta": "Fighter Class",
+   "situacao": "nível 2 e ativa equipar {3}",
+   "espera": "o equipar custa {1}"
+  },
+  {
+   "carta": "Empty the Laboratory",
+   "situacao": "X=2; Zumbis na 2ª e 5ª carta do topo",
+   "espera": "revela até a 5ª, põe os 2 Zumbis no campo e as outras 3 no fundo"
+  },
+  {
+   "carta": "Etali, Primal Conqueror",
+   "situacao": "entra; o topo de um jogador é terreno, terreno, mágica",
+   "espera": "esse jogador exila as 3; você pode conjurar a mágica de graça"
+  },
+  {
+   "carta": "Excalibur, Sword of Eden",
+   "situacao": "você controla um artefato de 2 e uma criatura lendária de 3",
+   "espera": "custa 5 a menos"
+  },
+  {
+   "carta": "Expressive Iteration",
+   "situacao": "resolve",
+   "espera": "olha 3: 1 na mão, 1 exilada que pode jogar neste turno, 1 no fundo"
+  },
+  {
+   "carta": "Flamerush Rider",
+   "situacao": "ataca junto com outra criatura",
+   "espera": "cria a cópia virada e atacando; no fim do combate a cópia é exilada"
+  },
+  {
+   "carta": "Forgotten Ancient",
+   "situacao": "sua manutenção com 3 marcadores +1/+1 nele",
+   "espera": "pode mover os marcadores para outra criatura"
+  },
+  {
+   "carta": "Gamble",
+   "situacao": "resolve",
+   "espera": "busca uma carta e descarta uma ao acaso"
+  },
+  {
+   "carta": "Greater Good",
+   "situacao": "sacrifica uma criatura de poder 5",
+   "espera": "compra 5 e descarta 3"
+  },
+  {
+   "carta": "Growing Ranks",
+   "situacao": "sua manutenção com uma ficha Soldier 1/1",
+   "espera": "cria outra Soldier 1/1 (popular)"
+  },
+  {
+   "carta": "Hakbal of the Surging Soul",
+   "situacao": "início do seu combate com 2 Merfolks; topo é terreno e depois não-terreno",
+   "espera": "um Merfolk põe o terreno na mão; o outro ganha +1/+1 e pode moer"
+  },
+  {
+   "carta": "Dreadhorde Invasion",
+   "situacao": "sua manutenção sem Exército",
+   "espera": "perde 1 e cria um Zombie Army 0/0 com um marcador +1/+1"
+  },
+  {
+   "carta": "Gleaming Overseer",
+   "situacao": "entra com um Exército 1/1 seu",
+   "espera": "o Exército ganha outro marcador; fica com antimagia e ameaça"
+  },
+  {
+   "carta": "Glowing One",
+   "situacao": "um oponente mói uma mágica",
+   "espera": "você ganha 1"
+  },
+  {
+   "carta": "Bronzebeak Foragers",
+   "situacao": "entra com 2 oponentes",
+   "espera": "exila até um permanente não-terreno de cada; voltam quando ele sai"
+  },
+  {
+   "carta": "Grasp of Fate",
+   "situacao": "entra com 3 oponentes, dois com permanentes",
+   "espera": "exila no máximo um de cada oponente"
+  },
+  {
+   "carta": "Contaminated Drink",
+   "situacao": "X=4",
+   "espera": "compra 4 e ganha 2 marcadores rad"
+  }
+ ]
+}
