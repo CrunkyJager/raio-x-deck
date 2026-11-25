@@ -882,6 +882,45 @@ caso('702.102', 'fusão: Wear // Tear da mão paga as duas e resolve a esquerda 
   igual(M.facesParaConjurar(f, 0, f.objs[f.jogs[0].zonas.cemiterio[0]]), ['esq', 0], 'fusão só da mão');
 });
 
+// pedidos do FARSEER depois da v0.9.0: qtd {ate:'qualquer'} + conta 'resultado', qtd {dado:N} e est ptDefinido
+caso('701.20', "Valakut Awakening: põe quantas quiser da mão no fundo e compra esse número mais um (qtd ate:'qualquer')", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Valakut Awakening'], [0, 'Wastes'], [0, 'Wastes'], [0, 'Forest']] });
+  const c = naMao(e, 0, 'Valakut Awakening');
+  M.avancar(e);
+  respE(e, o => o.a === 'conjurar' && o.id === c.id && (o.face ?? null) === null);
+  let g = 0;
+  while (e.perg && e.perg.tipo === 'escolherCarta' && ++g < 10) {
+    const w = e.perg.ops.find(o => o.a === 'escolherCarta' && e.objs[o.id].n === 'Wastes');
+    respE(e, w ? (o => o.a === 'escolherCarta' && o.id === w.id) : (o => o.a === 'nenhum'));
+  }
+  const gr = e.jogs[0].zonas.grimorio;
+  igual(gr.slice(0, 2).map(id => e.objs[id].n), ['Wastes', 'Wastes'], 'os dois Wastes no fundo');
+  igual(e.jogs[0].zonas.mao.length, 1 + 3, 'ficou a Forest e comprou 2 + 1');
+  ok(M.fxSuportado(M.carta('Valakut Awakening').fx), 'o motor oferece a carta');
+});
+caso('706.2', 'dado: Ancient Copper Dragon cria um tesouro por ponto do d20, com o RNG da partida (mesma semente, mesmo resultado)', () => {
+  const roda = () => {
+    const e = cena({ campo: [[0, 'Ancient Copper Dragon']] });
+    const fx = M.carta('Ancient Copper Dragon').gat[0].fx[0];
+    const antes = e.campo.length;
+    M.executar(e, fx, { voce: 0, este: objN(e, 0, 'Ancient Copper Dragon').id, alvos: [], lki: {} }, () => ({ a: 'nao' }));
+    return e.campo.length - antes;
+  };
+  const n = roda();
+  ok(n >= 1 && n <= 20, 'entre 1 e 20: ' + n);
+  igual(roda(), n, 'mesma semente');
+  ok(M.fxSuportado(M.carta('Ancient Copper Dragon').gat[0].fx), 'qtd {dado:20} é suportado');
+});
+caso('604.3', 'ptDefinido (CDA, camada 7a): Beanstalk Giant com 5 terrenos é 5/5, também fora do campo', () => {
+  const e = cena({ campo: [...enche(5, 'Forest').map(n => [0, n]), [0, 'Beanstalk Giant']], mao: [[0, 'Beanstalk Giant']] });
+  const b = objN(e, 0, 'Beanstalk Giant');
+  igual([M.poder(e, b), M.resistencia(e, b)], [5, 5], 'no campo');
+  const m = naMao(e, 0, 'Beanstalk Giant');
+  igual([M.poder(e, m), M.resistencia(e, m)], [5, 5], 'na mão');
+  M.mover(e, e.campo.find(id => e.objs[id].n === 'Forest'), 'cemiterio');
+  igual(M.poder(e, b), 4, 'acompanha a contagem');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

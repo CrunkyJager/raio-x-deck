@@ -146,14 +146,24 @@ M.vivos = e => e.jogs.filter(j => !j.saiu).map(j => j.i);
 // ---- leitura de cartas ----
 M.temTipo = (e, o, t) => (M.dadoDe(e, o).tipos || []).includes(t);
 M.ehPermanente = (e, o) => ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle'].some(t => M.temTipo(e, o, t));
-M.resistencia = (e, o) => {      // sem camadas ainda (T18): base + marcadores +1/+1 e −1/−1
+// est ptDefinido (CDA, CR 604.3 e camada 7a): P/R '*' definido por uma contagem; vale em todas as zonas (Beanstalk Giant,
+// Adeline, Psychosis Crawler). Quem conta é o controlador (fora do campo, o dono).
+const ptCda = (e, o, i) => {
+  const s = (M.dadoDe(e, o).est || []).find(x => x.modo === 'ptDefinido' && x.afeta === 'este' && x[i ? 'rBase' : 'pBase'] !== undefined);
+  if (!s) return null;
+  const q = s[i ? 'rBase' : 'pBase'], voce = o.ctrl ?? o.dono;
+  if (q && q.conta === 'cartasNaMao') return e.jogs[voce].zonas.mao.length * (q.mult || 1) + (q.soma || 0);
+  return M.qtd(e, q, { voce, este: o.id });
+};
+M.ptCda = ptCda;
+M.resistencia = (e, o) => {      // sem camadas ainda (T18): base (ou CDA) + marcadores +1/+1 e −1/−1
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = typeof pt[1] === 'number' ? pt[1] : 0;
+  const b = typeof pt[1] === 'number' ? pt[1] : ptCda(e, o, 1) ?? 0;
   return b + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 M.poder = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = typeof pt[0] === 'number' ? pt[0] : 0;
+  const b = typeof pt[0] === 'number' ? pt[0] : ptCda(e, o, 0) ?? 0;
   return b + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 
