@@ -48,6 +48,8 @@ function para() { if (WK) { WK.terminate(); WK = null; } if (WK2) { WK2.terminat
 // T22 (beta): motor novo (src/motor, banco próprio) só na Mesa ao vivo, pela chave "motor novo (beta)"; o velho segue o padrão
 let WK2 = null;
 const motorNovo = () => String(store.get('vivoMotor', '0')) === '1';
+// link com ?beta=1 liga a chave (e grava), ?beta=0 desliga; sem o parâmetro fica o que estava (Felipe 25/11: link para amigo)
+try { const b = new URLSearchParams(location.search).get('beta'); if (b === '1' || b === '0') store.set('vivoMotor', b); } catch (e) {}
 function rodaNovo(tipo, msg) {
   if (!WK2) {
     WK2 = new Worker(new URL('./worker-novo.ts', import.meta.url), { type: 'module' });
@@ -303,6 +305,37 @@ let JOGO_TROCAS = 0, JOGO = null, PASSO = 0, TIMER = null, NOMES = [], PREV = nu
 const TP = { gatilho: '⚡', efeito: '✧', camada: '▲', habil: '⚙', turno: '⟳', terreno: '◆', magia: '✦', remo: '✕', wipe: '☄', resp: '⟲', ataque: '⚔', bloqueio: '⛨', dano: '♥', morte: '☠', compra: '+', tutor: '⌕', combo: '∞', fim: '★' };
 const TPN = { gatilho: 'Gatilho', efeito: 'Efeito', camada: 'Camadas (P/R e habilidades)', habil: 'Habilidade', turno: 'Novo turno', terreno: 'Terreno', magia: 'Mágica', remo: 'Remoção', wipe: 'Limpa-mesa', resp: 'Resposta', ataque: 'Ataque', bloqueio: 'Bloqueio', dano: 'Dano', morte: 'Morte', compra: 'Compra', tutor: 'Busca', combo: 'Combo', fim: 'Fim de jogo' };
 
+// T22 parte 2 (Felipe 25/11), só no motor beta: filtro do registro por tipo (vários juntos; nenhum = todos) e pausa
+// opcional em gatilho/efeito quando a partida anda sozinha. As duas escolhas ficam no localStorage (store tem try/catch).
+const REG = [['gatilho', '⚡ gatilho'], ['efeito', '✧ efeito'], ['camada', '▲ camada'], ['habil', '⚙ habilidade']];
+const PARA_EM = new Set(['gatilho', 'efeito']);
+const regFiltro = () => { const f = store.get('vivoReg', []); return Array.isArray(f) ? f.filter(t => REG.some(r => r[0] === t)) : []; };
+const regMostra = (tp) => { if (!motorNovo()) return true; const f = regFiltro(); return !f.length || f.includes(tp); };
+const pausaOn = () => motorNovo() && store.get('vivoPausa', false) === true;
+const paraAqui = (ev) => pausaOn() && !!ev && PARA_EM.has(ev.tp);
+function pausaHTML() {
+  return motorNovo() ? `<label class="vpausa" title="Com a partida andando sozinha, para a cada gatilho ou efeito até você clicar em continuar"><input type="checkbox" data-pausa ${pausaOn() ? 'checked' : ''}> parar em ⚡ gatilho / ✧ efeito</label>` : '';
+}
+function regCtlHTML() {
+  if (!motorNovo()) return '';
+  const f = regFiltro();
+  return `<div class="vreg" id="v-reg" role="group" aria-label="Filtro do registro"><span class="vreg-k">Mostrar</span>
+    <button class="vchip ${f.length ? '' : 'on'}" data-reg="todos" aria-pressed="${!f.length}">todos</button>${REG.map(([t, r]) => `<button class="vchip ${f.includes(t) ? 'on' : ''}" data-reg="${t}" aria-pressed="${f.includes(t)}">${r}</button>`).join('')}</div>`;
+}
+// liga os chips e a pausa que estiverem na tela; refaz = redesenha o que o filtro muda
+function ligaReg(refaz) {
+  $$('[data-reg]').forEach(b => b.onclick = () => {
+    const t = b.dataset.reg; let f = regFiltro();
+    f = t === 'todos' ? [] : f.includes(t) ? f.filter(x => x !== t) : [...f, t];
+    if (f.length === REG.length) f = [];
+    store.set('vivoReg', f);
+    const r = $('#v-reg'); if (r) r.outerHTML = regCtlHTML();
+    ligaReg(refaz); refaz();
+  });
+  $$('[data-pausa]').forEach(c => c.onchange = () => { store.set('vivoPausa', c.checked); $$('[data-pausa]').forEach(x => { x.checked = c.checked; }); });
+}
+const semTipo = '<li class="note">Nenhum lance destes tipos ainda.</li>';
+
 // imagens do Scryfall: o carregador em lote e o cache ficam no analise.js (um só para a página)
 const IMGS = window.RAIOX.imgCache;
 const imgDe = (n) => IMGS.get(n) || IMGS.get(String(n).split(' // ')[0]) || null;
@@ -416,7 +449,7 @@ async function mostraPassos(ps) {
     const { Q, ev } = ps[j];
     $('#v-mesa').innerHTML = mesaEuHTML(Q, { ev, fila: ps.length - j - 1 });
     ligaMesaEu();
-    const ms = JVEL[jVel()], tm = ev.tp === 'turno' ? Math.max(ms, 1200) : ms;
+    const ms = JVEL[jVel()], tm = paraAqui(ev) ? 0 : ev.tp === 'turno' ? Math.max(ms, 1200) : ms;   // pausa em ⚡/✧: espera o clique
     await new Promise(res => { JG.acorda = res; if (tm) setTimeout(res, tm); });
   }
 }
@@ -426,7 +459,8 @@ function marcaNovos(p, k) { const a = JG.antes && JG.antes[k]; if (!a) return ()
 // placar do jogador: terrenos livres/total, criaturas e poder em mesa
 function placar(p) { const cri = p.perm.filter(x => x.p != null), pod = cri.reduce((s, x) => s + (x.p || 0), 0), liv = p.tl.filter(l => !l.tap).length;
   return `<div class="ja-pl"><span title="Terrenos em campo (desvirados entre parênteses)">◆ <b>${p.terr}</b> terreno${p.terr === 1 ? '' : 's'} <i>(${liv} livre${liv === 1 ? '' : 's'})</i></span><span title="Criaturas em campo e poder somado">⚔ <b>${cri.length}</b> criatura${cri.length === 1 ? '' : 's'} <i>(poder ${pod})</i></span><span title="Cartas na mão"><b>${p.mao.length}</b> na mão</span></div>`; }
-function resumoHTML() { const R = (JG.resumo || []).filter(e => e.tp !== 'turno'); if (!R.length) return '';
+function resumoHTML() { const R0 = (JG.resumo || []).filter(e => e.tp !== 'turno'), R = R0.filter(e => regMostra(e.tp)); if (!R0.length) return '';
+  if (!R.length) return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span><ul>${semTipo}</ul></div>`;
   const por = new Map(); R.forEach(e => { if (!por.has(e.k)) por.set(e.k, []); por.get(e.k).push(e); });
   return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span>${[...por].map(([k, es]) => `<div><b>${esc(k === 0 ? 'Você' : NOMES[k] || '')}</b><ul>${es.map(e => `<li><span class="vt ${esc(e.tp)}">${TP[e.tp] || '•'}</span>${esc(e.txt)}</li>`).join('')}</ul></div>`).join('')}</div>`; }
 function desenhaEu() { $('#v-mesa').innerHTML = mesaEuHTML(JG.q.quadro, { q: JG.q }); ligaMesaEu(); }
@@ -540,19 +574,20 @@ function mesaEuHTML(Q, o) {
   } else if (ev) {
     const Mk = G.Ms[ev.k] || [], nc = ev.c >= 0 && Mk[ev.c] ? (Mk[ev.c].frente || Mk[ev.c].nome) : null, im = nc ? imgDe(nc) : null;
     const quem = ev.k === 0 ? 'Você' : NOMES[ev.k] || '';
-    const ctl = `<div class="j-ops"><button class="btn primary" data-b="prox">Próximo ▶${o.fila ? ` (faltam ${o.fila})` : ''}</button><select class="vsel" id="ja-vel" aria-label="Velocidade">${Object.keys(JVEL).map(k => `<option value="${k}" ${jVel() === k ? 'selected' : ''}>${JVN[k]}</option>`).join('')}</select>
-      <button class="btn small" data-b="pula">Pular para minha vez ⏭</button></div>`;
+    const pausado = paraAqui(ev) && jVel() !== 'clique';
+    const ctl = `<div class="j-ops"><button class="btn primary" data-b="prox">${pausado ? 'Continuar ▶' : 'Próximo ▶'}${o.fila ? ` (faltam ${o.fila})` : ''}</button><select class="vsel" id="ja-vel" aria-label="Velocidade">${Object.keys(JVEL).map(k => `<option value="${k}" ${jVel() === k ? 'selected' : ''}>${JVN[k]}</option>`).join('')}</select>
+      <button class="btn small" data-b="pula">Pular para minha vez ⏭</button>${pausaHTML()}</div>${pausado ? '<p class="vpausou">Parado neste lance (parar em gatilho/efeito ligado).</p>' : ''}`;
     meio = ev.tp === 'turno'
       ? `<div class="ja-meio ev turno"><div class="ja-ban"><b>Turno ${Q.t}</b><span>vez de ${esc(quem)}</span></div>${ctl}</div>`
       : `<div class="ja-meio ev ${esc(ev.tp)}"><span class="c-k"><span class="vt ${esc(ev.tp)}">${TP[ev.tp] || '•'}</span>${esc(TPN[ev.tp] || ev.tp)} · ${esc(quem)}</span>
       <div class="ja-palco">${im ? `<img class="ja-evim lanca" src="${esc(im[1] || im[0])}" alt="${esc(nc)}" data-zoom="${esc(im[1])}">` : ''}</div><p>${txtLance(ev, quem)}</p>${ctl}</div>`;
   } else meio = '<div class="ja-meio"><p>A partida vai começar.</p></div>';
-  const logH = (q ? q.log : []).slice(-14).map(l => `<li><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span><span>${esc(l.txt)}</span></li>`).join('');
+  const logH = (q ? q.log : []).filter(l => regMostra(l.tp)).slice(-14).map(l => `<li><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span><span>${esc(l.txt)}</span></li>`).join('');
   return `<section class="ja n${n}">
     <div class="ja-mesa">${lugares}<div class="ja-centro">${meio}</div></div>
     ${fasesH}
     <div class="ja-mao">${maoH}</div>
-    ${q ? `<div class="ja-lado">${resumoHTML()}<details class="ja-hist"><summary>Histórico</summary><ol class="ja-log">${logH}</ol></details></div>` : ''}
+    ${q ? `${regCtlHTML()}<div class="ja-lado">${resumoHTML()}<details class="ja-hist"><summary>Histórico</summary><ol class="ja-log">${logH}</ol></details></div>` : ''}
   </section>`;
 }
 function ligaMesaEu() {
@@ -589,6 +624,7 @@ function ligaMesaEu() {
     const im = e.target.closest('[data-zoom]'); if (im) zoomCarta(im.dataset.zoom, im.alt || im.dataset.n);
   };
   const vel = $('#ja-vel'); if (vel) vel.onchange = () => store.set('jVel2', vel.value);
+  ligaReg(() => { if (JG && JG.q) desenhaEu(); });
 }
 function zoomCarta(src, alt) {
   const z = document.createElement('div'); z.className = 'zoom'; z.innerHTML = `<div class="zoom-box solo"><button class="btn small zoom-x">Fechar ✕</button><div class="zoom-img"><img src="${esc(src)}" alt="${esc(alt || '')}"></div></div>`;
@@ -604,14 +640,14 @@ function mesaHTML() {
       <button class="vb" data-v="prox" title="Próximo lance">▶</button><button class="vb" data-v="pt" title="Próximo turno">⏩</button><button class="vb" data-v="fim" title="Fim">⏭</button>
       <select id="v-vel" class="vsel" aria-label="Velocidade"><option value="1500">devagar</option><option value="800" selected>normal</option><option value="350">rápido</option><option value="100">turbo</option></select>
       <input type="range" id="v-bar" min="0" max="${JOGO.quadros.length - 1}" value="0" aria-label="Momento da partida">
-      <span class="vpos" id="v-pos"></span>
+      <span class="vpos" id="v-pos"></span>${pausaHTML()}
     </div>
     <div class="vleg"><span><i class="lg vez"></i>de quem é a vez</span><span><i class="lg alvo"></i>alvo do lance</span><span><i class="lg atk"></i>criatura atacando</span><span><i class="lg cmd"></i>comandante</span><span><i class="lg tap"></i>carta virada (já usada no turno)</span><span><b class="lg-pt">3/3</b>força/resistência</span></div>
     <div class="feltro">
       ${lugares.map((l, k) => `<div class="seat ${l}" id="seat-${k}" style="grid-area:${l}"></div>`).join('')}
       <div class="centro" id="v-centro" style="grid-area:center"></div>
     </div>
-    <section class="vlog2"><h3>Lances deste turno</h3><ol id="v-log"></ol></section>
+    <section class="vlog2"><h3>Lances deste turno</h3>${regCtlHTML()}<ol id="v-log"></ol></section>
   </section>`;
 }
 function ligaControles() {
@@ -625,6 +661,7 @@ function ligaControles() {
   });
   $('#v-play').onclick = () => (TIMER ? parar() : rodar());
   $('#v-bar').oninput = (e) => { parar(); vaiPara(+e.target.value); };
+  ligaReg(() => vaiPara(PASSO));
 }
 function parar() { if (TIMER) { clearTimeout(TIMER); TIMER = null; } const b = $('#v-play'); if (b) b.textContent = '▶ Rodar'; }
 function rodar() {
@@ -632,6 +669,7 @@ function rodar() {
   const passo = () => {
     if (PASSO >= JOGO.quadros.length - 1) { parar(); return; }
     vaiPara(PASSO + 1); const e = JOGO.log[JOGO.quadros[PASSO].log - 1];
+    if (paraAqui(e)) { parar(); const b2 = $('#v-play'); if (b2) b2.textContent = '▶ Continuar'; return; }   // pausa em ⚡/✧ (beta)
     const v = +($('#v-vel') || { value: 800 }).value;
     TIMER = setTimeout(passo, e && /turno|combo|wipe|morte|fim|ataque/.test(e.tp) ? v * 1.7 : v);
   };
@@ -666,8 +704,8 @@ function vaiPara(i) {
   Q.j.forEach((p, k) => { const el = $('#seat-' + k); if (el) el.innerHTML = lugarHTML(p, k, ev, PREV && PREV.j[k]); });
   $('#v-centro').innerHTML = centroHTML(Q, ev);
   const ini = JOGO.log.findIndex(l => l.t === Q.t);
-  const lances = JOGO.log.slice(Math.max(0, ini), Q.log);
-  $('#v-log').innerHTML = lances.map((l, j) => `<li class="${j === lances.length - 1 ? 'agora' : ''}"><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span><span>${esc(l.txt)}</span></li>`).join('') || '<li class="note">Nada ainda neste turno.</li>';
+  const lances = JOGO.log.slice(Math.max(0, ini), Q.log), ult = lances[lances.length - 1], vis = lances.filter(l => regMostra(l.tp));
+  $('#v-log').innerHTML = vis.map(l => `<li class="${l === ult ? 'agora' : ''}"><span class="vt ${esc(l.tp)}">${TP[l.tp] || '•'}</span><span>${esc(l.txt)}</span></li>`).join('') || (lances.length ? semTipo : '<li class="note">Nada ainda neste turno.</li>');
   const ol = $('#v-log'); ol.scrollTop = ol.scrollHeight;
   PREV = Q;
 }
