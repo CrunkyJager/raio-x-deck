@@ -564,13 +564,13 @@ function mesaEuHTML(Q, o) {
       bt.push(`<div class="ja-alvos"><span class="c-k">Atacar quem?</span>${q.alvos.map(a => `<button class="btn small ${a.v === G.alvo ? 'primary' : ''}" data-alvo="${a.v}">${esc(a.n)} ♥${a.vida}</button>`).join('')}</div>`);
       bt.push(`<button class="btn small" data-b="todos">Todas as criaturas</button><button class="btn primary" data-b="atk" ${G.sel.size ? '' : 'disabled'}>⚔ Atacar ${esc(an)} com ${G.sel.size}</button><button class="btn" data-b="nao">Não atacar</button>`); }
     if (q.tipo === 'bloqueio') bt.push(`<button class="btn" data-b="-1">Não bloquear</button>`);
-    if (q.tipo === 'escolha') q.ops.forEach(x => bt.push(`<button class="btn${x.v === -1 ? '' : ' primary'}" data-b="${x.v}">${esc(x.n)}</button>`));
+    if (q.tipo === 'escolha') q.ops.forEach(x => bt.push(`<button class="btn${x.v === -1 || x.sec ? '' : ' primary'}" data-b="${x.v}">${esc(x.n)}</button>`));
     if (q.tipo === 'alvo') q.ops.forEach(x => bt.push(`<button class="btn" data-b="${x.v}">🎯 ${esc(x.n)}</button>`));
     const atkIm = q.tipo === 'bloqueio' ? imgDe(q.x.n) : null;
     meio = `<div class="ja-meio perg"><span class="c-k">Sua vez de decidir · turno ${q.t}</span>
       ${atkIm ? `<img class="ja-evim" src="${esc(atkIm[1] || atkIm[0])}" alt="${esc(q.x.n)}" data-zoom="${esc(atkIm[1])}">` : ''}<p><b>${esc(PERG[q.tipo] ? PERG[q.tipo](q) : q.tipo)}</b></p>
       <div class="j-ops">${bt.join('')}</div>
-      <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length ? '' : 'disabled'}>↶ Desfazer</button><button class="btn small" data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
+      <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length ? '' : 'disabled'}>↶ Desfazer</button><button class="btn small" ${/[?&]dev=1/.test(location.search) ? "" : "hidden"} data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
   } else if (ev) {
     const Mk = G.Ms[ev.k] || [], nc = ev.c >= 0 && Mk[ev.c] ? (Mk[ev.c].frente || Mk[ev.c].nome) : null, im = nc ? imgDe(nc) : null;
     const quem = ev.k === 0 ? 'Você' : NOMES[ev.k] || '';

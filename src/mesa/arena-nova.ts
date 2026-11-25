@@ -301,7 +301,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'alvo': return op.jog !== undefined ? nomeJ(op.jog) : `${nomeOp(e.objs[op.o])} (${nomeJ(e.objs[op.o].ctrl)})`;
       case 'pronto': return 'Pronto';
       case 'sim': return 'Sim'; case 'nao': return 'Não';
-      case 'modo': return 'Modo ' + (op.m + 1);
+      case 'modo': { const fx = p.ctx && p.ctx.modos ? p.ctx.modos[op.m] : null, oq = fx ? [...new Set((Array.isArray(fx) ? fx : fx.fx || [fx]).map((x: any) => x && x.op).filter(Boolean))].join(', ') : ''; return 'Modo ' + (op.m + 1) + (oq ? ' — ' + oq : ''); }
       case 'x': return 'X = ' + op.v;
       case 'nenhum': return 'Nenhum';
       case 'cor': return { W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde' }[op.v as string] || op.v;
@@ -310,8 +310,9 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'gatilho': return 'Gatilho de ' + nomeOp(ob);
       case 'bloquear': return `Bloquear ${nomeOp(e.objs[op.atk])} com ${nomeOp(ob)}`;
       case 'desfazer': return 'Desfazer bloqueios';
-      case 'fica': return 'Fica: ' + nomeOp(ob);
-      case 'comando': return 'Volta para a zona de comando'; case 'ficar': return 'Fica onde está';
+      case 'fica': return `Manter esta ${nomeOp(ob)} (a outra vai para o cemitério)`;
+      case 'comando': return 'Mandar de volta para a zona de comando (pode lançar de novo)';
+      case 'ficar': { const z = p.ctx && e.objs[p.ctx.id] ? e.objs[p.ctx.id].zona : ''; return z === 'exilio' ? 'Deixar no exílio' : 'Deixar no cemitério'; }
       case 'marcadores': return `${op.q} marcadores nela`; case 'fichas': return `${op.q} Servos 1/1`;
       case 'pagar': return 'Pagar a vida'; case 'naoPagar': return 'Não pagar (entra virado)'; case 'revelar': return 'Revelar ' + nomeOp(e.objs[op.rid]);
       case 'proliferar': return op.jog !== undefined ? nomeJ(op.jog) : nomeOp(ob);
@@ -323,7 +324,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
   const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
     ordemGatilho: 'Qual gatilho vai para a pilha primeiro?', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
     buscar: 'Busca no grimório', escolherCarta: 'Escolha a carta', destino: 'Para onde vai?', sacrificar: 'Escolha o que sacrificar', lenda: 'Regra da lenda: qual fica?',
-    cmdZona: 'Seu comandante saiu do campo', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha' };
+    cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha' };
   function humano(p: any) {
     const J = e.jogs[HK], opIdx = (pred: (o: any) => boolean) => p.ops.findIndex(pred);
     const mao = () => J.zonas.mao.map((id: number) => ({ v: iDe(e.objs[id]), n: e.objs[id].n }));
@@ -369,8 +370,9 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         const f = opIdx(o => o.a === 'atacar' && o.jog === planoAtk.alvo); return f >= 0 ? f : 0;   // 508.1d: tem que atacar
       }
       default: {
-        const de = p.ctx && p.ctx.de !== undefined && e.objs[p.ctx.de] ? ' · ' + e.objs[p.ctx.de].n : '';
-        const r = pede('escolha', { x: { n: (TITULO[p.tipo] || p.tipo) + de }, ops: p.ops.map((o: any, k: number) => ({ v: k, n: rotulo(p, o) })) });
+        const idDe = p.ctx ? (p.ctx.de !== undefined ? p.ctx.de : p.tipo === 'cmdZona' ? p.ctx.id : undefined) : undefined;
+        const de = idDe !== undefined && e.objs[idDe] ? ' · ' + e.objs[idDe].n : '';
+        const r = pede('escolha', { x: { n: (TITULO[p.tipo] || p.tipo) + de }, ops: p.ops.map((o: any, k: number) => ({ v: k, n: rotulo(p, o), sec: o.a === 'ficar' || o.a === 'nao' })) });
         return typeof r === 'number' && r >= 0 && r < p.ops.length ? r : 0;
       }
     }

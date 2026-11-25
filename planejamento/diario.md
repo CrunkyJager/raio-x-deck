@@ -48,3 +48,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · v0.35.0: A travas do Ultron parte 1 (57aaa6e): aMenosQue, efeito temporário, fasear, sagas; cobertura 1004/1684. Vitest: 2 falhas numa rodada, verde na seguinte (instável → A).
 - 25/11 · FARSEER · v0.36.0: A (2631abb) desempenho com muitas fichas (Krenko 34 s → 2,6 s), filtro incolor, qtd.prop/historico/tipoTodos, fuzz sem instabilidade; cobertura 1022/1684.
 - 25/11 · FARSEER · v0.37.0: A (e01d81c) Ultra Magnus, Ultron e Arcee inteiros; cobertura 1098/1684.
+- 25/11 17:50 v0.37.1: textos da Mesa (comandante/lenda/modo) + CONTINUAR.md; decks do Edigar em planejamento/decks

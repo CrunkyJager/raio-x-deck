@@ -354,7 +354,7 @@ function modoViavel(e, j, d, fx) {
   return alvosUsados(fx).every(i => { const a = (d.alvos || [])[i]; return a && M.alvoSuportado(a) && ((a.min ?? 1) === 0 || M.alvosPossiveis(e, a, { voce: j }).length >= (a.min ?? 1)); });
 }
 M.modosViaveis = (e, j, d) => d.fx[0].modos.filter(m => modoViavel(e, j, d, m)).length;
-function escolherModos(e, j, d, f, ask) {
+function escolherModos(e, j, d, f, ask, de?) {
   const es = f.escolhe || { min: 1, max: 1 }, n = f.modos.length;
   let max = es.max ?? 1;
   if (es.maxSe && M.condicao(e, es.maxSe.se, { voce: j })) max = es.maxSe.max;
@@ -364,7 +364,7 @@ function escolherModos(e, j, d, f, ask) {
     if (modos.length >= (es.min ?? 1)) ops.push({ a: 'pronto' });
     for (let m = 0; m < n; m++) if (!modos.includes(m) && modoViavel(e, j, d, f.modos[m])) ops.push({ a: 'modo', m });   // CR 700.2d
     if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto')) break;
-    const r = ask(j, 'modo', ops, {});
+    const r = ask(j, 'modo', ops, { de, modos: f.modos });
     if (r.a === 'pronto') break;
     modos.push(r.m);
   }
@@ -421,7 +421,7 @@ const PROC = {
     const j = P.j, o = e.objs[P.id], ctx = { voce: j, este: o.id };
     o.face = P.face ?? null;                                                          // 709.3, 712.8b, 716.3: a face vem antes
     const d = M.dadoDe(e, o);
-    const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask) : null;          // CR 601.2b
+    const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask, o.id) : null;          // CR 601.2b
     const fx = fxEfetivo(d, d.fx || [], modos);
     const custo0 = M.custoComImposto(e, o, P.loucura ? custoLoucura(e, o) : undefined), usados = alvosUsados(fx);
     const viaveis = opcoesConj(e, j, d).filter(op => opcOk(e, j, d, usados, custo0, op, o));

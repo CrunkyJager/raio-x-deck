@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.37.1 — 25/11/2026 · textos da Mesa mais claros
+Testes: check (motor) ok · Vitest 210/210.
+- **Mesa:** a pergunta do comandante diz qual é a carta, e as opções dizem para onde ela vai ("Deixar no cemitério/exílio" × "Mandar de volta para a zona de comando"). Só a opção segura fica destacada. A regra da lenda diz qual fica e que a outra vai para o cemitério. A escolha de modo mostra o efeito de cada modo, e o botão "Recarregar motor" só aparece com `?dev=1`.
+- **Planejamento:** `planejamento/CONTINUAR.md` (como retomar de casa ou amanhã) e as listas dos decks do Edigar em `planejamento/decks/`.
+
 ## v0.37.0 — 25/11/2026 · comandantes do Ultron funcionam (Ultra Magnus, Ultron, Arcee)
 Testes: valida 1684/0 · check 0 erros · Vitest verde · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1098/1684.
 - **Motor (A):** gatilho atrasado (603.7), entrar atacando, resguardo, animar, tipo dado a esta, pagar genérico, ficha cópia e gatilho opcional.
