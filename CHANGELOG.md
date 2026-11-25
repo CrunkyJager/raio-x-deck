@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.22.0 — 25/11/2026 · camadas volta 2: equipar e habilidades dadas
+Testes: valida 1261/0 · check 0 erros · Vitest 160/160 (20 s: fuzz com Equipamento) · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 660/1261 (eram 638).
+- **Motor (A):** anexar/equipar (equipar = ativada na velocidade de feitiço, ações do estado 704.5m/n, `afeta 'equipada'`), habilidades dadas (gatilhos e ativadas que vêm de estáticas, LKI 603.10a). Consertado um O(n²) que deixava uma partida em 145 s.
+
 ## v0.21.0 — 25/11/2026 · banco com 1261 cartas
 Testes: valida 1261/0 · check 0 erros · Vitest 153/153 · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok. Motor joga inteiras 638/1261.
 - **Banco (B):** bloco 23 (1101–1150) e bloco 24 (1151–1200), 50 casos cada; correção 6 (12 cartas do lote 22, Ponder certo) e correção 7 (6 cartas do lote 23).
