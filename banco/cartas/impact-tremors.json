@@ -1,0 +1,1 @@
+{"v":2,"n":"Impact Tremors","id":"9242cd3e-1a71-4700-8182-9c1005616033","oracleHash":"3d180141","custo":{"g":1,"p":["R"]},"vm":2,"ci":"R","cores":"R","tipos":["Enchantment"],"gat":[{"ev":"entra","quem":{"tipo":["Creature"],"ctrl":"voce"},"fx":[{"op":"dano","quem":"cadaOponente","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco2.json"}}

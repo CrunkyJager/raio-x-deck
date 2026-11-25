@@ -1,0 +1,1 @@
+{"v":2,"n":"Swiftfoot Boots","id":"c8b143ad-43ec-4e0d-a440-e348daa31391","oracleHash":"9c6c85be","custo":{"g":2},"vm":2,"ci":"","cores":"","tipos":["Artifact"],"sub":["Equipment"],"est":[{"modo":"continuo","afeta":"equipada","kw":[{"k":"antimagia"},{"k":"pressa"}]}],"kw":[{"k":"equipar","custo":{"g":1}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco1.json"}}

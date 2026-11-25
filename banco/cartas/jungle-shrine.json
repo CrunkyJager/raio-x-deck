@@ -1,0 +1,1 @@
+{"v":2,"n":"Jungle Shrine","id":"2e69537c-c898-4e13-a72d-ce3957a90304","oracleHash":"a628df96","vm":0,"ci":"WRG","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R","G","W"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco1.json"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Flooded Strand","id":"f3c7af78-a77d-4134-82a2-a5ce84285a84","oracleHash":"70c69a99","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Plains","Island"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Verdant Catacombs","id":"67d60b24-d429-4ded-90d9-06e49f28c396","oracleHash":"ce11db25","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Swamp","Forest"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

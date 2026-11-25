@@ -1,0 +1,1 @@
+{"v":2,"n":"Wastes","id":"05d24b0c-904a-46b6-b42a-96a4d91a0dd4","oracleHash":"3cfe20c9","vm":0,"ci":"","cores":"","tipos":["Land"],"super":["Basic"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["C"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

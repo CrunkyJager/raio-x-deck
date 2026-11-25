@@ -1,0 +1,1 @@
+{"v":2,"n":"Polluted Delta","id":"ef86989d-ce80-4e55-aece-7d11710eeffa","oracleHash":"e5c42764","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Island","Swamp"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

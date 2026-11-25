@@ -1,0 +1,1 @@
+{"v":2,"n":"Dispatch","id":"133c99c0-3652-410f-8100-68015a47af9f","oracleHash":"adcf4731","custo":{"p":["W"]},"vm":1,"ci":"W","cores":"W","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature"],"zona":"campo"}}],"fx":[{"op":"virar","em":{"alvo":0}},{"op":"exilar","em":{"alvo":0},"se":{"palavra":"metalcraft"}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco3.json"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Forest","id":"b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6","oracleHash":"37d65cdf","vm":0,"ci":"G","cores":"","tipos":["Land"],"super":["Basic"],"sub":["Forest"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

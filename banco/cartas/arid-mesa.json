@@ -1,0 +1,1 @@
+{"v":2,"n":"Arid Mesa","id":"c5acf2a5-40f4-433d-a74d-1cb56c521464","oracleHash":"e4dcb228","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Mountain","Plains"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

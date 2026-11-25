@@ -1,0 +1,1 @@
+{"v":2,"n":"Vandalblast","id":"3567c3c8-b3c7-45b7-935b-b1fdbc973720","oracleHash":"4904e6c7","custo":{"p":["R"]},"vm":1,"ci":"R","cores":"R","tipos":["Sorcery"],"alvos":[{"f":{"tipo":["Artifact"],"ctrl":"oponente","zona":"campo"}}],"fx":[{"op":"destruir","em":{"alvo":0}}],"kw":[{"k":"sobrecarga","custo":{"g":4,"p":["R"]}}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

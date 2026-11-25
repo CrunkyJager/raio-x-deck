@@ -1,0 +1,1 @@
+{"v":2,"n":"Mountain","id":"a3fb7228-e76b-4e96-a40e-20b5fed75685","oracleHash":"4fc7efaa","vm":0,"ci":"R","cores":"","tipos":["Land"],"super":["Basic"],"sub":["Mountain"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

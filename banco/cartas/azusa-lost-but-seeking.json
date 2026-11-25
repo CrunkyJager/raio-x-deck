@@ -1,0 +1,1 @@
+{"v":2,"n":"Azusa, Lost but Seeking","id":"6c2c8bf3-9bf8-4a86-89d3-3bb36260dc51","oracleHash":"e080a4d9","custo":{"g":2,"p":["G"]},"vm":3,"ci":"G","cores":"G","tipos":["Creature"],"super":["Legendary"],"sub":["Human","Monk"],"pt":[1,2],"est":[{"modo":"terraExtra","afeta":"voce","qtd":2}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

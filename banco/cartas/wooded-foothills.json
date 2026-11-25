@@ -1,0 +1,1 @@
+{"v":2,"n":"Wooded Foothills","id":"6587a463-a108-4854-b6d1-944e89b8c8a4","oracleHash":"a0a2bf7f","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Mountain","Forest"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

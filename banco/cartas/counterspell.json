@@ -1,0 +1,1 @@
+{"v":2,"n":"Counterspell","id":"cc187110-1148-4090-bbb8-e205694a39f5","oracleHash":"9acd1935","custo":{"p":["U","U"]},"vm":2,"ci":"U","cores":"U","tipos":["Instant"],"alvos":[{"f":"magica"}],"fx":[{"op":"anular","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
