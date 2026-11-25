@@ -2,6 +2,13 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.26.0 — 25/11/2026 · motor cava o topo do grimório; banco com 1511 cartas
+Testes: valida 1511/0 · check 0 erros · Vitest 167/167 · testa 161/161 · partidas e lacunas = base · verifica verde · build ok. Motor joga inteiras 801/1511.
+- **Motor (A):** `op cavar` (olhar/revelar do topo, até achar, destinos, resto no topo ou no fundo); sacrificar guarda o resultado (Empty the Laboratory); gatilho com alvo sem alvo declarado não joga. 7 casos (701.16).
+- **Mesa ao vivo (beta):** a camada sai sem o nome repetido ("Elenda: 1/1 → 2/2").
+- **Banco (B):** correção 12 (estáticas da própria ficha: 4 Constructs, Gnome Soldier), correções 13/14 (ganho de vida em substituição só no ganho: Angel of Vitality, Bilbo, The Wind Crystal), bloco 29 (1401–1450, 50 casos). Esquema: `token.est`, subst ev `ganhaVida`.
+- Atenção: o Vitest leva ~65 s (era 18 s): uma semente do fuzz deixa o Krenko dobrar milhares de Goblins e o motor fica lento com fichas em massa. É o próximo item do motor.
+
 ## v0.25.0 — 25/11/2026 · banco com 1461 cartas (blocos 27/28, correção 11)
 Testes: valida 1461/0 · check 0 erros · Vitest 160/160 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 763/1461.
 - **Banco (B):** bloco 27 (1301–1350, 50 casos), correção 11 (Mirrodin Besieged, Windcrag Siege, Struggle, Marisi, Taunt from the Rampart, Junk Winder, Tamiyo), bloco 28 (1351–1400, 50 casos: The One Ring, Ur-Dragon, Gitrog, Great Henge, Tireless Tracker…). Esquema: `modoEscolhido`, `incitar`, `naoDesvira`.
