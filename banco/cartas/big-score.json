@@ -1,0 +1,1 @@
+{"v":2,"n":"Big Score","id":"a5cbd257-c836-493e-bb1a-76242619dea2","oracleHash":"fb168258","custo":{"g":3,"p":["R"]},"vm":4,"ci":"R","cores":"R","tipos":["Instant"],"custoAd":{"descartar":1},"fx":[{"op":"comprar","quem":"voce","qtd":2},{"op":"ficha","quem":"voce","qtd":2,"token":{"nome":"Treasure"}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco32.json"}}

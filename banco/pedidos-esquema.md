@@ -381,3 +381,24 @@ Agrupado por conceito (contagem = faltas; o texto livre não se repete igual). E
 Logo abaixo do top 10: palavras-chave sem vocabulário (~35, quase todas 1 cada; **fundir 4: Gisela, Bruna, Hanweir Garrison, Mishra**; 2 cada: dash, impending, bestow, retrace, cascata, monstruosidade, exercer, Room, nível de Classe, gastar N); comparação na mesa (maior poder/vida/VM) 6; mana com restrição de cor 6; **volta do exílio transformada 3 (Ajani, Ojer Taq, Welcome to… III)**; metade arredonda para cima 2.
 
 Decisão do FARSEER (25/11), correção 17: fundir (op `fundir` + forma `fundir`, faces[0] = a carta fundida: Gisela → Brisela, Mishra → Mishra, Lost to Phyrexia; Bruna e Hanweir Garrison só o lembrete) e volta transformada (fx `transformada` no mover: Ajani, Ojer Taq, Welcome to … III) aprovados. Linhas 5, 6, 7, 8, 10 e o resto ficam falta.
+
+## Blocos 32/33 — deck da Ivora (Felipe testou; 60 cartas fora do banco, 25/11)
+60 cartas escritas (Ivora primeiro), 50 casos em banco/testes/bloco32.json e bloco33.json; o deck inteiro (75) agora está no banco.
+**Motor (não é esquema, é do adepto A / coordenador):** o motor não dispara `ev: descarta` nem joga `loucura`. No deck da Ivora são 16 cartas que vivem de descarte (Ivora, Inti, Magmakin, Containment Construct, Marauding Mako, Glint-Horn, Surly Badgersaur, Cool but Rude nv2, Bag of Holding, Brallin, Monument to Endurance, Spider-Man, Anje's Ravager e Stensia (loucura)…): no banco estão escritas, na Mesa não disparam.
+
+| # | falta | cartas | proposta | decisão |
+|---|---|---|---|---|
+| 1 | descartadas no turno / "discarded this way" | Change of Fortune, Misty Knight (no turno); Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb (escritas com `lembrados`) | conta `descartadasNoTurno`; confirmar que `descartar` grava `lembrados` | **sim** (5) |
+| 2 | gatilhos que faltam | ciclar (Magmakin), subir de nível de Classe (Cool but Rude nv3; já Caretaker's Talent), desvirar (Key to the City; já Mesmeric Orb), jogar terreno (Shadow of the Goblin) | ev `cicla`, `nivel`, `desvira`, `jogaTerreno` | só `nivel` (3 com Caretaker's Talent e Wizard Class); `desvira` 2, `cicla` 1, `jogaTerreno` 1 = falta |
+| 3 | "outro alvo" / "cada outro oponente" | Markov Retribution (another target creature), Kediss (each other opponent); junto com a Chandra's Ignition (`outro`) | alvo `diferenteDe: i`; jogador `outrosOponentes` (≠ doEvento) | **sim** (3) |
+| 4 | dar palavra-chave a carta fora do campo | Falkenrath Gorger (loucura = custo de mana dela); Tectonic Reformation foi escrita como est continuo na mão | `kw.custo: "proprio"` | falta (2) |
+| 5 | palavras-chave sem vocabulário | fuga (Ox of Agonas), reconfigurar (Lizard Blades, escrito como equipar {2}), preparada (Pompous Battlemage), descer (Brass's Tunnel-Grinder), descobrir por mana gasta (Tecutlan) | deixar falta (1 cada) | falta |
+| 6 | o resto 1/0 | Demand Answers (custoAd "A ou B"), Grab the Prize (condição na carta descartada no custo), Bag of Holding ("exiled with this"), Monument to Endurance (modo não escolhido no turno), Markov Enforcer (criatura que recebeu dano deste no turno), Inti (alvo do gatilho reflexo; "até sua próxima etapa final"), Neheb (jogador OU planeswalker), Library of Leng (só descarte por efeito, não custo) | deixar falta | falta |
+
+## Decisões do lote dos blocos 32/33 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores). Correção 18 do esquema:
+- conta `descartadasNoTurno` e `descartar` sempre grava `lembrados` ("discarded this way"): Change of Fortune, Misty Knight, Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb.
+- ev `nivel` (gatilho de subir de nível de Classe, `niveis[].fx`): Caretaker's Talent, Wizard Class, Cool but Rude.
+- alvo `diferenteDe` + jogador `outrosOponentes`: Chandra's Ignition, Markov Retribution, Kediss.
+- Ficam em `falta`: ev `desvira` (2), `cicla` (1), `jogaTerreno` (1), `kw.custo: "proprio"` (2), fuga/reconfigurar/preparada/descer/descobrir por mana, o resto 1/0.
+- Motor (adepto A): `ev descarta` + loucura em andamento; depois ler a correção 18.
