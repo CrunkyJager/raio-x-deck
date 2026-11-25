@@ -5,9 +5,7 @@
 // <script> clássicos carregados antes (window.CARD_DB etc.); saem do global num passo seguinte.
 import { mount, unmount } from 'svelte';
 import App from './App.svelte';
-import Resumo from './telas/Resumo.svelte';
-import TelaAnalise from './telas/Analise.svelte';
-import Trocas from './telas/Trocas.svelte';
+import Saida from './telas/Saida.svelte';
 import Janelas from './telas/Janelas.svelte';
 import type { Analise } from './analise/analise';
 
@@ -15,14 +13,16 @@ import type { Analise } from './analise/analise';
 // fixo estava: os módulos abaixo procuram #deck-in, #examples, #out… assim que sobem.
 mount(App, { target: document.body, anchor: document.body.querySelector('script') ?? undefined });
 
-// Telas em componente que o analise.ts desenha a cada análise (ver telas() lá): monta no lugar do <template>
-// e desmonta a anterior, porque o #out inteiro é refeito a cada run().
-const vivas: Record<string, ReturnType<typeof mount>> = {};
-const tela = (nome: string, C: typeof Resumo) => (lugar: Element, A: Analise) => {
-  if (vivas[nome]) unmount(vivas[nome]);
-  vivas[nome] = mount(C, { target: lugar.parentNode as Element, anchor: lugar, props: { A } });
+// O #out (Resumo, Trocas e Análise) é a Saida.svelte, que o analise.ts desenha a cada análise (ver telas() lá):
+// desmonta a anterior e monta a nova com o A novo, porque o #out inteiro é refeito a cada run().
+let saida: ReturnType<typeof mount> | null = null;
+window.RAIOX_TELAS = {
+  saida: (out: Element, A: Analise) => {
+    if (saida) unmount(saida);
+    out.innerHTML = '';
+    saida = mount(Saida, { target: out, props: { A } });
+  },
 };
-window.RAIOX_TELAS = { resumo: tela('resumo', Resumo), analise: tela('analise', TelaAnalise), trocas: tela('trocas', Trocas) };
 
 async function sobe(nome: string, carrega: () => Promise<unknown>) {
   try { await carrega(); } catch (err) { console.error(`Raio-X: ${nome} não subiu`, err); }

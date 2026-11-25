@@ -379,7 +379,9 @@ const listLinks = (arr: string[], max = 40) => arr.slice(0, max).map(cardLink).j
 
 let LAST: Analise | null = null;
 // T43 (d): o objeto ganha nome só para o tipo (RaioX) que o montar.ts importa; o window.RAIOX é o mesmo de antes
-const API = { esc, fmt, suggestions: (A: Analise, k: string, n?: number) => suggestions(A, k, n), terrenosHTML: (A: Analise) => terrenosHTML(A), THEMES, themesOf, valorPlano: (A: Analise, c: Carta) => valorPlano(A, c), edhPagina: (c: string) => edhPagina(c), edhJa: (c: string) => edhJa(c), edhCmdCam: (n: string[]) => edhCmdCam(n), edhIdeia: (t: Iterable<string>, i: Set<string>, tb?: string | null) => edhIdeia(t, i, tb), edhCarta: (I: Ideia | null, c: Carta) => edhCarta(I, c), edhNota: (I: Ideia | null, c: Carta) => edhNota(I, c), edhPorque: (I: Ideia | null, c: Carta) => edhPorque(I, c), planoDe: (A: Analise) => planoDe(A), tipoRamp: (c: Carta) => tipoRamp(c), custoRamp: (c: Carta) => custoRamp(c), terrenosFormula: (cs: Carta[], cm: Carta[]) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c: Carta) => efeitos(c), subtypes, CONCEITOS: null as typeof CONCEITOS | null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n: string) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c: Carta) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds?: string[] | null, goTo?: string) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A: Analise, c: Carta) => efetiv(A, c), sinergia: (A: Analise, c: Carta) => sinergia(A, c), temaSin: (A: Analise) => temaSin(A), sinTema: (c: Carta, T: Dic<number>) => sinTema(c, T), sinTexto: (A: Analise, c: Carta) => sinTexto(A, c), buildSwaps: (A: Analise) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A: Analise) => perfilDeck(A), efPlano: (A: Analise, c: Carta) => efPlano(A, c), imgFor: (n: string, v?: string) => imgFor(n, v), SCRY: (n: string, v?: string) => SCRY(n, v), roleNames: (c: Carta) => roleNames(c), imgsDe: (l: string[]) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+const API = { esc, fmt, suggestions: (A: Analise, k: string, n?: number) => suggestions(A, k, n), terrenosHTML: (A: Analise) => terrenosHTML(A), THEMES, themesOf, valorPlano: (A: Analise, c: Carta) => valorPlano(A, c), edhPagina: (c: string) => edhPagina(c), edhJa: (c: string) => edhJa(c), edhCmdCam: (n: string[]) => edhCmdCam(n), edhIdeia: (t: Iterable<string>, i: Set<string>, tb?: string | null) => edhIdeia(t, i, tb), edhCarta: (I: Ideia | null, c: Carta) => edhCarta(I, c), edhNota: (I: Ideia | null, c: Carta) => edhNota(I, c), edhPorque: (I: Ideia | null, c: Carta) => edhPorque(I, c), planoDe: (A: Analise) => planoDe(A), tipoRamp: (c: Carta) => tipoRamp(c), custoRamp: (c: Carta) => custoRamp(c), terrenosFormula: (cs: Carta[], cm: Carta[]) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c: Carta) => efeitos(c), subtypes, CONCEITOS: null as typeof CONCEITOS | null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n: string) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c: Carta) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds?: string[] | null, goTo?: string) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A: Analise, c: Carta) => efetiv(A, c), sinergia: (A: Analise, c: Carta) => sinergia(A, c), temaSin: (A: Analise) => temaSin(A), sinTema: (c: Carta, T: Dic<number>) => sinTema(c, T), sinTexto: (A: Analise, c: Carta) => sinTexto(A, c), buildSwaps: (A: Analise) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A: Analise) => perfilDeck(A), efPlano: (A: Analise, c: Carta) => efPlano(A, c), imgFor: (n: string, v?: string) => imgFor(n, v), SCRY: (n: string, v?: string) => SCRY(n, v), roleNames: (c: Carta) => roleNames(c), imgsDe: (l: string[]) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; },
+  /** o botão "Pedir a leitura do Claude" só aparece com o window.claude (sample) ligado */
+  get temClaude() { return !!SAMPLE; }, perguntaClaude: (A: Analise, onText: (t: string) => void) => askClaude(A, onText) };
 // tela Trocas (src/telas/Trocas.svelte): o estado das trocas (SWAPS, SWAP_ON) e a ideia (CONC) continuam aqui,
 // porque o buildSwaps, o newList e a Mesa (RAIOX.swaps) leem deles; a tela pede e muda por estas funções.
 const TROCAS = {
@@ -416,9 +418,7 @@ function run(forcedCmd?: string[] | null, goTo?: string) {
   LAST = A;
   $('#go-msg').textContent = '';
   loadConcept(A);
-  out.innerHTML = render(A);
   telas(out, A);
-  wire(A);
   document.dispatchEvent(new CustomEvent('raiox:deck', { detail: A }));
   // EDHREC ainda não veio para este comandante: busca e refaz a análise uma vez (fica guardado 7 dias)
   // página do comandante no EDHREC (só informação): busca uma vez e redesenha as trocas
@@ -427,27 +427,16 @@ function run(forcedCmd?: string[] | null, goTo?: string) {
   if (location.hash === '#' + dest) show(dest); else location.hash = dest;
 }
 
-// telas que já são componentes Svelte (T43 d): o main.ts registra em window.RAIOX_TELAS; cada uma entra no lugar do
-// seu <template data-tela>. Sem o gancho (no node, pelo mede.js) a tela só não aparece.
+// T43 (d): o #out inteiro é o componente src/telas/Saida.svelte (Resumo, Trocas e Análise), que o main.ts registra
+// em window.RAIOX_TELAS.saida. Sem o gancho (no node, pelo mede.js) a tela só não aparece.
 function telas(out: HTMLElement, A: Analise) {
-  const T = window.RAIOX_TELAS || {};
-  out.querySelectorAll<HTMLTemplateElement>('template[data-tela]').forEach(t => { const f = T[t.dataset.tela!]; if (f) f(t, A); t.remove(); });
+  const f = window.RAIOX_TELAS && window.RAIOX_TELAS.saida;
+  if (f) f(out, A); else out.innerHTML = '';
 }
 
-function render(A: Analise) {
-  return `
-  <template data-tela="resumo"></template>
-  <template data-tela="trocas"></template>
-  <template data-tela="analise"></template>`;
-}
-
-function wire(A: Analise) {
-  const pick = $<HTMLSelectElement>('#cmd-pick'); if (pick) pick.onchange = () => run([pick.value], 'resumo');
-  const ask = $('#ask-all');
-  if (ask) { ask.hidden = !SAMPLE; ask.onclick = () => askClaude(A); }
-}
-async function askClaude(A: Analise) {
-  const box = $('#ans-all'); box.hidden = false; box.textContent = 'Lendo o deck…';
+/** leitura do Claude (botão do Resumo): devolve o texto aos pedaços por onText; o erro vira texto também */
+async function askClaude(A: Analise, onText: (t: string) => void) {
+  onText('Lendo o deck…');
   const resumo = [
     `Comandante: ${A.cmds.map((c: Carta) => c.name).join(' + ')} (cores ${[...A.ident].join('') || 'incolor'}). ${A.total} cartas, custo médio ${A.avgMV.toFixed(2)}, ${A.lands} terrenos.`,
     'Funções: ' + A.refs.map(r => `${r.n} ${fmt(r.have)} (faixa ${r.lo}-${r.hi})`).join('; '),
@@ -457,8 +446,8 @@ async function askClaude(A: Analise) {
     'Lista: ' + A.uniq.map((c: Carta) => c.name).join('; '),
   ].join('\n');
   try {
-    await SAMPLE(`Você é um professor de Commander (Magic: The Gathering) ajudando um jogador brasileiro a APRENDER a montar decks. Ele não quer que você monte o deck por ele: quer entender o raciocínio.\n\nAnálise automática do deck dele:\n${resumo}\n\nEscreva em português do Brasil, em até 3 parágrafos curtos: 1) como esse deck ganha e se o plano está claro; 2) o ponto mais fraco e o raciocínio para corrigir, citando tipos de carta e não uma lista pronta; 3) um hábito de construção que ele deve treinar. Pode discordar da análise automática se a lista mostrar outra coisa. Não invente cartas que não estão na lista.`, { onText: ({ text }: { text: string }) => { box.textContent = text; } });
-  } catch (e: any) { box.textContent = e && e.code === 'rate_limited' ? 'Muitas perguntas seguidas. Espere um pouco.' : 'Não deu para perguntar agora.'; }
+    await SAMPLE(`Você é um professor de Commander (Magic: The Gathering) ajudando um jogador brasileiro a APRENDER a montar decks. Ele não quer que você monte o deck por ele: quer entender o raciocínio.\n\nAnálise automática do deck dele:\n${resumo}\n\nEscreva em português do Brasil, em até 3 parágrafos curtos: 1) como esse deck ganha e se o plano está claro; 2) o ponto mais fraco e o raciocínio para corrigir, citando tipos de carta e não uma lista pronta; 3) um hábito de construção que ele deve treinar. Pode discordar da análise automática se a lista mostrar outra coisa. Não invente cartas que não estão na lista.`, { onText: ({ text }: { text: string }) => onText(text) });
+  } catch (e: any) { onText(e && e.code === 'rate_limited' ? 'Muitas perguntas seguidas. Espere um pouco.' : 'Não deu para perguntar agora.'); }
 }
 
 // ---------- trocas: quem sai e quem entra ----------
