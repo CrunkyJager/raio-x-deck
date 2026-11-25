@@ -1,0 +1,38 @@
+{
+ "bloco": "correcao7",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "decisões do FARSEER no lote do bloco 23 (96a8668): fx sacrificar exceto {qtd, porTipo}, filtro moidaNoTurno, subst naoPrimeira; Otawara: falta da redução na mão",
+ "casos": [
+  {
+   "carta": "Archfiend of Depravity",
+   "situacao": "fim do turno de um oponente com 4 criaturas",
+   "espera": "esse oponente escolhe até 2 e sacrifica as outras 2; no seu fim de turno nada acontece"
+  },
+  {
+   "carta": "Ajani, Nacatl Pariah",
+   "situacao": "−4 contra oponente com 2 artefatos, 3 criaturas, 1 encantamento e terras",
+   "espera": "fica com 1 artefato, 1 criatura e 1 encantamento; sacrifica 1 artefato e 2 criaturas; terras ficam"
+  },
+  {
+   "carta": "Promise of Loyalty",
+   "situacao": "cada jogador com 3 criaturas",
+   "espera": "cada um fica com 1 e sacrifica 2"
+  },
+  {
+   "carta": "Raul, Trouble Shooter",
+   "situacao": "cemitério com uma carta moída neste turno e outra de turno anterior",
+   "espera": "no seu turno pode conjurar só a moída neste turno, uma vez"
+  },
+  {
+   "carta": "Bard, King of Dale",
+   "situacao": "compra do passo de compra e depois compra 1 por efeito",
+   "espera": "a primeira do passo de compra é 1; a do efeito vira 2"
+  },
+  {
+   "carta": "Otawara, Soaring City",
+   "situacao": "canalizar da mão com 1 criatura lendária",
+   "espera": "custa {2}{U} (a redução vale na mão)"
+  }
+ ]
+}

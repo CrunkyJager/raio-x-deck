@@ -1,0 +1,68 @@
+{
+ "bloco": "correcao6",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "decisões do FARSEER no lote do bloco 22 (4ee1a4f): fx semRegenerar, kw decaida, reduzCusto deHabil com contagem, prop maiorVm, gat naoPrimeira, modal aleatorio; Ponder com cavar olha 3. Bard fica com falta: naoPrimeira não existe na subst",
+ "casos": [
+  {
+   "carta": "Artifact Mutation",
+   "situacao": "destrói um artefato regenerável",
+   "espera": "vai para o cemitério sem regenerar; Saprolings = vm dele"
+  },
+  {
+   "carta": "Damn",
+   "situacao": "destrói uma criatura com escudo de regeneração",
+   "espera": "morre sem regenerar"
+  },
+  {
+   "carta": "Pongify",
+   "situacao": "destrói criatura regenerável",
+   "espera": "morre sem regenerar; o controlador ganha um Ape 3/3"
+  },
+  {
+   "carta": "Putrefy",
+   "situacao": "destrói artefato ou criatura regenerável",
+   "espera": "morre sem regenerar"
+  },
+  {
+   "carta": "Terminate",
+   "situacao": "destrói criatura regenerável",
+   "espera": "morre sem regenerar"
+  },
+  {
+   "carta": "Crowded Crypt",
+   "situacao": "sacrifica e cria os Zumbis",
+   "espera": "cada Zumbi 2/2 tem decayed: não bloqueia e é sacrificado no fim do combate em que ataca"
+  },
+  {
+   "carta": "Poppet Stitcher",
+   "situacao": "conjura instantânea",
+   "espera": "Zumbi 2/2 com decayed"
+  },
+  {
+   "carta": "Otawara, Soaring City",
+   "situacao": "canalizar com 2 criaturas lendárias",
+   "espera": "a habilidade custa {1}{U} em vez de {3}{U}"
+  },
+  {
+   "carta": "One with the Machine",
+   "situacao": "controla artefatos de vm 1, 4 e 6",
+   "espera": "compra 6 (o maior vm), não a soma"
+  },
+  {
+   "carta": "Orcish Bowmasters",
+   "situacao": "oponente compra a 1ª carta do passo de compra e depois mais uma",
+   "espera": "só a segunda dispara (1 de dano + amassar)"
+  },
+  {
+   "carta": "Outlaws' Merriment",
+   "situacao": "sua manutenção",
+   "espera": "um dos três modos é escolhido ao acaso, não pelo jogador"
+  },
+  {
+   "carta": "Ponder",
+   "situacao": "resolve",
+   "espera": "olha as 3 do topo e reordena; pode embaralhar; compra 1"
+  }
+ ]
+}

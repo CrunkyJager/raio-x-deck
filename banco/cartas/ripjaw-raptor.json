@@ -1,0 +1,1 @@
+{"v":2,"n":"Ripjaw Raptor","id":"80bb9ce4-1f3c-42ca-b75f-9a6b2f42073b","oracleHash":"b971fc11","custo":{"g":2,"p":["G","G"]},"vm":4,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Dinosaur"],"pt":[4,5],"gat":[{"ev":"dano","recebe":{"este":true},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco24.json"}}

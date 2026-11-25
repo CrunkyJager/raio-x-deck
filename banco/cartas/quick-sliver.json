@@ -1,0 +1,1 @@
+{"v":2,"n":"Quick Sliver","id":"530a5740-041c-42df-8fe0-fcea87258038","oracleHash":"938c79ab","custo":{"g":1,"p":["G"]},"vm":2,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Sliver"],"pt":[1,1],"kw":[{"k":"lampejo"}],"est":[{"modo":"conjurarComLampejo","afeta":"cadaJogador","f":{"sub":["Sliver"]}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco23.json"}}

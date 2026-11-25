@@ -355,6 +355,14 @@ export interface RxFiltro {
    * o objeto entrou no campo neste turno (Motivated Pony, Ocelot Pride; ficha criada neste turno = ficha + entrouNoTurno, Idol of Oblivion)
    */
   entrouNoTurno?: boolean;
+  /**
+   * a carta foi para o cemitério moída neste turno (Raul, Tato Farmer, The Master)
+   */
+  moidaNoTurno?: boolean;
+  /**
+   * a criatura atacou neste turno (Riders of the Mark e mais 2)
+   */
+  atacouNoTurno?: boolean;
 }
 
 export interface RxCompara {
@@ -671,6 +679,16 @@ export interface RxFx {
    * op destruir: não pode ser regenerada (Pongify, Artifact Mutation)
    */
   semRegenerar?: boolean;
+  /**
+   * op sacrificar: cada jogador escolhe N que ficam e sacrifica o resto do filtro (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty)
+   */
+  exceto?: {
+    qtd: number;
+    /**
+     * N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)
+     */
+    porTipo?: string[];
+  };
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -1173,6 +1191,10 @@ export interface RxSubst {
    * tipo do marcador ('+1/+1', 'loyalty'…)
    */
   marc?: string;
+  /**
+   * compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)
+   */
+  naoPrimeira?: boolean;
 }
 
 /**

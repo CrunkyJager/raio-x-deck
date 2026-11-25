@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco23",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1101–1150 (Prava … Reflecting Pool)",
+ "casos": [
+  {
+   "carta": "Prava of the Steel Legion",
+   "situacao": "seu turno, ficha 1/1 sua",
+   "espera": "fica 2/5; no turno do oponente volta a 1/1"
+  },
+  {
+   "carta": "Preacher of the Schism",
+   "situacao": "ataca",
+   "espera": "cria Vampiro 1/1 com vínculo e compra 1 perdendo 1 (sem conferir maior vida)"
+  },
+  {
+   "carta": "Predatory Sliver",
+   "situacao": "você tem 2 Fractius",
+   "espera": "cada um +1/+1"
+  },
+  {
+   "carta": "Preordain",
+   "situacao": "resolve",
+   "espera": "vidência 2 e compra 1"
+  },
+  {
+   "carta": "Pride Sovereign",
+   "situacao": "com 2 outros Gatos",
+   "espera": "fica 4/4; {W},{T}: duas fichas Gato 1/1 com vínculo"
+  },
+  {
+   "carta": "Priest of Forgotten Gods",
+   "situacao": "vira e sacrifica 2 outras criaturas mirando 2 oponentes",
+   "espera": "cada um perde 2 e sacrifica 1; você ganha BB e compra 1"
+  },
+  {
+   "carta": "Priest of Titania",
+   "situacao": "4 Elfos no campo (de todos)",
+   "espera": "produz GGGG"
+  },
+  {
+   "carta": "Prime Speaker Zegana",
+   "situacao": "entra com outra criatura sua de poder 4",
+   "espera": "entra com 4 marcadores e compra 5"
+  },
+  {
+   "carta": "Primeval Bounty",
+   "situacao": "conjura criatura / não-criatura / terreno entra",
+   "espera": "Besta 3/3 / três +1/+1 numa criatura sua / ganha 3"
+  },
+  {
+   "carta": "Prince Imrahil the Fair",
+   "situacao": "compra a 2ª carta no turno",
+   "espera": "cria Humano Soldado 1/1; a 1ª e a 3ª não"
+  },
+  {
+   "carta": "Privileged Position",
+   "situacao": "oponente quer mirar outra permanente sua",
+   "espera": "não pode (antimagia); a própria Privileged Position pode"
+  },
+  {
+   "carta": "Prize Pig",
+   "situacao": "ganha 3 de vida",
+   "espera": "3 marcadores ribbon, desvira e tira os 3"
+  },
+  {
+   "carta": "Professional Face-Breaker",
+   "situacao": "duas criaturas suas causam dano de combate ao jogador",
+   "espera": "só 1 Tesouro; sacrificar Tesouro exila o topo jogável no turno"
+  },
+  {
+   "carta": "Professor Hojo",
+   "situacao": "duas habilidades miram criaturas suas no mesmo turno",
+   "espera": "compra só 1"
+  },
+  {
+   "carta": "Progenitor's Icon",
+   "situacao": "escolhe Elf e ativa a 2ª",
+   "espera": "Elfos com lampejo até o fim do turno"
+  },
+  {
+   "carta": "Promise of Aclazotz",
+   "situacao": "seu passo final, sacrifica não-Demônio",
+   "espera": "popular; Foul Rebirth: sacrifica e cria Vampiro Demônio 4/3 voador"
+  },
+  {
+   "carta": "Prosperous Innkeeper",
+   "situacao": "entra; depois outra criatura sua entra",
+   "espera": "Tesouro; ganha 1"
+  },
+  {
+   "carta": "Prowling Serpopard",
+   "situacao": "oponente tenta anular sua criatura",
+   "espera": "não anula"
+  },
+  {
+   "carta": "Puppeteer Clique",
+   "situacao": "entra mirando criatura no cemitério do oponente",
+   "espera": "volta sob seu controle com pressa; exilada no seu próximo passo final; persistir"
+  },
+  {
+   "carta": "Puresteel Paladin",
+   "situacao": "3 artefatos e entra Equipamento",
+   "espera": "pode comprar; equipar {0}"
+  },
+  {
+   "carta": "Qasali Slingers",
+   "situacao": "outro Gato seu entra",
+   "espera": "pode destruir artefato ou encantamento alvo"
+  },
+  {
+   "carta": "Quandrix Command",
+   "situacao": "modos 1 e 3",
+   "espera": "devolve criatura à mão e põe dois +1/+1"
+  },
+  {
+   "carta": "Quartzwood Crasher",
+   "situacao": "duas com atropelar causam 5 a um jogador",
+   "espera": "uma ficha 5/5 com atropelar"
+  },
+  {
+   "carta": "Queen Allenal of Ruadach",
+   "situacao": "cria 2 fichas",
+   "espera": "cria também 1 Soldado 1/1; P/R = nº de criaturas suas"
+  },
+  {
+   "carta": "Quick Sliver",
+   "situacao": "oponente com um Fractius na mão",
+   "espera": "pode conjurar no seu turno (lampejo para todos)"
+  },
+  {
+   "carta": "Radiant Destiny",
+   "situacao": "escolhe Elf, 10 permanentes",
+   "espera": "Elfos +1/+1 e vigilância"
+  },
+  {
+   "carta": "Radstorm",
+   "situacao": "terceira mágica do turno",
+   "espera": "proliferar 3 vezes"
+  },
+  {
+   "carta": "Raffine's Tower",
+   "situacao": "entra",
+   "espera": "virada; W, U ou B; ciclar 3"
+  },
+  {
+   "carta": "Raise the Palisade",
+   "situacao": "escolhe Goblin",
+   "espera": "devolve à mão toda criatura não-Goblin"
+  },
+  {
+   "carta": "Rakdos Signet",
+   "situacao": "{1},{T}",
+   "espera": "BR"
+  },
+  {
+   "carta": "Rakdos, Patron of Chaos",
+   "situacao": "seu passo final, oponente não sacrifica",
+   "espera": "você compra 2"
+  },
+  {
+   "carta": "Ramos, Dragon Engine",
+   "situacao": "conjura mágica de 2 cores; depois tira 5",
+   "espera": "2 marcadores; WWUUBBRRGG uma vez por turno"
+  },
+  {
+   "carta": "Rampaging Baloths",
+   "situacao": "terreno seu entra",
+   "espera": "Besta 4/4"
+  },
+  {
+   "carta": "Rampaging Yao Guai",
+   "situacao": "X = 3",
+   "espera": "entra com 3 marcadores e destrói artefatos/encantamentos alvo"
+  },
+  {
+   "carta": "Ramunap Excavator",
+   "situacao": "terreno no cemitério",
+   "espera": "pode jogá-lo"
+  },
+  {
+   "carta": "Rapacious Guest",
+   "situacao": "sacrifica Food; sai do campo com poder 3",
+   "espera": "+1/+1; oponente alvo perde 3"
+  },
+  {
+   "carta": "Rapid Hybridization",
+   "situacao": "destrói criatura regenerável",
+   "espera": "morre sem regenerar; controlador ganha Frog Lizard 3/3"
+  },
+  {
+   "carta": "Raugrin Triome",
+   "situacao": "entra",
+   "espera": "virada; U, R ou W; ciclar 3"
+  },
+  {
+   "carta": "Raul, Trouble Shooter",
+   "situacao": "{T}",
+   "espera": "cada jogador moe 1; uma mágica do cemitério no seu turno"
+  },
+  {
+   "carta": "Ravenform",
+   "situacao": "exila criatura",
+   "espera": "controlador ganha Pássaro 1/1 voador; prever {U}"
+  },
+  {
+   "carta": "Razorverge Thicket",
+   "situacao": "entra com 3 outros terrenos",
+   "espera": "virada; com 2 ou menos, desvirada"
+  },
+  {
+   "carta": "Reassembling Skeleton",
+   "situacao": "no cemitério, paga {1}{B}",
+   "espera": "volta virado"
+  },
+  {
+   "carta": "Reckless Fireweaver",
+   "situacao": "artefato seu entra",
+   "espera": "1 de dano a cada oponente"
+  },
+  {
+   "carta": "Reckless Ransacking",
+   "situacao": "resolve",
+   "espera": "+3/+2 no alvo e Tesouro"
+  },
+  {
+   "carta": "Reclamation Sage",
+   "situacao": "entra",
+   "espera": "pode destruir artefato ou encantamento"
+  },
+  {
+   "carta": "Red XIII, Proud Warrior",
+   "situacao": "outra criatura sua equipada",
+   "espera": "ganha vigilância e atropelar; entra e devolve Aura/Equipamento do cemitério"
+  },
+  {
+   "carta": "Redemption Choir",
+   "situacao": "entra ou ataca com coven",
+   "espera": "devolve permanente vm ≤ 3 do cemitério ao campo"
+  },
+  {
+   "carta": "Reflecting Pool",
+   "situacao": "você tem Forest e Island",
+   "espera": "produz G ou U"
+  },
+  {
+   "carta": "Pride Sovereign",
+   "situacao": "sem outros Gatos",
+   "espera": "fica 2/2"
+  },
+  {
+   "carta": "Prize Pig",
+   "situacao": "ganha 1 com 1 ribbon",
+   "espera": "fica com 2, não desvira"
+  }
+ ]
+}
