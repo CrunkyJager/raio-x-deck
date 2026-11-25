@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.7.0 — 25/11/2026 · banco com 403 cartas; Addendum
+Testes: valida 403/0 · check 0 erros · Vitest 137/137 (fuzz erros 0) · testa 161/161 · verifica verde · build ok.
+- **Banco (B):** bloco 7 (fila 301–350, casos em banco/testes/bloco7.json). Campos novos: protecao 'escolhido' + protecaoJogador, ataqueCusta com qtd, desviraNoTurnoDeOutro, aumentaCusto aoMirar pagando vida, afinidade com f, ouCopia, danoUmaVez.
+- **Esquema:** cond `conjuradaNaPrincipal` (Addendum; Unbreakable Formation com casos principal/combate/turno do oponente).
+
 ## v0.6.0 — 25/11/2026 · banco com 353 cartas; fila do motor
 Testes: valida 353/0 · check 0 erros · Vitest 137/137 (fuzz 30 partidas, erros 0) · testa 161/161 · verifica verde · build ok.
 - **Banco (B):** bloco 6 (fila 251–300, 33 casos em banco/testes/bloco6.json); Incubation Druid com prod `deSeusTerrenos` (sai da falta). Campos novos: copiarPermanente, token.copiaDe, repetirCada com filtro, esconderijo, improvisar, est.tiraTipo + devocao, est.limite por tipo, custoAlternativo pagar.virarOutros, muda.maisFicha, comMarcador 'qualquer', fx.pagando.
