@@ -1,6 +1,8 @@
 /* Raio-X do Deck: análise de qualquer deck de Commander a partir da lista colada. */
-(function () {
-'use strict';
+// T43 (c): era o analise.js (script clássico dentro de uma função anônima); virou módulo ES, carregado pelo src/main.ts.
+// Migração mecânica: só saiu o embrulho (o módulo já tem escopo próprio e modo estrito). Conversa com as outras
+// partes pelos mesmos window.* de antes até as telas virarem Svelte (passo d). Fica em JS checado pelo TypeScript
+// (checkJs, src/tsconfig.js.json); vira .ts quando for dividido em componentes no passo (d).
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -218,6 +220,7 @@ function analyze(text, forcedCmd) {
   const tribe = {}; cards.filter(c => /Creature/.test(c.t)).forEach(c => subtypes(c).forEach(s => (tribe[s] = (tribe[s] || 0) + 1)));
   const topTribe = Object.entries(tribe).sort((a, b) => b[1] - a[1])[0];
   A.tribe = topTribe && topTribe[1] >= 10 ? topTribe : null;
+  // @ts-ignore T43 (c): ordena por booleano (true - false), de propósito
   A.themes = THEMES.map(t => ({ ...t, cards: themeCount[t.k], cmd: cmdThemes.has(t.k) })).filter(t => t.cards.length >= 6 || t.cmd).sort((a, b) => (b.cmd - a.cmd) || b.cards.length - a.cards.length);
   // plano do comandante: deck de voltron troca parte da remoção por proteção (guias pedem 8–12 proteções)
   A.plano = planoDe(A);
@@ -304,7 +307,7 @@ const brlTxt = (usd, cents) => 'R$ ' + ((usd || 0) * USD_BRL).toLocaleString('pt
 const brl = (usd, cents) => `<span data-usd="${usd || 0}"${cents ? ' data-cents="1"' : ''}>${brlTxt(usd, cents)}</span>`;
 const toUsd = (reais) => (reais > 0 ? reais / USD_BRL : Infinity);
 (function cotacao() {
-  const pinta = () => { document.querySelectorAll('[data-usd]').forEach(el => { el.textContent = brlTxt(+el.dataset.usd, !!el.dataset.cents); }); document.querySelectorAll('[data-cotacao]').forEach(el => { el.textContent = USD_BRL_INFO; }); };
+  const pinta = () => { document.querySelectorAll('[data-usd]').forEach((/** @type {any} */ el) => { el.textContent = brlTxt(+el.dataset.usd, !!el.dataset.cents); }); document.querySelectorAll('[data-cotacao]').forEach(el => { el.textContent = USD_BRL_INFO; }); };
   try { const c = JSON.parse(localStorage.getItem('raiox:usdbrl') || 'null'); if (c && Date.now() - c.t < 12 * 3600e3) { USD_BRL = c.v; USD_BRL_INFO = c.info; } } catch (e) {}
   aplicaMyp();
   fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL').then(r => r.json()).then(j => {
@@ -581,6 +584,7 @@ function efeitos(c) {
   else { const b0 = ln.match(/gets \+(\d+)\/\+0/); if (b0) { e.boost = +b0[1] / 2; e.diz.push(`+${b0[1]}/+0`); } }
   if (/\+1\/\+1 counter on (it|enchanted|equipped)/.test(ln)) { e.boost += 1; e.diz.push('marcadores ao atacar'); }
   const lnl = ln.toLowerCase(); const vistos = new Set();
+  // @ts-ignore T43 (c): KWV é lista de [texto, peso, nome]: v é número
   for (const [k, v, n] of KWV) if (lnl.includes(k) && !vistos.has(n) && !(k === "can't be blocked" && /can't be blocked (except|by more)/.test(lnl))) { e.kv += v; vistos.add(n); e.diz.push(n); }
   if (/Umbra armor|Totem armor/.test(o)) { e.kv += 1.6; e.diz.push('salva a criatura de ser destruída'); }
   e.haste = /\bhaste\b/i.test(ln) || /creatures you control (have|gain) haste|creature spells you cast [^.]*haste|creatures you control [^.]*haste/i.test(o) || (/target creature (you control )?gains? haste/i.test(o) && c.v <= 1);
@@ -739,7 +743,7 @@ function edhIdeia(temas, ident, tribo) {
 // o que a comunidade diz da carta, medido contra a IDEIA: syn = maior sinergia entre os temas; base = inclusão nas cores sem o tema
 function edhCarta(I, c) {
   if (!I || !I.pags.length || !c) return null;
-  let best = null;
+  let best = /** @type {any} */ (null);
   for (const p of I.pags) { const x = p.d.cards[c.name] || p.d.cards[c.name.split(' // ')[0]]; if (!x) continue; const r = { k: p.k, n: p.d.n, inc: x.inc, syn: x.syn, base: Math.max(0, x.inc - x.syn) }; if (!best || r.syn > best.syn) best = { ...r, base: Math.max(best ? best.base : 0, r.base) }; else best.base = Math.max(best.base, r.base); }
   return best;
 }
@@ -826,6 +830,7 @@ function perfilDeck(A) {
   return (A._perfil = P);
 }
 // a condição de um gatilho, medida contra o deck: [multiplicador, porquê]
+/** @returns {[number, string]} */
 function condDeck(A, c, o) {
   const P = perfilDeck(A), pc = (x) => Math.round(100 * x) + '%';
   const proprio = /\b(Haste|Dash|Flying|Menace|Trample)\b|can't be blocked/i.test(o);
@@ -1165,7 +1170,7 @@ function triangula(A, ctx) {
   for (const c of A.uniq) conta(c, qtd[c.name] || 1);
   const valorK = (k, arr) => { const r = refs.find(x => x.k === k); const s = arr.filter(x => x > 0).sort((a, b) => b - a); return PESO_K[k] * s.reduce((t, x, i) => t + x * precisa(r, i), 0); };
   const tira = (arr, x) => { const i = arr.indexOf(x); if (i >= 0) arr.splice(i, 1); };
-  const plano = () => 0;
+  const plano = /** @type {(c?: any) => number} */ (() => 0);
   // ganho de trocar sai → entra (só as funções que mudam)
   const ganho = (sai, entra) => {
     const es = efDe(sai), ee = entra ? efDe(entra) : {}; let g = (entra ? plano(entra) : 0) - plano(sai); const det = [];
@@ -1199,7 +1204,7 @@ function triangula(A, ctx) {
     const sais = saiC(); if (!sais.length) break;
     // pré-seleção: as 80 que mais somem com o deck como está
     const ent = pool.filter(c => !ctx.usedIn.has(c.name)).map(c => { const e = efDe(c); let g = plano(c); for (const k in e) if (listas[k]) { const b = listas[k].concat([e[k]]); g += valorK(k, b) - valorK(k, listas[k]); } return { c, g }; }).sort((a, b) => b.g - a.g).slice(0, 80);
-    let best = null;
+    let best = /** @type {any} */ (null);
     for (const s of sais) for (const e of ent) {
       if (!ctx.cabe(e.c, s.c)) continue;
       const r = ganho(s.c, e.c); const g = r.g - 0.04 * Math.log10(1 + (e.c.usd || 0));
@@ -1221,6 +1226,7 @@ function textoTri(A, b) {
   const pior = b.det.filter(([, d]) => d < 0).sort((x, y) => x[1] - y[1])[0], melhor = b.det.filter(([, d]) => d > 0).sort((x, y) => y[1] - x[1])[0];
   const efS = efetiv(A, b.sai), efE = efetiv(A, b.entra), vpS = valorPlano(A, b.sai), vpE = valorPlano(A, b.entra);
   const wP = (c) => { const x = sinergia(A, c); return x.t.papel ? `${x.t.papel === 'motor' ? 'alimenta e consome' : x.t.papel === 'paga' ? 'paga por' : 'alimenta'} ${listPt([...new Set(x.t.rU.concat(x.t.rP))].map(sinNome))}` : rolesOf(c).has('threat') || rolesOf(c).has('wincon') ? 'é ameaça' : 'faz pouco pelo tema do deck'; };
+  // @ts-ignore T43 (c): wP ignora o 2º argumento
   const ev = (k, c, e) => k === 'plano' ? efPlanoTema(A, c) : k === 'corpos' ? (b.corpoV || {})[c.name] || 0 : (e.v[k] || 0), ew = (k, c, e, vp) => k === 'plano' ? wP(c, vp) : k === 'corpos' ? `é criatura de poder ${c.p || 0}` : (e.why[k] || 'efeito fraco');
   const faixa = (k) => { const r = refOf(k); return r ? `${r.n} está em ${fmt(b.cnt[k])} (faixa ${r.lo}–${r.hi})` : ''; };
   let whyOut;
@@ -1459,6 +1465,7 @@ function buildSwaps(A) {
     const surplus = (x) => (x in src ? src[x] - A.colorNeed[x] : -99);
     for (const x of short) {
       const k = Math.min(3, A.colorNeed[x] - src[x]);
+      // @ts-ignore T43 (c): TAPPED_RX devolve booleano: ordena terreno desvirado primeiro
       const lands = rankAdds(A, addPool(A, c => isLand(c) && !/Basic/.test(c.t) && c.pm.includes(x) && c.pm.replace(/[^WUBRG]/g, '').length >= 2, 40)).sort((a, b) => (TAPPED_RX(a.c) - TAPPED_RX(b.c)) || a.s - b.s);
       for (let i = 0; i < k; i++) {
         const add = lands.find(l => !usedIn.has(l.c.name) && cabe(l.c, null)); if (!add) break;
@@ -1537,7 +1544,7 @@ function compareText(A, s) {
 // prévia ao passar o mouse nas outras opções
 let HOVT = null;
 function hoverBox() { let h = $('#hov'); if (!h) { h = document.createElement('div'); h.id = 'hov'; h.className = 'hov'; h.hidden = true; document.body.appendChild(h); } return h; }
-document.addEventListener('mouseover', (e) => {
+document.addEventListener('mouseover', (/** @type {any} */ e) => {
   const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || b.closest('#pop')) return;
   clearTimeout(HOVT);
   HOVT = setTimeout(() => {
@@ -1553,7 +1560,7 @@ document.addEventListener('mouseover', (e) => {
     imgFor(c.name).then(src => { const el = h.querySelector('[data-hovimg]'); if (el && el.dataset.hovimg === c.name) el.innerHTML = src ? `<img src="${src}" alt="">` : '<span class="note">sem imagem</span>'; });
   }, 120);
 });
-document.addEventListener('mouseout', (e) => { const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || (e.relatedTarget && b.contains(e.relatedTarget))) return; clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; });
+document.addEventListener('mouseout', (/** @type {any} */ e) => { const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || (e.relatedTarget && b.contains(e.relatedTarget))) return; clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; });
 document.addEventListener('click', () => { clearTimeout(HOVT); const h = $('#hov'); if (h) h.hidden = true; }, true);
 
 // o que a troca faz pelo plano do comandante (lido do texto das duas cartas)
@@ -1614,7 +1621,7 @@ function kpi(rot, antes, depois, nota, tom) {
 }
 function swapSum(A) {
   let p = A.price, gc = A.gc.length;
-  SWAPS.forEach((s, i) => { if (!SWAP_ON[i]) return; const a = C(s.inn) || {}, b = C(s.out) || {}; p += (a.usd || 0) - (b.usd || 0); gc += (a.gc ? 1 : 0) - (b.gc ? 1 : 0); });
+  SWAPS.forEach((s, i) => { if (!SWAP_ON[i]) return; const a = /** @type {any} */ (C(s.inn) || {}), b = /** @type {any} */ (C(s.out) || {}); p += (a.usd || 0) - (b.usd || 0); gc += (a.gc ? 1 : 0) - (b.gc ? 1 : 0); });
   const tgt = +CONC.br, teto = +CONC.teto;
   const passou = teto > 0 && p * USD_BRL > teto + 0.5;
   const dP = (p - A.price) * USD_BRL;
@@ -1799,7 +1806,7 @@ function imgFor(name, v) {
 const imgsDe = (nomes) => Promise.all([...new Set(nomes)].map(n => imgFor(n)));
 
 // detalhe da carta
-document.addEventListener('click', (e) => {
+document.addEventListener('click', (/** @type {any} */ e) => {
   const pop = $('#pop');
   const b = e.target.closest('[data-card]');
   if (!b) { if (!e.target.closest('#pop')) pop.hidden = true; return; }
@@ -1830,7 +1837,7 @@ function openZoom(name, src) {
   z.hidden = false;
   $('.zoom-x', z).focus();
 }
-document.addEventListener('click', (e) => {
+document.addEventListener('click', (/** @type {any} */ e) => {
   const z = $('#zoom');
   if (z && !z.hidden) { if (e.target.closest('.zoom-x') || !e.target.closest('.zoom-box')) { z.hidden = true; } e.stopPropagation(); return; }
   const img = e.target.closest('.cimg img, .pimg img');
@@ -1844,7 +1851,7 @@ document.addEventListener('keydown', (e) => { const z = $('#zoom'); if (e.key ==
 
 
 // imagem que não carregou (sem internet ou carta sem foto): mostra o nome no lugar do ícone quebrado
-document.addEventListener('error', (e) => {
+document.addEventListener('error', (/** @type {any} */ e) => {
   const im = e.target; if (!im || im.tagName !== 'IMG') return;
   const box = im.parentElement; if (!box) return;
   box.innerHTML = `<span class="noimg">${esc(im.alt || 'sem imagem')}</span>`;
@@ -1858,4 +1865,4 @@ $('#go').onclick = () => run();
 // a página abre sem deck: só analisa quando você cola uma lista ou escolhe um exemplo
 $('#deck-in').placeholder = 'Cole aqui a lista do deck (uma carta por linha, ex.: 1 Sol Ring).';
 show(location.hash.slice(1));
-})();
+export {};   // é módulo (escopo próprio), não script global

@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.5.0 — 25/11/2026 · análise, Montar e Mesa em módulos
+Testes: check 0 erros · Vitest 128/128 · testa 161/161 · partidas = linha de base · build ok.
+- **Estrutura (A, T43 c):** analise.js, montar.js e mesa-ui.js → `src/analise/`, `src/montar/`, `src/mesa/` como módulos ES carregados pelo `src/main.ts` (com hash no build, sem ?v=); JS checado pelo TypeScript (checkJs); minificado idêntico ao original. Ferramentas (mede.js, gera_meta.py, coleta.py, banco_mesa.py) apontam para `src/` e `npx vite`.
+- Ver a página local agora é `npx vite --port 8765 --strictPort` (CLAUDE.md, NOTAS.md).
+
 ## v0.4.0 — 25/11/2026 · banco com 303 cartas
 Testes: valida 303/0 · Vitest 128/128 · testa 161/161 · linha de base igual.
 - **Banco (B):** bloco 5 (fila 201–250); Brainstorm e Growth Spiral corrigidos (mover da mão, não buscar).

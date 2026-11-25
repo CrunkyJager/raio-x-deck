@@ -1,5 +1,5 @@
 # Calibração das metas do Montar (Passo 3): lê decks médios do EDHREC e conta funções com a régua do site.
-# Uso: servidor local na 8765 (python3 -m http.server 8765) e ~/.venv-pw/bin/python ferramentas/calibra/coleta.py
+# Uso: servidor local na 8765 (T43: `npx vite --port 8765 --strictPort`; o http.server da raiz não serve o src/main.ts) e ~/.venv-pw/bin/python ferramentas/calibra/coleta.py
 import json, sys, os
 from playwright.sync_api import sync_playwright
 OUT = os.path.join(os.path.dirname(__file__), 'decks.json')
