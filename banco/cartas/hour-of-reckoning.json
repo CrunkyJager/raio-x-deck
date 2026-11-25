@@ -1,0 +1,1 @@
+{"v":2,"n":"Hour of Reckoning","id":"3bc13640-03f8-4b19-b0a4-7e7cb5271c0c","oracleHash":"960f7408","custo":{"g":4,"p":["W","W","W"]},"vm":7,"ci":"W","cores":"W","tipos":["Sorcery"],"kw":[{"k":"convocar"}],"fx":[{"op":"destruir","em":{"todos":{"tipo":["Creature"],"zona":"campo","ficha":false}}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco17.json"}}

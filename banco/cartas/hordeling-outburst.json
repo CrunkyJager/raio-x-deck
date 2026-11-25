@@ -1,0 +1,1 @@
+{"v":2,"n":"Hordeling Outburst","id":"a6450b8e-eb18-431c-9eb7-7daf107978b2","oracleHash":"2997650a","custo":{"g":1,"p":["R","R"]},"vm":3,"ci":"R","cores":"R","tipos":["Sorcery"],"fx":[{"op":"ficha","quem":"voce","qtd":3,"token":{"pt":[1,1],"cores":"R","tipos":["Creature"],"sub":["Goblin"]}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco17.json"}}
