@@ -1231,6 +1231,43 @@ caso('602.2b', 'reduzCusto deHabil: habilidade da permanente (Sanctum) e da mão
   igual(naZona(e, 1, 'mao'), ['Cena Urso']);
 });
 
+// fx dano fonte e filtro nome (correção 16 do banco): fontes como o banco escreve (Warstorm Surge/Ingris, Chandra's Ignition)
+db['Cena Tempestade'] = { n: 'Cena Tempestade', custo: { g: 5, p: ['R'] }, cores: 'R', tipos: ['Enchantment'], vm: 6, ci: 'R',
+  gat: [{ ev: 'entra', quem: { tipo: ['Creature'], ctrl: 'voce' }, fx: [{ op: 'dano', quem: 'cadaOponente', qtd: 2, fonte: 'doEvento' }] }] };
+db['Cena Vampiro'] = { n: 'Cena Vampiro', custo: { g: 1, p: ['B'] }, cores: 'B', tipos: ['Creature'], sub: ['Vampire'], pt: [2, 2], vm: 2, ci: 'B', kw: [{ k: 'vinculoVida' }] };
+caso('120.3', 'dano com fonte doEvento: quem causa é a criatura que entrou (vínculo dela), não o encantamento', () => {
+  const e = cena({ campo: [[0, 'Cena Tempestade']] });
+  e.por(0, 'Cena Vampiro');
+  igual(e.pend.length, 1, 'o gatilho');
+  M.avancar(e);
+  for (let i = 0; i < 5 && e.perg && e.pilha.length + e.pend.length; i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
+  igual(e.jogs[1].vida, 38, JSON.stringify(e.log.slice(-5))); igual(e.jogs[0].vida, 42, 'vínculo da que entrou');
+  ok(M.fxSuportado(db['Cena Tempestade'].gat[0].fx) && !M.fxSuportado([{ op: 'dano', qtd: 1, fonte: 'outra' }]), 'fonte desconhecida não é lida');
+});
+caso('120.3', 'dano com fonte {alvo:0} (Chandra\'s Ignition): toque mortífero do alvo vale; alvo que saiu não causa', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears']] });
+  const A = objN(e, 0, 'Grizzly Bears');
+  const big = M.criarFicha(e, 1, { n: 'Grandalhão', tipos: ['Creature'], pt: [9, 9] });
+  const fx = { op: 'dano', em: { todos: { tipo: ['Creature'], outro: true, zona: 'campo' } }, qtd: { conta: 'poderDoAlvo', alvo: 0 }, fonte: { alvo: 0 } };
+  const morta = M.criarFicha(e, 0, { n: 'Mortífera', tipos: ['Creature'], pt: [1, 1], kw: [{ k: 'toqueMortifero' }] });
+  const ctx = { ...ctxDe(e), alvos: [[{ o: morta.id, ts: morta.ts }]], defAlvos: [{}], lki: { alvos: [[M.lkiDe(e, morta)]] } };
+  M.executar(e, fx, ctx, (j, t, ops) => ops[0]);
+  igual([big.dano, big.mortal, A.dano, A.mortal], [1, true, 1, true], 'o 1 de dano da mortífera é letal (a fonte é o alvo, não a mágica)');
+  const e2 = cena({ campo: [[1, 'Grizzly Bears']] });
+  const m2 = M.criarFicha(e2, 0, { n: 'Mortífera', tipos: ['Creature'], pt: [1, 1] });
+  const ctx2 = { ...ctxDe(e2), alvos: [[{ o: m2.id, ts: m2.ts }]], defAlvos: [{}], ilegal: { '0:0': true }, lki: { alvos: [[M.lkiDe(e2, m2)]] } };
+  M.executar(e2, { op: 'dano', quem: 'cadaOponente', qtd: 3, fonte: { alvo: 0 } }, ctx2, (j, t, ops) => ops[0]);
+  igual(e2.jogs[1].vida, 40, 'alvo ilegal: sem fonte, sem dano');
+});
+caso('201.2', 'filtro nome: conta as cópias com esse nome exato (Ancestral Anger no cemitério)', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [0, 'Sol Ring']] });
+  igual(M.objetosQue(e, { nome: 'Grizzly Bears', zona: 'campo' }, { voce: 0 }).length, 2);
+  igual(M.objetosQue(e, { nome: 'Grizzly Bears', ctrl: 'voce', zona: 'campo' }, { voce: 0 }).length, 1);
+  M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio');
+  igual(M.objetosQue(e, { tipo: ['Card'], nome: 'Grizzly Bears', zona: 'cemiterio', dono: 'voce' }, { voce: 0 }).length, 1);
+  ok(M.filtroOk({ nome: 'x' }));
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
