@@ -30,8 +30,6 @@ const $ = <T extends HTMLElement = HTMLElement>(s: string, r: ParentNode = docum
 const $$ = <T extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll(s)] as T[];
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => (<Dic<string>>{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-import { perfilBanco } from './banco';
-
 // ---------- base de cartas ----------
 const DB = window.CARD_DB;
 const F: Dic<number> = Object.fromEntries(DB.fields.map((f: string, i: number) => [f, i]));
@@ -158,20 +156,12 @@ const ROLES: { k: string; n: string; tags: string[]; rx?: RegExp }[] = [
   { k: 'enabler', n: 'Habilitador de sinergia', tags: [] },
   { k: 'wincon', n: 'Plano de vitória ou defesa', tags: [] },
 ];
-// T44: as funções vêm do banco próprio (src/analise/banco.ts: o que a carta faz, escrito do Oracle). Etiqueta do Scryfall e
-// regex ficam de reserva: carta fora do banco, carta com frase em `falta`, e as funções de tema que o banco ainda não
-// separa bem (SEMPRE_RESERVA: travar, multiplicar, combate, política, acelerar).
-const SEMPRE_RESERVA = new Set(['stax', 'amplify', 'combat', 'politics', 'speed']);
-let SEM_BANCO = false;   // para comparar com o de antes (ferramentas/calibra/t44_diff.py)
 function rolesOf(c: Carta) {
-  const s = new Set<string>(), pb = SEM_BANCO ? null : perfilBanco(c.name);
-  for (const r of ROLES) if (!pb || pb.falta || SEMPRE_RESERVA.has(r.k)) { if (r.tags.some(t => c.tags.includes(t)) || (r.rx && r.rx.test(c.o))) s.add(r.k); }
-  if (pb) for (const k of pb.f) s.add(k);
-  if (s.has('wipe')) s.delete('removal');
+  const s = new Set<string>(); for (const r of ROLES) if (r.tags.some(t => c.tags.includes(t)) || (r.rx && r.rx.test(c.o))) s.add(r.k); if (s.has('wipe')) s.delete('removal');
   const ia = (typeof window !== 'undefined' && window.PAPEIS_IA) ? window.PAPEIS_IA[c.name] : null; if (ia) for (const k of ia.p) s.add(k);
   const front = c.t.split(' // ')[0], o = c.o.split('\n//\n')[0];
-  if (!pb && /can't lose the game|win the game|opponents can't win|loses the game|Creatures can't attack you unless/.test(o)) s.add('wincon');
-  if (!pb && /choose new targets? for target spell|change the target of target spell|Counter target (spell|activated|triggered)/i.test(o)) s.add(/Counter target/.test(o) ? 'counter' : 'protect');
+  if (/can't lose the game|win the game|opponents can't win|loses the game|Creatures can't attack you unless/.test(o)) s.add('wincon');
+  if (/choose new targets? for target spell|change the target of target spell|Counter target (spell|activated|triggered)/i.test(o)) s.add(/Counter target/.test(o) ? 'counter' : 'protect');
   const pw = parseInt(String(c.p || '').split(' // ')[0]);
   if (/Planeswalker/.test(front) || (/Creature/.test(front) && ((pw >= 5) || (pw >= 3 && /Flying|Trample|Menace|Double strike|Infect|Indestructible/i.test(o)) || /power is equal to the number|\*/.test(String(c.p || ''))))) s.add('threat');
   return s;
@@ -417,8 +407,6 @@ const TROCAS = {
   planoTroca: (A: Analise, s: Troca) => planoTroca(A, s), edhTroca: (A: Analise, s: Troca) => edhTroca(A, s),
 };
 (API as any).trocas = TROCAS;
-/** T44: liga/desliga o banco na leitura das funções (para medir a diferença); limpa os caches */
-(API as any).semBanco = (v: boolean) => { SEM_BANCO = v; for (const k in TIPO_RAMP) delete TIPO_RAMP[k]; for (const k in EF) delete EF[k]; };
 window.RAIOX = API;
 export type RaioX = typeof API & { trocas: typeof TROCAS };
 function run(forcedCmd?: string[] | null, goTo?: string) {
@@ -585,8 +573,6 @@ const RAMP_N: Dic<string> = { pedra: 'pedra de mana', dork: 'criatura de mana', 
 function tipoRamp(c: Carta) {
   if (!c || isLand(c)) return null;
   if (c.name in TIPO_RAMP) return TIPO_RAMP[c.name];
-  const pb = SEM_BANCO ? null : perfilBanco(c.name);
-  if (pb && !pb.falta && pb.f.has('ramp')) return (TIPO_RAMP[c.name] = pb.ramp === 'reduz' ? null : pb.ramp);
   const o = c.o.split('\n//\n')[0].replace(/\([^)]*\)/g, ''), t = c.t.split(' // ')[0], tg = c.tags; // sem o texto de lembrete (o do tesouro tem "{T}: Add")
   const tapAdd = /(^|\n)[^\n]*\{T\}[^:\n]*: Add /.test(o) && !/\{T\}, Sacrifice (this|~|it)[^:\n]*: Add/.test(o);
   const cond = /\b(Whenever|When) [^\n]*?(deals (combat )?damage|attacks|dies|an opponent|a player|you cast|you copy)[^\n]*(Treasure|Add \{|search your library for [^.]*land)/.test(o);
@@ -882,11 +868,9 @@ function efetiv(A: Analise, c: Carta | null): { v: Dic<number>; why: Dic<string>
   if (!c || isLand(c)) return { v: {}, why: {} };
   const key = A._efKey || (A._efKey = Math.random()); const cache = EF[key] || (EF[key] = {}); if (cache[c.name]) return cache[c.name];
   const o = semLembrete(c), t = c.t.split(' // ')[0], rl = rolesOf(c), cv = c.v, v: Dic<number> = {}, why: Dic<string> = {};
-  const pb = SEM_BANCO ? null : perfilBanco(c.name), B = pb && !pb.falta ? pb : null;   // B: o banco responde pelos detalhes
-  const inst = B ? B.inst : /Instant/.test(t) || /\bFlash\b/.test(o), cri = /Creature/.test(t);
+  const inst = /Instant/.test(t) || /\bFlash\b/.test(o), cri = /Creature/.test(t);
   const autoSac = (l: string) => new RegExp('Sacrifice (this|~|' + c.name.split(',')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'i').test(l);
-  const repTxt = (rx: RegExp) => o.split('\n').some(l => rx.test(l) && !autoSac(l) && /^(Whenever|At the beginning|[^:]*\{T\}[^:]*:|[^:]*\{\d*[WUBRGC]*\}[^:]*:)/.test(l.trim()));
-  const rep = (rx: RegExp, k: string) => B ? B.rep.has(k) : repTxt(rx);
+  const rep = (rx: RegExp) => o.split('\n').some(l => rx.test(l) && !autoSac(l) && /^(Whenever|At the beginning|[^:]*\{T\}[^:]*:|[^:]*\{\d*[WUBRGC]*\}[^:]*:)/.test(l.trim()));
   const custoAdj = (x: number, d: number) => x - d * Math.max(0, cv - 2);
   if (rl.has('ramp')) {
     const tr = tipoRamp(c), cr = custoRamp(c), w: string[] = [];
@@ -906,26 +890,22 @@ function efetiv(A: Analise, c: Carta | null): { v: Dic<number>; why: Dic<string>
   if (rl.has('draw')) {
     const w: any[] = []; let x;
     const NUM: Dic<number> = { a: 1, an: 1, one: 1, another: 1, two: 2, three: 3, four: 4, five: 5, seven: 7, x: 3 };
-    const nM = o.match(/draws? (two|three|four|five|seven|X|\d+) cards/i), N0 = B ? Math.max(1, B.draw.n) : nM ? NUM[nM[1].toLowerCase()] || +nM[1] || 3 : 1;
+    const nM = o.match(/draws? (two|three|four|five|seven|X|\d+) cards/i), N0 = nM ? NUM[nM[1].toLowerCase()] || +nM[1] || 3 : 1;
     // recursão (devolve do cemitério para a mão) conta como compra: é carta a mais na mão
-    const recT = !/draws? /i.test(o) && o.match(/[Rr]eturn (up to )?(a|an|one|another|two|three|X|\d+)? ?(other )?target [^.]*cards? from your graveyard to your hand/);
-    const rec = B ? B.draw.rec && !B.draw.fase && !B.draw.atv && !B.draw.topo && !B.rep.has('draw') : !!recT;
-    const N = B ? N0 : recT ? NUM[(recT[2] || 'one').toLowerCase()] || +recT[2] || 1 : N0;
+    const rec = !/draws? /i.test(o) && o.match(/[Rr]eturn (up to )?(a|an|one|another|two|three|X|\d+)? ?(other )?target [^.]*cards? from your graveyard to your hand/);
+    const N = rec ? NUM[(rec[2] || 'one').toLowerCase()] || +rec[2] || 1 : N0;
     // o topo do grimório que vira carta na mão ou mágica (Twilight Prophet, Herald's Horn, Realmwalker)
-    const topo = B ? B.draw.topo : /(reveal|look at) the top card[^\n]*into your hand|cast [^.]*from the top of your library/i.test(o);
-    const loot = B ? B.draw.loot : /draws? (a|one) card,? then (discard|exile|put) a card/i.test(o) && N === 1;
-    if (loot) { x = rep(/draw/i, 'draw') ? 0.45 : 0.2; w.push('compra e descarta: só filtra, não dá carta a mais'); }
-    else if (rep(/draw|exile the top|look at the top|reveal the top/i, 'draw') || (topo && (B ? B.rep.has('draw') : /from the top of your library/i.test(o)))) {
-      const lDraw = o.split('\n').filter(l => /draw|the top card|from the top of your library/i.test(l));
-      const up = B ? B.draw.fase : lDraw.some(l => /^At the beginning of (your|each)/i.test(l.trim())), tap = B ? B.draw.atv : lDraw.some(l => /^[^:\n]*(\{[^}]+\}|Pay \d+ life)[^:\n]*:/.test(l.trim()));
-      const estat = !up && !tap && (B ? B.draw.topo : /from the top of your library/i.test(o));
+    const topo = /(reveal|look at) the top card[^\n]*into your hand|cast [^.]*from the top of your library/i.test(o);
+    const loot = /draws? (a|one) card,? then (discard|exile|put) a card/i.test(o) && N === 1;
+    if (loot) { x = rep(/draw/i) ? 0.45 : 0.2; w.push('compra e descarta: só filtra, não dá carta a mais'); }
+    else if (rep(/draw|exile the top|look at the top|reveal the top/i) || (topo && /from the top of your library/i.test(o))) {
+      const lDraw = o.split('\n').filter(l => /draw|the top card|from the top of your library/i.test(l)), up = lDraw.some(l => /^At the beginning of (your|each)/i.test(l.trim())), tap = lDraw.some(l => /^[^:\n]*(\{[^}]+\}|Pay \d+ life)[^:\n]*:/.test(l.trim()));
+      const estat = !up && !tap && /from the top of your library/i.test(o);
       x = up || tap || estat ? 1.25 : 1.1; w.push(up ? 'compra todo turno' : tap ? 'compra toda vez que você ativa' : estat ? 'joga do topo do grimório o tempo todo' : 'compra mais de uma vez');
       if (/chosen type/i.test(o)) { const P = perfilDeck(A), m = Math.min(1.05, 0.2 + 1.5 * P.tri); x *= m; w.push(A.tribe ? `só pega ${A.tribe![0]}: ${Math.round(100 * P.tri)}% do deck` : 'só pega o tipo escolhido, e o deck não é de tribo'); }
       else if (/creature card/i.test(o) && topo) { const P = perfilDeck(A), m = Math.min(1, 0.2 + 1.2 * P.cri); x *= m; w.push(`só pega criatura: ${Math.round(100 * P.cri)}% do deck`); }
       if (/city's blessing/i.test(o)) { x *= 0.75; w.push('só com 10 permanentes na mesa (bênção da cidade)'); }
-      const at = o.split('\n').find(l => /:/.test(l) && /draw/i.test(l.split(':').slice(1).join(':')));
-      if (B && tap) { const ca = B.draw.atvMana; if (ca >= 2) { x -= 0.15 * (ca - 1); w.push(`cada ativação custa ${ca}`); } if (B.draw.atvPede) { x -= 0.25; w.push('a ativação pede algo em troca'); } }
-      else if (tap && at) { const ca = custoN(at.split(':')[0]); if (ca >= 2) { x -= 0.15 * (ca - 1); w.push(`cada ativação custa ${ca}`); } if (/Activate only|discard|Sacrifice an?/i.test(at)) { x -= 0.25; w.push('a ativação pede algo em troca'); } }
+      const at = o.split('\n').find(l => /:/.test(l) && /draw/i.test(l.split(':').slice(1).join(':'))); if (tap && at) { const ca = custoN(at.split(':')[0]); if (ca >= 2) { x -= 0.15 * (ca - 1); w.push(`cada ativação custa ${ca}`); } if (/Activate only|discard|Sacrifice an?/i.test(at)) { x -= 0.25; w.push('a ativação pede algo em troca'); } }
       if (!up && !tap && !estat) { const [m, ww] = condDeck(A, c, o); x *= m; w.push(ww); }
       x = custoAdj(x, 0.08);
     } else {
@@ -933,7 +913,7 @@ function efetiv(A: Analise, c: Carta | null): { v: Dic<number>; why: Dic<string>
       if (rec && /When [^\n]*dies/i.test(o)) { x *= 0.8; w.push('só quando ela morre'); }
       if (inst) { x += 0.1; w.push('instantânea'); }
     }
-    if (B ? B.draw.todos : /each player draws|Each player draws/.test(o)) { x *= 0.6; w.push('os oponentes compram também'); }
+    if (/each player draws|Each player draws/.test(o)) { x *= 0.6; w.push('os oponentes compram também'); }
     if (/you lose \d+ life|pay \d+ life/i.test(o) && !/Whenever/.test(o)) w.push('custa vida');
     v.draw = Math.max(0.1, x); why.draw = w.join('; ');
   }
@@ -943,23 +923,22 @@ function efetiv(A: Analise, c: Carta | null): { v: Dic<number>; why: Dic<string>
     x += cv <= 1 ? 0.25 : cv === 2 ? 0.15 : cv >= 5 ? -0.3 : cv === 4 ? -0.15 : 0; w.push(`custa ${cv}`);
     // o alcance vem só das frases que removem de fato (não de "untap target permanent" num modo ao lado)
     const rem = (o.match(/[^.;\n•—]*(destroy|exile|damage to|gets -\d|-\d+\/-\d+|owner's hand|sacrifices?|fights?|shuffles it into)[^.;\n•—]*/gi) || []).join(' | ');
-    const R = B && B.removal, COR: Dic<string> = { W: 'branco', U: 'azul', B: 'preto', R: 'vermelho', G: 'verde', white: 'branco', blue: 'azul', black: 'preto', red: 'vermelho', green: 'verde' };
-    const cor = R ? (R.cor ? [R.cor, R.cor, R.cor[0]] : null) : rem.match(/if (it's|it is) (white|blue|black|red|green)|target (white|blue|black|red|green) (permanent|creature)/i);
-    if (cor) { x -= 0.6; w.push(`só pega ${R ? COR[R.cor[0]] || R.cor : COR[(cor[2] || cor[3]).toLowerCase()]}`); }
-    else if (R ? R.alcance === 'permanente' : /target (nonland )?permanent(?! with)/i.test(rem)) { x += 0.25; w.push('pega qualquer permanente'); }
-    else if (R ? R.alcance === 'criaturaMais' : /target (creature or planeswalker|artifact, creature|creature, artifact|artifact or creature|creature or artifact)/i.test(rem)) x += 0.1;
-    else if (R ? R.alcance === 'artenc' : !/target (\w+ )?creature|any target|each creature/i.test(rem) && /target (non-?\w+ )?(artifact|enchantment)/i.test(rem)) { x -= 0.55; w.push('só artefato ou encantamento'); }
-    if (R ? R.compensa : /(its controller|its owner|they) [^\n]*reveal[^\n]*onto the battlefield/i.test(o)) { x -= 0.35; w.push('o dono pode ganhar outra permanente no lugar'); }
+    const cor = rem.match(/if (it's|it is) (white|blue|black|red|green)|target (white|blue|black|red|green) (permanent|creature)/i);
+    if (cor) { x -= 0.6; w.push(`só pega ${({ white: 'branco', blue: 'azul', black: 'preto', red: 'vermelho', green: 'verde' })[(cor[2] || cor[3]).toLowerCase()]}`); }
+    else if (/target (nonland )?permanent(?! with)/i.test(rem)) { x += 0.25; w.push('pega qualquer permanente'); }
+    else if (/target (creature or planeswalker|artifact, creature|creature, artifact|artifact or creature|creature or artifact)/i.test(rem)) x += 0.1;
+    else if (!/target (\w+ )?creature|any target|each creature/i.test(rem) && /target (non-?\w+ )?(artifact|enchantment)/i.test(rem)) { x -= 0.55; w.push('só artefato ou encantamento'); }
+    if (/(its controller|its owner|they) [^\n]*reveal[^\n]*onto the battlefield/i.test(o)) { x -= 0.35; w.push('o dono pode ganhar outra permanente no lugar'); }
     const sacL = o.split('\n').find(l => autoSac(l) && /destroy|exile|damage/i.test(l)); if (sacL && /:/.test(sacL)) { const ca = custoN(sacL.split(':')[0]); if (ca + cv >= 4) { x -= 0.15; w.push(`no total custa ${ca + cv}`); } }
-    if (R ? R.restrito : /with (power|mana value|toughness) \d+ or (less|greater)|tapped creature|attacking (creature|or blocking)|blocking creature|target non(black|white|artifact|Elf|[A-Z][a-z]+) creature/i.test(o)) { x -= 0.3; w.push('só pega alguns alvos'); }
-    const dn = R ? (R.dano && R.dano < 99 ? [String(R.dano), String(R.dano)] : null) : o.match(/deals (\d+) damage to (any )?target/i); if (dn && (R || !/X damage/.test(o))) { const f = +dn[1] <= 1 ? 0.5 : +dn[1] === 2 ? 0.75 : +dn[1] === 3 ? 0.9 : 1; if (f < 1) { x *= f; w.push(`só ${dn[1]} de dano`); } }
+    if (/with (power|mana value|toughness) \d+ or (less|greater)|tapped creature|attacking (creature|or blocking)|blocking creature|target non(black|white|artifact|Elf|[A-Z][a-z]+) creature/i.test(o)) { x -= 0.3; w.push('só pega alguns alvos'); }
+    const dn = o.match(/deals (\d+) damage to (any )?target/i); if (dn && !/X damage/.test(o)) { const f = +dn[1] <= 1 ? 0.5 : +dn[1] === 2 ? 0.75 : +dn[1] === 3 ? 0.9 : 1; if (f < 1) { x *= f; w.push(`só ${dn[1]} de dano`); } }
     if (/if (another|a) [^.]*with the same name/i.test(o)) { x -= 1; w.push('só funciona com outra de mesmo nome na mesa (quase nunca)'); }
-    if (R ? R.soMao : /[Rr]eturn target [^.]*to its owner's hand/.test(o) && !/[Dd]estroy|[Ee]xile target/.test(o)) { x -= 0.35; w.push('só devolve para a mão'); }
-    if (R ? R.edito : /(each|target|that) (opponent|player) sacrifices/i.test(o) && !/target (creature|permanent)/i.test(o)) { x -= 0.25; w.push('o oponente escolhe o que perde'); }
-    if (R ? R.todosSacrificam : /each player's upkeep|each player sacrifices/i.test(o)) { const nt = o.match(/sacrifices an? non-?(\w+) creature/i), poupa = nt && A.tribe && nt[1].toLowerCase().startsWith(A.tribe![0].toLowerCase().slice(0, 3));
+    if (/[Rr]eturn target [^.]*to its owner's hand/.test(o) && !/[Dd]estroy|[Ee]xile target/.test(o)) { x -= 0.35; w.push('só devolve para a mão'); }
+    if (/(each|target|that) (opponent|player) sacrifices/i.test(o) && !/target (creature|permanent)/i.test(o)) { x -= 0.25; w.push('o oponente escolhe o que perde'); }
+    if (/each player's upkeep|each player sacrifices/i.test(o)) { const nt = o.match(/sacrifices an? non-?(\w+) creature/i), poupa = nt && A.tribe && nt[1].toLowerCase().startsWith(A.tribe![0].toLowerCase().slice(0, 3));
       if (poupa) w.push(`só os oponentes perdem: o deck é ${A.tribe![0]}, a tribo poupada`); else { x -= 0.4; w.push('você também sacrifica'); } }
     const bl = /\bblights? \d/i.test(o); if (bl) w.push('põe −1/−1 numa criatura que o oponente escolhe');
-    if (rep(/destroy|exile|damage|-\d+\/-\d+|sacrifices/i, 'removal') && (B || !/^When [^\n]*enters/m.test(o))) { x += 0.3; w.push('remove mais de uma vez'); }
+    if (rep(/destroy|exile|damage|-\d+\/-\d+|sacrifices/i) && !/^When [^\n]*enters/m.test(o)) { x += 0.3; w.push('remove mais de uma vez'); }
     else if (cri && /When [^\n]*enters/.test(o)) { x += 0.1; w.push('deixa um corpo na mesa'); }
     const linR = o.split('\n').find(l => /destroy|exile target|damage to (any )?target/i.test(l)) || ''; if (/^Whenever/.test(linR.trim())) { const [m, ww] = condDeck(A, c, linR); x *= m; w.push(ww); }
     if (bl) x = Math.min(x, 0.7);
@@ -968,14 +947,14 @@ function efetiv(A: Analise, c: Carta | null): { v: Dic<number>; why: Dic<string>
   if (rl.has('wipe')) {
     const w: any[] = []; let x = 1; const P = perfilDeck(A);
     const fr = (o.match(/[^.\n]*(destroy all|exile all|damage to each|each creature|all creatures|sacrifices? (a|all|each)|-\d+\/-\d+|-X\/-X)[^.\n]*/i) || [o])[0];
-    const lado = B ? B.wipe.lado || !!(A.tribe && B.wipe.naoSub.some(s => s.toLowerCase().startsWith(A.tribe![0].toLowerCase().slice(0, 4)))) : /(creatures?|nonland permanents|permanents) your opponents control|each creature you don't control|non-?(Vampire|Elf|Goblin|Zombie|Human|Dragon|Angel|[A-Z][a-z]+) creatures|each opponent sacrifices/i.test(fr) || (A.tribe && new RegExp('non-?' + A.tribe![0], 'i').test(fr));
+    const lado = /(creatures?|nonland permanents|permanents) your opponents control|each creature you don't control|non-?(Vampire|Elf|Goblin|Zombie|Human|Dragon|Angel|[A-Z][a-z]+) creatures|each opponent sacrifices/i.test(fr) || (A.tribe && new RegExp('non-?' + A.tribe![0], 'i').test(fr));
     const ov = o.match(/Overload ((\{[^}]+\})+)/), cvW = ov ? custoN(ov[1]) : cv;
     if (ov) { x += 0.15; w.push(`com sobrecarga custa ${cvW} e pega todas; sem ela é remoção pontual de ${cv}`); }
     const tribo = /aren't of the chosen type|isn't of the chosen type/i.test(fr);
     if (tribo && A.tribe) { x += 0.5; w.push(`você escolhe ${A.tribe![0]}: poupa a sua tribo`); }
-    const dano = B ? (B.wipe.dano ? [String(B.wipe.dano), String(B.wipe.dano)] : null) : fr.match(/deals (\d+) damage to each/i); if (dano && +dano[1] <= 2) { x *= 0.55; w.push(`só ${dano[1]} de dano: mata as pequenas`); }
+    const dano = fr.match(/deals (\d+) damage to each/i); if (dano && +dano[1] <= 2) { x *= 0.55; w.push(`só ${dano[1]} de dano: mata as pequenas`); }
     if (lado) { x += 0.5; w.push('só de um lado: poupa as suas'); }
-    else if (!(tribo && A.tribe) && (ov || tribo || B || /all creatures|each creature|all nonland permanents|all permanents|each player sacrifices/i.test(fr))) { x *= Math.max(0.35, 1.25 - 1.1 * P.cri); w.push(`simétrico: leva junto as suas ${P.nCri} criaturas`); }
+    else if (!(tribo && A.tribe) && (ov || tribo || /all creatures|each creature|all nonland permanents|all permanents|each player sacrifices/i.test(fr))) { x *= Math.max(0.35, 1.25 - 1.1 * P.cri); w.push(`simétrico: leva junto as suas ${P.nCri} criaturas`); }
     x += cvW <= 4 ? 0.1 : cvW >= 6 ? -0.2 : 0; if (inst) { x += 0.15; w.push('instantânea'); }
     v.wipe = Math.max(0.2, x); why.wipe = w.join('; ');
   }
@@ -983,21 +962,21 @@ function efetiv(A: Analise, c: Carta | null): { v: Dic<number>; why: Dic<string>
     const w: any[] = []; let x = 0.9;
     if (inst) { x += 0.15; w.push('responde na hora'); }
     x += cv <= 1 ? 0.2 : cv >= 4 ? -0.2 : 0;
-    if (B ? B.protect.todas : /(creatures|permanents) you control (gain|have|get)|each creature you control/i.test(o)) { x += 0.25; w.push('protege todas as suas'); }
-    if (B ? B.protect.fica || (/Equipment/.test(t)) : /Equipment/.test(t) || (!/Instant|Sorcery/.test(t) && !/until end of turn/.test(o))) { x += 0.25; w.push('fica na mesa e protege sempre'); }
+    if (/(creatures|permanents) you control (gain|have|get)|each creature you control/i.test(o)) { x += 0.25; w.push('protege todas as suas'); }
+    if (/Equipment/.test(t) || (!/Instant|Sorcery/.test(t) && !/until end of turn/.test(o))) { x += 0.25; w.push('fica na mesa e protege sempre'); }
     v.protect = Math.max(0.2, x); why.protect = w.join('; ') || 'proteção de uma vez';
   }
   if (rl.has('counter')) {
     const w: any[] = []; let x = 1;
     x += cv <= 2 ? 0.2 : cv >= 4 ? -0.25 : 0; w.push(`custa ${cv}`);
-    if (B ? B.counter.pagavel : /unless its controller pays/i.test(o)) { x -= 0.35; w.push('o oponente pode pagar'); }
-    if (B ? B.counter.restrito : /Counter target (noncreature|creature|instant|sorcery|artifact|enchantment|activated|triggered)/i.test(o)) { x -= 0.2; w.push('só alguns tipos'); }
+    if (/unless its controller pays/i.test(o)) { x -= 0.35; w.push('o oponente pode pagar'); }
+    if (/Counter target (noncreature|creature|instant|sorcery|artifact|enchantment|activated|triggered)/i.test(o)) { x -= 0.2; w.push('só alguns tipos'); }
     if (/rather than pay|without paying/i.test(o)) { x += 0.2; w.push('pode sair de graça'); }
     v.counter = Math.max(0.2, x); why.counter = w.join('; ');
   }
   // o texto tem que fazer a função de verdade (as etiquetas juntam muito engano)
   const FAZ: Dic<RegExp> = { ramp: /Add \{|Add an amount of|adds an additional|Add (one|two|three|X|that much) mana|mana of any|Treasure|Powerstone|search your library for [^.]*(land|Forest|Plains|Island|Swamp|Mountain)|lands? cards? [^.]*onto the battlefield|costs? \{\d\} less|play an additional land/i, draw: /draws? (a|an|two|three|four|five|seven|X|\d+) cards?|draw cards|exile the top [^.]*(you may (play|cast))|put (it|that card|them) into your hand|cast [^.]*from the top of your library|[Rr]eturn [^.]*from your graveyard to your hand/i, removal: /destroy target|exile target|shuffles it into|on the (top|bottom) of (its owner's|their) library|damage to (any )?target|damage to (each|up to)|target [^.]*gets -\d|fights?|return target [^.]*owner's hand|sacrifices? (a|an) (non-?[\w-]+ )?(creature|permanent)|counters? on target|\bblights? \d/i, protect: /hexproof|indestructible|shroud|protection from|phases? out|[Pp]revent all (combat )?damage|[Cc]ounter target|[Rr]egenerate|\bward\b|can't be the target/i, counter: /[Cc]ounter target/ };
-  for (const k in FAZ) if (!B && v[k] != null && !FAZ[k].test(o)) { v[k] = 0.15; why[k] = 'a etiqueta diz que faz, mas o texto não mostra o efeito'; }
+  for (const k in FAZ) if (v[k] != null && !FAZ[k].test(o)) { v[k] = 0.15; why[k] = 'a etiqueta diz que faz, mas o texto não mostra o efeito'; }
   const ks = Object.keys(v).sort((a, b) => v[b] - v[a]);
   const modal = /Choose one|choose one —/i.test(o) || o.split('\n').filter(l => autoSac(l) && /:/.test(l)).length >= 2;
   ks.slice(1).forEach(k => { v[k] = modal ? 0 : v[k] * 0.6; });
