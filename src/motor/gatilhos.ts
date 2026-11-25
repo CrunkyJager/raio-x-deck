@@ -6,7 +6,7 @@ import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'bloqueia', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe', 'descarta', 'capitulo']);
-const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n']);
+const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio']);
 const memoOk = new WeakMap();
 // grupo ("uma ou mais"): só no descarte por ora
@@ -15,7 +15,7 @@ M.gatOk = g => {
   let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta') && M.fxSuportado(g.fx) && !g.fx.some(f => f.op === 'modal')   // modo do gatilho (603.3c) = depois
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por));
-  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra'].includes(k)) && M.condValorOk(g.se);
+  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se));
   memoOk.set(g, ok);
   return ok;
 };
@@ -53,6 +53,47 @@ function bateEv(e, g, ev, F) {
   return false;
 }
 const zonas = g => g.zonaAtiva || ['campo'];
+
+// ---------- gatilho atrasado (CR 603.7) ----------
+// e.atras = [{g, ctrl, fonte, n, t (turno em que nasceu), lki, mem, ts}]. g é um gatilho comum com nesteTurno/proximoTurno.
+const memoAtr = new WeakMap();
+M.atrasadoOk = g => {
+  if (!g || typeof g !== 'object') return false;
+  if (memoAtr.has(g)) return memoAtr.get(g);
+  const { nesteTurno, proximoTurno, ...resto } = g;
+  const ok = ['fase', 'conjura'].includes(g.ev) && !g.alvos && !g.zonaAtiva && M.gatOk(resto) && !JSON.stringify(g.fx).includes('"anterior"');
+  memoAtr.set(g, ok);
+  return ok;
+};
+function atrasados(e, ev) {
+  if (!e.atras || !e.atras.length) return;
+  for (const A of e.atras) {
+    if (A.feito) continue;
+    if (A.g.proximoTurno && e.turno.n <= A.t) continue;
+    if (A.g.nesteTurno && e.turno.n !== A.t) { A.feito = true; continue; }
+    const F = { id: A.fonte, ctrl: A.ctrl, ts: A.lki ? A.lki.ts : -1 };
+    if (!bateEv(e, A.g, ev, F) || !cond(e, A.g.se, { voce: A.ctrl, este: A.fonte })) continue;
+    A.feito = true;                                                                       // 603.7c: uma vez só
+    e.pend.push({ fonte: A.fonte, ts: F.ts, ctrl: A.ctrl, k: 'atrasado', g: A.g, n: A.n, face: null, ficha: null, lki: A.lki, mem: A.mem, ev: { ...ev, snap: undefined } });
+  }
+  e.atras = e.atras.filter(A => !A.feito);
+}
+// resguardo (CR 702.21): quando vira alvo de mágica/habilidade de um oponente, anula a menos que ele pague. Cada
+// instância dispara à parte (702.21b); a dada pelas camadas também (kwDe). custo = mana; pagar = vida ou sacrificar.
+const custoResg = k => k.custo ? { mana: k.custo } : k.pagar && Object.keys(k.pagar).length === 1 && (k.pagar.vida || k.pagar.sacrificar) ? k.pagar : null;
+function resguardo(e, ev) {
+  const o = e.objs[ev.id], P = e.objs[ev.por];
+  if (!o || o.zona !== 'campo' || !P || P.zona !== 'pilha') return;
+  const quem = P.pil ? P.pil.ctrl : P.ctrl;
+  if (quem === o.ctrl) return;
+  for (const k of M.kwDe(e, o)) {
+    if (k.k !== 'resguardo') continue;
+    const custo = custoResg(k); if (!custo) continue;
+    e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'resguardo', g: { ev: 'alvoDe', fx: [{ op: 'resguardo', custo }] }, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ...ev, j: quem } });
+  }
+}
+M.custoResg = custoResg;
+M.fimAtrasados = e => { if (e.atras && e.atras.length) e.atras = e.atras.filter(A => !(A.g.nesteTurno && A.t !== e.turno.n)); };
 
 // ---------- dobraGatilho (CR 603.2d): "dispara uma vez a mais" ----------
 // est {modo:'dobraGatilho', afeta: filtro da FONTE do gatilho, evs?: só esses eventos, causa?: filtro do objeto que
@@ -151,6 +192,8 @@ M.evento = (e, ev) => {
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
   }
+  atrasados(e, ev);
+  if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar
     const F = e.objs[ev.id], g = fabricarDe(M.dadoDe(e, F));
     if (g) {
@@ -181,8 +224,8 @@ M.PROC.gatilhos = (e, P, ask) => {
       if (falta) { M.log(e, p.n, 'gatilho sem alvo legal: sai (603.3d)'); ask.etapa(); continue; }
       const id = e.prox++;
       e.objs[id] = { id, n: p.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
-        hab: { fonte: p.fonte, fonteTs: p.ts, gat: p.k, fx: g.fx, alvos: g.alvos || [], ficha: p.ficha, se: g.se || null },
-        pil: { x: 0, alvos, ctrl: j, lki: { este: p.lki }, ev: p.ev } };
+        hab: { fonte: p.fonte, fonteTs: p.ts, gat: p.k, fx: g.fx, alvos: g.alvos || [], ficha: p.ficha, se: g.se || null, talvez: !!g.talvez },
+        pil: { x: 0, alvos, ctrl: j, lki: { este: p.lki }, ev: p.ev, mem: p.mem || null } };
       e.pilha.push(id);
       M.eventosAlvo(e, alvos, id);
       M.log(e, e.jogs[j].nome, 'gatilho de', p.n, '(' + g.ev + ')');

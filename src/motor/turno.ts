@@ -111,7 +111,7 @@ function acaoDoTurno(e) {
   }
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
-  for (const id of e.campo) { e.objs[id].dano = 0; e.objs[id].mortal = false; }
+  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
   e.temp = [];                                                      // 'modificar' até o fim do turno (efeitos.ts)
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');   // efeitoTemporario até o fim do turno
 }
@@ -138,6 +138,7 @@ function proximoPasso(e) {
   let p = T.ativo;
   do p = (p + 1) % n; while (e.jogs[p].saiu);
   T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null;
+  M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
   M.evento(e, { ev: 'fase', passo: 'desvirar', ativo: p });
   if (T.n > e.cfg.maxTurnos) e.fim = { vencedor: null, motivo: 'limite de turnos' };

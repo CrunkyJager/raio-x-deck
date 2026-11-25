@@ -1644,6 +1644,92 @@ caso('105.2c', 'filtro cor C = incolor (Mystic Forge, Ugin)', () => {
   igual([M.bate(e, sr, { cor: ['C', 'G'] }), M.bate(e, le, { cor: ['C', 'G'] })], [true, true], 'lista: incolor ou verde');
 });
 
+caso('603.5', '"you may" do gatilho inteiro (Bloodghast no cemitério): escolhe ao resolver; não = nada acontece', () => {
+  for (const quer of [true, false]) {
+    const e = cena({ campo: [[0, 'Bloodghast', { zona: 'cemiterio' }]], mao: [[0, 'Forest']] });
+    M.avancar(e); resp(e, o => o.a === 'terreno');
+    let perguntou = 0;
+    resolveCom(e, p => p.tipo === 'talvez' && p.ctx && p.ctx.op === 'gatilho' ? (perguntou++, quer ? 0 : 1) : -1);
+    igual(perguntou, 1, 'perguntou uma vez: ' + JSON.stringify(e.log.slice(-6)));
+    igual(noCampo(e).includes('Bloodghast'), quer, quer ? 'voltou' : 'ficou');
+    igual(naZona(e, 0, 'cemiterio'), quer ? [] : ['Bloodghast']);
+  }
+});
+
+// anda até o passo (sem parar nele), passando a prioridade; as outras perguntas: f(p) ou o agente básico
+const andaAte = (e, passo, f = (p: any) => -1) => {
+  const pr = x => x.turno.passo === passo;
+  for (let g = 0; !pr(e) && !e.fim; g++) {
+    if (g > 400) throw new Error('não chegou em ' + passo);
+    if (!e.perg) { M.avancar(e, pr); continue; }
+    const p = e.perg;
+    if (p.tipo === 'acao') { M.responder(e, p.ops.findIndex(o => o.a === 'passar'), pr); continue; }
+    const k = f(p); M.responder(e, k >= 0 ? k : M.agenteBasico()(e, p), pr);
+  }
+};
+caso('508.4', 'Ultra Magnus: ataca, põe criatura artefato da mão virada e atacando (não "atacou"); se puser, converte no fim do combate (gatilho atrasado, 603.7)', () => {
+  for (const poe of [true, false]) {
+    const e = combate([[0, 'Ultra Magnus, Tactician'], [1, 'Wastes']]);
+    e.jogs[0].zonas.mao.push(e.por(0, 'Solemn Simulacrum', { zona: 'mao' }).id); e.jogs[0].zonas.mao.pop();
+    ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Ultra Magnus, Tactician')); fecha(e, 'atacar');
+    let viu = false;
+    andaAte(e, 'dano', p => p.tipo === 'talvez' && p.ctx && p.ctx.op === 'mover' ? (poe ? 0 : 1) : -1);
+    const so = objN(e, 0, 'Solemn Simulacrum');
+    igual(!!so, poe, 'Solemn no campo: ' + JSON.stringify(e.log.slice(-8)));
+    if (poe) {
+      ok(so.virada && M.atacando(e, so), 'virada e atacando');
+      igual([M.contaAtaque(e, 'atacantes', 0), M.contaAtaque(e, 'ataquesNoTurno', 0)], [2, 1], 'entrou atacando conta como atacante, não como "atacou"');
+      viu = true;
+    }
+    andaAte(e, 'principal2');
+    const um = objN(e, 0, 'Ultra Magnus, Tactician');
+    igual(um.face ?? null, poe ? 0 : null, 'converteu só se pôs');
+    igual(e.jogs[1].vida, 40 - 7 - (viu ? 2 : 0), 'dano do Magnus (+ Solemn)');
+    if (poe) {
+      ok(M.temTipo(e, um, 'Creature') && M.poder(e, um) === 4, 'Armored Carrier: criatura 4/7 no seu turno ' + JSON.stringify([M.dadoDe(e, um).tipos, M.poder(e, um), e.turno.ativo, um.ctrl, um.zona]));
+      e.turno.ativo = 1;
+      ok(!M.temTipo(e, um, 'Creature') && M.temTipo(e, um, 'Artifact'), 'no turno do oponente é só artefato');
+      e.turno.ativo = 0;
+    }
+  }
+});
+caso('603.7c', 'gatilho atrasado "neste turno" que não disparou acaba; o que dispara, dispara uma vez', () => {
+  const e = cena({ campo: [[0, 'Ultra Magnus, Tactician']] });
+  const um = objN(e, 0, 'Ultra Magnus, Tactician');
+  const g = M.carta('Ultra Magnus, Tactician').gat[0].fx[1];
+  M.executar(e, { ...g, se: undefined }, { voce: 0, este: um.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, um) }, item: undefined }, () => { throw new Error('não pergunta'); });
+  igual(e.atras.length, 1);
+  e.turno.n++; M.fimAtrasados(e);
+  igual(e.atras.length, 0, 'acabou com o turno');
+});
+caso('702.21a', 'resguardo {2}: Lightning Bolt do oponente no Ultra Magnus é anulado a menos que ele pague {2}', () => {
+  for (const [terrasOp, paga] of [[3, true], [1, false]] as any[]) {
+    const e = cena({ campo: [[0, 'Ultra Magnus, Tactician'], ...terras(terrasOp).map(([, n]) => [1, n])], mao: [] });
+    e.cfg.log = true;
+    e.por(1, 'Lightning Bolt', { zona: 'mao' });
+    e.turno.ativo = 1;
+    M.avancar(e);
+    conj(e, 'Lightning Bolt'); alvoObj(e, 'Ultra Magnus, Tactician');
+    resolveCom(e);
+    const um = objN(e, 0, 'Ultra Magnus, Tactician');
+    igual(um.dano, paga ? 3 : 0, (paga ? 'pagou' : 'não pôde pagar') + ': ' + JSON.stringify(e.log.slice(-8)));
+    igual(naZona(e, 1, 'cemiterio'), ['Lightning Bolt']);
+  }
+});
+caso('707.2', 'Ultron: artefato seu entra, paga {2} e cria ficha cópia; se não é criatura, a ficha é 2/2 Robot Villain artefato criatura (animar, 613.1d)', () => {
+  for (const nome of ['Sol Ring', 'Solemn Simulacrum']) {
+    const e = cena({ campo: [[0, 'Ultron, Artificial Malevolence'], ...terras(nome === 'Sol Ring' ? 3 : 6, 'Wastes')], mao: [[0, nome]] });
+    M.avancar(e); conj(e, nome); resolveCom(e);
+    const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha && o.n === nome);
+    igual(fs.length, 1, 'uma ficha cópia: ' + JSON.stringify(e.log.slice(-8)));
+    const f = fs[0], d = M.dadoDe(e, f);
+    if (nome === 'Sol Ring') {
+      ok(M.temTipo(e, f, 'Creature') && M.temTipo(e, f, 'Artifact'), 'artefato criatura');
+      igual([M.poder(e, f), M.resistencia(e, f), (d.sub || []).includes('Robot')], [2, 2, true]);
+    } else ok(!(d.sub || []).includes('Robot'), 'já era criatura: sem animar');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

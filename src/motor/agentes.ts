@@ -84,7 +84,8 @@ const basico = (e, p) => {
     case 'aMenosQuePagar': {          // pagar para impedir: anular a minha mágica, sempre; mana no turno dos outros (sobraria);
       const k = p.ops.findIndex(op => op.a === 'pagar'); if (k < 0) return 0;   // vida com folga; sacrifício só quando o efeito é contra mim
       const c = p.ctx.custo, meu = p.ctx.de === p.j;
-      if (p.ctx.op === 'anular') return k;
+      if (p.ctx.op === 'anular' || p.ctx.op === 'resguardo') return k;   // a minha mágica/habilidade seria anulada
+      if (p.ctx.op === 'pagando') return c.mana ? k : c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : 0;   // "pode pagar; se pagar": mana sim; vida com folga
       if (c.mana) return e.turno.ativo !== p.j || (c.mana.g || 0) + (p.ctx.x || 0) <= 1 ? k : 0;
       if (c.vida) return J.vida - c.vida > 10 ? k : 0;
       return meu ? k : 0;

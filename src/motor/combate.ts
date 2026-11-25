@@ -57,6 +57,23 @@ function alvosAtaque(e, a) {
   return r;
 }
 const defDe = (e, alvo) => alvo.jog !== undefined ? alvo.jog : e.objs[alvo.o].ctrl;
+// CR 508.4: permanente que entra atacando. Quem a controla escolhe um jogador ou planeswalker que ela poderia atacar
+// (508.4a); primeiro o mais atacado agora (o agente básico pega o primeiro). Não foi declarada: não dispara "ataca".
+M.escolherAtacado = (e, j, ask) => {
+  const C = e.turno.combate, alvos = alvosAtaque(e, j);
+  if (!C || !alvos.length) return null;
+  const n = t => C.atk.filter(r => t.jog !== undefined ? r.alvo.jog === t.jog : r.alvo.o === t.o).length;
+  alvos.sort((a, b) => n(b) - n(a));
+  const op = ask(j, 'atacado', alvos.map(t => ({ a: 'atacado', ...t })), {});
+  return op.jog !== undefined ? { jog: op.jog } : { o: op.o };
+};
+M.porAtacando = (e, o, alvo) => {
+  const C = e.turno.combate; if (!C || !o || o.zona !== 'campo' || !M.temTipo(e, o, 'Creature')) return;   // 506.3: só criatura ataca
+  if (alvo.o !== undefined && (!e.objs[alvo.o] || e.objs[alvo.o].zona !== 'campo')) return;
+  C.atk.push({ id: o.id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
+  e.turno.ataques = (e.turno.ataques || []).concat([{ id: o.id, ts: o.ts, j: o.ctrl, def: defDe(e, alvo), entrou: true }]);
+  M.log(e, o.n, 'entra atacando', alvo.jog !== undefined ? e.jogs[alvo.jog].nome : e.objs[alvo.o].n);
+};
 
 M.PROC.atacar = (e, P, ask) => {
   const a = P.j, alvos = alvosAtaque(e, a);
