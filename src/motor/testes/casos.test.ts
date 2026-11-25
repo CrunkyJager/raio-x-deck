@@ -1176,6 +1176,61 @@ caso('602.2', 'atv da mão sem custo que tira a carta de lá não é oferecida (
   igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0);
 });
 
+// est reduzCusto (CR 601.2f): fontes como o banco escreve (Goblin Warchief, Ghalta sem o prop, Morophon, Sanctum, Otawara)
+const db = banco.db as any;
+db['Cena Chefe'] = { n: 'Cena Chefe', custo: { g: 1, p: ['R'] }, cores: 'R', tipos: ['Creature'], sub: ['Goblin'], pt: [2, 2], vm: 3, ci: 'R',
+  est: [{ modo: 'reduzCusto', afeta: { sub: ['Goblin'], ctrl: 'voce', zona: 'pilha' }, qtd: 1 }] };
+db['Cena Goblin'] = { n: 'Cena Goblin', custo: { g: 1, p: ['R'] }, cores: 'R', tipos: ['Creature'], sub: ['Goblin'], pt: [2, 1], vm: 2, ci: 'R' };
+db['Cena Urso'] = { n: 'Cena Urso', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Creature'], sub: ['Bear'], pt: [2, 2], vm: 2, ci: 'G' };
+caso('601.2f', 'reduzCusto do campo: a mágica do filtro custa {1} a menos, só a sua, e a redução não tira o colorido', () => {
+  const e = cena({ campo: [[0, 'Cena Chefe'], [0, 'Mountain']], mao: [[0, 'Cena Goblin'], [0, 'Cena Urso'], [1, 'Cena Goblin']] });
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Goblin')), { g: 0, p: ['R'] });
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Urso')), { g: 1, p: ['G'] }, 'fora do filtro');
+  igual(M.custoComImposto(e, naMao(e, 1, 'Cena Goblin')), { g: 1, p: ['R'] }, 'do oponente');
+  M.criarFicha(e, 0, db['Cena Chefe']);
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Goblin')).g, 0, 'genérico não fica negativo');
+  M.avancar(e); conj(e, 'Cena Goblin');
+  ok(noCampo(e).includes('Cena Goblin') || e.pilha.some(id => e.objs[id].n === 'Cena Goblin'), 'conjurou com uma Montanha: ' + JSON.stringify(e.log.slice(-4)));
+});
+caso('601.2f', 'reduzCusto afeta este de mao: conta o campo; fora da mão não vale; qtd com prop não é lida', () => {
+  db['Cena Grandão'] = { n: 'Cena Grandão', custo: { g: 6, p: ['G'] }, cores: 'G', tipos: ['Creature'], pt: [8, 8], vm: 7, ci: 'G',
+    est: [{ modo: 'reduzCusto', afeta: 'este', de: 'mao', qtd: { conta: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } } }] };
+  const e = cena({ campo: [[0, 'Cena Urso'], [0, 'Cena Urso'], [1, 'Cena Urso']], mao: [[0, 'Cena Grandão']] });
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Grandão')), { g: 4, p: ['G'] });
+  const g = naMao(e, 0, 'Cena Grandão'); M.mover(e, g.id, 'exilio');
+  igual(M.custoComImposto(e, g).g, 6, 'do exílio não');
+  ok(!M.estReduzOk({ modo: 'reduzCusto', afeta: 'este', qtd: { conta: { tipo: ['Creature'], zona: 'campo' }, prop: 'somaPoder' } }), 'prop ainda não');
+});
+caso('601.2f', 'reduzCusto custo.p (Morophon): tira os símbolos coloridos da mágica do tipo escolhido', () => {
+  db['Cena Morofão'] = { n: 'Cena Morofão', custo: { g: 7 }, tipos: ['Creature'], sub: ['Shapeshifter'], pt: [6, 6], vm: 7,
+    est: [{ modo: 'reduzCusto', afeta: { sub: ['escolhido'], ctrl: 'voce', zona: 'pilha' }, custo: { p: ['W', 'U', 'B', 'R', 'G'] } }] };
+  const e = cena({ campo: [[0, 'Cena Morofão']], mao: [[0, 'Cena Goblin'], [0, 'Cena Urso']] });
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Goblin')), { g: 1, p: ['R'] }, 'sem tipo escolhido');
+  objN(e, 0, 'Cena Morofão').escolha = { tipo: 'Goblin' };
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Goblin')), { g: 1, p: [] });
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Urso')), { g: 1, p: ['G'] });
+});
+caso('602.2b', 'reduzCusto deHabil: habilidade da permanente (Sanctum) e da mão (Otawara) custam menos', () => {
+  db['Cena Santuário'] = { n: 'Cena Santuário', tipos: ['Enchantment'], sub: ['Shrine'], custo: { p: ['W'] }, vm: 1, cores: 'W', ci: 'W',
+    atv: [{ custo: { mana: { g: 5, p: ['W'] } }, alvos: [{ f: { tipo: ['Creature'], zona: 'campo' } }], fx: [{ op: 'virar', em: { alvo: 0 } }] }],
+    est: [{ modo: 'reduzCusto', afeta: 'este', deHabil: true, qtd: { conta: { sub: ['Shrine'], ctrl: 'voce', zona: 'campo' } } }] };
+  db['Cena Otawara'] = { n: 'Cena Otawara', tipos: ['Land'], super: ['Legendary'], ci: 'U',
+    atv: [{ zona: 'mao', custo: { mana: { g: 3, p: ['U'] }, descartarEste: true }, alvos: [{ f: { tipo: ['Creature'], zona: 'campo' } }], fx: [{ op: 'mover', em: { alvo: 0 }, para: 'mao' }] }],
+    est: [{ modo: 'reduzCusto', afeta: 'este', deHabil: true, qtd: { conta: { tipo: ['Creature'], super: ['Legendary'], ctrl: 'voce', zona: 'campo' } } }] };
+  const e = cena({ campo: [[0, 'Cena Santuário'], [0, 'Island'], [1, 'Cena Urso']], mao: [[0, 'Cena Otawara']] });
+  const S = objN(e, 0, 'Cena Santuário');
+  igual(M.custoAtv(e, S, M.atvDe(e, S)[0]), { g: 4, p: ['W'] });
+  igual(M.custoComImposto(e, S), { p: ['W'] }, 'deHabil não mexe no custo de mágica');
+  const O = naMao(e, 0, 'Cena Otawara');
+  ok(!M.podeAtivar(e, 0, O, 0), 'sem lendárias, {3}{U} não fecha com uma Ilha');
+  for (let i = 0; i < 3; i++) M.criarFicha(e, 0, { n: 'Lenda ' + i, tipos: ['Creature'], super: ['Legendary'], pt: [1, 1] });
+  igual(M.custoAtv(e, O, M.atvDe(e, O)[0]), { g: 0, p: ['U'] });
+  ok(M.podeAtivar(e, 0, O, 0), 'com 3 lendárias, só {U}');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === O.id); if (e.perg) alvoObj(e, 'Cena Urso');
+  igual(naZona(e, 0, 'cemiterio'), ['Cena Otawara'], JSON.stringify(e.log.slice(-5)));
+  igual(naZona(e, 1, 'mao'), ['Cena Urso']);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

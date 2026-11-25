@@ -222,7 +222,7 @@ M.podeAtivar = (e, j, o, k) => {
   }
   if (a.custo.mana) {
     const ex = a.custo.virar || a.custo.sacrificar === 'este' ? [o.id] : [];
-    if (!plano(e, j, a.custo.mana, 0, ex)) return false;
+    if (!plano(e, j, M.custoAtv(e, o, a), 0, ex)) return false;
   }
   return true;
 };
@@ -410,14 +410,15 @@ const PROC = {
   ativar(e, P, ask) {
     const j = P.j, o = e.objs[P.id], a = M.atvDe(e, o)[P.k], c = a.custo, ctx = { voce: j, este: o.id };
     const ex = c.virar || c.sacrificar === 'este' ? [o.id] : [];
+    const mana = M.custoAtv(e, o, a);                                                 // CR 602.2b → 601.2f (reduzCusto deHabil)
     let x = 0;
-    if (c.mana && c.mana.x) {
-      const mx = maxX(e, j, c.mana, ex);
+    if (mana && mana.x) {
+      const mx = maxX(e, j, mana, ex);
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
     }
     const alvos = escolherAlvos(e, j, a, a.fx, { ...ctx, x }, ask);                   // CR 602.2b → 601.2c
     const fis = escolherCustoFisico(e, j, c, o.id, c.descartarEste ? o.id : null, ask);
-    const pl = c.mana ? plano(e, j, c.mana, x, [...ex, ...fis.sac]) : { passos: [] as any[], vida: 0 };
+    const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
     // a habilidade vai para a pilha independente da fonte (CR 113.7a): leva o texto e o que sabia da fonte
@@ -427,7 +428,7 @@ const PROC = {
       pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) } } };
     e.objs[id] = h; e.pilha.push(id);
     M.eventosAlvo(e, alvos, id);
-    if (c.mana) pagarMana(e, j, pl, c.mana, x);
+    if (mana) pagarMana(e, j, pl, mana, x);
     pagarFisico(e, j, o, c, fis);
     if (a.lealdade !== undefined) { o.marc.lealdade = (o.marc.lealdade || 0) + a.lealdade; o.lealTurno = e.turno.n; }   // CR 606.4
     if (a.limite === 'umaPorTurno') (o.usos = o.usos || {})[P.k] = e.turno.n;

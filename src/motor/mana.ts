@@ -176,8 +176,47 @@ M.somaCusto = (c, extra, vezes = 1) => {
 M.custoComImposto = (e, o) => {
   const c = { ...(M.dadoDe(e, o).custo || {}) };
   if (o.cmd && o.zona === 'comando') c.g = (c.g || 0) + 2 * (e.jogs[o.dono].imposto[o.id] || 0);
-  return c;
+  return reduz(c, reducoes(e, o.dono, o, false));
 };
+// custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
+M.custoAtv = (e, o, a) => a.custo.mana ? reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true)) : a.custo.mana;
+
+// ---- reduzCusto (CR 601.2f): depois dos aumentos (imposto), tira genérico; custo.p tira símbolos coloridos (Morophon).
+// Fontes: as estáticas do campo (afeta filtro: a mágica que você conjura, ou o permanente dono da habilidade) e a da
+// própria carta (afeta 'este', de 'mao' = só da mão: Ghalta, Otawara). O filtro com zona 'pilha' fala da mágica que
+// está sendo conjurada (ainda na mão quando o custo é calculado). Redução de genérico não mexe no X (simplificação).
+const RED_OK = new Set(['modo', 'afeta', 'de', 'qtd', 'custo', 'deHabil', 'se']);
+M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => RED_OK.has(k) || k.startsWith('_'))
+  && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
+  && (s.de === undefined || s.de === 'mao')
+  && (s.custo === undefined ? s.qtd !== undefined && M.qtdEstOk(s.qtd)
+    : s.qtd === undefined && Object.keys(s.custo).every(k => k === 'p') && Array.isArray(s.custo.p))
+  && (!s.se || M.seOk(s.se));
+function reducoes(e, j, o, deHabil) {
+  const r = { g: 0, p: [] as string[] };
+  const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
+  if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
+  for (const F of fontes) for (const s of M.dadoDe(e, F).est || []) {
+    if (s.modo !== 'reduzCusto' || !!s.deHabil !== deHabil || !M.estReduzOk(s)) continue;
+    const ctx = { voce: F.ctrl, este: F.id };
+    if (s.afeta === 'este') { if (F.id !== o.id || (s.de && o.zona !== s.de)) continue; }
+    else {
+      if (F.zona !== 'campo') continue;                               // a estática com filtro só vale do campo
+      const { zona, ctrl, ...f } = s.afeta;
+      if (ctrl && ctrl !== 'qualquer' && (ctrl === 'voce') !== (j === F.ctrl)) continue;
+      if (deHabil ? zona && zona !== 'qualquer' && o.zona !== zona : zona && zona !== 'pilha') continue;
+      if (!M.bate(e, o, f, ctx)) continue;
+    }
+    if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
+    if (s.custo) r.p.push(...s.custo.p); else r.g += Math.max(0, M.qtdEst(e, s.qtd, ctx));
+  }
+  return r;
+}
+function reduz(c, r) {
+  if (r.g && c.g) c.g = Math.max(0, c.g - r.g);
+  if (r.p.length && c.p && c.p.length) { const p = c.p.slice(); for (const x of r.p) { const i = p.indexOf(x); if (i >= 0) p.splice(i, 1); } c.p = p; }
+  return c;
+}
 
 // ---- plano: quais fontes ativar para pagar um custo (a IA e a conjuração da T15 usam) ----
 // Busca em profundidade: fontes menos flexíveis primeiro (Floresta antes de Command Tower), poda por quantidade.
