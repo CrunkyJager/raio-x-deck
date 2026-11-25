@@ -165,3 +165,15 @@ Contagem: banco 1061 cartas / fila 524 ainda não escritas.
 | restrição de bloqueio e ataque | 1 | 0 | Mirri | deixar falta | |
 | naoPodeConjurar só no combate | 1 | 0 | Marisi | deixar falta | |
 | modo escolhido ao entrar (Mirran/Phyrexian) | 2 | 0 | Windcrag Siege, Mirrodin Besieged (os dois modos escritos) | cond `escolhido` com o nome do modo | |
+
+## Decisões dos lotes dos blocos 17–20 (FARSEER 25/11)
+Regra: 3 ou mais ocorrências (banco + fila) → campo novo; o resto fica em `falta`.
+- cond `maisTerrenosOponente`: `"algum"` (Land Tax, Loyal Warhound) ou `"doEvento"` (Archaeomancer's Map). Reescrever as 3 cartas.
+- gat `recebe` (filtro de quem RECEBE o dano no ev `dano`; `quem` continua = fonte). Enrage → `recebe {este: true}`. Reescrever Apex Altisaur e Metropolis Reformer.
+- gat ev `explora` (`quem` = a criatura que explorou). Reescrever Merfolk Cave-Diver.
+- ficha com nome + P/R: o esquema JÁ aceita `token {nome, pt, …}` (nome só como rótulo). Reescrever Ingris e Kher Keep.
+- qtd `ate` aceita contagem (`{"ate": {"conta": …}}`). Reescrever Kyoshi Island Plaza.
+- cond `primeiroCombate`. Reescrever Genji Glove e Karlach.
+- fx mana `ficaNoTurno`. Reescrever Birgi e Klauth.
+- Kalonian Hydra: a leitura com repetirCada fica (sem op nova).
+- Ficam em `falta`: bestow, prowl, velocidade, fichaCriadaNoTurno, combate do oponente, Hei Bai, Hordewing, alvo "ou Ugin", Kess/Kotis, Junk Winder, Inkshield, Companion, Jarad, Kaalia, mana gasta (Mana Sculpt segue com vmDoAlvo), afflict, conivir, dragar, naoPodeAtivar, Leyline, Liliana −9, N-ésima do topo, Lightning (eSeus), Mangara, incolor, Lobelia, devolver no custo, multikicker, goad, desvirar, unearth, Master of Cruelties, Mirri, Marisi, modo escolhido ao entrar.
