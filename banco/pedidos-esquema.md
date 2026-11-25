@@ -33,3 +33,7 @@
 | Circle of Power, Cornered by Black Mages (bloco 11) | ficha Wizard com gatilho | `token.gat` | decidido FARSEER: `token.gat` (array de gat) |
 | Urza, Chief Artificer (bloco 7) e outros 'artifact creature' | filtro tipo é 'ou' | filtro 'E' entre tipos | decidido FARSEER: filtro `tipoTodos` (todos os tipos); Urza passa a `tipoTodos [Artifact, Creature]` |
 | Cloud, Ex-SOLDIER (bloco 11) | "as long as it's equipped" escrito como modificada | filtro só de Equipamento | decidido FARSEER: filtro `comEquipamento` (par do `encantada`, Calix) |
+| Damning Verdict (bloco 12) | "creatures with no counters" | filtro sem marcador | decidido FARSEER: filtro `semMarcador` |
+| Devoted Druid (bloco 12) | "Put a -1/-1 counter on this creature:" como custo | custoAtv pôr marcador | decidido FARSEER: custoAtv `porMarcador {tipo, qtd}` |
+| Demon of Fate's Design (bloco 12) | "life equal to the sacrificed creature's mana value" | vm do sacrificado | decidido FARSEER: conta `vmDoSacrificado` |
+| Curiosity (bloco 12) | "Whenever enchanted creature deals damage to an opponent" | gatilho na Aura + dano só a oponente | decidido FARSEER: gat NA Aura com `quem {equipada:true}` (a criatura anexada) + gat `aOponente`; quem compra = voce |

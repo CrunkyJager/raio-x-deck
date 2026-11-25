@@ -117,6 +117,7 @@ export type RxQtd =
         | (
             | 'vmDoAlvo'
             | 'vmDoEvento'
+            | 'vmDoSacrificado'
             | 'poderDoEste'
             | 'poderDoEvento'
             | 'resistDoEvento'
@@ -303,6 +304,10 @@ export interface RxFiltro {
    */
   comMarcador?: string;
   /**
+   * sem nenhum marcador (Damning Verdict)
+   */
+  semMarcador?: boolean;
+  /**
    * tem estas palavras-chave
    */
   kw?: string[];
@@ -383,6 +388,13 @@ export interface RxCustoAtv {
   vida?: number | 'X' | RxQtd;
   exilarDe?: RxZona;
   tirarMarcador?: {
+    tipo?: string;
+    qtd?: number;
+  };
+  /**
+   * pôr marcador neste como custo (Devoted Druid: -1/-1)
+   */
+  porMarcador?: {
     tipo?: string;
     qtd?: number;
   };
@@ -825,6 +837,10 @@ export interface RxGat {
   deQuem?: 'voce' | 'cadaJogador' | 'oponente';
   combate?: boolean;
   aJogador?: boolean;
+  /**
+   * o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity)
+   */
+  aOponente?: boolean;
   /**
    * de onde dispara (eminência: comando + campo)
    */

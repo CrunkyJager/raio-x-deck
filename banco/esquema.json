@@ -248,6 +248,7 @@
          "enum": [
           "vmDoAlvo",
           "vmDoEvento",
+          "vmDoSacrificado",
           "poderDoEste",
           "poderDoEvento",
           "resistDoEvento",
@@ -552,6 +553,10 @@
      "type": "string",
      "description": "tem ao menos 1 marcador deste tipo"
     },
+    "semMarcador": {
+     "type": "boolean",
+     "description": "sem nenhum marcador (Damning Verdict)"
+    },
     "kw": {
      "type": "array",
      "items": {
@@ -782,6 +787,18 @@
        "type": "integer"
       }
      }
+    },
+    "porMarcador": {
+     "type": "object",
+     "properties": {
+      "tipo": {
+       "type": "string"
+      },
+      "qtd": {
+       "type": "integer"
+      }
+     },
+     "description": "pôr marcador neste como custo (Devoted Druid: -1/-1)"
     }
    }
   },
@@ -1584,6 +1601,10 @@
     },
     "aJogador": {
      "type": "boolean"
+    },
+    "aOponente": {
+     "type": "boolean",
+     "description": "o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity)"
     },
     "zonaAtiva": {
      "type": "array",
