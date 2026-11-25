@@ -6,14 +6,14 @@ import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'bloqueia', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe', 'descarta', 'capitulo']);
-const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite']);
+const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio']);
 const LACO = 500;
 const memoOk = new WeakMap();
 // grupo ("uma ou mais"): só no descarte por ora
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
-  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'entra') && (!g.limite || g.limite === 'umaPorTurno') && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
+  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'entra') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'conjura') && (!g.aOponente || g.ev === 'dano') && (!g.limite || g.limite === 'umaPorTurno') && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por));
   if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se));
@@ -31,12 +31,12 @@ function bateEv(e, g, ev, F) {
     case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && q(e.objs[ev.id]);
     case 'morre': return ev.ev === 'zona' && ev.de === 'campo' && ev.para === 'cemiterio' && M.temTipo(e, ev.snap, 'Creature') && q(ev.snap);   // 700.4
     case 'sai': return ev.ev === 'zona' && ev.de === 'campo' && q(ev.snap);
-    case 'vaiCemiterio': return ev.ev === 'zona' && ev.para === 'cemiterio' && q(ev.snap || e.objs[ev.id]);
+    case 'vaiCemiterio': return ev.ev === 'zona' && ev.para === 'cemiterio' && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(ev.snap || e.objs[ev.id]);
     case 'ataca': return ev.ev === 'ataca' && q(e.objs[ev.id]);
     case 'atacantesDeclarados': return ev.ev === 'atacantesDeclarados' && !g.quem && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'bloqueia': return ev.ev === 'bloqueia' && q(e.objs[ev.id]);
-    case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.aJogador || ev.jog !== undefined) && q(ev.snap || e.objs[ev.fonte]);
-    case 'conjura': return ev.ev === 'conjura' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && q(e.objs[ev.id]);
+    case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.aJogador || ev.jog !== undefined) && (!g.aOponente || (ev.jog !== undefined && ev.jog !== F.ctrl)) && q(ev.snap || e.objs[ev.fonte]);
+    case 'conjura': return ev.ev === 'conjura' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(e.objs[ev.id]);   // de/naoDe: de onde foi conjurada
     case 'capitulo': return ev.ev === 'capitulo' && ev.id === F.id && ev.ts === F.ts && ev.de < g.n && ev.para >= g.n;   // CR 714.2b
     case 'fase': return ev.ev === 'fase' && ev.passo === g.passo && relJog(g.deQuem || 'voce', ev.ativo, F.ctrl);
     case 'compra': return ev.ev === 'compra' && (!g.quem || relJog(g.quem.ctrl || 'qualquer', ev.j, F.ctrl)) && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
@@ -94,6 +94,19 @@ function resguardo(e, ev) {
   }
 }
 M.custoResg = custoResg;
+// proeza (CR 702.108a): "sempre que você conjura uma mágica que não é de criatura, esta recebe +1/+1 até o fim do
+// turno". Cada instância dispara à parte (702.108b). Lida no dado da carta e nas palavras-chave dadas (kwDe), só de
+// quem tem proeza no dado base ou no índice de quem recebe habilidade: varrer kwDe do campo a cada mágica custaria O(campo).
+const PROEZA = { ev: 'conjura', fx: [{ op: 'modificar', em: 'este', p: 1, r: 1, dura: 'fimDoTurno' }] };
+function proeza(e, ev) {
+  const sp = e.objs[ev.id]; if (!sp || M.temTipo(e, sp, 'Creature')) return;
+  for (const id of e.campo) {
+    const o = e.objs[id]; if (o.ctrl !== ev.j) continue;
+    const base = M.dadoBase(e, o).kw; if (!(base && base.some(k => k.k === 'proeza')) && !M.temHabil(e)) continue;
+    const n = M.kwDe(e, o).filter(k => k.k === 'proeza').length;
+    for (let i = 0; i < n; i++) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'proeza', g: PROEZA, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ...ev, snap: undefined } });
+  }
+}
 M.fimAtrasados = e => { if (e.atras && e.atras.length) e.atras = e.atras.filter(A => !(A.g.nesteTurno && A.t !== e.turno.n)); };
 
 // ---------- dobraGatilho (CR 603.2d): "dispara uma vez a mais" ----------
@@ -203,6 +216,7 @@ M.evento = (e, ev) => {
   }
   atrasados(e, ev);
   if (ev.ev === 'alvoDe') resguardo(e, ev);
+  if (ev.ev === 'conjura') proeza(e, ev);
   if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar
     const F = e.objs[ev.id], g = fabricarDe(M.dadoDe(e, F));
     if (g) {

@@ -16,6 +16,9 @@ M.carta = n => {
   return c;
 };
 // ficha leva o próprio dado; carta de mais de uma face devolve a face que está para cima (o.face)
+// palavras-chave que só valem na montagem do deck/zona de comando (CR 702.124 parceiro, 'parceiroCom' = parceiro com
+// <nome>, 702.124c): na partida não mudam nada. O carregamento do deck aceita os dois comandantes.
+M.KW_SO_DECK = new Set(['parceiro', 'parceiroCom']);
 M.dadoBase = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
 // camada 4 (tipo) e 7b (P/R fixado), só no campo: o.anim (op animar, preso ao objeto: mesmo ts) e a estática
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o

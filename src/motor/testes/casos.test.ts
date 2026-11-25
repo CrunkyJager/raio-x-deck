@@ -741,7 +741,7 @@ caso('603.2d', 'dobraGatilho com evs/causa (Isshin): o gatilho de ataque do Gold
 });
 caso('603.2d', 'dobraGatilho (Harmonic Prodigy): gatilho do Young Pyromancer (Shaman) dispara 2 vezes', () => {
   const e = cena({ campo: [[0, 'Mountain'], [0, 'Harmonic Prodigy'], [0, 'Young Pyromancer']], mao: [[0, 'Lightning Bolt']] });
-  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1); resolveCom(e);   // a proeza do Prodigy também dispara (702.108): agora há ordem para escolher
   igual(e.campo.filter(id => e.objs[id].ficha).length, 2);
 });
 caso('702.123a', 'fabricar (Marionette Apprentice): escolhe marcadores nela ou Servos 1/1', () => {
