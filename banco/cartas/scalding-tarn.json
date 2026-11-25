@@ -1,0 +1,1 @@
+{"v":2,"n":"Scalding Tarn","id":"cb027150-848c-4a66-88ad-e20222304dd8","oracleHash":"c716459a","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Island","Mountain"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

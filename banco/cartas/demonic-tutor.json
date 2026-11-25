@@ -1,0 +1,1 @@
+{"v":2,"n":"Demonic Tutor","id":"82004860-e589-4e38-8d61-8c0210e4ea39","oracleHash":"0148f152","custo":{"g":1,"p":["B"]},"vm":2,"ci":"B","cores":"B","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"tipo":["Card"]},"para":"mao"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

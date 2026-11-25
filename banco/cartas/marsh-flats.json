@@ -1,0 +1,1 @@
+{"v":2,"n":"Marsh Flats","id":"dab520d0-20b4-4273-ba6b-eb07f85ea433","oracleHash":"5a811cba","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Plains","Swamp"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
