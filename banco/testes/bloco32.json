@@ -1,0 +1,118 @@
+{
+ "bloco": "bloco32",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "deck da Ivora (pedido do Felipe pelo FARSEER), parte 1: Ivora … Mask of Memory",
+ "casos": [
+  {
+   "carta": "Ivora, Insatiable Heir",
+   "situacao": "entra; depois dá dano de combate a um jogador; você descarta 2 cartas",
+   "espera": "1 Blood ao entrar e 1 pelo dano; +1/+1 por carta descartada (2 marcadores)"
+  },
+  {
+   "carta": "Anje's Ravager",
+   "situacao": "no combate; ataca com 4 cartas na mão; descartada por outro efeito",
+   "espera": "ataca obrigatoriamente; descarta as 4 e compra 3; descartada vai ao exílio e pode ser conjurada por {1}{R} (loucura)"
+  },
+  {
+   "carta": "Inti, Seneschal of the Sun",
+   "situacao": "você ataca e descarta 1; depois descarta 2 com Faithless Looting",
+   "espera": "+1/+1 e atropelar na criatura atacante alvo; o descarte de 2 dispara uma vez: exila o topo e pode jogá-la"
+  },
+  {
+   "carta": "Magmakin Artillerist",
+   "situacao": "você descarta 2 cartas de uma vez",
+   "espera": "2 de dano em cada oponente"
+  },
+  {
+   "carta": "Containment Construct",
+   "situacao": "você descarta uma carta",
+   "espera": "pode exilá-la do cemitério e jogá-la neste turno"
+  },
+  {
+   "carta": "Markov Retribution",
+   "situacao": "escolhe os dois modos; Vampiro seu com poder 3",
+   "espera": "suas criaturas +1/+0; o Vampiro (já +1) causa 4 de dano à outra criatura alvo"
+  },
+  {
+   "carta": "Rakish Heir",
+   "situacao": "Vampiro seu dá dano de combate a um jogador",
+   "espera": "+1/+1 nesse Vampiro"
+  },
+  {
+   "carta": "Stensia Masquerade",
+   "situacao": "suas criaturas atacam; um Vampiro dá dano a jogador",
+   "espera": "atacantes com primeiro ataque; +1/+1 no Vampiro"
+  },
+  {
+   "carta": "Marauding Mako",
+   "situacao": "você descarta 3 cartas de uma vez",
+   "espera": "3 marcadores +1/+1"
+  },
+  {
+   "carta": "Anger",
+   "situacao": "no seu cemitério e você controla uma Montanha",
+   "espera": "suas criaturas têm pressa; sem Montanha, não"
+  },
+  {
+   "carta": "Glint-Horn Buccaneer",
+   "situacao": "atacando, paga {1}{R} e descarta 1",
+   "espera": "compra 1; o descarte dá 1 de dano em cada oponente; fora do ataque não ativa"
+  },
+  {
+   "carta": "Squee, Goblin Nabob",
+   "situacao": "no cemitério na sua manutenção",
+   "espera": "pode voltar para a mão"
+  },
+  {
+   "carta": "Surly Badgersaur",
+   "situacao": "descarta uma criatura, um terreno e uma mágica",
+   "espera": "+1/+1; 1 Tesouro; luta com até uma criatura alvo de oponente"
+  },
+  {
+   "carta": "Ox of Agonas",
+   "situacao": "entra com 2 cartas na mão",
+   "espera": "descarta a mão e compra 3"
+  },
+  {
+   "carta": "Cool but Rude",
+   "situacao": "nível 1 ao atacar; nível 2 e descarta 1",
+   "espera": "pode descartar 1 e comprar 1 ao atacar; no nível 2, cada descarte dá 2 em cada oponente"
+  },
+  {
+   "carta": "Lizard Blades",
+   "situacao": "equipada a uma criatura",
+   "espera": "a criatura tem golpe duplo"
+  },
+  {
+   "carta": "Brass's Tunnel-Grinder // Tecutlan, the Searing Rift",
+   "situacao": "Tecutlan no campo",
+   "espera": "vira: {R}"
+  },
+  {
+   "carta": "Tectonic Reformation",
+   "situacao": "terreno na sua mão",
+   "espera": "pode ciclá-lo por {R}"
+  },
+  {
+   "carta": "Brass's Tunnel-Grinder // Tecutlan, the Searing Rift",
+   "situacao": "entra; você descarta 2",
+   "espera": "compra 3"
+  },
+  {
+   "carta": "Key to the City",
+   "situacao": "vira e descarta 1",
+   "espera": "até uma criatura alvo não pode ser bloqueada neste turno"
+  },
+  {
+   "carta": "Hazoret's Monument",
+   "situacao": "conjura criatura vermelha de 3",
+   "espera": "custa 2; pode descartar 1 e comprar 1"
+  },
+  {
+   "carta": "Mask of Memory",
+   "situacao": "criatura equipada dá dano de combate a jogador",
+   "espera": "pode comprar 2; se comprou, descarta 1"
+  }
+ ]
+}

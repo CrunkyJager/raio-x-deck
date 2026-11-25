@@ -1,0 +1,148 @@
+{
+ "bloco": "bloco33",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "deck da Ivora (pedido do Felipe pelo FARSEER), parte 2: Bag of Holding … Clive",
+ "casos": [
+  {
+   "carta": "Bag of Holding",
+   "situacao": "você descarta uma carta; depois paga {2} e vira",
+   "espera": "a descartada vai do cemitério ao exílio; compra 1 e descarta 1"
+  },
+  {
+   "carta": "Ceremonial Knife",
+   "situacao": "equipada dá dano de combate",
+   "espera": "+1/+0; cria 1 Blood"
+  },
+  {
+   "carta": "Wedding Invitation",
+   "situacao": "entra; depois vira e sacrifica mirando um Vampiro",
+   "espera": "compra 1; o Vampiro não pode ser bloqueado e tem vínculo com a vida neste turno (não Vampiro: só imbloqueável)"
+  },
+  {
+   "carta": "Elixir of Immortality",
+   "situacao": "paga {2} e vira",
+   "espera": "ganha 5; o Elixir e o cemitério voltam ao grimório embaralhado"
+  },
+  {
+   "carta": "Library of Leng",
+   "situacao": "efeito faz você descartar",
+   "espera": "sem limite de mão; pode pôr a descartada no topo do grimório"
+  },
+  {
+   "carta": "Kazuul's Fury // Kazuul's Cliffs",
+   "situacao": "sacrifica criatura de poder 4; ou joga a face terreno",
+   "espera": "4 de dano em qualquer alvo; o terreno entra virado e dá {R}"
+  },
+  {
+   "carta": "Kozilek, Butcher of Truth",
+   "situacao": "conjurado; ataca; vai ao cemitério",
+   "espera": "compra 4; defensor sacrifica 4 permanentes; cemitério do dono embaralhado no grimório"
+  },
+  {
+   "carta": "Ulamog, the Infinite Gyre",
+   "situacao": "conjurado; ataca",
+   "espera": "destrói permanente alvo; defensor sacrifica 4"
+  },
+  {
+   "carta": "Brallin, Skyshark Rider",
+   "situacao": "você descarta uma carta",
+   "espera": "+1/+1 no Brallin e 1 de dano em cada oponente"
+  },
+  {
+   "carta": "Burning Anger",
+   "situacao": "encanta criatura de poder 5 e ela vira",
+   "espera": "5 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Pompous Battlemage // Improvised Act",
+   "situacao": "conjura Improvised Act",
+   "espera": "pode descartar 1; se descartou, compra 1"
+  },
+  {
+   "carta": "Monument to Endurance",
+   "situacao": "você descarta uma carta",
+   "espera": "escolhe: comprar 1, Tesouro ou cada oponente perde 3"
+  },
+  {
+   "carta": "Collector's Vault",
+   "situacao": "paga {2} e vira",
+   "espera": "compra 1, descarta 1, 1 Tesouro"
+  },
+  {
+   "carta": "Basilisk Collar",
+   "situacao": "equipada",
+   "espera": "toque mortífero e vínculo com a vida"
+  },
+  {
+   "carta": "The Fire Crystal",
+   "situacao": "conjura mágica vermelha; paga {4}{R}{R} e vira",
+   "espera": "custa 1 a menos; suas criaturas têm pressa; ficha-cópia de criatura sua, sacrificada no fim do turno"
+  },
+  {
+   "carta": "Brotherhood Regalia",
+   "situacao": "equipada",
+   "espera": "resguardo {2}, Assassino, não pode ser bloqueada; equipar lendária por {1}"
+  },
+  {
+   "carta": "Tarrian's Soulcleaver",
+   "situacao": "outra criatura ou artefato morre",
+   "espera": "+1/+1 na equipada; equipada tem vigilância"
+  },
+  {
+   "carta": "Pip-Boy 3000",
+   "situacao": "equipada ataca",
+   "espera": "escolhe: comprar e descartar / +1/+1 nela / desvirar até 2 terrenos"
+  },
+  {
+   "carta": "Mithril Coat",
+   "situacao": "entra (com lampejo)",
+   "espera": "anexa a criatura lendária sua alvo; ela fica indestrutível"
+  },
+  {
+   "carta": "Bitter Reunion",
+   "situacao": "entra; depois paga {1} e sacrifica",
+   "espera": "pode descartar 1 e comprar 2; suas criaturas ganham pressa"
+  },
+  {
+   "carta": "Shadow of the Goblin",
+   "situacao": "primeira fase principal; conjura mágica do cemitério",
+   "espera": "descarta 1 e compra 1 (se descartou); 1 de dano em cada oponente"
+  },
+  {
+   "carta": "Witch's Clinic",
+   "situacao": "paga {2} e vira mirando seu comandante",
+   "espera": "vínculo com a vida até o fim do turno"
+  },
+  {
+   "carta": "Furyblade Vampire",
+   "situacao": "início do combate no seu turno, descarta 1",
+   "espera": "+3/+0 até o fim do turno"
+  },
+  {
+   "carta": "Neheb, Dreadhorde Champion",
+   "situacao": "dá dano de combate; descarta 3",
+   "espera": "compra 3 e ganha {R}{R}{R} que fica até o fim do turno"
+  },
+  {
+   "carta": "Kediss, Emberclaw Familiar",
+   "situacao": "seu comandante dá 5 de dano de combate a um oponente",
+   "espera": "5 de dano nos outros oponentes"
+  },
+  {
+   "carta": "Spider-Man, New Champion",
+   "situacao": "você descarta 2 de uma vez",
+   "espera": "2 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Markov Enforcer",
+   "situacao": "ele ou outro Vampiro seu entra",
+   "espera": "luta com até uma criatura alvo de oponente"
+  },
+  {
+   "carta": "Clive, Ifrit's Dominant // Ifrit, Warden of Inferno",
+   "situacao": "entra com devoção ao vermelho 4; depois ativa",
+   "espera": "pode descartar a mão e comprar 4; exila e volta como Ifrit (Saga: I luta; II e III {R}{R}{R}{R}; com 3 marcadores volta Clive)"
+  }
+ ]
+}

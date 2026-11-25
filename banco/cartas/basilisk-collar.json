@@ -1,0 +1,1 @@
+{"v":2,"n":"Basilisk Collar","id":"f5f4dd28-f4ae-4d39-b9b8-6ebfd63c93fe","oracleHash":"7e8b9307","custo":{"g":1},"vm":1,"ci":"","cores":"","tipos":["Artifact"],"sub":["Equipment"],"est":[{"modo":"continuo","afeta":"equipada","kw":[{"k":"toqueMortifero"},{"k":"vinculoVida"}]}],"kw":[{"k":"equipar","custo":{"g":2}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco33.json"}}
