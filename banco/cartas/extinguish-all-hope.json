@@ -1,0 +1,1 @@
+{"v":2,"n":"Extinguish All Hope","id":"c7ca25f3-7a22-477b-8546-4c2597d5d1ff","oracleHash":"4d85d439","custo":{"g":4,"p":["B","B"]},"vm":6,"ci":"B","cores":"B","tipos":["Sorcery"],"fx":[{"op":"destruir","em":{"todos":{"tipo":["Creature"],"nao":["Enchantment"],"zona":"campo"}}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco5.json"}}

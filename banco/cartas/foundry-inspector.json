@@ -1,0 +1,1 @@
+{"v":2,"n":"Foundry Inspector","id":"18f22960-87ec-43cd-82ea-ec5cabf49ad3","oracleHash":"d6335e99","custo":{"g":3},"vm":3,"ci":"","cores":"","tipos":["Creature","Artifact"],"sub":["Construct"],"pt":[3,2],"est":[{"modo":"reduzCusto","afeta":{"tipo":["Artifact"],"ctrl":"voce","zona":"pilha"},"qtd":1}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

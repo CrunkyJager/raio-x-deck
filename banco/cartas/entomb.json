@@ -1,0 +1,1 @@
+{"v":2,"n":"Entomb","id":"299fc083-0834-4064-8344-f895aff68867","oracleHash":"1bb09e1e","custo":{"p":["B"]},"vm":1,"ci":"B","cores":"B","tipos":["Instant"],"fx":[{"op":"buscar","f":{"tipo":["Card"]},"para":"cemiterio"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

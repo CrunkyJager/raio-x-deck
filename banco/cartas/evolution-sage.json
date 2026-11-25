@@ -1,0 +1,1 @@
+{"v":2,"n":"Evolution Sage","id":"b45fdeab-00cc-4422-af9f-66f30a880a7c","oracleHash":"2a9a5cc1","custo":{"g":2,"p":["G"]},"vm":3,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Elf","Druid"],"pt":[3,2],"gat":[{"ev":"entra","quem":{"tipo":["Land"],"ctrl":"voce"},"fx":[{"op":"proliferar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco5.json"}}

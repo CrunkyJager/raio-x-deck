@@ -1,0 +1,1 @@
+{"v":2,"n":"Enchantress's Presence","id":"795b096a-2bce-4588-a2c9-abc5ea40dc0c","oracleHash":"a5be6045","custo":{"g":2,"p":["G"]},"vm":3,"ci":"G","cores":"G","tipos":["Enchantment"],"gat":[{"ev":"conjura","jog":"voce","quem":{"tipo":["Enchantment"]},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco5.json"}}
