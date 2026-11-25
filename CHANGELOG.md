@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.15.0 — 25/11/2026 · aba Montar em componentes Svelte
+Testes: valida 761/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · lacunas = base · verifica verde · build ok.
+- **Estrutura (A, T43 d):** a aba Montar vira `src/telas/montar/` (Montar + Topo, Passos, Cores, Ideia, Junto, Busca, Deck, Como, Saida); `montar.ts` fica só com estado, contas e ações (822 → 641 linhas). Roteiro de 59 etapas com HTML, texto, foco e decks salvos iguais aos de antes.
+- **Conserto:** mudar o orçamento no passo 4 esvaziava a aba no Svelte (o change do campo em foco disparava de novo no meio do redesenho); o redesenho agora vai para a fila.
+
 ## v0.14.0 — 25/11/2026 · banco com 761 cartas
 Testes: valida 761/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
 - **Banco (B):** bloco 13 (fila 601–650, 50 casos) e bloco 14 (651–700, 54 casos); correção 3 (Curiosity com o gatilho na Aura, Damning Verdict, Devoted Druid, Demon of Fate's Design); Drivnod e Dour Port-Mage sem falta. Marcadores com o nome em inglês do Oracle (growth, charge…).
