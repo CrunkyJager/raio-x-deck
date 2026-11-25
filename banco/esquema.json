@@ -2095,8 +2095,10 @@
       "dano",
       "compra",
       "anulada",
-      "vidaMuda"
-     ]
+      "vidaMuda",
+      "ganhaVida"
+     ],
+     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda"
     },
     "quem": {
      "$ref": "#/$defs/filtro"
