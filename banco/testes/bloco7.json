@@ -1,0 +1,243 @@
+{
+ "bloco": "bloco7",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 301–350, escritas do Oracle; mesmo formato do bloco1.json",
+ "casos": [
+  {
+   "carta": "Serra's Emissary",
+   "situacao": "escolhe Creature; oponente tenta Murder numa criatura sua e ataca você com criatura",
+   "espera": "não pode mirar nem causar dano: você e suas criaturas têm proteção de criatura"
+  },
+  {
+   "carta": "Setessan Champion",
+   "situacao": "entra um encantamento seu",
+   "espera": "+1/+1 no Champion e compra 1"
+  },
+  {
+   "carta": "Shared Animosity",
+   "situacao": "você ataca com 3 criaturas",
+   "espera": "cada uma +3/+0 (falta: deveria contar só as outras com tipo em comum)"
+  },
+  {
+   "carta": "Shattered Sanctum",
+   "situacao": "entra com 1 outro terreno seu; depois com 2",
+   "espera": "1º: virada; 2º: desvirada; W ou B"
+  },
+  {
+   "carta": "Shigeki, Jukai Visionary",
+   "situacao": "paga {1}{G}, vira; topo: terreno, 3 não terrenos",
+   "espera": "Shigeki volta à mão; terreno no campo virado; 3 no cemitério"
+  },
+  {
+   "carta": "Shivan Reef",
+   "situacao": "vira por U",
+   "espera": "1 U e 1 de dano em você; por C sem dano"
+  },
+  {
+   "carta": "Sigil of the Empty Throne",
+   "situacao": "conjura um encantamento",
+   "espera": "ficha Angel 4/4 branca com voar"
+  },
+  {
+   "carta": "Simic Ascendancy",
+   "situacao": "põe 2 marcadores +1/+1 numa criatura sua (um evento); manutenção com 20 de crescimento",
+   "espera": "2 de crescimento; com 20, você ganha o jogo"
+  },
+  {
+   "carta": "Simic Growth Chamber",
+   "situacao": "entra",
+   "espera": "virada, devolve um terreno seu à mão; vira por {G}{U}"
+  },
+  {
+   "carta": "Smoldering Marsh",
+   "situacao": "entra com 1 básico seu; depois com 2",
+   "espera": "1º: virada; 2º: desvirada"
+  },
+  {
+   "carta": "Snap",
+   "situacao": "mira criatura do oponente; você tem 2 terrenos virados",
+   "espera": "criatura volta à mão; desvira até 2 terrenos (custo efetivo 0)"
+  },
+  {
+   "carta": "Sphere of Safety",
+   "situacao": "você com 3 encantamentos; oponente ataca com 2",
+   "espera": "paga {3} por atacante ({6})"
+  },
+  {
+   "carta": "Sterling Grove",
+   "situacao": "paga {1}, sacrifica",
+   "espera": "embaralha e põe um encantamento no topo; outros encantamentos seus com manto"
+  },
+  {
+   "carta": "Stonybrook Banneret",
+   "situacao": "conjura Merfolk de {2}{U}",
+   "espera": "custa {1}{U}; caminhada na ilha"
+  },
+  {
+   "carta": "Storm-Kiln Artist",
+   "situacao": "3 artefatos; conjura instantânea e copia",
+   "espera": "poder +3; 2 Treasure"
+  },
+  {
+   "carta": "Sungrass Prairie",
+   "situacao": "paga {1} e vira",
+   "espera": "{G}{W}"
+  },
+  {
+   "carta": "Sword of the Animist",
+   "situacao": "equipada ataca",
+   "espera": "+1/+1; pode buscar básico virado e embaralhar"
+  },
+  {
+   "carta": "Sythis, Harvest's Hand",
+   "situacao": "conjura encantamento",
+   "espera": "ganha 1 e compra 1"
+  },
+  {
+   "carta": "Tainted Field",
+   "situacao": "sem Pântano; depois com Pântano",
+   "espera": "sem: só C; com: W ou B"
+  },
+  {
+   "carta": "Tainted Isle",
+   "situacao": "com Pântano",
+   "espera": "U ou B"
+  },
+  {
+   "carta": "Taurean Mauler",
+   "situacao": "oponente conjura 2 mágicas",
+   "espera": "pode pôr 2 marcadores +1/+1"
+  },
+  {
+   "carta": "Teferi's Puzzle Box",
+   "situacao": "oponente com 4 na mão no passo de compra",
+   "espera": "põe as 4 embaixo e compra 4 (e mais a compra normal)"
+  },
+  {
+   "carta": "Temple of Deceit",
+   "situacao": "entra",
+   "espera": "virada; vidência 1; U ou B"
+  },
+  {
+   "carta": "Temple of Silence",
+   "situacao": "entra",
+   "espera": "virada; vidência 1; W ou B"
+  },
+  {
+   "carta": "Tempt with Bunnies",
+   "situacao": "3 oponentes, 2 aceitam",
+   "espera": "cada um que aceitou: 1 carta + 1 Rabbit; você: 3 cartas e 3 Rabbits"
+  },
+  {
+   "carta": "Terror of the Peaks",
+   "situacao": "entra uma criatura sua de poder 5; oponente mira o Terror",
+   "espera": "5 de dano a qualquer alvo; a mágica do oponente custa 3 de vida a mais"
+  },
+  {
+   "carta": "Teysa Karlov",
+   "situacao": "Blood Artist seu e uma criatura morre; ficha sua",
+   "espera": "o gatilho do Blood Artist dispara 2 vezes; fichas com vigilância e vínculo com a vida"
+  },
+  {
+   "carta": "Tezzeret, Master of the Bridge",
+   "situacao": "4 artefatos; +2; conjura criatura de 5",
+   "espera": "4 de dano a cada oponente e ganha 4; a criatura custa 1"
+  },
+  {
+   "carta": "Tezzeret, Master of the Bridge",
+   "situacao": "−8 com 3 artefatos no topo dos 10",
+   "espera": "os 3 artefatos no campo; resto exilado"
+  },
+  {
+   "carta": "The Locust God",
+   "situacao": "você compra 2",
+   "espera": "2 Insetos 1/1 UR voar pressa; morre: volta à mão no fim do turno"
+  },
+  {
+   "carta": "The Scarab God",
+   "situacao": "2 Zumbis seus na manutenção; ativa numa criatura do cemitério do oponente",
+   "espera": "cada oponente perde 2, vidência 2; ficha cópia 4/4 preta Zombie"
+  },
+  {
+   "carta": "Thopter Spy Network",
+   "situacao": "manutenção com artefato; 2 criaturas artefato causam dano de combate",
+   "espera": "1 Thopter 1/1 voar; compra 1 (uma vez)"
+  },
+  {
+   "carta": "Thought Monitor",
+   "situacao": "3 artefatos",
+   "espera": "custa {3}{U}; entra e compra 2"
+  },
+  {
+   "carta": "Unbreakable Formation",
+   "situacao": "conjura na sua fase principal; depois no turno do oponente",
+   "espera": "1º: indestrutível + marcador +1/+1 + vigilância; 2º: só indestrutível"
+  },
+  {
+   "carta": "Unwinding Clock",
+   "situacao": "turno do oponente, 3 artefatos seus virados",
+   "espera": "desviram na etapa de desvirar do oponente"
+  },
+  {
+   "carta": "Urza, Chief Artificer",
+   "situacao": "2 criaturas artefato; fim do seu turno",
+   "espera": "custa 2 a menos; artefatos-criatura com ameaça; ficha Construct (falta: sai 0/0)"
+  },
+  {
+   "carta": "Urza, Lord High Artificer",
+   "situacao": "vira 2 artefatos desvirados; paga {5}",
+   "espera": "2 U; embaralha, exila o topo e pode jogá-lo de graça"
+  },
+  {
+   "carta": "Viscera Seer",
+   "situacao": "sacrifica 2 criaturas",
+   "espera": "vidência 1 duas vezes"
+  },
+  {
+   "carta": "Warleader's Call",
+   "situacao": "entram 2 criaturas suas (3 oponentes)",
+   "espera": "+1/+1 nas suas; cada oponente leva 2"
+  },
+  {
+   "carta": "Warren Soultrader",
+   "situacao": "paga 1 de vida e sacrifica outra criatura",
+   "espera": "1 Treasure"
+  },
+  {
+   "carta": "Wheel and Deal",
+   "situacao": "mira 2 de 3 oponentes",
+   "espera": "os 2 descartam a mão e compram 7; você compra 1"
+  },
+  {
+   "carta": "Windbrisk Heights",
+   "situacao": "atacou com 3 criaturas; paga {W} e vira",
+   "espera": "pode jogar a carta escondida de graça; com 2 atacantes, não"
+  },
+  {
+   "carta": "Windcrag Siege",
+   "situacao": "Jeskai, manutenção",
+   "espera": "Goblin 1/1 vermelho com vínculo e pressa até o fim do turno (falta: os dois modos valem)"
+  },
+  {
+   "carta": "Winds of Change",
+   "situacao": "você 2 na mão, oponente 6",
+   "espera": "cada um embaralha a mão e compra o mesmo tanto"
+  },
+  {
+   "carta": "Yahenni, Undying Partisan",
+   "situacao": "morre criatura do oponente; sacrifica outra",
+   "espera": "+1/+1; indestrutível até o fim do turno"
+  },
+  {
+   "carta": "Aang's Journey",
+   "situacao": "com chute",
+   "espera": "busca um básico e um Shrine para a mão, embaralha, ganha 2; sem chute: só o básico"
+  },
+  {
+   "carta": "Xander's Lounge",
+   "situacao": "entra; cicla por {3}",
+   "espera": "virada, U/B/R; ciclar compra 1"
+  }
+ ]
+}
