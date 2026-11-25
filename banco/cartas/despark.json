@@ -1,0 +1,1 @@
+{"v":2,"n":"Despark","id":"bd16434d-55ea-4c5a-a9ef-752971a4af16","oracleHash":"4a88942d","custo":{"p":["W","B"]},"vm":2,"ci":"WB","cores":"WB","tipos":["Instant"],"alvos":[{"f":{"tipo":["Permanent"],"vm":{"min":4},"zona":"campo"}}],"fx":[{"op":"exilar","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

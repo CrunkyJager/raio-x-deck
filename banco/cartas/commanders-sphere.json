@@ -1,0 +1,1 @@
+{"v":2,"n":"Commander's Sphere","id":"0b67c4e2-f88b-4e01-85a1-9d5f5b8db13b","oracleHash":"c224c530","custo":{"g":3},"vm":3,"ci":"","cores":"","tipos":["Artifact"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":"comandante","qtd":1}]},{"custo":{"sacrificar":"este"},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

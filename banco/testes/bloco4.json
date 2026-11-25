@@ -1,0 +1,158 @@
+{
+ "bloco": "bloco4",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 151–200, escritas do Oracle; mesmo formato do bloco1.json",
+ "casos": [
+  {
+   "carta": "Tireless Provisioner",
+   "situacao": "entra um terreno seu",
+   "espera": "escolhe: ficha Food ou Treasure"
+  },
+  {
+   "carta": "Toxic Deluge",
+   "situacao": "paga 3 de vida (X=3)",
+   "espera": "todas as criaturas −3/−3 até o fim do turno"
+  },
+  {
+   "carta": "Urza's Incubator",
+   "situacao": "escolheu Elf; o oponente conjura um Elf",
+   "espera": "custa {2} a menos para os dois jogadores"
+  },
+  {
+   "carta": "Academy Manufactor",
+   "situacao": "cria uma Treasure",
+   "espera": "cria Clue, Food e Treasure"
+  },
+  {
+   "carta": "Adeline, Resplendent Cathar",
+   "situacao": "ataca com 2 oponentes na mesa, controlando 3 criaturas",
+   "espera": "2 fichas Human 1/1 viradas e atacando; poder da Adeline = criaturas que você controla"
+  },
+  {
+   "carta": "Agate Instigator",
+   "situacao": "entra outra criatura sua",
+   "espera": "1 de dano em cada oponente; com prole paga, entra também uma cópia 1/1"
+  },
+  {
+   "carta": "Anim Pakal, Thousandth Moon",
+   "situacao": "ataca com 1 criatura não Gnome, com 0 marcador antes",
+   "espera": "1 marcador +1/+1 e 1 ficha Gnome 1/1 virada e atacando; atacar só com Gnomos não dispara"
+  },
+  {
+   "carta": "Aurelia, the Law Above",
+   "situacao": "o oponente ataca com 5 criaturas",
+   "espera": "você compra 1; 3 de dano em cada oponente e ganha 3"
+  },
+  {
+   "carta": "Aurelia, the Warleader",
+   "situacao": "ataca pela primeira vez no turno",
+   "espera": "desvira suas criaturas; fase de combate extra; no 2º ataque não dispara"
+  },
+  {
+   "carta": "Avacyn, Angel of Hope",
+   "situacao": "Wrath of God",
+   "espera": "só as permanentes do oponente morrem"
+  },
+  {
+   "carta": "Avenger of Zendikar",
+   "situacao": "entra com 7 terrenos; depois entra um terreno",
+   "espera": "7 Plantas 0/1; podem ganhar +1/+1 cada"
+  },
+  {
+   "carta": "Balefire Dragon",
+   "situacao": "causa 6 de dano de combate a um jogador",
+   "espera": "6 de dano em cada criatura daquele jogador"
+  },
+  {
+   "carta": "Bastion Protector",
+   "situacao": "seu comandante em campo",
+   "espera": "+2/+2 e indestrutível; outra criatura sua não"
+  },
+  {
+   "carta": "Beastmaster Ascension",
+   "situacao": "7 marcadores de missão",
+   "espera": "suas criaturas +5/+5; com 6, não"
+  },
+  {
+   "carta": "Bident of Thassa",
+   "situacao": "ativa no seu turno",
+   "espera": "no turno do oponente as criaturas dele têm de atacar"
+  },
+  {
+   "carta": "Bloodline Necromancer",
+   "situacao": "entra com um Wizard no seu cemitério",
+   "espera": "pode devolver o Wizard ao campo"
+  },
+  {
+   "carta": "Brainstorm",
+   "situacao": "conjura",
+   "espera": "compra 3 e põe 2 da mão no topo"
+  },
+  {
+   "carta": "Bruna, the Fading Light",
+   "situacao": "conjura com um Human no cemitério",
+   "espera": "pode devolver o Human antes de a Bruna resolver"
+  },
+  {
+   "carta": "Chasm Skulker",
+   "situacao": "3 marcadores e morre",
+   "espera": "3 fichas Squid 1/1 com islandwalk"
+  },
+  {
+   "carta": "Conduit of Worlds",
+   "situacao": "sem mágica no turno, vira apontando uma criatura do cemitério",
+   "espera": "pode conjurá-la; depois não conjura mais nada no turno"
+  },
+  {
+   "carta": "Dawn's Truce",
+   "situacao": "conjura prometendo o presente",
+   "espera": "o oponente compra 1; suas permanentes ganham antimagia e indestrutível"
+  },
+  {
+   "carta": "Descendants' Path",
+   "situacao": "manutenção, topo é uma criatura",
+   "espera": "pode conjurar grátis; se não, vai para o fundo"
+  },
+  {
+   "carta": "Destiny Spinner",
+   "situacao": "2 encantamentos, ativa num terreno",
+   "espera": "terreno vira 2/2 com atropelar e pressa; sua criatura não pode ser anulada"
+  },
+  {
+   "carta": "Dictate of Kruphix",
+   "situacao": "passo de compra do oponente",
+   "espera": "ele compra 2"
+  },
+  {
+   "carta": "Distant Melody",
+   "situacao": "escolhe Goblin com 4 Goblins",
+   "espera": "compra 4"
+  },
+  {
+   "carta": "Doomwake Giant",
+   "situacao": "entra um encantamento seu",
+   "espera": "criaturas do oponente −1/−1 até o fim do turno"
+  },
+  {
+   "carta": "Dragon Tempest",
+   "situacao": "entra um Dragon com voar, com 2 Dragons",
+   "espera": "ganha pressa; 2 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Elenda, the Dusk Rose",
+   "situacao": "2 criaturas morrem, depois a Elenda (3/3) morre",
+   "espera": "3 fichas Vampire 1/1 com vínculo com a vida"
+  },
+  {
+   "carta": "Emry, Lurker of the Loch",
+   "situacao": "entra com 2 artefatos em campo",
+   "espera": "custa {2} a menos; mói 4"
+  },
+  {
+   "carta": "Toxic Deluge",
+   "situacao": "X=0",
+   "espera": "nada morre por isso; não pede vida"
+  }
+ ]
+}

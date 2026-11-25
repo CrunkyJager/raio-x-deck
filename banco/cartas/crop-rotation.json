@@ -1,0 +1,1 @@
+{"v":2,"n":"Crop Rotation","id":"28b46183-c62f-47b1-9fee-3ba148202cab","oracleHash":"6b4b05b9","custo":{"p":["G"]},"vm":1,"ci":"G","cores":"G","tipos":["Instant"],"custoAd":{"sacrificar":{"f":{"tipo":["Land"]},"qtd":1}},"fx":[{"op":"buscar","f":{"tipo":["Land"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

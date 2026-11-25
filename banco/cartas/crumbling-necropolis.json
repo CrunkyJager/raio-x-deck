@@ -1,0 +1,1 @@
+{"v":2,"n":"Crumbling Necropolis","id":"7190debf-708b-4f41-9714-0d0a5bd5a74e","oracleHash":"26879486","vm":0,"ci":"UBR","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["U","B","R"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

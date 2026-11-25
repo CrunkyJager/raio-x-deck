@@ -1,0 +1,1 @@
+{"v":2,"n":"Boros Signet","id":"41c84665-1f99-40ab-aaca-1188649eb263","oracleHash":"e27d3bf9","custo":{"g":2},"vm":2,"ci":"WR","cores":"","tipos":["Artifact"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R"],"qtd":1},{"op":"mana","prod":["W"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

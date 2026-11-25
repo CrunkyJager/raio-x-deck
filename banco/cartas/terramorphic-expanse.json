@@ -1,0 +1,1 @@
+{"v":2,"n":"Terramorphic Expanse","id":"1bd3e453-aa21-4ee6-95c2-d6d920ee8e7a","oracleHash":"cb611eb3","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"sacrificar":"este"},"fx":[{"op":"buscar","talvez":true,"f":{"tipo":["Land"],"super":["Basic"]},"para":"campo","virada":true},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

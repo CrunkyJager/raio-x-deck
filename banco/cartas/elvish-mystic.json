@@ -1,0 +1,1 @@
+{"v":2,"n":"Elvish Mystic","id":"3f3b2c10-21f8-4e13-be83-4ef3fa36e123","oracleHash":"e3104657","custo":{"p":["G"]},"vm":1,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Elf","Druid"],"pt":[1,1],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
