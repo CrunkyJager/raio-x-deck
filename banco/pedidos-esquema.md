@@ -431,6 +431,7 @@ Regra ≥3 ocorrências (somando os lotes anteriores). Correção 19 do esquema:
 - `[completou]` "if you've completed a dungeon" (proposta cond `se: {completouMasmorra: true}`, com `nome` para Tomb of Annihilation) e gat `completaMasmorra`: Safana, Acererak, Imoen, Precipitous Drop, Ravenloft Adventurer, Rilsa Rael, Sarevok's Tome, Dungeon Crawler (gatilho).
 - `[infect]` (proposta kw `infectar`): Blackcleave Goblin, Blighted Agent, Contagious Nim, Core Prowler, Corpse Cur (+ filtro "com infect"), Necropede, Phyrexian Digester, Plague Myr, Plague Stinger — com o Blightsteel são 10.
 - Antecedente: `kw escolhaAntecedente` já existia (Safana, Alora, Imoen); os antecedentes (Candlekeep Sage, Dungeon Delver) são `est continuo` em `{tipo Creature, comandante, dono voce}` com `habil`.
+**Casos para o A dos pedidos 1–4:** `banco/testes/pedidos-masmorras.json` (28).
 **Escrito sem falta:** veneno/toxic/poisonous como `marcador` no jogador `tipoMarc: "veneno"` (toxic = gat dano de combate em jogador → marcador em `doEvento`). Motor: precisa da regra dos 10 venenos (704.5c).
 
 | # | falta | cartas | proposta | decisão |
