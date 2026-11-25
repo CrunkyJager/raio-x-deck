@@ -1,0 +1,1 @@
+{"v":2,"n":"Mox Opal","id":"de2440de-e948-4811-903c-0bbe376ff64d","oracleHash":"4a424f0e","custo":{"g":0},"vm":0,"ci":"","cores":"","tipos":["Artifact"],"super":["Legendary"],"atv":[{"custo":{"virar":true},"deMana":true,"se":{"palavra":"metalcraft"},"fx":[{"op":"mana","prod":"qualquer","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco21.json"}}

@@ -177,3 +177,18 @@ Regra: 3 ou mais ocorrências (banco + fila) → campo novo; o resto fica em `fa
 - fx mana `ficaNoTurno`. Reescrever Birgi e Klauth.
 - Kalonian Hydra: a leitura com repetirCada fica (sem op nova).
 - Ficam em `falta`: bestow, prowl, velocidade, fichaCriadaNoTurno, combate do oponente, Hei Bai, Hordewing, alvo "ou Ugin", Kess/Kotis, Junk Winder, Inkshield, Companion, Jarad, Kaalia, mana gasta (Mana Sculpt segue com vmDoAlvo), afflict, conivir, dragar, naoPodeAtivar, Leyline, Liliana −9, N-ésima do topo, Lightning (eSeus), Mangara, incolor, Lobelia, devolver no custo, multikicker, goad, desvirar, unearth, Master of Cruelties, Mirri, Marisi, modo escolhido ao entrar.
+
+## Faltas em lote (bloco 21, para o FARSEER decidir junto)
+Contagem: banco 1111 cartas / fila 474 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| "fase principal" na condição (não só turno seu) | 2 | 1 | Moraug (escrito: turno seu) | cond `faseprincipal` | |
+| "entrou neste turno" (Food entrou, fichas que entraram) | 2 | 1 | Motivated Pony, Ocelot Pride (junto do fichaCriadaNoTurno do 17) | filtro `entrouNoTurno` | |
+| Role (ficha de Aura com efeito) | 1 | 1 | Monstrous Rage (escrito: +1/+1 e atropelar direto na criatura) | token `est` ou Roles nomeadas no motor | |
+| travar habilidades ativadas | 1 | 1 | Myrel (junto do naoPodeAtivar do 19) | deixar falta | |
+| marcador de qualquer tipo no filtro | 2 | 0 | Mutational Advantage (escrito: +1/+1) | `comMarcador: "qualquer"` | |
+| intimidar (intimidate) | 2 | 0 | Nim Deathmantle (e Mikaeus do 20) | kw `intimidar` | |
+| vira cor / perde tipos de criatura | 2 | 0 | Nim Deathmantle | deixar falta | |
+| explora terreno / não-terreno | 1 | 0 | Nicanzil (escritas as duas com ev `explora`) | cond do card revelado | |
+| o resto 1/0 | | | Moraug (ataques por criatura), Mox Amber (cores das lendárias), New Blood (troca de texto), Nightkin Ambusher (rad do defensor) | deixar falta | |
