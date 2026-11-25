@@ -1243,6 +1243,10 @@
       "evoke"
      ]
     },
+    "conjuradaNaPrincipal": {
+     "type": "boolean",
+     "description": "Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)"
+    },
     "conta": {
      "type": "object",
      "additionalProperties": false,
