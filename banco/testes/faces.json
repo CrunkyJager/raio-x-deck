@@ -22,7 +22,7 @@
   {
    "carta": "Valakut Awakening",
    "situacao": "conjura no fim do turno do oponente com 4 cartas na mão",
-   "espera": "põe as 4 no fundo e compra 5 (escrito: a mão toda ou nada)"
+   "espera": "escolhe quantas pôr no fundo (0 a 4, ate qualquer) e compra essa quantidade +1; com 4, compra 5"
   },
   {
    "carta": "Legion's Landing",
@@ -87,7 +87,7 @@
   {
    "carta": "Wear",
    "situacao": "conjura FUNDIDA (Wear + Tear) da mão por {1}{R}{W}",
-   "espera": "destrói o artefato e o encantamento alvos (escrito em falta: sem kw fundir)"
+   "espera": "destrói o artefato e o encantamento alvos (kw fusao)"
   },
   {
    "carta": "Wear",

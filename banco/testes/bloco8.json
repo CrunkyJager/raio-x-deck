@@ -92,12 +92,12 @@
   {
    "carta": "Ancient Copper Dragon",
    "situacao": "causa dano de combate a um jogador",
-   "espera": "cria Treasures (d20; escrito 10)"
+   "espera": "cria Treasures (rola d20: qtd {dado:20}, com semente)"
   },
   {
    "carta": "Ancient Gold Dragon",
    "situacao": "causa dano de combate a um jogador",
-   "espera": "cria fichas Faerie Dragon 1/1 voadoras (d20; escrito 10)"
+   "espera": "cria fichas Faerie Dragon 1/1 voadoras (rola d20: qtd {dado:20}, com semente)"
   },
   {
    "carta": "Ancient Greenwarden",
@@ -107,7 +107,7 @@
   {
    "carta": "Ancient Silver Dragon",
    "situacao": "causa dano de combate a um jogador",
-   "espera": "compra (d20; escrito 10) e fica sem tamanho máximo de mão"
+   "espera": "compra (rola d20: qtd {dado:20}, com semente) e fica sem tamanho máximo de mão"
   },
   {
    "carta": "Angel of Despair",
