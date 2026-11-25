@@ -1,6 +1,6 @@
 <script lang="ts">
   // Tela Trocas (T43 d): a ideia do deck (renderConcept/wireConcept) e as trocas sugeridas (renderSwaps/wireSwaps)
-  // do analise.ts, pelo mesmo gancho das outras telas (window.RAIOX_TELAS.trocas, ver main.ts). O estado das trocas
+  // do analise.ts, dentro da Saida.svelte, como as outras telas do #out. O estado das trocas
   // e a ideia continuam no analise.ts (R.trocas), porque o buildSwaps, o newList e a Mesa leem de lá; os pedaços
   // de HTML de dentro de cada troca (cartas, números, porquês) também vêm de lá, como o terrenosHTML na Análise.
   // Refaz tudo quando o analise.ts avisa (raiox:trocas: o EDHREC chegou) ou quando a Mesa termina um teste
