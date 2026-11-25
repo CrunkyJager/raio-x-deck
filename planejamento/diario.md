@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.8.0: B bloco 8 (6384c50) + faces (0d20549, 461 cartas) + A analise.ts estrito (ccfe2a0). Felipe pediu 2 cartas de cada forma (MDFC, transforma, aventura, split) já testadas. Esquema: fusao, ate 'qualquer', dado N; Gisela é Meld, não Fuse (falta). Leituras ok: Access Tunnel, Angel of Destiny (vidaMin 55, só Commander), Ainok.
 - 25/11 · FARSEER · v0.7.0: B bloco 7 (b4dfc9b, 403 cartas). Leituras ok: Wheel and Deal (alvos 0..qualquer, quem {alvo:0} para todos), Teferi's Puzzle Box (conta 'resultado'). Addendum recusado (turno seu + conjurada aceitava o combate) → cond conjuradaNaPrincipal (3092ced). B no bloco 8; A recebeu os usos novos do bloco 7 para conferir no motor.
 - 25/11 · FARSEER · v0.6.0: B bloco 6 (dc27b7e, 353 cartas) + A fila do motor (283ef56). Leituras do B confirmadas (Molten Psyche conta 'resultado', Mystic Forge cor C + nao Land, Rishkar comMarcador 'qualquer'). Decisões do A aceitas (por sem tipo na pilha; causa = qualquer atacante; dobraGatilho aditivo; podeJogar só cemitério). mesa-ui.js fica .js no (d) até a T09 entrar.
 - 25/11 · FARSEER · v0.5.0: A (c) 417bd7e (análise/montar/mesa em src/ como módulos; .ts estrito fica para o (d)). ATENÇÃO soltos da T09 em ~/raio-x-deck: mesa-ui.js mudou de lugar → guardados como patch antes de atualizar a pasta.

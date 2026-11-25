@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.8.0 — 25/11/2026 · banco com 461 cartas; cartas de várias faces; análise em TypeScript
+Testes: valida 461/0 · check 0 erros · Vitest 137/137 (fuzz erros 0) · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
+- **Banco (B):** bloco 8 (fila 351–400) e 8 cartas de várias faces (pedido do Felipe, 2 de cada): modal Bala Ged Recovery e Valakut Awakening; duplaFace Legion's Landing e Search for Azcanta; aventura Bonecrusher Giant e Beanstalk Giant; split Fire // Ice e Wear // Tear. 18 casos em banco/testes/faces.json. O motor ainda não joga essas cartas (A, próximo passo).
+- **Esquema:** kw `fusao` (Fuse), `qtd {ate:'qualquer'}`, `qtd {dado:N}`.
+- **Estrutura (A, T43 d):** src/analise/analise.ts com TypeScript estrito; o JS gerado minifica igual ao de antes.
+
 ## v0.7.0 — 25/11/2026 · banco com 403 cartas; Addendum
 Testes: valida 403/0 · check 0 erros · Vitest 137/137 (fuzz erros 0) · testa 161/161 · verifica verde · build ok.
 - **Banco (B):** bloco 7 (fila 301–350, casos em banco/testes/bloco7.json). Campos novos: protecao 'escolhido' + protecaoJogador, ataqueCusta com qtd, desviraNoTurnoDeOutro, aumentaCusto aoMirar pagando vida, afinidade com f, ouCopia, danoUmaVez.
