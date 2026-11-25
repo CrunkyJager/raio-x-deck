@@ -120,7 +120,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined }: any =
   const de = M.listaDe(e, o), k = de.indexOf(id);
   if (k >= 0) de.splice(k, 1);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null });
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null });
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
@@ -169,6 +169,26 @@ M.poder = (e, o) => {
   return b + camadas(e, o).p + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 
+// ---- anexar (CR 301.5 Equipamento, 303.4 Aura, 701.3): o.anexo = {id, ts} do objeto a que está preso ----
+// Vale só enquanto aquele objeto (mesmo id e ts, CR 400.7) estiver no campo; o mover zera o anexo de quem muda de
+// zona e as ABE (704.5m/n, turno.ts) soltam o que ficou preso a nada.
+M.anexadoA = (e, o) => {
+  const a = o && o.anexo; if (!a) return null;
+  const t = e.objs[a.id];
+  return t && t.ts === a.ts && t.zona === 'campo' ? t : null;
+};
+const presoA = (e, x, o) => { const a = x.anexo; return !!a && a.id === o.id && a.ts === o.ts && x.zona === 'campo'; };
+M.anexosDe = (e, o) => e.campo.map(id => e.objs[id]).filter(x => presoA(e, x, o));
+// equipar N (CR 702.6a): "{N}: anexe a uma criatura alvo que você controla; só como feitiço". A palavra-chave vira
+// uma habilidade ativada como as do banco (atv), depois das da carta: o índice k delas não muda.
+const EQUIPAR = new WeakMap<object, any>();
+const equiparDe = kw => {
+  let a = EQUIPAR.get(kw);
+  if (!a) EQUIPAR.set(kw, (a = { custo: { mana: kw.custo || {} }, vel: 'feitico', _equipar: true,
+    alvos: [{ f: { ...(kw.f || {}), tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } }], fx: [{ op: 'anexar', em: 'este', a: { alvo: 0 } }] }));
+  return a;
+};
+
 // ---- camadas (CR 613), primeira volta: 6 (palavras-chave dadas) e 7c (somar P/R) ----
 // Fontes: est {modo:'continuo'} dos permanentes no campo (CR 611.3: vale enquanto a fonte está lá, a condição 'se'
 // conferida a cada leitura) e e.temp, os efeitos de resolução 'modificar' até o fim do turno (CR 611.2c: o conjunto
@@ -176,53 +196,66 @@ M.poder = (e, o) => {
 // (habil), P/R fixado (7b) e perder habilidade ficam para a próxima volta: a estática com eles não é lida.
 // Dependência (CR 613.8) simplificada: enquanto uma estática decide quem afeta (filtro, condição, contagem), as
 // leituras de P/R e palavra-chave usam só a carta (sem camadas). Nenhum filtro do banco hoje depende de outra camada.
-const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se']);
+const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se', 'habil']);
 const CONTA_EST = new Set(['cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste']);
 const qtdEstOk = q => q === undefined || typeof q === 'number'
   || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste')
     && (typeof q.conta === 'string' ? CONTA_EST.has(q.conta) : !!q.conta && typeof q.conta === 'object' && M.filtroOk(q.conta)));
 M.kwListaOk = kw => (kw || []).every(x => x && typeof x.k === 'string');   // palavra-chave dada = mesmo formato da kw da carta
+// habil (CR 613.1f): habilidades dadas, no formato da carta (gat/atv); quem lê cada uma decide se joga (gatOk, podeAtivar)
+const habilOk = h => h === undefined || (!!h && typeof h === 'object' && Object.keys(h).length > 0
+  && Object.keys(h).every(k => (k === 'gat' || k === 'atv') && Array.isArray(h[k])));
 M.estContOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
-  && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
-  && qtdEstOk(s.p) && qtdEstOk(s.r) && M.kwListaOk(s.kw) && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0)
+  && (s.afeta === 'este' || s.afeta === 'equipada' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
+  && qtdEstOk(s.p) && qtdEstOk(s.r) && M.kwListaOk(s.kw) && habilOk(s.habil)
+  && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || s.habil !== undefined)
   && (!s.se || M.seOk(s.se));
-const NADA = { p: 0, r: 0, kw: [] as any[] };
+const NADA = { p: 0, r: 0, kw: [] as any[], gat: [] as any[], atv: [] as any[] };
 let lendoCamada = 0;
 // quem no campo tem estática 'continuo' lida: refeito só quando o campo muda (e.ts sobe a cada objeto que muda de
 // zona ou nasce; e.vCamada sobe ao transformar ou trocar de controle). Sem isso, cada leitura de P/R ou palavra-chave
 // varria o campo inteiro (Vitest de 9 s para 138 s).
-const FONTES = new WeakMap<any, { k: string; l: [any, any][] }>();
+const FONTES = new WeakMap<any, { k: string; l: [any, any][]; hab: boolean }>();
 function fontesCont(e) {
   const k = e.ts + '|' + e.campo.length + '|' + (e.vCamada || 0), c = FONTES.get(e);
-  if (c && c.k === k) return c.l;
+  if (c && c.k === k) return c;
   const l: [any, any][] = [];
   for (const id of e.campo) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s)) l.push([id, s]);
-  FONTES.set(e, { k, l });
-  return l;
+  const r = { k, l, hab: l.some(([, s]) => s.habil) };
+  FONTES.set(e, r);
+  return r;
 }
-function camadas(e, o) {
+// a estática s da fonte F afeta o? 'equipada' = o objeto a que F está anexada (Equipamento ou Aura, CR 301.5a/303.4a)
+function afeta(e, F, s, o, ctx) {
+  if (s.afeta === 'este') return o.id === F.id && o.ts === F.ts;
+  if (s.afeta === 'equipada') return !!F.anexo && F.anexo.id === o.id && F.anexo.ts === o.ts;
+  return M.bate(e, o, { zona: 'campo', ...s.afeta }, ctx);
+}
+// lote: objetos que acabaram de sair do campo (LKI, CR 603.10a) — continuam valendo como fonte para quem olha para trás
+function camadas(e, o, lote?: any[]) {
   if (lendoCamada || o.zona !== 'campo') return NADA;
-  const fontes = fontesCont(e), temp = e.temp || [];
+  const FC = fontesCont(e), temp = e.temp || [];
+  let fontes: [any, any][] = FC.l;
+  if (lote && lote.length) { fontes = fontes.slice(); for (const S of lote) for (const s of M.dadoDe(e, S).est || []) if (s.modo === 'continuo' && M.estContOk(s)) fontes.push([S, s]); }
   if (!fontes.length && !temp.length) return NADA;
   lendoCamada++;
   try {
-    let p = 0, r = 0; const kw: any[] = [];
-    for (const [id, s] of fontes) {
-      const F = e.objs[id];
-      {
-        const ctx = { voce: F.ctrl, este: F.id };
-        if (s.afeta === 'este' ? o.id !== F.id : !M.bate(e, o, { zona: 'campo', ...s.afeta }, ctx)) continue;
-        if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
-        if (s.p !== undefined) p += M.qtdEst(e, s.p, ctx);
-        if (s.r !== undefined) r += M.qtdEst(e, s.r, ctx);
-        for (const x of s.kw || []) kw.push(x);
-      }
+    let p = 0, r = 0; const kw: any[] = [], gat: any[] = [], atv: any[] = [];
+    for (const [x, s] of fontes) {
+      const F = typeof x === 'object' ? x : e.objs[x];
+      const ctx = { voce: F.ctrl, este: F.id };
+      if (!afeta(e, F, s, o, ctx)) continue;
+      if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
+      if (s.p !== undefined) p += M.qtdEst(e, s.p, ctx);
+      if (s.r !== undefined) r += M.qtdEst(e, s.r, ctx);
+      for (const x of s.kw || []) kw.push(x);
+      if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
     for (const t of temp) {
       if (!t.ids.some(x => x.id === o.id && x.ts === o.ts)) continue;
       p += t.p || 0; r += t.r || 0; for (const x of t.kw || []) kw.push(x);
     }
-    return { p, r, kw };
+    return { p, r, kw, gat, atv };
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
@@ -237,9 +270,33 @@ M.qtdEst = (e, q, ctx) => {
 };
 /** palavras-chave do objeto: as da carta (ou face/ficha) e as dadas pelas camadas (CR 613.1f) */
 M.kwDe = (e, o) => { const b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw; return c.length ? b.concat(c) : b; };
+/** habilidades ativadas: as da carta, as de equipar (palavra-chave) e as dadas pelas camadas, nessa ordem (k estável) */
+const ATV_CARTA = new WeakMap<object, any[]>();   // atv da carta + equipar, por dado (não muda na partida)
+const atvCarta = d => {
+  let l = ATV_CARTA.get(d);
+  if (!l) { const eq = (d.kw || []).filter(x => x.k === 'equipar'); ATV_CARTA.set(d, (l = eq.length ? [...(d.atv || []), ...eq.map(equiparDe)] : d.atv || NADA.atv)); }
+  return l as any[];
+};
+M.atvDe = (e, o) => {
+  const b = atvCarta(M.dadoDe(e, o));
+  const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
+  return h.length ? b.concat(h) : b;
+};
+/** alguém no campo dá habilidade (habil)? sem isso gatDe/atvDe são só os da carta */
+M.temHabil = e => fontesCont(e).hab;
+/** habilidades desencadeadas: as da carta e as dadas pelas camadas; quantas são da carta = (dadoDe.gat || []).length.
+ *  lote: só os que saíram do campo E dão habilidade (M.loteHabil) — o lote inteiro aqui ficava O(n²) num Blasphemous Act */
+M.loteHabil = (e, lote) => (lote || []).filter(S => (M.dadoDe(e, S).est || []).some(s => s.modo === 'continuo' && s.habil));
+M.gatDe = (e, o, lote?) => {
+  const b = M.dadoDe(e, o).gat || [];
+  if (!fontesCont(e).hab && !(lote && lote.length)) return b;
+  const h = camadas(e, o, lote).gat;
+  return h.length ? b.concat(h) : b;
+};
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
-const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando']);
+const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -261,6 +318,12 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.vm && !compara(d.vm || 0, f.vm)) return false;
   if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
   if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;   // CR 506.4: atacando até o fim do combate
+  // anexos: equipada = o objeto a que a fonte (ctx.este) está presa; anexadoA 'este' = preso à fonte;
+  // encantada / comEquipamento = com pelo menos uma Aura / um Equipamento preso a ele
+  if (f.equipada !== undefined) { const F = e.objs[ctx.este], A = F && F.anexo; if ((!!A && A.id === o.id && A.ts === o.ts) !== !!f.equipada) return false; }
+  if (f.anexadoA === 'este') { const F = e.objs[ctx.este]; if (!F || !o.anexo || o.anexo.id !== F.id || o.anexo.ts !== F.ts) return false; }
+  if (f.encantada !== undefined && M.anexosDe(e, o).some(x => M.temTipo(e, x, 'Enchantment') && (M.dadoDe(e, x).sub || []).includes('Aura')) !== !!f.encantada) return false;
+  if (f.comEquipamento !== undefined && M.anexosDe(e, o).some(x => (M.dadoDe(e, x).sub || []).includes('Equipment')) !== !!f.comEquipamento) return false;
   return true;
 };
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));

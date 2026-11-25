@@ -83,15 +83,17 @@ M.evento = (e, ev) => {
   const saida = ev.ev === 'zona' && ev.de === 'campo';
   if (saida) (e.lote = e.lote || []).push(ev.snap);
   const fontes: any[] = [];
-  for (const id of e.campo) { const o = e.objs[id]; if (M.dadoDe(e, o).gat) fontes.push(o); }
-  if (saida) for (const s of e.lote) if (M.dadoDe(e, s).gat) fontes.push(s);             // 603.10a: olha para trás
+  const hab = M.temHabil(e);                                                            // caminho comum: sem habilidade dada
+  for (const id of e.campo) { const o = e.objs[id]; if (hab ? M.gatDe(e, o).length : M.dadoDe(e, o).gat) fontes.push(o); }
+  const lh = saida ? M.loteHabil(e, e.lote) : [], lhab = lh.length ? lh : undefined;
+  if (saida) for (const s of e.lote) if (hab || lhab ? M.gatDe(e, s, lhab).length : M.dadoDe(e, s).gat) fontes.push(s);    // 603.10a: olha para trás (habilidade dada também)
   if (ev.ev === 'conjura' && e.objs[ev.id]) fontes.push(e.objs[ev.id]);                 // "quando você conjura este"
   for (const J of e.jogs) for (const id of J.zonas.cemiterio) {                         // gatilhos que valem no cemitério
     const o = e.objs[id], gs = M.dadoDe(e, o).gat;
     if (gs && gs.some(g => zonas(g).includes('cemiterio'))) fontes.push(o);
   }
   for (const F of fontes) {
-    const gs = M.dadoDe(e, F).gat || [], lki = e.lote && e.lote.includes(F);
+    const lki = e.lote && e.lote.includes(F), gs = M.gatDe(e, F, lki ? lhab : undefined), nb = (M.dadoDe(e, F).gat || []).length;
     for (let k = 0; k < gs.length; k++) {
       const g = gs[k];
       if (!M.gatOk(g)) continue;
@@ -102,7 +104,8 @@ M.evento = (e, ev) => {
       if (!bateEv(e, g, ev, F)) continue;
       if (!cond(e, g.se, { voce: F.ctrl, este: F.id })) continue;                          // 603.4
       const vezes = 1 + extras(e, F, g, ev);
-      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+      const dada = k >= nb ? { g } : {};                                                // habilidade dada (camadas): leva o texto
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
   }
   if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar

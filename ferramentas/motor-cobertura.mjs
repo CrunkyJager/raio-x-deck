@@ -71,7 +71,7 @@ try {
       }
       for (const s of d.est || []) {
         if (s.modo === 'continuo' && M.estContOk) {     // camadas (estado.ts): o motor diz o que lê
-          if (M.estContOk(s)) { for (const x of s.kw || []) if (!citado.has(x.k)) anota(`kw dada ${x.k}`, n); continue; }
+          if (M.estContOk(s)) { for (const x of s.kw || []) if (!citado.has(x.k)) anota(`kw dada ${x.k}`, n); if (s.habil) ve(s.habil); continue; }   // habil: a habilidade dada passa pelo mesmo teste
           const ms = porque(s, x => M.estContOk({ modo: 'continuo', ...x }), n, 'est continuo');
           const extra = Object.keys(s).filter(k => !['modo', 'afeta', 'p', 'r', 'kw', 'se'].includes(k) && !k.startsWith('_'));
           for (const m of ms) anota(m !== 'est continuo' ? m : s.afeta && typeof s.afeta !== 'object' && s.afeta !== 'este' ? `est continuo afeta ${s.afeta}` : extra.length ? `est continuo ${extra.join('+')}` : m, n);

@@ -973,6 +973,76 @@ caso('611.2c', 'Heroic Intervention: só os permanentes que estavam no campo na 
   ok(!M.temKw(e, volta, 'indestrutivel'), 'voltou ao campo = objeto novo (400.7)');
 });
 
+// ---------- camadas, volta 2: anexar (CR 301.5, 701.3), equipar (702.6) e habilidade dada (613.1f) ----------
+const resolvePilha = e => { for (let g = 0; e.pilha.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar'); };
+const ativa = (e, nome) => respE(e, o => o.a === 'ativar' && e.objs[o.id].n === nome);
+caso('702.6a', 'Behemoth Sledge: equipar {3} só como feitiço; a equipada fica 4/4 com atropelar e vínculo; morreu, o Equipamento fica solto (704.5n)', () => {
+  const e = cena({ campo: [[0, 'Wastes'], [0, 'Wastes'], [0, 'Wastes'], [0, 'Behemoth Sledge'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const sl = objN(e, 0, 'Behemoth Sledge'), b = objN(e, 0, 'Grizzly Bears');
+  M.avancar(e);
+  ok(opsDe(e, 'ativar').some(o => o.id === sl.id), 'equipar oferecido na principal');
+  ok(M.alvosPossiveis(e, M.atvDe(e, sl)[0].alvos[0], { voce: 0, este: sl.id }).every(x => e.objs[x.o].ctrl === 0), 'só criatura sua');
+  ativa(e, 'Behemoth Sledge'); if (e.perg) alvoObj(e, 'Grizzly Bears');   // um alvo só: não pergunta
+  resolvePilha(e);
+  igual(sl.anexo, { id: b.id, ts: b.ts }, 'preso ao Grizzly');
+  igual([M.poder(e, b), M.resistencia(e, b)], [4, 4]); ok(M.temKw(e, b, 'atropelar') && M.temKw(e, b, 'vinculoVida'), 'palavras-chave dadas');
+  igual(e.jogs[0].reserva, M.zeroMana(), 'pagou {3}');
+  M.mover(e, b.id, 'cemiterio'); M.abe(e);
+  ok(noCampo(e).includes('Behemoth Sledge'), 'o Equipamento fica'); igual(sl.anexo, null, 'solto pela 704.5n');
+});
+caso('702.6a', 'equipar não é oferecido fora da velocidade de feitiço nem sem criatura sua', () => {
+  const e = cena({ campo: [[0, 'Wastes'], [0, 'Wastes'], [0, 'Wastes'], [0, 'Behemoth Sledge'], [1, 'Llanowar Elves']] });
+  M.avancar(e);
+  ok(!opsDe(e, 'ativar').length, 'sem criatura sua: sem alvo legal');
+  const e2 = cena({ campo: [[0, 'Wastes'], [0, 'Wastes'], [0, 'Wastes'], [0, 'Behemoth Sledge'], [0, 'Grizzly Bears']], passo: 'combate' });
+  ok(!M.podeAtivar(e2, 0, objN(e2, 0, 'Behemoth Sledge'), 0), 'fora da principal');
+});
+caso('702.10', 'Lightning Greaves (equipar {0}): o Llanowar que acabou de entrar ganha ímpeto e vira para mana; manto: o Bolt do oponente não mira (702.18a)', () => {
+  const e = cena({ campo: [[0, 'Lightning Greaves'], [0, 'Llanowar Elves', { doente: true }], [1, 'Mountain']], mao: [[1, 'Lightning Bolt']] });
+  const el = objN(e, 0, 'Llanowar Elves');
+  ok(!M.fontesDeMana(e, 0).some(f => f.id === el.id), 'doente: não vira');
+  M.avancar(e); ativa(e, 'Lightning Greaves'); resolvePilha(e);
+  ok(M.temKw(e, el, 'pressa') && M.temKw(e, el, 'manto'), 'ímpeto e manto');
+  ok(M.fontesDeMana(e, 0).some(f => f.id === el.id), 'com ímpeto vira para mana (302.6)');
+  ok(!M.alvosPossiveis(e, { f: 'qualquerAlvo' }, { voce: 1 }).some(x => x.o === el.id), 'manto: ninguém mira');
+});
+caso('701.3b', 'anexar ao que já está preso não muda nada; Equipamento não se prende a não-criatura (301.5c)', () => {
+  const e = cena({ campo: [[0, 'Lightning Greaves'], [0, 'Grizzly Bears'], [0, 'Wastes']] });
+  const g = objN(e, 0, 'Lightning Greaves'), b = objN(e, 0, 'Grizzly Bears'), w = objN(e, 0, 'Wastes');
+  const fx = { op: 'anexar', em: 'este', a: { alvo: 0 } };
+  const ctx = alvo => ({ voce: 0, este: g.id, alvos: [[{ o: alvo.id, ts: alvo.ts }]], ilegal: {}, lki: { alvos: [] } });
+  M.executar(e, fx, ctx(w), () => ({ a: 'nao' }));
+  igual(g.anexo, null, 'terreno não');
+  M.executar(e, fx, ctx(b), () => ({ a: 'nao' }));
+  igual(g.anexo, { id: b.id, ts: b.ts });
+});
+caso('613.1f', 'Cryptolith Rite: suas criaturas ganham "{T}: um mana de qualquer cor" (doente não vira); saiu, acaba', () => {
+  const e = cena({ campo: [[0, 'Cryptolith Rite'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves', { doente: true }], [1, 'Grizzly Bears']] });
+  const b = objN(e, 0, 'Grizzly Bears');
+  const f = M.fontesDeMana(e, 0).find(x => x.id === b.id);
+  ok(f && f.pacotes.length === 5, 'Grizzly vira para qualquer cor');
+  ok(!M.fontesDeMana(e, 0).some(x => x.id === objN(e, 0, 'Llanowar Elves').id && x.k > 0), 'a dada não vira doente');
+  ok(!M.fontesDeMana(e, 1).length, 'a do oponente não ganha');
+  M.ativarMana(e, 0, b.id, f.k, 2); igual(e.jogs[0].reserva.B, 1, 'pagou com a habilidade dada');
+  M.mover(e, objN(e, 0, 'Cryptolith Rite').id, 'cemiterio');
+  ok(!M.atvDe(e, objN(e, 0, 'Llanowar Elves')).some(a => a.fx[0].prod === 'qualquer'), 'sem o Rite, sem a habilidade');
+});
+caso('613.1f', 'Harmonic Sliver: o Sliver que entra (ele mesmo também) tem o gatilho de entrar dado; o Bear não', () => {
+  const e = cena({ campo: [[1, 'Sol Ring']] });
+  e.por(0, 'Harmonic Sliver');
+  igual(e.pend.length, 1, 'um gatilho'); igual(e.pend[0].g && e.pend[0].g.ev, 'entra', 'o gatilho dado vai com o texto');
+  e.pend = []; e.por(0, 'Grizzly Bears');
+  igual(e.pend.length, 0, 'Bear não é Sliver');
+});
+caso('603.10a', 'habilidade dada olha para trás: o Constricting Sliver que sai ainda tinha o "quando sai" dado por ele mesmo', () => {
+  const e = cena({ campo: [[0, 'Constricting Sliver']] });
+  const c = objN(e, 0, 'Constricting Sliver');
+  M.mover(e, c.id, 'cemiterio');
+  const snap = e.lote[e.lote.length - 1];
+  ok(M.gatDe(e, snap, M.loteHabil(e, e.lote)).some(g => g.ev === 'sai'), 'o snap tem o gatilho de sair');
+  ok(!M.gatDe(e, snap).some(g => g.ev === 'sai'), 'sem o lote, a fonte já saiu');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
