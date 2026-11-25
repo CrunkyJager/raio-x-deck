@@ -1,0 +1,1 @@
+{"v":2,"n":"Exquisite Blood","id":"8f933fae-6c0c-42d7-a817-14760d8285cd","oracleHash":"a2f469ff","custo":{"g":4,"p":["B"]},"vm":5,"ci":"B","cores":"B","tipos":["Enchantment"],"gat":[{"ev":"perdeVida","jog":"oponente","fx":[{"op":"ganharVida","quem":"voce","qtd":{"conta":"evento"}}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco14.json"}}

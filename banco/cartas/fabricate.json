@@ -1,0 +1,1 @@
+{"v":2,"n":"Fabricate","id":"422e1869-134f-463d-9fa1-86b66a998b3e","oracleHash":"bd439983","custo":{"g":2,"p":["U"]},"vm":3,"ci":"U","cores":"U","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"tipo":["Artifact"]},"revelar":true,"para":"mao"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco14.json"}}

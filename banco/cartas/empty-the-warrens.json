@@ -1,0 +1,1 @@
+{"v":2,"n":"Empty the Warrens","id":"3a59c882-8bb8-49ba-862f-125020dd5bec","oracleHash":"2d2eaf99","custo":{"g":3,"p":["R"]},"vm":4,"ci":"R","cores":"R","tipos":["Sorcery"],"kw":[{"k":"tempestade"}],"fx":[{"op":"ficha","quem":"voce","qtd":2,"token":{"pt":[1,1],"cores":"R","tipos":["Creature"],"sub":["Goblin"]}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco14.json"}}

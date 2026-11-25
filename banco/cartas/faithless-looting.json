@@ -1,0 +1,1 @@
+{"v":2,"n":"Faithless Looting","id":"3d6fa57a-aa53-4b5c-b8af-a7612c823117","oracleHash":"2a6b4b56","custo":{"p":["R"]},"vm":1,"ci":"R","cores":"R","tipos":["Sorcery"],"fx":[{"op":"comprar","quem":"voce","qtd":2},{"op":"descartar","quem":"voce","qtd":2}],"kw":[{"k":"flashback","custo":{"g":2,"p":["R"]}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco14.json"}}
