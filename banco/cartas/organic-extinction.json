@@ -1,0 +1,1 @@
+{"v":2,"n":"Organic Extinction","id":"d9e24d7c-0907-45c1-b5d3-9fb16a929868","oracleHash":"a3326228","custo":{"g":8,"p":["W","W"]},"vm":10,"ci":"W","cores":"W","tipos":["Sorcery"],"kw":[{"k":"improvisar"}],"fx":[{"op":"destruir","em":{"todos":{"tipo":["Creature"],"nao":["Artifact"],"zona":"campo"}}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco6.json"}}

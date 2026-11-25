@@ -1,0 +1,1 @@
+{"v":2,"n":"Satyr Enchanter","id":"aa321138-b1a7-4b8e-a2ca-b9ce65704e92","oracleHash":"a5be6045","custo":{"g":1,"p":["G","W"]},"vm":3,"ci":"WG","cores":"WG","tipos":["Creature"],"sub":["Satyr","Druid"],"pt":[2,2],"gat":[{"ev":"conjura","jog":"voce","quem":{"tipo":["Enchantment"]},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

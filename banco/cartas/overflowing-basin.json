@@ -1,0 +1,1 @@
+{"v":2,"n":"Overflowing Basin","id":"5ac8e01c-b0a7-4855-a122-1cd26b07c4a5","oracleHash":"7a1cb6c9","vm":0,"ci":"UG","cores":"","tipos":["Land"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G"],"qtd":1},{"op":"mana","prod":["U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

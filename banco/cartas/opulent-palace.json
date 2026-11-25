@@ -1,0 +1,1 @@
+{"v":2,"n":"Opulent Palace","id":"f9e7e855-1e3b-42d3-91b0-64ba8b5b8982","oracleHash":"466ae839","vm":0,"ci":"UBG","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["B","G","U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
