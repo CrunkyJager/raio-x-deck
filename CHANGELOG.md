@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.13.0 — 25/11/2026 · telas em componentes Svelte; preço certo na 1ª análise
+Testes: valida 661/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · lacunas = base · verifica verde · build ok.
+- **Estrutura (A, T43 d):** Lista, Resumo, Análise (funções, mana, plano, cortes) e Trocas viram componentes em `src/telas/`; HTML igual ao de antes nos 4 exemplos e na troca de comandante.
+- **Conserto:** a 1ª análise depois de abrir a página às vezes somava o preço com o dólar padrão (5,56) e depois multiplicava pela cotação nova (Stangg R$ 661 em vez de 626). Agora a análise espera a cotação até 2,5 s e refaz quando ela chega; cotação guardada vale 12 h.
+- **Esquema:** custoAtv `exilarDe {zona, f, qtd}` (Drivnod) e gat `naoMorre` (Dour Port-Mage).
+
 ## v0.12.0 — 25/11/2026 · banco com 661 cartas
 Testes: valida 661/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
 - **Banco (B):** bloco 11 (fila 501–550, 55 casos) e bloco 12 (551–600, 51 casos); correção 2 (13 casos): Urza, Chief Artificer dava ameaça a TODA criatura sua → `tipoTodos` (também Chief of the Foundry, Thopter Spy Network, Weaver of Harmony); Citadel, Bloodghast, Bloodchief, Circle of Power, Cornered, Cloud sem falta.

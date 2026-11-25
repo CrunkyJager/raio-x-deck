@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.13.0: A telas Lista (1924c36), Resumo (87da164), Análise (2bb36fd), Trocas + preço (8ca7b7e). Preço do Stangg 112,0×106,1 travou a versão até a causa: soma feita com USD_BRL padrão antes da awesomeapi; prova do A: 10 aberturas iguais (o velho errou 1/10). Esquema 3a96323 (exilarDe, naoMorre).
 - 25/11 · FARSEER · v0.12.0: B bloco 11 (84c3622) + correção 2 (d502535) + bloco 12 (af44002), 661 cartas. Leituras ok: Cleaver Skaab, Communal Brewing, Grave-Reaver, Charismatic Conqueror (ou de verdade), Diffusion Sliver, Demon, Devoted Druid. Recusada: Curiosity (gatilho dado à criatura → gat na Aura + aOponente). Esquema 671dcd0 e dd94fec.
 - 25/11 · FARSEER · v0.11.0: B correção Ashaya/Entmoot (00a4d1e) + bloco 10 (adb6e65, 561 cartas) + A motor (517f291), montar.ts (6acd3a9) e casca Svelte (84663c7). Leituras: Brood Sliver e Bloom Tender ok; Boromir Human-ou-artefato fica como falta; Calix recusado → filtro encantada. Pedidos de esquema do bloco 10 (custoAtv.vida com contagem, vida de oponente ≤ N, vida perdida por um oponente) ficam para decidir.
 - 25/11 · FARSEER · v0.10.0: B bloco 9 (f77de36, 511 cartas). Leituras ok: Avacyn Angel of Horror doEvento, Bello filtro nao Equipment/Aura. Recusadas → esquema: Ashaya (est.sub), Entmoot (token.pt com qtd; 1ª tentativa com oneOf quebrou 72 cartas → anyOf).
