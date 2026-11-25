@@ -1,0 +1,4 @@
+{"v":2,"n":"Arcane Signet","id":"0bc7f093-bef0-4f1a-852c-4b75ebf54838","oracleHash":"490507c8",
+ "custo":{"g":2},"vm":2,"ci":"","cores":"","tipos":["Artifact"],
+ "atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":"comandante","qtd":1}]}],
+ "rev":{"por":"opus-raiox","em":"2026-11-25","nota":"exemplo do formato v2"}}

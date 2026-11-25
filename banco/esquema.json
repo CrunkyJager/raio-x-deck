@@ -1,0 +1,1908 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "raiox/carta",
+ "title": "Carta do Raio-X — banco próprio (v2, 25/11/2026)",
+ "description": "Uma carta como o motor e os pesos enxergam. Escrita por nós a partir do texto Oracle (Scryfall, público); nada copiado de roteiro de terceiros (Forge só serve para conferir divergência). Um arquivo por carta em banco/cartas/.",
+ "type": "object",
+ "required": [
+  "v",
+  "n",
+  "id",
+  "oracleHash",
+  "tipos",
+  "rev"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "n": {
+   "type": "string",
+   "description": "nome oficial (frente, para dupla face)"
+  },
+  "custo": {
+   "$ref": "#/$defs/mana"
+  },
+  "vm": {
+   "type": "integer",
+   "description": "valor de mana"
+  },
+  "ci": {
+   "type": "string",
+   "pattern": "^W?U?B?R?G?$",
+   "description": "identidade de cor (CR 903.4)"
+  },
+  "cores": {
+   "type": "string",
+   "pattern": "^W?U?B?R?G?$"
+  },
+  "tipos": {
+   "type": "array",
+   "items": {
+    "enum": [
+     "Creature",
+     "Artifact",
+     "Enchantment",
+     "Land",
+     "Planeswalker",
+     "Instant",
+     "Sorcery",
+     "Battle",
+     "Kindred"
+    ]
+   }
+  },
+  "super": {
+   "type": "array",
+   "items": {
+    "enum": [
+     "Legendary",
+     "Basic",
+     "Snow",
+     "World"
+    ]
+   }
+  },
+  "sub": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "description": "subtipos (Goblin, Equipment, Aura, Forest, Saga, Adventure…)"
+  },
+  "pt": {
+   "type": "array",
+   "items": {
+    "type": [
+     "integer",
+     "string"
+    ]
+   },
+   "minItems": 2,
+   "maxItems": 2,
+   "description": "[poder, resistência]; '*' quando definido por estática cda"
+  },
+  "leal": {
+   "type": "integer",
+   "description": "lealdade inicial"
+  },
+  "kw": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/kw"
+   }
+  },
+  "atv": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/atv"
+   }
+  },
+  "gat": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/gat"
+   }
+  },
+  "est": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/est"
+   }
+  },
+  "subst": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/subst"
+   }
+  },
+  "fx": {
+   "$ref": "#/$defs/fxs",
+   "description": "efeito ao resolver (mágica instantânea/feitiço)"
+  },
+  "alvos": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/alvo"
+   },
+   "description": "alvos escolhidos ao conjurar, referidos em fx por {\"alvo\":i}"
+  },
+  "faces": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/face"
+   },
+   "description": "outra face: dupla face, aventura, split, modal"
+  },
+  "forma": {
+   "enum": [
+    "normal",
+    "duplaFace",
+    "aventura",
+    "split",
+    "modal",
+    "flip"
+   ]
+  },
+  "falta": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   },
+   "description": "frases do Oracle (texto original, em inglês) que o motor ainda não sabe fazer; o motor joga o resto e a tela avisa"
+  },
+  "custoAd": {
+   "$ref": "#/$defs/custoAtv",
+   "description": "custo adicional para conjurar (além da mana)"
+  },
+  "v": {
+   "const": 2,
+   "description": "versão do formato"
+  },
+  "id": {
+   "type": "string",
+   "pattern": "^[0-9a-f-]{36}$",
+   "description": "oracle_id do Scryfall (o mesmo para todas as edições)"
+  },
+  "oracleHash": {
+   "type": "string",
+   "pattern": "^[0-9a-f]{8}$",
+   "description": "8 primeiros hex do sha1 do texto Oracle usado; muda numa errata → carta volta para revisão"
+  },
+  "rev": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "por",
+    "em"
+   ],
+   "properties": {
+    "por": {
+     "type": "string",
+     "description": "quem escreveu/revisou (adepto, Felipe)"
+    },
+    "em": {
+     "type": "string",
+     "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "teste": {
+     "type": "string",
+     "description": "caso de teste em banco/testes/ que cobre a carta"
+    },
+    "nota": {
+     "type": "string"
+    }
+   },
+   "description": "rastreio de quem escreveu e quando"
+  }
+ },
+ "$defs": {
+  "mana": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "custo de mana: g = genérico, p = símbolos coloridos (W U B R G C, híbrido 'R/W', 2/W, phyrexiano 'B/P'), x = quantos X",
+   "properties": {
+    "g": {
+     "type": "integer"
+    },
+    "p": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "pattern": "^([WUBRGCS]|[WUBRGC2]/[WUBRGP]|[WUBRG]/[WUBRG]/P)$"
+     }
+    },
+    "x": {
+     "type": "integer"
+    }
+   }
+  },
+  "qtd": {
+   "description": "número fixo, 'X' (o X pago), ou contagem",
+   "oneOf": [
+    {
+     "type": "integer"
+    },
+    {
+     "enum": [
+      "X",
+      "maoInteira",
+      "tudo"
+     ]
+    },
+    {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "conta"
+     ],
+     "properties": {
+      "conta": {
+       "oneOf": [
+        {
+         "$ref": "#/$defs/filtro"
+        },
+        {
+         "enum": [
+          "vmDoAlvo",
+          "vmDoEvento",
+          "poderDoEste",
+          "poderDoEvento",
+          "resistDoEvento",
+          "poderDoAlvo",
+          "danoCausado",
+          "vidaGanha",
+          "cartasNaMao",
+          "oponentes",
+          "marcadoresNoEste",
+          "evento",
+          "X",
+          "jogadores",
+          "resistDoEste",
+          "vmDoEste",
+          "lembrados",
+          "suaVida",
+          "vidaInicial",
+          "cartasNoGrimorio",
+          "energia",
+          "convergir",
+          "dominio",
+          "devocao",
+          "impostoCmd",
+          "seusTurnos",
+          "resolvidasNoTurno",
+          "magiasNoTurno",
+          "coresDoEste",
+          "resistDoAlvo",
+          "marcadoresNoEvento",
+          "maoDoAlvo",
+          "vidaDoAlvo",
+          "tipoMaisComum",
+          "maiorEntreJogadores",
+          "entrouNoTurno",
+          "resultado",
+          "se",
+          "numeroEscolhido",
+          "vidaGanhaNoTurno",
+          "compradasNoTurno",
+          "atacantes",
+          "coresDoEvento",
+          "ataquesNoTurno",
+          "grimorioDoAlvo",
+          "marcadoresSeus",
+          "vezesKicker",
+          "maoDoEvento",
+          "vidaPerdidaOpsNoTurno",
+          "vidaPerdidaNoTurno"
+         ]
+        }
+       ]
+      },
+      "mult": {
+       "type": "integer"
+      },
+      "soma": {
+       "type": "integer"
+      },
+      "alvo": {
+       "type": "integer"
+      },
+      "metade": {
+       "type": "boolean",
+       "description": "divide por 2 (arredonda p/ baixo)"
+      },
+      "cond": {
+       "type": "string",
+       "description": "conta 'se': condição (kicked, promisedgift, morbid…)"
+      },
+      "sim": {
+       "type": "integer"
+      },
+      "nao": {
+       "type": "integer"
+      },
+      "prop": {
+       "enum": [
+        "cores",
+        "somaPoder",
+        "maiorPoder",
+        "somaResist",
+        "somaVm",
+        "nomesDiferentes",
+        "tiposDiferentes"
+       ],
+       "description": "em vez de contar objetos: propriedade do conjunto"
+      },
+      "de": {
+       "type": "string",
+       "description": "devocao: cores (W U B R G); marcadores*: tipo do marcador"
+      }
+     }
+    }
+   ]
+  },
+  "jogador": {
+   "enum": [
+    "voce",
+    "oponente",
+    "cadaOponente",
+    "cadaJogador",
+    "alvoJogador",
+    "dono",
+    "controlador",
+    "doEvento",
+    "atacado",
+    "proximo",
+    "cadaAtual"
+   ],
+   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado"
+  },
+  "filtro": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "mini-linguagem de objetos: todos os campos se somam (E)",
+   "properties": {
+    "este": {
+     "type": "boolean",
+     "description": "a própria carta"
+    },
+    "outro": {
+     "type": "boolean",
+     "description": "exceto a própria carta"
+    },
+    "tipo": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "algum destes tipos (Creature, Land, Permanent, Card, Spell, Token…)"
+    },
+    "nao": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "nenhum destes tipos/subtipos/super (Land, Basic, Token…)"
+    },
+    "sub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "algum destes subtipos; 'escolhido' = tipo escolhido ao entrar"
+    },
+    "super": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "ctrl": {
+     "enum": [
+      "voce",
+      "oponente",
+      "qualquer",
+      "alvo",
+      "cadaAtual",
+      "doEvento"
+     ]
+    },
+    "dono": {
+     "enum": [
+      "voce",
+      "oponente",
+      "qualquer",
+      "alvo",
+      "cadaAtual",
+      "doEvento"
+     ]
+    },
+    "cor": {
+     "type": "string"
+    },
+    "zona": {
+     "$ref": "#/$defs/zona"
+    },
+    "virada": {
+     "type": "boolean"
+    },
+    "atacando": {
+     "type": "boolean"
+    },
+    "equipada": {
+     "type": "boolean",
+     "description": "a criatura que este equipamento/aura está anexado"
+    },
+    "comandante": {
+     "type": "boolean"
+    },
+    "ficha": {
+     "type": "boolean"
+    },
+    "vm": {
+     "$ref": "#/$defs/compara"
+    },
+    "poder": {
+     "$ref": "#/$defs/compara"
+    },
+    "resist": {
+     "$ref": "#/$defs/compara"
+    },
+    "anexadoA": {
+     "enum": [
+      "este"
+     ],
+     "description": "aura/equipamento anexado a esta carta"
+    },
+    "topo": {
+     "type": "boolean",
+     "description": "carta do topo do grimório"
+    },
+    "lembrada": {
+     "type": "boolean",
+     "description": "objeto lembrado pelo efeito"
+    },
+    "modificada": {
+     "type": "boolean",
+     "description": "equipada, encantada ou com marcador"
+    },
+    "conjurada": {
+     "type": "boolean",
+     "description": "foi conjurada (não só posta)"
+    },
+    "ouEste": {
+     "type": "boolean",
+     "description": "a própria carta também conta (\"este ou outro X\")"
+    },
+    "comMarcador": {
+     "type": "string",
+     "description": "tem ao menos 1 marcador deste tipo"
+    },
+    "kw": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "tem estas palavras-chave"
+    }
+   }
+  },
+  "compara": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "min": {
+     "$ref": "#/$defs/qtd"
+    },
+    "max": {
+     "$ref": "#/$defs/qtd"
+    },
+    "igual": {
+     "$ref": "#/$defs/qtd"
+    }
+   }
+  },
+  "zona": {
+   "enum": [
+    "campo",
+    "mao",
+    "grimorio",
+    "cemiterio",
+    "exilio",
+    "pilha",
+    "comando",
+    "qualquer"
+   ]
+  },
+  "alvo": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "f"
+   ],
+   "properties": {
+    "f": {
+     "oneOf": [
+      {
+       "$ref": "#/$defs/filtro"
+      },
+      {
+       "enum": [
+        "qualquerAlvo",
+        "jogador",
+        "oponente",
+        "magica"
+       ]
+      }
+     ]
+    },
+    "min": {
+     "type": "integer"
+    },
+    "max": {
+     "type": "integer"
+    },
+    "dividir": {
+     "type": "boolean"
+    },
+    "jog": {
+     "enum": [
+      "jogador",
+      "oponente"
+     ],
+     "description": "alvo pode ser também um jogador (f OU jog)"
+    }
+   }
+  },
+  "objeto": {
+   "description": "sobre o que o efeito age: alvo escolhido (índice em 'alvos'), todos que batem no filtro, ou referência",
+   "oneOf": [
+    {
+     "type": "object",
+     "required": [
+      "alvo"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "alvo": {
+       "type": "integer"
+      }
+     }
+    },
+    {
+     "type": "object",
+     "required": [
+      "todos"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "todos": {
+       "$ref": "#/$defs/filtro"
+      }
+     }
+    },
+    {
+     "enum": [
+      "este",
+      "equipada",
+      "doEvento",
+      "criadas",
+      "escolhida",
+      "anterior",
+      "cadaAtual"
+     ]
+    }
+   ]
+  },
+  "custoAtv": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "custo de habilidade ativada / custo adicional / 'a menos que pague'",
+   "properties": {
+    "mana": {
+     "$ref": "#/$defs/mana"
+    },
+    "virar": {
+     "type": "boolean"
+    },
+    "desvirar": {
+     "type": "boolean"
+    },
+    "virarOutros": {
+     "type": "object",
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "qtd": {
+       "type": "integer"
+      }
+     }
+    },
+    "sacrificar": {
+     "oneOf": [
+      {
+       "const": "este"
+      },
+      {
+       "type": "object",
+       "properties": {
+        "f": {
+         "$ref": "#/$defs/filtro"
+        },
+        "qtd": {
+         "type": "integer"
+        }
+       }
+      }
+     ]
+    },
+    "descartar": {
+     "type": "integer"
+    },
+    "revelar": {
+     "type": "object",
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "qtd": {
+       "type": "integer"
+      }
+     }
+    },
+    "exilarEste": {
+     "type": "boolean"
+    },
+    "vida": {
+     "oneOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "const": "X"
+      }
+     ]
+    },
+    "exilarDe": {
+     "$ref": "#/$defs/zona"
+    },
+    "tirarMarcador": {
+     "type": "object",
+     "properties": {
+      "tipo": {
+       "type": "string"
+      },
+      "qtd": {
+       "type": "integer"
+      }
+     }
+    }
+   }
+  },
+  "dura": {
+   "enum": [
+    "fimDoTurno",
+    "proximoTurnoSeu",
+    "enquantoAnexado",
+    "enquantoNoCampo",
+    "sempre"
+   ]
+  },
+  "fxs": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/fx"
+   }
+  },
+  "fx": {
+   "type": "object",
+   "required": [
+    "op"
+   ],
+   "description": "um efeito. Campos comuns: talvez (o jogador pode escolher não fazer), quem (jogador que faz/recebe), em (objeto afetado), qtd, se (condição), aMenosQue (outro jogador paga para impedir)",
+   "properties": {
+    "op": {
+     "enum": [
+      "mana",
+      "comprar",
+      "descartar",
+      "moer",
+      "videncia",
+      "cavar",
+      "revelarTopo",
+      "mover",
+      "buscar",
+      "embaralhar",
+      "ficha",
+      "copiarPermanente",
+      "copiarMagica",
+      "dano",
+      "destruir",
+      "sacrificar",
+      "anular",
+      "exilar",
+      "ganharVida",
+      "perderVida",
+      "virar",
+      "desvirar",
+      "marcador",
+      "proliferar",
+      "modificar",
+      "animar",
+      "ganharControle",
+      "anexar",
+      "fasear",
+      "transformar",
+      "efeitoTemporario",
+      "gatilhoAtrasado",
+      "escolher",
+      "modal",
+      "repetirCada",
+      "jogar",
+      "faseExtra",
+      "turnoExtra",
+      "ganharJogo",
+      "perderJogo",
+      "regenerar",
+      "virarMonarca",
+      "descobrir",
+      "vigiar",
+      "lutar"
+     ]
+    },
+    "talvez": {
+     "type": "boolean"
+    },
+    "quem": {
+     "$ref": "#/$defs/jogador"
+    },
+    "em": {
+     "$ref": "#/$defs/objeto"
+    },
+    "qtd": {
+     "$ref": "#/$defs/qtd"
+    },
+    "se": {
+     "$ref": "#/$defs/cond"
+    },
+    "aMenosQue": {
+     "type": "object",
+     "required": [
+      "quem",
+      "custo"
+     ],
+     "properties": {
+      "quem": {
+       "$ref": "#/$defs/jogador"
+      },
+      "custo": {
+       "$ref": "#/$defs/custoAtv"
+      }
+     }
+    },
+    "prod": {
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções",
+     "oneOf": [
+      {
+       "enum": [
+        "qualquer",
+        "comandante",
+        "refletida",
+        "escolhida"
+       ]
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     ]
+    },
+    "de": {
+     "$ref": "#/$defs/zona"
+    },
+    "para": {
+     "$ref": "#/$defs/zona"
+    },
+    "f": {
+     "$ref": "#/$defs/filtro",
+     "description": "buscar/cavar/escolher: o que pode ser pego"
+    },
+    "virada": {
+     "type": "boolean"
+    },
+    "atacando": {
+     "type": "boolean"
+    },
+    "revelar": {
+     "type": "boolean"
+    },
+    "sobControle": {
+     "$ref": "#/$defs/jogador"
+    },
+    "fundo": {
+     "type": "boolean",
+     "description": "mover para o grimório: embaixo"
+    },
+    "olha": {
+     "$ref": "#/$defs/qtd"
+    },
+    "pega": {
+     "$ref": "#/$defs/qtd"
+    },
+    "resto": {
+     "$ref": "#/$defs/zona"
+    },
+    "destinos": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "para": {
+        "$ref": "#/$defs/zona"
+       },
+       "qtd": {
+        "type": "integer"
+       },
+       "virada": {
+        "type": "boolean"
+       }
+      }
+     },
+     "description": "buscar com divisão (Cultivate: 1 no campo virado, 1 na mão)"
+    },
+    "token": {
+     "$ref": "#/$defs/token"
+    },
+    "tipoMarc": {
+     "type": "string",
+     "description": "marcador: +1/+1, -1/-1, loyalty, charge…"
+    },
+    "p": {
+     "$ref": "#/$defs/qtd"
+    },
+    "r": {
+     "$ref": "#/$defs/qtd"
+    },
+    "kw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     }
+    },
+    "dura": {
+     "$ref": "#/$defs/dura"
+    },
+    "est": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/est"
+     },
+     "description": "efeitoTemporario: estáticas que valem pela duração"
+    },
+    "subst": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/subst"
+     }
+    },
+    "quando": {
+     "$ref": "#/$defs/gat",
+     "description": "gatilhoAtrasado"
+    },
+    "o": {
+     "enum": [
+      "tipoCriatura",
+      "cor",
+      "jogador",
+      "numero",
+      "carta",
+      "modo",
+      "tipo"
+     ],
+     "description": "escolher: o quê"
+    },
+    "escolhe": {
+     "type": "object",
+     "properties": {
+      "min": {
+       "type": "integer"
+      },
+      "max": {
+       "type": "integer"
+      },
+      "maxSe": {
+       "type": "object",
+       "properties": {
+        "se": {
+         "$ref": "#/$defs/cond"
+        },
+        "max": {
+         "type": "integer"
+        }
+       }
+      }
+     }
+    },
+    "modos": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/fxs"
+     }
+    },
+    "cada": {
+     "oneOf": [
+      {
+       "$ref": "#/$defs/jogador"
+      },
+      {
+       "$ref": "#/$defs/filtro"
+      }
+     ]
+    },
+    "fx": {
+     "$ref": "#/$defs/fxs",
+     "description": "repetirCada / sub-efeito"
+    },
+    "gratis": {
+     "type": "boolean"
+    },
+    "semPilha": {
+     "type": "boolean"
+    },
+    "pagando": {
+     "$ref": "#/$defs/custoAtv",
+     "description": "só faz se o controlador pagar este custo"
+    },
+    "a": {
+     "$ref": "#/$defs/objeto",
+     "description": "anexar: a quem"
+    },
+    "tipos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "sub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "cores": {
+     "type": "string"
+    },
+    "habil": {
+     "type": "object",
+     "properties": {
+      "atv": {
+       "type": "array"
+      },
+      "gat": {
+       "type": "array"
+      }
+     }
+    },
+    "semHabil": {
+     "type": "boolean"
+    },
+    "gat": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/gat"
+     },
+     "description": "efeitoTemporario: gatilhos que valem pela duração"
+    },
+    "emblema": {
+     "type": "boolean"
+    },
+    "novoAlvo": {
+     "type": "boolean",
+     "description": "copiarMagica: pode escolher novos alvos"
+    },
+    "tirar": {
+     "type": "boolean",
+     "description": "marcador: remover em vez de pôr"
+    },
+    "fase": {
+     "enum": [
+      "combate",
+      "principal",
+      "turno"
+     ],
+     "description": "faseExtra: qual"
+    },
+    "tiraKw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     },
+     "description": "animar: perde estas palavras-chave"
+    },
+    "todosTipos": {
+     "type": "boolean",
+     "description": "animar: ganha todos os tipos de criatura"
+    },
+    "com": {
+     "$ref": "#/$defs/objeto",
+     "description": "lutar: com quem"
+    },
+    "so": {
+     "$ref": "#/$defs/filtro",
+     "description": "mana: só pode ser gasta em mágica/habilidade que bata no filtro (Unclaimed Territory, Cavern of Souls)"
+    }
+   },
+   "additionalProperties": false,
+   "patternProperties": {
+    "^_": {}
+   }
+  },
+  "token": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "ficha: descrita ou nomeada (as comuns: Treasure, Clue, Food, Blood…)",
+   "properties": {
+    "nome": {
+     "type": "string"
+    },
+    "pt": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     }
+    },
+    "cores": {
+     "type": "string"
+    },
+    "tipos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "sub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "super": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "kw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     }
+    },
+    "atv": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/atv"
+     }
+    },
+    "copiaDe": {
+     "$ref": "#/$defs/objeto"
+    },
+    "anexadaA": {
+     "enum": [
+      "criadas",
+      "este"
+     ]
+    },
+    "naoLendaria": {
+     "type": "boolean",
+     "description": "cópia sem o supertipo lendário"
+    }
+   }
+  },
+  "cond": {
+   "type": "object",
+   "additionalProperties": false,
+   "description": "condição (todas valem juntas)",
+   "properties": {
+    "controla": {
+     "type": "object",
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "min": {
+       "type": "integer"
+      }
+     }
+    },
+    "esteEm": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/zona"
+     }
+    },
+    "turno": {
+     "enum": [
+      "seu",
+      "deOutro"
+     ]
+    },
+    "pagou": {
+     "type": "boolean",
+     "description": "o 'se fizer' / 'se não fizer' do efeito anterior"
+    },
+    "eventoBate": {
+     "$ref": "#/$defs/filtro",
+     "description": "o objeto do evento bate no filtro"
+    },
+    "vidaMax": {
+     "type": "integer"
+    },
+    "vidaMin": {
+     "type": "integer"
+    },
+    "conjuradaCom": {
+     "enum": [
+      "sobrecarga",
+      "kicker",
+      "flashback",
+      "madness",
+      "evoke"
+     ]
+    },
+    "conta": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "q"
+     ],
+     "properties": {
+      "q": {
+       "$ref": "#/$defs/qtd"
+      },
+      "min": {
+       "type": "integer"
+      },
+      "max": {
+       "type": "integer"
+      },
+      "igual": {
+       "type": "integer"
+      }
+     },
+     "description": "a contagem q compara (min/max/igual)"
+    },
+    "existe": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "f"
+     ],
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "min": {
+       "type": "integer"
+      },
+      "max": {
+       "type": "integer"
+      },
+      "igual": {
+       "type": "integer"
+      }
+     },
+     "description": "quantos objetos batem no filtro (padrão: ≥1)"
+    },
+    "objBate": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "em": {
+       "$ref": "#/$defs/objeto"
+      },
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "nao": {
+       "type": "boolean"
+      }
+     },
+     "description": "o objeto referido bate (ou não) no filtro"
+    },
+    "palavra": {
+     "type": "string",
+     "description": "condição nomeada: metalcraft, blessing, maxspeed…"
+    },
+    "monarca": {
+     "type": "boolean",
+     "description": "você é o monarca"
+    }
+   }
+  },
+  "kw": {
+   "type": "object",
+   "required": [
+    "k"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "k": {
+     "enum": [
+      "voar",
+      "vigilancia",
+      "atropelar",
+      "vinculoVida",
+      "pressa",
+      "indestrutivel",
+      "lampejo",
+      "primeiroAtaque",
+      "golpeDuplo",
+      "toqueMortifero",
+      "alcance",
+      "ameaca",
+      "protecao",
+      "resguardo",
+      "rachadura",
+      "antimagia",
+      "manto",
+      "metamorfo",
+      "defensor",
+      "equipar",
+      "encantar",
+      "ciclar",
+      "cicloTipo",
+      "sobrecarga",
+      "flashback",
+      "afinidade",
+      "convocar",
+      "improvisar",
+      "loucura",
+      "chute",
+      "ofertaPresente",
+      "esconderijo",
+      "ascender",
+      "tempestade",
+      "parceiro",
+      "parceiroCom",
+      "escolhaAntecedente",
+      "mentor",
+      "proeza",
+      "tripular",
+      "fabricar",
+      "posVida",
+      "caminhadaTerreno",
+      "armaduraUmbra",
+      "corpo-a-corpo",
+      "prever",
+      "evoluir",
+      "persistir",
+      "eternizar",
+      "agregar",
+      "miriade",
+      "mobilizar",
+      "eco",
+      "bis",
+      "prole",
+      "capitulo",
+      "classe",
+      "entraComMarcador",
+      "tumulto"
+     ],
+     "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
+    },
+    "custo": {
+     "$ref": "#/$defs/mana"
+    },
+    "n": {
+     "type": "integer"
+    },
+    "de": {
+     "type": "string",
+     "description": "proteção de/resguardo: cor, 'tudo', tipo"
+    },
+    "tipo": {
+     "type": "string"
+    },
+    "f": {
+     "$ref": "#/$defs/filtro"
+    },
+    "pagar": {
+     "$ref": "#/$defs/custoAtv",
+     "description": "resguardo com custo que não é mana (pagar vida)"
+    }
+   }
+  },
+  "atv": {
+   "type": "object",
+   "required": [
+    "custo",
+    "fx"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "custo": {
+     "$ref": "#/$defs/custoAtv"
+    },
+    "fx": {
+     "$ref": "#/$defs/fxs"
+    },
+    "alvos": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/alvo"
+     }
+    },
+    "vel": {
+     "enum": [
+      "instantaneo",
+      "feitico"
+     ]
+    },
+    "zona": {
+     "$ref": "#/$defs/zona"
+    },
+    "limite": {
+     "enum": [
+      "umaPorTurno"
+     ]
+    },
+    "deMana": {
+     "type": "boolean",
+     "description": "habilidade de mana: não usa a pilha (CR 605)"
+    },
+    "lealdade": {
+     "type": "integer"
+    }
+   }
+  },
+  "gat": {
+   "type": "object",
+   "required": [
+    "ev"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "ev": {
+     "enum": [
+      "entra",
+      "morre",
+      "vaiCemiterio",
+      "sai",
+      "fase",
+      "ataca",
+      "atacantesDeclarados",
+      "bloqueia",
+      "conjura",
+      "dano",
+      "danoUmaVez",
+      "compra",
+      "ganhaVida",
+      "perdeVida",
+      "sacrificado",
+      "marcadorPosto",
+      "alvoDe",
+      "vira",
+      "zonaVarios",
+      "capitulo",
+      "saiCemiterio",
+      "fichaCriada",
+      "viraParaMana",
+      "descarta"
+     ]
+    },
+    "quem": {
+     "$ref": "#/$defs/filtro",
+     "description": "objeto do evento (criatura que entra/ataca/morre, mágica conjurada…)"
+    },
+    "jog": {
+     "$ref": "#/$defs/jogador",
+     "description": "jogador do evento (quem conjura/compra/perde vida; quem leva dano)"
+    },
+    "passo": {
+     "enum": [
+      "manutencao",
+      "compra",
+      "inicioCombate",
+      "final",
+      "principal1",
+      "principal2"
+     ],
+     "description": "ev fase"
+    },
+    "deQuem": {
+     "enum": [
+      "voce",
+      "cadaJogador",
+      "oponente"
+     ],
+     "description": "ev fase: no turno de quem"
+    },
+    "combate": {
+     "type": "boolean"
+    },
+    "aJogador": {
+     "type": "boolean"
+    },
+    "zonaAtiva": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/zona"
+     },
+     "description": "de onde dispara (eminência: comando + campo)"
+    },
+    "se": {
+     "$ref": "#/$defs/cond",
+     "description": "condição de intervenção ('if …', CR 603.4)"
+    },
+    "limite": {
+     "enum": [
+      "umaPorTurno"
+     ]
+    },
+    "talvez": {
+     "type": "boolean"
+    },
+    "alvos": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/alvo"
+     }
+    },
+    "fx": {
+     "$ref": "#/$defs/fxs"
+    },
+    "por": {
+     "$ref": "#/$defs/filtro",
+     "description": "alvoDe: o que mira (mágica, habilidade)"
+    },
+    "grupo": {
+     "type": "boolean",
+     "description": "dispara uma vez para o grupo que muda de zona junto"
+    },
+    "proximoTurno": {
+     "type": "boolean",
+     "description": "gatilho atrasado: só no próximo turno"
+    },
+    "nesteTurno": {
+     "type": "boolean",
+     "description": "gatilho atrasado: vale só neste turno"
+    },
+    "n": {
+     "type": "integer",
+     "description": "capitulo: número do capítulo da saga"
+    },
+    "umAlvo": {
+     "type": "boolean",
+     "description": "atacantesDeclarados: todos atacando o mesmo jogador"
+    },
+    "marc": {
+     "type": "string",
+     "description": "marcadorPosto: tipo do marcador"
+    },
+    "ouCopia": {
+     "type": "boolean",
+     "description": "conjura: também quando copia"
+    }
+   }
+  },
+  "est": {
+   "type": "object",
+   "required": [
+    "modo"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "modo": {
+     "enum": [
+      "continuo",
+      "reduzCusto",
+      "aumentaCusto",
+      "maoMax",
+      "dobraGatilhoEntrar",
+      "terraExtra",
+      "custoAlternativo",
+      "naoPodeConjurar",
+      "deveAtacar",
+      "naoPodeAtacar",
+      "naoPodeBloquear",
+      "naoPodeSerBloqueada",
+      "conjurarComLampejo",
+      "desviraNoTurnoDeOutro",
+      "vidaNaoMuda",
+      "protecaoJogador",
+      "ptDefinido",
+      "danoNaoPrevenivel",
+      "podeJogar",
+      "podeOlhar",
+      "dobraGatilho",
+      "ataqueCusta"
+     ]
+    },
+    "afeta": {
+     "oneOf": [
+      {
+       "$ref": "#/$defs/filtro"
+      },
+      {
+       "$ref": "#/$defs/jogador"
+      },
+      {
+       "enum": [
+        "este",
+        "equipada"
+       ]
+      }
+     ]
+    },
+    "p": {
+     "$ref": "#/$defs/qtd"
+    },
+    "r": {
+     "$ref": "#/$defs/qtd"
+    },
+    "pt": {
+     "type": "array"
+    },
+    "kw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     }
+    },
+    "tipo": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "habil": {
+     "type": "object",
+     "properties": {
+      "atv": {
+       "type": "array"
+      },
+      "gat": {
+       "type": "array"
+      }
+     }
+    },
+    "qtd": {
+     "$ref": "#/$defs/qtd"
+    },
+    "custo": {
+     "$ref": "#/$defs/mana",
+     "description": "ataqueCusta: quanto paga por criatura atacante (+ qtd se for {X})"
+    },
+    "se": {
+     "$ref": "#/$defs/cond"
+    },
+    "camada": {
+     "type": "string",
+     "description": "CR 613: '1','2','3','4','5','6','7a'…'7d'; o conversor preenche"
+    },
+    "de": {
+     "$ref": "#/$defs/zona"
+    },
+    "limite": {
+     "type": "integer"
+    },
+    "gratis": {
+     "type": "boolean"
+    },
+    "pBase": {
+     "$ref": "#/$defs/qtd",
+     "description": "poder definido (CDA, camada 7a)"
+    },
+    "rBase": {
+     "$ref": "#/$defs/qtd"
+    },
+    "pagar": {
+     "$ref": "#/$defs/custoAtv",
+     "description": "custoAlternativo: o que paga em vez do custo de mana"
+    },
+    "f": {
+     "$ref": "#/$defs/filtro",
+     "description": "naoPodeConjurar: quais mágicas"
+    },
+    "evs": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "dobraGatilho: só gatilhos destes eventos"
+    },
+    "causa": {
+     "$ref": "#/$defs/filtro",
+     "description": "dobraGatilho: objeto que causa o evento"
+    },
+    "tiraTipo": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "continuo: perde estes tipos (deus com devoção baixa)"
+    },
+    "contra": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "jog": {
+       "$ref": "#/$defs/jogador"
+      },
+      "f": {
+       "$ref": "#/$defs/filtro"
+      }
+     },
+     "description": "naoPodeAtacar/ataqueCusta: o defensor (jogador e/ou permanente)"
+    },
+    "aoMirar": {
+     "type": "boolean",
+     "description": "aumentaCusto: só mágicas/habilidades que miram o afetado"
+    },
+    "quem": {
+     "$ref": "#/$defs/jogador",
+     "description": "aumentaCusto: de quem são as mágicas"
+    },
+    "deHabil": {
+     "type": "boolean",
+     "description": "aumentaCusto: vale para habilidades, não mágicas"
+    }
+   }
+  },
+  "subst": {
+   "type": "object",
+   "required": [
+    "ev"
+   ],
+   "additionalProperties": false,
+   "description": "substituição (CR 614): quando o evento ev for acontecer com quem, faz 'muda' ou 'emVez'",
+   "properties": {
+    "ev": {
+     "enum": [
+      "entra",
+      "ficha",
+      "marcador",
+      "morre",
+      "vaiCemiterio",
+      "dano",
+      "compra",
+      "anulada",
+      "vidaMuda"
+     ]
+    },
+    "quem": {
+     "$ref": "#/$defs/filtro"
+    },
+    "muda": {
+     "type": "object",
+     "properties": {
+      "virada": {
+       "type": "boolean"
+      },
+      "mult": {
+       "type": "integer"
+      },
+      "soma": {
+       "type": "integer"
+      },
+      "marcadores": {
+       "type": "object",
+       "additionalProperties": {
+        "$ref": "#/$defs/qtd"
+       },
+       "description": "entra com estes marcadores a mais: {tipo: qtd}"
+      },
+      "para": {
+       "$ref": "#/$defs/zona"
+      },
+      "prevenir": {
+       "type": "boolean"
+      },
+      "impedir": {
+       "type": "boolean",
+       "description": "o evento não acontece (não pode ser anulada)"
+      },
+      "maisFicha": {
+       "$ref": "#/$defs/token",
+       "description": "cria também esta ficha (Peregrin Took)"
+      },
+      "trocaPor": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/token"
+       },
+       "description": "em vez disso cria uma de cada (Academy Manufactor)"
+      },
+      "metade": {
+       "type": "boolean",
+       "description": "dano cai à metade, arredondada para baixo"
+      },
+      "teto": {
+       "type": "integer",
+       "description": "no máximo N (previne todo menos N)"
+      },
+      "maisQtd": {
+       "type": "integer",
+       "description": "quantas fichas a mais (padrão 1)"
+      }
+     }
+    },
+    "aMenosQue": {
+     "type": "object",
+     "properties": {
+      "quem": {
+       "$ref": "#/$defs/jogador"
+      },
+      "custo": {
+       "$ref": "#/$defs/custoAtv"
+      }
+     }
+    },
+    "emVez": {
+     "$ref": "#/$defs/fxs"
+    },
+    "talvez": {
+     "type": "boolean"
+    },
+    "jog": {
+     "$ref": "#/$defs/jogador"
+    },
+    "combate": {
+     "type": "boolean"
+    },
+    "por": {
+     "$ref": "#/$defs/filtro",
+     "description": "fonte do evento"
+    },
+    "se": {
+     "$ref": "#/$defs/cond"
+    }
+   }
+  },
+  "face": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "n",
+    "tipos"
+   ],
+   "properties": {
+    "n": {
+     "type": "string",
+     "description": "nome oficial (frente, para dupla face)"
+    },
+    "custo": {
+     "$ref": "#/$defs/mana"
+    },
+    "vm": {
+     "type": "integer",
+     "description": "valor de mana"
+    },
+    "ci": {
+     "type": "string",
+     "pattern": "^W?U?B?R?G?$",
+     "description": "identidade de cor (CR 903.4)"
+    },
+    "cores": {
+     "type": "string",
+     "pattern": "^W?U?B?R?G?$"
+    },
+    "tipos": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "Creature",
+       "Artifact",
+       "Enchantment",
+       "Land",
+       "Planeswalker",
+       "Instant",
+       "Sorcery",
+       "Battle",
+       "Kindred"
+      ]
+     }
+    },
+    "super": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "Legendary",
+       "Basic",
+       "Snow",
+       "World"
+      ]
+     }
+    },
+    "sub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "subtipos (Goblin, Equipment, Aura, Forest, Saga, Adventure…)"
+    },
+    "pt": {
+     "type": "array",
+     "items": {
+      "type": [
+       "integer",
+       "string"
+      ]
+     },
+     "minItems": 2,
+     "maxItems": 2,
+     "description": "[poder, resistência]; '*' quando definido por estática cda"
+    },
+    "leal": {
+     "type": "integer",
+     "description": "lealdade inicial"
+    },
+    "kw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     }
+    },
+    "atv": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/atv"
+     }
+    },
+    "gat": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/gat"
+     }
+    },
+    "est": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/est"
+     }
+    },
+    "subst": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/subst"
+     }
+    },
+    "fx": {
+     "$ref": "#/$defs/fxs",
+     "description": "efeito ao resolver (mágica instantânea/feitiço)"
+    },
+    "alvos": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/alvo"
+     },
+     "description": "alvos escolhidos ao conjurar, referidos em fx por {\"alvo\":i}"
+    },
+    "forma": {
+     "enum": [
+      "normal",
+      "duplaFace",
+      "aventura",
+      "split",
+      "modal",
+      "flip"
+     ]
+    },
+    "falta": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "frases do Oracle (texto original, em inglês) que o motor ainda não sabe fazer; o motor joga o resto e a tela avisa"
+    },
+    "custoAd": {
+     "$ref": "#/$defs/custoAtv",
+     "description": "custo adicional para conjurar (além da mana)"
+    }
+   },
+   "description": "outra face (dupla face, aventura, split, modal): mesmos campos da carta, sem v/id/oracleHash/rev"
+  }
+ }
+}

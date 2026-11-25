@@ -1,0 +1,4 @@
+{"v":2,"n":"Sol Ring","id":"6ad8011d-3471-4369-9d68-b264cc027487","oracleHash":"161ac1e1",
+ "custo":{"g":1},"vm":1,"ci":"","cores":"","tipos":["Artifact"],
+ "atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["C"],"qtd":2}]}],
+ "rev":{"por":"opus-raiox","em":"2026-11-25","nota":"exemplo do formato v2"}}

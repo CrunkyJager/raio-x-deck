@@ -3,7 +3,9 @@
 ## OBJETIVO DO PROJETO (ler antes de tudo — Felipe, 19/11/2026)
 O Raio-X existe para **simplificar cada carta no que ela faz e quanto pesa** (ramp, compra, remoção, proteção, plano do comandante…) e com isso **decidir o deck**: o que entra, o que sai, por quê. Isso é `efetiv`/`triangula` em `analise.js`.
 - A Mesa simulada e o banco de 30 decks (`ferramentas/calibra/banco*.py`) são **só a prova** de que os pesos acertam. Não são o assunto.
-- **Não ler carta adivinhando o inglês com regex.** O Felipe considera isso burro e foi o erro do projeto: cada deck novo exigia ensinar frase nova. Caminho decidido: usar **dados estruturados que já existem** (roteiros de cartas do **Forge**, código aberto/GPL, + Scryfall), baixados uma vez e guardados num arquivo do site, sem IA e sem consulta em tempo de jogo. O bot (mesa.js) é genérico por tipo de efeito, como bot de Arena/Forge.
+- **Não ler carta adivinhando o inglês com regex.** O Felipe considera isso burro e foi o erro do projeto.
+- **Banco de cartas próprio (Felipe 25/11/2026):** o comportamento de cada carta é escrito por nós a partir do texto Oracle (Scryfall, público), um arquivo por carta em `banco/cartas/`, formato `banco/esquema.json`. **Nada copiado do Forge**: `cartas-rx.js`/`forge-db.js` servem só para conferir divergência e saem do repositório na T45. Coordenação dos adeptos: `planejamento/coordenacao.md`.
+- Estrutura: Vite + TypeScript + Svelte 5 (T43).
 - Regex atual fica só como reserva para carta sem dado.
 - Não calibrar pelos 4 exemplos (Stangg/Krenko/Lathril/Edgar); validar no banco de 30.
 
