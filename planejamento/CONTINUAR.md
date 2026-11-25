@@ -17,13 +17,13 @@ Atualizado em 25/11/2026 às 17:55 pelo coordenador (FARSEER). Quem retomar lê 
 - main = v0.37.1: textos da Mesa mais claros (comandante: "Deixar no cemitério" × "Mandar de volta para a zona de comando"; lenda; modo mostra o efeito; botão de desenvolvedor escondido sem `?dev=1`).
 - Decks do Edigar (listas em `planejamento/decks/`):
   - **Ivora** (`ivora.txt`): 75/75 no banco. **Motor joga 68/75** no ramo `t43-estrutura` (5954f88, Vitest 217 verde, cobertura 1192/1684), que ainda NÃO está na main → integrar primeiro (o ramo também traz `planejamento/decks/*.txt`: se der conflito, fique com qualquer um dos dois, o conteúdo é o mesmo). Faltam 7: Key to the City, Wedding Invitation, Witch's Mark, Anger, Brotherhood Regalia, Cool but Rude, Clive. O passo exato de cada uma está em `planejamento/adeptos/A.md` (no ramo). Falta também a partida do Ivora no node mostrando recapitular, ciclar e Sangue no registro.
-  - **Masmorras** (`masmorras.txt`): 12/81 no banco. O adepto B escreve as 69 que faltam (ramo `t20-banco`). O motor ainda NÃO tem venture/masmorras/iniciativa/completou nem **antecedente** (Background) → o adepto A faz isso depois do Ivora.
+  - **Masmorras** (`masmorras.txt`): o adepto B escreveu as 69 que faltavam (ramo `t20-banco`, 49899a7, 69 casos), então serão 81/81 no banco depois da integração. Os efeitos que o esquema ainda não tem ficaram marcados em `banco/pedidos-esquema.md` como [iniciativa], [masmorra], [completou] e [infect]. O motor ainda NÃO joga venture/masmorras/iniciativa nem **antecedente** (Background); isso fica com o adepto A depois do Ivora. "Motor joga" do deck ainda não foi medido.
   - **Ultron**: 63/80 jogáveis (v0.36.0).
 - Ramos dos adeptos (status em `planejamento/adeptos/A.md` e `B.md`): `t43-estrutura` (motor, A), `t20-banco` (cartas, B). T44 (pesos lidos do banco) tem patch fora da main; falta a medida dos 30 decks em lotes de 10 (a última caiu por falta de memória).
 - T46 (fila automática pelo PC): ramo `t46-fila-auto`; o Apps Script ainda responde "Acesso negado" → o Felipe precisa abrir o editor, rodar `doGet` e Permitir.
 
 ## Próximo passo (nesta ordem)
-0. Integrar `t43-estrutura` (5954f88) na main: testes, v0.38.0, tag.
+0. Integrar na main `t43-estrutura` (5954f88) e `t20-banco` (49899a7, ou o mais novo): testes, v0.38.0, tag. Depois medir **motor joga X/81** do deck de masmorras.
 1. Ivora 75/75 jogando: as 7 que faltam (motor, `src/motor/`), uma por commit, com teste. Pronto = motor-cobertura sem nenhuma carta do `ivora.txt` + uma partida no node com flashback, ciclar e Sangue no registro.
 2. Mecânica de masmorras: venture (4 masmorras: Lost Mine of Phandelver, Dungeon of the Mad Mage, Tomb of Annihilation, Undercity), completar masmorra, iniciativa (CR 725) e antecedente (Background, CR 702.124). IA escolhe o caminho com critério. Teste em que a ordem dos gatilhos (`ordemGatilho`) muda o resultado.
 3. Cartas de masmorras no banco (B) → **motor joga 81/81**.
