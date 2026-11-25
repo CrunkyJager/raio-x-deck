@@ -1,0 +1,1 @@
+{"v":2,"n":"Megantic Sliver","id":"52e8ec03-23ed-43a0-bce2-ad0cd5c4d737","oracleHash":"7c664fb2","custo":{"g":5,"p":["G"]},"vm":6,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Sliver"],"pt":[3,3],"est":[{"modo":"continuo","afeta":{"tipo":["Creature"],"ctrl":"voce","zona":"campo","sub":["Sliver"]},"p":3,"r":3}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco20.json"}}

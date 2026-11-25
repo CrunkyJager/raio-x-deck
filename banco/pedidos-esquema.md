@@ -148,3 +148,20 @@ Contagem: banco 1011 cartas / fila 574 ainda não escritas.
 | N atacantes contra você | 1 | 0 | Mangara (escrito sem a condição) | deixar falta | |
 | mágica incolor no filtro | 1 | 0 | Liberator (escrito só artefato) | filtro `incolor` | |
 | exilada virada para baixo | 1 | 3 | Lobelia | deixar falta | |
+
+## Faltas em lote (bloco 20, para o FARSEER decidir junto)
+Contagem: banco 1061 cartas / fila 524 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| gatilho "é causado dano A esta" (enrage, ganhar o dano) | 2 | 4 | Apex Altisaur, Metropolis Reformer (Marauding Raptor e Body of Knowledge já escritos de outro jeito) | gat dano com `em` (quem recebe) além do `quem` (fonte) | |
+| gatilho "uma criatura sua explora" | 1 | 3 | Merfolk Cave-Diver | gat ev `explora` | |
+| devolver permanente à mão como custo | 2 | 0 | Master Transmuter, Mina and Denn | custoAtv `devolver {f, qtd}` | |
+| multikicker (alvos até vezesKicker) | 1 | 0 | Marshal's Anthem (escrito: quantos quiser) | alvo `max` aceitar qtd | |
+| incitar (goad) | 1 | 0 | Marisi | deixar falta | |
+| gatilho de desvirar | 1 | 0 | Mesmeric Orb | deixar falta | |
+| desenterrar (unearth) | 1 | 0 | Molten Gatekeeper | deixar falta | |
+| ataca sozinha / não bloqueada / vida vira 1 | 1 | 0 | Master of Cruelties | deixar falta | |
+| restrição de bloqueio e ataque | 1 | 0 | Mirri | deixar falta | |
+| naoPodeConjurar só no combate | 1 | 0 | Marisi | deixar falta | |
+| modo escolhido ao entrar (Mirran/Phyrexian) | 2 | 0 | Windcrag Siege, Mirrodin Besieged (os dois modos escritos) | cond `escolhido` com o nome do modo | |
