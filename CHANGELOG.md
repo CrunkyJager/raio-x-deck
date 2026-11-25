@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.3.0 — 25/11/2026 · banco com 253 cartas; motor lê Fireball/Kolaghan
+Testes: valida 253/0 · Vitest 128/128 (97 casos + 31 fuzz) · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0.
+- **Banco (B):** correção pelas decisões do esquema (Amrou est.por, Kolaghan alvos por modo, Arcane Denial qtd {ate}, Akroma's Will cadaCor, Syr Konrad gat.naoDe…); bloco 4 (cartas 151–200); Windfall e Belladonna Took sem falta.
+- **Motor (A):** quem {alvo:N}, alvo max 'qualquer', dividir 'igual' (601.2d/608.2b), impostoPorAlvo (601.2f); 2 casos novos.
+
 ## v0.2.0 — 25/11/2026 · controle de versão
 - Ramo `integracao` com CI; tags de versão; CHANGELOG e diário de coordenação.
 - Esquema: contas `maiorDescarte` e `resolucoesDestaHabNoTurno` (8dde966).

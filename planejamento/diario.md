@@ -2,6 +2,8 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.3.0: integracao = B 6b56c8c (correção + bloco 4 + Windfall/Belladonna) + A d82d443 (motor lê Fireball/Kolaghan); 253/0, Vitest 128/128.
+- 25/11 · FARSEER · v0.2.0 na main; push das tags falhou 1x por queda de rede, repetido ok.
 - 25/11 · FARSEER · v0.2.0: ramo `integracao`, tags, CHANGELOG, este diário (pedido do Felipe: "log do que está acontecendo, versões, branch para unir").
 - 25/11 · B · correção + bloco 4 em t20-banco bfa116a (253 cartas). Fireball/Kolaghan falham no Vitest até o motor ler alvos[i].modo, quem {alvo:N}, max 'qualquer', dividir 'igual', impostoPorAlvo → pedido ao A; merge B+A juntos na integracao.
 - 25/11 · FARSEER · 8dde966: contas maiorDescarte / resolucoesDestaHabNoTurno (pedidos do B). B liberado para o bloco 5.
