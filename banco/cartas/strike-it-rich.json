@@ -1,0 +1,1 @@
+{"v":2,"n":"Strike It Rich","id":"c34c17c7-3827-49a2-be25-67f44fdfe150","oracleHash":"c5281ab3","custo":{"p":["R"]},"vm":1,"ci":"R","cores":"R","tipos":["Sorcery"],"fx":[{"op":"ficha","quem":"voce","token":{"nome":"Treasure"}}],"kw":[{"k":"flashback","custo":{"g":2,"p":["R"]}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco27.json"}}

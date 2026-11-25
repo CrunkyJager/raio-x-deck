@@ -1,0 +1,1 @@
+{"v":2,"n":"Sunscorched Divide","id":"8d2b2675-19df-4f40-9e8e-196ec097b91c","oracleHash":"e27d3bf9","vm":0,"ci":"WR","cores":"","tipos":["Land"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R"],"qtd":1},{"op":"mana","prod":["W"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco27.json"}}

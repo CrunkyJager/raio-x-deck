@@ -290,3 +290,15 @@ Contagem: banco 1361 cartas / fila 224 ainda não escritas.
 ## Decisões do lote do bloco 26 (FARSEER 25/11)
 - fx `porJogadorAtacado` no op ficha (cria para cada jogador atacado, atacando aquele jogador). Reescrever Adeline, Ainok Strike Leader e Soaring Lightbringer na correção 10.
 - Ficam em `falta`: retrace, bestow, ficha com +1/+1 por artefato (2 cada), o resto 1/0.
+
+## Faltas em lote (bloco 27, para o FARSEER decidir junto)
+Contagem: banco 1411 cartas / fila 174 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| modo escolhido ao entrar | 3 | 0 | Mirrodin Besieged, Windcrag Siege, Struggle for Project Purity | cond `modoEscolhido: N` no gat/est (hoje os dois modos estão escritos) | |
+| cascata | 1 | 1 | The First Sliver (Wildsear na fila) | kw `cascata` (e concedida a mágicas Sliver por est continuo na pilha) | |
+| incitar (goad) | 2 | 0 | Marisi, Taunt from the Rampart | fx `incitar` com `dura` | |
+| não desvira no próximo desvirar | 2 | 0 | Junk Winder, Tamiyo Field Researcher | fx `naoDesvira` no virar | |
+| virar cópia | 2 | 0 | Sarkhan Soul Aflame, Sunfrill Imitator | op `virarCopia` com `dura` e `exceto` | |
+| o resto 1/0 | | | Strong (ganha vida em vez de perder na radiação), Struggle (Enclave: só quem ataca VOCÊ), Tamiyo +1 (quem compra é você, a criatura pode ser de outro), Tandem Lookout (soulbond), Tataru Taru (não é o turno DAQUELE jogador), Tear Asunder (chute troca o alvo), Teval's Judgment (modo não escolhido neste turno), The Book of Exalted Deeds (não pode perder o jogo) | deixar falta | |
