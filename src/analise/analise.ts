@@ -379,7 +379,7 @@ const listLinks = (arr: string[], max = 40) => arr.slice(0, max).map(cardLink).j
 
 let LAST: Analise | null = null;
 // T43 (d): o objeto ganha nome só para o tipo (RaioX) que o montar.ts importa; o window.RAIOX é o mesmo de antes
-const API = { esc, fmt, suggestions: (A: Analise, k: string, n?: number) => suggestions(A, k, n), terrenosHTML: (A: Analise) => terrenosHTML(A), THEMES, themesOf, valorPlano: (A: Analise, c: Carta) => valorPlano(A, c), edhPagina: (c: string) => edhPagina(c), edhJa: (c: string) => edhJa(c), edhCmdCam: (n: string[]) => edhCmdCam(n), edhIdeia: (t: Iterable<string>, i: Set<string>, tb?: string | null) => edhIdeia(t, i, tb), edhCarta: (I: Ideia | null, c: Carta) => edhCarta(I, c), edhNota: (I: Ideia | null, c: Carta) => edhNota(I, c), edhPorque: (I: Ideia | null, c: Carta) => edhPorque(I, c), planoDe: (A: Analise) => planoDe(A), tipoRamp: (c: Carta) => tipoRamp(c), custoRamp: (c: Carta) => custoRamp(c), terrenosFormula: (cs: Carta[], cm: Carta[]) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c: Carta) => efeitos(c), subtypes, CONCEITOS: null as typeof CONCEITOS | null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n: string) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c: Carta) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds?: string[] | null, goTo?: string) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A: Analise, c: Carta) => efetiv(A, c), sinergia: (A: Analise, c: Carta) => sinergia(A, c), temaSin: (A: Analise) => temaSin(A), sinTema: (c: Carta, T: Dic<number>) => sinTema(c, T), sinTexto: (A: Analise, c: Carta) => sinTexto(A, c), buildSwaps: (A: Analise) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A: Analise) => perfilDeck(A), efPlano: (A: Analise, c: Carta) => efPlano(A, c), imgFor: (n: string, v?: string) => imgFor(n, v), imgsDe: (l: string[]) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+const API = { esc, fmt, suggestions: (A: Analise, k: string, n?: number) => suggestions(A, k, n), terrenosHTML: (A: Analise) => terrenosHTML(A), THEMES, themesOf, valorPlano: (A: Analise, c: Carta) => valorPlano(A, c), edhPagina: (c: string) => edhPagina(c), edhJa: (c: string) => edhJa(c), edhCmdCam: (n: string[]) => edhCmdCam(n), edhIdeia: (t: Iterable<string>, i: Set<string>, tb?: string | null) => edhIdeia(t, i, tb), edhCarta: (I: Ideia | null, c: Carta) => edhCarta(I, c), edhNota: (I: Ideia | null, c: Carta) => edhNota(I, c), edhPorque: (I: Ideia | null, c: Carta) => edhPorque(I, c), planoDe: (A: Analise) => planoDe(A), tipoRamp: (c: Carta) => tipoRamp(c), custoRamp: (c: Carta) => custoRamp(c), terrenosFormula: (cs: Carta[], cm: Carta[]) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c: Carta) => efeitos(c), subtypes, CONCEITOS: null as typeof CONCEITOS | null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n: string) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c: Carta) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds?: string[] | null, goTo?: string) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A: Analise, c: Carta) => efetiv(A, c), sinergia: (A: Analise, c: Carta) => sinergia(A, c), temaSin: (A: Analise) => temaSin(A), sinTema: (c: Carta, T: Dic<number>) => sinTema(c, T), sinTexto: (A: Analise, c: Carta) => sinTexto(A, c), buildSwaps: (A: Analise) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A: Analise) => perfilDeck(A), efPlano: (A: Analise, c: Carta) => efPlano(A, c), imgFor: (n: string, v?: string) => imgFor(n, v), SCRY: (n: string, v?: string) => SCRY(n, v), roleNames: (c: Carta) => roleNames(c), imgsDe: (l: string[]) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 // tela Trocas (src/telas/Trocas.svelte): o estado das trocas (SWAPS, SWAP_ON) e a ideia (CONC) continuam aqui,
 // porque o buildSwaps, o newList e a Mesa (RAIOX.swaps) leem deles; a tela pede e muda por estas funções.
 const TROCAS = {
@@ -1498,28 +1498,6 @@ function compareText(A: Analise, s: Troca) {
   return out.join(' ');
 }
 
-// prévia ao passar o mouse nas outras opções
-let HOVT: ReturnType<typeof setTimeout> | null = null;
-function hoverBox() { let h = $('#hov'); if (!h) { h = document.createElement('div'); h.id = 'hov'; h.className = 'hov'; h.hidden = true; document.body.appendChild(h); } return h; }
-document.addEventListener('mouseover', (e: any) => {
-  const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || b.closest('#pop')) return;
-  clearTimeout(HOVT!);
-  HOVT = setTimeout(() => {
-    const c = C(b.dataset.n || b.dataset.card); if (!c) return;
-    const h = hoverBox(); const ia = window.PAPEIS_IA && window.PAPEIS_IA[c.name];
-    const roles = roleNames(c);
-    h.innerHTML = `<div class="hov-img" data-hovimg="${esc(c.name)}"><span class="note">…</span></div><div><b>${esc(c.name)}</b><div style="margin:2px 0 4px">${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div>${ia && ia.r ? `<p class="note" style="margin:0 0 4px">${esc(ia.r)}</p>` : `<p class="note hov-o" style="margin:0 0 4px">${esc(c.o.split('\n//\n')[0].slice(0, 260))}${c.o.length > 260 ? '…' : ''}</p>`}<div class="chips">${roles.slice(0, 3).map(r => `<span class="tag">${esc(r)}</span>`).join('')}</div><p class="note" style="margin:6px 0 0">${b.dataset.altin != null ? 'Clique para colocar esta no lugar.' : b.dataset.altout != null ? 'Clique para tirar esta no lugar.' : 'Clique para ver os detalhes.'}</p></div>`;
-    const r = b.getBoundingClientRect(); const w = 360;
-    h.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left)) + 'px';
-    const below = r.bottom + 8, hgt = 210;
-    h.style.top = (below + hgt < window.innerHeight ? below : Math.max(8, r.top - hgt - 8)) + 'px';
-    h.hidden = false;
-    imgFor(c.name).then(src => { const el = h.querySelector('[data-hovimg]'); if (el && (el as HTMLElement).dataset.hovimg === c.name) el.innerHTML = src ? `<img src="${src}" alt="">` : '<span class="note">sem imagem</span>'; });
-  }, 120);
-});
-document.addEventListener('mouseout', (e: any) => { const b = e.target.closest && e.target.closest('[data-altin],[data-altout],.cn[data-card]'); if (!b || (e.relatedTarget && b.contains(e.relatedTarget))) return; clearTimeout(HOVT!); const h = $('#hov'); if (h) h.hidden = true; });
-document.addEventListener('click', () => { clearTimeout(HOVT!); const h = $('#hov'); if (h) h.hidden = true; }, true);
-
 // o que a troca faz pelo plano do comandante (lido do texto das duas cartas)
 const USA_CMD = false; // 20/11: as trocas seguem só o tema; o plano do comandante sai da tela (volta pondo true)
 function planoTroca(A: Analise, s: Troca) {
@@ -1653,7 +1631,6 @@ function show(name: string) {
   $$('[data-s]').forEach(el => { el.hidden = el.dataset.s !== name; });
   $$('#tabs a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + name ? 'page' : 'false'));
   const noDeck = !LAST || LAST.empty; const em = $('#nodeck'); if (em) em.hidden = !(noDeck && name !== 'lista' && name !== 'montar');
-  $('#pop').hidden = true;
   document.dispatchEvent(new CustomEvent('raiox:tela', { detail: name }));
   $$('.subnav a').forEach(a => a.setAttribute('aria-current', a.dataset.sub === sub ? 'true' : 'false'));
   const alvo = sub && sub !== 'funcoes' && $('#sub-' + sub);
@@ -1713,55 +1690,10 @@ function imgFor(name: string, v?: string) {
 }
 const imgsDe = (nomes: string[]) => Promise.all([...new Set(nomes)].map(n => imgFor(n)));
 
-// detalhe da carta
-document.addEventListener('click', (e: any) => {
-  const pop = $('#pop');
-  const b = e.target.closest('[data-card]');
-  if (!b) { if (!e.target.closest('#pop')) pop.hidden = true; return; }
-  const c = C(b.dataset.card); if (!c) return;
-  const roles = [...rolesOf(c)].map(k => ROLES.find(r => r.k === k)!.n);
-  const th = [...themesOf(c, LAST && LAST.cmdThemes)].map(k => THEMES.find(t => t.k === k)!.n);
-  const ia = window.PAPEIS_IA && window.PAPEIS_IA[c.name];
-  pop.innerHTML = `<div class="pimg" id="pimg"><span class="note">carregando imagem…</span></div><div class="ptxt"><h3>${esc(c.name)}</h3><div>${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div><div class="oracle">${esc(c.o)}</div>${ia && ia.r ? `<p class="note"><b>O que faz:</b> ${esc(ia.r)}</p>` : ''}
-    <div class="chips">${roles.map(r => `<span class="tag">${esc(r)}</span>`).join('')}${th.map(t => `<span class="tag th">${esc(t)}</span>`).join('')}${c.gc ? '<span class="tag cmd">game changer</span>' : ''}</div>
-    <p class="note">${c.r ? `Nº ${c.r.toLocaleString('pt-BR')} entre as mais jogadas no Commander` : 'Quase não aparece em decks de Commander'}${c.usd ? ` · ${brl(c.usd, 1)} ${temMyp(c.name) ? `no ${fonteMyp()}` : '(Scryfall convertido)'}` : ''}</p></div>`;
-  pop.hidden = false;
-  imgFor(c.name).then(src => { const box = $('#pimg'); if (!box || pop.hidden) return; box.innerHTML = src ? `<img src="${src}" alt="${esc(c.name)}">` : '<span class="note">Não deu para carregar a imagem.</span>'; });
-  const r = b.getBoundingClientRect(); const pw = Math.min(620, window.innerWidth - 32);
-  pop.style.left = Math.max(16, Math.min(window.innerWidth - pw - 16, r.left)) + 'px';
-  pop.style.top = Math.max(16, Math.min(window.innerHeight - 320, r.bottom + 8)) + 'px';
-});
-
-
-// ampliar a carta: clique em qualquer imagem
-function openZoom(name: string, src: string | null) {
-  let z = $('#zoom');
-  if (!z) { z = document.createElement('div'); z.id = 'zoom'; z.className = 'zoom'; z.setAttribute('role', 'dialog'); z.setAttribute('aria-modal', 'true'); document.body.appendChild(z); }
-  const c = C(name);
-  const ia = window.PAPEIS_IA && c && window.PAPEIS_IA[c.name];
-  z.innerHTML = `<div class="zoom-box"><button class="btn small zoom-x" aria-label="Fechar">Fechar ✕</button>
-    <div class="zoom-img">${src ? `<img src="${src}" alt="${esc(name)}">` : '<span class="note">sem imagem</span>'}</div>
-    ${c ? `<div class="zoom-txt"><h3>${esc(c.name)}</h3><div>${manaHTML(c.m)} <span class="note">${esc(c.t)}</span></div><div class="oracle zoom-oracle">${esc(c.o)}</div>${c.p ? `<p class="note">Força/resistência: ${esc(c.p)}</p>` : ''}${ia && ia.r ? `<p><b>O que faz:</b> ${esc(ia.r)}</p>` : ''}</div>` : ''}</div>`;
-  z.hidden = false;
-  $('.zoom-x', z).focus();
-}
-document.addEventListener('click', (e: any) => {
-  const z = $('#zoom');
-  if (z && !z.hidden) { if (e.target.closest('.zoom-x') || !e.target.closest('.zoom-box')) { z.hidden = true; } e.stopPropagation(); return; }
-  const img = e.target.closest('.cimg img, .pimg img');
-  if (!img) return;
-  e.stopPropagation(); e.preventDefault();
-  const holder = img.closest('[data-swimg],[data-img]');
-  const name = holder ? (holder.dataset.swimg || holder.dataset.img) : img.alt;
-  openZoom(name, SCRY(name, 'large'));
-}, true);
-document.addEventListener('keydown', (e) => { const z = $('#zoom'); if (e.key === 'Escape' && z && !z.hidden) z.hidden = true; });
-
-
 // imagem que não carregou (sem internet ou carta sem foto): mostra o nome no lugar do ícone quebrado
 document.addEventListener('error', (e: any) => {
   const im = e.target; if (!im || im.tagName !== 'IMG') return;
-  const box = im.parentElement; if (!box) return;
+  const box = im.parentElement; if (!box || box.closest('#hov,#pop,#zoom')) return;   // as janelas (src/telas/Janelas.svelte) cuidam das suas
   box.innerHTML = `<span class="noimg">${esc(im.alt || 'sem imagem')}</span>`;
 }, true);
 

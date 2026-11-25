@@ -8,6 +8,7 @@ import App from './App.svelte';
 import Resumo from './telas/Resumo.svelte';
 import TelaAnalise from './telas/Analise.svelte';
 import Trocas from './telas/Trocas.svelte';
+import Janelas from './telas/Janelas.svelte';
 import type { Analise } from './analise/analise';
 
 // A casca (App.svelte) vai primeiro e direto no <body>, antes do primeiro <script>, no mesmo lugar onde o HTML
@@ -28,5 +29,7 @@ async function sobe(nome: string, carrega: () => Promise<unknown>) {
 }
 
 await sobe('análise', () => import('./analise/analise'));
+// janelas da análise (prévia, detalhe da carta, zoom): no fim do <body>, onde o #hov e o #zoom eram criados; usam o window.RAIOX
+if (window.RAIOX) mount(Janelas, { target: document.body });
 await sobe('mesa', () => import('./mesa/mesa-ui.js'));
 if (window.RAIOX) await sobe('montar', () => import('./montar/montar'));   // antes: if (!R) return; no começo do montar.js

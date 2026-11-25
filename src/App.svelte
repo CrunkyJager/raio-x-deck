@@ -1,7 +1,7 @@
 <script lang="ts">
   import Lista from './telas/Lista.svelte';
   // Casca Svelte 5 (T43 d): a parte fixa da página (cabeçalho, abas, aba Lista, as caixas onde análise, montar e mesa
-  // desenham, o rodapé e o #pop) sai do index.html e vem daqui, igual ao HTML de antes. main.ts monta esta casca
+  // desenham e o rodapé) sai do index.html e vem daqui, igual ao HTML de antes. main.ts monta esta casca
   // direto no <body> (antes dos <script>) e só depois sobe os módulos, que continuam desenhando dentro de #out, #montar…
   document.documentElement.dataset.vite = '1';
   /* ícones: só aparecem se a fonte de ícones carregou de verdade (a palavra vira um símbolo estreito); senão somem, em vez de mostrar o nome em texto */
@@ -41,4 +41,3 @@
   <div id="aovivo" class="tout" data-s="aovivo" hidden></div>
   <p class="note" style="margin-top:8px">Preços em reais: menor anúncio no <a class="fonte" href="https://mypcards.com" target="_blank" rel="noopener">MYP Cards</a> (API pública); carta sem anúncio lá usa o preço do Scryfall convertido pela cotação do dia. Dados e imagens de cartas: Scryfall. Funções e popularidade: Scryfall e EDHREC, atualizados em 15/11/2026. As faixas de referência seguem o que decks de Commander costumam usar; são ponto de partida, não lei.</p>
 </div>
-<div id="pop" class="pop" hidden></div>
