@@ -38,7 +38,7 @@ M.velFeitico = (e, j) => j === e.turno.ativo && PRINCIPAL.has(e.turno.passo) && 
 const TIPOS_ALVO_OBJ = ['Creature', 'Planeswalker', 'Battle'];
 M.alvoSuportado = a => {
   const f = a.f;
-  if (a.dividir && a.dividir !== 'igual') return false;           // dividir à escolha: T16/T19 ('igual' = Fireball)
+  if (a.dividir && a.dividir !== 'igual' && a.dividir !== true) return false;   // 'igual' = Fireball; true = à escolha ao pôr na pilha (601.2d)
   if (a.max !== undefined && a.max !== 'qualquer' && typeof a.max !== 'number') return false;
   if (a.opcao !== undefined && !OPCAO_OK.has(a.opcao)) return false;
   if (typeof f === 'string') return ['qualquerAlvo', 'jogador', 'oponente', 'magica'].includes(f);
@@ -176,7 +176,14 @@ function permissoes(e, j) {
   return r;
 }
 M.temPermissaoCemiterio = (e, j) => permissoes(e, j).length > 0;
-M.podeJogarDe = (e, j, o) => o.zona === 'cemiterio' && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
+// permissão dada por efeito (op jogar com dura): o mesmo objeto (id e ts, CR 400.7) em qualquer zona fora do campo
+M.permJogar = (e, j, o) => { const l = e.permJogar; if (!l || !l.length) return null; for (const p of l) if (p.j === j && p.id === o.id && p.ts === o.ts && o.zona !== 'campo' && o.zona !== 'pilha') return p; return null; };
+// recapitular (CR 702.34): conjurar do cemitério pelo custo de recapitular; ao sair da pilha vai para o exílio (702.34a)
+const flashDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'flashback' && x.custo); return k ? k.custo : null; };
+const porFlash = (e, j, o) => o.zona === 'cemiterio' && o.dono === j && !!flashDe(e, o) && !M.podeJogarDe(e, j, o);
+M.porFlash = porFlash;
+const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : undefined;
+M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || o.zona === 'cemiterio' && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
 });
 
@@ -206,13 +213,14 @@ M.podeConjurar = (e, j, o, face?, opts?) => {
 const custoLoucura = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'loucura' && x.custo); return k ? k.custo : null; };
 function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const louc = !!opts.loucura && o.zona === 'exilio' && o.loucura && !!custoLoucura(e, o);
+  const agora = !!opts.agora && o.zona !== 'campo' && o.zona !== 'pilha';   // op jogar sem dura: na resolução, de onde estiver
   const d = M.dadoDe(e, o);
-  if (o.dono !== j) return false;
+  if (o.dono !== j && !agora && !M.permJogar(e, j, o)) return false;
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
-  if (!(louc || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
+  if (!(louc || agora || porFlash(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
-  if (!inst && !louc && !M.velFeitico(e, j)) return false;
+  if (!inst && !louc && !agora && !M.velFeitico(e, j)) return false;
   if (d.fx && !M.fxSuportado(d.fx)) return false;
   if (!M.ehPermanente(e, o) && !(d.fx && d.fx.length)) return false;   // mágica sem efeito lido: não conjura à toa
   if (modalTopo(d) && M.modosViaveis(e, j, d) < ((d.fx[0].escolhe || {}).min ?? 1)) return false;
@@ -220,7 +228,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   if (d.custoAd && !custoFisicoOk(e, j, null, d.custoAd, { daMao: o.id })) return false;
   const usados = alvosUsados(modalTopo(d) ? [] : d.fx || []);
   if (usados.some(i => !(d.alvos || [])[i] || !M.alvoSuportado(d.alvos[i]))) return false;
-  const custo0 = M.custoComImposto(e, o, louc ? custoLoucura(e, o) : undefined);
+  const custo0 = M.custoComImposto(e, o, custoBase(e, j, o, opts));
   return opcoesConj(e, j, d).some(opc => opcOk(e, j, d, usados, custo0, opc, o));
 }
 // a combinação de opções fecha? alvos ativos com escolha legal (CR 601.2c) e custo pagável
@@ -282,7 +290,13 @@ function opcoes(e, j) {
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
     for (const id of doCem) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
   const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]));
-  for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio])
+  const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]));   // recapitular (702.34)
+  // permissões de efeito (op jogar): o que não está na mão/comando/cemitério já listados; terreno com permissão de jogar
+  const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio, ...doFlash]), doPerm: number[] = [];
+  for (const p of e.permJogar || []) { const o = e.objs[p.id]; if (p.j === j && o && o.ts === p.ts && !ja.has(p.id) && o.zona !== 'campo' && o.zona !== 'pilha') { ja.add(p.id); doPerm.push(p.id); } }
+  if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
+    for (const id of doPerm) { const p = M.permJogar(e, j, e.objs[id]); if (p && !p.soConjurar && M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id }); }
+  for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio, ...doFlash, ...doPerm])
     for (const face of M.facesParaConjurar(e, j, e.objs[id]))
       if (M.podeConjurar(e, j, e.objs[id], face)) ops.push(face === undefined ? { a: 'conjurar', id } : { a: 'conjurar', id, face });
   for (const id of e.campo) {
@@ -337,10 +351,28 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
       lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts }); total++;
     }
     esc[i] = lista;
+    if (a.dividir === true && lista.length) dividir(e, j, fx, i, lista, ctx, ask);
   }
   return esc;
 }
 M.escolherAlvos = escolherAlvos;
+// CR 601.2d: "distribua N entre…": quem conjura/põe na pilha divide agora, ao menos 1 para cada alvo; a parte fica
+// no alvo escolhido (esc.n). Alvo que ficar ilegal perde a parte (608.2b). N = o qtd do efeito que usa o alvo.
+function dividir(e, j, fx, i, lista, ctx, ask) {
+  const f = (fx || []).find(x => x.em && x.em.alvo === i), q = f && f.qtd;
+  let resto = typeof q === 'number' ? q : q === 'X' ? ctx.x || 0 : 0;
+  for (let k = 0; k < lista.length; k++) {
+    const faltam = lista.length - k - 1, mx = resto - faltam;
+    const n = k === lista.length - 1 ? resto : ask(j, 'dividir', Array.from({ length: Math.max(1, mx) }, (_, v) => ({ a: 'dividir', v: Math.max(1, mx) - v })), { i, k }).v;
+    lista[k].n = n; resto -= n;
+  }
+}
+M.parteDividida = (ctx, f, alvoObj, jog?) => {
+  const ia = f.em && typeof f.em.alvo === 'number' ? f.em.alvo : -1, def = ia >= 0 && (ctx.defAlvos || [])[ia];
+  if (!def || def.dividir !== true) return null;
+  const x = (ctx.alvos[ia] || []).find(a => jog !== undefined ? a.jog === jog : a.o === alvoObj.id);
+  return x ? x.n || 0 : 0;
+};
 // "torna-se alvo" (CR 115.1, 603.2): um evento por objeto escolhido, quando a mágica/habilidade fica na pilha
 M.eventosAlvo = (e, alvos, por) => {
   const vistos = new Set<any>();
@@ -372,6 +404,8 @@ function escolherModos(e, j, d, f, ask, de?) {
 }
 // fx efetivo: modal no topo → só os modos escolhidos, em ordem (CR 700.2)
 const fxEfetivo = (d, fx, modos) => modos && fx.length === 1 && fx[0].op === 'modal' ? modos.flatMap(m => fx[0].modos[m]) : fx;
+M.fxEfetivo = fxEfetivo;
+M.escolherModos = (e, j, d, f, ask) => escolherModos(e, j, d, f, ask);
 
 // custo físico com escolha (sacrificar X, descartar)
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
@@ -423,13 +457,13 @@ const PROC = {
     const d = M.dadoDe(e, o);
     const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask, o.id) : null;          // CR 601.2b
     const fx = fxEfetivo(d, d.fx || [], modos);
-    const custo0 = M.custoComImposto(e, o, P.loucura ? custoLoucura(e, o) : undefined), usados = alvosUsados(fx);
+    const custo0 = M.custoComImposto(e, o, custoBase(e, j, o, P)), usados = alvosUsados(fx);
     const viaveis = opcoesConj(e, j, d).filter(op => opcOk(e, j, d, usados, custo0, op, o));
     let opc: any = viaveis.length > 1 ? ask(j, 'opcao', viaveis.map(v => ({ a: 'opcao', v })), { id: o.id }).v : viaveis[0] || {};   // 601.2b
     if (opc.presente) opc = { ...opc, jog: ask(j, 'presente', M.vivos(e).filter(x => x !== j).map(x => ({ a: 'jogador', jog: x })), { id: o.id }).jog };   // 702.174a: um oponente
     let custo = custoOpc(d, custo0, opc);
     let x = 0;
-    if (custo.x) {                                                                    // CR 601.2b: anuncia o X
+    if (custo.x && !(P.gratis || (M.permJogar(e, j, o) || {}).gratis)) {             // CR 601.2b: anuncia o X (grátis: X = 0, 107.3b)
       const mx = maxX(e, j, custo, null, o);
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
     }
@@ -442,17 +476,18 @@ const PROC = {
     const pl = plano(e, j, custo, x, fis.sac, o);                                     // CR 601.2g: mana antes de pagar
     e.proc = null;
     if (!pl) { o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(custo não fecha)'); return; }   // CR 727: volta atrás
-    const doComando = o.zona === 'comando';
-    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null;                    // CR 601.2a (o mover zera a face)
-    o.pil = { x, alvos, modos, ctrl: j, opc };
-    M.evento(e, { ev: 'conjura', id: o.id, j });                                      // 601.2i: "quando conjura"
+    const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;
+    const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
+    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true;                    // CR 601.2a (o mover zera a face)
+    o.pil = { x, alvos, modos, ctrl: j, opc, ...(sacLki.length ? { sac: sacLki } : {}) };
+    M.evento(e, { ev: 'conjura', id: o.id, j, de });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
     pagarMana(e, j, pl, custo, x);                                                    // CR 601.2h
     if (d.custoAd) pagarFisico(e, j, o, d.custoAd, fis);
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
     e.turno.magias = (e.turno.magias || 0) + 1;
     M.log(e, e.jogs[j].nome, 'conjura', o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
-    if (!P.loucura) M.agiu(e, j);                                                     // CR 601.2i → 117.3c (loucura: no meio da resolução)
+    if (!P.loucura && !P.agora) M.agiu(e, j);                                                     // CR 601.2i → 117.3c (loucura: no meio da resolução)
   },
 
   ativar(e, P, ask) {
@@ -508,7 +543,7 @@ const PROC = {
       if (pil.opc && pil.opc.presente && !e.jogs[pil.opc.jog].saiu) { M.comprar(e, pil.opc.jog, 1); M.log(e, e.jogs[pil.opc.jog].nome, 'recebe o presente (compra 1)'); }   // 702.174b: antes dos efeitos
     }
     // o ctx fica no processo: o que um efeito deixa (pagou, resultado, lembrados, criadas) vale no seguinte mesmo depois de uma pergunta
-    const ctx = P.ctx = P.ctx || { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, ...(pil.mem || {}) };
+    const ctx = P.ctx = P.ctx || { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, ...(pil.mem || {}) };
     if (o.hab && o.hab.talvez && !P.talvez) {                      // CR 603.5: "you may" do gatilho inteiro, escolhido ao resolver
       if (ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'gatilho', id: o.hab.fonte, n: o.n }).a === 'nao') { e.proc = null; M.log(e, o.n, 'gatilho: escolheu não fazer'); tirarDaPilha(e, o); return; }
       P.talvez = true; ask.etapa();
@@ -526,6 +561,7 @@ M.PROC = PROC;
 
 // CR 608.3 (permanente entra no campo), 608.2n (instantânea/feitiço vai ao cemitério do dono), 113.7 (habilidade some)
 function tirarDaPilha(e, o, resolveu?, ask?) {
+  if (o.flash && !o.hab) { delete o.flash; o.pil = null; M.mover(e, o.id, 'exilio'); M.log(e, o.n, 'vai para o exílio (recapitular)'); return; }   // 702.34a (resolvida ou anulada)
   if (o.hab) { const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); delete e.objs[o.id]; return; }
   if (resolveu && M.ehPermanente(e, o)) {
     const plano = M.decidirEntrada(e, o.id, o.pil.ctrl, {}, ask);   // pergunta antes de mexer

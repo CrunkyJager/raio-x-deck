@@ -1,83 +1,83 @@
-1 Safana, Calimport Cutthroat
-1 Dungeon Delver
-1 Candlekeep Sage
-1 Aarakocra Sneak
-1 Acererak the Archlich
-1 Arcane Signet
-1 Ashiok, Dream Render
-1 Bar the Gate
-1 Blackcleave Goblin
-1 Blightbelly Rat
-1 Blighted Agent
-1 Clattering Skeletons
-1 Command Tower
-1 Contagious Nim
-1 Contentious Plan
-1 Core Prowler
-1 Corpse Cur
-1 Cremate
-1 Dark Ritual
-1 Demonic Gifts
-1 Dimir Guildgate
-1 Dire Fleet Ravager
-1 Dismal Backwater
-1 Dogged Pursuit
-1 Dungeon Crawler
-1 Dungeon Descent
-1 Escape Tunnel
-1 Essence Scatter
-1 Fates' Reversal
-1 Feed the Serpent
-1 Feywild Caretaker
-1 Fifty Feet of Rope
-1 Flux Channeler
-1 Imoen, Mystic Trickster
-1 Irenicus's Vile Duplication
-10 Island
-1 Jwar Isle Refuge
-1 Karn's Bastion
-1 Knowledge Exploitation
-1 March of the Drowned
-1 Mind Stone
-1 Necropede
-1 Negate
-1 Nimraiser Paladin
-1 Omen of the Dead
-1 Passageway Seer
-1 Path of Ancestry
-1 Phyrexian Digester
-1 Plague Myr
-1 Plague Stinger
-1 Precipitous Drop
-1 Professor's Warning
-1 Prologue to Phyresis
-1 Prosperous Thief
-1 Ravenloft Adventurer
-1 Razaketh's Rite
-1 Replicating Ring
-1 Rilsa Rael, Kingpin
-1 Rogue's Passage
-1 Sarevok's Tome
-1 Secret Door
-1 Shortcut Seeker
-1 Skull Raid
-1 Slip Through Space
-1 Snake Cult Initiation
-1 Sol Ring
-1 Soulknife Spy
-1 Steady Progress
-9 Swamp
-1 Temple of Deceit
-1 Terramorphic Expanse
-1 Tezzeret's Gambit
-1 Thriving Isle
-1 Thrummingbird
-1 Underdark Explorer
-1 Vat Emergence
-1 Vivisurgeon's Insight
-1 Voidwing Hybrid
-1 Withercrown
-1 Yuan-Ti Fang-Blade
-1 Zhentarim Bandit
-1 Zombie Ogre
-1 Alora, Merry Thief
+1 1 Safana, Calimport Cutthroat
+1 1 Dungeon Delver
+1 1 Candlekeep Sage
+1 1 Aarakocra Sneak
+1 1 Acererak the Archlich
+1 1 Arcane Signet
+1 1 Ashiok, Dream Render
+1 1 Bar the Gate
+1 1 Blackcleave Goblin
+1 1 Blightbelly Rat
+1 1 Blighted Agent
+1 1 Clattering Skeletons
+1 1 Command Tower
+1 1 Contagious Nim
+1 1 Contentious Plan
+1 1 Core Prowler
+1 1 Corpse Cur
+1 1 Cremate
+1 1 Dark Ritual
+1 1 Demonic Gifts
+1 1 Dimir Guildgate
+1 1 Dire Fleet Ravager
+1 1 Dismal Backwater
+1 1 Dogged Pursuit
+1 1 Dungeon Crawler
+1 1 Dungeon Descent
+1 1 Escape Tunnel
+1 1 Essence Scatter
+1 1 Fates' Reversal
+1 1 Feed the Serpent
+1 1 Feywild Caretaker
+1 1 Fifty Feet of Rope
+1 1 Flux Channeler
+1 1 Imoen, Mystic Trickster
+1 1 Irenicus's Vile Duplication
+1 10 Island
+1 1 Jwar Isle Refuge
+1 1 Karn's Bastion
+1 1 Knowledge Exploitation
+1 1 March of the Drowned
+1 1 Mind Stone
+1 1 Necropede
+1 1 Negate
+1 1 Nimraiser Paladin
+1 1 Omen of the Dead
+1 1 Passageway Seer
+1 1 Path of Ancestry
+1 1 Phyrexian Digester
+1 1 Plague Myr
+1 1 Plague Stinger
+1 1 Precipitous Drop
+1 1 Professor's Warning
+1 1 Prologue to Phyresis
+1 1 Prosperous Thief
+1 1 Ravenloft Adventurer
+1 1 Razaketh's Rite
+1 1 Replicating Ring
+1 1 Rilsa Rael, Kingpin
+1 1 Rogue's Passage
+1 1 Sarevok's Tome
+1 1 Secret Door
+1 1 Shortcut Seeker
+1 1 Skull Raid
+1 1 Slip Through Space
+1 1 Snake Cult Initiation
+1 1 Sol Ring
+1 1 Soulknife Spy
+1 1 Steady Progress
+1 9 Swamp
+1 1 Temple of Deceit
+1 1 Terramorphic Expanse
+1 1 Tezzeret's Gambit
+1 1 Thriving Isle
+1 1 Thrummingbird
+1 1 Underdark Explorer
+1 1 Vat Emergence
+1 1 Vivisurgeon's Insight
+1 1 Voidwing Hybrid
+1 1 Withercrown
+1 1 Yuan-Ti Fang-Blade
+1 1 Zhentarim Bandit
+1 1 Zombie Ogre
+1 1 Alora, Merry Thief

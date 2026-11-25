@@ -112,7 +112,10 @@ function acaoDoTurno(e) {
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
   for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
-  e.temp = [];                                                      // 'modificar' até o fim do turno (efeitos.ts)
+  // 'modificar' até o fim do turno (efeitos.ts) sai; o de dura 'sempre' (Witch's Mark: +1/+1 sem prazo, 611.2a) fica
+  // enquanto o objeto (mesmo ts) estiver no campo. Array novo: o índice do somaTemp refaz.
+  e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
+  if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== 'turno' && e.objs[p.id] && e.objs[p.id].ts === p.ts);   // jogar até o fim do turno
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');   // efeitoTemporario até o fim do turno
 }
 // tamanho máximo de mão (CR 402.2: 7) — Reliquary Tower e cia. (est maoMax) lidos aqui até as camadas da T18
@@ -126,6 +129,7 @@ function maoMax(e, j) {
 }
 M.maoMax = maoMax;
 
+const p0 = (p, ativo) => p.fim === ativo ? ativo : undefined;
 function proximoPasso(e) {
   const T = e.turno;
   M.esvaziarReservas(e);                                            // CR 106.4
@@ -137,7 +141,8 @@ function proximoPasso(e) {
   const n = e.jogs.length;
   let p = T.ativo;
   do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null; T.lim = null; T.disp = null;
+  if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
   M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
   M.evento(e, { ev: 'fase', passo: 'desvirar', ativo: p });
@@ -163,7 +168,8 @@ M.terrenosPorTurno = terrenosPorTurno;
 M.PROC.terreno = (e, P, ask) => {
   const j = P.j, o = e.objs[P.id];
   const terra = P.face === undefined ? M.temTipo(e, o, 'Land') : M.faceTerreno(e, o);
-  if (!(o.zona === 'mao' || M.podeJogarDe(e, j, o)) || o.dono !== j || !terra) throw new Error('terreno ilegal');
+  const pj = M.permJogar(e, j, o);
+  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj) || !terra) throw new Error('terreno ilegal');
   const plano = M.decidirEntrada(e, P.id, j, P.face === undefined ? {} : { face: P.face }, ask);
   e.proc = null;
   e.jogs[j].terrenos++;

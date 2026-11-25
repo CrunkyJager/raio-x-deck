@@ -16,6 +16,9 @@ M.carta = n => {
   return c;
 };
 // ficha leva o próprio dado; carta de mais de uma face devolve a face que está para cima (o.face)
+// palavras-chave que só valem na montagem do deck/zona de comando (CR 702.124 parceiro, 'parceiroCom' = parceiro com
+// <nome>, 702.124c): na partida não mudam nada. O carregamento do deck aceita os dois comandantes.
+M.KW_SO_DECK = new Set(['parceiro', 'parceiroCom']);
 M.dadoBase = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
 // camada 4 (tipo) e 7b (P/R fixado), só no campo: o.anim (op animar, preso ao objeto: mesmo ts) e a estática
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
@@ -526,7 +529,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -535,6 +538,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.este && o.id !== ctx.este) return false;
   if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.outro && o.id === ctx.este) return false;
+  if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha))) return false;

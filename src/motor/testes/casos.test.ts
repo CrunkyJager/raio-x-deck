@@ -741,7 +741,7 @@ caso('603.2d', 'dobraGatilho com evs/causa (Isshin): o gatilho de ataque do Gold
 });
 caso('603.2d', 'dobraGatilho (Harmonic Prodigy): gatilho do Young Pyromancer (Shaman) dispara 2 vezes', () => {
   const e = cena({ campo: [[0, 'Mountain'], [0, 'Harmonic Prodigy'], [0, 'Young Pyromancer']], mao: [[0, 'Lightning Bolt']] });
-  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1); resolveCom(e);   // a proeza do Prodigy também dispara (702.108): agora há ordem para escolher
   igual(e.campo.filter(id => e.objs[id].ficha).length, 2);
 });
 caso('702.123a', 'fabricar (Marionette Apprentice): escolhe marcadores nela ou Servos 1/1', () => {
@@ -858,10 +858,10 @@ caso('709.3', 'split: escolhe uma metade (Ice); na pilha só ela existe (709.3b)
   const e = cena({ campo: [[0, 'Island'], [0, 'Mountain'], [1, 'Forest']], mao: [[0, 'Fire']] });
   const c = naMao(e, 0, 'Fire'), mao0 = e.jogs[0].zonas.mao.length;
   M.avancar(e);
-  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), [0], 'Fire divide à escolha (T16): só Ice');
+  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), ['esq', 0], 'Fire (dividir à escolha, 601.2d) e Ice');
   igual(M.dadoFace(M.carta('Fire'), 0).cores, 'U', 'cores de Ice: as do custo dela');
   igual(M.dadoFace(M.carta('Fire'), 'esq').vm, 2, 'Fire sozinha vale 2');
-  respE(e, o => o.a === 'conjurar' && o.id === c.id);
+  respE(e, o => o.a === 'conjurar' && o.id === c.id && o.face === 0);
   if (e.perg && e.perg.tipo === 'alvo') respE(e, o => o.a === 'alvo' && e.objs[o.o] && e.objs[o.o].ctrl === 1);
   const f = objN(e, 1, 'Forest');
   ok(f.virada, 'Ice virou a Forest do oponente');
@@ -1612,6 +1612,27 @@ caso('611.2b', "efeitoTemporario até o fim do turno: Rogue's Passage (o alvo n�
   ateTurno(e, 3, 'manutencao');
   igual([M.bloqueiaEste(e, hg, gb), M.podeBloquear(e, hg, 1), (e.efTemp || []).length], [true, true, 0], 'acabou na limpeza');
 });
+caso('611.2a', "modificar +1/+1 com dura 'sempre' (Witch's Mark): passa da limpeza e acaba quando a criatura sai", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] });
+  const gb = objN(e, 0, 'Grizzly Bears');
+  const fx = { op: 'modificar', em: { alvo: 0 }, p: 1, r: 1, dura: 'sempre' };
+  ok(M.fxSuportado([fx], { topo: false }));
+  M.executar(e, fx, { voce: 0, alvos: [[{ o: gb.id, ts: gb.ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([M.poder(e, gb), M.resistencia(e, gb)], [3, 3]);
+  ateTurno(e, 3, 'manutencao');
+  igual([M.poder(e, gb), M.resistencia(e, gb)], [3, 3], 'não acaba na limpeza');
+});
+caso('611.2c', "modificar com estática de regra até o fim do turno (Key to the City, Wedding Invitation): o alvo preso não pode ser bloqueado", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant']] });
+  const [gb, le, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 0, 'Llanowar Elves'), objN(e, 1, 'Hill Giant')];
+  const fx = [{ op: 'modificar', em: { alvo: 0 }, est: [{ modo: 'naoPodeSerBloqueada', afeta: 'este' }], dura: 'fimDoTurno' }];
+  ok(M.fxSuportado(fx, { topo: false }));
+  ok(!M.fxSuportado([{ op: 'modificar', em: { alvo: 0 }, est: [{ modo: 'naoPodeSerBloqueada', afeta: 'este', x: 1 }], dura: 'fimDoTurno' }], { topo: false }), 'campo desconhecido: recusa');
+  M.executar(e, fx[0], { voce: 0, alvos: [[{ o: gb.id, ts: gb.ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([M.bloqueiaEste(e, hg, gb), M.bloqueiaEste(e, hg, le)], [false, true]);
+  ateTurno(e, 3, 'manutencao');
+  igual(M.bloqueiaEste(e, hg, gb), true, 'a limpeza tira (514.2)');
+});
 
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
   const e = cena({ campo: terras(2, 'Wastes') });
@@ -1728,6 +1749,82 @@ caso('707.2', 'Ultron: artefato seu entra, paga {2} e cria ficha cópia; se não
       igual([M.poder(e, f), M.resistencia(e, f), (d.sub || []).includes('Robot')], [2, 2, true]);
     } else ok(!(d.sub || []).includes('Robot'), 'já era criatura: sem animar');
   }
+});
+
+caso('608.2g', 'jogar agora (Rishkar\'s Expertise): conjura da mão sem pagar, no meio da resolução; recusar = fica na mão', () => {
+  for (const quer of [true, false]) {
+    const e = cena({ campo: [[0, 'Grizzly Bears'], ...terras(6, 'Forest')], mao: [[0, "Rishkar's Expertise"], [0, 'Solemn Simulacrum']] });
+    M.avancar(e); conj(e, "Rishkar's Expertise");
+    resolveCom(e, p => p.tipo === 'jogar' ? p.ops.findIndex(o => quer ? (o.a === 'jogar' && e.objs[o.id].n === 'Solemn Simulacrum') : o.a === 'nenhum') : -1);
+    igual(noCampo(e).includes('Solemn Simulacrum'), quer, JSON.stringify(e.log.slice(-8)));
+    igual(e.jogs[0].zonas.mao.length, quer ? 2 : 3, 'comprou 2 (maior poder) e o Solemn saiu ou ficou');
+    igual(e.turno.magias, quer ? 2 : 1, 'conjurar grátis conta como conjurar');
+  }
+});
+caso('601.2f', 'Geode Golem: dano de combate dá permissão de conjurar o comandante sem pagar até o fim do turno; o imposto (903.8) continua', () => {
+  for (const imposto of [0, 1]) {
+    const e = cena({ cmd: ['Ultron, Artificial Malevolence'], campo: [[0, 'Geode Golem'], [0, 'Mountain'], ...(imposto ? terras(1) : [])] });
+    const ul = e.objs[e.jogs[0].zonas.comando[0]];
+    e.jogs[0].imposto[ul.id] = imposto;
+    ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Geode Golem')); fecha(e, 'atacar');
+    andaAte(e, 'principal2');
+    igual(e.jogs[1].vida, 35, 'dano do Golem');
+    igual((e.permJogar || []).length, 1, 'permissão: ' + JSON.stringify(e.log.slice(-6)));
+    M.avancar(e);
+    const pode = opsDe(e, 'conjurar').some(o => o.id === ul.id);
+    ok(pode, 'conjura o Ultron com ' + (imposto ? '{2} de imposto' : 'nada'));
+    conj(e, 'Ultron, Artificial Malevolence'); resolveCom(e);
+    ok(noCampo(e).includes('Ultron, Artificial Malevolence'), JSON.stringify(e.log.slice(-6)));
+    igual(e.jogs[0].imposto[ul.id], imposto + 1);
+  }
+});
+caso('400.7', 'Containment Construct: a carta descartada vai ao exílio e pode ser jogada até o fim do turno (anterior); a permissão acaba na limpeza', () => {
+  const e = cena({ campo: [[0, 'Containment Construct'], ...terras(3)], mao: [[0, "Brass's Tunnel-Grinder"], [0, 'Sol Ring']] });
+  M.avancar(e); conj(e, "Brass's Tunnel-Grinder");
+  let feitas = 0;
+  resolveCom(e, p => p.tipo === 'descartar' ? (feitas++ ? p.ops.findIndex(o => o.a === 'nenhum') : p.ops.findIndex(o => o.a === 'descartar')) : -1);
+  igual(naZona(e, 0, 'exilio'), ['Sol Ring'], JSON.stringify(e.log.slice(-10)));
+  const sr = e.objs[e.jogs[0].zonas.exilio[0]];
+  ok(M.permJogar(e, 0, sr), 'permissão no Sol Ring exilado');
+  e.turno.passo = 'final'; e.pend = [];                              // a limpeza tira o "até o fim do turno"
+  andaAte(e, 'manutencao');
+  ok(!M.permJogar(e, 0, sr), 'acabou: ' + e.turno.passo + ' ' + e.turno.n);
+});
+
+caso('601.2d', 'Verdurous Gearhulk: divide quatro +1/+1 entre os alvos ao pôr na pilha (3 e 1)', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], ...terras(5, 'Forest')], mao: [[0, 'Verdurous Gearhulk']] });
+  M.avancar(e); conj(e, 'Verdurous Gearhulk');
+  const quero = ['Grizzly Bears', 'Llanowar Elves']; let n = 0;
+  resolveCom(e, p => p.tipo === 'alvo' ? (n < 2 ? p.ops.findIndex(o => o.a === 'alvo' && e.objs[o.o] && e.objs[o.o].n === quero[n++]) : p.ops.findIndex(o => o.a === 'pronto'))
+    : p.tipo === 'dividir' ? p.ops.findIndex(o => o.v === 3) : -1);
+  igual([objN(e, 0, 'Grizzly Bears').marc['+1/+1'], objN(e, 0, 'Llanowar Elves').marc['+1/+1']], [3, 1], JSON.stringify(e.log.slice(-6)));
+});
+caso('603.3c', 'Monument to Endurance: gatilho modal; o modo é escolhido ao pôr na pilha (cada oponente perde 3)', () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Monument to Endurance'], ...terras(3)], mao: [[0, "Brass's Tunnel-Grinder"], [0, 'Wastes']] });
+  M.avancar(e); conj(e, "Brass's Tunnel-Grinder");
+  let feitas = 0, modo = 0;
+  resolveCom(e, p => p.tipo === 'descartar' ? (feitas++ ? p.ops.findIndex(o => o.a === 'nenhum') : p.ops.findIndex(o => o.a === 'descartar'))
+    : p.tipo === 'modo' ? (modo++, p.ops.findIndex(o => o.m === 2)) : -1);
+  igual(modo, 1, 'perguntou o modo uma vez');
+  igual([e.jogs[1].vida, e.jogs[2].vida], [37, 37], JSON.stringify(e.log.slice(-6)));
+});
+caso('701.14', 'Markov Enforcer: entra e luta com a criatura alvo do oponente (cada uma causa o seu poder na outra)', () => {
+  const e = cena({ campo: [[1, 'Hill Giant'], ...terras(6)], mao: [[0, 'Markov Enforcer']] });
+  M.avancar(e); conj(e, 'Markov Enforcer');
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.a === 'alvo' && e.objs[o.o] && e.objs[o.o].n === 'Hill Giant') : -1);
+  ok(!objN(e, 1, 'Hill Giant'), 'o gigante morreu: ' + JSON.stringify(e.log.slice(-6)));
+  igual(objN(e, 0, 'Markov Enforcer').dano, 3);
+});
+caso('603.2h', 'Losheel: "uma ou mais criaturas artefato entram" dispara uma vez pelo lote e só uma vez por turno', () => {
+  const e = cena({ campo: [[0, 'Losheel, Clockwork Scholar']] });
+  const m0 = e.jogs[0].zonas.mao.length;
+  e.por(0, 'Solemn Simulacrum'); e.por(0, 'Solemn Simulacrum');
+  igual(e.pend.filter(p => p.n === 'Losheel, Clockwork Scholar').length, 1, 'uma vez pelas duas');
+  M.avancar(e); resolveCom(e);
+  e.por(0, 'Solemn Simulacrum');
+  igual(e.pend.filter(p => p.n === 'Losheel, Clockwork Scholar').length, 0, 'já disparou neste turno');
+  M.avancar(e); resolveCom(e);
+  igual(e.jogs[0].zonas.mao.length, m0 + 1, 'comprou 1');
 });
 
 // ---------- rodar ----------
