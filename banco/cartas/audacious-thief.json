@@ -1,0 +1,1 @@
+{"v":2,"n":"Audacious Thief","id":"5905c55a-f1d1-4021-a9af-f85b02ae21f3","oracleHash":"5182a783","custo":{"g":2,"p":["B"]},"vm":3,"ci":"B","cores":"B","tipos":["Creature"],"sub":["Human","Rogue"],"pt":[2,2],"gat":[{"ev":"ataca","quem":{"este":true},"fx":[{"op":"comprar","quem":"voce","qtd":1},{"op":"perderVida","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

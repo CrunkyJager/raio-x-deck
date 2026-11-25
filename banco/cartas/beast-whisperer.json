@@ -1,0 +1,1 @@
+{"v":2,"n":"Beast Whisperer","id":"5da7eea8-bb9e-47ce-a554-8a1ee058bd7a","oracleHash":"ce79e888","custo":{"g":2,"p":["G","G"]},"vm":4,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Elf","Druid"],"pt":[2,3],"gat":[{"ev":"conjura","jog":"voce","quem":{"tipo":["Creature"]},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
