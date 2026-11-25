@@ -1,0 +1,1 @@
+{"v":2,"n":"Sungrass Prairie","id":"0a28dff0-2bd6-4105-b73a-b6c4735833fd","oracleHash":"14a2a871","vm":0,"ci":"WG","cores":"","tipos":["Land"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G"],"qtd":1},{"op":"mana","prod":["W"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

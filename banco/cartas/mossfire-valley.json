@@ -1,0 +1,1 @@
+{"v":2,"n":"Mossfire Valley","id":"23bbd091-f6ff-4514-97aa-42c08164b4eb","oracleHash":"f16a8d8f","vm":0,"ci":"RG","cores":"","tipos":["Land"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R"],"qtd":1},{"op":"mana","prod":["G"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

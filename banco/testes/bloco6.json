@@ -1,0 +1,173 @@
+{
+ "bloco": "bloco6",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 251–300, escritas do Oracle; mesmo formato do bloco1.json (Incubation Druid refeita com prod deSeusTerrenos da v0.4.0)",
+ "casos": [
+  {
+   "carta": "Incubation Druid",
+   "situacao": "sem marcador, vira; depois com 1 marcador +1/+1, vira; você tem Forest e Island",
+   "espera": "1 mana G ou U; com marcador, 3 de um desses tipos"
+  },
+  {
+   "carta": "Mirkwood Bats",
+   "situacao": "você cria 2 fichas e sacrifica 1 ficha (2 oponentes)",
+   "espera": "cada oponente perde 3"
+  },
+  {
+   "carta": "Mirror Entity",
+   "situacao": "paga X=4 com 3 criaturas suas",
+   "espera": "as 3 ficam 4/4 base até o fim do turno e ganham todos os tipos"
+  },
+  {
+   "carta": "Molten Echoes",
+   "situacao": "escolhe Goblin; entra um Goblin seu não ficha",
+   "espera": "cria ficha cópia com pressa; no fim do turno a ficha é exilada"
+  },
+  {
+   "carta": "Molten Psyche",
+   "situacao": "você com 3 na mão, oponente com 5; 3 artefatos seus",
+   "espera": "cada um embaralha a mão e compra o mesmo tanto; o oponente leva 5 (compradas no turno)"
+  },
+  {
+   "carta": "Morophon, the Boundless",
+   "situacao": "escolhe Elf; conjura Elf de {2}{G}{G}",
+   "espera": "custa {2}: só a mana colorida é reduzida; outros Elfs seus +1/+1"
+  },
+  {
+   "carta": "Mortuary Mire",
+   "situacao": "entra com uma criatura no seu cemitério",
+   "espera": "entra virada; pode pôr a criatura no topo do grimório"
+  },
+  {
+   "carta": "Mosswort Bridge",
+   "situacao": "entra; depois {G},{T} com criaturas de poder total 9 e depois 10",
+   "espera": "exila 1 dos 4 do topo; só joga a exilada com poder 10+"
+  },
+  {
+   "carta": "Muldrotha, the Gravetide",
+   "situacao": "seu turno; cemitério: terreno, 2 criaturas, artefato",
+   "espera": "joga o terreno e conjura 1 criatura e 1 artefato do cemitério; a 2ª criatura não"
+  },
+  {
+   "carta": "Myr Battlesphere",
+   "situacao": "entra; depois ataca e vira os 4 Myr",
+   "espera": "cria 4 Myr 1/1; fica 8/7 e causa 4 ao jogador atacado"
+  },
+  {
+   "carta": "Myriad Landscape",
+   "situacao": "{2},{T}, sacrifica",
+   "espera": "busca até 2 básicas e põe viradas; embaralha"
+  },
+  {
+   "carta": "Mystic Forge",
+   "situacao": "topo é artefato; depois topo é terreno incolor",
+   "espera": "pode conjurar o artefato do topo; o terreno não"
+  },
+  {
+   "carta": "Nyx Weaver",
+   "situacao": "sua manutenção; depois {1}{B}{G} exila o Weaver",
+   "espera": "moe 2; volta a carta alvo do seu cemitério para a mão"
+  },
+  {
+   "carta": "Organic Extinction",
+   "situacao": "campo: 2 criaturas e 1 criatura-artefato; 3 artefatos seus",
+   "espera": "improvisar paga {3}; morrem as 2, a criatura-artefato fica"
+  },
+  {
+   "carta": "Orzhov Basilica",
+   "situacao": "entra com outro terreno seu no campo",
+   "espera": "entra virada e devolve um terreno seu à mão; vira para {W}{B}"
+  },
+  {
+   "carta": "Peregrin Took",
+   "situacao": "você cria 1 Treasure; depois sacrifica 3 Food",
+   "espera": "cria Treasure + Food; compra 1"
+  },
+  {
+   "carta": "Phyrexian Altar",
+   "situacao": "sacrifica uma criatura",
+   "espera": "1 mana de qualquer cor"
+  },
+  {
+   "carta": "Phyrexian Metamorph",
+   "situacao": "entra com um artefato de 4 no campo",
+   "espera": "vira cópia do artefato e continua artefato; custo {U} pode ser 2 de vida"
+  },
+  {
+   "carta": "Prosperity",
+   "situacao": "X=3",
+   "espera": "cada jogador compra 3"
+  },
+  {
+   "carta": "Purphoros, God of the Forge",
+   "situacao": "devoção ao vermelho 3; entra criatura sua; depois devoção 5",
+   "espera": "não é criatura com 3; cada oponente leva 2; com 5 vira criatura 6/5"
+  },
+  {
+   "carta": "Razorkin Needlehead",
+   "situacao": "oponente compra 2 cartas",
+   "espera": "ele leva 2; primeiro ataque só no seu turno"
+  },
+  {
+   "carta": "Ripples of Potential",
+   "situacao": "criatura sua com 1 marcador +1/+1",
+   "espera": "prolifera para 2; pode fasear a criatura"
+  },
+  {
+   "carta": "Ripples of Undeath",
+   "situacao": "sua 1ª fase principal; paga {1} e 3 de vida",
+   "espera": "moe 3; uma das 3 vai para a mão"
+  },
+  {
+   "carta": "Rishkar, Peema Renegade",
+   "situacao": "entra mirando 2 criaturas suas",
+   "espera": "cada uma ganha +1/+1 e passa a ter {T}: Add {G}"
+  },
+  {
+   "carta": "Rites of Flourishing",
+   "situacao": "passo de compra do oponente",
+   "espera": "ele compra 2; cada jogador pode jogar 1 terreno a mais"
+  },
+  {
+   "carta": "Rockfall Vale",
+   "situacao": "entra com 1 outro terreno; depois com 2",
+   "espera": "1º entra virado; 2º desvirado"
+  },
+  {
+   "carta": "Rosie Cotton of South Lane",
+   "situacao": "entra (cria Food)",
+   "espera": "cria Food e põe +1/+1 em outra criatura sua"
+  },
+  {
+   "carta": "Ruinous Ultimatum",
+   "situacao": "oponente com 3 não-terrenos e 2 terrenos; você com 2 permanentes",
+   "espera": "destrói só os 3 do oponente"
+  },
+  {
+   "carta": "Sai, Master Thopterist",
+   "situacao": "conjura artefato; depois {1}{U} sacrificando 2 artefatos",
+   "espera": "cria Thopter 1/1 voador; compra 1"
+  },
+  {
+   "carta": "Sanguine Bond",
+   "situacao": "você ganha 3 de vida",
+   "espera": "o oponente alvo perde 3"
+  },
+  {
+   "carta": "Scute Swarm",
+   "situacao": "entra terreno com 5 terrenos; depois com 6",
+   "espera": "1ª: ficha Inseto 1/1; 2ª: ficha cópia do Swarm"
+  },
+  {
+   "carta": "Second Harvest",
+   "situacao": "você tem 2 fichas Treasure e 1 Soldado",
+   "espera": "cria 1 cópia de cada (3 fichas)"
+  },
+  {
+   "carta": "Sephara, Sky's Blade",
+   "situacao": "4 voadoras suas desviradas",
+   "espera": "pode conjurar por {W} virando as 4; outras voadoras suas indestrutíveis"
+  }
+ ]
+}

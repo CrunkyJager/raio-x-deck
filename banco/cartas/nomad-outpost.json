@@ -1,0 +1,1 @@
+{"v":2,"n":"Nomad Outpost","id":"4619de7e-3d6e-4c6b-8e6e-e24db324839d","oracleHash":"25587f58","vm":0,"ci":"WBR","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R","W","B"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Sandsteppe Citadel","id":"544dbabd-cbfc-40da-a5ba-2fea9cddb453","oracleHash":"9297682e","vm":0,"ci":"WBG","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["W","B","G"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

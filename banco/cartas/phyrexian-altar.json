@@ -1,0 +1,1 @@
+{"v":2,"n":"Phyrexian Altar","id":"8d02b297-97c4-4379-9862-0a462400f66f","oracleHash":"ce9ecf35","custo":{"g":3},"vm":3,"ci":"","cores":"","tipos":["Artifact"],"atv":[{"custo":{"sacrificar":{"f":{"tipo":["Creature"]},"qtd":1}},"deMana":true,"fx":[{"op":"mana","prod":"qualquer","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco6.json"}}
