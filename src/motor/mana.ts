@@ -71,7 +71,7 @@ M.podeCustoAtv = (e, o, c) => {
   for (const k in c) if (!CUSTO_OK.has(k)) return false;
   if (c.sacrificar && c.sacrificar !== 'este') return false;
   if (c.virar && (o.virada || (o.doente && M.temTipo(e, o, 'Creature') && !M.temKw(e, o, 'pressa')))) return false;   // CR 302.6, 702.10
-  if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida)) return false; // CR 119.4
+  if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida || M.vidaFixa(e, o.ctrl))) return false; // CR 119.4, 119.8
   if (c.mana && !M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana)) return false;
   return true;
 };

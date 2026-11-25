@@ -3,10 +3,9 @@ import { M } from './nucleo';
 
 // aleatório (fuzz): sorteia com a semente do próprio estado
 M.agenteAleatorio = () => (e, p) => Math.floor(M.aleat(e) * p.ops.length);
-
 // básico: mantém mão com 2–5 terrenos, joga terreno (desvirado primeiro), não gasta mana à toa,
 // descarta/põe no fundo a carta de maior valor de mana, comandante sempre volta ao comando
-M.agenteBasico = () => (e, p) => {
+const basico = (e, p) => {
   const J = e.jogs[p.j], o = id => e.objs[id];
   const terra = id => M.temTipo(e, o(id), 'Land');
   switch (p.tipo) {
@@ -82,6 +81,14 @@ M.agenteBasico = () => (e, p) => {
       return b;
     }
     case 'aMenosQue': return p.ops.length > 1 && J.vida > 10 ? 1 : 0;
+    case 'aMenosQuePagar': {          // pagar para impedir: anular a minha mágica, sempre; mana no turno dos outros (sobraria);
+      const k = p.ops.findIndex(op => op.a === 'pagar'); if (k < 0) return 0;   // vida com folga; sacrifício só quando o efeito é contra mim
+      const c = p.ctx.custo, meu = p.ctx.de === p.j;
+      if (p.ctx.op === 'anular') return k;
+      if (c.mana) return e.turno.ativo !== p.j || (c.mana.g || 0) + (p.ctx.x || 0) <= 1 ? k : 0;
+      if (c.vida) return J.vida - c.vida > 10 ? k : 0;
+      return meu ? k : 0;
+    }
     case 'atacar': return atacarBasico(e, p);
     case 'bloquear': return bloquearBasico(e, p);
     case 'ordemDano': {               // o mais caro leva o letal primeiro
@@ -99,6 +106,8 @@ M.agenteBasico = () => (e, p) => {
     default: return 0;
   }
 };
+// a decisão só lê o estado: lê em lote (contagens das estáticas valem para a pergunta inteira)
+M.agenteBasico = () => (e, p) => M.lote(() => basico(e, p));
 
 // ---- descarte (filtrar a mão) ----
 // valor de descartar a carta (menor = melhor descartar): loucura que dá para pagar depois (−3), terreno que sobra (−2),
@@ -149,6 +158,14 @@ function atacarBasico(e, p) {
   const bons = meus.filter(op => seguro(op.id));
   const todos = p.ops.findIndex(op => op.a === 'todos' && op.jog === vit);
   if (todos >= 0 && bons.length && bons.length === meus.length) return todos;
+  // ataque em massa: cada bloqueador para um atacante (o mais forte); se o que passa mata, vão todos. Sem isso, mesa
+  // empatada em P/R (Coat of Arms dos dois lados) travava e o Krenko dobrava as fichas até a partida não acabar
+  // (fuzz semente 1022: 67 mil Goblins no turno 48).
+  if (todos >= 0 && meus.length > bloqs.length) {
+    const pw = meus.map(op => Math.max(0, M.poder(e, e.objs[op.id]))).sort((x, y) => x - y);
+    let passa = 0; for (let i = 0; i < pw.length - bloqs.length; i++) passa += pw[i];
+    if (passa >= e.jogs[vit].vida) return todos;
+  }
   if (bons.length) return p.ops.indexOf(bons[0]);
   if (pronto >= 0) return pronto;
   return Math.max(0, p.ops.findIndex(op => op.a === 'atacar'));                  // tem que atacar (508.1d)

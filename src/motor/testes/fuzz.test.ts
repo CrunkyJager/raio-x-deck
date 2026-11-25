@@ -14,7 +14,7 @@ const N = +(process.env.FUZZ || 30);
 function invariantes(e) {
   const visto = new Map();
   const marca = (id, onde) => { if (visto.has(id)) throw new Error(`objeto ${id} em duas zonas: ${visto.get(id)} e ${onde}`); visto.set(id, onde); };
-  e.campo.forEach(id => marca(id, 'campo')); e.pilha.forEach(id => marca(id, 'pilha'));
+  e.campo.forEach(id => marca(id, 'campo')); e.pilha.forEach(id => marca(id, 'pilha')); (e.faseados || []).forEach(id => marca(id, 'faseado'));
   for (const Jg of e.jogs) for (const z of M.ZONAS_JOG) Jg.zonas[z].forEach(id => marca(id, Jg.nome + ':' + z));
   for (const id in e.objs) {
     const o = e.objs[id], onde = visto.get(+id);

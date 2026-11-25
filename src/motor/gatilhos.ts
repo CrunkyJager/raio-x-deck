@@ -5,14 +5,14 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe', 'descarta']);
-const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe', 'descarta', 'capitulo']);
+const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio']);
 const memoOk = new WeakMap();
 // grupo ("uma ou mais"): só no descarte por ora
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
-  let ok = EV_OK.has(g.ev) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta') && M.fxSuportado(g.fx) && !g.fx.some(f => f.op === 'modal')   // modo do gatilho (603.3c) = depois
+  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta') && M.fxSuportado(g.fx) && !g.fx.some(f => f.op === 'modal')   // modo do gatilho (603.3c) = depois
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por));
   if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra'].includes(k)) && M.condValorOk(g.se);
@@ -36,6 +36,7 @@ function bateEv(e, g, ev, F) {
     case 'bloqueia': return ev.ev === 'bloqueia' && q(e.objs[ev.id]);
     case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.aJogador || ev.jog !== undefined) && q(ev.snap || e.objs[ev.fonte]);
     case 'conjura': return ev.ev === 'conjura' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && q(e.objs[ev.id]);
+    case 'capitulo': return ev.ev === 'capitulo' && ev.id === F.id && ev.ts === F.ts && ev.de < g.n && ev.para >= g.n;   // CR 714.2b
     case 'fase': return ev.ev === 'fase' && ev.passo === g.passo && relJog(g.deQuem || 'voce', ev.ativo, F.ctrl);
     case 'compra': return ev.ev === 'compra' && (!g.quem || relJog(g.quem.ctrl || 'qualquer', ev.j, F.ctrl)) && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'descarta': return g.grupo                    // CR 701.9: uma vez por carta, ou uma vez pelo lote ("one or more")

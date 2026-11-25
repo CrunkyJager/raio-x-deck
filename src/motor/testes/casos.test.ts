@@ -1518,6 +1518,108 @@ caso('701.9c', 'agente: filtra com gatilho de descarte (Ivora + Blood com o últ
   }
 });
 
+// aMenosQue genérico (CR 118.12): "X unless [quem] pays [custo]" em qualquer efeito
+caso('118.12', 'aMenosQue: Smothering Tithe (o oponente que comprou paga {2} e não sai Treasure; sem mana, sai); vida e sacrifício', () => {
+  for (const temMana of [true, false]) {
+    const campo: any[] = [[0, 'Smothering Tithe']]; if (temMana) campo.push([1, 'Wastes'], [1, 'Wastes']);
+    const e = cena({ campo });
+    M.comprar(e, 1);
+    const fim = x => x.turno.n !== 2;
+    M.avancar(e, fim);
+    let perguntou: any = null;
+    for (let g = 0; e.perg && !fim(e) && g < 40; g++) {
+      const p = e.perg; if (p.tipo === 'aMenosQuePagar') perguntou = { j: p.j, ops: p.ops.map(o => o.a) };
+      M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p), fim);
+      if (!e.pilha.length && perguntou) break;
+    }
+    // sem mana a pergunta tem uma opção só e o núcleo responde sozinho
+    if (temMana) igual(perguntou, { j: 1, ops: ['naoPagar', 'pagar'] }, 'pergunta ao jogador que comprou');
+    const tesouros = e.campo.filter(id => e.objs[id].n === 'Treasure' && e.objs[id].ctrl === 0).length;
+    igual(tesouros, temMana ? 0 : 1, temMana ? 'pagou (agente: mana no turno dos outros)' : 'não pôde pagar');
+    if (temMana) igual(e.campo.filter(id => e.objs[id].n === 'Wastes').map(id => e.objs[id].virada), [true, true]);
+  }
+  ok(!M.fxSuportado([{ op: 'comprar', aMenosQue: { quem: 'doEvento', custo: { mana: { x: 1 } } } }]), 'X sem qtd: recusa');
+  ok(!M.fxSuportado([{ op: 'comprar', aMenosQue: { quem: 'doEvento', custo: { revelar: {} } } }]), 'custo que não sabe pagar: recusa');
+  // vida e sacrifício, direto no executar
+  const g = cena({ campo: [[1, 'Grizzly Bears']] });
+  const ctx = { voce: 0, alvos: [[{ jog: 1 }]], ilegal: {}, lki: { alvos: [] } };
+  const paga = (j, t, ops) => ops.find(o => o.a === 'pagar') || ops[0];
+  const v0 = g.jogs[0].vida;
+  M.executar(g, { op: 'perderVida', quem: 'voce', qtd: 5, aMenosQue: { quem: { alvo: 0 }, custo: { vida: 3 } } }, ctx, paga);
+  igual([g.jogs[0].vida, g.jogs[1].vida], [v0, 37], 'o alvo pagou 3 de vida');
+  M.executar(g, { op: 'comprar', quem: 'voce', aMenosQue: { quem: { alvo: 0 }, custo: { sacrificar: { f: { tipo: ['Creature'] }, qtd: 1 } } } }, ctx, paga);
+  igual([naZona(g, 1, 'cemiterio'), g.jogs[0].zonas.mao.length], [['Grizzly Bears'], 0], 'sacrificou e ninguém comprou');
+  M.executar(g, { op: 'comprar', quem: 'voce', aMenosQue: { quem: { alvo: 0 }, custo: { sacrificar: { f: { tipo: ['Creature'] }, qtd: 1 } } } }, ctx, paga);
+  igual(g.jogs[0].zonas.mao.length, 1, 'sem criatura não pode pagar: comprou');
+});
+
+// efeitoTemporario (611.2b) e fases (702.26): Teferi's Protection, Rogue's Passage
+const ateTurno = (e, n, passo = 'principal1') => {
+  const fim = x => x.turno.n === n && x.turno.passo === passo;
+  for (let g = 0; !fim(e) && g < 400; g++) {
+    M.avancar(e, fim); if (fim(e) || !e.perg) continue;
+    const p = e.perg; M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p), fim);
+  }
+  ok(fim(e), 'não chegou no turno ' + n);
+};
+caso('702.26', "fasear + efeitoTemporario: Teferi's Protection (vida não muda, proteção contra tudo, permanentes fora até o seu próximo turno)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Forest'], [1, 'Hill Giant']] });
+  const gb = objN(e, 0, 'Grizzly Bears'), ts = gb.ts, v = e.jogs[0].vida;
+  for (const f of M.carta("Teferi's Protection").fx) ok(M.fxSuportado([f]), 'suportado: ' + f.op);
+  const ctx = { voce: 0, alvos: [], ilegal: {}, lki: {} };
+  for (const f of M.carta("Teferi's Protection").fx) M.executar(e, f, ctx, null);
+  igual([noCampo(e), gb.zona, gb.ts], [['Hill Giant'], 'faseado', ts], 'faseadas: fora do campo, mesmo objeto');
+  igual([M.vidaFixa(e, 0), M.protegeJog(e, 0), M.vidaFixa(e, 1)], [true, true, false]);
+  igual(M.ganharVida(e, 0, 3), 0, 'não ganha');
+  M.executar(e, { op: 'perderVida', quem: 'cadaJogador', qtd: 2 }, ctx, null);
+  M.executar(e, { op: 'dano', quem: 'cadaJogador', qtd: 3 }, ctx, null);
+  igual([e.jogs[0].vida, e.jogs[1].vida], [v, 35], 'perda e dano: só o outro');
+  igual([M.alvoLegal(e, { f: 'jogador' }, { jog: 0 }, { voce: 1 }), M.alvoLegal(e, { f: 'jogador' }, { jog: 1 }, { voce: 1 })], [false, true], 'não é alvo');
+  ateTurno(e, 3);
+  igual([gb.zona, M.protegeJog(e, 0)], ['faseado', true], 'no turno do oponente continua');
+  ateTurno(e, 4);
+  ok(e.campo.includes(gb.id) && gb.ts === ts && !gb.virada, 'voltou no seu desvirar, mesmo objeto');
+  igual([M.vidaFixa(e, 0), M.protegeJog(e, 0), (e.efTemp || []).length], [false, false, 0], 'acabou no começo do seu turno');
+});
+caso('611.2b', "efeitoTemporario até o fim do turno: Rogue's Passage (o alvo não pode ser bloqueado); filtro lido na hora (naoPodeBloquear)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant']] });
+  const [gb, le, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 0, 'Llanowar Elves'), objN(e, 1, 'Hill Giant')];
+  const atv = M.carta("Rogue's Passage").atv[1].fx;
+  ok(M.fxSuportado(atv, { topo: false }));
+  M.executar(e, atv[0], { voce: 0, alvos: [[{ o: gb.id, ts: gb.ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([M.bloqueiaEste(e, hg, gb), M.bloqueiaEste(e, hg, le)], [false, true]);
+  M.executar(e, { op: 'efeitoTemporario', quem: 'voce', dura: 'fimDoTurno', est: [{ modo: 'naoPodeBloquear', afeta: { tipo: ['Creature'], ctrl: 'oponente', zona: 'campo' } }] }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, null);
+  const nova = e.por(1, 'Elvish Mystic');
+  igual([M.podeBloquear(e, hg, 1), M.podeBloquear(e, nova, 1)], [false, false], 'vale também para a que chegou depois');
+  ok(!M.fxSuportado([{ op: 'efeitoTemporario', dura: 'fimDoTurno', est: [{ modo: 'naoPodeSerBloqueada' }] }]), 'sem em nem afeta: recusa');
+  ateTurno(e, 3, 'manutencao');
+  igual([M.bloqueiaEste(e, hg, gb), M.podeBloquear(e, hg, 1), (e.efTemp || []).length], [true, true, 0], 'acabou na limpeza');
+});
+
+caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
+  const e = cena({ campo: terras(2, 'Wastes') });
+  const sr = e.por(0, 'Sol Ring', { zona: 'grimorio' }), gr = e.jogs[0].zonas.grimorio; gr.unshift(gr.pop());   // no fundo: não é comprado
+  const us = e.por(0, "Urza's Saga");
+  igual(us.marc.historia, 1, 'entra com 1 (714.3a)');
+  M.avancar(e); resolveCom(e);
+  igual(M.atvDe(e, us).map(a => !!a.deMana), [true], 'capítulo I: {T}: {C}');
+  ok(M.fontesDeMana(e, 0).some(f => f.id === us.id), 'vira fonte de mana');
+  ateTurno(e, 3); igual(us.marc.historia, 1, 'no turno do oponente não sobe');
+  ateTurno(e, 4, 'inicioCombate');
+  igual([us.marc.historia, M.atvDe(e, us).length], [2, 2], 'capítulo II');
+  ok(M.fxSuportado(M.atvDe(e, us)[1].fx, { topo: false }) && !M.atvDe(e, us)[1].deMana, 'a do Construct');
+  ateTurno(e, 6, 'inicioCombate');
+  igual([sr.zona, us.zona], ['campo', 'cemiterio'], 'capítulo III buscou e a saga foi sacrificada');
+  // capítulo na pilha segura o sacrifício (714.4); proliferar sobe e dispara
+  const g = cena({});
+  const s2 = g.por(0, "Urza's Saga"); s2.marc.historia = 3; g.pend = [];
+  g.pilha.push((() => { const id = g.prox++; g.objs[id] = { id, n: "Urza's Saga", dono: 0, ctrl: 0, zona: 'pilha', ts: ++g.ts, marc: {}, hab: { fonte: s2.id, fonteTs: s2.ts, gat: 2, fx: [] }, pil: { x: 0, alvos: [], ctrl: 0, lki: {} } }; return id; })());
+  M.abe(g); igual(s2.zona, 'campo', 'com o capítulo na pilha fica');
+  const h = cena({}); const s3 = h.por(0, "Urza's Saga"); h.pend = [];
+  M.porHistoria(h, s3, 1);
+  igual([s3.marc.historia, h.pend.length], [2, 1], 'II desencadeia uma vez');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

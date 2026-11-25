@@ -66,6 +66,7 @@ M.alvoLegal = (e, a, esc, ctx) => {
   const f = a.f, voce = ctx.voce;
   if (esc.jog !== undefined) {
     if (!vivo(e, esc.jog)) return false;
+    if (M.protegeJog(e, esc.jog)) return false;                    // 702.16b: proteção contra tudo, não é alvo
     if (f === 'qualquerAlvo' || f === 'jogador' || a.jog === 'jogador') return true;
     if (f === 'oponente' || a.jog === 'oponente') return esc.jog !== voce;
     return false;
@@ -80,7 +81,9 @@ M.alvoLegal = (e, a, esc, ctx) => {
   const ff = f.zona ? f : { ...f, zona: 'campo' };
   return M.bate(e, o, ff, ctx);
 };
-M.alvosPossiveis = (e, a, ctx) => {
+// só lê: em lote (cada alvoLegal olha palavra-chave/P-R, e com mil fichas a contagem das estáticas pesava)
+M.alvosPossiveis = (e, a, ctx) => M.lote(() => alvosPoss(e, a, ctx));
+function alvosPoss(e, a, ctx) {
   const r: any[] = [], f = a.f;
   const jog = f === 'qualquerAlvo' || f === 'jogador' || f === 'oponente' || a.jog;
   if (jog) for (const J of e.jogs) if (M.alvoLegal(e, a, { jog: J.i }, ctx)) r.push({ jog: J.i });
@@ -91,7 +94,7 @@ M.alvosPossiveis = (e, a, ctx) => {
   else ids = M.objetosQue(e, f.zona ? f : { ...f, zona: 'campo' }, ctx).map(o => o.id);
   for (const id of ids) { const esc = { o: id, ts: e.objs[id].ts }; if (M.alvoLegal(e, a, esc, ctx)) r.push(esc); }
   return r;
-};
+}
 // índices de alvo que os efeitos usam (modal: só os modos escolhidos pedem alvo, CR 601.2c)
 const alvosUsados = fx => {
   const s = new Set<any>();
@@ -128,7 +131,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
     if (c.desvirar && !o.virada) return false;
     if (M.temTipo(e, o, 'Creature') && o.doente && !M.temKw(e, o, 'pressa')) return false;
   }
-  if (c.vida && J.vida < c.vida) return false;                     // CR 119.4
+  if (c.vida && (J.vida < c.vida || M.vidaFixa(e, j))) return false;   // CR 119.4, 119.8
   if (c.descartarEste && (!o || o.zona !== 'mao')) return false;   // canalizar: só da mão (CR 602.2, a habilidade diz a zona)
   if (c.sacrificar && c.sacrificar !== 'este' && !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1)) return false;
   if (c.descartar && candDesc(e, j, daMao).length < c.descartar) return false;
@@ -144,7 +147,7 @@ function manaMax(e, j, excluir, para) {
   for (const f of M.fontesDeMana(e, j, { soVirar: true, para })) if (!excluir || !excluir.includes(f.id)) t += Math.max(...f.pacotes.map(M.somaMana));
   return t;
 }
-const vidaPhy = (e, j) => Math.max(0, e.jogs[j].vida - 1);        // phyrexiano: o plano pode gastar vida sem morrer
+const vidaPhy = (e, j) => M.vidaFixa(e, j) ? 0 : Math.max(0, e.jogs[j].vida - 1);   // 119.8: vida fixa não paga        // phyrexiano: o plano pode gastar vida sem morrer
 const plano = (e, j, custo, x, excluir, para?) => M.planoMana(e, j, custo, { x, vidaDisp: vidaPhy(e, j), excluir, para });
 // maior X pagável (CR 107.3): sobe enquanto o plano fecha
 function maxX(e, j, custo, excluir, para?, teto = 30) {
@@ -266,7 +269,7 @@ M.proxVivo = (e, j) => { const n = e.jogs.length; let p = j; do p = (p + 1) % n;
 // opções de quem tem prioridade. O núcleo só pergunta quando há algo além de passar e virar mana.
 M.opcoesPrioridade = (e, j) => {
   M.memo = {};                                                        // nada muda enquanto lista: fontes de mana uma vez só
-  try { return opcoes(e, j); } finally { M.memo = null; }
+  try { return M.lote(() => opcoes(e, j)); } finally { M.memo = null; }
 };
 function opcoes(e, j) {
   const J = e.jogs[j], ops: any[] = [{ a: 'passar' }];
