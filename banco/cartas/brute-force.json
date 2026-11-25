@@ -1,0 +1,1 @@
+{"v":2,"n":"Brute Force","id":"9880ba09-d5b8-4675-bfb4-2161d86d2d41","oracleHash":"2f03ea10","custo":{"p":["R"]},"vm":1,"ci":"R","cores":"R","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature"],"zona":"campo"}}],"fx":[{"op":"modificar","em":{"alvo":0},"p":3,"r":3,"dura":"fimDoTurno"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

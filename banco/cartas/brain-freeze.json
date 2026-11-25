@@ -1,0 +1,1 @@
+{"v":2,"n":"Brain Freeze","id":"464c0150-3dbc-403b-9ada-fef25ab1f29d","oracleHash":"79bd36d5","custo":{"g":1,"p":["U"]},"vm":2,"ci":"U","cores":"U","tipos":["Instant"],"kw":[{"k":"tempestade"}],"alvos":[{"f":"jogador"}],"fx":[{"op":"moer","quem":{"alvo":0},"qtd":3}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco10.json"}}
