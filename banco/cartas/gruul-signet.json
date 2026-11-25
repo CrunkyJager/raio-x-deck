@@ -1,0 +1,1 @@
+{"v":2,"n":"Gruul Signet","id":"d36e0c9f-c025-4dfe-9644-9cad2461ce38","oracleHash":"f16a8d8f","custo":{"g":2},"vm":2,"ci":"RG","cores":"","tipos":["Artifact"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R"],"qtd":1},{"op":"mana","prod":["G"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco16.json"}}

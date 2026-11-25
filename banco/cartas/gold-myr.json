@@ -1,0 +1,1 @@
+{"v":2,"n":"Gold Myr","id":"bd6af7b3-b30f-4a65-a18f-8655f778e76a","oracleHash":"a2fb7b38","custo":{"g":2},"vm":2,"ci":"W","cores":"","tipos":["Creature","Artifact"],"sub":["Myr"],"pt":[1,1],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["W"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco16.json"}}

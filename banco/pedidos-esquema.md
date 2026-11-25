@@ -60,3 +60,19 @@ Contagem: cartas do banco com a frase em `falta` (811 cartas) e cartas da fila q
 | monstruoso | 2 | 0 | Alpha Deathclaw, Giggling Skitterspike | kw `monstruosidade n` + cond `monstruoso` | |
 | meld | 2 | 0 | Gisela the Broken Blade, Bruna | forma `meld` | |
 | dash | 1 | 1 | Flamerush Rider | kw `investida custo` | |
+
+## Faltas em lote (bloco 16, para o FARSEER decidir junto)
+Contagem: banco 861 cartas / fila 724 ainda não escritas. As do bloco 15 seguem na tabela acima (rad agora 2/13 — Glowing One já põe o marcador; meld 3/1 com Hanweir Garrison).
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| poder do sacrificado | 1 | 1 | Greater Good (escrito comprar 3) | conta `poderDoSacrificado` (par do `vmDoSacrificado`) | |
+| explorar | 1 | 4 | Hakbal of the Surging Soul | op `explorar {em}` (revela o topo: terreno vai à mão, senão +1/+1 e pode moer) | |
+| moer como gatilho | 1 | 5 | Glowing One | gat `moe {jog, f}` (por carta moída que bate em f) | |
+| amass | 2 | 2 | Dreadhorde Invasion, Gleaming Overseer | op `amass {sub, qtd}` | |
+| popular | 1 | 2 | Growing Ranks | op `popular` (ficha copiando uma ficha de criatura sua à escolha) | |
+| cor "ou" no filtro | 1 | 0 | Goblin Anarchomancer (escrito como duas reduções) | filtro `cor` aceitar lista (o motor já aceita array em `estado.ts:186`; o esquema só string) | |
+| um alvo por oponente | 2 | 0 | Bronzebeak Foragers, Grasp of Fate | alvo `porControlador: true` | |
+| desvirar outras como custo | 1 | 0 | Halo Fountain (escrito com `se` de N viradas) | custoAtv `desvirarOutros {f, qtd}` | |
+| sacrificar este E outras | 1 | 0 | Glass-Cast Heart (escrito só as 13 Blood) | custoAtv `sacrificar` aceitar lista | |
+| replicar, morph, skulk, olhar a mão | 1 cada | 0 | Hatchery Sliver, Grim Haruspex, Gollum, Gitaxian Probe | kw `replicar custo`, `morph custo`, `espreitar`; olhar a mão sem efeito no jogo (pode ficar falta) | |
