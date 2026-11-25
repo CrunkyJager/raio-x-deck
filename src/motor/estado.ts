@@ -159,15 +159,16 @@ const ptCda = (e, o, i) => {
 };
 M.ptCda = ptCda;
 // P/R (CR 613.4): 7a base ou CDA, 7c somas das camadas (estáticas 'continuo' e 'modificar' até o fim do turno), 7d marcadores.
+// A CDA vale mesmo com P/R numérico no dado: a ficha do banco escreve pt [0,0] + est ptDefinido (Gnome Soldier, token.est).
 // 7b (P/R fixado) ainda não existe: carta com ele não é lida (estContOk).
 M.resistencia = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = typeof pt[1] === 'number' ? pt[1] : ptCda(e, o, 1) ?? 0;
+  const b = ptCda(e, o, 1) ?? (typeof pt[1] === 'number' ? pt[1] : 0);
   return b + camadas(e, o).r + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 M.poder = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = typeof pt[0] === 'number' ? pt[0] : ptCda(e, o, 0) ?? 0;
+  const b = ptCda(e, o, 0) ?? (typeof pt[0] === 'number' ? pt[0] : 0);
   return b + camadas(e, o).p + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 
