@@ -1,0 +1,103 @@
+{
+ "bloco": "bloco35",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "deck do Ultra Magnus/Ultron do Edigar (pedido do Felipe pelo FARSEER), parte 2: Disenchant … Mind's Eye",
+ "casos": [
+  {
+   "carta": "Disenchant",
+   "situacao": "mira um artefato do oponente",
+   "espera": "destrói"
+  },
+  {
+   "carta": "Geode Golem",
+   "situacao": "dá dano de combate num jogador com o comandante na zona de comando",
+   "espera": "conjura o comandante sem pagar o custo de mana (o imposto de comandante continua)"
+  },
+  {
+   "carta": "Helm of Awakening",
+   "situacao": "você e um oponente conjuram mágicas",
+   "espera": "as duas custam {1} a menos"
+  },
+  {
+   "carta": "Ironsoul Enforcer",
+   "situacao": "ataca sozinho com um artefato no cemitério; depois ataca junto com outra criatura",
+   "espera": "o artefato volta ao campo; acompanhado, nada"
+  },
+  {
+   "carta": "Ishgard, the Holy See // Faith & Grief",
+   "situacao": "conjura Faith & Grief mirando 2 artefatos no cemitério; depois joga Ishgard do exílio",
+   "espera": "os 2 voltam à mão; o terreno entra virado e dá {W}"
+  },
+  {
+   "carta": "Jhoira's Familiar",
+   "situacao": "conjura um artefato e depois uma criatura lendária",
+   "espera": "cada uma custa {1} a menos"
+  },
+  {
+   "carta": "Knockout Maneuver",
+   "situacao": "mira sua 3/3 e uma 4/4 do oponente",
+   "espera": "a sua fica 4/4 e causa 4 de dano na do oponente"
+  },
+  {
+   "carta": "Leonin Abunas",
+   "situacao": "oponente tenta mirar um artefato seu",
+   "espera": "não pode (resguardo)"
+  },
+  {
+   "carta": "Salvation Colossus",
+   "situacao": "você ataca com 2 criaturas",
+   "espera": "as outras criaturas suas ganham +2/+2 e indestrutível até o fim do turno"
+  },
+  {
+   "carta": "Selesnya Signet",
+   "situacao": "paga {1} e vira",
+   "espera": "dá {G}{W}"
+  },
+  {
+   "carta": "Semblance Anvil",
+   "situacao": "entra e você exila uma criatura artefato da mão",
+   "espera": "a carta vai ao exílio (a redução fica falta)"
+  },
+  {
+   "carta": "Talisman of Unity",
+   "situacao": "vira por {G}",
+   "espera": "dá {G} e 1 de dano em você; por {C}, sem dano"
+  },
+  {
+   "carta": "Tree of Tales",
+   "situacao": "vira",
+   "espera": "dá {G}; conta como artefato (metalcraft, afinidade)"
+  },
+  {
+   "carta": "Ugin, Eye of the Storms",
+   "situacao": "conjura Ugin e depois Sol Ring, mirando permanentes coloridas do oponente; +2",
+   "espera": "exila uma permanente colorida em cada conjuração; o +2 dá 3 de vida e compra 1"
+  },
+  {
+   "carta": "Verdurous Gearhulk",
+   "situacao": "entra mirando 2 criaturas suas",
+   "espera": "divide 4 marcadores +1/+1 entre elas"
+  },
+  {
+   "carta": "Voyager Quickwelder",
+   "situacao": "conjura um artefato",
+   "espera": "custa {1} a menos"
+  },
+  {
+   "carta": "Wake the Past",
+   "situacao": "2 criaturas artefato e 1 artefato no cemitério",
+   "espera": "os 3 voltam; as criaturas podem atacar neste turno"
+  },
+  {
+   "carta": "Watcher of the Wayside",
+   "situacao": "entra mirando um oponente",
+   "espera": "o oponente mói 2; você ganha 2"
+  },
+  {
+   "carta": "Mind's Eye",
+   "situacao": "um oponente compra e você paga {1}",
+   "espera": "você compra 1"
+  }
+ ]
+}

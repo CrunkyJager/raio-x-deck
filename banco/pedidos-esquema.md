@@ -402,3 +402,16 @@ Regra ≥3 ocorrências (somando os lotes anteriores). Correção 18 do esquema:
 - alvo `diferenteDe` + jogador `outrosOponentes`: Chandra's Ignition, Markov Retribution, Kediss.
 - Ficam em `falta`: ev `desvira` (2), `cicla` (1), `jogaTerreno` (1), `kw.custo: "proprio"` (2), fuga/reconfigurar/preparada/descer/descobrir por mana, o resto 1/0.
 - Motor (adepto A): `ev descarta` + loucura em andamento; depois ler a correção 18.
+
+## Blocos 34/35 — deck do Ultra Magnus/Ultron do Edigar (39 cartas fora do banco, 25/11)
+39 cartas escritas (Ultra Magnus primeiro), 39 casos em banco/testes/bloco34.json e bloco35.json; o deck inteiro (80 sem básicos) agora está no banco. Mesa: 200 partidas do deck contra os 3 exemplos, 0 erros.
+**Motor (adepto A / coordenador):** filtro `cor: "C"` não casa com incolor (estado.ts:366 procura 'C' em `cores`, que é '' na carta incolor). Pega a Mystic Forge (já no banco), o Ugin, Eye of the Storms (gatilho de mágica incolor e o −11) e serve à Liberator. Proposta: `cor: "C"` = `cores` vazio.
+**Living metal** (Ultra Magnus, Arcee, Ratchet) foi escrito sem falta: est `continuo` em `este` com `tipo: ["Creature"]` e `se: {turno: "seu"}`.
+
+| # | falta | cartas | proposta | decisão |
+|---|---|---|---|---|
+| 1 | More Than Meets the Eye (conjurar já convertida) | Ultra Magnus, Arcee, Ratchet | kw `maisQueOlhos` com `custo`: conjura e entra com a face de trás (como `transformada` no mover) | |
+| 2 | "não pode perder o jogo / oponentes não podem ganhar" | Platinum Angel, Darksteel Angel (+ 1 que já estava como falta) | est `naoPerde` (afeta voce) | |
+| 3 | desenterrar | Salvation Colossus (pagar 8 energia) + Unearth {R} que já estava | kw `desenterrar` com `custo`/`pagar` | |
+| 4 | tipo de CARTA escolhido / em comum com a exilada | Cloud Key (escrito: artefato), Semblance Anvil (redução toda falta); junto da linha 9 (Braids, Cemetery Prowler) | filtro `tipo: ["escolhido"]` e `tipoEmComum: "lembrada"` | |
+| 5 | o resto 1 cada | infect (Blightsteel), protótipo (Cradle Clearcutter: só a 3/6), tirar N marcadores à escolha como custo (Arcee: escrito 1), mágica que mira o que é seu (Arcee Coupe), gatilho reflexo "when you do" (Ratchet: alvo junto do gatilho) | deixar falta | |
