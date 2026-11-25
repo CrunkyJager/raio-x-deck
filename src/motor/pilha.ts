@@ -38,7 +38,8 @@ M.velFeitico = (e, j) => j === e.turno.ativo && PRINCIPAL.has(e.turno.passo) && 
 const TIPOS_ALVO_OBJ = ['Creature', 'Planeswalker', 'Battle'];
 M.alvoSuportado = a => {
   const f = a.f;
-  if (a.dividir) return false;                                    // dividir dano: T16/T19
+  if (a.dividir && a.dividir !== 'igual') return false;           // dividir à escolha: T16/T19 ('igual' = Fireball)
+  if (a.max !== undefined && a.max !== 'qualquer' && typeof a.max !== 'number') return false;
   if (typeof f === 'string') return ['qualquerAlvo', 'jogador', 'oponente', 'magica'].includes(f);
   return M.filtroOk(f);
 };
@@ -225,17 +226,20 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 // ---------- conjurar (CR 601.2) ----------
 // Ordem da CR: anunciar (move para a pilha), modos, X, alvos, custos. Aqui as escolhas vêm primeiro e a carta só
 // vai para a pilha quando tudo fecha — o resultado é o mesmo (nada do jogo muda entre um passo e outro).
-function escolherAlvos(e, j, d, fx, ctx, ask) {
+// cabe(n): o custo ainda fecha com n alvos no total (impostoPorAlvo, CR 601.2f); sem ele, qualquer número.
+function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean) {
   const esc: any[] = [];
+  let total = 0;
   for (const i of alvosUsados(fx)) {
-    const a = d.alvos[i], min = a.min ?? 1, max = a.max ?? 1, lista: any[] = [];
+    const a = d.alvos[i], min = a.min ?? 1, max = a.max === 'qualquer' ? Infinity : a.max ?? 1, lista: any[] = [];
     while (lista.length < max) {
-      const ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3
+      let ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3
+      if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
-      if (!ops.length) break;
+      if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto' && max === Infinity)) break;
       const r = ask(j, 'alvo', ops, { i, de: ctx.este });
       if (r.a === 'pronto') break;
-      lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts });
+      lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts }); total++;
     }
     esc[i] = lista;
   }
@@ -308,13 +312,17 @@ const PROC = {
     const j = P.j, o = e.objs[P.id], d = M.dadoDe(e, o), ctx = { voce: j, este: o.id };
     const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask) : null;          // CR 601.2b
     const fx = fxEfetivo(d, d.fx || [], modos);
-    const custo = M.custoComImposto(e, o);
+    let custo = M.custoComImposto(e, o);
     let x = 0;
     if (custo.x) {                                                                    // CR 601.2b: anuncia o X
       const mx = maxX(e, j, custo, null, o);
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
     }
-    const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask);                     // CR 601.2c
+    // impostoPorAlvo (Fireball): {1} a mais por alvo além do primeiro, somado depois dos alvos (CR 601.2f)
+    const comAlvos = n => d.impostoPorAlvo && n > 1 ? M.somaCusto(custo, d.impostoPorAlvo, n - 1) : custo;
+    const cabe = d.impostoPorAlvo ? n => !!plano(e, j, comAlvos(n), x, null, o) : undefined;
+    const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask, cabe);               // CR 601.2c
+    custo = comAlvos(alvos.reduce((s, l) => s + (l ? l.length : 0), 0));
     const fis = d.custoAd ? escolherCustoFisico(e, j, d.custoAd, null, o.id, ask) : { sac: [] as any[], desc: [] as any[] };
     const pl = plano(e, j, custo, x, fis.sac, o);                                     // CR 601.2g: mana antes de pagar
     e.proc = null;
@@ -380,7 +388,7 @@ const PROC = {
       if (tem && !legais) { e.proc = null; M.log(e, o.n, 'não resolve: alvos ilegais'); tirarDaPilha(e, o); return; }
       P.i = 0;
     }
-    const ctx = { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id };
+    const ctx = { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id };
     while (P.i < fx.length) {
       M.executar(e, fx[P.i], ctx, ask);
       P.i++; ask.etapa();

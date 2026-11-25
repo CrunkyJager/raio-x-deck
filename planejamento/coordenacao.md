@@ -11,6 +11,9 @@ Coordenador: **Opus Raio-X** (painel do /raiox). Decide o formato da carta, revi
 | NÃO mexe | `banco/` (só lê `banco/esquema.json`) | tudo fora de `banco/`; **nem `banco/esquema.json`** |
 | Merge | só o coordenador | só o coordenador |
 
+## Como entra na main (Felipe 25/11)
+ramo do adepto → `integracao` (o coordenador junta, CI roda) → verde → `main` (fast-forward) + tag `v0.x.y` + item no `CHANGELOG.md`. Todo pedido, decisão e merge vai em `planejamento/diario.md`. Os adeptos puxam a `main` (nunca a `integracao`).
+
 - Precisa de algo no esquema (campo novo, valor novo no vocabulário)? Escrever o pedido em `banco/pedidos-esquema.md` (carta, frase do Oracle, proposta) e seguir com outra carta. O coordenador decide e muda o esquema; os dois puxam da `main`.
 - Commits pequenos, em português, com o git do Felipe:
   `git -c user.name=Crunky_Jager -c user.email=65680842+CrunkyJager@users.noreply.github.com commit`
