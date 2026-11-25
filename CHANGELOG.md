@@ -2,6 +2,13 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.11.0 — 25/11/2026 · banco com 561 cartas; montar.ts e casca Svelte
+Testes: valida 561/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
+- **Banco (B):** bloco 10 (fila 451–500, 55 casos); correção Ashaya (est tipo Land + sub Forest) e Assemble the Entmoot (token X/X pela vida ganha no turno).
+- **Motor (A):** lê qtd `{ate:'qualquer'}` (Valakut Awakening), qtd `{dado:N}` e est `ptDefinido`; caso Wear // Tear com a carta do banco.
+- **Estrutura (A, T43 d):** montar.js vira `src/montar/montar.ts` estrito; casca da página (cabeçalho, abas, rodapé) sai do index.html para `src/App.svelte`.
+- **Esquema:** filtro `encantada` (Aura anexada) — Calix usava `modificada`, que pegava também equipada e com marcador.
+
 ## v0.10.0 — 25/11/2026 · banco com 511 cartas; sagas
 Testes: valida 511/0 · check 0 erros · Vitest verde · testa 161/161 · verifica verde · build ok.
 - **Banco (B):** bloco 9 (fila 401–450, 49 casos); primeiras sagas (kw capitulo + gat capitulo); oraculo.nossas() reconhece "A // B".
