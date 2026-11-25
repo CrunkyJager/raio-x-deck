@@ -1,0 +1,1 @@
+{"v":2,"n":"Dictate of Kruphix","id":"be74a4c1-d569-4203-b28a-3e2ac6a82990","oracleHash":"35dee41f","custo":{"g":1,"p":["U","U"]},"vm":3,"ci":"U","cores":"U","tipos":["Enchantment"],"kw":[{"k":"lampejo"}],"gat":[{"ev":"fase","passo":"compra","deQuem":"cadaJogador","fx":[{"op":"comprar","quem":"doEvento","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco4.json"}}

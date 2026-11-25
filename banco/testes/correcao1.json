@@ -1,0 +1,83 @@
+{
+ "bloco": "correcao1",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "bloco de correção: as 16 decisões do coordenador (5647b7b) aplicadas nas cartas já escritas",
+ "casos": [
+  {
+   "carta": "Amrou Kithkin",
+   "situacao": "ataca; o oponente tem uma 3/3 e uma 2/2",
+   "espera": "só a 2/2 pode bloquear (est.por)"
+  },
+  {
+   "carta": "Unclaimed Territory",
+   "situacao": "escolheu Elf; conjura uma criatura Elf com a mana colorida",
+   "espera": "pode (o so sem zona)"
+  },
+  {
+   "carta": "Kolaghan's Command",
+   "situacao": "escolhe os modos 2 (descartar) e 4 (2 de dano)",
+   "espera": "pede só o alvo jogador e o qualquer alvo; o jogador alvo descarta 1"
+  },
+  {
+   "carta": "Arcane Denial",
+   "situacao": "anula a mágica do oponente",
+   "espera": "na manutenção seguinte ele compra de 0 a 2 (escolhe) e você compra 1"
+  },
+  {
+   "carta": "Akroma's Will",
+   "situacao": "com comandante, escolhe os dois modos",
+   "espera": "suas criaturas ganham proteção de cada cor (uma palavra só)"
+  },
+  {
+   "carta": "Spire of Industry",
+   "situacao": "você não controla artefato",
+   "espera": "só a habilidade de {C} pode ser ativada; a de 1 vida não aparece"
+  },
+  {
+   "carta": "Syr Konrad, the Grim",
+   "situacao": "uma criatura sua morre",
+   "espera": "1 de dano em cada oponente só uma vez (vaiCemiterio com naoDe campo não dispara)"
+  },
+  {
+   "carta": "Esper Sentinel",
+   "situacao": "dois oponentes conjuram cada um a primeira não-criatura do turno",
+   "espera": "dispara para os dois"
+  },
+  {
+   "carta": "Hardened Scales",
+   "situacao": "põe 1 marcador +1/+1 numa criatura sua",
+   "espera": "ela recebe 2; um marcador de outro tipo não muda"
+  },
+  {
+   "carta": "Cavern of Souls",
+   "situacao": "escolheu Goblin; paga uma criatura Goblin com a mana colorida",
+   "espera": "a mágica não pode ser anulada"
+  },
+  {
+   "carta": "Path of Ancestry",
+   "situacao": "gasta a mana numa mágica de criatura",
+   "espera": "vidência 1"
+  },
+  {
+   "carta": "Fireball",
+   "situacao": "X=6 com 2 alvos",
+   "espera": "paga {1} a mais; 3 de dano em cada"
+  },
+  {
+   "carta": "Chandra, Torch of Defiance",
+   "situacao": "+1 exila um terreno do topo",
+   "espera": "não pode jogar o terreno (só conjurar); dá 2 de dano em cada oponente"
+  },
+  {
+   "carta": "Guardian Project",
+   "situacao": "entra uma criatura não ficha com nome diferente das suas",
+   "espera": "compra 1; com o mesmo nome de outra sua, não"
+  },
+  {
+   "carta": "Kutzil, Malamet Exemplar",
+   "situacao": "uma criatura sua com marcador +1/+1 causa dano de combate a um jogador",
+   "espera": "compra 1; uma sem bônus não"
+  }
+ ]
+}

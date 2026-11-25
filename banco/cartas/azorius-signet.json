@@ -1,0 +1,1 @@
+{"v":2,"n":"Azorius Signet","id":"e018773f-95b3-49a3-9674-6f04ddef2092","oracleHash":"376f7791","custo":{"g":2},"vm":2,"ci":"WU","cores":"","tipos":["Artifact"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["W"],"qtd":1},{"op":"mana","prod":["U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
