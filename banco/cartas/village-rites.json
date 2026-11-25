@@ -1,0 +1,1 @@
+{"v":2,"n":"Village Rites","id":"365548fb-5acc-4a8a-b20b-26d28b7d029f","oracleHash":"1b4941ef","custo":{"p":["B"]},"vm":1,"ci":"B","cores":"B","tipos":["Instant"],"custoAd":{"sacrificar":{"f":{"tipo":["Creature"]},"qtd":1}},"fx":[{"op":"comprar","quem":"voce","qtd":2}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

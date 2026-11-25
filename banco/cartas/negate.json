@@ -1,0 +1,1 @@
+{"v":2,"n":"Negate","id":"3407fe41-fdd3-4119-8f70-4bc4590a379f","oracleHash":"070b3c5b","custo":{"g":1,"p":["U"]},"vm":2,"ci":"U","cores":"U","tipos":["Instant"],"alvos":[{"f":{"zona":"pilha","nao":["Creature"]}}],"fx":[{"op":"anular","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

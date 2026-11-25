@@ -1,0 +1,118 @@
+{
+ "bloco": 2,
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "mesmo formato do bloco1.json (carta, situação, espera); o motor ainda não roda",
+ "casos": [
+  {
+   "carta": "Sulfur Falls",
+   "situacao": "entra controlando Steam Vents (Island Mountain)",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Sulfur Falls",
+   "situacao": "entra sem Island nem Mountain",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Sunken Hollow",
+   "situacao": "entra controlando 2 terrenos básicos",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Bountiful Promenade",
+   "situacao": "entra numa mesa de 4 (3 oponentes)",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Bountiful Promenade",
+   "situacao": "entra num 1x1 (1 oponente)",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Fortified Village",
+   "situacao": "entra; você revela uma Forest da mão",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Fortified Village",
+   "situacao": "entra sem Forest nem Plains na mão",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Ketria Triome",
+   "situacao": "entra",
+   "espera": "entra virada; ciclar {3} compra 1"
+  },
+  {
+   "carta": "Cavern of Souls",
+   "situacao": "entra escolhendo Goblin; vira para mana colorida",
+   "espera": "a mana só paga mágica de criatura Goblin (e a frase 'não pode ser anulada' fica em falta)"
+  },
+  {
+   "carta": "Unclaimed Territory",
+   "situacao": "escolheu Elf; tenta pagar uma habilidade com a mana colorida",
+   "espera": "não pode: só mágica de criatura Elf"
+  },
+  {
+   "carta": "Secluded Courtyard",
+   "situacao": "escolheu Elf; ativa habilidade de um Elf com a mana colorida",
+   "espera": "pode"
+  },
+  {
+   "carta": "Chromatic Lantern",
+   "situacao": "no campo; você controla uma Plains",
+   "espera": "a Plains também vira para mana de qualquer cor"
+  },
+  {
+   "carta": "Impact Tremors",
+   "situacao": "entram 3 fichas de criatura suas de uma vez, mesa de 4",
+   "espera": "3 gatilhos; cada oponente perde 3 no total"
+  },
+  {
+   "carta": "Rhystic Study",
+   "situacao": "oponente conjura e não paga {1}",
+   "espera": "você pode comprar 1"
+  },
+  {
+   "carta": "Rhystic Study",
+   "situacao": "oponente conjura e paga {1}",
+   "espera": "não compra"
+  },
+  {
+   "carta": "Teferi's Protection",
+   "situacao": "resolve; oponente ataca com 20 de dano no turno dele",
+   "espera": "sua vida não muda, suas permanentes estão em fase; a carta vai para o exílio"
+  },
+  {
+   "carta": "Flawless Maneuver",
+   "situacao": "você controla seu comandante no campo",
+   "espera": "pode conjurar sem pagar o custo"
+  },
+  {
+   "carta": "Flawless Maneuver",
+   "situacao": "só o oponente tem comandante no campo",
+   "espera": "paga {2}{W}"
+  },
+  {
+   "carta": "Arcane Denial",
+   "situacao": "anula a mágica de um oponente",
+   "espera": "na manutenção seguinte: ele pode comprar até 2, você compra 1"
+  },
+  {
+   "carta": "Hardened Scales",
+   "situacao": "você põe 1 marcador +1/+1 numa criatura sua",
+   "espera": "ela recebe 2"
+  },
+  {
+   "carta": "Kindred Discovery",
+   "situacao": "escolheu Goblin; um Goblin seu ataca",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Vanquisher's Banner",
+   "situacao": "escolheu Elf; você conjura um Elf",
+   "espera": "compra 1; seus Elfs têm +1/+1"
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Dimir Signet","id":"7d881c57-0bd9-4c57-aa4a-b10808b86143","oracleHash":"ab2e41db","custo":{"g":2},"vm":2,"ci":"UB","cores":"","tipos":["Artifact"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["U"],"qtd":1},{"op":"mana","prod":["B"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

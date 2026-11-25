@@ -1,0 +1,1 @@
+{"v":2,"n":"Misty Rainforest","id":"09dd85aa-47bc-4713-a9b9-8b52ff2285ed","oracleHash":"79614e0a","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Forest","Island"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

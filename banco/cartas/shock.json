@@ -1,0 +1,1 @@
+{"v":2,"n":"Shock","id":"a9d288b8-cdc1-4e55-a0c9-d6edfc95e65d","oracleHash":"eaf7b38b","custo":{"p":["R"]},"vm":1,"ci":"R","cores":"R","tipos":["Instant"],"alvos":[{"f":"qualquerAlvo"}],"fx":[{"op":"dano","em":{"alvo":0},"qtd":2}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"White Knight","id":"ddb021df-ae4a-4ac1-8353-d0b375761714","oracleHash":"0533e199","custo":{"p":["W","W"]},"vm":2,"ci":"W","cores":"W","tipos":["Creature"],"sub":["Human","Knight"],"pt":[2,2],"kw":[{"k":"primeiroAtaque"},{"k":"protecao","de":"B"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

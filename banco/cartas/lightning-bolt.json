@@ -1,0 +1,1 @@
+{"v":2,"n":"Lightning Bolt","id":"4457ed35-7c10-48c8-9776-456485fdf070","oracleHash":"ad45cb2a","custo":{"p":["R"]},"vm":1,"ci":"R","cores":"R","tipos":["Instant"],"alvos":[{"f":"qualquerAlvo"}],"fx":[{"op":"dano","em":{"alvo":0},"qtd":3}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

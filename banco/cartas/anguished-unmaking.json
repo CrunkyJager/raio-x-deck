@@ -1,0 +1,1 @@
+{"v":2,"n":"Anguished Unmaking","id":"ad09b3c3-c8e7-481c-8c45-e7f234935117","oracleHash":"1da2e637","custo":{"g":1,"p":["W","B"]},"vm":3,"ci":"WB","cores":"WB","tipos":["Instant"],"alvos":[{"f":{"tipo":["Permanent"],"nao":["Land"],"zona":"campo"}}],"fx":[{"op":"exilar","em":{"alvo":0}},{"op":"perderVida","quem":"voce","qtd":3}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

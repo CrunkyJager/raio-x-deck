@@ -1,0 +1,1 @@
+{"v":2,"n":"Heroic Intervention","id":"24882fa2-3fe9-4c1b-aa3d-0e6488b9db27","oracleHash":"e25a353a","custo":{"g":1,"p":["G"]},"vm":2,"ci":"G","cores":"G","tipos":["Instant"],"fx":[{"op":"modificar","em":{"todos":{"tipo":["Permanent"],"ctrl":"voce"}},"kw":[{"k":"antimagia"},{"k":"indestrutivel"}],"dura":"fimDoTurno"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Nature's Lore","id":"78826359-fe63-44ad-adc4-a17ffcd710e4","oracleHash":"83ad9f50","custo":{"g":1,"p":["G"]},"vm":2,"ci":"G","cores":"G","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"sub":["Forest"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Llanowar Elves","id":"68954295-54e3-4303-a6bc-fc4547a4e3a3","oracleHash":"e3104657","custo":{"p":["G"]},"vm":1,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Elf","Druid"],"pt":[1,1],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

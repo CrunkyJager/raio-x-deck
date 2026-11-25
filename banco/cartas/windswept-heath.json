@@ -1,0 +1,1 @@
+{"v":2,"n":"Windswept Heath","id":"29737a60-3ebd-40d9-b935-c4f54b90d45d","oracleHash":"53e47a21","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"vida":1,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"sub":["Forest","Plains"]},"para":"campo"},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

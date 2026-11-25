@@ -1,0 +1,1 @@
+{"v":2,"n":"Farseek","id":"495e52e6-4c2b-4574-9474-eadbdcc8b4ac","oracleHash":"a985666c","custo":{"g":1,"p":["G"]},"vm":2,"ci":"G","cores":"G","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"sub":["Plains","Island","Swamp","Mountain"]},"para":"campo","virada":true},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

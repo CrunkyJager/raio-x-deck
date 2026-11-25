@@ -1,0 +1,1 @@
+{"v":2,"n":"Lightning Greaves","id":"ca204b66-8d0c-431a-8d34-282f7c2d17da","oracleHash":"da6d6a74","custo":{"g":2},"vm":2,"ci":"","cores":"","tipos":["Artifact"],"sub":["Equipment"],"est":[{"modo":"continuo","afeta":"equipada","kw":[{"k":"pressa"},{"k":"manto"}]}],"kw":[{"k":"equipar","custo":{"g":0}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco1.json"}}
