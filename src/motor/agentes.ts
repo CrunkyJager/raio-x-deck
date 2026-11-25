@@ -66,6 +66,11 @@ M.agenteBasico = () => (e, p) => {
       return b;
     }
     case 'cmdZona': return 0;
+    case 'proliferar': {              // o que é meu e não tem −1/−1; do oponente, veneno ou −1/−1
+      const k = p.ops.findIndex(op => op.a === 'proliferar' && (op.jog !== undefined ? op.jog !== p.j
+        : (o(op.id).ctrl === p.j) === !((o(op.id).marc['-1/-1'] || 0) > 0)));
+      return k >= 0 ? k : 0;
+    }
     case 'escolha': { const k = p.ops.findIndex(op => op.a === 'cor' && J.ci.includes(op.v)); return k >= 0 ? k : 0; }
     default: return 0;
   }

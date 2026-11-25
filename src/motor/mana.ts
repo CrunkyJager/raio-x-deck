@@ -13,15 +13,17 @@ M.coresDeProd = (e, o, prod) => {
   if (prod === 'escolhida') return esc ? [esc] : [];
   if (prod === 'qualquer') return CORES;
   if (prod === 'comandante') return CORES.filter(c => e.jogs[o.ctrl].ci.includes(c));
-  if (prod === 'refletida') {
-    const s = new Set<any>();
+  if (prod === 'refletida' || prod === 'deSeusTerrenos') {
+    // refletida (Exotic Orchard): terrenos dos oponentes, só cores. deSeusTerrenos (Incubation Druid): "any TYPE that a
+    // land you control could produce" — terrenos seus, incolor conta (CR 106.7, 106.1b)
+    const meus = prod === 'deSeusTerrenos', s = new Set<any>();
     for (const id of e.campo) {
       const t = e.objs[id];
-      if (t.ctrl === o.ctrl || !M.temTipo(e, t, 'Land')) continue;
+      if ((t.ctrl === o.ctrl) !== meus || !M.temTipo(e, t, 'Land')) continue;
       for (const a of M.dadoDe(e, t).atv || []) if (a.deMana) for (const f of a.fx || [])
-        if (f.op === 'mana' && f.prod !== 'refletida') M.coresDeProd(e, t, f.prod).forEach(c => s.add(c));
+        if (f.op === 'mana' && f.prod !== 'refletida' && f.prod !== 'deSeusTerrenos') (M.coresDeProd(e, t, f.prod) || []).forEach(c => s.add(c));
     }
-    return TIPOS.filter(c => s.has(c) && c !== 'C');   // CR 106.7: só tipos; incolor não é cor — Orchard dá cores
+    return TIPOS.filter(c => s.has(c) && (meus || c !== 'C'));
   }
   return null;
 };
