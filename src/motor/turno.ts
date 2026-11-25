@@ -108,6 +108,7 @@ function acaoDoTurno(e) {
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
   for (const id of e.campo) { e.objs[id].dano = 0; e.objs[id].mortal = false; }
+  e.temp = [];                                                      // 'modificar' até o fim do turno (efeitos.ts)
 }
 // tamanho máximo de mão (CR 402.2: 7) — Reliquary Tower e cia. (est maoMax) lidos aqui até as camadas da T18
 function maoMax(e, j) {

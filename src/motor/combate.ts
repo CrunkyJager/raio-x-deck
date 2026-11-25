@@ -25,7 +25,7 @@ M.emCombate = emCombate;
 // conversor não separou) ainda não é lido — fica anotado em NOTAS.md.
 function protegeDe(e, alvo, fonteDado) {
   const cores = fonteDado.cores || '';
-  for (const x of M.dadoDe(e, alvo).kw || []) {
+  for (const x of M.kwDe(e, alvo)) {
     if (x.k !== 'protecao') continue;
     if (x.de === 'tudo' || x.de === 'everything') return true;
     if ((x.de === 'cadaCor' || x.de === 'each color') && cores) return true;
@@ -222,7 +222,7 @@ function aplicarGolpes(e, golpes) {
     } else {
       const o = e.objs[g.alvo.o];
       if (protegeDe(e, o, fd)) continue;                                                   // 702.16e
-      M.danoEm(e, o, g.q, fd);
+      M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte) });   // toque mortífero dado por camada conta
     }
     M.evento(e, { ev: 'dano', fonte: g.fonte.id, combate: true, q: g.q, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: g.alvo.o }) });   // 510.3a
     if (kw(e, g.fonte, 'vinculoVida')) vida[g.fonte.ctrl] = (vida[g.fonte.ctrl] || 0) + g.q;   // 702.15b

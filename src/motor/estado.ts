@@ -156,16 +156,87 @@ const ptCda = (e, o, i) => {
   return M.qtd(e, q, { voce, este: o.id });
 };
 M.ptCda = ptCda;
-M.resistencia = (e, o) => {      // sem camadas ainda (T18): base (ou CDA) + marcadores +1/+1 e −1/−1
+// P/R (CR 613.4): 7a base ou CDA, 7c somas das camadas (estáticas 'continuo' e 'modificar' até o fim do turno), 7d marcadores.
+// 7b (P/R fixado) ainda não existe: carta com ele não é lida (estContOk).
+M.resistencia = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
   const b = typeof pt[1] === 'number' ? pt[1] : ptCda(e, o, 1) ?? 0;
-  return b + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
+  return b + camadas(e, o).r + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 M.poder = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
   const b = typeof pt[0] === 'number' ? pt[0] : ptCda(e, o, 0) ?? 0;
-  return b + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
+  return b + camadas(e, o).p + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
+
+// ---- camadas (CR 613), primeira volta: 6 (palavras-chave dadas) e 7c (somar P/R) ----
+// Fontes: est {modo:'continuo'} dos permanentes no campo (CR 611.3: vale enquanto a fonte está lá, a condição 'se'
+// conferida a cada leitura) e e.temp, os efeitos de resolução 'modificar' até o fim do turno (CR 611.2c: o conjunto
+// afetado e os números ficam presos na resolução; saem na limpeza, CR 514.2). Tipo (camada 4), habilidade dada
+// (habil), P/R fixado (7b) e perder habilidade ficam para a próxima volta: a estática com eles não é lida.
+// Dependência (CR 613.8) simplificada: enquanto uma estática decide quem afeta (filtro, condição, contagem), as
+// leituras de P/R e palavra-chave usam só a carta (sem camadas). Nenhum filtro do banco hoje depende de outra camada.
+const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se']);
+const CONTA_EST = new Set(['cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste']);
+const qtdEstOk = q => q === undefined || typeof q === 'number'
+  || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste')
+    && (typeof q.conta === 'string' ? CONTA_EST.has(q.conta) : !!q.conta && typeof q.conta === 'object' && M.filtroOk(q.conta)));
+M.kwListaOk = kw => (kw || []).every(x => x && typeof x.k === 'string');   // palavra-chave dada = mesmo formato da kw da carta
+M.estContOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
+  && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
+  && qtdEstOk(s.p) && qtdEstOk(s.r) && M.kwListaOk(s.kw) && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0)
+  && (!s.se || M.seOk(s.se));
+const NADA = { p: 0, r: 0, kw: [] as any[] };
+let lendoCamada = 0;
+// quem no campo tem estática 'continuo' lida: refeito só quando o campo muda (e.ts sobe a cada objeto que muda de
+// zona ou nasce; e.vCamada sobe ao transformar ou trocar de controle). Sem isso, cada leitura de P/R ou palavra-chave
+// varria o campo inteiro (Vitest de 9 s para 138 s).
+const FONTES = new WeakMap<any, { k: string; l: [any, any][] }>();
+function fontesCont(e) {
+  const k = e.ts + '|' + e.campo.length + '|' + (e.vCamada || 0), c = FONTES.get(e);
+  if (c && c.k === k) return c.l;
+  const l: [any, any][] = [];
+  for (const id of e.campo) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s)) l.push([id, s]);
+  FONTES.set(e, { k, l });
+  return l;
+}
+function camadas(e, o) {
+  if (lendoCamada || o.zona !== 'campo') return NADA;
+  const fontes = fontesCont(e), temp = e.temp || [];
+  if (!fontes.length && !temp.length) return NADA;
+  lendoCamada++;
+  try {
+    let p = 0, r = 0; const kw: any[] = [];
+    for (const [id, s] of fontes) {
+      const F = e.objs[id];
+      {
+        const ctx = { voce: F.ctrl, este: F.id };
+        if (s.afeta === 'este' ? o.id !== F.id : !M.bate(e, o, { zona: 'campo', ...s.afeta }, ctx)) continue;
+        if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
+        if (s.p !== undefined) p += M.qtdEst(e, s.p, ctx);
+        if (s.r !== undefined) r += M.qtdEst(e, s.r, ctx);
+        for (const x of s.kw || []) kw.push(x);
+      }
+    }
+    for (const t of temp) {
+      if (!t.ids.some(x => x.id === o.id && x.ts === o.ts)) continue;
+      p += t.p || 0; r += t.r || 0; for (const x of t.kw || []) kw.push(x);
+    }
+    return { p, r, kw };
+  } finally { lendoCamada--; }
+}
+M.camadas = camadas;
+M.qtdEst = (e, q, ctx) => {
+  if (typeof q === 'number') return q;
+  if (typeof q.conta === 'object') return M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
+  const J = e.jogs[ctx.voce], este = e.objs[ctx.este];
+  const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'suaVida' ? J.vida
+    : q.conta === 'oponentes' ? M.vivos(e).filter(j => j !== ctx.voce).length : q.conta === 'jogadores' ? M.vivos(e).length
+    : q.conta === 'marcadoresNoEste' ? (!este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0)) : 0;   // de: um tipo de marcador
+  return v * (q.mult || 1) + (q.soma || 0);
+};
+/** palavras-chave do objeto: as da carta (ou face/ficha) e as dadas pelas camadas (CR 613.1f) */
+M.kwDe = (e, o) => { const b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw; return c.length ? b.concat(c) : b; };
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando']);

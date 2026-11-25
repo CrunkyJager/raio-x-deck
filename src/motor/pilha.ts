@@ -26,7 +26,7 @@ M.iniciarProc = (e, proc) => { e.proc = { ...proc, resp: [] as any[] }; rodarPro
 M.continuarProc = (e, k) => { e.proc.resp.push(k); rodarProc(e); };
 
 // ---------- leitura ----------
-M.temKw = (e, o, k) => (M.dadoDe(e, o).kw || []).some(x => x.k === k);
+M.temKw = (e, o, k) => M.kwDe(e, o).some(x => x.k === k);   // com as palavras-chave dadas pelas camadas (estado.ts)
 const ehMagica = o => o.zona === 'pilha' && !o.hab;
 const vivo = (e, j) => !e.jogs[j].saiu;
 
