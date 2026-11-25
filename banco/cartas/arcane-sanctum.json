@@ -1,0 +1,1 @@
+{"v":2,"n":"Arcane Sanctum","id":"7d7cf15c-06b9-4062-a1eb-32614c458a3b","oracleHash":"9e528a15","vm":0,"ci":"WUB","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["W","U","B"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

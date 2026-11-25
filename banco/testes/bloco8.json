@@ -1,0 +1,198 @@
+{
+ "bloco": "bloco8",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 351–400, escritas do Oracle; mesmo formato do bloco1.json",
+ "casos": [
+  {
+   "carta": "Accursed Marauder",
+   "situacao": "entra; você tem 1 ficha e 1 criatura não-ficha, cada oponente tem 2 criaturas não-ficha",
+   "espera": "cada jogador sacrifica 1 não-ficha (você: a própria Marauder ou a outra; a ficha fica)"
+  },
+  {
+   "carta": "Adrix and Nev, Twincasters",
+   "situacao": "você cria 1 Treasure; oponente mira Adrix com Murder sem pagar {2}",
+   "espera": "cria 2 Treasures; Murder anulada pelo resguardo"
+  },
+  {
+   "carta": "Aesi, Tyrant of Gyre Strait",
+   "situacao": "seu turno, 2 terrenos na mão",
+   "espera": "joga 2 terrenos; cada um pode comprar 1"
+  },
+  {
+   "carta": "Aether Channeler",
+   "situacao": "entra com o modo 'devolver'",
+   "espera": "devolve outra permanente não-terreno à mão do dono; não pode mirar a si"
+  },
+  {
+   "carta": "Aftermath Analyst",
+   "situacao": "entra; depois paga {3}{G} e sacrifica com 4 terrenos no cemitério",
+   "espera": "moe 3; os 4 terrenos voltam ao campo virados"
+  },
+  {
+   "carta": "Agent Frank Horrigan",
+   "situacao": "entra com 1 marcador +1/+1 numa criatura sua; depois ataca",
+   "espera": "proliferar 2× ao entrar (2 marcadores a mais) e 2× ao atacar; indestrutível enquanto ataca"
+  },
+  {
+   "carta": "Agent of the Iron Throne",
+   "situacao": "seu comandante no campo; 1 artefato seu vai ao cemitério e 1 criatura sua morre (3 oponentes)",
+   "espera": "cada oponente perde 2 no total; sem comandante no campo, nada"
+  },
+  {
+   "carta": "Ainok Strike Leader",
+   "situacao": "ataca só o seu comandante (3 oponentes); depois sacrifica Ainok",
+   "espera": "3 Goblins 1/1 virados e atacando; suas fichas ganham indestrutível até o fim do turno"
+  },
+  {
+   "carta": "Ajani, Nacatl Pariah",
+   "situacao": "entra; depois a ficha Cat Warrior morre",
+   "espera": "cria Cat Warrior 2/1; pode transformar em Ajani, Nacatl Avenger"
+  },
+  {
+   "carta": "Ajani, the Greathearted",
+   "situacao": "+1 e, no outro turno, −2 com 3 criaturas e outro planeswalker",
+   "espera": "criaturas suas com vigilância; ganha 3; marcador +1/+1 em cada criatura e +1 de lealdade no outro planeswalker"
+  },
+  {
+   "carta": "Akiri, Fearless Voyager",
+   "situacao": "ataca com 2 criaturas equipadas",
+   "espera": "compra 1 (uma vez)"
+  },
+  {
+   "carta": "Alesha, Who Laughs at Fate",
+   "situacao": "ataca (poder vira 3); na sua etapa final, criatura vm 3 no cemitério",
+   "espera": "marcador +1/+1; volta a criatura vm ≤ 3 ao campo"
+  },
+  {
+   "carta": "Alesha, Who Laughs at Fate",
+   "situacao": "não atacou neste turno",
+   "espera": "sem gatilho na etapa final"
+  },
+  {
+   "carta": "All Will Be One",
+   "situacao": "você põe 2 marcadores +1/+1 numa criatura sua",
+   "espera": "2 de dano a um oponente ou criatura/planeswalker dele"
+  },
+  {
+   "carta": "Alpha Deathclaw",
+   "situacao": "entra com planeswalker oponente no campo",
+   "espera": "destrói a permanente alvo"
+  },
+  {
+   "carta": "Altar of the Brood",
+   "situacao": "entra 1 terreno seu (3 oponentes)",
+   "espera": "cada oponente moe 1"
+  },
+  {
+   "carta": "Anara, Wolvid Familiar",
+   "situacao": "seu comandante no campo: Murder no seu turno e no do oponente",
+   "espera": "no seu turno o comandante é indestrutível; no do oponente, morre"
+  },
+  {
+   "carta": "Ancient Copper Dragon",
+   "situacao": "causa dano de combate a um jogador",
+   "espera": "cria Treasures (d20; escrito 10)"
+  },
+  {
+   "carta": "Ancient Gold Dragon",
+   "situacao": "causa dano de combate a um jogador",
+   "espera": "cria fichas Faerie Dragon 1/1 voadoras (d20; escrito 10)"
+  },
+  {
+   "carta": "Ancient Greenwarden",
+   "situacao": "terreno no cemitério; Lotus Cobra no campo",
+   "espera": "pode jogar o terreno do cemitério; o landfall da Cobra dispara 2×"
+  },
+  {
+   "carta": "Ancient Silver Dragon",
+   "situacao": "causa dano de combate a um jogador",
+   "espera": "compra (d20; escrito 10) e fica sem tamanho máximo de mão"
+  },
+  {
+   "carta": "Angel of Despair",
+   "situacao": "entra",
+   "espera": "destrói a permanente alvo"
+  },
+  {
+   "carta": "Angel of Destiny",
+   "situacao": "criatura sua causa 3 de combate a um oponente",
+   "espera": "você e ele ganham 3"
+  },
+  {
+   "carta": "Angel of Destiny",
+   "situacao": "sua etapa final com 55 de vida",
+   "espera": "oponentes perdem o jogo (escrito cadaOponente)"
+  },
+  {
+   "carta": "Angel of Finality",
+   "situacao": "entra mirando um oponente",
+   "espera": "exila o cemitério dele"
+  },
+  {
+   "carta": "Angel of Jubilation",
+   "situacao": "outras criaturas suas: 1 branca e 1 preta",
+   "espera": "só a branca ganha +1/+1"
+  },
+  {
+   "carta": "Angel of Serenity",
+   "situacao": "entra, mira 3 criaturas dos oponentes; depois sai do campo",
+   "espera": "exila as 3; quando sai, voltam à mão dos donos"
+  },
+  {
+   "carta": "Angel of Vitality",
+   "situacao": "você ganha 3 com 24 de vida",
+   "espera": "ganha 4; com 25+ fica 4/4"
+  },
+  {
+   "carta": "Angel of the Ruins",
+   "situacao": "entra com 2 artefatos do oponente; ou cicla por {2}",
+   "espera": "exila até 2; ciclo de Plains busca uma Plains"
+  },
+  {
+   "carta": "Angelic Accord",
+   "situacao": "ganha 4 de vida no turno (qualquer turno)",
+   "espera": "na etapa final, ficha Angel 4/4 voadora"
+  },
+  {
+   "carta": "Angelic Field Marshal",
+   "situacao": "com o comandante no campo e sem ele",
+   "espera": "com: 4/4 e criaturas suas com vigilância; sem: 2/2"
+  },
+  {
+   "carta": "Anikthea, Hand of Erebos",
+   "situacao": "entra com encantamento não-Aura no cemitério; ataca de novo",
+   "espera": "exila e cria cópia 3/3 Zombie preta; idem ao atacar"
+  },
+  {
+   "carta": "Annie Joins Up",
+   "situacao": "entra; depois gatilho de entrada de criatura lendária sua",
+   "espera": "5 de dano em criatura/planeswalker oponente; o gatilho da lendária dispara 2×"
+  },
+  {
+   "carta": "Apex Altisaur",
+   "situacao": "entra com criatura 4/4 do oponente",
+   "espera": "luta (10 de dano nela, 4 no Altisaur)"
+  },
+  {
+   "carta": "Arabella, Abandoned Doll",
+   "situacao": "ataca com 3 criaturas de poder ≤ 2 (3 oponentes)",
+   "espera": "cada oponente leva 3; você ganha 3 (escrito: ganha 3, não 9)"
+  },
+  {
+   "carta": "Aragorn, King of Gondor",
+   "situacao": "entra; ataca sendo o monarca",
+   "espera": "vira monarca; nenhuma criatura pode bloquear neste turno"
+  },
+  {
+   "carta": "Arahbo, the First Fang",
+   "situacao": "entra; depois entra outro Cat não-ficha",
+   "espera": "1 ficha Cat ao entrar e outra pelo Cat; Cats outros +1/+1"
+  },
+  {
+   "carta": "Arasta of the Endless Web",
+   "situacao": "oponente conjura instantânea",
+   "espera": "ficha Spider 1/2 com alcance"
+  }
+ ]
+}
