@@ -229,3 +229,18 @@ Contagem: banco 1161 cartas / fila 424 ainda não escritas.
 - Ficam em `falta`: impending, canalizar (2/0), perde todas as habilidades, o resto 1/0.
 - Ponder: está escrito só como embaralhar + compra. Falta olhar as 3 do topo e reordenar (cavar olha 3, resto no topo em qualquer ordem). Corrigir.
 - Reescrever na correção 6: as 7 de não regenerar, as de decayed, Otawara, One with the Machine, Bowmasters, Bard, Outlaws' Merriment e Ponder.
+
+## Correção 6 (adepto B, 25/11): o que não coube
+- Bard, King of Dale: a dobra de compra é `subst` (ev compra, mult 2) e `naoPrimeira` só existe no `gat`; o valida recusou. Fica a falta. Proposta: aceitar `naoPrimeira` também na subst de compra.
+- Otawara: `reduzCusto` com `afeta "este"` e `deHabil`; a habilidade é da mão (canalizar), e a est não tem zona onde vale. Fica a falta do canalizar.
+
+## Faltas em lote (bloco 23, para o FARSEER decidir junto)
+Contagem: banco 1211 cartas / fila 374 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| escolhe N e sacrifica o resto | 3 | 0 | Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty | op `sacrificar` com `exceto` N escolhidas por jogador | |
+| moída neste turno | 1 | 2 | Raul (fila: Tato Farmer, The Master) | filtro `moidaNoTurno` | |
+| exert | 2 | 0 | Pride Sovereign, Combat Celebrant | deixar falta | |
+| copiar habilidades ativadas | 2 | 0 | Quicksilver Elemental, Drana and Linvala | deixar falta | |
+| o resto 1/0 | | | Preacher (maior vida), Hojo (1ª habilidade com alvo mais barata), Progenitor's Icon (só a próxima mágica), Yao Guai (vm total ≤ X), Quicksilver (mana azul como qualquer cor) | deixar falta | |
