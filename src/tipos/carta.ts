@@ -359,6 +359,10 @@ export interface RxFiltro {
    * a carta foi para o cemitério moída neste turno (Raul, Tato Farmer, The Master)
    */
   moidaNoTurno?: boolean;
+  /**
+   * a criatura atacou neste turno (Riders of the Mark e mais 2)
+   */
+  atacouNoTurno?: boolean;
 }
 
 export interface RxCompara {

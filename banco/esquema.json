@@ -639,6 +639,10 @@
     "moidaNoTurno": {
      "type": "boolean",
      "description": "a carta foi para o cemitério moída neste turno (Raul, Tato Farmer, The Master)"
+    },
+    "atacouNoTurno": {
+     "type": "boolean",
+     "description": "a criatura atacou neste turno (Riders of the Mark e mais 2)"
     }
    }
   },

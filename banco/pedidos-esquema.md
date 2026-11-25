@@ -262,3 +262,7 @@ Contagem: banco 1261 cartas / fila 324 ainda não escritas.
 | mana de uma cor só | 2 | 0 | Gilded Lotus, Sanctum of Fruitful Harvest | prod `umaCor` (qualquer, mas toda da mesma) | |
 | descartar com filtro no custo | 1 | 1 | Sanctum of Shattered Heights (fila: Tortured Existence) | custo `descartar {f, qtd}` além do número | |
 | o resto 1/0 | | | Reforge the Soul (milagre), Resurgent Belief (suspender), Rith (dano excedente), Ruthless Technomancer (sacrificar X no custo), Runic Armasaur (ev ativa habilidade), Retreat to Coralhelm (virar ou desvirar), Sanctum of All (grimório e/ou cemitério), Righteous Valkyrie (vida inicial + 7: escrito vidaMin 47) | deixar falta | |
+
+## Decisões do lote do bloco 24 (FARSEER 25/11)
+- filtro `atacouNoTurno` (Riders of the Mark + 2 da fila). Reescrever Riders na correção 8.
+- Ficam em `falta`: dash (também 2 no lote 15), mana de uma cor só, descartar com filtro no custo (1/1), o resto 1/0.
