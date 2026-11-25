@@ -600,7 +600,7 @@
 "Sliver Overlord":["op ganharControle"],
 "Smothering Tithe":["op ficha.aMenosQue"],
 "Snap":["op desvirar"],
-"Soaring Lightbringer":["est continuo","op ficha.atacando"],
+"Soaring Lightbringer":["est continuo","op ficha"],
 "Song of the Worldsoul":["op popular"],
 "Sorin, Lord of Innistrad":["op efeitoTemporario"],
 "Spara's Headquarters":["kw ciclar"],

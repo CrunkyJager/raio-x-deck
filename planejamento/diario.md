@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.24.0: A T22 parte 1 (396f033: Mesa ao vivo no motor novo, beta) + B correção 9, bloco 26, correção 10 (66201d1) → 1361 cartas.
 - 25/11 · FARSEER · v0.23.0: B correção 8 + bloco 25 (5f68ff7) → 1311 cartas. A na T22 Mesa ao vivo.
 - 25/11 · FARSEER · v0.22.0: A camadas volta 2 (a9bd15e: equipar + habil dada, 660/1261). A agora na T22 Mesa ao vivo.
 - 25/11 · FARSEER · v0.21.0: B blocos 23/24 + correções 6/7 (4b8bb11) → 1261 cartas; lotes 23/24 decididos. A na T22 (Mesa ao vivo no motor novo, pedido do Felipe).

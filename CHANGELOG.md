@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.24.0 — 25/11/2026 · Mesa ao vivo no motor novo (beta) e banco com 1361 cartas
+Testes: valida 1361/0 · check 0 erros · Vitest 160/160 · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 713/1361.
+- **Mesa ao vivo (A, T22 parte 1):** chave "Motor novo (beta)", desligada por padrão. Com ela ligada, a partida roda no motor novo com o banco próprio, e o registro mostra os gatilhos (⚡), os efeitos (✧), as camadas mudando P/R e palavras-chave (▲) e as habilidades (⚙). Dá para jogar você mesmo e continuar de onde parou. Cartas fora do banco jogam só o corpo (selo ⓘ).
+- **Banco (B):** correção 9 (Scapeshift, Feasting Hobbit), bloco 26 (1251–1300, 50 casos), correção 10 (Soaring Lightbringer). Esquema: fx `porJogadorAtacado` na ficha.
+
 ## v0.23.0 — 25/11/2026 · banco com 1311 cartas
 Testes: valida 1311/0 · check 0 erros · Vitest 160/160 · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 685/1311.
 - **Banco (B):** correção 8 (Riders of the Mark com `atacouNoTurno`, Rivaz só do seu cemitério) e bloco 25 (1201–1250, 50 casos). Sem campo novo no esquema (sacrificar quantos quiser usa `ate: "qualquer"`).
