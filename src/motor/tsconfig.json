@@ -1,6 +1,7 @@
 {
+  // T22: a ponte da Mesa ao vivo (src/mesa/arena-nova.ts e o Worker) é checada aqui, com o motor.
   // T43 (b): o motor migrou mecânico do JS; strict sem noImplicitAny até a tipagem ser fechada função a função.
   "extends": "../../tsconfig.json",
   "compilerOptions": { "noImplicitAny": false, "types": ["node", "vite/client"] },
-  "include": ["./**/*.ts"], "exclude": []
+  "include": ["./**/*.ts", "../mesa/arena-nova.ts", "../mesa/worker-novo.ts"], "exclude": []
 }

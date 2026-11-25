@@ -26,6 +26,8 @@
     "vite.config.ts"
   ],
   "exclude": [
-    "src/motor/**"
+    "src/motor/**",
+    "src/mesa/arena-nova.ts",
+    "src/mesa/worker-novo.ts"
   ]
 }

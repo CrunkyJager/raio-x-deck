@@ -12,7 +12,8 @@ const memoOk = new WeakMap();
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
   let ok = EV_OK.has(g.ev) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && M.fxSuportado(g.fx) && !g.fx.some(f => f.op === 'modal')   // modo do gatilho (603.3c) = depois
-    && (g.alvos || []).every(M.alvoSuportado) && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por));
+    && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
+    && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por));
   if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta'].includes(k));
   memoOk.set(g, ok);
   return ok;
@@ -58,7 +59,7 @@ const causasDe = (e, ev) => {
 };
 function extras(e, F, g, ev) {
   let n = 0;
-  for (const id of e.campo) {
+  for (const id of M.indiceCampo(e).est) {                                               // só quem tem estática
     const S = e.objs[id];
     for (const s of M.dadoDe(e, S).est || []) {
       if (s.modo !== 'dobraGatilho' || !s.afeta || typeof s.afeta !== 'object') continue;
@@ -78,22 +79,59 @@ const fabricarDe = d => { const k = (d.kw || []).find(x => x.k === 'fabricar'); 
 M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];
 
 // ---------- evento: dispara na hora (603.2) ----------
+// quem tem gatilho que vale no cemitério: candidatos guardados por id (todo objeto nasce com e.prox++ e o dado de
+// fora do campo é sempre a frente, que não muda); a cada evento só os novos ids são olhados. Varrer os cemitérios a
+// cada evento era O(n²) numa limpeza de milhares de fichas (elas ficam no cemitério até as ABE).
+const CEM = new WeakMap<any, { p: number; ids: number[] }>();
+const temGatCem = d => !!d.gat && d.gat.some(g => zonas(g).includes('cemiterio'));
+function noCemiterio(e) {
+  let C = CEM.get(e);
+  if (!C) { C = { p: 0, ids: [] }; CEM.set(e, C); }
+  if (C.p !== e.prox) {
+    const ini = C.p > e.prox ? 0 : C.p; if (!ini) C.ids = [];
+    for (let id = ini; id < e.prox; id++) { const o = e.objs[id]; if (o && temGatCem(o.ficha || M.carta(o.n))) C.ids.push(id); }
+    C.p = e.prox;
+  }
+  const r: any[] = [];
+  for (let j = 0; j < e.jogs.length; j++) {                                            // na ordem de antes: jogador, posição
+    const cem = e.jogs[j].zonas.cemiterio;
+    const l = C.ids.map(id => e.objs[id]).filter(o => o && o.zona === 'cemiterio' && o.dono === j && temGatCem(M.dadoDe(e, o)));
+    if (l.length > 1) l.sort((a, b) => cem.indexOf(a.id) - cem.indexOf(b.id));
+    r.push(...l);
+  }
+  return r;
+}
+// lote (quem saiu desde o último pôr gatilhos): quem tem gatilho, quem dá habilidade (= M.loteHabil) e o conjunto,
+// mantidos a cada saída — varrer o lote inteiro a cada morte era O(n²) numa limpeza de milhares de fichas
+const LOTE = new WeakMap<any[], { n: number; gat: any[]; hab: any[]; set: Set<any> }>();
+const daHabil = (e, S) => (M.dadoDe(e, S).est || []).some(s => s.modo === 'continuo' && s.habil);
+function loteInfo(e, lote) {
+  let I = LOTE.get(lote);
+  if (!I || I.n > lote.length) { I = { n: 0, gat: [], hab: [], set: new Set() }; LOTE.set(lote, I); }
+  for (; I.n < lote.length; I.n++) {
+    const S = lote[I.n]; I.set.add(S);
+    if (M.dadoDe(e, S).gat) I.gat.push(S);
+    if (daHabil(e, S)) I.hab.push(S);
+  }
+  return I;
+}
 M.evento = (e, ev) => {
   if (!e.pend || (e.turno.passo === 'mulligan')) return;
   const saida = ev.ev === 'zona' && ev.de === 'campo';
   if (saida) (e.lote = e.lote || []).push(ev.snap);
   const fontes: any[] = [];
   const hab = M.temHabil(e);                                                            // caminho comum: sem habilidade dada
-  for (const id of e.campo) { const o = e.objs[id]; if (hab ? M.gatDe(e, o).length : M.dadoDe(e, o).gat) fontes.push(o); }
-  const lh = saida ? M.loteHabil(e, e.lote) : [], lhab = lh.length ? lh : undefined;
-  if (saida) for (const s of e.lote) if (hab || lhab ? M.gatDe(e, s, lhab).length : M.dadoDe(e, s).gat) fontes.push(s);    // 603.10a: olha para trás (habilidade dada também)
-  if (ev.ev === 'conjura' && e.objs[ev.id]) fontes.push(e.objs[ev.id]);                 // "quando você conjura este"
-  for (const J of e.jogs) for (const id of J.zonas.cemiterio) {                         // gatilhos que valem no cemitério
-    const o = e.objs[id], gs = M.dadoDe(e, o).gat;
-    if (gs && gs.some(g => zonas(g).includes('cemiterio'))) fontes.push(o);
+  if (hab) { for (const id of e.campo) { const o = e.objs[id]; if (M.gatDe(e, o).length) fontes.push(o); } }
+  else for (const id of M.indiceCampo(e).gat) fontes.push(e.objs[id]);                  // índice: só quem tem gatilho
+  const L = saida ? loteInfo(e, e.lote) : null, lhab = L && L.hab.length ? L.hab : undefined;
+  if (L) {                                                                              // 603.10a: olha para trás (habilidade dada também)
+    if (hab || lhab) { for (const s of e.lote) if (M.gatDe(e, s, lhab).length) fontes.push(s); }
+    else for (const s of L.gat) fontes.push(s);
   }
+  if (ev.ev === 'conjura' && e.objs[ev.id]) fontes.push(e.objs[ev.id]);                 // "quando você conjura este"
+  for (const o of noCemiterio(e)) fontes.push(o);                                       // gatilhos que valem no cemitério
   for (const F of fontes) {
-    const lki = e.lote && e.lote.includes(F), gs = M.gatDe(e, F, lki ? lhab : undefined), nb = (M.dadoDe(e, F).gat || []).length;
+    const lki = !!L && L.set.has(F), gs = M.gatDe(e, F, lki ? lhab : undefined), nb = (M.dadoDe(e, F).gat || []).length;
     for (let k = 0; k < gs.length; k++) {
       const g = gs[k];
       if (!M.gatOk(g)) continue;

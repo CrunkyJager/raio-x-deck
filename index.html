@@ -192,6 +192,9 @@ input.txt { background: var(--felt); border: 1px solid var(--line); border-radiu
 .vlance { display: flex; gap: 10px; align-items: center; background: var(--felt-3); border-left: 4px solid var(--accent); border-radius: 8px; padding: 10px 14px; font-size: 1.05rem; min-height: 48px; }
 .vt { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--felt); color: var(--accent-2); font-size: .9em; flex: none; }
 .vt.remo, .vt.wipe, .vt.morte { color: var(--bad); } .vt.resp, .vt.bloqueio { color: var(--info); } .vt.combo, .vt.fim { color: var(--warn); } .vt.terreno { color: var(--good); }
+/* T22 motor novo (beta): gatilho, efeito, camadas (P/R e palavras-chave) e habilidade ativada */
+.vt.gatilho, .vt.habil { color: var(--warn); } .vt.camada { color: var(--good); } .vt.efeito { color: var(--info); }
+.v-beta { display: inline-flex; align-items: center; gap: 6px; font-size: .9em; } .v-beta small { color: var(--muted, #8a8f98); }
 .vgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .vgrid.n2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 @media (max-width: 760px) { .vgrid { grid-template-columns: 1fr; } }
@@ -926,15 +929,15 @@ a.fonte{color:inherit;text-decoration:underline;text-underline-offset:2px;font-w
 </head>
 <body>
 <!-- a página (cabeçalho, abas, aba Lista, caixas e rodapé) vem do src/App.svelte, montado pelo src/main.ts aqui no começo do body -->
-<script src="cards-db.js?v=202611251530"></script>
-<script src="precos-myp.js?v=202611251530"></script>
-<script src="exemplos.js?v=202611251530"></script>
-<script src="papeis-ia.js?v=202611251530"></script>
-<script src="sinergia-db.js?v=202611251530"></script>
-<script>window.RAIOX_V = "202611251530";</script>
-<script src="forge-motor.js?v=202611251530"></script>
-<script src="motor/engine.js?v=202611251530"></script>
+<script src="cards-db.js?v=202611251640"></script>
+<script src="precos-myp.js?v=202611251640"></script>
+<script src="exemplos.js?v=202611251640"></script>
+<script src="papeis-ia.js?v=202611251640"></script>
+<script src="sinergia-db.js?v=202611251640"></script>
+<script>window.RAIOX_V = "202611251640";</script>
+<script src="forge-motor.js?v=202611251640"></script>
+<script src="motor/engine.js?v=202611251640"></script>
 
-<script src="oponentes-edhrec.js?v=202611251530"></script>
+<script src="oponentes-edhrec.js?v=202611251640"></script>
 <script type="module" src="/src/main.ts"></script>
 </body></html>

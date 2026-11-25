@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.24.0: A T22 parte 1 (396f033: Mesa ao vivo no motor novo, beta) + B correção 9, bloco 26, correção 10 (66201d1) → 1361 cartas.
 - 25/11 · FARSEER · v0.23.0: B correção 8 + bloco 25 (5f68ff7) → 1311 cartas. A na T22 Mesa ao vivo.
 - 25/11 · FARSEER · v0.22.0: A camadas volta 2 (a9bd15e: equipar + habil dada, 660/1261). A agora na T22 Mesa ao vivo.
 - 25/11 · FARSEER · v0.21.0: B blocos 23/24 + correções 6/7 (4b8bb11) → 1261 cartas; lotes 23/24 decididos. A na T22 (Mesa ao vivo no motor novo, pedido do Felipe).
@@ -34,3 +35,7 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · 872f2e9: merge T20 blocos 1–3 + 62 cartas dos casos de regra.
 - 25/11 · FARSEER · 0ba06f4: merge T43 (a)+(b).
 - 25/11 · Felipe · banco próprio sem Forge; Vite+TS+Svelte 5; 2 adeptos "sem virar várzea".
+- 25/11 · FARSEER · v0.25.0: B bloco 27, correção 11, bloco 28 (3b4eb15) → 1461 cartas; cobertura refeita (763 inteiras).
+- 25/11 · FARSEER · v0.26.0: A op cavar + camada sem nome repetido (18a38b7) + B correções 12–14, bloco 29 (a16506f) → 1511 cartas; cobertura 801 inteiras.
+- 25/11 · FARSEER · v0.27.0: A fichas em massa + token.est (45f5baf) + B correção 15, blocos 30/31 (b114435) → 1585 cartas, fila do Oracle acabou; cobertura 827 inteiras.
+- 25/11 · FARSEER · v0.28.0: B correção 16 + pente (99c17c7; 30 decks 1538/1538 → T20 fechada) + A ganhaVida, descartarEste (6d3ccb6); cobertura 825 inteiras.

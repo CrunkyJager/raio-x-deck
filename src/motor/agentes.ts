@@ -57,7 +57,7 @@ M.agenteBasico = () => (e, p) => {
       });
       return b;
     }
-    case 'buscar': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
+    case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
     case 'sacrificar': case 'custo': {
       let b = 0, bv = Infinity;
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });

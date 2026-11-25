@@ -80,6 +80,13 @@ Construtor de decks em `montar.js` (tela `#montar`, `--h` 96, ícone `build`, pr
 - Moxfield: importar = colar o texto exportado; "Copiar para o Moxfield" (formato `Commander` / `Deck`), "Abrir o Moxfield", "Baixar .txt". Também "Trazer da Lista", "Analisar no Raio-X" (manda para a aba Lista e analisa) e "Jogar na Mesa" (vira deck de amigo em `raiox:amigos`).
 - Archidekt: importa por link via `archidekt.com/api/decks/ID/`. **Não testado com internet** (o teste daqui foi sem rede): se o Archidekt bloquear o pedido (CORS), aparece a mensagem pedindo para colar o texto.
 
+## Mesa ao vivo no motor novo, beta (T22 parte 1, 25/11/2026, pedido do usuário)
+- Chave **"Motor novo (beta)"** na Mesa ao vivo, desligada por padrão (`raiox:vivoMotor`). O motor velho segue padrão e cuida de torneio, estudo, trocas e variantes.
+- `src/mesa/arena-nova.ts` devolve o mesmo formato da `arena()` velha (quadros + log); Worker em `src/mesa/worker-novo.ts` (Vite gera `worker-novo-*.js`).
+- Registro com ⚡ gatilho, ✧ efeito, ▲ camada (P/R, palavras-chave, anexo) e ⚙ habilidade, tirados do estado antes × depois de cada efeito.
+- Selo ⓘ: carta que o motor novo não joga inteira (`src/mesa/motor-novo-cobertura.json`, refazer com `node ferramentas/motor-cobertura.mjs --por-carta src/mesa/motor-novo-cobertura.json` a cada mudança de motor/banco) ou carta fora do banco (só o corpo).
+- Lado a lado: `ferramentas/mesa-nova.mjs` (velho ~0,1 s/partida, novo 0,3–1,1 s).
+
 ## Mesa ao vivo com as trocas (19/11/2026, pedido do usuário)
 - Botão **"Jogar ao vivo com as trocas"** na aba Trocas: marca `raiox:vivoTrocas`, abre a Mesa ao vivo e já começa uma partida.
 - Na Mesa ao vivo, campo **"Seu deck"**: "Lista atual" ou "Com as N trocas marcadas" (só aparece se houver troca marcada). `deckComTrocas()` em `mesa-ui.js` troca cada carta que sai pela que entra em `D.base` (igual ao `testarTrocas`). Na mesa, o seu lugar mostra "· com as N trocas".

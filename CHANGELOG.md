@@ -2,6 +2,34 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.28.0 — 25/11/2026 · T20 fechada: banco cobre os 30 decks; motor lê ganho de vida e "descartar esta carta"
+Testes: valida 1585/0 · check 0 erros · Vitest 173/173 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 825/1585.
+- **Banco (B):** correção 16 (fx dano `fonte` e filtro `nome`: Chandra's Ignition, Warstorm Surge, Wrathful Raptors, Ingris, Dragon Tempest, Scourge of Valkas, Ancestral Anger, Wedding Ring). Pente geral: as 1538 cartas dos 30 decks do banco de teste estão todas no banco (T20 fechada); top 10 das faltas no pedidos-esquema.md.
+- **Motor (A):** todo ganho de vida passa pelas substituições `ganhaVida` (Angel of Vitality, Bilbo, The Wind Crystal; somas antes dos dobros, 616.1); vínculo com a vida fora do combate dispara o evento. Custo `descartarEste` na habilidade da mão (canalizar: Shigeki, Ziatora's Proving Ground…).
+
+## v0.27.0 — 25/11/2026 · banco completo da fila do Oracle (1585 cartas); motor rápido com fichas em massa
+Testes: valida 1585/0 · check 0 erros · Vitest 169/169 (~28 s; era ~65 s) · testa 161/161 · verifica verde · build ok. Motor joga inteiras 827/1585.
+- **Motor (A):** fichas em massa sem travar (índice do campo, lote e cemitério; a semente do fuzz com 13 mil Goblins caiu de 59 s para 5 s, partidas idênticas antes/depois); estáticas da própria ficha (`token.est`: Constructs, Gnome Soldier com P/R definido).
+- **Banco (B):** correção 15 (custo `descartarEste`: Otawara, Shigeki, Trumpeting Carnosaur), bloco 30 (1451–1500) e bloco 31 (últimas 24 cartas, Wrenn and Seven … Éowyn). A fila do Oracle acabou.
+- Ainda não lidos pelo motor: `ganhaVida`, `descartarEste` (próximos itens do A).
+
+## v0.26.0 — 25/11/2026 · motor cava o topo do grimório; banco com 1511 cartas
+Testes: valida 1511/0 · check 0 erros · Vitest 167/167 · testa 161/161 · partidas e lacunas = base · verifica verde · build ok. Motor joga inteiras 801/1511.
+- **Motor (A):** `op cavar` (olhar/revelar do topo, até achar, destinos, resto no topo ou no fundo); sacrificar guarda o resultado (Empty the Laboratory); gatilho com alvo sem alvo declarado não joga. 7 casos (701.16).
+- **Mesa ao vivo (beta):** a camada sai sem o nome repetido ("Elenda: 1/1 → 2/2").
+- **Banco (B):** correção 12 (estáticas da própria ficha: 4 Constructs, Gnome Soldier), correções 13/14 (ganho de vida em substituição só no ganho: Angel of Vitality, Bilbo, The Wind Crystal), bloco 29 (1401–1450, 50 casos). Esquema: `token.est`, subst ev `ganhaVida`.
+- Atenção: o Vitest leva ~65 s (era 18 s): uma semente do fuzz deixa o Krenko dobrar milhares de Goblins e o motor fica lento com fichas em massa. É o próximo item do motor.
+
+## v0.25.0 — 25/11/2026 · banco com 1461 cartas (blocos 27/28, correção 11)
+Testes: valida 1461/0 · check 0 erros · Vitest 160/160 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 763/1461.
+- **Banco (B):** bloco 27 (1301–1350, 50 casos), correção 11 (Mirrodin Besieged, Windcrag Siege, Struggle, Marisi, Taunt from the Rampart, Junk Winder, Tamiyo), bloco 28 (1351–1400, 50 casos: The One Ring, Ur-Dragon, Gitrog, Great Henge, Tireless Tracker…). Esquema: `modoEscolhido`, `incitar`, `naoDesvira`.
+- **Mesa ao vivo (beta):** cobertura do motor novo refeita com o banco 1461.
+
+## v0.24.0 — 25/11/2026 · Mesa ao vivo no motor novo (beta) e banco com 1361 cartas
+Testes: valida 1361/0 · check 0 erros · Vitest 160/160 · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 713/1361.
+- **Mesa ao vivo (A, T22 parte 1):** chave "Motor novo (beta)", desligada por padrão. Com ela ligada, a partida roda no motor novo com o banco próprio, e o registro mostra os gatilhos (⚡), os efeitos (✧), as camadas mudando P/R e palavras-chave (▲) e as habilidades (⚙). Dá para jogar você mesmo e continuar de onde parou. Cartas fora do banco jogam só o corpo (selo ⓘ).
+- **Banco (B):** correção 9 (Scapeshift, Feasting Hobbit), bloco 26 (1251–1300, 50 casos), correção 10 (Soaring Lightbringer). Esquema: fx `porJogadorAtacado` na ficha.
+
 ## v0.23.0 — 25/11/2026 · banco com 1311 cartas
 Testes: valida 1311/0 · check 0 erros · Vitest 160/160 · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 685/1311.
 - **Banco (B):** correção 8 (Riders of the Mark com `atacouNoTurno`, Rivaz só do seu cemitério) e bloco 25 (1201–1250, 50 casos). Sem campo novo no esquema (sacrificar quantos quiser usa `ate: "qualquer"`).

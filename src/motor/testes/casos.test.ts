@@ -1043,6 +1043,139 @@ caso('603.10a', 'habilidade dada olha para trás: o Constricting Sliver que sai 
   ok(!M.gatDe(e, snap).some(g => g.ev === 'sai'), 'sem o lote, a fonte já saiu');
 });
 
+// fila do motor (depois da T22): op cavar — olhar/revelar do topo, pegar o que bate, o resto para outra zona
+const topoN = (e, j, n) => e.jogs[j].zonas.grimorio.slice(-n).reverse().map(id => e.objs[id].n);   // do topo para baixo
+const fundoN = (e, j, n) => e.jogs[j].zonas.grimorio.slice(0, n).map(id => e.objs[id].n);
+const ctxDe = (e?) => ({ voce: 0, este: undefined, alvos: [], ilegal: {}, lki: {}, item: undefined });
+caso('701.16', 'cavar: Grisly Salvage revela 5, pega 1 criatura/terreno para a mão, o resto vai ao cemitério', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Wastes', 'Llanowar Elves', 'Wastes', 'Wastes']) e.por(0, n, { zona: 'grimorio' });   // o último fica no topo
+  const g0 = e.jogs[0].zonas.grimorio.length, vistos: any[] = [];
+  M.executar(e, M.carta('Grisly Salvage').fx[0], ctxDe(e), (j, tipo, ops) => { vistos.push(tipo); return ops.find(o => o.a === 'cavar' && e.objs[o.id].n === 'Llanowar Elves') || ops[0]; });
+  igual(vistos, ['cavar'], 'uma pergunta (o "pode" fica dentro do cavar)');
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Llanowar Elves']);
+  igual(e.jogs[0].zonas.cemiterio.map(id => e.objs[id].n).sort(), ['Forest', 'Wastes', 'Wastes', 'Wastes']);
+  igual(e.jogs[0].zonas.grimorio.length, g0 - 5);
+  ok(M.fxSuportado(M.carta('Grisly Salvage').fx), 'o motor oferece a carta');
+});
+caso('701.16', 'cavar com "pode": não pegar nada ainda manda as 5 ao cemitério', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Wastes', 'Wastes', 'Wastes', 'Wastes']) e.por(0, n, { zona: 'grimorio' });
+  M.executar(e, M.carta('Grisly Salvage').fx[0], ctxDe(e), (j, tipo, ops) => ops.find(o => o.a === 'nenhum') || ops[0]);
+  igual(e.jogs[0].zonas.mao.length, 0);
+  igual(e.jogs[0].zonas.cemiterio.length, 5);
+});
+caso('701.16', 'cavar: Sea Gate Oracle olha 2, uma na mão, a outra no fundo', () => {
+  const e = cena();
+  e.por(0, 'Forest', { zona: 'grimorio' }); e.por(0, 'Island', { zona: 'grimorio' });
+  M.executar(e, M.carta('Sea Gate Oracle').gat[0].fx[0], ctxDe(e), (j, tipo, ops) => ops.find(o => o.a === 'cavar' && e.objs[o.id].n === 'Forest') || ops[0]);
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Forest']);
+  igual(fundoN(e, 0, 1), ['Island']);
+  igual(topoN(e, 0, 1), ['Wastes']);
+});
+caso('701.16', 'cavar com destinos: Expressive Iteration — 1 na mão, 1 no exílio, 1 no fundo', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Island', 'Mountain']) e.por(0, n, { zona: 'grimorio' });   // topo: Mountain
+  M.executar(e, M.carta('Expressive Iteration').fx[0], ctxDe(e), (j, tipo, ops, c) => {
+    igual(tipo, 'destino');
+    return ops.find(o => o.a === 'destino' && e.objs[o.id].n === (c.para === 'mao' ? 'Island' : 'Mountain'));
+  });
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Island']);
+  igual(e.jogs[0].zonas.exilio.map(id => e.objs[id].n), ['Mountain']);
+  igual(fundoN(e, 0, 1), ['Forest']);
+});
+caso('701.16', 'cavar até achar: Empty the Laboratory com X=2 revela até 2 Zumbis, põe no campo, o resto no fundo', () => {
+  const e = cena({ campo: [[0, 'Gravecrawler'], [0, 'Gravecrawler']] });
+  for (const n of ['Wastes', 'Gravecrawler', 'Forest', 'Feral Ghoul', 'Island']) e.por(0, n, { zona: 'grimorio' });   // topo: Island
+  const c = { ...ctxDe(e), x: 2 };
+  for (const f of M.carta('Empty the Laboratory').fx) M.executar(e, f, c, (j, tipo, ops) => ops.find(o => o.a !== 'nenhum') || ops[0]);
+  igual(e.jogs[0].zonas.cemiterio.map(id => e.objs[id].n), ['Gravecrawler', 'Gravecrawler'], 'sacrificou os 2');
+  igual(e.campo.map(id => e.objs[id].n).sort(), ['Feral Ghoul', 'Gravecrawler'], 'achou 2 Zumbis');
+  igual(fundoN(e, 0, 2).sort(), ['Forest', 'Island'], 'os outros revelados no fundo');
+  igual(topoN(e, 0, 1), ['Wastes'], 'parou no 2º Zumbi');
+  ok(M.fxSuportado(M.carta('Empty the Laboratory').fx), 'o motor oferece a carta');
+});
+caso('701.16', 'cavar: Risen Reef — terreno do topo entra virado; se não for terreno (ou não quiser), vai para a mão', () => {
+  const e = cena();
+  e.por(0, 'Forest', { zona: 'grimorio' });
+  M.executar(e, M.carta('Risen Reef').gat[0].fx[0], ctxDe(e), (j, tipo, ops) => ops.find(o => o.a === 'destino') || ops[0]);
+  const f = objN(e, 0, 'Forest'); ok(f && f.virada, 'Forest no campo virada');
+  e.por(0, 'Llanowar Elves', { zona: 'grimorio' });
+  M.executar(e, M.carta('Risen Reef').gat[0].fx[0], ctxDe(e), (j, tipo, ops) => ops[0]);
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Llanowar Elves']);
+});
+caso('701.16', 'cavar: Ponder olha 3 e devolve no topo na mesma ordem (pega 0)', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Island', 'Mountain']) e.por(0, n, { zona: 'grimorio' });
+  const fx = M.carta('Ponder').fx.find(f => f.op === 'cavar');
+  M.executar(e, fx, ctxDe(e), (j, tipo, ops) => ops[0]);
+  igual(topoN(e, 0, 3), ['Mountain', 'Island', 'Forest']);
+});
+
+// token.est (correção 12 do banco): estáticas da própria ficha, afeta 'este' = a ficha. Fichas no formato do banco
+// (Construct do Digsite Engineer/Urza; Gnome Soldier do Thousand Moons Smithy), criadas direto para não depender do lote
+const CONTA_ART = { conta: { tipo: ['Artifact'], ctrl: 'voce', zona: 'campo' } };
+const CONSTRUCT = { pt: [0, 0], cores: '', tipos: ['Artifact', 'Creature'], sub: ['Construct'], est: [{ modo: 'continuo', afeta: 'este', p: CONTA_ART, r: CONTA_ART }] };
+const CONTA_AC = { conta: { tipo: ['Artifact', 'Creature'], ctrl: 'voce', zona: 'campo' } };
+const GNOMO = { pt: [0, 0], cores: 'W', tipos: ['Artifact', 'Creature'], sub: ['Gnome', 'Soldier'], est: [{ modo: 'ptDefinido', afeta: 'este', pBase: CONTA_AC, rBase: CONTA_AC }] };
+caso('613.4c', 'token.est continuo: Construct +1/+1 por artefato seu, contando a si mesmo; só ele ganha', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Sol Ring']] });
+  const c = M.criarFicha(e, 0, CONSTRUCT);
+  igual([M.poder(e, c), M.resistencia(e, c)], [3, 3], 'os 2 artefatos + a ficha');
+  const c2 = M.criarFicha(e, 0, CONSTRUCT);
+  igual([M.poder(e, c), M.poder(e, c2)], [4, 4], 'o 2º Construct conta para os dois, cada um só com a própria est');
+  M.mover(e, objN(e, 0, 'Mind Stone').id, 'cemiterio');
+  igual(M.poder(e, c), 3, 'artefato que sai deixa de contar');
+  igual(M.poder(e, M.criarFicha(e, 1, CONSTRUCT)), 2, 'o do oponente conta os dele');
+});
+caso('604.3', 'token.est ptDefinido: Gnome Soldier P/R = seus artefatos e/ou criaturas (com ele)', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears']] });
+  const g = M.criarFicha(e, 0, GNOMO);
+  igual([M.poder(e, g), M.resistencia(e, g)], [3, 3]);
+  M.criarFicha(e, 0, GNOMO);
+  igual(M.poder(e, g), 4);
+});
+
+// subst ganhaVida (correção 14 do banco): só o ganho. Fontes como fichas com o subst do banco (Angel of Vitality:
+// soma 1; The Wind Crystal: mult 2), para não depender do lote
+const SUBST_VIDA = (muda) => ({ n: 'Fonte ' + JSON.stringify(muda), tipos: ['Enchantment'], subst: [{ ev: 'ganhaVida', jog: 'voce', muda }] });
+caso('614.1a', 'subst ganhaVida: +1 (Angel) e dobro (Wind Crystal) só no ganho de quem controla; somas antes do dobro (616.1)', () => {
+  const e = cena();
+  M.criarFicha(e, 0, SUBST_VIDA({ soma: 1 }));
+  igual(M.ganharVida(e, 0, 3), 4, '+1');
+  igual(M.ganharVida(e, 1, 3), 3, 'o do oponente não muda');
+  M.criarFicha(e, 0, SUBST_VIDA({ mult: 2 }));
+  igual(M.ganharVida(e, 0, 3), 8, '(3+1)×2');
+  igual(M.ganharVida(e, 0, 0), 0, 'ganhar 0 não é ganho (119.3)');
+  igual(e.jogs[0].vida, 52);
+  M.executar(e, { op: 'perderVida', quem: 'voce', qtd: 3 }, ctxDe(e), (j, t, ops) => ops[0]);
+  igual(e.jogs[0].vida, 49, 'perda não dobra');
+});
+caso('702.15b', 'vínculo com a vida fora do combate passa pelo ganho (substituição e gatilho de ganhaVida)', () => {
+  const e = cena();
+  M.criarFicha(e, 0, SUBST_VIDA({ mult: 2 }));
+  const fonte = M.criarFicha(e, 0, { n: 'Fonte', tipos: ['Creature'], pt: [1, 1], kw: [{ k: 'vinculoVida' }] });
+  M.executar(e, { op: 'dano', qtd: 2, em: { alvo: 0 } }, { ...ctxDe(e), alvos: [[{ jog: 1 }]], defAlvos: [{}], item: fonte.id }, (j, t, ops) => ops[0]);
+  igual(e.jogs[1].vida, 38); igual(e.jogs[0].vida, 44);
+});
+
+// custoAtv descartarEste (correção 15 do banco): habilidade ativada da mão cujo custo é descartar a própria carta.
+// A carta da cena tem a atv do Trumpeting Carnosaur como o banco escreve (nome à parte: vale mesmo antes do lote)
+(banco.db as any)['Cena Canalizar'] = { n: 'Cena Canalizar', custo: { g: 4, p: ['R', 'R'] }, cores: 'R', tipos: ['Creature'], sub: ['Dinosaur'], pt: [7, 6], vm: 6, ci: 'R',
+  atv: [{ zona: 'mao', custo: { mana: { g: 2, p: ['R'] }, descartarEste: true }, alvos: [{ f: { tipo: ['Creature', 'Planeswalker'], zona: 'campo' } }], fx: [{ op: 'dano', em: { alvo: 0 }, qtd: 3 }] }] };
+caso('602.2', 'descartarEste: ativa da mão, a carta vai ao cemitério no custo e a habilidade resolve', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Cena Canalizar']] });
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 1, 'a da mão aparece');
+  M.avancar(e); respE(e, o => o.a === 'ativar'); if (e.perg) alvoObj(e, 'Grizzly Bears');
+  igual(naZona(e, 0, 'cemiterio'), ['Cena Canalizar'], JSON.stringify(e.log.slice(-6))); igual(naZona(e, 1, 'cemiterio'), ['Grizzly Bears']);
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0, 'do cemitério não');
+});
+caso('602.2', 'atv da mão sem custo que tira a carta de lá não é oferecida (não repete de graça)', () => {
+  (banco.db as any)['Cena Sem Descarte'] = { ...(banco.db as any)['Cena Canalizar'], n: 'Cena Sem Descarte', atv: [{ ...(banco.db as any)['Cena Canalizar'].atv[0], custo: { mana: { g: 2, p: ['R'] } } }] };
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Cena Sem Descarte']] });
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

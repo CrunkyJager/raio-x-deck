@@ -117,13 +117,15 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined }: any =
   const o = e.objs[id];
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
   const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
-  const de = M.listaDe(e, o), k = de.indexOf(id);
+  const de = M.listaDe(e, o), k = de.lastIndexOf(id);   // id único na lista; o fim (topo, ficha nova) é o mais comum
   if (k >= 0) de.splice(k, 1);
+  if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
   Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null });
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
+  if (zona === 'campo') M.campoEntra(e, id);
   if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap });   // gatilhos.js
   if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
@@ -157,15 +159,16 @@ const ptCda = (e, o, i) => {
 };
 M.ptCda = ptCda;
 // P/R (CR 613.4): 7a base ou CDA, 7c somas das camadas (estáticas 'continuo' e 'modificar' até o fim do turno), 7d marcadores.
+// A CDA vale mesmo com P/R numérico no dado: a ficha do banco escreve pt [0,0] + est ptDefinido (Gnome Soldier, token.est).
 // 7b (P/R fixado) ainda não existe: carta com ele não é lida (estContOk).
 M.resistencia = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = typeof pt[1] === 'number' ? pt[1] : ptCda(e, o, 1) ?? 0;
+  const b = ptCda(e, o, 1) ?? (typeof pt[1] === 'number' ? pt[1] : 0);
   return b + camadas(e, o).r + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 M.poder = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = typeof pt[0] === 'number' ? pt[0] : ptCda(e, o, 0) ?? 0;
+  const b = ptCda(e, o, 0) ?? (typeof pt[0] === 'number' ? pt[0] : 0);
   return b + camadas(e, o).p + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 
@@ -212,18 +215,67 @@ M.estContOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CON
   && (!s.se || M.seOk(s.se));
 const NADA = { p: 0, r: 0, kw: [] as any[], gat: [] as any[], atv: [] as any[] };
 let lendoCamada = 0;
-// quem no campo tem estática 'continuo' lida: refeito só quando o campo muda (e.ts sobe a cada objeto que muda de
-// zona ou nasce; e.vCamada sobe ao transformar ou trocar de controle). Sem isso, cada leitura de P/R ou palavra-chave
-// varria o campo inteiro (Vitest de 9 s para 138 s).
-const FONTES = new WeakMap<any, { k: string; l: [any, any][]; hab: boolean }>();
-function fontesCont(e) {
-  const k = e.ts + '|' + e.campo.length + '|' + (e.vCamada || 0), c = FONTES.get(e);
-  if (c && c.k === k) return c;
+// Índice do campo (por partida): quem tem gatilho (dadoDe.gat) e quem tem estática (dadoDe.est), na ordem do campo.
+// O mover e o criarFicha avisam quem entra e sai (M.campoEntra/M.campoSai); e.vCamada (transformar, trocar de
+// controle, anexar) ou o tamanho do campo fora do esperado refazem tudo. Antes a chave era e.ts: cada ficha nova
+// refazia a varredura, e com milhares de Goblins do Krenko cada evento era O(campo) — O(n²) na partida.
+type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; l: [any, any][] | null; hab: boolean };
+const IDX = new WeakMap<any, Idx>();
+function indice(e): Idx {
+  let I = IDX.get(e);
+  if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
+  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], l: null, hab: false };
+  for (const id of e.campo) { const d = M.dadoDe(e, e.objs[id]); if (d.gat) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); }
+  IDX.set(e, I);
+  return I;
+}
+M.indiceCampo = indice;
+/** chamados depois de o id entrar em / sair de e.campo (o objeto já com a face nova) */
+M.campoEntra = (e, id) => {
+  const I = IDX.get(e); if (!I) return;
+  if (I.v !== (e.vCamada || 0) || I.n + 1 !== e.campo.length) { IDX.delete(e); return; }
+  const d = M.dadoDe(e, e.objs[id]); I.n++;
+  if (d.gat) I.gat.push(id);
+  if (d.est) { I.est.push(id); I.l = null; }
+  if (d.subst) I.sb.push(id);
+};
+M.campoSai = (e, id) => {
+  const I = IDX.get(e); if (!I) return;
+  if (I.v !== (e.vCamada || 0) || I.n - 1 !== e.campo.length) { IDX.delete(e); return; }
+  I.n--;
+  let k = I.gat.indexOf(id); if (k >= 0) I.gat.splice(k, 1);
+  k = I.est.indexOf(id); if (k >= 0) { I.est.splice(k, 1); I.l = null; }
+  k = I.sb.indexOf(id); if (k >= 0) I.sb.splice(k, 1);
+};
+// ganho de vida (CR 119.3) com as substituições 'ganhaVida' do campo (CR 614.1a): Angel of Vitality/Bilbo (soma),
+// The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
+// dos dobros, que é a que dá mais. jog: de quem é o ganho, visto do controlador da fonte. Devolve o que ganhou.
+M.ganharVida = (e, j, q) => {
+  if (!(q > 0) || e.jogs[j].saiu) return 0;
+  let soma = 0, mult = 1;
+  for (const id of indice(e).sb) {
+    const F = e.objs[id];
+    for (const sb of M.dadoDe(e, F).subst || []) {
+      if (sb.ev !== 'ganhaVida' || !sb.muda) continue;
+      if (sb.jog === 'voce' ? j !== F.ctrl : sb.jog === 'oponente' ? j === F.ctrl : sb.jog !== undefined && sb.jog !== 'qualquer') continue;
+      if (sb.se) { let ok = false; try { ok = M.condicao(e, sb.se, { voce: F.ctrl, este: F.id }); } catch (_) { ok = false; } if (!ok) continue; }
+      if (sb.muda.soma) soma += sb.muda.soma;
+      if (sb.muda.mult) mult *= sb.muda.mult;
+    }
+  }
+  q = (q + soma) * mult;
+  e.jogs[j].vida += q;
+  M.evento(e, { ev: 'ganhaVida', j, q });
+  return q;
+};
+// quem no campo tem estática 'continuo' lida (sem isso, cada leitura de P/R ou palavra-chave varria o campo inteiro)
+function fontesCont(e): Idx & { l: [any, any][] } {
+  const I = indice(e);
+  if (I.l) return I as Idx & { l: [any, any][] };
   const l: [any, any][] = [];
-  for (const id of e.campo) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s)) l.push([id, s]);
-  const r = { k, l, hab: l.some(([, s]) => s.habil) };
-  FONTES.set(e, r);
-  return r;
+  for (const id of I.est) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s)) l.push([id, s]);
+  I.l = l; I.hab = l.some(([, s]) => s.habil);
+  return I as Idx & { l: [any, any][] };
 }
 // a estática s da fonte F afeta o? 'equipada' = o objeto a que F está anexada (Equipamento ou Aura, CR 301.5a/303.4a)
 function afeta(e, F, s, o, ctx) {

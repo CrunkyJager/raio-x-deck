@@ -89,7 +89,7 @@ const alvosUsados = fx => {
 };
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
-const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'tirarMarcador']);
+const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
@@ -109,6 +109,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
     if (M.temTipo(e, o, 'Creature') && o.doente && !M.temKw(e, o, 'pressa')) return false;
   }
   if (c.vida && J.vida < c.vida) return false;                     // CR 119.4
+  if (c.descartarEste && (!o || o.zona !== 'mao')) return false;   // canalizar: só da mão (CR 602.2, a habilidade diz a zona)
   if (c.sacrificar && c.sacrificar !== 'este' && !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1)) return false;
   if (c.descartar && candDesc(e, j, daMao).length < c.descartar) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
@@ -212,7 +213,7 @@ M.podeAtivar = (e, j, o, k) => {
     if (a.lealdade < 0 && (o.marc.lealdade || 0) < -a.lealdade) return false;
   } else if (a.vel === 'feitico' && !M.velFeitico(e, j)) return false;
   if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
-  if (!custoFisicoOk(e, j, o, a.custo)) return false;
+  if (!custoFisicoOk(e, j, o, a.custo, { daMao: a.custo.descartarEste ? o.id : undefined })) return false;
   const ctx = { voce: j, este: o.id };
   for (const i of alvosUsados(a.fx)) {
     const al = (a.alvos || [])[i];
@@ -252,6 +253,12 @@ function opcoes(e, j) {
   for (const id of e.campo) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
+  }
+  // habilidade ativada da mão (atv zona 'mao': canalizar, Trumpeting Carnosaur). Do cemitério (Reassembling Skeleton…) ainda não
+  for (const id of J.zonas.mao) {
+    const o = e.objs[id], l = M.atvDe(e, o);
+    // só a que tira a carta da mão no custo: sem isso (banco antes da correção 15) ativaria de graça sem parar
+    for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   return ops;
@@ -357,6 +364,7 @@ function pagarFisico(e, j, o, c, esc) {
   for (const id of esc.desc) M.mover(e, id, 'cemiterio');
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
   if (c.exilarEste) M.mover(e, o.id, 'exilio');
+  if (c.descartarEste) M.mover(e, o.id, 'cemiterio');               // CR 701.9 (Otawara, Trumpeting Carnosaur)
 }
 function pagarMana(e, j, pl, custo, x) {
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
@@ -408,7 +416,7 @@ const PROC = {
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
     }
     const alvos = escolherAlvos(e, j, a, a.fx, { ...ctx, x }, ask);                   // CR 602.2b → 601.2c
-    const fis = escolherCustoFisico(e, j, c, o.id, null, ask);
+    const fis = escolherCustoFisico(e, j, c, o.id, c.descartarEste ? o.id : null, ask);
     const pl = c.mana ? plano(e, j, c.mana, x, [...ex, ...fis.sac]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }

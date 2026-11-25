@@ -114,7 +114,8 @@ const fonteDado = (e, ctx) => {
 // ---------- executar um efeito ----------
 M.executar = (e, f, ctx, ask) => {
   if (f.se && !M.condicao(e, f.se, ctx)) return;                     // CR 608.2c: condição lida na hora
-  if (f.talvez && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') return;   // "pode"
+  const h0 = H[f.op];
+  if (f.talvez && !(h0 && h0.talvezDentro) && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') return;   // "pode"
   const h = H[f.op];
   if (!h) throw new Error('efeito sem suporte no motor2: ' + f.op);
   h.fx(e, f, ctx, ask);
@@ -185,6 +186,7 @@ function criarFicha(e, j, tok, { virada = false }: any = {}) {
   const n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim();
   const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, virada, dano: 0, marc: {} as any, doente: true, cmd: false, ficha: { ...tok, n } };
   e.objs[id] = o; e.campo.push(id);
+  M.campoEntra(e, id);
   if (tok.leal) o.marc.lealdade = tok.leal;
   if (M.evento) M.evento(e, { ev: 'zona', id, de: null, para: 'campo' });
   return o;
@@ -214,7 +216,7 @@ const H = {
       const js = f.em && typeof f.em.alvo === 'number' ? jogsAlvo(e, f.em.alvo, ctx) : [];
       const jq = f.quem ? jogsDe(e, f, ctx) : [];
       for (const j of [...new Set([...js, ...jq])]) { e.jogs[j].vida -= q; total += q; }   // CR 120.3a
-      if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) e.jogs[ctx.voce].vida += total;   // CR 702.15b
+      if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, ctx.voce, total);   // CR 702.15b
     },
   },
   // "X ganha +N/+N e/ou palavra-chave até o fim do turno" (CR 611.2): números e conjunto afetado presos na resolução
@@ -253,7 +255,7 @@ const H = {
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
     },
   },
-  ganharVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { e.jogs[j].vida += q; if (q > 0) M.evento(e, { ev: 'ganhaVida', j, q }); } } },   // CR 119.3
+  ganharVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) M.ganharVida(e, j, q); } },   // CR 119.3
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) e.jogs[j].vida -= q; } },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
@@ -327,6 +329,7 @@ const H = {
         const cand = M.objetosQue(e, { ...(f.f || {}), ctrl: 'voce', zona: 'campo' }, { ...ctx, voce: j }).map(o => o.id);
         esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length)));
       }
+      ctx.resultado = esc.length;                                   // "reveal … until X Zombies" (Empty the Laboratory)
       for (const id of esc) M.mover(e, id, 'cemiterio');
     },
   },
@@ -350,6 +353,61 @@ const H = {
       }
       const ent = plano.map(p => p.para === 'campo' ? M.decidirEntrada(e, p.id, p.j, { virada: p.virada }, ask) : null);
       plano.forEach((p, k) => { if (ent[k]) M.aplicarEntrada(e, ent[k]); else M.mover(e, p.id, p.para); });
+    },
+  },
+  cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle'],
+    talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
+    ok: f => {
+      const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
+      if (f.ateAchar ? f.olha !== undefined || !M.filtroOk(f.ateAchar.f) || !qtdOk(f.ateAchar.qtd) || Object.keys(f.ateAchar).some(k => k !== 'f' && k !== 'qtd') : !qtdOk(f.olha) || f.olha === undefined) return false;
+      if (!(f.pega === 'tudo' || Number.isInteger(f.pega) || (ateOk(f.pega) && Number.isInteger(f.pega.ate)))) return false;
+      if (f.destinos ? !f.destinos.every(d => Z.includes(d.para) && Object.keys(d).every(k => ['para', 'qtd', 'virada'].includes(k))) || f.para !== undefined : f.pega !== 0 && !Z.includes(f.para)) return false;
+      if (f.resto !== undefined && ![...Z, 'grimorio'].includes(f.resto)) return false;
+      return f.sobControle === undefined || f.sobControle === 'voce';
+    },
+    fx(e, f, ctx, ask) {
+      const plano: any[] = [], resto: any[] = [];
+      let pegos = 0;
+      for (const j of jogsDe(e, f, ctx)) {
+        const g = e.jogs[j].zonas.grimorio, c2 = { ...ctx, voce: j };
+        const bateEm = filt => new Set(M.objetosQue(e, { ...filt, zona: 'grimorio', dono: 'voce' }, c2).map(o => o.id));
+        let vistos;                                                 // do topo para baixo
+        if (f.ateAchar) {                                           // revela até achar qtd que batem (o grimório pode acabar antes)
+          const q = qtdDe(e, f.ateAchar.qtd, ctx), b = bateEm(f.ateAchar.f);
+          vistos = []; let ach = 0;
+          for (let i = g.length - 1; i >= 0 && ach < q; i--) { vistos.push(g[i]); if (b.has(g[i])) ach++; }
+        } else vistos = g.slice(-qtdDe(e, f.olha, ctx)).reverse();
+        if (!vistos.length) continue;
+        if (f.revelar) M.log(e, e.jogs[j].nome, 'revela', vistos.map(id => e.objs[id].n).join(', '));
+        const b = f.f ? bateEm(f.f) : null;
+        const cand = vistos.filter(id => !b || b.has(id));
+        let sobra = cand.slice();
+        const tira = ids => { sobra = sobra.filter(id => !ids.includes(id)); };
+        if (f.destinos) {                                           // Expressive Iteration: 1 na mão, 1 no exílio, o resto no fundo
+          for (const d of f.destinos) {
+            const vai = escolherN(ask, j, 'destino', sobra, Math.min(d.qtd || 1, sobra.length), { podeMenos: !!f.talvez, ctx: { para: d.para } });
+            tira(vai);
+            for (const id of vai) plano.push({ id, j, para: d.para, virada: !!d.virada });
+          }
+        } else if (f.pega !== 0) {
+          let vai;
+          if (f.pega === 'tudo') vai = f.talvez && cand.length && ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'cavar' }).a === 'nao' ? [] : cand.slice();
+          else { const n = typeof f.pega === 'number' ? f.pega : f.pega.ate; vai = escolherN(ask, j, 'cavar', cand, Math.min(n, cand.length), { podeMenos: !!f.talvez || typeof f.pega !== 'number', ctx: { para: f.para } }); }
+          tira(vai);
+          for (const id of vai) plano.push({ id, j, para: f.para, virada: !!f.virada });
+        }
+        const pegou = new Set(plano.filter(p => p.j === j).map(p => p.id));
+        resto.push(...vistos.filter(id => !pegou.has(id)));
+      }
+      pegos = plano.length;
+      const ent = plano.map(p => p.para === 'campo' ? M.decidirEntrada(e, p.id, f.sobControle === 'voce' ? ctx.voce : p.j, { virada: p.virada }, ask) : null);
+      plano.forEach((p, k) => { if (ent[k]) M.aplicarEntrada(e, ent[k]); else M.mover(e, p.id, p.para); });
+      if (f.resto) {                                                // de volta ao topo: na mesma ordem (uma das ordens que a regra deixa)
+        const r = f.resto === 'grimorio' && !f.fundo ? resto.slice().reverse() : resto;
+        for (const id of r) M.mover(e, id, f.resto, { topo: !f.fundo });
+      }
+      ctx.resultado = pegos;
     },
   },
   videncia: {                                                       // CR 701.22: olha N, põe qualquer número no fundo
