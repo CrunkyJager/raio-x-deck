@@ -90,6 +90,10 @@ export interface Carta {
     teste?: string;
     nota?: string;
   };
+  /**
+   * custo a mais para cada alvo além do primeiro (Fireball)
+   */
+  impostoPorAlvo?: RxMana;
 }
 
 /**
@@ -183,23 +187,31 @@ export type RxQtd =
        * devocao: cores (W U B R G); marcadores*: tipo do marcador
        */
       de?: string;
+    }
+  | {
+      ate: number | 'X';
     };
 
 /**
- * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado
+ * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários
  */
 export type RxJogador =
-  | 'voce'
-  | 'oponente'
-  | 'cadaOponente'
-  | 'cadaJogador'
-  | 'alvoJogador'
-  | 'dono'
-  | 'controlador'
-  | 'doEvento'
-  | 'atacado'
-  | 'proximo'
-  | 'cadaAtual';
+  | (
+      | 'voce'
+      | 'oponente'
+      | 'cadaOponente'
+      | 'cadaJogador'
+      | 'alvoJogador'
+      | 'dono'
+      | 'controlador'
+      | 'doEvento'
+      | 'atacado'
+      | 'proximo'
+      | 'cadaAtual'
+    )
+  | {
+      alvo: number;
+    };
 
 /**
  * mini-linguagem de objetos: todos os campos se somam (E)
@@ -273,6 +285,14 @@ export interface RxFiltro {
    * tem estas palavras-chave
    */
   kw?: string[];
+  /**
+   * não tem o mesmo nome de outra permanente que você controla
+   */
+  nomeUnico?: boolean;
+  /**
+   * poder maior que o poder base
+   */
+  poderAcimaBase?: boolean;
 }
 
 export interface RxCompara {
@@ -286,12 +306,19 @@ export type RxZona = 'campo' | 'mao' | 'grimorio' | 'cemiterio' | 'exilio' | 'pi
 export interface RxAlvo {
   f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica');
   min?: number;
-  max?: number;
-  dividir?: boolean;
+  max?: number | 'qualquer';
+  /**
+   * true = quem conjura divide; 'igual' = dividido igualmente, arredondado para baixo (Fireball)
+   */
+  dividir?: boolean | 'igual';
   /**
    * alvo pode ser também um jogador (f OU jog)
    */
   jog?: 'jogador' | 'oponente';
+  /**
+   * alvo só existe se o modo N (fx modal) for escolhido
+   */
+  modo?: number;
 }
 
 /**
@@ -517,6 +544,21 @@ export interface RxFx {
    */
   so?: RxFiltro;
   /**
+   * op mana: gatilho quando a mana é gasta numa mágica que bate em f (Path of Ancestry)
+   */
+  aoGastar?: {
+    f?: RxFiltro;
+    fx?: RxFxs;
+  };
+  /**
+   * op mana: a mágica paga com esta mana não pode ser anulada (Cavern of Souls)
+   */
+  naoAnulavel?: boolean;
+  /**
+   * op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)
+   */
+  soConjurar?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -667,7 +709,7 @@ export interface RxKw {
   custo?: RxMana;
   n?: number;
   /**
-   * proteção de/resguardo: cor, 'tudo', tipo
+   * proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
    */
   de?: string;
   tipo?: string;
@@ -684,12 +726,16 @@ export interface RxAtv {
   alvos?: RxAlvo[];
   vel?: 'instantaneo' | 'feitico';
   zona?: RxZona;
-  limite?: 'umaPorTurno';
+  limite?: 'umaPorTurno' | 'umaPorTurnoPorJogador';
   /**
    * habilidade de mana: não usa a pilha (CR 605)
    */
   deMana?: boolean;
   lealdade?: number;
+  /**
+   * "Activate only if …"
+   */
+  se?: RxCond;
 }
 
 export interface RxGat {
@@ -744,7 +790,7 @@ export interface RxGat {
    * condição de intervenção ('if …', CR 603.4)
    */
   se?: RxCond;
-  limite?: 'umaPorTurno';
+  limite?: 'umaPorTurno' | 'umaPorTurnoPorJogador';
   talvez?: boolean;
   alvos?: RxAlvo[];
   fx?: RxFxs;
@@ -780,6 +826,14 @@ export interface RxGat {
    * conjura: também quando copia
    */
   ouCopia?: boolean;
+  /**
+   * zona de origem do objeto que mudou de zona
+   */
+  de?: RxZona;
+  /**
+   * "from anywhere other than …"
+   */
+  naoDe?: RxZona;
 }
 
 export interface RxEst {
@@ -873,6 +927,10 @@ export interface RxEst {
    * aumentaCusto: vale para habilidades, não mágicas
    */
   deHabil?: boolean;
+  /**
+   * naoPodeSerBloqueada / naoPodeBloquear: filtro de QUEM bloqueia (Amrou Kithkin)
+   */
+  por?: RxFiltro;
 }
 
 /**
@@ -931,6 +989,10 @@ export interface RxSubst {
    */
   por?: RxFiltro;
   se?: RxCond;
+  /**
+   * tipo do marcador ('+1/+1', 'loyalty'…)
+   */
+  marc?: string;
 }
 
 /**
@@ -992,4 +1054,8 @@ export interface RxFace {
    * custo adicional para conjurar (além da mana)
    */
   custoAd?: RxCustoAtv;
+  /**
+   * custo a mais para cada alvo além do primeiro (Fireball)
+   */
+  impostoPorAlvo?: RxMana;
 }
