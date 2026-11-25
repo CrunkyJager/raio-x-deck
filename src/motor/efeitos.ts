@@ -21,6 +21,7 @@ const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dado
 const emOk = v => v === undefined || v === 'este' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
   && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
+M.seOk = seOk;
 M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   if (f.op === 'modal') return topo && fx.length === 1 && f.modos.some(m => M.fxSuportado(m, { topo: false }));
   const h = H[f.op];
@@ -157,7 +158,7 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
 M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face }) => {
   if (pagaVida) e.jogs[ctrl].vida -= pagaVida;
   const o = M.mover(e, id, 'campo', { virada: vir, face });
-  o.ctrl = ctrl; o.escolha = escolha;
+  o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
 };
@@ -212,6 +213,21 @@ const H = {
       if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) e.jogs[ctx.voce].vida += total;   // CR 702.15b
     },
   },
+  // "X ganha +N/+N e/ou palavra-chave até o fim do turno" (CR 611.2): números e conjunto afetado presos na resolução
+  // (611.2c: quem entrar depois não ganha); vale enquanto o mesmo objeto estiver no campo; a limpeza tira (514.2).
+  // Por ora só 'fimDoTurno' e P/R/palavra-chave sem parâmetro; habilidade, tipo e estática dadas = próxima volta.
+  modificar: {
+    campos: ['p', 'r', 'kw', 'dura'],
+    qtd: q => q === undefined,
+    ok: f => f.dura === 'fimDoTurno' && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0)
+      && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw),
+    fx(e, f, ctx) {
+      const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
+      const n = q => q === undefined ? 0 : typeof q === 'number' ? q : qtdDe(e, q, ctx);   // número direto: −4/−4 não vira 0
+      const p = n(f.p), r = n(f.r);
+      (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: f.kw || [], ts: ++e.ts });
+    },
+  },
   destruir: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel')) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
   exilar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.mover(e, o.id, 'exilio'); } },
   mover: {
@@ -260,7 +276,7 @@ const H = {
         if ((dn.tipos || []).some(t => t === 'Instant' || t === 'Sorcery')) continue;
         const L = ctx.lki && ctx.lki.este;
         if (f.em === 'este' && L && L.id === o.id && (L.transf || 0) !== (o.transf || 0)) continue;
-        o.face = nova; o.transf = (o.transf || 0) + 1;
+        o.face = nova; o.transf = (o.transf || 0) + 1; e.vCamada = (e.vCamada || 0) + 1;
         M.log(e, o.n, 'transforma em', dn.n);
         M.evento(e, { ev: 'transforma', id: o.id });
       }

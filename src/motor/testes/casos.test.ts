@@ -921,6 +921,58 @@ caso('604.3', 'ptDefinido (CDA, camada 7a): Beanstalk Giant com 5 terrenos é 5/
   igual(M.poder(e, b), 4, 'acompanha a contagem');
 });
 
+// ---------- camadas (CR 613): estáticas 'continuo' e 'modificar' até o fim do turno ----------
+caso('613.4c', 'Goblin Chieftain: os outros Goblins seus ganham +1/+1 e ímpeto (613.1f); ele não, o do oponente não; sai e acaba (611.3a)', () => {
+  const e = cena({ campo: [[0, 'Goblin Chieftain'], [0, 'Boggart Brute'], [1, 'Boggart Brute']] });
+  const meu = objN(e, 0, 'Boggart Brute'), dele = objN(e, 1, 'Boggart Brute'), ch = objN(e, 0, 'Goblin Chieftain');
+  igual([M.poder(e, meu), M.resistencia(e, meu)], [4, 3], 'meu Goblin (3/2)');
+  igual([M.poder(e, dele), M.resistencia(e, dele)], [3, 2], 'Goblin do oponente');
+  igual([M.poder(e, ch), M.resistencia(e, ch)], [2, 2], 'o Chieftain (outro)');
+  ok(M.temKw(e, meu, 'pressa') && !M.temKw(e, dele, 'pressa'), 'ímpeto só no meu');
+  M.mover(e, ch.id, 'cemiterio');
+  igual([M.poder(e, meu), M.resistencia(e, meu)], [3, 2], 'sem o Chieftain'); ok(!M.temKw(e, meu, 'pressa'), 'sem ímpeto');
+});
+caso('613.4c', 'Elvish Archdruid: Llanowar Elves fica 2/2; ele mesmo segue 2/2', () => {
+  const e = cena({ campo: [[0, 'Elvish Archdruid'], [0, 'Llanowar Elves']] });
+  igual([M.poder(e, objN(e, 0, 'Llanowar Elves')), M.resistencia(e, objN(e, 0, 'Llanowar Elves'))], [2, 2]);
+  igual(M.poder(e, objN(e, 0, 'Elvish Archdruid')), 2);
+});
+caso('611.2', 'Giant Growth: +3/+3 até o fim do turno; Lightning Bolt não mata o 5/5 (704.5g)', () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Mountain'], [0, 'Grizzly Bears']], mao: [[0, 'Giant Growth'], [0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Giant Growth'); alvoObj(e, 'Grizzly Bears');
+  const resolve = () => { for (let g = 0; e.pilha.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar'); };
+  resolve();
+  const b = objN(e, 0, 'Grizzly Bears');
+  igual([M.poder(e, b), M.resistencia(e, b)], [5, 5], 'com Giant Growth');
+  conj(e, 'Lightning Bolt'); alvoObj(e, 'Grizzly Bears'); resolve();
+  igual(b.dano, 3, 'levou os 3'); ok(noCampo(e).includes('Grizzly Bears'), 'sobreviveu a 3 de dano');
+});
+caso('514.2', 'limpeza: "até o fim do turno" acaba (Giant Growth) e o −4/−4 da Finality mata pela 704.5f', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Llanowar Elves']], passo: 'final' });
+  const b = objN(e, 0, 'Grizzly Bears');
+  M.executar(e, M.carta('Giant Growth').fx[0], { voce: 0, alvos: [[{ o: b.id, ts: b.ts }]], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(M.poder(e, b), 5, 'com Giant Growth');
+  passarAte(e, 'limpeza'); M.avancar(e); if (e.perg && e.perg.tipo === 'descartar') M.responder(e, 0);
+  igual([M.poder(e, b), M.resistencia(e, b)], [2, 2], 'depois da limpeza');
+  const fin = M.dadoFace(M.carta('Find'), 0).fx[1];
+  ok(M.fxSuportado([fin]), 'Finality: modificar −4/−4 em todas é lido');
+  M.executar(e, fin, { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  igual(M.resistencia(e, b), -2, 'Grizzly com −4/−4');
+  M.abe(e);
+  igual(noCampo(e), [], 'as duas morrem (704.5f)'); igual(naZona(e, 0, 'cemiterio'), ['Grizzly Bears']);
+});
+caso('611.2c', 'Heroic Intervention: só os permanentes que estavam no campo na resolução ficam indestrutíveis', () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest'], [0, 'Grizzly Bears']], mao: [[0, 'Heroic Intervention']] });
+  M.avancar(e); conj(e, 'Heroic Intervention');
+  for (let g = 0; e.pilha.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar');
+  const velho = objN(e, 0, 'Grizzly Bears');
+  ok(M.temKw(e, velho, 'indestrutivel') && M.temKw(e, velho, 'antimagia'), 'o que estava no campo');
+  const novo = e.por(0, 'Llanowar Elves');
+  ok(!M.temKw(e, novo, 'indestrutivel'), 'quem entrou depois não ganha');
+  M.mover(e, velho.id, 'mao'); const volta = e.por(0, 'Grizzly Bears');
+  ok(!M.temKw(e, volta, 'indestrutivel'), 'voltou ao campo = objeto novo (400.7)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
