@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco12",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 551–600 (Corpsejack Menace … Digsite Engineer)",
+ "casos": [
+  {
+   "carta": "Corpsejack Menace",
+   "situacao": "uma criatura sua recebe 1 marcador +1/+1 (com Hardened Scales também)",
+   "espera": "recebe 2 (com Scales: 4, você escolhe a ordem: (1+1)×2)"
+  },
+  {
+   "carta": "Corrupted Conviction",
+   "situacao": "sem criatura para sacrificar / com uma",
+   "espera": "não pode conjurar / sacrifica e compra 2"
+  },
+  {
+   "carta": "Coruscation Mage",
+   "situacao": "conjurada pagando prole {2}; depois você conjura uma mágica não criatura",
+   "espera": "duas fontes: cada oponente leva 2"
+  },
+  {
+   "carta": "Courser of Kruphix",
+   "situacao": "topo do grimório é terreno",
+   "espera": "pode jogar o terreno do topo (conta como o terreno do turno) e ganha 1 de vida"
+  },
+  {
+   "carta": "Court of Grace",
+   "situacao": "manutenção sendo o monarca / depois de perder o monarca",
+   "espera": "cria Angel 4/4 voando / cria Spirit 1/1 voando"
+  },
+  {
+   "carta": "Cranial Plating",
+   "situacao": "equipada; você controla 4 artefatos (contando a Plating)",
+   "espera": "+4/+0; {B}{B} move para outra criatura sua a qualquer momento"
+  },
+  {
+   "carta": "Craterhoof Behemoth",
+   "situacao": "entra com 5 outras criaturas suas",
+   "espera": "todas (6) ganham +6/+6 e atropelar até o fim do turno"
+  },
+  {
+   "carta": "Crescent Island Temple",
+   "situacao": "entra com outro Shrine no campo; depois entra um terceiro Shrine",
+   "espera": "2 Monks 1/1 com proeza; depois mais 1"
+  },
+  {
+   "carta": "Crib Swap",
+   "situacao": "mira a criatura de um oponente",
+   "espera": "exila; aquele oponente cria um Shapeshifter 1/1 com metamorfo"
+  },
+  {
+   "carta": "Crimson Wisps",
+   "situacao": "mira uma criatura que entrou neste turno",
+   "espera": "ela fica vermelha e com pressa; você compra 1"
+  },
+  {
+   "carta": "Crossway Troublemakers",
+   "situacao": "Vampiro seu ataca / um Vampiro seu morre",
+   "espera": "tem toque mortífero e vínculo com a vida / pode pagar 2 de vida para comprar 1"
+  },
+  {
+   "carta": "Crowded Crypt",
+   "situacao": "3 criaturas suas morreram; ativa {4}{B}{B}",
+   "espera": "cria 3 Zombies 2/2 (decayed em falta)"
+  },
+  {
+   "carta": "Crown of Gondor",
+   "situacao": "equipada com 4 criaturas suas; entra uma criatura lendária sua",
+   "espera": "+4/+4; você vira o monarca"
+  },
+  {
+   "carta": "Crucible of Worlds",
+   "situacao": "terreno no seu cemitério, ainda sem jogar terreno no turno",
+   "espera": "pode jogar o terreno do cemitério"
+  },
+  {
+   "carta": "Crux of Fate",
+   "situacao": "modo 2 com um Dragon e duas não Dragon no campo",
+   "espera": "destrói só as duas não Dragon"
+  },
+  {
+   "carta": "Crypt Incursion",
+   "situacao": "cemitério do alvo com 3 criaturas e 2 mágicas",
+   "espera": "exila as 3 criaturas, você ganha 9"
+  },
+  {
+   "carta": "Crypt Sliver",
+   "situacao": "dois Slivers em campo (um seu, um do oponente)",
+   "espera": "os dois têm {T}: regenerar Sliver alvo"
+  },
+  {
+   "carta": "Crypt of Agadeem",
+   "situacao": "3 cartas de criatura preta e 1 verde no cemitério; ativa {2},{T}",
+   "espera": "produz BBB"
+  },
+  {
+   "carta": "Cryptbreaker",
+   "situacao": "3 Zombies desvirados",
+   "espera": "vira os 3: compra 1 e perde 1"
+  },
+  {
+   "carta": "Cryptolith Rite",
+   "situacao": "criatura que entrou neste turno",
+   "espera": "não pode virar para mana (enjoo); as outras dão mana de qualquer cor"
+  },
+  {
+   "carta": "Crystalline Sliver",
+   "situacao": "Sliver do oponente em campo",
+   "espera": "também tem manto: você não pode mirá-lo"
+  },
+  {
+   "carta": "Curiosity",
+   "situacao": "encantada causa dano de combate a um oponente",
+   "espera": "você pode comprar 1 (leitura a confirmar: dado como habilidade da encantada)"
+  },
+  {
+   "carta": "Curious Altisaur",
+   "situacao": "dois Dinosaurs seus causam dano de combate a um jogador",
+   "espera": "compra 2"
+  },
+  {
+   "carta": "Cyberdrive Awakener",
+   "situacao": "entra com Sol Ring e uma criatura artefato",
+   "espera": "Sol Ring vira 4/4 até o fim do turno; a criatura artefato ganha voar (tipoTodos)"
+  },
+  {
+   "carta": "Cybermen Squadron",
+   "situacao": "criatura artefato não lendária e uma lendária atacam",
+   "espera": "só a não lendária tem miríade"
+  },
+  {
+   "carta": "Cyclone Summoner",
+   "situacao": "conjurada da mão",
+   "espera": "devolve à mão tudo que não é terreno, Giant ou Wizard (ela fica)"
+  },
+  {
+   "carta": "Damning Verdict",
+   "situacao": "criatura com marcador +1/+1 e outra sem",
+   "espera": "as duas morrem por enquanto (sem marcador em falta)"
+  },
+  {
+   "carta": "Danitha Capashen, Paragon",
+   "situacao": "conjura um Equipamento de {2}",
+   "espera": "custa {1}"
+  },
+  {
+   "carta": "Danny Pink",
+   "situacao": "põe 2 marcadores numa criatura sua; mais um depois no mesmo turno",
+   "espera": "compra 1 só (primeira vez no turno)"
+  },
+  {
+   "carta": "Daretti, Scrap Savant",
+   "situacao": "+2 descartando 2",
+   "espera": "compra 2; −2 sacrificando um artefato devolve artefato alvo do cemitério"
+  },
+  {
+   "carta": "Daretti, Scrap Savant",
+   "situacao": "emblema; artefato seu vai do campo ao cemitério",
+   "espera": "volta ao campo no início da próxima etapa final"
+  },
+  {
+   "carta": "Dark Deal",
+   "situacao": "você com 5 cartas, oponente com 1",
+   "espera": "você descarta 5 e compra 4; o oponente descarta 1 e não compra"
+  },
+  {
+   "carta": "Darksteel Plate",
+   "situacao": "equipada leva destruir",
+   "espera": "não morre"
+  },
+  {
+   "carta": "Dazzling Angel",
+   "situacao": "entram 2 fichas suas",
+   "espera": "ganha 2"
+  },
+  {
+   "carta": "Dazzling Theater",
+   "situacao": "Theater em campo; conjura uma criatura",
+   "espera": "pode convocar; Prop Room: suas criaturas desviram no passo de desvirar dos outros"
+  },
+  {
+   "carta": "Death Baron",
+   "situacao": "Zombie e Skeleton seus",
+   "espera": "+1/+1 e toque mortífero; o próprio Baron não"
+  },
+  {
+   "carta": "Decanter of Endless Water",
+   "situacao": "10 cartas na mão no fim do turno",
+   "espera": "não descarta"
+  },
+  {
+   "carta": "Decimate",
+   "situacao": "oponente sem encantamento",
+   "espera": "não pode conjurar (precisa dos 4 alvos)"
+  },
+  {
+   "carta": "Deeproot Elite",
+   "situacao": "entra outro Merfolk seu",
+   "espera": "marcador +1/+1 em Merfolk seu alvo (pode ser o que entrou)"
+  },
+  {
+   "carta": "Deeproot Pilgrimage",
+   "situacao": "ataca com 3 Merfolk não ficha",
+   "espera": "cria 1 Merfolk 1/1 com antimagia (um ou mais)"
+  },
+  {
+   "carta": "Deeproot Waters",
+   "situacao": "conjura Merfolk",
+   "espera": "cria Merfolk 1/1 com antimagia"
+  },
+  {
+   "carta": "Delighted Halfling",
+   "situacao": "mana colorida para conjurar o comandante lendário",
+   "espera": "pode; a mágica não pode ser anulada"
+  },
+  {
+   "carta": "Demon of Fate's Design",
+   "situacao": "no seu turno conjura dois encantamentos de vm 3",
+   "espera": "o primeiro pode pagar 3 de vida; o segundo paga mana"
+  },
+  {
+   "carta": "Demonic Counsel",
+   "situacao": "cemitério com 3 tipos / 4 tipos",
+   "espera": "busca Demon / busca qualquer carta"
+  },
+  {
+   "carta": "Den of the Bugbear",
+   "situacao": "ativa e ataca",
+   "espera": "3/2 Goblin; cria Goblin 1/1 virado e atacando"
+  },
+  {
+   "carta": "Devoted Druid",
+   "situacao": "ativa duas vezes o desvirar",
+   "espera": "fica 0/0 e morre (−2/−2 numa 0/2)"
+  },
+  {
+   "carta": "Diabolic Intent",
+   "situacao": "sacrifica uma criatura",
+   "espera": "busca qualquer carta para a mão"
+  },
+  {
+   "carta": "Dictate of Erebos",
+   "situacao": "2 criaturas suas morrem",
+   "espera": "cada oponente sacrifica 2"
+  },
+  {
+   "carta": "Diffusion Sliver",
+   "situacao": "oponente mira um Sliver seu sem pagar {2}",
+   "espera": "a mágica/habilidade é anulada"
+  },
+  {
+   "carta": "Digsite Engineer",
+   "situacao": "conjura artefato e paga {2}",
+   "espera": "cria Construct (+1/+1 por artefato em falta)"
+  }
+ ]
+}

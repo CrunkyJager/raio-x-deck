@@ -1,0 +1,1 @@
+{"v":2,"n":"Corrupted Conviction","id":"b45e35df-9032-4482-89a6-c7c50c6d0a79","oracleHash":"1b4941ef","custo":{"p":["B"]},"vm":1,"ci":"B","cores":"B","tipos":["Instant"],"custoAd":{"sacrificar":{"f":{"tipo":["Creature"],"ctrl":"voce","zona":"campo"},"qtd":1}},"fx":[{"op":"comprar","quem":"voce","qtd":2}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco12.json"}}

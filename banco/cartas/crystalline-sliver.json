@@ -1,0 +1,1 @@
+{"v":2,"n":"Crystalline Sliver","id":"ba3aa1eb-722a-47d3-83be-96daddb50265","oracleHash":"85751680","custo":{"p":["W","U"]},"vm":2,"ci":"WU","cores":"WU","tipos":["Creature"],"sub":["Sliver"],"pt":[2,2],"est":[{"modo":"continuo","afeta":{"tipo":["Creature"],"sub":["Sliver"],"zona":"campo"},"kw":[{"k":"manto"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco12.json"}}
