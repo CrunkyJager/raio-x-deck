@@ -115,3 +115,5 @@ Bloco 26 (fila 1251–1300): 50 escritas, 50 casos em bloco26.json; valida 1361/
 Leituras a confirmar: Spelunking "lands enter untapped" como subst `virada:false` (o motor respeita?); Sliver Legion `conta Slivers soma -1` = "cada outro Sliver"; Six com cavar 3 / pega 1 terreno / resto no cemitério = moer 3 e pegar um terreno delas; Soaring Lightbringer uma ficha por declaração de ataque.
 Faltas em lote no pedidos-esquema.md (bloco 26): ficha por jogador atacado 3/0, retrace 2/0, bestow 2/0, ficha com +1/+1 por artefato 2/0; o resto 1/0.
 Agora: avisar o FARSEER (correção 9 + bloco 26 prontos para a v0.24.0).
+Lote do bloco 26 decidido pelo FARSEER em ae0c6d7 (fx `porJogadorAtacado` no op ficha).
+Correção 10 (correcao10.json, 2 casos): Soaring Lightbringer com `porJogadorAtacado` (sai a falta). Adeline e Ainok Strike Leader NÃO mudaram: o Oracle é "for each opponent" (todos os oponentes, atacados ou não); o campo novo daria menos fichas na mesa de 4. Ficam com `repetirCada cadaOponente` e a falta "atacando aquele jogador". Pergunta ao FARSEER: um campo para "atacando o jogador da vez" dentro do repetirCada?
