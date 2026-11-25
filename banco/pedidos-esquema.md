@@ -348,3 +348,13 @@ Contagem: banco 1561 cartas / fila 24 ainda não escritas.
 | gastar N (expend) | 2 | 0 | Trailtracker Scout (8), Wandertale Mentor (4) | gat ev `gasta` com `n` | |
 | dar escape | 2 | 0 | Underworld Breach, Jurassic Park | kw `escape` + est continuo dando kw no cemitério | |
 | o resto 1/0 | | | War Room (vida = cores da identidade do comandante), Wave Goodbye (sem marcador +1/+1 especificamente), Wayward Swordtooth (negar a bênção), Wear Down (2 alvos com presente), Welcome the Dead (cartas no cemitério no turno), Welcome to… cap. I (animar 1 artefato por oponente), Well of Lost Dreams (pagar X no gatilho), Wilhelt (sem decaída), Winding Constrictor (marcador no jogador), Wolf-Skull Shaman (parentesco), Wrath of God (não regenera) | deixar falta | |
+
+## Faltas em lote (bloco 31, para o FARSEER decidir junto)
+Contagem: banco 1585 cartas / fila 0 (a fila acabou no bloco 31).
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| marcadores de qualquer tipo | 2 | 0 | Twenty-Toed Toad (lote 29), Zack Fair (passa os marcadores dele) | `tipoMarc: "qualquer"` no marcador/moverMarcador e na conta marcadoresNoEste | |
+| o resto 1/0 | | | Wrenn and Seven (0: QUALQUER número de terrenos da mão), Yuffie (ninjutsu), Zack Fair (última informação do sacrificado), Zada (mágica que mira SÓ a Zada; uma cópia por criatura diferente), Éowyn Fearless Knight (proteção das cores de outro objeto), Éowyn Shieldmaiden (Humano que entrou neste turno e já saiu) | deixar falta | |
+
+Notas do bloco 31: Ziatora's Proving Ground usa o custoAtv `descartarEste` aprovado (atv `zona mao`, {3}: compra 1). Yenna não conta para "ficha-cópia com exceção" (lote 29): o "isn't legendary" já é `naoLendaria`; o lote segue 2/0.

@@ -1,0 +1,128 @@
+{
+ "bloco": "bloco31",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1501–1524 (Wrenn and Seven … Éowyn, Shieldmaiden): fim da fila",
+ "casos": [
+  {
+   "carta": "Wrenn and Seven",
+   "situacao": "+1 / 0 / −3 / −8",
+   "espera": "revela 4 e terrenos à mão, resto ao cemitério; terrenos da mão virados; Treefolk alcance P/R = terrenos; permanentes do cemitério à mão e emblema sem limite de mão"
+  },
+  {
+   "carta": "Xyris, the Writhing Storm",
+   "situacao": "oponente compra a 2ª carta; Xyris dá dano a jogador",
+   "espera": "Cobra 1/1; você e ele compram o dano"
+  },
+  {
+   "carta": "Yavimaya, Cradle of Growth",
+   "situacao": "no campo",
+   "espera": "todo terreno também é Floresta"
+  },
+  {
+   "carta": "Yenna, Redtooth Regent",
+   "situacao": "paga {2} e vira (feitiço)",
+   "espera": "ficha-cópia não lendária de um encantamento seu de nome único; se Aura, desvira e vidência 2"
+  },
+  {
+   "carta": "Youthful Valkyrie",
+   "situacao": "outro Anjo seu entra",
+   "espera": "+1/+1 nela"
+  },
+  {
+   "carta": "Yuffie, Materia Hunter",
+   "situacao": "entra",
+   "espera": "controla artefato não criatura enquanto no campo; pode anexar Equipamento seu (ninjutsu é falta)"
+  },
+  {
+   "carta": "Zacama, Primal Calamity",
+   "situacao": "conjurada e entra; paga {2}{R}/{2}{G}/{2}{W}",
+   "espera": "desvira seus terrenos; 3 de dano em criatura / destrói artefato ou encantamento / ganha 3"
+  },
+  {
+   "carta": "Zack Fair",
+   "situacao": "entra; paga {1} e sacrifica",
+   "espera": "entra com +1/+1; criatura sua indestrutível, recebe os marcadores e o Equipamento"
+  },
+  {
+   "carta": "Zada, Hedron Grinder",
+   "situacao": "você conjura instantânea/feitiço",
+   "espera": "copia uma vez por outra criatura sua (só alvo Zada é falta)"
+  },
+  {
+   "carta": "Zealous Conscripts",
+   "situacao": "entra",
+   "espera": "controla permanente até o fim do turno, desvira e dá pressa"
+  },
+  {
+   "carta": "Zegana, Utopian Speaker",
+   "situacao": "entra com outra criatura com +1/+1; paga {4}{G}{U}",
+   "espera": "compra 1; adaptar 4; criaturas com +1/+1 atropelam"
+  },
+  {
+   "carta": "Zendikar's Roil",
+   "situacao": "terreno seu entra",
+   "espera": "Elemental 2/2"
+  },
+  {
+   "carta": "Zetalpa, Primal Dawn",
+   "situacao": "combate",
+   "espera": "voar, golpe duplo, vigilância, atropelar, indestrutível"
+  },
+  {
+   "carta": "Ziatora's Proving Ground",
+   "situacao": "entra; descarta pagando {3}",
+   "espera": "virado; {B}/{R}/{G}; ciclar: compra 1 (custoAtv descartarEste)"
+  },
+  {
+   "carta": "Zombie Apocalypse",
+   "situacao": "conjura",
+   "espera": "Zumbis do cemitério voltam virados; destrói os Humanos"
+  },
+  {
+   "carta": "Zombie Master",
+   "situacao": "oponente tem Pântano; paga {B}",
+   "espera": "outros Zumbis passam; Zumbis regeneram"
+  },
+  {
+   "carta": "Zul Ashur, Lich Lord",
+   "situacao": "vira; alvo dele",
+   "espera": "conjura Zumbi do cemitério neste turno; resguardo pagar 2 de vida"
+  },
+  {
+   "carta": "Zulaport Cutthroat",
+   "situacao": "ela ou criatura sua morre",
+   "espera": "cada oponente perde 1, você ganha 1"
+  },
+  {
+   "carta": "Zur the Enchanter",
+   "situacao": "ataca",
+   "espera": "busca encantamento VM ≤ 3 para o campo"
+  },
+  {
+   "carta": "Zur, Eternal Schemer",
+   "situacao": "paga {1}{W}",
+   "espera": "encantamento não Aura vira criatura VM/VM; criaturas-encantamento com toque mortífero, vínculo e antimagia"
+  },
+  {
+   "carta": "Zurgo Stormrender",
+   "situacao": "ficha-criatura sua sai",
+   "espera": "atacando: compra 1; senão cada oponente perde 1; mobilizar 1"
+  },
+  {
+   "carta": "Éomer, King of Rohan",
+   "situacao": "entra com 2 outros Humanos",
+   "espera": "+2 marcadores; jogador vira monarca; dano igual ao poder em qualquer alvo"
+  },
+  {
+   "carta": "Éowyn, Fearless Knight",
+   "situacao": "entra",
+   "espera": "exila criatura de oponente com poder maior (proteção das cores é falta)"
+  },
+  {
+   "carta": "Éowyn, Shieldmaiden",
+   "situacao": "início do combate com outro Humano que entrou",
+   "espera": "2 Cavaleiros 2/2 atropelar e pressa; com 6 Humanos compra 1"
+  }
+ ]
+}
