@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.20.0 — 25/11/2026 · camadas do motor (CR 613) e banco com 1161 cartas
+Testes: valida 1161/0 · check 0 erros · Vitest 153/153 (15 s) · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok. Motor joga inteiras 601/1161 (eram 488/1061).
+- **Motor (A, camadas volta 1):** CR 613 camada 6 (palavras-chave dadas) e 7c (somar P/R) a partir das estáticas `continuo` no campo; `modificar` até o fim do turno com números presos na resolução (611.2c) e limpeza (514.2). Poder, resistência e palavras-chave passam pelas camadas; proteção e toque mortífero dados valem no combate. Lista de fontes guardada: Vitest em 15 s. Ferramenta `ferramentas/motor-cobertura.mjs`.
+- **Banco (B):** bloco 21 (1001–1050) e bloco 22 (1051–1100), 50 casos cada; correção 5 (22 cartas com os campos dos lotes 17–21).
+- **Esquema (lotes 21 e 22):** cond `fasePrincipal`, filtro `entrouNoTurno`, est `naoPodeAtivar` e `cores`, kw `intimidar` e `decaida`, fx `semRegenerar`, prop `maiorVm`, gat `naoPrimeira`, modos `aleatorio`.
+
 ## v0.19.0 — 25/11/2026 · banco com 1061 cartas
 Testes: valida 1061/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok.
 - **Banco (B):** bloco 19 (901–950, 50 casos: Living Death, Liesa, Luminous Broodmoth, Lotus Cobra…) e bloco 20 (951–1000, 50 casos: Meren, Mikaeus, Mirari's Wake, Mizzix's Mastery…).
