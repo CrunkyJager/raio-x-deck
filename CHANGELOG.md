@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.27.0 — 25/11/2026 · banco completo da fila do Oracle (1585 cartas); motor rápido com fichas em massa
+Testes: valida 1585/0 · check 0 erros · Vitest 169/169 (~28 s; era ~65 s) · testa 161/161 · verifica verde · build ok. Motor joga inteiras 827/1585.
+- **Motor (A):** fichas em massa sem travar (índice do campo, lote e cemitério; a semente do fuzz com 13 mil Goblins caiu de 59 s para 5 s, partidas idênticas antes/depois); estáticas da própria ficha (`token.est`: Constructs, Gnome Soldier com P/R definido).
+- **Banco (B):** correção 15 (custo `descartarEste`: Otawara, Shigeki, Trumpeting Carnosaur), bloco 30 (1451–1500) e bloco 31 (últimas 24 cartas, Wrenn and Seven … Éowyn). A fila do Oracle acabou.
+- Ainda não lidos pelo motor: `ganhaVida`, `descartarEste` (próximos itens do A).
+
 ## v0.26.0 — 25/11/2026 · motor cava o topo do grimório; banco com 1511 cartas
 Testes: valida 1511/0 · check 0 erros · Vitest 167/167 · testa 161/161 · partidas e lacunas = base · verifica verde · build ok. Motor joga inteiras 801/1511.
 - **Motor (A):** `op cavar` (olhar/revelar do topo, até achar, destinos, resto no topo ou no fundo); sacrificar guarda o resultado (Empty the Laboratory); gatilho com alvo sem alvo declarado não joga. 7 casos (701.16).
