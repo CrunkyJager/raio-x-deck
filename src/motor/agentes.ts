@@ -159,6 +159,10 @@ function bloquearBasico(e, p) {
   const d = p.j, o = id => e.objs[id], vm = x => M.dadoDe(e, x).vm || 0;
   const ja = new Set(p.ctx.bl.map(x => x[1]));
   const pronto = p.ops.findIndex(op => op.a === 'pronto');
+  if (pronto < 0 && (p.ctx.devem || []).length) {                                // bloqueio obrigatório (509.1c)
+    const k = p.ops.findIndex(op => op.a === 'bloquear' && p.ctx.devem.includes(op.id));
+    if (k >= 0) return k;
+  }
   if (pronto < 0) {                                                               // ameaça com um só: põe outro ou desfaz
     const k = p.ops.findIndex(op => op.a === 'bloquear' && p.ctx.bl.some(x => x[1] === op.atk));
     return k >= 0 ? k : Math.max(0, p.ops.findIndex(op => op.a === 'desfazer'));

@@ -86,6 +86,8 @@ M.PROC.atacar = (e, P, ask) => {
     if (!kw(e, o, 'vigilancia')) o.virada = true;                                          // 508.1f
     C.atk.push({ id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
   }
+  // quem atacou quem neste turno (contas ataquesNoTurno/atacantesEmVoce; o combate some no fim do combate)
+  e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def })));
   for (const r of C.atk) M.evento(e, { ev: 'ataca', id: r.id, def: r.def });          // 508.3a
   if (C.atk.length) M.evento(e, { ev: 'atacantesDeclarados', j: a, n: C.atk.length });
   if (C.atk.length) M.log(e, e.jogs[a].nome, 'ataca com', C.atk.map(r => e.objs[r.id].n + '→' + (r.alvo.jog !== undefined ? e.jogs[r.alvo.jog].nome : e.objs[r.alvo.o].n)).join(', '));
@@ -106,6 +108,26 @@ function bloqueiaEste(e, b, at) {                                               
   return true;
 }
 M.podeBloquear = podeBloquear; M.bloqueiaEste = bloqueiaEste;
+// 509.1c: requisitos de bloqueio ("bloqueia neste turno se puder", "bloqueia aquela criatura se puder"). Fontes: est
+// deveBloquear afeta 'este' da carta e as do modificar até o fim do turno (e.temp: atk = o atacante preso na resolução).
+// Devolve null (sem requisito), 'qualquer' ou a lista de atacantes (índices em meus) que cumprem.
+// Simplificação: atacante com ameaça não força (bloqueá-lo sozinho é ilegal e o máximo de requisitos pediria
+// escolher outro bloqueador junto, 509.1c); o defensor ainda pode bloqueá-lo.
+function requisitoBloqueio(e, b, meus, C) {
+  let geral = estEste(e, b, 'deveBloquear', false);
+  const atks: any[] = [];
+  for (const t of e.temp || []) {
+    if (!t.est || !t.ids.some(x => x.id === b.id && x.ts === b.ts)) continue;
+    for (const s of t.est) if (s.modo === 'deveBloquear') { if (s.atk) atks.push(s.atk); else geral = true; }
+  }
+  if (!geral && !atks.length) return null;
+  const pode = i => { const at = e.objs[C.atk[i].id]; return !kw(e, at, 'ameaca') && bloqueiaEste(e, b, at); };
+  const esp = meus.filter(i => atks.some(a => a.id === C.atk[i].id && a.ts === C.atk[i].ts) && pode(i));
+  if (esp.length) return esp;                                      // aquele atacante, se der; senão o "se puder" geral
+  if (geral && meus.some(pode)) return 'qualquer';
+  return null;
+}
+M.requisitoBloqueio = requisitoBloqueio;
 M.PROC.bloquear = (e, P, ask) => {
   const d = P.j, C = e.turno.combate;
   const meus = C.atk.map((r, i) => i).filter(i => C.atk[i].def === d && emCombate(e, C.atk[i]));
@@ -115,13 +137,16 @@ M.PROC.bloquear = (e, P, ask) => {
     const conta: any = {}; for (const k in bl) conta[bl[k]] = (conta[bl[k]] || 0) + 1;
     // 702.110b: ameaça precisa de dois ou mais; fechar só quando nenhuma está com um só
     const presa = meus.filter(i => conta[i] === 1 && kw(e, e.objs[C.atk[i].id], 'ameaca'));
-    const ops: any[] = presa.length ? [] : [{ a: 'pronto' }];
+    const devem: any[] = [], ops: any[] = [];
     for (const id of cands) {
       if (bl[id] !== undefined) continue;
-      for (const i of meus) if (bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
+      const rq = requisitoBloqueio(e, e.objs[id], meus, C);
+      if (rq) devem.push(id);
+      for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
     }
+    if (!presa.length && !devem.length) ops.unshift({ a: 'pronto' });
     if (presa.length) for (const k in bl) if (presa.includes(bl[k])) ops.push({ a: 'desfazer', id: +k });
-    const op = ask(d, 'bloquear', ops, { atacantes: meus.map(i => C.atk[i].id), bl: Object.keys(bl).map(k => [+k, C.atk[bl[k]].id]) });
+    const op = ask(d, 'bloquear', ops, { atacantes: meus.map(i => C.atk[i].id), bl: Object.keys(bl).map(k => [+k, C.atk[bl[k]].id]), devem });
     if (op.a === 'pronto') break;
     if (op.a === 'desfazer') delete bl[op.id];
     else bl[op.id] = meus.find(i => C.atk[i].id === op.atk);
