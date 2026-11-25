@@ -1157,9 +1157,19 @@
     },
     "pt": {
      "type": "array",
+     "minItems": 2,
+     "maxItems": 2,
      "items": {
-      "type": "integer"
-     }
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "$ref": "#/$defs/qtd"
+       }
+      ]
+     },
+     "description": "P/R da ficha; contagem ou X vale o número no momento de criar (Assemble the Entmoot X/X)"
     },
     "cores": {
      "type": "string"
@@ -1780,6 +1790,13 @@
     "por": {
      "$ref": "#/$defs/filtro",
      "description": "naoPodeSerBloqueada / naoPodeBloquear: filtro de QUEM bloqueia (Amrou Kithkin)"
+    },
+    "sub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "subtipos que o continuo dá além dos tipos (Ashaya: tipo Land + sub Forest; 305.6/305.7)"
     }
    }
   },
