@@ -80,6 +80,11 @@
    "espera": "custa 1 a menos"
   },
   {
+   "carta": "Goblin Anarchomancer",
+   "situacao": "você conjura uma mágica vermelha e verde de 3",
+   "espera": "custa 1 a menos (não 2)"
+  },
+  {
    "carta": "Goblin Chieftain",
    "situacao": "você tem outro Goblin 1/1",
    "espera": "ele fica 2/2 com pressa; o Chieftain tem pressa"

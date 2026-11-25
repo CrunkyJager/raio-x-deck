@@ -131,6 +131,7 @@ export type RxQtd =
             | 'vmDoAlvo'
             | 'vmDoEvento'
             | 'vmDoSacrificado'
+            | 'poderDoSacrificado'
             | 'poderDoEste'
             | 'poderDoEvento'
             | 'resistDoEvento'
@@ -267,7 +268,10 @@ export interface RxFiltro {
   super?: string[];
   ctrl?: 'voce' | 'oponente' | 'qualquer' | 'alvo' | 'cadaAtual' | 'doEvento';
   dono?: 'voce' | 'oponente' | 'qualquer' | 'alvo' | 'cadaAtual' | 'doEvento';
-  cor?: string;
+  /**
+   * cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)
+   */
+  cor?: string | string[];
   zona?: RxZona;
   virada?: boolean;
   atacando?: boolean;
@@ -362,6 +366,10 @@ export interface RxAlvo {
    * alvo só existe se o modo N (fx modal) for escolhido
    */
   modo?: number;
+  /**
+   * um alvo para cada oponente (até 1 de cada)
+   */
+  porOponente?: boolean;
 }
 
 /**
@@ -481,7 +489,10 @@ export interface RxFx {
     | 'vigiar'
     | 'lutar'
     | 'moverMarcador'
-    | 'tentarAnel';
+    | 'tentarAnel'
+    | 'explorar'
+    | 'amassar'
+    | 'popular';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -865,7 +876,8 @@ export interface RxGat {
     | 'saiCemiterio'
     | 'fichaCriada'
     | 'viraParaMana'
-    | 'descarta';
+    | 'descarta'
+    | 'moe';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */

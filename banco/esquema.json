@@ -288,6 +288,7 @@
           "vmDoAlvo",
           "vmDoEvento",
           "vmDoSacrificado",
+          "poderDoSacrificado",
           "poderDoEste",
           "poderDoEvento",
           "resistDoEvento",
@@ -524,7 +525,18 @@
      ]
     },
     "cor": {
-     "type": "string"
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      }
+     ],
+     "description": "cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)"
     },
     "zona": {
      "$ref": "#/$defs/zona"
@@ -700,6 +712,10 @@
     "modo": {
      "type": "integer",
      "description": "alvo só existe se o modo N (fx modal) for escolhido"
+    },
+    "porOponente": {
+     "type": "boolean",
+     "description": "um alvo para cada oponente (até 1 de cada)"
     }
    }
   },
@@ -945,7 +961,10 @@
       "vigiar",
       "lutar",
       "moverMarcador",
-      "tentarAnel"
+      "tentarAnel",
+      "explorar",
+      "amassar",
+      "popular"
      ]
     },
     "talvez": {
@@ -1669,7 +1688,8 @@
       "saiCemiterio",
       "fichaCriada",
       "viraParaMana",
-      "descarta"
+      "descarta",
+      "moe"
      ]
     },
     "naoMorre": {

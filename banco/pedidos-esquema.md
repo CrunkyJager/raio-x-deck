@@ -41,18 +41,25 @@
 | Dour Port-Mage (bloco 13) | "leave the battlefield without dying" | gat sai sem morte | decidido FARSEER: gat `naoMorre: true` com ev `sai` |
 | tipoMarc (bloco 13) | nomes de marcador | padrão | decidido FARSEER: inglês do Oracle (growth, charge…) |
 
-## Decisões do lote do bloco 15 (FARSEER 25/11)
-- rad: SEM campo novo; marcador `rad` em jogador (op marcador) + regra do motor no início da principal 1 (fila do A).
-- revelar até achar: fx `ateAchar {f, qtd}` no cavar.
-- historic: filtro `historico: true`.
-- mover marcadores: op `moverMarcador` (`em` = de onde, `paraObj` = quem recebe, `tipoMarc`, `qtd`).
-- fim de combate: passo `fimCombate`.
-- Anel: op `tentarAnel` + cond `portadorDoAnel`.
-- Classe: `niveis: [{n, custo, est/gat/atv}]` na carta.
-- exílio jogável: `destinos` vale também no cavar (Expressive Iteration).
-- ao acaso: fx `aleatorio: true` no descartar.
-- deHabil vale também no reduzCusto (Forensic Gadgeteer).
-- Ficam em `falta` por ora (≤2 cartas): rebound, Room, monstruoso, meld, dash.
+## Faltas em lote (bloco 15, para o FARSEER decidir junto)
+Contagem: cartas do banco com a frase em `falta` (811 cartas) e cartas da fila que ainda não escrevemos (774) com a mecânica no Oracle.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| rad (marcador em jogador + regra da principal 1) | 2 | 14 | Bloatfly Swarm, Contaminated Drink (Feral Ghoul já põe `marcador rad` em jogador) | regra do motor no início da principal 1 (revela N do topo, moer, perde 1 por não-terreno e tira o marcador); o esquema já escreve o marcador | |
+| revelar ATÉ achar N | 2 | 6 | Empty the Laboratory, Etali | `cavar.ate {f, qtd}` (revela até achar qtd que batem em f; resto conforme `resto`) | |
+| historic (artefato, lendário ou Saga) | 1 | 3 | Excalibur | filtro `historico: true` | |
+| mover marcadores | 1 | 3 | Forgotten Ancient | op `moverMarcador {de, para, tipoMarc, qtd}` | |
+| fim de combate | 1 | 3 | Flamerush Rider | passo `fimCombate` (gatilhoAtrasado: exilar a ficha) | |
+| o Anel te tenta | 3 | 0 | Boromir Warden, Call of the Ring, Frodo | op `tentarAnel` + cond `portadorDoAnel` | |
+| níveis de Classe | 2 | 1 | Caretaker's Talent, Fighter Class | `niveis: [{n, custo, est/gat/atv}]` na carta (o kw `classe` já existe sem campos) | |
+| exílio jogável | 1 | 6 | Expressive Iteration | já dá com `cavar para exilio` + `jogar` `lembrada` `dura fimDoTurno` (Birgi); a falta da Expressive é o cavar com 3 destinos: `cavar.destinos` como no buscar | |
+| descartar ao acaso | 1 | 2 | Gamble | `descartar.aleatorio: true` | |
+| rebound | 1 | 0 | Ephemerate | kw `rebote` | |
+| Room (destrancar porta) | 2 | 0 | Dazzling Theater, Funeral Room | gat `destranca` + atv de destrancar como feitiço | |
+| monstruoso | 2 | 0 | Alpha Deathclaw, Giggling Skitterspike | kw `monstruosidade n` + cond `monstruoso` | |
+| meld | 2 | 0 | Gisela the Broken Blade, Bruna | forma `meld` | |
+| dash | 1 | 1 | Flamerush Rider | kw `investida custo` | |
 
 ## Faltas em lote (bloco 16, para o FARSEER decidir junto)
 Contagem: banco 861 cartas / fila 724 ainda não escritas. As do bloco 15 seguem na tabela acima (rad agora 2/13 — Glowing One já põe o marcador; meld 3/1 com Hanweir Garrison).
@@ -69,3 +76,24 @@ Contagem: banco 861 cartas / fila 724 ainda não escritas. As do bloco 15 seguem
 | desvirar outras como custo | 1 | 0 | Halo Fountain (escrito com `se` de N viradas) | custoAtv `desvirarOutros {f, qtd}` | |
 | sacrificar este E outras | 1 | 0 | Glass-Cast Heart (escrito só as 13 Blood) | custoAtv `sacrificar` aceitar lista | |
 | replicar, morph, skulk, olhar a mão | 1 cada | 0 | Hatchery Sliver, Grim Haruspex, Gollum, Gitaxian Probe | kw `replicar custo`, `morph custo`, `espreitar`; olhar a mão sem efeito no jogo (pode ficar falta) | |
+
+## Decisões do lote do bloco 15 (FARSEER 25/11)
+- rad: SEM campo novo; marcador `rad` em jogador (op marcador) + regra do motor no início da principal 1 (fila do A).
+- revelar até achar: fx `ateAchar {f, qtd}` no cavar.
+- historic: filtro `historico: true`.
+- mover marcadores: op `moverMarcador` (`em` = de onde, `paraObj` = quem recebe, `tipoMarc`, `qtd`).
+- fim de combate: passo `fimCombate`.
+- Anel: op `tentarAnel` + cond `portadorDoAnel`.
+- Classe: `niveis: [{n, custo, est/gat/atv}]` na carta.
+- exílio jogável: `destinos` vale também no cavar (Expressive Iteration).
+- ao acaso: fx `aleatorio: true` no descartar.
+- deHabil vale também no reduzCusto (Forensic Gadgeteer).
+- Ficam em `falta` por ora (≤2 cartas): rebound, Room, monstruoso, meld, dash.
+
+## Decisões do lote do bloco 16 (FARSEER 25/11)
+- conta `poderDoSacrificado` (Greater Good).
+- op `explorar` (701.44), op `amassar` (`sub` = tipo do Exército, `qtd`), op `popular`.
+- gat ev `moe` (uma ou mais cartas moídas; `quem`/`f` filtram as cartas).
+- filtro `cor` aceita lista = alguma destas. Goblin Anarchomancer: UMA redução com `cor ["R","G"]` (escrito com 2 reduções = −2 numa mágica RG: ERRADO).
+- alvo `porOponente: true`.
+- Ficam em `falta` por ora: desvirarOutros no custo, sacrificar este + outras, replicar, morph, skulk, marcadores do Gluntch.
