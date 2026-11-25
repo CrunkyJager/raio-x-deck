@@ -147,7 +147,7 @@ M.fasearDentro = (e, j) => {
 M.tempDe = (e, modo) => { const r: any[] = []; for (const t of e.efTemp || []) for (const s of t.est) if (s.modo === modo) r.push({ s, t }); return r; };
 M.tempAfeta = (e, o, s, t) => {
   if (s.afeta === 'este') return !!t.este && o.id === t.este.id && o.ts === t.este.ts;
-  if (s.afeta === undefined) return !!t.ids && t.ids.some(x => x.id === o.id && x.ts === o.ts);
+  if (s.afeta === undefined) return M.tempTem(t, o);
   if (s.afeta && typeof s.afeta === 'object') { try { return M.bate(e, o, s.afeta, { voce: t.ctrl, este: t.este ? t.este.id : undefined }); } catch (_) { return false; } }
   return false;
 };
@@ -284,8 +284,11 @@ const equiparDe = kw => {
 // leituras de P/R e palavra-chave usam só a carta (sem camadas). Nenhum filtro do banco hoje depende de outra camada.
 const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se', 'habil']);
 const CONTA_EST = new Set(['cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste']);
+// prop: em vez de quantos, soma/maior de uma característica dos que batem (Ghalta, The Great Henge, Metalwork Colossus, Excalibur)
+const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm']);
 const qtdEstOk = q => q === undefined || typeof q === 'number'
-  || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste')
+  || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de', 'prop'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste')
+    && (q.prop === undefined || (PROP_EST.has(q.prop) && typeof q.conta === 'object'))
     && (typeof q.conta === 'string' ? CONTA_EST.has(q.conta) : !!q.conta && typeof q.conta === 'object' && M.filtroOk(q.conta)));
 M.qtdEstOk = qtdEstOk;
 M.kwListaOk = kw => (kw || []).every(x => x && typeof x.k === 'string');   // palavra-chave dada = mesmo formato da kw da carta
@@ -367,6 +370,30 @@ function afeta(e, F, s, o, ctx) {
   if (s.afeta === 'equipada') return !!F.anexo && F.anexo.id === o.id && F.anexo.ts === o.ts;
   return M.bate(e, o, { zona: 'campo', ...s.afeta }, ctx);
 }
+// o efeito temporário t (e.temp, e.efTemp) vale para o? t.ids não muda depois de criado: o conjunto fica guardado.
+// Antes era t.ids.some a cada leitura: 74 efeitos de +1/+0 num turno, 319 Goblins cada, e cada P/R lido varria 23 mil
+// ids (fuzz semente 1039, 34 s).
+const IDS_T = new WeakMap<any, Set<string>>();
+M.tempTem = (t, o) => {
+  if (!t.ids) return false;
+  let S = IDS_T.get(t.ids); if (!S) IDS_T.set(t.ids, S = new Set(t.ids.map(x => x.id + ':' + x.ts)));
+  return S.has(o.id + ':' + o.ts);
+};
+// soma dos 'modificar' até o fim do turno por objeto (id:ts). e.temp só cresce no turno (e vira [] novo na virada),
+// então o índice só acrescenta as entradas novas.
+const SOMA_T = new WeakMap<any[], { n: number; m: Map<string, { p: number; r: number; kw: any[] }> }>();
+function somaTemp(temp: any[]) {
+  let I = SOMA_T.get(temp);
+  if (!I || I.n > temp.length) SOMA_T.set(temp, I = { n: 0, m: new Map() });
+  for (; I.n < temp.length; I.n++) {
+    const t = temp[I.n];
+    for (const x of t.ids) {
+      const k = x.id + ':' + x.ts; let v = I.m.get(k); if (!v) I.m.set(k, v = { p: 0, r: 0, kw: [] });
+      v.p += t.p || 0; v.r += t.r || 0; for (const w of t.kw || []) v.kw.push(w);
+    }
+  }
+  return I.m;
+}
 // Leitura em lote (M.lote): enquanto o estado não muda (ABE olhando o campo, opções de prioridade/ataque/bloqueio,
 // agente decidindo), a contagem de uma estática ('conta', ex. Coat of Arms) é a mesma para todo objeto afetado: ela
 // só depende da fonte (ctx = controlador e a própria fonte, lida sem camadas). Sem isso, mil fichas de Goblin com o
@@ -401,16 +428,21 @@ function camadas(e, o, lote?: any[]) {
       for (const x of s.kw || []) kw.push(x);
       if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
-    for (const t of temp) {
-      if (!t.ids.some(x => x.id === o.id && x.ts === o.ts)) continue;
-      p += t.p || 0; r += t.r || 0; for (const x of t.kw || []) kw.push(x);
-    }
+    const T = temp.length ? somaTemp(temp).get(o.id + ':' + o.ts) : undefined;
+    if (T) { p += T.p; r += T.r; for (const x of T.kw) kw.push(x); }
     return { p, r, kw, gat, atv };
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
 M.qtdEst = (e, q, ctx) => {
   if (typeof q === 'number') return q;
+  if (typeof q.conta === 'object' && q.prop) {
+    const os = M.objetosQue(e, q.conta, ctx);
+    const v = q.prop === 'somaVm' ? os.reduce((s, o) => s + (M.dadoDe(e, o).vm || 0), 0)
+      : q.prop === 'somaPoder' ? os.reduce((s, o) => s + Math.max(0, M.poder(e, o)), 0)
+      : os.reduce((m, o) => Math.max(m, M.poder(e, o)), 0);      // maiorPoder (sem criatura: 0)
+    return v * (q.mult || 1) + (q.soma || 0);
+  }
   if (typeof q.conta === 'object') return M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
   const J = e.jogs[ctx.voce], este = e.objs[ctx.este];
   const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'suaVida' ? J.vida
@@ -458,7 +490,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -472,9 +504,12 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha))) return false;
   if (f.sub && !f.sub.some(s => (d.sub || []).includes(s === 'escolhido' ? escolhidoDe(e, ctx) : s))) return false;   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
+  if (f.tipoTodos && !f.tipoTodos.every(t => (d.tipos || []).includes(t))) return false;            // criatura artefato (Mycosynth Golem)
+  if (f.historico && !((d.tipos || []).includes('Artifact') || (d.super || []).includes('Legendary') || (d.sub || []).includes('Saga'))) return false;   // CR 700.6
   if (f.ctrl && !quemBate(e, o.ctrl, f.ctrl, voce)) return false;
   if (f.dono && !quemBate(e, o.dono, f.dono, voce)) return false;
-  if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => (d.cores || '').includes(COR_NOME[c] || c))) return false;
+  // 'C'/'Colorless' = incolor (CR 105.2c: sem cor nenhuma; Mystic Forge, Ugin): includes('C') nunca casava
+  if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => c === 'C' || c === 'Colorless' ? !(d.cores || '') : (d.cores || '').includes(COR_NOME[c] || c))) return false;
   if (f.virada !== undefined && !!o.virada !== !!f.virada) return false;
   if (f.comandante !== undefined && !!o.cmd !== !!f.comandante) return false;
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;

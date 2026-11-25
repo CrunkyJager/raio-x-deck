@@ -118,7 +118,7 @@ function requisitoBloqueio(e, b, meus, C) {
   let geral = estEste(e, b, 'deveBloquear', false);
   const atks: any[] = [];
   for (const t of e.temp || []) {
-    if (!t.est || !t.ids.some(x => x.id === b.id && x.ts === b.ts)) continue;
+    if (!t.est || !M.tempTem(t, b)) continue;
     for (const s of t.est) if (s.modo === 'deveBloquear') { if (s.atk) atks.push(s.atk); else geral = true; }
   }
   if (!geral && !atks.length) return null;
