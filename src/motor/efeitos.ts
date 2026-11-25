@@ -111,6 +111,24 @@ const fonteDado = (e, ctx) => {
   return ctx.lki.este ? M.dadoFace(M.carta(ctx.lki.este.n), ctx.lki.este.face) : {};
 };
 
+// fonte do dano que não é esta carta (CR 120.3, 609.7): {alvo:N} = o objeto alvo (Chandra's Ignition); 'doEvento' = o
+// objeto do evento do gatilho (a que entrou/atacou: Warstorm Surge, Ingris; no ev dano, a que recebeu). No campo, com
+// as camadas (palavra-chave dada vale); fora dele, a última informação (LKI do alvo, ou a carta). null = não há fonte.
+function fonteOutra(e, fo, ctx) {
+  let o: any = null, l: any = null;
+  if (fo === 'doEvento') { const ev = ctx.ev; o = ev ? e.objs[ev.ev === 'dano' ? ev.o : ev.id] : null; }
+  else {
+    const a = (ctx.alvos[fo.alvo] || [])[0];
+    if (!a || a.o === undefined || ctx.ilegal[fo.alvo + ':0']) return null;
+    o = e.objs[a.o]; l = ctx.lki.alvos && (ctx.lki.alvos[fo.alvo] || [])[0];
+    if (o && l && o.ts !== l.ts) o = null;                           // mudou de zona: virou outro objeto (400.7)
+  }
+  if (o && o.zona === 'campo') return { kw: M.kwDe(e, o), ctrl: o.ctrl };
+  if (o) return { kw: M.dadoDe(e, o).kw || [], ctrl: o.ctrl };
+  if (l) return { kw: M.dadoFace(M.carta(l.n), l.face).kw || [], ctrl: l.ctrl };
+  return null;
+}
+
 // ---------- executar um efeito ----------
 M.executar = (e, f, ctx, ask) => {
   if (f.se && !M.condicao(e, f.se, ctx)) return;                     // CR 608.2c: condição lida na hora
@@ -203,6 +221,8 @@ function danoEm(e, alvoObj, q, fonte) {
 const H = {
   comprar: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) M.comprar(e, j, q); } },
   dano: {
+    campos: ['fonte'],
+    ok: f => f.fonte === undefined || f.fonte === 'doEvento' || (!!f.fonte && typeof f.fonte === 'object' && Number.isInteger(f.fonte.alvo) && Object.keys(f.fonte).length === 1),
     fx(e, f, ctx) {                                                 // CR 120
       let q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
       // dividir 'igual' (Fireball): cada alvo leva o piso de X ÷ alvos escolhidos ao conjurar (CR 601.2d); o que
@@ -210,13 +230,14 @@ const H = {
       const ia = f.em && typeof f.em.alvo === 'number' ? f.em.alvo : -1, def = ia >= 0 && (ctx.defAlvos || [])[ia];
       if (def && def.dividir === 'igual') q = Math.floor(q / Math.max(1, (ctx.alvos[ia] || []).length));
       if (q <= 0) return;
-      const fonte = fonteDado(e, ctx);
+      const fonte = f.fonte === undefined ? { kw: fonteDado(e, ctx).kw, ctrl: ctx.voce } : fonteOutra(e, f.fonte, ctx);
+      if (!fonte) return;
       let total = 0;
       for (const o of objsDe(e, f, ctx)) { danoEm(e, o, q, fonte); total += q; }
       const js = f.em && typeof f.em.alvo === 'number' ? jogsAlvo(e, f.em.alvo, ctx) : [];
       const jq = f.quem ? jogsDe(e, f, ctx) : [];
       for (const j of [...new Set([...js, ...jq])]) { e.jogs[j].vida -= q; total += q; }   // CR 120.3a
-      if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, ctx.voce, total);   // CR 702.15b
+      if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, fonte.ctrl, total);   // CR 702.15b: quem controla a fonte
     },
   },
   // "X ganha +N/+N e/ou palavra-chave até o fim do turno" (CR 611.2): números e conjunto afetado presos na resolução

@@ -349,13 +349,14 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
   for (const k in f) if (!FILTRO_OK.has(k)) throw new Error('filtro sem suporte no motor2: ' + k);
   const d = M.dadoDe(e, o), voce = ctx.voce;
   if (f.este && o.id !== ctx.este) return false;
+  if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.outro && o.id === ctx.este) return false;
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;

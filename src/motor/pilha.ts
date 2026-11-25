@@ -458,7 +458,7 @@ const PROC = {
       if (tem && !legais) { e.proc = null; M.log(e, o.n, 'não resolve: alvos ilegais'); tirarDaPilha(e, o); return; }
       P.i = 0;
     }
-    const ctx = { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id };
+    const ctx = { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null };
     while (P.i < fx.length) {
       M.executar(e, fx[P.i], ctx, ask);
       P.i++; ask.etapa();
