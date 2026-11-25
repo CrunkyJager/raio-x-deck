@@ -545,7 +545,7 @@ caso('106.6', 'restrição que o núcleo não lê (tipo Card, filtro vazio) não
 const ate = (e, tipo) => { M.avancar(e); let g = 0; while (e.perg && e.perg.tipo !== tipo) { ok(e.perg.tipo === 'acao', 'pergunta inesperada: ' + e.perg.tipo); M.responder(e, 0); if (++g > 500) throw new Error('não chegou em ' + tipo); } ok(e.perg, 'não perguntou ' + tipo); };
 // responde e para na principal 2 (sem isso o laço seguia para o turno do outro, que também ataca)
 const PARA2 = x => x.turno.passo === 'principal2';
-const respC = (e, pred) => { const k = e.perg.ops.findIndex(pred); ok(k >= 0, 'opção não existe'); M.responder(e, k, PARA2); };
+const respC = (e, pred) => { const k = e.perg.ops.findIndex(pred); ok(k >= 0, 'opção não existe: ' + e.perg.tipo + ' ' + JSON.stringify(e.perg.ops).slice(0, 200)); M.responder(e, k, PARA2); };
 const atacaCom = (e, o, alvo: any = { jog: 1 }) => respC(e, x => x.a === 'atacar' && x.id === o.id && (alvo.jog !== undefined ? x.jog === alvo.jog : x.o === alvo.o));
 const pronto = e => respC(e, x => x.a === 'pronto');
 // fecha a declaração se ela ainda estiver aberta (com uma opção só o núcleo fecha sozinho)
@@ -1322,6 +1322,59 @@ caso('702.174', 'oferta de presente (Wear Down): o oponente compra antes, dois a
   igual(naZona(e, 1, 'cemiterio').sort(), ['Mind Stone', 'Sol Ring'], JSON.stringify(e.log.slice(-6)));
   igual(e.jogs[1].zonas.mao.length, m1 + 1, 'o presente');
   igual(e.jogs[0].zonas.mao.length, m0, 'conjurou 1 e comprou 1 (se promisedgift)');
+});
+
+// (6c) contas de ataque, bloqueio obrigatório (509.1c), tipo em comum, entrar transformada (712.14a)
+caso('508.1m', 'contas de ataque: atacantes, atacantesEmVoce (no combate e depois, no turno) e ataquesNoTurno; Mangara compra com 2 atacando',() => {
+  const e = combate([[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Mangara, the Diplomat']]);
+  const m1 = e.jogs[1].zonas.mao.length;
+  ate(e, 'atacar');
+  atacaCom(e, objN(e, 0, 'Grizzly Bears')); atacaCom(e, objN(e, 0, 'Llanowar Elves')); fecha(e, 'atacar');
+  igual([M.contaAtaque(e, 'atacantes', 0), M.contaAtaque(e, 'atacantesEmVoce', 1), M.contaAtaque(e, 'atacantesEmVoce', 0), M.contaAtaque(e, 'ataquesNoTurno', 0)], [2, 2, 0, 2]);
+  ate(e, 'bloquear'); pronto(e); ateFimCombate(e);
+  igual(e.jogs[1].zonas.mao.length, m1 + 1, 'Mangara: oponente atacou você com 2');
+  igual([M.contaAtaque(e, 'atacantes', 0), M.contaAtaque(e, 'atacantesEmVoce', 1)], [0, 2], 'fora do combate: as do turno');
+});
+caso('509.1c', 'bloqueio obrigatório: deveBloquear de modificar (Brutal Hordechief: bloqueia se puder; com atacante: bloqueia aquele)', () => {
+  const e = combate([...enche(4, 'Mountain').map(n => [0, n]), [0, 'Brutal Hordechief'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant'], [1, 'Elvish Mystic']]);
+  M.avancar(e);
+  respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Brutal Hordechief'); resolve(e);
+  igual((e.temp || []).length, 1, 'efeito até o fim do turno');
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears')); fecha(e, 'atacar');
+  ate(e, 'bloquear');
+  ok(!opsDe(e, 'pronto').length, 'não fecha sem bloquear');
+  bloqueia(e, objN(e, 1, 'Hill Giant'), objN(e, 0, 'Grizzly Bears'));
+  igual(e.turno.combate.atk[0].bloq.length, 2, 'o outro também bloqueou (opção única: o núcleo responde sozinho)');
+  // com atacante: só aquele
+  const f = combate([[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant'], [1, 'Elvish Mystic']]);
+  ate(f, 'atacar');
+  const gb = objN(f, 0, 'Grizzly Bears'), el = objN(f, 0, 'Llanowar Elves'), hg = objN(f, 1, 'Hill Giant');
+  M.executar(f, { op: 'modificar', em: { alvo: 0 }, est: [{ modo: 'deveBloquear', afeta: 'este', atacante: 'doEvento' }], dura: 'fimDoTurno' },
+    { voce: 0, este: gb.id, alvos: [[{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'ataca', id: el.id } }, null);
+  atacaCom(f, gb); atacaCom(f, el); fecha(f, 'atacar');
+  if (!(f.perg && f.perg.tipo === 'bloquear')) ate(f, 'bloquear');
+  igual([opsDe(f, 'pronto').length, opsDe(f, 'bloquear').filter(o => o.id === hg.id).map(o => f.objs[o.atk].n)], [0, ['Llanowar Elves']]);
+  const k = M.agenteBasico()(f, f.perg); igual(f.perg.ops[k].a, 'bloquear', 'o agente cumpre');
+});
+caso('205.3m', 'tipoEmComum: tipo de criatura em comum com este, filtro ou comandante; metamorfo tem todos; não-criatura não tem', () => {
+  const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Elvish Mystic'], [0, 'Grizzly Bears'], [0, 'Mirror Entity'], [0, 'Forest']] });
+  const [le, em, gb, me, fo] = ['Llanowar Elves', 'Elvish Mystic', 'Grizzly Bears', 'Mirror Entity', 'Forest'].map(n => objN(e, 0, n));
+  const b = (o, ref, este) => M.bate(e, o, { tipoEmComum: ref }, { voce: 0, este: este.id });
+  igual([b(em, 'este', le), b(gb, 'este', le), b(me, 'este', gb), b(fo, 'este', me)], [true, false, true, false]);
+  igual(M.bate(e, gb, { tipoEmComum: { sub: ['Elf'] } }, { voce: 0, este: gb.id }), false);
+  igual(M.bate(e, le, { tipoEmComum: { tipo: ['Creature'] } }, { voce: 0, este: le.id }), true, 'Elvish Mystic e Mirror Entity');
+  gb.cmd = true;
+  igual([b(me, 'comandante', le), b(em, 'comandante', le)], [true, false]);
+});
+caso('712.14a', 'mover transformada: Ojer Taq morre e volta virada como Temple of Civilization; carta sem outra face fica onde está', () => {
+  const e = cena({ campo: [[0, 'Ojer Taq, Deepest Foundation']] });
+  const o = objN(e, 0, 'Ojer Taq, Deepest Foundation');
+  M.avancar(e); M.mover(e, o.id, 'cemiterio'); e.perg = null; M.avancar(e); resolveCom(e);
+  ok(e.campo.includes(o.id), 'voltou: ' + noCampo(e).join());
+  igual([M.dadoDe(e, o).n, o.virada, o.face], ['Temple of Civilization', true, 0]);
+  const g = cena({ mao: [[0, 'Grizzly Bears']] }), gb = g.objs[g.jogs[0].zonas.mao.find(id => g.objs[id].n === 'Grizzly Bears')];
+  M.executar(g, { op: 'mover', em: { todos: { zona: 'mao', dono: 'voce' } }, para: 'campo', transformada: true }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, null);
+  igual(gb.zona, 'mao');
 });
 
 // fichas predefinidas (CR 111.10): o banco escreve {nome}, o motor completa tipo e habilidades

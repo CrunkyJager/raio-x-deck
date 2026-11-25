@@ -382,7 +382,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -411,8 +411,27 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.anexadoA === 'este') { const F = e.objs[ctx.este]; if (!F || !o.anexo || o.anexo.id !== F.id || o.anexo.ts !== F.ts) return false; }
   if (f.encantada !== undefined && M.anexosDe(e, o).some(x => M.temTipo(e, x, 'Enchantment') && (M.dadoDe(e, x).sub || []).includes('Aura')) !== !!f.encantada) return false;
   if (f.comEquipamento !== undefined && M.anexosDe(e, o).some(x => (M.dadoDe(e, x).sub || []).includes('Equipment')) !== !!f.comEquipamento) return false;
+  if (f.tipoEmComum !== undefined && !tipoEmComum(e, o, f.tipoEmComum, ctx)) return false;
   return true;
 };
+// tipos de criatura (CR 205.3m: subtipos de criatura e de Kindred); metamorfo (702.73a) = todos → 'todos'
+const tiposCriatura = (e, o) => {
+  const d = M.dadoDe(e, o);
+  if ((d.kw || []).some(x => x.k === 'metamorfo')) return 'todos';
+  return (d.tipos || []).some(t => t === 'Creature' || t === 'Kindred' || t === 'Tribal') ? d.sub || [] : [];
+};
+const comumCom = (a, b) => a === 'todos' ? (b === 'todos' || b.length > 0) : b === 'todos' ? a.length > 0 : a.some(t => b.includes(t));
+// tipoEmComum: 'este' (a fonte), 'doEvento' (o objeto do evento: ctx.ev), 'comandante' (os seus) ou um filtro (alguma que bate)
+function tipoEmComum(e, o, ref, ctx) {
+  const t = tiposCriatura(e, o); if (t !== 'todos' && !t.length) return false;
+  let outros: any[];
+  if (ref === 'este') outros = [e.objs[ctx.este]];
+  else if (ref === 'doEvento') outros = [ctx.ev && e.objs[ctx.ev.ev === 'dano' ? ctx.ev.fonte : ctx.ev.id]];
+  else if (ref === 'comandante') outros = Object.values<any>(e.objs).filter(x => x.cmd && !x.hab && x.dono === ctx.voce);
+  else if (ref && typeof ref === 'object' && M.filtroOk(ref)) outros = M.objetosQue(e, ref, ctx).filter(x => x.id !== o.id);
+  else throw new Error('tipoEmComum sem suporte: ' + JSON.stringify(ref));
+  return outros.some(x => x && comumCom(t, tiposCriatura(e, x)));
+}
 const escolhidoDe = (e, ctx) => { const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));
 const quemBate = (e, j, q, voce) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : true;
@@ -438,12 +457,24 @@ M.temPeloMenos = (e, f, ctx, n) => {
   return false;
 };
 
+// contas de ataque: atacantes = as que estão atacando neste combate (Jazal, Firemane Commando); atacantesEmVoce = as
+// que atacam você ou um planeswalker seu (no combate de agora; fora dele, as deste turno: Faramir); ataquesNoTurno = as
+// que você pôs para atacar neste turno (Alesha, Windbrisk Heights). e.turno.ataques guarda o turno (combate.ts).
+const CONTA_ATK = new Set(['atacantes', 'atacantesEmVoce', 'ataquesNoTurno']);
+M.contaAtaque = (e, conta, voce) => {
+  const C = e.turno.combate, hist = e.turno.ataques || [];
+  if (conta === 'atacantes') return C ? C.atk.filter(r => M.emCombate(e, r)).length : 0;
+  if (conta === 'atacantesEmVoce') return (C ? C.atk : hist).filter(r => r.def === voce).length;
+  return hist.filter(r => r.j === voce).length;
+};
+
 // ---- quantidade RX (número, X, {conta:filtro}) ----
 M.qtd = (e, q, ctx: any = {}) => {
   if (typeof q === 'number') return q;
   if (q === 'X') return ctx.x || 0;
   if (q && typeof q.conta === 'object') return M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
   if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
+  if (q && CONTA_ATK.has(q.conta)) return M.contaAtaque(e, q.conta, ctx.voce) * (q.mult || 1) + (q.soma || 0);
   return null;      // contagem que o núcleo ainda não sabe → quem chama não oferece a habilidade
 };
 

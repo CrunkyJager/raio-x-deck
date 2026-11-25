@@ -132,7 +132,7 @@ function proximoPasso(e) {
   const n = e.jogs.length;
   let p = T.ativo;
   do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar';
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null;
   M.evento(e, { ev: 'fase', passo: 'desvirar', ativo: p });
   if (T.n > e.cfg.maxTurnos) e.fim = { vencedor: null, motivo: 'limite de turnos' };
 }
