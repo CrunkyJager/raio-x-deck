@@ -32,5 +32,5 @@ if __name__ == '__main__':
     lista = toda if '--todas' in sys.argv else [x for x in toda if x[0] not in feitas]
     for i, (nome, k) in enumerate(lista[:n], 1):
         print(f'{i:4} {k:3}  {nome}' + ('  (escrita)' if nome in feitas else ''))
-    print(f'-- {len(toda)} cartas no banco de 30, {len(feitas)} escritas, {sum(1 for x in toda if x[1]>=3)} em 3+ decks'
+    print(f'-- {len(toda)} cartas no banco de 30, {len(set(feitas.values()))} escritas, {sum(1 for x in toda if x[1]>=3)} em 3+ decks'
           + (f', {len(sem)} sem Oracle: ' + ', '.join(x[0] for x in sem[:10]) if sem else ''), file=sys.stderr)
