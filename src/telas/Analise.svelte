@@ -1,6 +1,6 @@
 <script lang="ts">
   // Tela Análise (T43 d): funções, mana e curva, plano e cortes. Era o fim do render(A) no analise.ts; entra pelo
-  // mesmo gancho do Resumo (window.RAIOX_TELAS.analise, ver main.ts). A conta dos terrenos (terrenosHTML) e as
+  // mesmo gancho do Resumo (Saida.svelte, ver main.ts). A conta dos terrenos (terrenosHTML) e as
   // sugestões vêm do analise.ts pelo API, como estavam.
   import type { Analise, Carta, RaioX } from '../analise/analise';
   let { A }: { A: Analise } = $props();

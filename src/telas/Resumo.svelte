@@ -1,7 +1,6 @@
 <script lang="ts">
-  // Tela Resumo (T43 d): era o primeiro pedaço do render(A) no analise.ts. O analise.ts continua sem import
-  // (o ferramentas/gabarito/mede.js roda ele no node): ele deixa a caixa vazia e chama window.RAIOX_TELAS.resumo,
-  // que o main.ts liga a este componente. Os cliques (#cmd-pick, #ask-all, nomes de carta) seguem no wire(A).
+  // Tela Resumo (T43 d): era o primeiro pedaço do render(A) no analise.ts; entra pela Saida.svelte. Trocar o
+  // comandante e pedir a leitura do Claude (antes no wire(A)) ficam aqui; os nomes de carta, nas Janelas.
   import type { Analise, Carta, RaioX } from '../analise/analise';
   let { A }: { A: Analise } = $props();
   const R: RaioX = window.RAIOX;
@@ -13,6 +12,8 @@
   const pri = $derived(A.issues.slice(0, 3));
   const nonlandU = $derived(A.uniq.filter((c: Carta) => !R.isLand(c)).length || 1);
   const depPct = $derived(Math.round(100 * A.cmdSupport.length / nonlandU));
+  let resposta: string | null = $state(null);
+  const pergunta = () => R.perguntaClaude(A, t => { resposta = t; });
 </script>
 
 <div class="screen" data-s="resumo">
@@ -24,7 +25,7 @@
       <div class="stat"><span class="k">Custo médio</span><b>{A.avgMV.toFixed(2)}</b></div>
       <div class="stat"><span class="k">Terrenos</span><b>{A.lands}</b>{#if A.mdfc}<small>+ {A.mdfc} de duas faces</small>{/if}</div>
     </div>
-    {#if A.legendCandidates.length > 1}<label class="field">Trocar comandante <select id="cmd-pick">{#each A.legendCandidates as n}<option selected={cmdNames.includes(n)}>{n}</option>{/each}</select></label>{/if}</div>
+    {#if A.legendCandidates.length > 1}<label class="field">Trocar comandante <select id="cmd-pick" onchange={e => R.run([e.currentTarget.value], 'resumo')}>{#each A.legendCandidates as n}<option selected={cmdNames.includes(n)}>{n}</option>{/each}</select></label>{/if}</div>
   <div class="verdict v-{A.verdict.k}">{@html A.verdict.t}</div>
   {#if A.unknown.length}<p class="note">Não reconheci {A.unknown.length} linha(s): {A.unknown.slice(0, 6).join(', ')}{A.unknown.length > 6 ? '…' : ''}. Confira a grafia em inglês.</p>{/if}
 </section>
@@ -32,7 +33,7 @@
   <h2>O que melhorar primeiro</h2>
   {#if pri.length}<ol class="pri">{#each pri as i}<li><span class="sev s{i.sev}">{sevName[i.sev]}</span> <span class="area">{@html i.area}</span> {i.t}</li>{/each}</ol>{:else}<p>Nada urgente. Os detalhes abaixo mostram onde ainda dá para afinar.</p>{/if}
   {#if A.issues.length > 3}<details><summary>Outros pontos ({A.issues.length - 3})</summary><ul class="pri">{#each A.issues.slice(3) as i}<li><span class="sev s{i.sev}">{sevName[i.sev]}</span> <span class="area">{@html i.area}</span> {i.t}</li>{/each}</ul></details>{/if}
-  <div class="ask"><button class="btn" data-claude hidden id="ask-all">Pedir a leitura do Claude</button><div class="ai-ans" id="ans-all" hidden></div></div>
+  <div class="ask"><button class="btn" data-claude hidden={!R.temClaude} id="ask-all" onclick={pergunta}>Pedir a leitura do Claude</button><div class="ai-ans" id="ans-all" hidden={resposta === null}>{resposta}</div></div>
   <div class="row"><a class="btn primary" href="#trocas">Ver as trocas sugeridas, carta por carta</a></div>
 </section>
 <div class="grid2">
