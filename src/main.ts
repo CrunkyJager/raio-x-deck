@@ -10,7 +10,7 @@ async function sobe(nome: string, carrega: () => Promise<unknown>) {
   try { await carrega(); } catch (err) { console.error(`Raio-X: ${nome} não subiu`, err); }
 }
 
-await sobe('análise', () => import('./analise/analise.js'));
+await sobe('análise', () => import('./analise/analise'));
 await sobe('mesa', () => import('./mesa/mesa-ui.js'));
 if (window.RAIOX) await sobe('montar', () => import('./montar/montar.js'));   // antes: if (!R) return; no começo do montar.js
 
