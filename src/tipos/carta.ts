@@ -200,7 +200,15 @@ export type RxQtd =
       /**
        * em vez de contar objetos: propriedade do conjunto
        */
-      prop?: 'cores' | 'somaPoder' | 'maiorPoder' | 'somaResist' | 'somaVm' | 'nomesDiferentes' | 'tiposDiferentes';
+      prop?:
+        | 'cores'
+        | 'somaPoder'
+        | 'maiorPoder'
+        | 'somaResist'
+        | 'somaVm'
+        | 'nomesDiferentes'
+        | 'tiposDiferentes'
+        | 'maiorVm';
       /**
        * devocao: cores (W U B R G); marcadores*: tipo do marcador
        */
@@ -652,13 +660,17 @@ export interface RxFx {
    */
   paraObj?: RxObjeto;
   /**
-   * descartar ao acaso (Gamble)
+   * descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment)
    */
   aleatorio?: boolean;
   /**
    * op mana: a mana não some entre passos e fases até o fim do turno (Birgi, Klauth)
    */
   ficaNoTurno?: boolean;
+  /**
+   * op destruir: não pode ser regenerada (Pongify, Artifact Mutation)
+   */
+  semRegenerar?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -842,7 +854,8 @@ export interface RxKw {
     | 'entraComMarcador'
     | 'tumulto'
     | 'fusao'
-    | 'intimidar';
+    | 'intimidar'
+    | 'decaida';
   custo?: RxMana;
   n?: number;
   /**
@@ -985,6 +998,10 @@ export interface RxGat {
    * ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)
    */
   recebe?: RxFiltro;
+  /**
+   * ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)
+   */
+  naoPrimeira?: boolean;
 }
 
 export interface RxEst {

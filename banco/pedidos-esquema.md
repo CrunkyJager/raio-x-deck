@@ -218,3 +218,14 @@ Contagem: banco 1161 cartas / fila 424 ainda não escritas.
 | canalizar (descartar esta como custo) | 2 | 0 | Otawara, Shigeki | custoAtv `descartarEste` | |
 | perde todas as habilidades | 2 | 0 | Poppet Factory | deixar falta | |
 | o resto 1/0 | | | Peer into the Abyss (arredondar para cima), Patriarch's Bidding (cada jogador escolhe), Perch Protection (exila a si), Phelia (quem controla a que voltou) | deixar falta | |
+
+## Decisões do lote do bloco 22 (FARSEER 25/11)
+- fx `semRegenerar` no destruir (7 ocorrências).
+- kw `decaida` (decayed).
+- habilidade mais barata por objeto: o est `reduzCusto` com `deHabil` já aceita `qtd` com contagem; usar isso (Otawara), sem campo novo.
+- prop `maiorVm` na contagem (`{"conta": filtro, "prop": "maiorVm"}`, One with the Machine).
+- gat `naoPrimeira` no ev compra (Orcish Bowmasters, Bard).
+- `aleatorio` também vale para os modos (Outlaws' Merriment).
+- Ficam em `falta`: impending, canalizar (2/0), perde todas as habilidades, o resto 1/0.
+- Ponder: está escrito só como embaralhar + compra. Falta olhar as 3 do topo e reordenar (cavar olha 3, resto no topo em qualquer ordem). Corrigir.
+- Reescrever na correção 6: as 7 de não regenerar, as de decayed, Otawara, One with the Machine, Bowmasters, Bard, Outlaws' Merriment e Ponder.
