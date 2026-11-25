@@ -223,7 +223,7 @@ M.abe = e => {
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
     while (e.fichasFora && e.fichasFora.length) {
       const o = e.objs[e.fichasFora.pop()];
-      if (o && o.ficha && o.zona !== 'campo') { const l = M.listaDe(e, o), k = l.indexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[o.id]; mudou = true; }
+      if (o && o.ficha && o.zona !== 'campo') { const l = M.listaDe(e, o), k = l.lastIndexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[o.id]; mudou = true; }
     }
     for (const j of perdem) { M.sair(e, j, 'perdeu'); mudou = true; }
     if (e.fim) return;
