@@ -1,0 +1,1 @@
+{"v":2,"n":"Seaside Citadel","id":"2ae77795-6a80-498b-bf69-6fd612f601e4","oracleHash":"32d30e75","vm":0,"ci":"WUG","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G","W","U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco25.json"}}

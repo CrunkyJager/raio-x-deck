@@ -1,0 +1,1 @@
+{"v":2,"n":"Secure the Wastes","id":"b2347910-d6c6-4681-8316-7ef27056485c","oracleHash":"7a1a22c6","custo":{"x":1,"p":["W"]},"vm":1,"ci":"W","cores":"W","tipos":["Instant"],"fx":[{"op":"ficha","quem":"voce","qtd":"X","token":{"pt":[1,1],"cores":"W","tipos":["Creature"],"sub":["Warrior"]}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco25.json"}}

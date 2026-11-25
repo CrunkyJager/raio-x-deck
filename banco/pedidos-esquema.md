@@ -266,3 +266,11 @@ Contagem: banco 1261 cartas / fila 324 ainda não escritas.
 ## Decisões do lote do bloco 24 (FARSEER 25/11)
 - filtro `atacouNoTurno` (Riders of the Mark + 2 da fila). Reescrever Riders na correção 8.
 - Ficam em `falta`: dash (também 2 no lote 15), mana de uma cor só, descartar com filtro no custo (1/1), o resto 1/0.
+
+## Faltas em lote (bloco 25, para o FARSEER decidir junto)
+Contagem: banco 1311 cartas / fila 274 ainda não escritas. Nenhuma falta nova se repete na fila.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| sacrificar quantos quiser | 2 | 0 | Scapeshift, Feasting Hobbit | qtd `{ate:"qualquer"}` no sacrificar (hoje escrito "tudo") | |
+| o resto 1/0 | | | Sarkhan Soul Aflame (vira cópia até o fim do turno), Season of the Burrow (modos por {P}, repetidos), Selfless Squire (ev dano prevenido), Selvala Explorer Returned (parley: escrito a média, metade dos jogadores), Selvala Heart of the Wilds (maior poder que cada outra), Serra the Benevolent (emblema vida não cai abaixo de 1), Siege Smash (split second) | deixar falta | |
