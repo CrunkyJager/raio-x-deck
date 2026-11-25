@@ -1,0 +1,73 @@
+{
+ "bloco": "correcao5",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "decisões do FARSEER nos lotes 17–20 (183dd8d): maisTerrenosOponente, gat recebe, ev explora, ficha com nome, ate com contagem, primeiroCombate, mana ficaNoTurno",
+ "casos": [
+  {
+   "carta": "Land Tax",
+   "situacao": "sua manutenção com um oponente com mais terrenos",
+   "espera": "pode buscar até 3 básicos para a mão; sem isso não dispara"
+  },
+  {
+   "carta": "Archaeomancer's Map",
+   "situacao": "terreno de oponente entra e ele tem mais terrenos que você",
+   "espera": "pode pôr um terreno da mão no campo"
+  },
+  {
+   "carta": "Loyal Warhound",
+   "situacao": "entra com um oponente com mais terrenos",
+   "espera": "busca uma Planície virada"
+  },
+  {
+   "carta": "Apex Altisaur",
+   "situacao": "leva dano",
+   "espera": "luta com até uma criatura que você não controla"
+  },
+  {
+   "carta": "Metropolis Reformer",
+   "situacao": "leva 3 de dano",
+   "espera": "você ganha 3"
+  },
+  {
+   "carta": "Merfolk Cave-Diver",
+   "situacao": "uma criatura sua explora",
+   "espera": "+1/+0 e não pode ser bloqueada no turno"
+  },
+  {
+   "carta": "Ingris Stingerquill",
+   "situacao": "{4}",
+   "espera": "cria a ficha Cadet 2/2"
+  },
+  {
+   "carta": "Kher Keep",
+   "situacao": "{1}{R}, vira",
+   "espera": "cria a ficha Kobolds of Kher Keep 0/1"
+  },
+  {
+   "carta": "Kyoshi Island Plaza",
+   "situacao": "entra com 3 Santuários",
+   "espera": "busca até 3 básicos virados"
+  },
+  {
+   "carta": "Genji Glove",
+   "situacao": "a equipada ataca no primeiro combate",
+   "espera": "desvira e há um combate extra; no segundo combate não"
+  },
+  {
+   "carta": "Karlach, Fury of Avernus",
+   "situacao": "você ataca no primeiro combate",
+   "espera": "desvira as atacantes, primeiro ataque e combate extra"
+  },
+  {
+   "carta": "Birgi, God of Storytelling",
+   "situacao": "você conjura",
+   "espera": "R que fica até o fim do turno"
+  },
+  {
+   "carta": "Klauth, Unrivaled Ancient",
+   "situacao": "ataca",
+   "espera": "mana = poder total das atacantes, só para mágicas, fica até o fim do turno"
+  }
+ ]
+}
