@@ -186,6 +186,7 @@ function criarFicha(e, j, tok, { virada = false }: any = {}) {
   const n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim();
   const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, virada, dano: 0, marc: {} as any, doente: true, cmd: false, ficha: { ...tok, n } };
   e.objs[id] = o; e.campo.push(id);
+  M.campoEntra(e, id);
   if (tok.leal) o.marc.lealdade = tok.leal;
   if (M.evento) M.evento(e, { ev: 'zona', id, de: null, para: 'campo' });
   return o;

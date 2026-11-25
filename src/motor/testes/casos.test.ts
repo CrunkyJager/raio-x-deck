@@ -1112,6 +1112,30 @@ caso('701.16', 'cavar: Ponder olha 3 e devolve no topo na mesma ordem (pega 0)',
   igual(topoN(e, 0, 3), ['Mountain', 'Island', 'Forest']);
 });
 
+// token.est (correção 12 do banco): estáticas da própria ficha, afeta 'este' = a ficha. Fichas no formato do banco
+// (Construct do Digsite Engineer/Urza; Gnome Soldier do Thousand Moons Smithy), criadas direto para não depender do lote
+const CONTA_ART = { conta: { tipo: ['Artifact'], ctrl: 'voce', zona: 'campo' } };
+const CONSTRUCT = { pt: [0, 0], cores: '', tipos: ['Artifact', 'Creature'], sub: ['Construct'], est: [{ modo: 'continuo', afeta: 'este', p: CONTA_ART, r: CONTA_ART }] };
+const CONTA_AC = { conta: { tipo: ['Artifact', 'Creature'], ctrl: 'voce', zona: 'campo' } };
+const GNOMO = { pt: [0, 0], cores: 'W', tipos: ['Artifact', 'Creature'], sub: ['Gnome', 'Soldier'], est: [{ modo: 'ptDefinido', afeta: 'este', pBase: CONTA_AC, rBase: CONTA_AC }] };
+caso('613.4c', 'token.est continuo: Construct +1/+1 por artefato seu, contando a si mesmo; só ele ganha', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Sol Ring']] });
+  const c = M.criarFicha(e, 0, CONSTRUCT);
+  igual([M.poder(e, c), M.resistencia(e, c)], [3, 3], 'os 2 artefatos + a ficha');
+  const c2 = M.criarFicha(e, 0, CONSTRUCT);
+  igual([M.poder(e, c), M.poder(e, c2)], [4, 4], 'o 2º Construct conta para os dois, cada um só com a própria est');
+  M.mover(e, objN(e, 0, 'Mind Stone').id, 'cemiterio');
+  igual(M.poder(e, c), 3, 'artefato que sai deixa de contar');
+  igual(M.poder(e, M.criarFicha(e, 1, CONSTRUCT)), 2, 'o do oponente conta os dele');
+});
+caso('604.3', 'token.est ptDefinido: Gnome Soldier P/R = seus artefatos e/ou criaturas (com ele)', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears']] });
+  const g = M.criarFicha(e, 0, GNOMO);
+  igual([M.poder(e, g), M.resistencia(e, g)], [3, 3]);
+  M.criarFicha(e, 0, GNOMO);
+  igual(M.poder(e, g), 4);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
