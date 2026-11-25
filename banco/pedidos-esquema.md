@@ -360,3 +360,22 @@ Contagem: banco 1585 cartas / fila 0 (a fila acabou no bloco 31).
 Decisão do FARSEER (25/11): lotes 30 (2/0 e 1/0) e 31 ficam como falta.
 
 Notas do bloco 31: Ziatora's Proving Ground usa o custoAtv `descartarEste` aprovado (atv `zona mao`, {3}: compra 1). Yenna não conta para "ficha-cópia com exceção" (lote 29): o "isn't legendary" já é `naoLendaria`; o lote segue 2/0.
+
+## Pente geral das faltas (25/11, depois da correção 16)
+Banco 1585 cartas; 271 com falta; 313 faltas. Cobertura dos 30 decks (ferramentas/calibra/banco.json): 1538 cartas distintas sem básicos, todas no banco (falta 0).
+Agrupado por conceito (contagem = faltas; o texto livre não se repete igual). Em **negrito** os subgrupos que já passam da regra dos 3.
+
+| # | conceito | faltas | cartas | proposta | decisão |
+|---|---|---|---|---|---|
+| 1 | custos de atv/conjuração que faltam | 13 | **devolver à mão como custo: Master Transmuter, Mina and Denn, Shigeki** (+ Yuffie ninjutsu); descartar com filtro: Sanctum of Shattered Heights, Tortured Existence; fundo do grimório (Timestream Navigator), desvirar outras (Halo Fountain), grupo + este (Glass-Cast Heart), dois filtros (Jarad), X (Ruthless Technomancer), ou pagar (Thunderherd), custo adicional no podeJogar (Kotis) | custoAtv `devolver` (f); `descartar` com f | |
+| 2 | jogador defensor / atacado / "atacou você" | 12 | **defensor: Conformer Shuriken, Silumgar, Nightkin Ambusher, Trailblazer's Boots**; **atacou/ataca você: Mangara, Struggle (Enclave), Firemane Commando, Faramir**; atacando aquele jogador: Adeline, Ainok; Frontier Warmonger, Angel of Destiny | ctrl/jog `defensor`; cond `atacouVoce` | |
+| 3 | alvos condicionados | 12 | um por jogador/controlador: Afterlife from the Loam, Battle at the Helvault, Cloud's Limit Break, Zada; **alvo muda com presente/chute: Long River's Pull, Wear Down, Tear Asunder**; **nº de alvos = X: Marshal's Anthem, Shigeki, Wise Mothman**; Rampaging Yao Guai (soma vm), Twinflame | alvos `umPor`; `alvosSe` (presente/chute); max = qtd | |
+| 4 | regras de ataque e bloqueio | 11 | **bloqueia se puder: Fighter Class, Tolsimir, Brutal Hordechief**; não bloqueia por poder/tipo: Feasting Hobbit, Hei Bai; imposto: Archangel of Tithes, Champions of Minas Tirith; limites: Mirri (×2), Master of Cruelties (×2); ficha bloqueando: Brimaz | fx `deveBloquear` | |
+| 5 | histórico do turno/jogo | 11 | Angelic Arbiter (×2), Elanor, Éowyn Shieldmaiden, Agent Frank Horrigan, Welcome the Dead, Fraying Sanity, Moraug, Rith, Gollum, Frodo | contas no turno (sacrificadas, entraram, atacou) | |
+| 6 | tipo/cor/P-R que muda ("in addition", "becomes") | 11 | Afterlife from the Loam, Captivating Vampire, Nim Deathmantle, Bello, Cacophony Unleashed, The Master Transcendent, Enduring Courage, Enduring Vitality, New Blood, Urza Prince of Kroog, Vaultborn Tyrant | animar/mover com `sub`/`tipos`/`tiraTipo`; cópia com exceção | |
+| 7 | habilidades na pilha (copiar, travar, ganhar, mirar) | 9 | Weaver of Harmony, Drana and Linvala (×2), Quicksilver Elemental (×2), Tishana's Tidebinder, Deflecting Swat, Runic Armasaur, Professor Hojo | deixar falta (motor não tem habilidade como objeto) | |
+| 8 | redução de custo de habilidade / equipar | 9 | Professor Hojo, Voldaren Estate, Otawara, Crown of Gondor, Forge Anew (×2), Visions of Glory, Forensic Gadgeteer, The Ur-Dragon | reduzCusto `deHabil` com índice; `equipar` | |
+| 9 | compartilha tipo (criatura/carta/terreno) | 8 | **tipo de criatura: Descendants' Path, Folk Hero, Path of Ancestry, Shared Animosity, Wolf-Skull Shaman**; tipo de carta: Braids, Cemetery Prowler; terreno: Myriad Landscape | filtro `tipoEmComum` (com este/comandante/evento) | |
+| 10 | marcadores em jogador / rad | 8 | All Will Be One (×2), Winding Constrictor, Vault 12, Vexing Radgull, Mariposa (×2), Strong | marcador no jogador; conta rad | |
+
+Logo abaixo do top 10: palavras-chave sem vocabulário (~35, quase todas 1 cada; **fundir 4: Gisela, Bruna, Hanweir Garrison, Mishra**; 2 cada: dash, impending, bestow, retrace, cascata, monstruosidade, exercer, Room, nível de Classe, gastar N); comparação na mesa (maior poder/vida/VM) 6; mana com restrição de cor 6; **volta do exílio transformada 3 (Ajani, Ojer Taq, Welcome to… III)**; metade arredonda para cima 2.
