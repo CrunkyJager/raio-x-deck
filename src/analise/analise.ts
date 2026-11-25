@@ -369,7 +369,7 @@ const listLinks = (arr: string[], max = 40) => arr.slice(0, max).map(cardLink).j
 
 let LAST: Analise | null = null;
 // T43 (d): o objeto ganha nome só para o tipo (RaioX) que o montar.ts importa; o window.RAIOX é o mesmo de antes
-const API = { THEMES, themesOf, valorPlano: (A: Analise, c: Carta) => valorPlano(A, c), edhPagina: (c: string) => edhPagina(c), edhJa: (c: string) => edhJa(c), edhCmdCam: (n: string[]) => edhCmdCam(n), edhIdeia: (t: Iterable<string>, i: Set<string>, tb?: string | null) => edhIdeia(t, i, tb), edhCarta: (I: Ideia | null, c: Carta) => edhCarta(I, c), edhNota: (I: Ideia | null, c: Carta) => edhNota(I, c), edhPorque: (I: Ideia | null, c: Carta) => edhPorque(I, c), planoDe: (A: Analise) => planoDe(A), tipoRamp: (c: Carta) => tipoRamp(c), custoRamp: (c: Carta) => custoRamp(c), terrenosFormula: (cs: Carta[], cm: Carta[]) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c: Carta) => efeitos(c), subtypes, CONCEITOS: null as typeof CONCEITOS | null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n: string) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c: Carta) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds?: string[] | null, goTo?: string) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A: Analise, c: Carta) => efetiv(A, c), sinergia: (A: Analise, c: Carta) => sinergia(A, c), temaSin: (A: Analise) => temaSin(A), sinTema: (c: Carta, T: Dic<number>) => sinTema(c, T), sinTexto: (A: Analise, c: Carta) => sinTexto(A, c), buildSwaps: (A: Analise) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A: Analise) => perfilDeck(A), efPlano: (A: Analise, c: Carta) => efPlano(A, c), imgFor: (n: string, v?: string) => imgFor(n, v), imgsDe: (l: string[]) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+const API = { esc, THEMES, themesOf, valorPlano: (A: Analise, c: Carta) => valorPlano(A, c), edhPagina: (c: string) => edhPagina(c), edhJa: (c: string) => edhJa(c), edhCmdCam: (n: string[]) => edhCmdCam(n), edhIdeia: (t: Iterable<string>, i: Set<string>, tb?: string | null) => edhIdeia(t, i, tb), edhCarta: (I: Ideia | null, c: Carta) => edhCarta(I, c), edhNota: (I: Ideia | null, c: Carta) => edhNota(I, c), edhPorque: (I: Ideia | null, c: Carta) => edhPorque(I, c), planoDe: (A: Analise) => planoDe(A), tipoRamp: (c: Carta) => tipoRamp(c), custoRamp: (c: Carta) => custoRamp(c), terrenosFormula: (cs: Carta[], cm: Carta[]) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c: Carta) => efeitos(c), subtypes, CONCEITOS: null as typeof CONCEITOS | null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n: string) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c: Carta) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds?: string[] | null, goTo?: string) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A: Analise, c: Carta) => efetiv(A, c), sinergia: (A: Analise, c: Carta) => sinergia(A, c), temaSin: (A: Analise) => temaSin(A), sinTema: (c: Carta, T: Dic<number>) => sinTema(c, T), sinTexto: (A: Analise, c: Carta) => sinTexto(A, c), buildSwaps: (A: Analise) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A: Analise) => perfilDeck(A), efPlano: (A: Analise, c: Carta) => efPlano(A, c), imgFor: (n: string, v?: string) => imgFor(n, v), imgsDe: (l: string[]) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
 window.RAIOX = API;
 export type RaioX = typeof API;
 function run(forcedCmd?: string[] | null, goTo?: string) {
@@ -381,6 +381,7 @@ function run(forcedCmd?: string[] | null, goTo?: string) {
   $('#go-msg').textContent = '';
   loadConcept(A);
   out.innerHTML = render(A);
+  telas(out, A);
   wire(A); wireConcept(A); wireSwaps(A);
   document.dispatchEvent(new CustomEvent('raiox:deck', { detail: A }));
   // EDHREC ainda não veio para este comandante: busca e refaz a análise uma vez (fica guardado 7 dias)
@@ -390,12 +391,15 @@ function run(forcedCmd?: string[] | null, goTo?: string) {
   if (location.hash === '#' + dest) show(dest); else location.hash = dest;
 }
 
+// telas que já são componentes Svelte (T43 d): o main.ts registra em window.RAIOX_TELAS; cada uma entra no lugar do
+// seu <template data-tela>. Sem o gancho (no node, pelo mede.js) a tela só não aparece.
+function telas(out: HTMLElement, A: Analise) {
+  const T = window.RAIOX_TELAS || {};
+  out.querySelectorAll<HTMLTemplateElement>('template[data-tela]').forEach(t => { const f = T[t.dataset.tela!]; if (f) f(t, A); t.remove(); });
+}
+
 function render(A: Analise) {
-  const cmdNames = A.cmds.map((c: Carta) => c.name);
   const ident = [...A.ident];
-  const identHTML = ident.length ? ident.map(x => `<span class="ms ${x}"></span>`).join('') : '<span class="ms">C</span>';
-  const pri = A.issues.slice(0, 3);
-  const sevName = ['', 'ajuste', 'importante', 'regra'];
   const refRows = A.refs.map(r => { const st = r.have < r.lo ? 'low' : r.have > r.hi ? 'high' : 'ok'; const max = Math.max(r.hi + 4, r.have + 1); return `<div class="ref">
       <div class="ref-h"><b>${r.n}</b><span class="num st-${st}">${fmt(r.have)}</span></div>
       <div class="gauge" role="img" aria-label="${r.n}: ${fmt(r.have)}, faixa ${r.lo} a ${r.hi}"><span class="band" style="left:${100 * r.lo / max}%;width:${100 * (r.hi - r.lo) / max}%"></span><span class="mark st-${st}" style="left:${Math.min(100, 100 * r.have / max)}%"></span></div>
@@ -410,44 +414,8 @@ function render(A: Analise) {
   const colorRows = ident.map(x => { const need = A.colorNeed[x], have = A.sources[x]; const max = Math.max(need, have, 20); return `<div class="crow"><span class="ms ${x}"></span><span>${COLORNAME[x]}</span><span class="track"><span class="fill ${have < need ? 'short' : ''}" style="width:${100 * have / max}%"></span><span class="need" style="left:${100 * need / max}%"></span></span><span class="num">${have}/${need}</span><span class="note num">${A.pips[x].toFixed(0)} símbolos</span></div>`; }).join('');
   const themeRows = A.themes.slice(0, 6).map(t => `<div class="theme"><div class="theme-h"><b>${t.n}</b>${t.cmd ? '<span class="tag cmd">o comandante pede</span>' : ''}<span class="num">${t.cards.length}</span></div><div class="links">${listLinks(t.cards, 24)}</div></div>`).join('') || '<p class="note">Nenhum tema forte apareceu. O deck pode ser uma pilha de cartas boas sem um plano em comum, o que costuma ser mais fraco que um deck focado.</p>';
   const nonlandU = A.uniq.filter((c: Carta) => !isLand(c)).length || 1;
-  const depPct = Math.round(100 * A.cmdSupport.length / nonlandU);
-  const bracketTxt = (<Dic<string>>{ 2: 'Bracket 2 (núcleo): o nível de um deck pré-montado bem ajustado.', 3: 'Bracket 3 (melhorado): cartas fortes, mas sem combos rápidos nem trava de terrenos.', 4: 'Bracket 4 (otimizado): sem restrições, pensado para ganhar rápido.' })[A.bracket];
   return `
-  <div class="screen" data-s="resumo">
-  <section class="head panel">
-    <div class="who"><div class="cmdname">${cmdNames.map(esc).join(' + ') || 'Comandante não encontrado'}</div><div class="ident">${identHTML}</div>
-      <div class="stats">
-        <div class="stat price"><span class="k">Preço do deck</span><b>${brl(A.price)}</b>${A.pricey && A.pricey.length ? `<small>Mais caras: ${A.pricey.slice(0, 3).map((c: Carta) => `${esc(c.name)} (${brl(c.usd)})`).join(' · ')}</small>` : ''}<small class="cot">${fontePrecos(A.uniq.concat(A.cmds).map((c: Carta) => c.name))}</small>${''}</div>
-        <div class="stat"><span class="k">Cartas</span><b>${A.total}</b></div>
-        <div class="stat"><span class="k">Custo médio</span><b>${A.avgMV.toFixed(2)}</b></div>
-        <div class="stat"><span class="k">Terrenos</span><b>${A.lands}</b>${A.mdfc ? `<small>+ ${A.mdfc} de duas faces</small>` : ''}</div>
-      </div>
-      ${A.legendCandidates.length > 1 ? `<label class="field">Trocar comandante <select id="cmd-pick">${A.legendCandidates.map(n => `<option ${cmdNames.includes(n) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>` : ''}</div>
-    <div class="verdict v-${A.verdict.k}">${A.verdict.t}</div>
-    ${A.unknown.length ? `<p class="note">Não reconheci ${A.unknown.length} linha(s): ${esc(A.unknown.slice(0, 6).join(', '))}${A.unknown.length > 6 ? '…' : ''}. Confira a grafia em inglês.</p>` : ''}
-  </section>
-  <section class="panel">
-    <h2>O que melhorar primeiro</h2>
-    ${pri.length ? `<ol class="pri">${pri.map(i => `<li><span class="sev s${i.sev}">${sevName[i.sev]}</span> <span class="area">${i.area}</span> ${esc(i.t)}</li>`).join('')}</ol>` : '<p>Nada urgente. Os detalhes abaixo mostram onde ainda dá para afinar.</p>'}
-    ${A.issues.length > 3 ? `<details><summary>Outros pontos (${A.issues.length - 3})</summary><ul class="pri">${A.issues.slice(3).map(i => `<li><span class="sev s${i.sev}">${sevName[i.sev]}</span> <span class="area">${i.area}</span> ${esc(i.t)}</li>`).join('')}</ul></details>` : ''}
-    <div class="ask"><button class="btn" data-claude hidden id="ask-all">Pedir a leitura do Claude</button><div class="ai-ans" id="ans-all" hidden></div></div>
-    <div class="row"><a class="btn primary" href="#trocas">Ver as trocas sugeridas, carta por carta</a></div>
-  </section>
-  <div class="grid2">
-    <section class="panel"><h2>Quanto o deck depende do comandante</h2>
-      <div class="big num">${depPct}%</div>
-      <p>${A.cmdSupport.length} das ${nonlandU} cartas que não são terreno puxam para o mesmo tema do comandante. ${depPct >= 60 ? 'O deck é construído em volta dele: se ele cair, boa parte das cartas perde força. Proteção e um plano B importam muito.' : depPct >= 35 ? 'Equilibrado: o comandante ajuda, mas o deck tem jogo sem ele.' : 'O deck joga sozinho; o comandante é um bônus. Vale treinar a ganhar sem ele na mesa.'}</p>
-      ${A.voltronCards.length ? `<p class="note">${A.voltronCards.length} auras e equipamentos: cartas que pedem uma criatura para carregar.</p>` : ''}
-      <details><summary>Cartas que funcionam sem ele (${A.standalone.length})</summary><div class="links">${listLinks(A.standalone)}</div></details>
-    </section>
-    <section class="panel"><h2>Nível de poder</h2>
-      <div class="big num">Bracket ${A.bracket}</div><p>${bracketTxt}</p>
-      ${A.bracketWhy.length ? `<p class="note">Por causa de: ${A.bracketWhy.join('; ')}.</p>` : '<p class="note">Nenhuma carta da lista oficial de "game changers", sem turnos extras em série e sem destruição de terrenos em massa.</p>'}
-      ${A.gc.length ? `<div class="links">${listLinks(A.gc)}</div>` : ''}
-      <p class="note">Estimativa pela lista. Combos de 2 cartas não são detectados; se o deck tiver um, o nível sobe.</p>
-    </section>
-  </div>
-  </div>
+  <template data-tela="resumo"></template>
   <div class="screen" data-s="trocas">${renderConcept(A)}${renderSwaps(A)}</div>
   <div class="screen" data-s="funcoes">
   <nav class="subnav" aria-label="Partes da análise"><a href="#funcoes" data-sub="funcoes" style="--h:142"><b>1</b>Funções</a><a href="#mana" data-sub="mana" style="--h:186"><b>2</b>Mana e curva</a><a href="#plano" data-sub="plano" style="--h:268"><b>3</b>Plano e cortes</a></nav>
