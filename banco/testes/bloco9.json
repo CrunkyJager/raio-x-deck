@@ -87,7 +87,7 @@
   {
    "carta": "Assemble the Entmoot",
    "situacao": "ganhou 6 de vida no turno; sacrifica",
-   "espera": "3 Treefolk virados 0/0 com 6 marcadores +1/+1 e alcance"
+   "espera": "3 Treefolk virados 6/6 com alcance (X fixado ao criar)"
   },
   {
    "carta": "Atarka, World Render",

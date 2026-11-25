@@ -27,4 +27,5 @@ Bloco 9 (fila 401–450): 50 escritas, 49 casos em bloco9.json; valida 511/0; vi
 Ferramenta: oraculo.nossas() agora reconhece carta de duas faces pelo nome "A // B" do Scryfall (a Ajani voltava para a fila); a contagem da fila não conta duas vezes.
 Leituras a confirmar: Avacyn volta 'doEvento' dentro do gatilhoAtrasado (o rx usa 'anterior'); est.tipo com subtipo Forest (Ashaya); filtro nao com subtipo Equipment/Aura (Bello); Assemble the Entmoot X/X como 0/0 + X marcadores.
 Faltas novas: comparar terrenos com o jogador do evento (Archaeomancer's Map), custo para bloquear (Archangel of Tithes), sacrificar todas menos N escolhidas (Archfiend of Depravity), não pode ganhar vida só de oponente (Archfiend of Despair), custo alternativo pago (Baleful Mastery), 'exceto a primeira compra do passo' (Bard), 'mais que cada outro jogador' (Battle Angels), um alvo por jogador (Helvault), boast e mana que não esvazia (Birgi), subtipo Elemental (Bello), não pode regenerar (Artifact Mutation).
-Agora: esperar a revisão do bloco 9 e a liberação do bloco 10 (451–500).
+Bloco 9 na v0.10.0: Avacyn doEvento e Bello ok; correção Ashaya (est tipo Land + sub Forest) e Entmoot (token.pt com vidaGanhaNoTurno, sem marcadores nem falta).
+Agora: bloco 10 (451–500).
