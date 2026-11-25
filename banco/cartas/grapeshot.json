@@ -1,0 +1,1 @@
+{"v":2,"n":"Grapeshot","id":"ebd2d760-5ad8-4027-b124-171822f3edfe","oracleHash":"73526ea6","custo":{"g":1,"p":["R"]},"vm":2,"ci":"R","cores":"R","tipos":["Sorcery"],"kw":[{"k":"tempestade"}],"alvos":[{"f":"qualquerAlvo"}],"fx":[{"op":"dano","em":{"alvo":0},"qtd":1}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco16.json"}}

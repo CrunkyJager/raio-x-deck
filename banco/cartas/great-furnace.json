@@ -1,0 +1,1 @@
+{"v":2,"n":"Great Furnace","id":"f4819061-b0b5-48ab-af7b-6525c3d2eab7","oracleHash":"e9195d24","vm":0,"ci":"R","cores":"","tipos":["Artifact","Land"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["R"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco16.json"}}

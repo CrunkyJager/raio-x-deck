@@ -1,0 +1,1 @@
+{"v":2,"n":"Gratuitous Violence","id":"7c340a39-4ee0-4ba1-bb66-6674f8020fda","oracleHash":"8c81b73b","custo":{"g":2,"p":["R","R","R"]},"vm":5,"ci":"R","cores":"R","tipos":["Enchantment"],"subst":[{"ev":"dano","por":{"tipo":["Creature"],"ctrl":"voce","zona":"campo"},"muda":{"mult":2}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco16.json"}}
