@@ -1,0 +1,1 @@
+{"v":2,"n":"Ramunap Excavator","id":"4f819ba4-52ef-4fdd-8e4c-5ae3b2f44db5","oracleHash":"4c7853d5","custo":{"g":2,"p":["G"]},"vm":3,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Snake","Cleric"],"pt":[2,3],"est":[{"modo":"podeJogar","afeta":{"tipo":["Land"],"dono":"voce","zona":"cemiterio"},"de":"cemiterio"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco23.json"}}

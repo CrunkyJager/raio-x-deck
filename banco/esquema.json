@@ -375,7 +375,8 @@
         "somaResist",
         "somaVm",
         "nomesDiferentes",
-        "tiposDiferentes"
+        "tiposDiferentes",
+        "maiorVm"
        ],
        "description": "em vez de contar objetos: propriedade do conjunto"
       },
@@ -630,6 +631,18 @@
     "historico": {
      "type": "boolean",
      "description": "artefato, lendário ou Saga (Excalibur)"
+    },
+    "entrouNoTurno": {
+     "type": "boolean",
+     "description": "o objeto entrou no campo neste turno (Motivated Pony, Ocelot Pride; ficha criada neste turno = ficha + entrouNoTurno, Idol of Oblivion)"
+    },
+    "moidaNoTurno": {
+     "type": "boolean",
+     "description": "a carta foi para o cemitério moída neste turno (Raul, Tato Farmer, The Master)"
+    },
+    "atacouNoTurno": {
+     "type": "boolean",
+     "description": "a criatura atacou neste turno (Riders of the Mark e mais 2)"
     }
    }
   },
@@ -1298,11 +1311,35 @@
     },
     "aleatorio": {
      "type": "boolean",
-     "description": "descartar ao acaso (Gamble)"
+     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment)"
     },
     "ficaNoTurno": {
      "type": "boolean",
      "description": "op mana: a mana não some entre passos e fases até o fim do turno (Birgi, Klauth)"
+    },
+    "semRegenerar": {
+     "type": "boolean",
+     "description": "op destruir: não pode ser regenerada (Pongify, Artifact Mutation)"
+    },
+    "exceto": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "qtd"
+     ],
+     "properties": {
+      "qtd": {
+       "type": "integer"
+      },
+      "porTipo": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)"
+      }
+     },
+     "description": "op sacrificar: cada jogador escolhe N que ficam e sacrifica o resto do filtro (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty)"
     }
    },
    "additionalProperties": false,
@@ -1530,6 +1567,10 @@
     "primeiroCombate": {
      "type": "boolean",
      "description": "é a primeira fase de combate do turno (Genji Glove, Karlach)"
+    },
+    "fasePrincipal": {
+     "type": "boolean",
+     "description": "é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno"
     }
    }
   },
@@ -1601,7 +1642,9 @@
       "classe",
       "entraComMarcador",
       "tumulto",
-      "fusao"
+      "fusao",
+      "intimidar",
+      "decaida"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1826,6 +1869,10 @@
     "recebe": {
      "$ref": "#/$defs/filtro",
      "description": "ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)"
+    },
+    "naoPrimeira": {
+     "type": "boolean",
+     "description": "ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)"
     }
    }
   },
@@ -1859,8 +1906,10 @@
       "podeJogar",
       "podeOlhar",
       "dobraGatilho",
-      "ataqueCusta"
-     ]
+      "ataqueCusta",
+      "naoPodeAtivar"
+     ],
+     "description": "naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta"
     },
     "afeta": {
      "oneOf": [
@@ -2001,6 +2050,10 @@
       "type": "string"
      },
      "description": "subtipos que o continuo dá além dos tipos (Ashaya: tipo Land + sub Forest; 305.6/305.7)"
+    },
+    "cores": {
+     "type": "string",
+     "description": "continuo: o objeto passa a ter SÓ estas cores (Nim Deathmantle 'B'; Leyline of the Guildpact 'WUBRG')"
     }
    }
   },
@@ -2115,6 +2168,10 @@
     "marc": {
      "type": "string",
      "description": "tipo do marcador ('+1/+1', 'loyalty'…)"
+    },
+    "naoPrimeira": {
+     "type": "boolean",
+     "description": "compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)"
     }
    }
   },

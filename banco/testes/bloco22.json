@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco22",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1051–1100 (Old Gnawbone … Port Town)",
+ "casos": [
+  {
+   "carta": "Old Gnawbone",
+   "situacao": "criatura sua causa 3 de combate a um jogador",
+   "espera": "cria 3 Tesouros"
+  },
+  {
+   "carta": "Olivia's Wrath",
+   "situacao": "você tem 3 Vampiros",
+   "espera": "cada não-Vampiro −3/−3 no turno"
+  },
+  {
+   "carta": "Omnath, Locus of Creation",
+   "situacao": "entra; 3 terrenos seus no turno",
+   "espera": "compra 1; ganha 4, depois RGWU, depois 4 a cada oponente e planeswalker dele"
+  },
+  {
+   "carta": "Omnath, Locus of Rage",
+   "situacao": "terreno seu entra; um Elemental seu morre",
+   "espera": "cria Elemental 5/5; 3 de dano a qualquer alvo"
+  },
+  {
+   "carta": "Omnath, Locus of the Roil",
+   "situacao": "entra com 3 Elementais; terreno entra com 8 terrenos",
+   "espera": "3 de dano; marcador num Elemental e compra 1"
+  },
+  {
+   "carta": "On the Trail",
+   "situacao": "você compra a 2ª carta do turno",
+   "espera": "pode pôr um terreno da mão virado"
+  },
+  {
+   "carta": "Ondu Spiritdancer",
+   "situacao": "encantamento seu entra (1ª vez no turno)",
+   "espera": "pode criar cópia dele"
+  },
+  {
+   "carta": "One with the Machine",
+   "situacao": "conjura",
+   "espera": "nada escrito (maior valor de mana é falta)"
+  },
+  {
+   "carta": "One, Borg Evolved",
+   "situacao": "criatura artefato sua",
+   "espera": "voar, golpe duplo, vigilância, ameaça, vínculo e resguardo 2"
+  },
+  {
+   "carta": "Open the Armory",
+   "situacao": "conjura",
+   "espera": "busca Aura ou Equipamento para a mão"
+  },
+  {
+   "carta": "Open the Graves",
+   "situacao": "criatura não-ficha sua morre",
+   "espera": "cria Zumbi 2/2"
+  },
+  {
+   "carta": "Ophidian Eye",
+   "situacao": "a encantada causa dano a oponente",
+   "espera": "pode comprar 1; lampejo"
+  },
+  {
+   "carta": "Ophiomancer",
+   "situacao": "manutenção sem Cobra sua",
+   "espera": "cria Cobra 1/1 com toque mortífero"
+  },
+  {
+   "carta": "Opt",
+   "situacao": "conjura",
+   "espera": "vidência 1 e compra 1"
+  },
+  {
+   "carta": "Oracle of Mul Daya",
+   "situacao": "seu turno",
+   "espera": "1 terreno a mais; joga terreno do topo"
+  },
+  {
+   "carta": "Orcish Bowmasters",
+   "situacao": "entra; oponente compra",
+   "espera": "1 de dano e amassar Orcs 1"
+  },
+  {
+   "carta": "Orzhov Enforcer",
+   "situacao": "morre",
+   "espera": "cria Espírito 1/1 com voar (pós-vida 1)"
+  },
+  {
+   "carta": "Otawara, Soaring City",
+   "situacao": "vira; canalizar {3}{U} da mão",
+   "espera": "dá U; devolve artefato, criatura, encantamento ou planeswalker à mão"
+  },
+  {
+   "carta": "Otepec Huntmaster",
+   "situacao": "conjura Dinossauro; vira",
+   "espera": "custa {1} a menos; Dinossauro alvo ganha pressa"
+  },
+  {
+   "carta": "Otharri, Suns' Glory",
+   "situacao": "ataca com 2 de experiência",
+   "espera": "ganha 1 de experiência e cria 3 Rebeldes 2/2 atacando"
+  },
+  {
+   "carta": "Outlaws' Merriment",
+   "situacao": "sua manutenção",
+   "espera": "cria um dos três Humanos (ao acaso é falta)"
+  },
+  {
+   "carta": "Overlord of the Boilerbilges",
+   "situacao": "entra e ataca",
+   "espera": "4 de dano a qualquer alvo cada vez"
+  },
+  {
+   "carta": "Overlord of the Hauntwoods",
+   "situacao": "entra e ataca",
+   "espera": "cria terreno Everywhere virado com os cinco tipos básicos"
+  },
+  {
+   "carta": "Ozolith, the Shattered Spire",
+   "situacao": "você põe marcadores +1/+1",
+   "espera": "põe um a mais; {1}{G} marcador como feitiço"
+  },
+  {
+   "carta": "Pack Leader",
+   "situacao": "ataca",
+   "espera": "outros Cães +1/+1; dano de combate aos seus Cães prevenido"
+  },
+  {
+   "carta": "Pact of the Serpent",
+   "situacao": "escolhe Elfo; jogador alvo tem 3",
+   "espera": "ele compra 3 e perde 3"
+  },
+  {
+   "carta": "Panharmonicon",
+   "situacao": "um artefato ou criatura entra",
+   "espera": "gatilho de entrar das suas permanentes dispara de novo"
+  },
+  {
+   "carta": "Pantlaza, Sun-Favored",
+   "situacao": "Dinossauro seu de resistência 4 entra",
+   "espera": "pode descobrir 4, uma vez por turno"
+  },
+  {
+   "carta": "Pashalik Mons",
+   "situacao": "Goblin seu morre; {3}{R} e sacrifica Goblin",
+   "espera": "1 de dano; cria 2 Goblins"
+  },
+  {
+   "carta": "Past in Flames",
+   "situacao": "conjura",
+   "espera": "instantâneas e feitiços do seu cemitério ganham flashback no turno"
+  },
+  {
+   "carta": "Patchwork Banner",
+   "situacao": "entra escolhendo tipo",
+   "espera": "esse tipo +1/+1; dá mana de qualquer cor"
+  },
+  {
+   "carta": "Path of Discovery",
+   "situacao": "criatura sua entra",
+   "espera": "ela explora"
+  },
+  {
+   "carta": "Patriarch's Bidding",
+   "situacao": "conjura escolhendo Zumbi",
+   "espera": "Zumbis de todos os cemitérios voltam ao campo"
+  },
+  {
+   "carta": "Patron of the Vein",
+   "situacao": "entra; criatura de oponente morre",
+   "espera": "destrói criatura de oponente; exila a morta e +1/+1 nos seus Vampiros"
+  },
+  {
+   "carta": "Pawn of Ulamog",
+   "situacao": "ele ou outra não-ficha sua morre",
+   "espera": "pode criar Cria Eldrazi 0/1 que se sacrifica por C"
+  },
+  {
+   "carta": "Pearl Medallion",
+   "situacao": "conjura mágica branca",
+   "espera": "custa {1} a menos"
+  },
+  {
+   "carta": "Peer into the Abyss",
+   "situacao": "jogador alvo com 40 cartas e 20 de vida",
+   "espera": "compra 20 e perde 10 (arredondar para cima é falta)"
+  },
+  {
+   "carta": "Peerless Recycling",
+   "situacao": "com presente prometido",
+   "espera": "devolve 2 permanentes do cemitério à mão; sem presente, 1"
+  },
+  {
+   "carta": "Perch Protection",
+   "situacao": "com presente prometido",
+   "espera": "4 Pássaros 2/2; suas permanentes saem de fase; vida não muda e proteção até seu turno"
+  },
+  {
+   "carta": "Phelia, Exuberant Shepherd",
+   "situacao": "ataca",
+   "espera": "exila permanente não-terreno; volta no passo final"
+  },
+  {
+   "carta": "Phyrexian Reclamation",
+   "situacao": "{1}{B} e 2 de vida",
+   "espera": "criatura do cemitério volta à mão"
+  },
+  {
+   "carta": "Phyrexian Tower",
+   "situacao": "vira e sacrifica criatura",
+   "espera": "dá BB"
+  },
+  {
+   "carta": "Phyrexian Tyranny",
+   "situacao": "jogador compra",
+   "espera": "perde 2 a menos que pague {2}"
+  },
+  {
+   "carta": "Pippin, Warden of Isengard",
+   "situacao": "vira e sacrifica 4 Foods como feitiço",
+   "espera": "outras criaturas suas +3/+3 e pressa"
+  },
+  {
+   "carta": "Pitiless Plunderer",
+   "situacao": "outra criatura sua morre",
+   "espera": "cria Tesouro"
+  },
+  {
+   "carta": "Plague Belcher",
+   "situacao": "entra; outro Zumbi seu morre",
+   "espera": "dois −1/−1 em criatura sua; cada oponente perde 1"
+  },
+  {
+   "carta": "Ponder",
+   "situacao": "conjura",
+   "espera": "pode embaralhar e compra 1 (reordenar o topo é falta)"
+  },
+  {
+   "carta": "Pongify",
+   "situacao": "criatura alvo",
+   "espera": "destruída; o controlador cria Macaco 3/3"
+  },
+  {
+   "carta": "Poppet Stitcher",
+   "situacao": "conjura instantânea; manutenção com 3 fichas",
+   "espera": "cria Zumbi 2/2; pode transformar (fichas viram 3/3)"
+  },
+  {
+   "carta": "Port Town",
+   "situacao": "entra sem revelar Planície ou Ilha",
+   "espera": "entra virada; dá W ou U"
+  }
+ ]
+}
