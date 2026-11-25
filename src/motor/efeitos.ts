@@ -3,11 +3,11 @@
 // não jogar do que jogar errado em silêncio. Regra de cada handler: perguntar tudo antes de mexer no estado.
 import { M } from './nucleo';
 
-const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue']);
+const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando']);
 const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento']);
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
   'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -17,10 +17,10 @@ const dadoOk = q => !!q && typeof q === 'object' && Number.isInteger(q.dado) && 
 const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && (Number.isInteger(q.ate) || q.ate === 'X' || q.ate === 'qualquer');
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
-    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo'].includes(k)));
-const emOk = v => v === undefined || v === 'este' || v === 'equipada' || v === 'doEvento' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
+    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop'].includes(k)) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
+const emOk = v => v === undefined || v === 'este' || v === 'equipada' || v === 'doEvento' || v === 'criadas' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
-  && M.condValorOk(se) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
+  && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
 M.seOk = seOk;
 // aMenosQue (CR 118.12): "X unless [quem] pays [custo]". Custo: mana fixa, {x:1} com qtd (Esper Sentinel), vida, sacrificar {f, qtd}
 const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['quem', 'custo', 'qtd'].includes(k))
@@ -40,10 +40,12 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   if (!(h.qtd ? h.qtd(f.qtd) : qtdOk(f.qtd))) return false;
   if (f.f && !M.filtroOk(f.f)) return false;
   if (f.aMenosQue !== undefined && !amqOk(f.aMenosQue)) return false;
+  if (f.pagando !== undefined && !amqOk({ quem: 'voce', custo: f.pagando })) return false;   // "você pode pagar…; se pagar"
   return h.ok ? h.ok(f) : true;
 });
 
 // ---------- leitura no meio da resolução ----------
+const c0ts = (ctx, id) => (ctx.criadas.find(c => c.id === id) || {}).ts;
 // objetos que o efeito afeta (alvo ilegal fica de fora, CR 608.2b)
 function objsDe(e, f, ctx) {
   const v = f.em;
@@ -53,6 +55,7 @@ function objsDe(e, f, ctx) {
     return (ctx.alvos[v.alvo] || []).map((a, k) => ctx.ilegal[v.alvo + ':' + k] || a.o === undefined ? null : e.objs[a.o])
       .filter(o => o && (ctx.alvos[v.alvo].find(a => a.o === o.id) || {}).ts === o.ts);
   }
+  if (v === 'criadas') return (ctx.criadas || []).map(c => e.objs[c.id]).filter(o => o && o.zona === 'campo' && o.ts === c0ts(ctx, o.id));   // as fichas que este efeito criou
   if (v === 'equipada') {                                            // o objeto a que a fonte está presa (CR 301.5a, 303.4a)
     const F = e.objs[ctx.este], t = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? M.anexadoA(e, F) : null;
     return t ? [t] : [];
@@ -122,6 +125,7 @@ function qtdDe(e, q, ctx) {
   return Math.max(0, v);
 }
 M.qtdDe = qtdDe;
+M.objsDe = (e, f, ctx) => objsDe(e, f, { lki: {}, alvos: [], ilegal: {}, ...ctx });
 const fonteDado = (e, ctx) => {
   const it = e.objs[ctx.item];
   if (it && !it.hab) return M.dadoDe(e, it);
@@ -194,6 +198,10 @@ function pagouParaImpedir(e, f, ctx, ask) {
 M.executar = (e, f, ctx, ask) => {
   if (f.se && !M.condicao(e, f.se, ctx)) return;                     // CR 608.2c: condição lida na hora
   if (f.aMenosQue && pagouParaImpedir(e, f, ctx, ask)) { ctx.pagou = false; return; }   // CR 118.12: alguém pagou, o efeito não acontece
+  if (f.pagando) {                                                   // "você pode pagar X. Se pagar, …" (pergunta e paga antes do efeito)
+    const pagou = pagouParaImpedir(e, { op: 'pagando', aMenosQue: { quem: 'voce', custo: f.pagando } }, ctx, ask);
+    ctx.pagou = pagou; if (!pagou) return;
+  }
   const h0 = H[f.op];
   if (f.talvez && !(h0 && h0.talvezDentro) && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') { ctx.pagou = false; return; }   // "pode"
   const h = H[f.op];
@@ -296,6 +304,15 @@ function criarFicha(e, j, tok0, { virada = false }: any = {}) {
   return o;
 }
 M.criarFicha = criarFicha;
+// ficha cópia (CR 707.2, 111.4): os valores copiáveis = o dado impresso (a face de cima), sem marcadores nem camadas;
+// o que o token trouxer além do copiaDe vale por cima (707.9b). Fonte que saiu: o objeto guarda o nome e a face.
+function copiaDe(e, token, ctx) {
+  const { copiaDe: de, ...resto } = token;
+  const src = de === 'doEvento' ? ctx.ev && e.objs[ctx.ev.id] : de === 'este' ? e.objs[ctx.este] : objsDe(e, { em: de }, ctx)[0];
+  if (!src || src.hab) return null;
+  const { faces, forma, ...base } = M.dadoBase(e, src);
+  return { ...base, ...resto, n: src.n };
+}
 M.danoEm = (e, o, q, fd) => danoEm(e, o, q, fd);
 function danoEm(e, alvoObj, q, fonte) {
   if (M.temTipo(e, alvoObj, 'Planeswalker')) alvoObj.marc.lealdade = (alvoObj.marc.lealdade || 0) - q;   // CR 120.3c
@@ -363,11 +380,51 @@ const H = {
       (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : ctx.voce, ts: ++e.ts });
     },
   },
+  // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
+  // fimDoTurno sai na limpeza (514.2). Os números são lidos na resolução (611.2c). Lido no M.dadoDe (estado.ts).
+  animar: {
+    campos: ['p', 'r', 'tipos', 'sub', 'kw', 'cores', 'dura'],
+    qtd: q => q === undefined,
+    ok: f => f.em !== undefined && (f.dura === 'fimDoTurno' || f.dura === 'sempre') && (f.p === undefined) === (f.r === undefined)
+      && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
+      && (f.p !== undefined || (f.tipos || []).length > 0 || (f.kw || []).length > 0),
+    fx(e, f, ctx) {
+      const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
+      const n = q => typeof q === 'number' ? q : qtdDe(e, q, ctx);
+      const pt = f.p !== undefined ? [n(f.p), n(f.r)] : undefined;
+      for (const o of os) {
+        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, pt, kw: f.kw, cores: f.cores, fim: f.dura === 'fimDoTurno' ? 'turno' : null });
+        M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
+      }
+      e.vCamada = (e.vCamada || 0) + 1;
+    },
+  },
+  // CR 603.7: gatilho atrasado. Criado na resolução, dispara uma vez só (603.7c) na próxima vez que o evento acontecer
+  // (nesteTurno: só neste turno; proximoTurno: só depois deste). Leva o que o efeito sabe: a fonte (este), as fichas
+  // criadas e o lki; quem controla é quem o criou (603.7d). Disparo e fim: gatilhos.ts (M.evento) e turno.ts.
+  gatilhoAtrasado: {
+    campos: ['quando'],
+    ok: f => M.atrasadoOk(f.quando),
+    fx(e, f, ctx) {
+      (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
+        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [] }, ts: ++e.ts });
+    },
+  },
+  // resguardo (702.21a): o gatilho anula a mágica/habilidade que mirou, a menos que quem a controla pague
+  resguardo: {
+    campos: ['custo'],
+    ok: () => false,                                                // só o gatilho que o motor cria (gatilhos.ts)
+    fx(e, f, ctx, ask) {
+      const P = ctx.ev && e.objs[ctx.ev.por]; if (!P || P.zona !== 'pilha') return;
+      if (pagouParaImpedir(e, { op: 'resguardo', aMenosQue: { quem: 'doEvento', custo: f.custo } }, ctx, ask)) return;
+      M.log(e, P.n, 'anulada pelo resguardo'); M.anular(e, P.id);
+    },
+  },
   fasear: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.fasearFora(e, o.id); } },   // CR 702.26
   destruir: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel')) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
   exilar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.mover(e, o.id, 'exilio'); } },
   mover: {
-    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada'],
+    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando'],
     qtd: q => qtdOk(q) || ateOk(q),
     ok: f => ['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
@@ -384,8 +441,11 @@ const H = {
       // transformada (CR 712.14a): entra com a face de trás; carta que não é de transformar fica onde está
       if (f.transformada) ids = ids.filter(id => { const c = e.objs[id].ficha ? null : M.carta(e.objs[id].n); return f.para === 'campo' && c && c.forma === 'duplaFace' && c.faces; });
       ctx.resultado = ids.length;                                   // "then draw that many" (Valakut Awakening)
+      if (f.talvez) ctx.pagou = ids.length > 0;                     // "se fizer": pôr ao menos uma
       const ent = f.para === 'campo' ? ids.map(id => M.decidirEntrada(e, id, f.sobControle === 'voce' ? ctx.voce : e.objs[id].dono, { virada: !!f.virada, ...(f.transformada ? { face: 0 } : {}) }, ask)) : [];
-      if (f.para === 'campo') ent.forEach(p => M.aplicarEntrada(e, p));
+      // CR 508.4: entra atacando (sem declarar: não dispara "ataca"); quem controla escolhe quem ela ataca, entre os que poderia atacar
+      const atk = f.atacando && e.turno.combate ? ent.map(p => M.escolherAtacado(e, p.ctrl, ask)) : [];
+      if (f.para === 'campo') ent.forEach((p, k) => { const o = M.aplicarEntrada(e, p); if (atk[k]) M.porAtacando(e, o, atk[k]); });
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
     },
   },
@@ -410,7 +470,13 @@ const H = {
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
     campos: ['token', 'virada'],
-    fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) for (let i = 0; i < q; i++) criarFicha(e, j, f.token, { virada: !!f.virada }); },
+    ok: f => !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'),
+    fx(e, f, ctx) {
+      const q = qtdDe(e, f.qtd, ctx); ctx.criadas = [];
+      const tok = f.token && f.token.copiaDe !== undefined ? copiaDe(e, f.token, ctx) : f.token;
+      if (!tok) return;
+      for (const j of jogsDe(e, f, ctx)) for (let i = 0; i < q; i++) { const o = criarFicha(e, j, tok, { virada: !!f.virada }); ctx.criadas.push({ id: o.id, ts: o.ts }); }
+    },
   },
   marcador: {                                                       // CR 122
     campos: ['tipoMarc', 'tirar'],
