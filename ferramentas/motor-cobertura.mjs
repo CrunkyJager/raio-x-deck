@@ -75,6 +75,11 @@ try {
           const ms = porque(s, x => M.estContOk({ modo: 'continuo', ...x }), n, 'est continuo');
           const extra = Object.keys(s).filter(k => !['modo', 'afeta', 'p', 'r', 'kw', 'se'].includes(k) && !k.startsWith('_'));
           for (const m of ms) anota(m !== 'est continuo' ? m : s.afeta && typeof s.afeta !== 'object' && s.afeta !== 'este' ? `est continuo afeta ${s.afeta}` : extra.length ? `est continuo ${extra.join('+')}` : m, n);
+        } else if (s.modo === 'reduzCusto' && M.estReduzOk) {   // mana.ts: o motor diz o que lê
+          if (M.estReduzOk(s)) continue;
+          const q = s.qtd && typeof s.qtd === 'object' && !M.qtdEstOk(s.qtd) ? s.qtd : null;
+          const det = q ? Object.keys(q).filter(k => !['conta', 'mult', 'soma'].includes(k)).concat(q.conta && typeof q.conta === 'object' ? Object.keys(q.conta).filter(k => !M.filtroOk({ [k]: 1 })) : []) : [];
+          anota(`est reduzCusto${det.length ? ' qtd ' + det.join('+') : ''}`, n);
         } else if (!citado.has(s.modo)) anota(`est ${s.modo}`, n);
       }
       for (const x of d.kw || []) if (!citado.has(x.k)) anota(`kw ${x.k}`, n);

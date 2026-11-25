@@ -204,6 +204,7 @@ const CONTA_EST = new Set(['cartasNaMao', 'oponentes', 'jogadores', 'suaVida', '
 const qtdEstOk = q => q === undefined || typeof q === 'number'
   || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste')
     && (typeof q.conta === 'string' ? CONTA_EST.has(q.conta) : !!q.conta && typeof q.conta === 'object' && M.filtroOk(q.conta)));
+M.qtdEstOk = qtdEstOk;
 M.kwListaOk = kw => (kw || []).every(x => x && typeof x.k === 'string');   // palavra-chave dada = mesmo formato da kw da carta
 // habil (CR 613.1f): habilidades dadas, no formato da carta (gat/atv); quem lê cada uma decide se joga (gatOk, podeAtivar)
 const habilOk = h => h === undefined || (!!h && typeof h === 'object' && Object.keys(h).length > 0
@@ -359,7 +360,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha))) return false;
-  if (f.sub && !f.sub.some(s => (d.sub || []).includes(s))) return false;
+  if (f.sub && !f.sub.some(s => (d.sub || []).includes(s === 'escolhido' ? escolhidoDe(e, ctx) : s))) return false;   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
   if (f.ctrl && !quemBate(e, o.ctrl, f.ctrl, voce)) return false;
   if (f.dono && !quemBate(e, o.dono, f.dono, voce)) return false;
@@ -378,6 +379,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.comEquipamento !== undefined && M.anexosDe(e, o).some(x => (M.dadoDe(e, x).sub || []).includes('Equipment')) !== !!f.comEquipamento) return false;
   return true;
 };
+const escolhidoDe = (e, ctx) => { const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));
 const quemBate = (e, j, q, voce) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : true;
 const compara = (v, c) => typeof c === 'number' ? v === c
