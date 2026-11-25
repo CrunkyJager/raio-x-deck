@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.18.0: A Janelas (5b8f382) + Saida/render/wire (8ca6900) → T43 (d) fechada. A segue na fila do motor (lotes 15/16 por nº de cartas), depois T44.
 - 25/11 · FARSEER · v0.17.0: B correção 4 (37335c5) + blocos 17/18 (4c75df1), 961 cartas. Conferidas por amostra: Increasing Devotion, Kalonian Hydra (repetirCada + marcadoresNoEvento). Lote de faltas do bloco 18 a decidir.
 - 25/11 · FARSEER · v0.16.0: B blocos 15+16 (8179415, 861 cartas). Faltas repetidas decididas em lote (0372ad4, 7dbb223); ficam falta: rebound, Room, monstruoso, meld, dash, replicar, morph, skulk. Recusada: Goblin Anarchomancer (2 reduções) → consertada no merge com cor em lista. Leituras ok: Forensic Gadgeteer, Frodo, Ghyrson, Gilded Lotus, Frontier Warmonger, Gluntch, Haste Magic, Hallowed Haunting, Greater Good.
 - 25/11 · FARSEER · v0.15.0: A aba Montar em componentes (1c8c907). Resto da (d): janelas #pop/hover/zoom, depois render()/wire() → próxima versão do A. Mesa fica .js até a T09.

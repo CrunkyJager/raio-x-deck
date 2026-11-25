@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.18.0 — 25/11/2026 · página toda em componentes Svelte (T43 d fechada)
+Testes: valida 961/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · lacunas = base · verifica verde · build ok.
+- **Estrutura (A, T43 d):** janelas da análise (prévia, detalhe da carta, zoom) em `src/telas/Janelas.svelte`; a saída inteira (Resumo, Trocas, Análise) em `src/telas/Saida.svelte`; saíram do analise.ts o render(), o wire() e os innerHTML. Trocar comandante e a leitura do Claude ficam no Resumo. A Mesa segue em .js até a T09.
+
 ## v0.17.0 — 25/11/2026 · banco com 961 cartas
 Testes: valida 961/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
 - **Banco (B):** correção 4 (22 cartas antigas com os campos dos lotes 15/16: Anel, Classe, ateAchar, explorar, amassar, popular, moe, porOponente, historico…), bloco 17 (801–850, 51 casos) e bloco 18 (851–900, 50 casos).
