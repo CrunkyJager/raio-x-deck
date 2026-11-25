@@ -363,6 +363,10 @@ export interface RxFiltro {
    * a criatura atacou neste turno (Riders of the Mark e mais 2)
    */
   atacouNoTurno?: boolean;
+  /**
+   * nome exato da carta (Oracle, face da frente); para 'named <esta carta>' escrever o próprio nome (Ancestral Anger, Wedding Ring)
+   */
+  nome?: string;
 }
 
 export interface RxCompara {
@@ -702,6 +706,10 @@ export interface RxFx {
    * op virar/efeito: não desvira no próximo passo de desvirar do controlador (Junk Winder + 2)
    */
   naoDesvira?: boolean;
+  /**
+   * op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
+   */
+  fonte?: RxObjeto;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".

@@ -338,8 +338,8 @@ Contagem: banco 1561 cartas / fila 24 ainda não escritas.
 
 | falta | no banco | na fila | cartas do banco | proposta | decisão |
 |---|---|---|---|---|---|
-| a fonte do dano é outro objeto (a criatura que entrou, a alvo, a ferida) | 3 | 0 | Chandra's Ignition (criatura alvo causa), Warstorm Surge (a que entrou), Wrathful Raptors (o Dinossauro ferido) | fx dano com `fonte` (`{alvo:n}` / `doEvento`) | |
-| filtro por nome | 3 | 0 | Ancestral Anger (cartas com esse nome no cemitério), Gollum (oponente que levou dano de criatura chamada Gollum), Wedding Ring (oponente que controla um Wedding Ring) | filtro `nome` (string; o próprio nome da carta) | |
+| a fonte do dano é outro objeto (a criatura que entrou, a alvo, a ferida) | 3 | 0 | Chandra's Ignition (criatura alvo causa), Warstorm Surge (a que entrou), Wrathful Raptors (o Dinossauro ferido) | fx dano com `fonte` (`{alvo:n}` / `doEvento`) | aprovado (FARSEER 25/11): correção 16 (+ Ingris, Dragon Tempest, Scourge of Valkas) |
+| filtro por nome | 3 | 0 | Ancestral Anger (cartas com esse nome no cemitério), Gollum (oponente que levou dano de criatura chamada Gollum), Wedding Ring (oponente que controla um Wedding Ring) | filtro `nome` (string; o próprio nome da carta) | aprovado: correção 16 (Ancestral Anger, Wedding Ring; Gollum segue falta pelo histórico de dano) |
 | conjurada DA MÃO | 2 | 0 | Cyclone Summoner, Wakening Sun's Avatar (Wildsear também, mas depende da cascata) | filtro `conjuradaDe: "mao"` | |
 | redução de custo de UMA habilidade ativada | 2 | 0 | Otawara (a da mão), Voldaren Estate (o {5} da Blood, por Vampiro) | reduzCusto `deHabil` com índice da atv | |
 | cascata | 2 | 0 | The First Sliver, Wildsear | kw `cascata` (com `f` para "magias de encantamento da mão") | |
@@ -356,5 +356,7 @@ Contagem: banco 1585 cartas / fila 0 (a fila acabou no bloco 31).
 |---|---|---|---|---|---|
 | marcadores de qualquer tipo | 2 | 0 | Twenty-Toed Toad (lote 29), Zack Fair (passa os marcadores dele) | `tipoMarc: "qualquer"` no marcador/moverMarcador e na conta marcadoresNoEste | |
 | o resto 1/0 | | | Wrenn and Seven (0: QUALQUER número de terrenos da mão), Yuffie (ninjutsu), Zack Fair (última informação do sacrificado), Zada (mágica que mira SÓ a Zada; uma cópia por criatura diferente), Éowyn Fearless Knight (proteção das cores de outro objeto), Éowyn Shieldmaiden (Humano que entrou neste turno e já saiu) | deixar falta | |
+
+Decisão do FARSEER (25/11): lotes 30 (2/0 e 1/0) e 31 ficam como falta.
 
 Notas do bloco 31: Ziatora's Proving Ground usa o custoAtv `descartarEste` aprovado (atv `zona mao`, {3}: compra 1). Yenna não conta para "ficha-cópia com exceção" (lote 29): o "isn't legendary" já é `naoLendaria`; o lote segue 2/0.
