@@ -25,11 +25,13 @@ jobs:
         with: { python-version: '3.12' }
       - uses: actions/setup-node@v4
         with: { node-version: '22' }
+      - name: pacotes do npm (o mede.js do gabarito usa o typescript)
+        run: npm ci
       - name: testa.py + partida + gabarito de planos
         run: python3 ferramentas/ci/verifica.py
       - name: tipos (svelte-check), Vitest e build do Vite (T43)
         # casos de regra com as cartas de banco/cartas (o que falta pula com aviso); fuzz pula sem cartas-rx.js
-        run: npm ci && npm run check && npm test && npm run build
+        run: npm run check && npm test && npm run build
   site:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: testes

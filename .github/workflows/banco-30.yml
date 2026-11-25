@@ -17,11 +17,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npm ci && pip install playwright && python -m playwright install --with-deps chromium
       - name: site local + banco
         run: |
-          python3 -m http.server 8765 >/dev/null 2>&1 &
-          sleep 2
+          npx vite --port 8765 --strictPort >/dev/null 2>&1 &   # T43: análise/montar/mesa são módulos de src/
+          for i in $(seq 60); do curl -fs http://localhost:8765/ >/dev/null && break; sleep 1; done
           python3 ferramentas/calibra/banco_mesa.py ci "${{ inputs.n || '200' }}" 4 | tee banco.log
           { echo '## Banco de 30'; echo '```'; tail -35 banco.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
