@@ -302,3 +302,6 @@ Contagem: banco 1411 cartas / fila 174 ainda não escritas.
 | não desvira no próximo desvirar | 2 | 0 | Junk Winder, Tamiyo Field Researcher | fx `naoDesvira` no virar | |
 | virar cópia | 2 | 0 | Sarkhan Soul Aflame, Sunfrill Imitator | op `virarCopia` com `dura` e `exceto` | |
 | o resto 1/0 | | | Strong (ganha vida em vez de perder na radiação), Struggle (Enclave: só quem ataca VOCÊ), Tamiyo +1 (quem compra é você, a criatura pode ser de outro), Tandem Lookout (soulbond), Tataru Taru (não é o turno DAQUELE jogador), Tear Asunder (chute troca o alvo), Teval's Judgment (modo não escolhido neste turno), The Book of Exalted Deeds (não pode perder o jogo) | deixar falta | |
+
+## Decisões do lote do bloco 27 (FARSEER 25/11)
+Somando os lotes anteriores: cond `modoEscolhido` (3), op `incitar` (Marisi do 20 + 2), fx `naoDesvira` (Junk Winder do 18 + 2). Reescrever na correção 11. Ficam em `falta`: cascata (1/1), virar cópia, o resto 1/0. Leituras do bloco 27 aprovadas.
