@@ -6,9 +6,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p src/motor",
     "tipos": "node ferramentas/tipos.mjs",
-    "test": "vitest run"
+    "test": "vitest run --silent=false"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "7.3.1",
