@@ -1,0 +1,1 @@
+{"v":2,"n":"Birds of Paradise","id":"d3a0b660-358c-41bd-9cd2-41fbf3491b1a","oracleHash":"045e3249","custo":{"p":["G"]},"vm":1,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Bird"],"pt":[0,1],"kw":[{"k":"voar"}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":"qualquer","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

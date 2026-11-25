@@ -1,0 +1,1 @@
+{"v":2,"n":"Reliquary Tower","id":"c23e5b80-08d2-4e24-9908-fe2aa4f30f6f","oracleHash":"d5dbfaa1","vm":0,"ci":"","cores":"","tipos":["Land"],"est":[{"modo":"maoMax","afeta":"voce","qtd":"tudo"}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["C"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco1.json"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Rampant Growth","id":"8539f295-5d58-4436-a73a-b9277c4c7795","oracleHash":"8879e176","custo":{"g":1,"p":["G"]},"vm":2,"ci":"G","cores":"G","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"tipo":["Land"],"super":["Basic"]},"para":"campo","virada":true},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

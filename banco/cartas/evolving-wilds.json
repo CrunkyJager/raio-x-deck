@@ -1,0 +1,1 @@
+{"v":2,"n":"Evolving Wilds","id":"a75445d3-1303-4bb5-89ad-26ea93fecd48","oracleHash":"cb611eb3","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true,"sacrificar":"este"},"fx":[{"op":"buscar","f":{"tipo":["Land"],"super":["Basic"]},"para":"campo","virada":true},{"op":"embaralhar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

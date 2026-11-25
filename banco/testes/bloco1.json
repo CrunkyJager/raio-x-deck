@@ -1,0 +1,118 @@
+{
+ "bloco": 1,
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "casos do que deve acontecer no jogo (CR); o motor ainda não roda este arquivo — formato: carta, situação, espera",
+ "casos": [
+  {
+   "carta": "Sacred Foundry",
+   "situacao": "entra; você paga 2 de vida",
+   "espera": "entra desvirada, vida -2"
+  },
+  {
+   "carta": "Sacred Foundry",
+   "situacao": "entra; você não paga",
+   "espera": "entra virada, vida igual"
+  },
+  {
+   "carta": "Canopy Vista",
+   "situacao": "entra controlando 1 terreno básico",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Canopy Vista",
+   "situacao": "entra controlando 2 terrenos básicos",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Clifftop Retreat",
+   "situacao": "entra controlando uma Mountain (não básica serve: Sacred Foundry)",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Clifftop Retreat",
+   "situacao": "entra sem Mountain nem Plains",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Path of Ancestry",
+   "situacao": "entra",
+   "espera": "entra virada; vira para mana da identidade do comandante"
+  },
+  {
+   "carta": "Bojuka Bog",
+   "situacao": "entra; oponente com 5 cartas no cemitério é o alvo",
+   "espera": "entra virada; cemitério do alvo vai para o exílio"
+  },
+  {
+   "carta": "Jetmir's Garden",
+   "situacao": "na mão, paga {3} e descarta",
+   "espera": "compra 1 carta (ciclar)"
+  },
+  {
+   "carta": "Reliquary Tower",
+   "situacao": "fim do seu turno com 10 cartas na mão",
+   "espera": "não descarta"
+  },
+  {
+   "carta": "Thought Vessel",
+   "situacao": "fim do seu turno com 9 cartas na mão",
+   "espera": "não descarta"
+  },
+  {
+   "carta": "Smothering Tithe",
+   "situacao": "oponente compra e não paga {2}",
+   "espera": "você cria 1 Treasure"
+  },
+  {
+   "carta": "Smothering Tithe",
+   "situacao": "oponente compra e paga {2}",
+   "espera": "nenhuma ficha"
+  },
+  {
+   "carta": "Smothering Tithe",
+   "situacao": "você compra",
+   "espera": "não dispara"
+  },
+  {
+   "carta": "Skullclamp",
+   "situacao": "equipada numa 1/1",
+   "espera": "vira 2/0, morre; você compra 2"
+  },
+  {
+   "carta": "Swiftfoot Boots",
+   "situacao": "equipada",
+   "espera": "criatura com pressa e antimagia (oponente não mira; você mira)"
+  },
+  {
+   "carta": "Lightning Greaves",
+   "situacao": "equipada",
+   "espera": "criatura com pressa e manto (ninguém mira)"
+  },
+  {
+   "carta": "Blasphemous Act",
+   "situacao": "6 criaturas no campo (de todos)",
+   "espera": "custa {2}{R}; 13 de dano em cada criatura"
+  },
+  {
+   "carta": "Herald's Horn",
+   "situacao": "entra escolhendo Goblin; conjura Goblin de 3",
+   "espera": "custa 2"
+  },
+  {
+   "carta": "Herald's Horn",
+   "situacao": "manutenção, topo é Goblin",
+   "espera": "pode revelar e pôr na mão; se não for, fica no topo"
+  },
+  {
+   "carta": "Heroic Intervention",
+   "situacao": "resolve; oponente tenta destruir sua criatura",
+   "espera": "suas permanentes indestrutíveis e com antimagia até o fim do turno"
+  },
+  {
+   "carta": "Rogue's Passage",
+   "situacao": "paga {4} e vira mirando sua criatura",
+   "espera": "ela não pode ser bloqueada neste turno"
+  }
+ ]
+}

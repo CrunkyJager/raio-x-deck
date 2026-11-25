@@ -1,0 +1,1 @@
+{"v":2,"n":"Thought Vessel","id":"9965d9c5-2ebf-4a6c-930e-55c5890979be","oracleHash":"d5dbfaa1","custo":{"g":2},"vm":2,"ci":"","cores":"","tipos":["Artifact"],"est":[{"modo":"maoMax","afeta":"voce","qtd":"tudo"}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["C"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco1.json"}}
