@@ -1,4 +1,6 @@
 # Adepto A — T43 estrutura
-Feito: —
-Agora: começar
-Dúvidas: —
+Feito (a) 7290294: Vite 8.1.7 + Svelte 5.57.3 + TS 6.0.3 (svelte-check não aceita TS 7) + vitest 5.1.0; `npm run dev|build|check|tipos|test`; `npm run tipos` → `src/tipos/carta.ts` (21 tipos do banco/esquema.json); scripts clássicos + `motor/` + `dados/` copiados para `dist/`; Pages publica `dist/`. Fumaça fonte × dist igual.
+Feito (b): `motor2/*.js` → `src/motor/*.ts` (módulos ES, objeto M em nucleo.ts, tipos do estado em tipos.ts; strict sem noImplicitAny em src/motor/tsconfig.json, 0 erros). Só anotações de tipo: o JS que sai do TS é igual ao motor2 nos 8 módulos (comparado sem comentários/espaços). Vitest: 95/95 casos + fuzz 30 partidas com histórico de respostas e estado final iguais ao motor2 JS (45 turnos/partida). raiox-testes = linha de base.
+Agora: aguardando o coordenador para (c).
+Dúvidas: (1) `motor2/` JS ficou (o raiox-testes e o fuzz comparativo usam); tirar quando você aprovar e trocar a linha do raiox-testes por `npm test`. (2) CI não roda o Vitest: cartas-rx.js é gerado e está no .gitignore. (3) Pages só com o site (regras/, planejamento/, banco/ saem da URL). (4) `?v=` não trocado.
+Obs.: worktree `~/raio-x-deck-t43`; cartas-rx.js/forge-db.js lá são links para os da main (fora do git). FARSEER = sessão lucas-aa no ListAgents (painel tmux %1); aviso de (a)+(b) enviado em 25/11.
