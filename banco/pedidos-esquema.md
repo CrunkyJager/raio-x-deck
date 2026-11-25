@@ -272,5 +272,5 @@ Contagem: banco 1311 cartas / fila 274 ainda não escritas. Nenhuma falta nova s
 
 | falta | no banco | na fila | cartas do banco | proposta | decisão |
 |---|---|---|---|---|---|
-| sacrificar quantos quiser | 2 | 0 | Scapeshift, Feasting Hobbit | qtd `{ate:"qualquer"}` no sacrificar (hoje escrito "tudo") | |
-| o resto 1/0 | | | Sarkhan Soul Aflame (vira cópia até o fim do turno), Season of the Burrow (modos por {P}, repetidos), Selfless Squire (ev dano prevenido), Selvala Explorer Returned (parley: escrito a média, metade dos jogadores), Selvala Heart of the Wilds (maior poder que cada outra), Serra the Benevolent (emblema vida não cai abaixo de 1), Siege Smash (split second) | deixar falta | |
+| sacrificar quantos quiser | 2 | 0 | Scapeshift, Feasting Hobbit | qtd `{ate:"qualquer"}` no sacrificar (hoje escrito "tudo") | decidido FARSEER: `qtd {ate:"qualquer"}`; escrito (correção 9) |
+| o resto 1/0 | | | Sarkhan Soul Aflame (vira cópia até o fim do turno), Season of the Burrow (modos por {P}, repetidos), Selfless Squire (ev dano prevenido), Selvala Explorer Returned (parley: escrito a média, metade dos jogadores), Selvala Heart of the Wilds (maior poder que cada outra), Serra the Benevolent (emblema vida não cai abaixo de 1), Siege Smash (split second) | deixar falta | falta |

@@ -108,4 +108,6 @@ Correção 8 (correcao8.json, 4 casos): Riders of the Mark com se objBate `ataco
 Bloco 25 (fila 1201–1250): 50 escritas, 50 casos em bloco25.json; valida 1311/0; vitest 116 ok; check 0. Primeiro uso de ficha Eldrazi Scion com atv de mana (Sifter of Skulls), alvoDe com alvo `ctrl doEvento` (Scalelord Reckoner), vm do alvo `max vmDoEvento soma -1` = "menor" (Scrap Trawler), animar `tiraKw` antimagia e indestrutível nos permanentes do oponente (Shadowspear), efeitoTemporario ptDefinido 7/5 nas `modificada` (Sephiroth), naoPodeSerBloqueada `por` não-Sliver (Shifting Sliver), slowland com `existe max 1` (Shipwreck Marsh).
 Leituras a confirmar: Selvala Explorer Returned com a média (metade dos jogadores) de G e de vida; Scapeshift sacrifica todos os terrenos; Season of the Burrow até 3 modos diferentes; Sigil of Sleep e Scion of Calamity alvo `ctrl doEvento` = o jogador que levou o dano; Serra −6 com fx vazio (só a falta).
 Faltas em lote no pedidos-esquema.md (bloco 25): sacrificar quantos quiser 2/0; o resto 1/0.
-Agora: avisar o FARSEER (correção 8 + bloco 25).
+Correção 8 e bloco 25 aprovados pelo FARSEER (13:12): River Kelpie como estava, Riders sem talvez.
+Correção 9 (correcao9.json, 4 casos): lote do bloco 25, sacrificar quantos quiser = qtd `{ate:"qualquer"}` em Scapeshift e Feasting Hobbit (sai o `talvez`, a escolha já inclui 0; sai a falta do "any number").
+Agora: Raio-X pausado pelo Felipe (via FARSEER 13:12). Esperar; bloco 26 só quando retomar.
