@@ -6,7 +6,8 @@ do Apps Script, ou à mão). Este script pega o pedido mais antigo, acha as cart
 (conta do PC: Max no trabalho, Pro em casa) para escrevê-las em lotes, roda valida.py e os testes e faz commit
 num ramo `fila-auto`. Carta escrita aqui sai com rev.por = "fila-auto" (provisória até revisão).
 
-uso: python3 ferramentas/fila-auto/trabalha.py [--seco] [--teto N] [--lote N] [--repo CAMINHO] [--sem-push]
+uso: python3 ferramentas/fila-auto/trabalha.py [--planilha] [--seco] [--teto N] [--lote N] [--repo CAMINHO] [--sem-push]
+  --planilha  antes, pega 1 pedido novo do web app (Apps Script em apps-script/)
   --seco   não chama o Claude nem faz commit: só mostra o que faria
   --teto   cartas por dia neste PC (padrão 300; casa/Pro: 50)
 Sem custo de API: usa o `claude` logado no PC.
@@ -75,12 +76,43 @@ def escreve(cartas, repo):
     return roda(cmd, repo, 1600)
 
 
+CFG = os.path.expanduser('~/.config/raiox')
+
+
+def web(**q):
+    """chama o web app da planilha (url e chave em ~/.config/raiox/fila-url e fila-chave)"""
+    import urllib.parse, urllib.request
+    url = open(os.path.join(CFG, 'fila-url')).read().strip()
+    q['chave'] = open(os.path.join(CFG, 'fila-chave')).read().strip()
+    with urllib.request.urlopen(url + '?' + urllib.parse.urlencode(q), timeout=60) as r:
+        return json.loads(r.read().decode())
+
+
+def busca_planilha():
+    """pega 1 pedido 'novo' da planilha e grava em pedidos/<id>.txt"""
+    try:
+        r = web(acao='pegar', pc=os.uname().nodename)
+    except Exception as e:
+        print('planilha fora do ar:', e); return
+    if r.get('id'):
+        open(os.path.join(PED, r['id'] + '.txt'), 'w').write(r['deck'])
+        print('pedido novo da planilha:', r['id'])
+
+
+def avisa_planilha(arq, estado, n):
+    if re.fullmatch(r'[0-9a-f]{8}\.txt', arq):
+        try: web(acao='marcar', id=arq[:-4], estado=estado, cartas=n)
+        except Exception as e: print('não marquei na planilha:', e)
+
+
 def main():
     seco = '--seco' in sys.argv
     teto, lote = int(arg('--teto', 300)), int(arg('--lote', 10))
     repo = os.path.abspath(arg('--repo', os.path.join(AQUI, '..', '..')))
     for d in (PED, FEITOS):
         os.makedirs(d, exist_ok=True)
+    if '--planilha' in sys.argv and not seco:
+        busca_planilha()
     pedidos = sorted((os.path.getmtime(os.path.join(PED, f)), f) for f in os.listdir(PED) if f.endswith('.txt'))
     if not pedidos:
         print('fila vazia'); return 0
@@ -106,7 +138,8 @@ def main():
             t, st = roda(['npx', 'vitest', 'run'], repo)
             if v or t:
                 roda(['git', 'checkout', '--', 'banco'], repo); roda(['git', 'clean', '-fdq', 'banco/cartas', 'banco/testes'], repo)
-                print(f'  lote {i // lote + 1} REPROVADO (valida {v}, testes {t}); desfeito\n' + sv[-600:] + st[-600:]); return 1
+                print(f'  lote {i // lote + 1} REPROVADO (valida {v}, testes {t}); desfeito\n' + sv[-600:] + st[-600:])
+                avisa_planilha(arq, 'erro', usado); return 1
             roda(['git', 'add', 'banco'], repo)
             roda(['git', 'commit', '-qm', f'fila-auto: {len(parte)} cartas provisórias do pedido {arq} ({", ".join(parte[:4])}…)'], repo)
             usado += len(parte); open(conta, 'w').write(str(usado))
@@ -115,6 +148,7 @@ def main():
             roda(['git', 'push', '-q', 'origin', 'HEAD:fila-auto'], repo)
         if len(fazer) == len(fora):
             os.replace(os.path.join(PED, arq), os.path.join(FEITOS, arq))
+            avisa_planilha(arq, 'feito', len(fora))
     finally:
         os.path.exists(TRAVA) and os.remove(TRAVA)
     return 0
