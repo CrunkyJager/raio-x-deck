@@ -202,3 +202,19 @@ Regra ≥3 ocorrências (somando os lotes anteriores).
 - est `cores` = passa a ter só estas cores (Nim Deathmantle 'B', Leyline of the Guildpact 'WUBRG'); perder tipos já é `tiraTipo`.
 - Ficam em `falta`: Role, comMarcador qualquer, explora terreno/não-terreno, o resto 1/0.
 - Reescrever na correção 5: Moraug, Motivated Pony, Ocelot Pride, Idol of Oblivion, Linvala, Myrel, Mikaeus, Nim Deathmantle, Leyline of the Guildpact.
+
+## Faltas em lote (bloco 22, para o FARSEER decidir junto)
+Contagem: banco 1161 cartas / fila 424 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| não pode ser regenerada | 5 | 2 | Pongify, Artifact Mutation e outras | fx `semRegenerar` no destruir | |
+| decayed | 3 | 1 | Poppet Stitcher, Crowded Crypt… | kw `decaida` | |
+| habilidade custa {1} a menos por objeto | 2 | 2 | Otawara (por lendária) | reduzCusto `deHabil` com qtd contagem no atv | |
+| maior valor de mana entre | 2 | 1 | One with the Machine | prop `maiorVm` | |
+| exceto a primeira compra do passo de compra | 2 | 1 | Orcish Bowmasters, Bard | gat compra `naoPrimeira` | |
+| ao acaso (modal) | 2 | 1 | Outlaws' Merriment (Gamble já tem descartar aleatorio) | modal `aleatorio` | |
+| impending | 2 | 0 | os dois Overlords | deixar falta | |
+| canalizar (descartar esta como custo) | 2 | 0 | Otawara, Shigeki | custoAtv `descartarEste` | |
+| perde todas as habilidades | 2 | 0 | Poppet Factory | deixar falta | |
+| o resto 1/0 | | | Peer into the Abyss (arredondar para cima), Patriarch's Bidding (cada jogador escolhe), Perch Protection (exila a si), Phelia (quem controla a que voltou) | deixar falta | |

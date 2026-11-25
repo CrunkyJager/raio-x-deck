@@ -1,0 +1,1 @@
+{"v":2,"n":"Orzhov Enforcer","id":"f60b879e-82b4-442d-a544-2349429fe4c9","oracleHash":"3a52c5b0","custo":{"g":1,"p":["B"]},"vm":2,"ci":"B","cores":"B","tipos":["Creature"],"sub":["Human","Rogue"],"pt":[1,2],"kw":[{"k":"toqueMortifero"},{"k":"posVida","n":1}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco22.json"}}
