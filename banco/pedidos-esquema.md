@@ -177,3 +177,55 @@ Regra: 3 ou mais ocorrências (banco + fila) → campo novo; o resto fica em `fa
 - fx mana `ficaNoTurno`. Reescrever Birgi e Klauth.
 - Kalonian Hydra: a leitura com repetirCada fica (sem op nova).
 - Ficam em `falta`: bestow, prowl, velocidade, fichaCriadaNoTurno, combate do oponente, Hei Bai, Hordewing, alvo "ou Ugin", Kess/Kotis, Junk Winder, Inkshield, Companion, Jarad, Kaalia, mana gasta (Mana Sculpt segue com vmDoAlvo), afflict, conivir, dragar, naoPodeAtivar, Leyline, Liliana −9, N-ésima do topo, Lightning (eSeus), Mangara, incolor, Lobelia, devolver no custo, multikicker, goad, desvirar, unearth, Master of Cruelties, Mirri, Marisi, modo escolhido ao entrar.
+
+## Faltas em lote (bloco 21, para o FARSEER decidir junto)
+Contagem: banco 1111 cartas / fila 474 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| "fase principal" na condição (não só turno seu) | 2 | 1 | Moraug (escrito: turno seu) | cond `faseprincipal` | |
+| "entrou neste turno" (Food entrou, fichas que entraram) | 2 | 1 | Motivated Pony, Ocelot Pride (junto do fichaCriadaNoTurno do 17) | filtro `entrouNoTurno` | |
+| Role (ficha de Aura com efeito) | 1 | 1 | Monstrous Rage (escrito: +1/+1 e atropelar direto na criatura) | token `est` ou Roles nomeadas no motor | |
+| travar habilidades ativadas | 1 | 1 | Myrel (junto do naoPodeAtivar do 19) | deixar falta | |
+| marcador de qualquer tipo no filtro | 2 | 0 | Mutational Advantage (escrito: +1/+1) | `comMarcador: "qualquer"` | |
+| intimidar (intimidate) | 2 | 0 | Nim Deathmantle (e Mikaeus do 20) | kw `intimidar` | |
+| vira cor / perde tipos de criatura | 2 | 0 | Nim Deathmantle | deixar falta | |
+| explora terreno / não-terreno | 1 | 0 | Nicanzil (escritas as duas com ev `explora`) | cond do card revelado | |
+| o resto 1/0 | | | Moraug (ataques por criatura), Mox Amber (cores das lendárias), New Blood (troca de texto), Nightkin Ambusher (rad do defensor) | deixar falta | |
+
+## Decisões do lote do bloco 21 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores).
+- cond `fasePrincipal` (Moraug).
+- filtro `entrouNoTurno` (Motivated Pony, Ocelot Pride; Idol of Oblivion = `ficha` + `entrouNoTurno`).
+- est modo `naoPodeAtivar` com `afeta` (Linvala do 19 + Myrel).
+- kw `intimidar` (Mikaeus do 20 + Nim Deathmantle).
+- est `cores` = passa a ter só estas cores (Nim Deathmantle 'B', Leyline of the Guildpact 'WUBRG'); perder tipos já é `tiraTipo`.
+- Ficam em `falta`: Role, comMarcador qualquer, explora terreno/não-terreno, o resto 1/0.
+- Reescrever na correção 5: Moraug, Motivated Pony, Ocelot Pride, Idol of Oblivion, Linvala, Myrel, Mikaeus, Nim Deathmantle, Leyline of the Guildpact.
+
+## Faltas em lote (bloco 22, para o FARSEER decidir junto)
+Contagem: banco 1161 cartas / fila 424 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| não pode ser regenerada | 5 | 2 | Pongify, Artifact Mutation e outras | fx `semRegenerar` no destruir | |
+| decayed | 3 | 1 | Poppet Stitcher, Crowded Crypt… | kw `decaida` | |
+| habilidade custa {1} a menos por objeto | 2 | 2 | Otawara (por lendária) | reduzCusto `deHabil` com qtd contagem no atv | |
+| maior valor de mana entre | 2 | 1 | One with the Machine | prop `maiorVm` | |
+| exceto a primeira compra do passo de compra | 2 | 1 | Orcish Bowmasters, Bard | gat compra `naoPrimeira` | |
+| ao acaso (modal) | 2 | 1 | Outlaws' Merriment (Gamble já tem descartar aleatorio) | modal `aleatorio` | |
+| impending | 2 | 0 | os dois Overlords | deixar falta | |
+| canalizar (descartar esta como custo) | 2 | 0 | Otawara, Shigeki | custoAtv `descartarEste` | |
+| perde todas as habilidades | 2 | 0 | Poppet Factory | deixar falta | |
+| o resto 1/0 | | | Peer into the Abyss (arredondar para cima), Patriarch's Bidding (cada jogador escolhe), Perch Protection (exila a si), Phelia (quem controla a que voltou) | deixar falta | |
+
+## Decisões do lote do bloco 22 (FARSEER 25/11)
+- fx `semRegenerar` no destruir (7 ocorrências).
+- kw `decaida` (decayed).
+- habilidade mais barata por objeto: o est `reduzCusto` com `deHabil` já aceita `qtd` com contagem; usar isso (Otawara), sem campo novo.
+- prop `maiorVm` na contagem (`{"conta": filtro, "prop": "maiorVm"}`, One with the Machine).
+- gat `naoPrimeira` no ev compra (Orcish Bowmasters, Bard).
+- `aleatorio` também vale para os modos (Outlaws' Merriment).
+- Ficam em `falta`: impending, canalizar (2/0), perde todas as habilidades, o resto 1/0.
+- Ponder: está escrito só como embaralhar + compra. Falta olhar as 3 do topo e reordenar (cavar olha 3, resto no topo em qualquer ordem). Corrigir.
+- Reescrever na correção 6: as 7 de não regenerar, as de decayed, Otawara, One with the Machine, Bowmasters, Bard, Outlaws' Merriment e Ponder.

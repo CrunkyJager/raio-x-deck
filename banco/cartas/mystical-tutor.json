@@ -1,0 +1,1 @@
+{"v":2,"n":"Mystical Tutor","id":"fb81f95c-70f8-4eb7-8d15-15d0ae23ec03","oracleHash":"ab1109b5","custo":{"p":["U"]},"vm":1,"ci":"U","cores":"U","tipos":["Instant"],"fx":[{"op":"embaralhar","quem":"voce"},{"op":"buscar","f":{"tipo":["Instant","Sorcery"]},"revelar":true,"para":"grimorio"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco21.json"}}

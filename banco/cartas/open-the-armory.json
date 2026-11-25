@@ -1,0 +1,1 @@
+{"v":2,"n":"Open the Armory","id":"2ecf7771-8061-4710-ad2e-80b092ae0b4b","oracleHash":"ea383fa1","custo":{"g":1,"p":["W"]},"vm":2,"ci":"W","cores":"W","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"sub":["Aura","Equipment"]},"revelar":true,"para":"mao"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco22.json"}}

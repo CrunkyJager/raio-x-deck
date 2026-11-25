@@ -1,0 +1,1 @@
+{"v":2,"n":"Path of Discovery","id":"52714c3c-6821-44dd-88ba-813554df9914","oracleHash":"d828d24e","custo":{"g":3,"p":["G"]},"vm":4,"ci":"G","cores":"G","tipos":["Enchantment"],"gat":[{"ev":"entra","quem":{"tipo":["Creature"],"ctrl":"voce"},"fx":[{"op":"explorar","em":"doEvento"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco22.json"}}

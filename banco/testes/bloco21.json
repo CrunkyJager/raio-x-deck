@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco21",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1001–1050 (Monster Manual … Ojer Taq, Deepest Foundation)",
+ "casos": [
+  {
+   "carta": "Monster Manual",
+   "situacao": "{1}{G}, vira; ou a aventura",
+   "espera": "põe uma criatura da mão no campo; Zoological Study moe 5 e devolve uma criatura moída à mão"
+  },
+  {
+   "carta": "Monstrous Rage",
+   "situacao": "alvo numa criatura",
+   "espera": "+2/+0 no turno e o Monster Role: +1/+1 e atropelar"
+  },
+  {
+   "carta": "Monstrous Vortex",
+   "situacao": "você conjura criatura de poder 5+",
+   "espera": "descobrir X, X = valor de mana dela"
+  },
+  {
+   "carta": "Moraug, Fury of Akoum",
+   "situacao": "terreno seu entra no seu turno",
+   "espera": "combate extra e desvira suas criaturas no início dele (+1/+0 por ataque é falta)"
+  },
+  {
+   "carta": "Morphic Pool",
+   "situacao": "entra com um oponente só",
+   "espera": "entra virada; dá U ou B"
+  },
+  {
+   "carta": "Mossborn Hydra",
+   "situacao": "entra; depois um terreno seu entra",
+   "espera": "entra com 1 marcador; dobra os marcadores a cada terreno"
+  },
+  {
+   "carta": "Mother of Runes",
+   "situacao": "vira mirando criatura sua",
+   "espera": "ela ganha proteção da cor escolhida no turno"
+  },
+  {
+   "carta": "Motivated Pony",
+   "situacao": "ataca",
+   "espera": "as atacantes ganham +1/+1 (o bônus da Food é falta)"
+  },
+  {
+   "carta": "Mox Amber",
+   "situacao": "vira com uma lendária sua",
+   "espera": "1 mana de qualquer cor (só das cores dela é falta)"
+  },
+  {
+   "carta": "Mox Jasper",
+   "situacao": "vira com um Dragão seu",
+   "espera": "1 mana de qualquer cor"
+  },
+  {
+   "carta": "Mox Opal",
+   "situacao": "vira com 3 artefatos",
+   "espera": "1 mana de qualquer cor"
+  },
+  {
+   "carta": "Ms. Bumbleflower",
+   "situacao": "você conjura uma mágica (2ª vez no turno)",
+   "espera": "oponente alvo compra 1; criatura alvo ganha +1/+1 e voar; na 2ª você compra 2"
+  },
+  {
+   "carta": "Murmuring Bosk",
+   "situacao": "entra sem revelar Treefolk",
+   "espera": "entra virada; G, ou W/B com 1 de dano"
+  },
+  {
+   "carta": "Muscle Sliver",
+   "situacao": "outro Sliver em campo",
+   "espera": "todos os Slivers +1/+1"
+  },
+  {
+   "carta": "Mutational Advantage",
+   "situacao": "suas permanentes com marcador",
+   "espera": "antimagia, indestrutível e dano prevenido no turno; proliferar"
+  },
+  {
+   "carta": "Myr Retriever",
+   "situacao": "morre",
+   "espera": "devolve outro artefato do seu cemitério à mão"
+  },
+  {
+   "carta": "Myrel, Shield of Argive",
+   "situacao": "ataca com 3 Soldados; turno seu",
+   "espera": "cria 3 Soldados artefato 1/1; oponentes não conjuram no seu turno"
+  },
+  {
+   "carta": "Mysidian Elder",
+   "situacao": "entra; depois você conjura não-criatura",
+   "espera": "cria Mago 0/1 que causa 1 a cada oponente"
+  },
+  {
+   "carta": "Mystic Remora",
+   "situacao": "sua manutenção; oponente conjura não-criatura",
+   "espera": "marcador de idade e paga {1} por marcador ou sacrifica; compra 1 a menos que ele pague {4}"
+  },
+  {
+   "carta": "Mystical Tutor",
+   "situacao": "conjura",
+   "espera": "instantânea ou feitiço no topo do grimório"
+  },
+  {
+   "carta": "Naban, Dean of Iteration",
+   "situacao": "um Mago seu entra",
+   "espera": "gatilho de entrar das suas permanentes dispara de novo"
+  },
+  {
+   "carta": "Naru Meha, Master Wizard",
+   "situacao": "entra com instantânea sua na pilha",
+   "espera": "copia a mágica; outros Magos +1/+1"
+  },
+  {
+   "carta": "Nature's Will",
+   "situacao": "suas criaturas causam dano de combate a um jogador",
+   "espera": "vira os terrenos dele e desvira os seus"
+  },
+  {
+   "carta": "Necroduality",
+   "situacao": "um Zumbi não-ficha seu entra",
+   "espera": "cria uma cópia dele"
+  },
+  {
+   "carta": "Necrotic Sliver",
+   "situacao": "{3} e sacrifica um Sliver",
+   "espera": "destrói permanente alvo"
+  },
+  {
+   "carta": "Nekusar, the Mindrazer",
+   "situacao": "passo de compra; oponente compra",
+   "espera": "cada um compra 1 a mais; oponente leva 1 por carta"
+  },
+  {
+   "carta": "Nesting Grounds",
+   "situacao": "{1}, vira, como feitiço",
+   "espera": "move um marcador de uma permanente sua para outra"
+  },
+  {
+   "carta": "New Blood",
+   "situacao": "vira um Vampiro seu",
+   "espera": "ganha o controle da criatura alvo (troca de texto é falta)"
+  },
+  {
+   "carta": "Nicanzil, Current Conductor",
+   "situacao": "uma criatura sua explora",
+   "espera": "pode pôr um terreno da mão virado; marcador +1/+1 nele (terreno/não-terreno é falta)"
+  },
+  {
+   "carta": "Night of the Sweets' Revenge",
+   "situacao": "entra; depois sacrifica como feitiço",
+   "espera": "cria Food; Foods dão G; suas criaturas +X/+X, X = Foods"
+  },
+  {
+   "carta": "Nighthawk Scavenger",
+   "situacao": "oponentes com 3 tipos no cemitério",
+   "espera": "fica 4/3 com voar, toque mortífero e vínculo"
+  },
+  {
+   "carta": "Nightkin Ambusher",
+   "situacao": "entra",
+   "espera": "jogador alvo ganha 4 rad; resguardo 2 (não bloqueável é falta)"
+  },
+  {
+   "carta": "Nightscape Familiar",
+   "situacao": "conjura mágica azul ou vermelha",
+   "espera": "custa {1} a menos; {1}{B} regenera"
+  },
+  {
+   "carta": "Nim Deathmantle",
+   "situacao": "criatura não-ficha sua morre e paga {4}",
+   "espera": "volta ao campo e o equipamento se anexa; equipada +2/+2 Zumbi"
+  },
+  {
+   "carta": "Nissa, Resurgent Animist",
+   "situacao": "terreno seu entra (2ª vez no turno)",
+   "espera": "1 mana de qualquer cor; na 2ª revela até Elfo ou Elemental e põe na mão"
+  },
+  {
+   "carta": "Niv-Mizzet, Parun",
+   "situacao": "você compra; alguém conjura instantânea ou feitiço",
+   "espera": "1 de dano a qualquer alvo; você compra 1; não pode ser anulado"
+  },
+  {
+   "carta": "Niv-Mizzet, Visionary",
+   "situacao": "fonte sua causa dano fora de combate a oponente",
+   "espera": "compra essa quantidade; sem limite de mão"
+  },
+  {
+   "carta": "Northern Air Temple",
+   "situacao": "entra com 2 Santuários; outro Santuário entra",
+   "espera": "oponentes perdem 2 e você ganha 2; depois 1 e 1"
+  },
+  {
+   "carta": "Noxious Gearhulk",
+   "situacao": "entra",
+   "espera": "pode destruir outra criatura e ganhar vida igual à resistência dela; ameaça"
+  },
+  {
+   "carta": "Noxious Ghoul",
+   "situacao": "ele ou outro Zumbi entra",
+   "espera": "criaturas não-Zumbi −1/−1 no turno"
+  },
+  {
+   "carta": "Nuclear Fallout",
+   "situacao": "X = 2",
+   "espera": "cada criatura −4/−4; cada jogador ganha 2 rad"
+  },
+  {
+   "carta": "Nuka-Cola Vending Machine",
+   "situacao": "{1}, vira; você sacrifica Food",
+   "espera": "cria Food; cria Tesouro virado"
+  },
+  {
+   "carta": "Nykthos, Shrine to Nyx",
+   "situacao": "{2}, vira, devoção 4 ao verde",
+   "espera": "4 manas verdes"
+  },
+  {
+   "carta": "Nylea, God of the Hunt",
+   "situacao": "devoção ao verde < 5",
+   "espera": "não é criatura; suas outras criaturas têm atropelar; {3}{G} dá +2/+2"
+  },
+  {
+   "carta": "Oath of Eorl",
+   "situacao": "capítulos I, II e III",
+   "espera": "2 Soldados 1/1; 2 Cavaleiros 2/2 com atropelar e pressa; marcador indestrutível num Humano e vira monarca"
+  },
+  {
+   "carta": "Ob Nixilis, the Fallen",
+   "situacao": "terreno seu entra",
+   "espera": "pode fazer jogador alvo perder 3 e põe 3 marcadores nele"
+  },
+  {
+   "carta": "Ob Nixilis, the Hate-Twisted",
+   "situacao": "oponente compra; −2",
+   "espera": "oponente leva 1; destrói criatura e o controlador compra 2"
+  },
+  {
+   "carta": "Ocelot Pride",
+   "situacao": "seu passo final depois de ganhar vida",
+   "espera": "cria Gato 1/1 (as cópias com a bênção são falta)"
+  },
+  {
+   "carta": "Of Herbs and Stewed Rabbit",
+   "situacao": "capítulos I, II e III",
+   "espera": "+1/+1 e Food; compra e Food; Halfling 1/1 por Food"
+  },
+  {
+   "carta": "Ojer Taq, Deepest Foundation",
+   "situacao": "você cria fichas de criatura; morre",
+   "espera": "cria o triplo; volta virada transformada no Temple (W; vira de volta com 3 atacantes)"
+  }
+ ]
+}

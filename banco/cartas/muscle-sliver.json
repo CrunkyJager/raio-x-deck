@@ -1,0 +1,1 @@
+{"v":2,"n":"Muscle Sliver","id":"06e0459f-d691-4470-884a-27c09b6612d2","oracleHash":"00f94a5b","custo":{"g":1,"p":["G"]},"vm":2,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Sliver"],"pt":[1,1],"est":[{"modo":"continuo","afeta":{"tipo":["Creature"],"sub":["Sliver"],"zona":"campo"},"p":1,"r":1}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco21.json"}}
