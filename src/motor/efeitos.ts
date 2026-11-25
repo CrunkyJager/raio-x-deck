@@ -199,8 +199,31 @@ function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {} }: any = 
   }
   return r;
 }
-function criarFicha(e, j, tok, { virada = false }: any = {}) {
-  const id = e.prox++;
+// Fichas predefinidas (CR 111.10): o banco escreve só {nome:'Treasure'}; o tipo e as habilidades vêm daqui,
+// escritos a partir do texto Oracle da ficha. O que o token trouxer além do nome vale por cima.
+// Powerstone: a restrição vira so {tipo:Artifact} (paga mágica de artefato; ainda não paga habilidade).
+// Map (explorar) e Junk (exila o topo e pode jogar) usam ops que o motor não tem: a ficha existe, a habilidade não é ativada.
+const art = (sub, atv) => ({ tipos: ['Artifact'], sub: [sub], cores: '', vm: 0, atv });
+const sacE = (c: any = {}) => ({ ...c, sacrificar: 'este' });
+M.FICHAS = {
+  Treasure: art('Treasure', [{ custo: sacE({ virar: true }), deMana: true, fx: [{ op: 'mana', prod: 'qualquer', qtd: 1 }] }]),
+  Gold: art('Gold', [{ custo: sacE(), deMana: true, fx: [{ op: 'mana', prod: 'qualquer', qtd: 1 }] }]),
+  Clue: art('Clue', [{ custo: sacE({ mana: { g: 2 } }), fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }]),
+  Food: art('Food', [{ custo: sacE({ mana: { g: 2 }, virar: true }), fx: [{ op: 'ganharVida', quem: 'voce', qtd: 3 }] }]),
+  Blood: art('Blood', [{ custo: sacE({ mana: { g: 1 }, virar: true, descartar: 1 }), fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }]),
+  Powerstone: art('Powerstone', [{ custo: { virar: true }, deMana: true, fx: [{ op: 'mana', prod: ['C'], qtd: 1, so: { tipo: ['Artifact'] } }] }]),
+  Map: art('Map', [{ custo: sacE({ mana: { g: 1 }, virar: true }), vel: 'feitico', alvos: [{ f: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } }], fx: [{ op: 'explorar', em: { alvo: 0 } }] }]),
+  Junk: art('Junk', [{ custo: sacE({ virar: true }), vel: 'feitico', fx: [{ op: 'exilarTopoJogar', quem: 'voce', qtd: 1 }] }]),
+  Lander: art('Lander', [{ custo: sacE({ mana: { g: 2 }, virar: true }), fx: [{ op: 'buscar', f: { tipo: ['Land'], super: ['Basic'] }, para: 'campo', virada: true }, { op: 'embaralhar', quem: 'voce' }] }]),
+  Shard: { tipos: ['Enchantment'], sub: ['Shard'], cores: '', vm: 0, atv: [{ custo: sacE({ mana: { g: 2 } }), fx: [{ op: 'videncia', quem: 'voce', qtd: 1 }, { op: 'comprar', quem: 'voce', qtd: 1 }] }] },
+};
+M.fichaDe = tok => {
+  if (!tok || !tok.nome) return tok;
+  const { nome, ...resto } = tok, pre = M.FICHAS[nome];
+  return pre ? { ...pre, ...resto, n: nome } : { ...resto, n: nome };
+};
+function criarFicha(e, j, tok0, { virada = false }: any = {}) {
+  const id = e.prox++, tok = M.fichaDe(tok0);
   const n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim();
   const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, virada, dano: 0, marc: {} as any, doente: true, cmd: false, ficha: { ...tok, n } };
   e.objs[id] = o; e.campo.push(id);

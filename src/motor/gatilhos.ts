@@ -89,7 +89,7 @@ function noCemiterio(e) {
   if (!C) { C = { p: 0, ids: [] }; CEM.set(e, C); }
   if (C.p !== e.prox) {
     const ini = C.p > e.prox ? 0 : C.p; if (!ini) C.ids = [];
-    for (let id = ini; id < e.prox; id++) { const o = e.objs[id]; if (o && temGatCem(o.ficha || M.carta(o.n))) C.ids.push(id); }
+    for (let id = ini; id < e.prox; id++) { const o = e.objs[id]; if (o && !o.hab && temGatCem(o.ficha || M.carta(o.n))) C.ids.push(id); }
     C.p = e.prox;
   }
   const r: any[] = [];

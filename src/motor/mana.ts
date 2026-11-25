@@ -93,9 +93,10 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
     if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => {
       if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo)) return;
-      if (soVirar && Object.keys(a.custo).some(x => x !== 'virar')) return;
+      // soVirar: sem pagar mana nem vida ({T} e/ou sacrificar este: terreno, Lotus Petal, Treasure, Gold)
+      if (soVirar && Object.keys(a.custo).some(x => x !== 'virar' && !(x === 'sacrificar' && a.custo.sacrificar === 'este'))) return;
       const p = M.pacotesDe(e, o, a, { para });
-      if (p && p.length && p.some(x => soma(x) > 0)) r.push({ id, k, pacotes: p });
+      if (p && p.length && p.some(x => soma(x) > 0)) r.push({ id, k, pacotes: p, sac: a.custo.sacrificar === 'este' ? 1 : 0 });
     });
   }
   return r;
@@ -230,7 +231,7 @@ M.planoMana = (e, j, custo, { x = 0, vidaDisp = 0, limite = 4000, excluir = null
   const precisa = Math.max(0, s.g + s.cor.length + s.hib.length + s.dois.length + s.fir.length - Math.floor(vidaDisp / 2));
   const fontes = M.fontesDeMana(e, j, { soVirar: true, para }).filter(f => !excluir || !excluir.includes(f.id))
     .map(f => ({ ...f, max: Math.max(...f.pacotes.map(soma)), flex: f.pacotes.length }))
-    .sort((a, b) => a.flex - b.flex || b.max - a.max);
+    .sort((a, b) => a.sac - b.sac || a.flex - b.flex || b.max - a.max);   // a que se sacrifica por último
   const sufixo: any[] = []; let acc = 0;
   for (let i = fontes.length - 1; i >= 0; i--) { acc += fontes[i].max; sufixo[i] = acc; }
   let nos = 0;

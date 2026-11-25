@@ -41,8 +41,12 @@ M.agenteBasico = () => (e, p) => {
         if (ke >= 0) return ke;
       }
       if (meu) {
-        const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || a.custo.virar; })());
+        const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());
         if (k3 >= 0) return k3;
+        // ficha de sacrificar (Clue, Food, Blood, Shard, Lander): com a mana que sobrou; Blood só descartando terreno de sobra
+        const sobraTerra = J.zonas.mao.filter(terra).length > (J.terrenos < M.terrenosPorTurno(e, p.j) ? 1 : 0);
+        const k4 = p.ops.findIndex(op => op.a === 'ativar' && o(op.id).ficha && (() => { const c = M.atvDe(e, o(op.id))[op.k].custo; return c.sacrificar === 'este' && (!c.descartar || sobraTerra); })());
+        if (k4 >= 0) return k4;
       }
       return 0;
     }
@@ -60,7 +64,7 @@ M.agenteBasico = () => (e, p) => {
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
     case 'sacrificar': case 'custo': {
       let b = 0, bv = Infinity;
-      p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
+      p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
     }
     case 'aMenosQue': return p.ops.length > 1 && J.vida > 10 ? 1 : 0;

@@ -1324,6 +1324,65 @@ caso('702.174', 'oferta de presente (Wear Down): o oponente compra antes, dois a
   igual(e.jogs[0].zonas.mao.length, m0, 'conjurou 1 e comprou 1 (se promisedgift)');
 });
 
+// fichas predefinidas (CR 111.10): o banco escreve {nome}, o motor completa tipo e habilidades
+const ficha = (e, j, nome) => M.criarFicha(e, j, { nome });
+const resolve = e => { for (let i = 0; i < 6 && e.perg && e.pilha.length; i++) respE(e, o => o.a === 'passar'); };
+const ativaFicha = (e, nome) => respE(e, o => o.a === 'ativar' && e.objs[o.id].n === nome);
+caso('111.10a', 'Treasure: {T}, sacrifique: um de qualquer cor; paga a mágica e some', () => {
+  const t = cena({ campo: [[0, 'Forest']], mao: [[0, 'Grizzly Bears']] });
+  ok(!M.opcoesPrioridade(t, 0).some(o => o.a === 'conjurar'), 'só a Floresta não paga');
+  const T = ficha(t, 0, 'Treasure');
+  igual([T.n, M.dadoDe(t, T).tipos, M.dadoDe(t, T).sub], ['Treasure', ['Artifact'], ['Treasure']]);
+  ok(M.opcoesPrioridade(t, 0).some(o => o.a === 'conjurar'), 'Floresta + Tesouro pagam {1}{G}');
+  M.avancar(t); conj(t, 'Grizzly Bears'); resolve(t);
+  ok(noCampo(t).includes('Grizzly Bears') && !noCampo(t).includes('Treasure'), noCampo(t).join());
+  const g = cena({ campo: [[0, 'Forest']], mao: [[0, 'Grizzly Bears']] }); ficha(g, 0, 'Gold');
+  ok(M.opcoesPrioridade(g, 0).some(o => o.a === 'conjurar'), 'Gold: sacrifique, sem virar');
+});
+caso('111.10b', 'Clue ({2}: compra), Food ({2},{T}: 3 de vida); o agente básico usa com a mana que sobra', () => {
+  const e = cena({ campo: [[0, 'Wastes'], [0, 'Wastes']] });
+  ficha(e, 0, 'Clue');
+  const m = e.jogs[0].zonas.mao.length;
+  M.avancar(e);
+  const k = M.agenteBasico()(e, e.perg);
+  ok(e.perg.ops[k].a === 'ativar' && e.objs[e.perg.ops[k].id].n === 'Clue', 'o agente quebra a Pista');
+  ativaFicha(e, 'Clue'); resolve(e);
+  igual(e.jogs[0].zonas.mao.length, m + 1, 'comprou');
+  const f = cena({ campo: [[0, 'Wastes'], [0, 'Wastes']] }); ficha(f, 0, 'Food');
+  const v = f.jogs[0].vida;
+  M.avancar(f); ativaFicha(f, 'Food'); resolve(f);
+  igual(f.jogs[0].vida, v + 3);
+  igual(noCampo(f).filter(n => n === 'Food'), [], 'a Comida foi sacrificada');
+});
+caso('111.10c', 'Blood ({1},{T}, descarte, sacrifique: compra); o agente só usa descartando terreno de sobra', () => {
+  const sem = cena({ campo: [[0, 'Wastes']], mao: [[0, 'Grizzly Bears']] }); ficha(sem, 0, 'Blood');
+  M.avancar(sem);
+  const k0 = M.agenteBasico()(sem, sem.perg);
+  ok(!(sem.perg.ops[k0].a === 'ativar'), 'sem terreno sobrando, não filtra');
+  const e = cena({ campo: [[0, 'Wastes']], mao: [[0, 'Forest'], [0, 'Forest'], [0, 'Grizzly Bears']] }); ficha(e, 0, 'Blood');
+  e.jogs[0].terrenos = 1;   // já jogou o terreno do turno
+  M.avancar(e);
+  const k = M.agenteBasico()(e, e.perg);
+  ok(e.perg.ops[k].a === 'ativar' && e.objs[e.perg.ops[k].id].n === 'Blood', JSON.stringify(e.perg.ops));
+  M.responder(e, k);
+  if (e.perg && e.perg.tipo === 'custo') M.responder(e, M.agenteBasico()(e, e.perg));
+  resolve(e);
+  igual(naZona(e, 0, 'cemiterio'), ['Forest'], 'descartou o terreno');
+  igual(e.jogs[0].zonas.mao.length, 3, '3 − 1 + 1');
+});
+caso('111.10d', 'Powerstone: {C} só para mágica de artefato; Map/Junk existem mas não ativam; nome fora da tabela fica só com o nome', () => {
+  const p = cena({ mao: [[0, 'Sol Ring']] }); ficha(p, 0, 'Powerstone');
+  ok(M.opcoesPrioridade(p, 0).some(o => o.a === 'conjurar' && p.objs[o.id].n === 'Sol Ring'), 'Sol Ring sim');
+  const q = cena({ mao: [[0, 'Grizzly Bears']], campo: [[0, 'Forest']] }); ficha(q, 0, 'Powerstone');
+  ok(!M.opcoesPrioridade(q, 0).some(o => o.a === 'conjurar'), 'criatura não-artefato não');
+  const r = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Wastes']] }); const mp = ficha(r, 0, 'Map'); ficha(r, 0, 'Junk');
+  igual(M.dadoDe(r, mp).sub, ['Map']);
+  ok(!M.opcoesPrioridade(r, 0).some(o => o.a === 'ativar'), 'explorar/jogar do exílio ainda não');
+  const x = ficha(r, 0, 'Wicked Role');
+  igual(x.n, 'Wicked Role');
+  igual(M.fichaDe({ nome: 'Treasure', virada: 1 }).sub, ['Treasure']);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
