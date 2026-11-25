@@ -350,7 +350,7 @@ function mesmaSemente() {
 // responde e para quando a etapa muda (sem isso a partida segue sozinha até o próximo turno)
 const respE = (e, pred) => { const k = e.perg.ops.findIndex(pred); ok(k >= 0, 'opção não existe: ' + JSON.stringify(e.perg.ops).slice(0, 150)); const { passo, n } = e.turno; M.responder(e, k, x => x.turno.passo !== passo || x.turno.n !== n); };
 const conj = (e, nome) => respE(e, o => o.a === 'conjurar' && e.objs[o.id].n === nome);
-const alvoObj = (e, nome) => e.perg && e.perg.tipo !== 'alvo' ? null : respE(e, o => o.a === 'alvo' && o.o !== undefined && e.objs[o.o].n === nome);
+const alvoObj = (e, nome) => !e.perg || e.perg.tipo !== 'alvo' ? null : respE(e, o => o.a === 'alvo' && o.o !== undefined && e.objs[o.o].n === nome);
 const alvoJog = (e, j) => respE(e, o => o.a === 'alvo' && o.jog === j);
 const naZona = (e, j, z) => e.jogs[j].zonas[z].map(id => e.objs[id].n);
 const noCampo = e => e.campo.map(id => e.objs[id].n);
@@ -1266,6 +1266,62 @@ caso('201.2', 'filtro nome: conta as cópias com esse nome exato (Ancestral Ange
   M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio');
   igual(M.objetosQue(e, { tipo: ['Card'], nome: 'Grizzly Bears', zona: 'cemiterio', dono: 'voce' }, { voce: 0 }).length, 1);
   ok(M.filtroOk({ nome: 'x' }));
+});
+
+// correção 17 do banco: custoAtv devolver, alvo opcao com chute/presente, conjuradaCom kicker, palavra promisedgift
+db['Cena Transmutador'] = { n: 'Cena Transmutador', custo: { g: 3, p: ['U'] }, cores: 'U', tipos: ['Artifact', 'Creature'], pt: [1, 2], vm: 4, ci: 'U',
+  atv: [{ custo: { mana: { g: 1 }, devolver: { f: { tipo: ['Artifact'], ctrl: 'voce', zona: 'campo' }, qtd: 1 } }, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }] };
+caso('602.2b', 'custoAtv devolver {f,qtd}: devolve uma permanente sua do filtro à mão do dono; sem ela, não ativa', () => {
+  const e = cena({ campo: [[0, 'Cena Transmutador'], [0, 'Mountain']] });
+  const T = objN(e, 0, 'Cena Transmutador'); T.doente = false;
+  ok(M.podeAtivar(e, 0, T, 0), 'ele mesmo é artefato');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === T.id);
+  if (e.perg && e.perg.tipo === 'custo') respE(e, o => o.a === 'devolver');
+  ok(naZona(e, 0, 'mao').includes('Cena Transmutador'), JSON.stringify(e.log.slice(-4)));
+  ok(M.custoSuportado({ devolver: 'este' }) && !M.custoSuportado({ devolver: { f: {}, n: 1 } }));
+  const e2 = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Mountain']] });
+  ok(!M.podeAtivar(e2, 0, M.criarFicha(e2, 0, { ...db['Cena Transmutador'], tipos: ['Creature'] }), 0), 'sem artefato seu, não');
+});
+db['Cena Rasgar'] = { n: 'Cena Rasgar', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Instant'], vm: 2, ci: 'BG', kw: [{ k: 'chute', custo: { g: 1, p: ['B'] } }],
+  alvos: [{ f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, opcao: 'semChute' }, { f: { tipo: ['Permanent'], nao: ['Land'], zona: 'campo' }, opcao: 'chute' }],
+  fx: [{ op: 'exilar', em: { alvo: 0 } }, { op: 'exilar', em: { alvo: 1 } }] };
+caso('702.33', 'chute com alvo por opção (Tear Asunder): sem chute só artefato/encantamento; criatura só chutando', () => {
+  const pode = (lands, campoOp) => { const e = cena({ campo: [...lands.map(n => [0, n]), ...campoOp.map(n => [1, n])], mao: [[0, 'Cena Rasgar']] }); return [e, M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar')]; };
+  igual(pode(['Forest', 'Swamp'], ['Grizzly Bears'])[1], false, 'criatura sem mana do chute');
+  igual(pode(['Forest', 'Swamp'], ['Sol Ring'])[1], true, 'artefato sem chute');
+  const [e, ok4] = pode(['Forest', 'Swamp', 'Swamp', 'Forest'], ['Grizzly Bears']);
+  ok(ok4, 'chutando, criatura vale');
+  M.avancar(e); conj(e, 'Cena Rasgar'); if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v.chute); alvoObj(e, 'Grizzly Bears');
+  for (let i = 0; i < 4 && e.pilha.length && e.perg; i++) respE(e, o => o.a === 'passar');
+  igual(naZona(e, 1, 'exilio'), ['Grizzly Bears'], JSON.stringify(e.log.slice(-5)));
+  igual(e.campo.filter(id => e.objs[id].ctrl === 0 && e.objs[id].virada).length, 4, 'pagou o chute (4 terras viradas)');
+});
+db['Cena Emboscador'] = { n: 'Cena Emboscador', custo: { p: ['R'] }, cores: 'R', tipos: ['Creature'], sub: ['Goblin'], pt: [1, 1], vm: 1, ci: 'R', kw: [{ k: 'chute', custo: { p: ['R'] } }],
+  gat: [{ ev: 'entra', quem: { este: true }, se: { conjuradaCom: 'kicker' }, fx: [{ op: 'modificar', em: { todos: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } }, p: 1, kw: [{ k: 'pressa' }], dura: 'fimDoTurno' }] }] };
+caso('702.33d', 'conjuradaCom kicker (Goblin Bushwhacker): o gatilho de entrar só vale chutada', () => {
+  for (const [terras, esp] of [[1, 0], [2, 1]] as const) {
+    const e = cena({ campo: [[0, 'Grizzly Bears'], ...Array.from({ length: terras }, () => [0, 'Mountain'])], mao: [[0, 'Cena Emboscador']] });
+    M.avancar(e); conj(e, 'Cena Emboscador');
+    if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v.chute);
+    for (let i = 0; i < 6 && e.perg && (e.pilha.length || e.pend.length); i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
+    igual(M.poder(e, objN(e, 0, 'Grizzly Bears')), 2 + esp, `${terras} Montanha(s): ` + JSON.stringify(e.log.slice(-4)));
+  }
+  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'metalcraft' } }));
+});
+db['Cena Desgaste'] = { n: 'Cena Desgaste', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Sorcery'], vm: 2, ci: 'G', kw: [{ k: 'ofertaPresente', tipo: 'carta' }],
+  alvos: [{ f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, opcao: 'semPresente' }, { f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, min: 2, max: 2, opcao: 'presente' }],
+  fx: [{ op: 'destruir', em: { alvo: 0 } }, { op: 'destruir', em: { alvo: 1 } }, { op: 'comprar', quem: 'voce', qtd: 1, se: { palavra: 'promisedgift' } }] };
+caso('702.174', 'oferta de presente (Wear Down): o oponente compra antes, dois alvos; sem presente, um', () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest'], [1, 'Sol Ring'], [1, 'Mind Stone']], mao: [[0, 'Cena Desgaste']] });
+  const m0 = e.jogs[0].zonas.mao.length, m1 = e.jogs[1].zonas.mao.length;
+  M.avancar(e); conj(e, 'Cena Desgaste');
+  if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v.presente);
+  if (e.perg && e.perg.tipo === 'presente') respE(e, o => o.jog === 1);
+  alvoObj(e, 'Sol Ring'); alvoObj(e, 'Mind Stone');
+  for (let i = 0; i < 4 && e.pilha.length && e.perg; i++) respE(e, o => o.a === 'passar');
+  igual(naZona(e, 1, 'cemiterio').sort(), ['Mind Stone', 'Sol Ring'], JSON.stringify(e.log.slice(-6)));
+  igual(e.jogs[1].zonas.mao.length, m1 + 1, 'o presente');
+  igual(e.jogs[0].zonas.mao.length, m0, 'conjurou 1 e comprou 1 (se promisedgift)');
 });
 
 // ---------- rodar ----------

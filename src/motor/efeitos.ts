@@ -7,7 +7,7 @@ const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez']);
 const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono']);
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
   'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X', 'resultado']);   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -20,7 +20,7 @@ const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dado
     && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo'].includes(k)));
 const emOk = v => v === undefined || v === 'este' || v === 'equipada' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
-  && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
+  && M.condValorOk(se) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
 M.seOk = seOk;
 M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   if (f.op === 'modal') return topo && fx.length === 1 && f.modos.some(m => M.fxSuportado(m, { topo: false }));
@@ -178,9 +178,9 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
   }
   return { id, ctrl, vir, pagaVida, escolha, face };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face }) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null }) => {
   if (pagaVida) e.jogs[ctrl].vida -= pagaVida;
-  const o = M.mover(e, id, 'campo', { virada: vir, face });
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
