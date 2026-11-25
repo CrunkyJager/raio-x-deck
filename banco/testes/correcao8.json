@@ -1,0 +1,28 @@
+{
+ "bloco": "correcao8",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do bloco 24 (4b8bb11): filtro atacouNoTurno em Riders of the Mark; Rivaz: dono voce no gatilho de conjurar do seu cemitério; River Kelpie fica como estava (Oracle atual: 'from a graveyard', 'a player casts')",
+ "casos": [
+  {
+   "carta": "Riders of the Mark",
+   "situacao": "seu fim de turno; ela atacou neste turno (resistência 4)",
+   "espera": "volta para a mão do dono (obrigatório, o Oracle não tem 'may') e cria quatro fichas 1/1 Human Soldier"
+  },
+  {
+   "carta": "Riders of the Mark",
+   "situacao": "seu fim de turno; ela não atacou",
+   "espera": "nada acontece, fica no campo"
+  },
+  {
+   "carta": "Rivaz of the Claw",
+   "situacao": "você conjura um Dragon do seu cemitério",
+   "espera": "o Dragon ganha 'quando morrer, exile-o'"
+  },
+  {
+   "carta": "River Kelpie",
+   "situacao": "um oponente conjura uma mágica do cemitério dele",
+   "espera": "você compra 1 (o Oracle atual diz 'a player … from a graveyard': qualquer cemitério, qualquer jogador)"
+  }
+ ]
+}
