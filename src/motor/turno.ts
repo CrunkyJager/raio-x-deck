@@ -153,7 +153,7 @@ M.terrenosPorTurno = terrenosPorTurno;
 // M.decidirEntrada (efeitos.js), que pergunta pelo processo.
 M.PROC.terreno = (e, P, ask) => {
   const j = P.j, o = e.objs[P.id];
-  if (o.zona !== 'mao' || o.dono !== j || !M.temTipo(e, o, 'Land')) throw new Error('terreno ilegal');
+  if (!(o.zona === 'mao' || M.podeJogarDe(e, j, o)) || o.dono !== j || !M.temTipo(e, o, 'Land')) throw new Error('terreno ilegal');
   const plano = M.decidirEntrada(e, P.id, j, {}, ask);
   e.proc = null;
   e.jogs[j].terrenos++;

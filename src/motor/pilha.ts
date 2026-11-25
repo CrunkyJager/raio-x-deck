@@ -130,13 +130,37 @@ function maxX(e, j, custo, excluir, para?, teto = 30) {
   return x;
 }
 
+// ---------- jogar de outra zona (est podeJogar, CR 601.3/305.1 com permissão): por ora só do cemitério ----------
+// Fontes: permanentes do jogador (Conduit of Worlds: terrenos do cemitério) e a própria carta no cemitério
+// (Gravecrawler, "as long as you control a Zombie" no 'se', lido com a fonte).
+function permissoes(e, j) {
+  const mk = M.memo && 'pj' + j;
+  if (mk && M.memo[mk]) return M.memo[mk];
+  const r: any[] = [];
+  const le = (S, zonaFonte) => {
+    for (const s of M.dadoDe(e, S).est || []) {
+      if (s.modo !== 'podeJogar' || s.de !== 'cemiterio' || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
+      if (zonaFonte === 'cemiterio' && !s.afeta.este) continue;      // no cemitério só vale a permissão para si mesma
+      r.push({ s, ctx: { voce: j, este: S.id } });
+    }
+  };
+  for (const id of e.campo) if (e.objs[id].ctrl === j) le(e.objs[id], 'campo');
+  for (const id of e.jogs[j].zonas.cemiterio) le(e.objs[id], 'cemiterio');
+  if (mk) M.memo[mk] = r;
+  return r;
+}
+M.temPermissaoCemiterio = (e, j) => permissoes(e, j).length > 0;
+M.podeJogarDe = (e, j, o) => o.zona === 'cemiterio' && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
+  try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
+});
+
 // ---------- o que pode ser conjurado ----------
 const FORA = new Set(['faces', 'forma']);
 M.podeConjurar = (e, j, o) => {
   const d = M.dadoDe(e, o);
   if (o.dono !== j) return false;
-  if (!(o.zona === 'mao' || (o.zona === 'comando' && o.cmd))) return false;
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
+  if (!(o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o))) return false;   // mão, comando ou permissão (podeJogar)
   if (FORA.size && Object.keys(d).some(k => FORA.has(k))) return false;   // duas faces/aventura: T19
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
@@ -196,7 +220,10 @@ function opcoes(e, j) {
   const J = e.jogs[j], ops: any[] = [{ a: 'passar' }];
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))      // CR 305.2 (+ 305.2a)
     for (const id of J.zonas.mao) if (M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id });
-  for (const id of [...J.zonas.mao, ...J.zonas.comando]) if (M.podeConjurar(e, j, e.objs[id])) ops.push({ a: 'conjurar', id });
+  const doCem = M.temPermissaoCemiterio(e, j) ? J.zonas.cemiterio : [];
+  if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
+    for (const id of doCem) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
+  for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem]) if (M.podeConjurar(e, j, e.objs[id])) ops.push({ a: 'conjurar', id });
   for (const id of e.campo) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     (M.dadoDe(e, o).atv || []).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
@@ -245,7 +272,12 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean) {
   }
   return esc;
 }
-M.escolherAlvos = escolherAlvos; M.alvosUsados = fx => alvosUsados(fx);
+M.escolherAlvos = escolherAlvos;
+// "torna-se alvo" (CR 115.1, 603.2): um evento por objeto escolhido, quando a mágica/habilidade fica na pilha
+M.eventosAlvo = (e, alvos, por) => {
+  const vistos = new Set<any>();
+  for (const l of alvos || []) for (const a of l || []) if (a.o !== undefined && !vistos.has(a.o)) { vistos.add(a.o); M.evento(e, { ev: 'alvoDe', id: a.o, por }); }
+}; M.alvosUsados = fx => alvosUsados(fx);
 const mesmo = (x, y) => (x.jog !== undefined ? x.jog === y.jog : x.o === y.o);
 
 // modo dá para escolher: efeitos que o núcleo sabe e alvos com opção legal (CR 601.2c)
@@ -331,6 +363,7 @@ const PROC = {
     M.mover(e, o.id, 'pilha'); o.ctrl = j;                                            // CR 601.2a
     o.pil = { x, alvos, modos, ctrl: j };
     M.evento(e, { ev: 'conjura', id: o.id, j });                                      // 601.2i: "quando conjura"
+    M.eventosAlvo(e, alvos, o.id);
     pagarMana(e, j, pl, custo, x);                                                    // CR 601.2h
     if (d.custoAd) pagarFisico(e, j, o, d.custoAd, fis);
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
@@ -358,6 +391,7 @@ const PROC = {
       hab: { fonte: o.id, fonteTs: o.ts, k: P.k, fx: a.fx, alvos: a.alvos || [], ficha: o.ficha || null },
       pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) } } };
     e.objs[id] = h; e.pilha.push(id);
+    M.eventosAlvo(e, alvos, id);
     if (c.mana) pagarMana(e, j, pl, c.mana, x);
     pagarFisico(e, j, o, c, fis);
     if (a.lealdade !== undefined) { o.marc.lealdade = (o.marc.lealdade || 0) + a.lealdade; o.lealTurno = e.turno.n; }   // CR 606.4

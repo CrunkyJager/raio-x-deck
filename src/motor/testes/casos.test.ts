@@ -712,6 +712,81 @@ caso('603.3b', 'manutenção: Phyrexian Arena só na do controlador', () => {
   igual(e.turno.ativo, 0); igual(e.jogs[0].vida, 39);
 });
 
+// ---------- fila do motor v0.4.0 (campos novos do banco) ----------
+// responde a pergunta do tipo dado (passando prioridade até ela) e segue
+const ateResp = (e, tipo, pred) => { ate(e, tipo); respE(e, pred); };
+caso('701.34', 'proliferar (Evolution Sage): terreno entra, escolhe a criatura com +1/+1 e ela ganha mais 1', () => {
+  const e = cena({ campo: [[0, 'Evolution Sage'], [0, 'Grizzly Bears', { obj: { marc: { '+1/+1': 1 } } }], [1, 'Grizzly Bears', { obj: { marc: { '+1/+1': 1 } } }]], mao: [[0, 'Forest']] });
+  const meu = objN(e, 0, 'Grizzly Bears'), dele = objN(e, 1, 'Grizzly Bears');
+  meu.marc['+1/+1'] = 1; dele.marc['+1/+1'] = 1;
+  M.avancar(e); respE(e, o => o.a === 'terreno');
+  ateResp(e, 'proliferar', o => o.id === meu.id);
+  if (e.perg && e.perg.tipo === 'proliferar') respE(e, o => o.a === 'pronto');
+  igual(meu.marc['+1/+1'], 2); igual(dele.marc['+1/+1'], 1, 'o do oponente não foi escolhido');
+});
+caso('603.2', 'alvoDe (Goldspan Dragon): virar alvo de mágica cria Treasure; habilidade não conta pelo filtro de tipo', () => {
+  const e = cena({ campo: [[0, 'Goldspan Dragon'], [1, 'Mountain']], mao: [[1, 'Lightning Bolt']] });
+  e.turno.ativo = 1;
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoObj(e, 'Goldspan Dragon');
+  ok(e.campo.some(id => e.objs[id].ficha && e.objs[id].ctrl === 0), 'sem Treasure');
+});
+caso('603.2d', 'dobraGatilho com evs/causa (Isshin): o gatilho de ataque do Goldspan dispara 2 vezes', () => {
+  const e = combate([[0, 'Isshin, Two Heavens as One'], [0, 'Goldspan Dragon']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Goldspan Dragon')); fecha(e, 'atacar'); ateFimCombate(e);
+  igual(e.campo.filter(id => e.objs[id].ficha).length, 2);
+  const f = combate([[0, 'Goldspan Dragon']]);
+  ate(f, 'atacar'); atacaCom(f, objN(f, 0, 'Goldspan Dragon')); fecha(f, 'atacar'); ateFimCombate(f);
+  igual(f.campo.filter(id => f.objs[id].ficha).length, 1, 'sem Isshin');
+});
+caso('603.2d', 'dobraGatilho (Harmonic Prodigy): gatilho do Young Pyromancer (Shaman) dispara 2 vezes', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Harmonic Prodigy'], [0, 'Young Pyromancer']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  igual(e.campo.filter(id => e.objs[id].ficha).length, 2);
+});
+caso('702.123a', 'fabricar (Marionette Apprentice): escolhe marcadores nela ou Servos 1/1', () => {
+  for (const [esc, fichas, marc] of [['marcadores', 0, 1], ['fichas', 1, undefined]] as any[]) {
+    const e = cena({ mao: [[0, 'Marionette Apprentice'], [0, 'Forest']] });
+    const id = e.jogs[0].zonas.mao[0];
+    M.entrarPermanente(e, id, 0); ateResp(e, 'fabricar', o => o.a === esc);
+    const s = e.campo.filter(i => e.objs[i].ficha).map(i => e.objs[i]);
+    igual(s.length, fichas, esc); igual(e.objs[id].marc['+1/+1'], marc, esc);
+    if (fichas) { igual(s[0].n, 'Servo'); igual([M.poder(e, s[0]), M.resistencia(e, s[0])], [1, 1]); ok(M.temTipo(e, s[0], 'Artifact')); }
+  }
+});
+caso('601.3', 'podeJogar do cemitério: Gravecrawler com Zumbi conjura de lá; sem Zumbi não', () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Carrion Feeder'], [0, 'Gravecrawler', { zona: 'cemiterio' }]] });
+  const g = e.objs[e.jogs[0].zonas.cemiterio[0]];
+  ok(M.podeConjurar(e, 0, g), 'com Zumbi');
+  M.avancar(e); conj(e, 'Gravecrawler');
+  for (let g = 0; e.pilha.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar');   // Carrion Feeder deixa a pergunta aberta
+  ok(noCampo(e).includes('Gravecrawler'), 'Gravecrawler no campo');
+  const f = cena({ campo: [[0, 'Swamp'], [0, 'Gravecrawler', { zona: 'cemiterio' }]] });
+  ok(!M.podeConjurar(f, 0, f.objs[f.jogs[0].zonas.cemiterio[0]]), 'sem Zumbi');
+});
+caso('305.1', 'podeJogar do cemitério: Conduit of Worlds deixa jogar terreno do cemitério (conta no terreno do turno)', () => {
+  const e = cena({ campo: [[0, 'Conduit of Worlds'], [0, 'Forest', { zona: 'cemiterio' }], [0, 'Mountain', { zona: 'cemiterio' }]] });
+  M.avancar(e);
+  igual(opsDe(e, 'terreno').length, 2);
+  respE(e, o => o.a === 'terreno' && e.objs[o.id].n === 'Forest');
+  ok(noCampo(e).includes('Forest'));
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'terreno').length, 0, 'segundo terreno');
+  const f = cena({ campo: [[0, 'Forest', { zona: 'cemiterio' }]] });
+  igual(M.opcoesPrioridade(f, 0).filter(o => o.a === 'terreno').length, 0, 'sem Conduit');
+});
+caso('106.6', 'mana.so por subtipo (Giada): a mana dela só paga Anjo', () => {
+  const e = cena({ campo: [[0, 'Giada, Font of Hope'], ...enche(4, 'Plains').map(n => [0, n])], mao: [[0, 'Serra Angel']] });
+  igual(M.fontesDeMana(e, 0).length, 4, 'fora do plano a Giada não dá mana');
+  ok(M.podeConjurar(e, 0, e.objs[e.jogs[0].zonas.mao[0]]), 'Serra com Giada + 4');
+  const f = cena({ campo: [[0, 'Giada, Font of Hope'], ...enche(4, 'Plains').map(n => [0, n])], mao: [[0, 'Grizzly Bears']] });
+  ok(!M.planoMana(f, 0, { g: 5 }, { para: f.objs[f.jogs[0].zonas.mao[0]] }), 'não-Anjo não usa');
+});
+caso('106.7', "prod 'deSeusTerrenos' (Incubation Druid): tipos que terrenos SEUS produziriam, incolor conta", () => {
+  const e = cena({ campo: [[0, 'Incubation Druid'], [0, 'Forest'], [0, 'Wastes'], [1, 'Mountain']] });
+  igual(M.coresDeProd(e, objN(e, 0, 'Incubation Druid'), 'deSeusTerrenos'), ['G', 'C']);
+  const f = cena({ campo: [[0, 'Incubation Druid'], [1, 'Mountain']] });
+  igual(M.coresDeProd(f, objN(f, 0, 'Incubation Druid'), 'deSeusTerrenos'), []);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

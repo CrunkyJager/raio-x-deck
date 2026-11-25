@@ -5,14 +5,14 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida']);
-const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe']);
+const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio']);
 const memoOk = new WeakMap();
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
   let ok = EV_OK.has(g.ev) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && M.fxSuportado(g.fx) && !g.fx.some(f => f.op === 'modal')   // modo do gatilho (603.3c) = depois
-    && (g.alvos || []).every(M.alvoSuportado) && (!g.quem || M.filtroOk(g.quem));
+    && (g.alvos || []).every(M.alvoSuportado) && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por));
   if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta'].includes(k));
   memoOk.set(g, ok);
   return ok;
@@ -37,10 +37,44 @@ function bateEv(e, g, ev, F) {
     case 'fase': return ev.ev === 'fase' && ev.passo === g.passo && relJog(g.deQuem || 'voce', ev.ativo, F.ctrl);
     case 'compra': return ev.ev === 'compra' && (!g.quem || relJog(g.quem.ctrl || 'qualquer', ev.j, F.ctrl)) && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'ganhaVida': return ev.ev === 'ganhaVida' && relJog(g.jog || 'voce', ev.j, F.ctrl);
+    case 'alvoDe': {                                   // CR 115.1, 603.2: "becomes the target of" (ao conjurar/ativar/pôr na pilha)
+      if (ev.ev !== 'alvoDe' || !q(e.objs[ev.id])) return false;
+      if (!g.por) return true;
+      const P = e.objs[ev.por];                        // habilidade na pilha não tem tipo (CR 113.1): filtro de tipo não pega
+      return !!P && !(P.hab && g.por.tipo) && bate(e, P, g.por, ctx);
+    }
   }
   return false;
 }
 const zonas = g => g.zonaAtiva || ['campo'];
+
+// ---------- dobraGatilho (CR 603.2d): "dispara uma vez a mais" ----------
+// est {modo:'dobraGatilho', afeta: filtro da FONTE do gatilho, evs?: só esses eventos, causa?: filtro do objeto que
+// causa o evento}. Cada estática que vale soma 1 (duas Harmonic Prodigy = 3 vezes). Afeta só gatilho de permanente.
+const causasDe = (e, ev) => {
+  if (ev.ev === 'atacantesDeclarados') return ((e.turno.combate || {}).atk || []).map(r => e.objs[r.id]).filter(Boolean);
+  const o = ev.snap || e.objs[ev.id];
+  return o ? [o] : [];
+};
+function extras(e, F, g, ev) {
+  let n = 0;
+  for (const id of e.campo) {
+    const S = e.objs[id];
+    for (const s of M.dadoDe(e, S).est || []) {
+      if (s.modo !== 'dobraGatilho' || !s.afeta || typeof s.afeta !== 'object') continue;
+      if (s.evs && !s.evs.includes(g.ev)) continue;
+      const ctx = { voce: S.ctrl, este: S.id };
+      const Fz = F.zona === 'campo' ? F : { ...F, zona: 'campo' };   // olhou para trás (603.10a): era permanente
+      if (!M.filtroOk(s.afeta) || !bate(e, Fz, s.afeta, ctx)) continue;
+      if (s.causa && (!M.filtroOk(s.causa) || !causasDe(e, ev).some(c => bate(e, c, s.causa, ctx)))) continue;
+      n++;
+    }
+  }
+  return n;
+}
+// fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
+const fabricarDe = d => { const k = (d.kw || []).find(x => x.k === 'fabricar'); return k ? { ev: 'entra', quem: { este: true }, fx: [{ op: 'fabricar', qtd: k.n || 1 }] } : null; };
+M.gatilhoDe = (p) => p.g || (p.ficha || M.carta(p.n)).gat[p.k];
 
 // ---------- evento: dispara na hora (603.2) ----------
 M.evento = (e, ev) => {
@@ -66,7 +100,15 @@ M.evento = (e, ev) => {
       if (onde === 'pilha' && !(g.quem && g.quem.este)) continue;
       if (!bateEv(e, g, ev, F)) continue;
       if (!cond(e, g.se, { voce: F.ctrl, este: F.id })) continue;                          // 603.4
-      e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+      const vezes = 1 + extras(e, F, g, ev);
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+    }
+  }
+  if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar
+    const F = e.objs[ev.id], g = fabricarDe(M.dadoDe(e, F));
+    if (g) {
+      const vezes = 1 + extras(e, F, g, ev);
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'fabricar', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
   }
 };
@@ -84,7 +126,7 @@ M.PROC.gatilhos = (e, P, ask) => {
       const tipos = new Map(); for (const i of meus) { const p = e.pend[i], c = p.n + '|' + p.k; if (!tipos.has(c)) tipos.set(c, i); }
       const ops = [...tipos.values()].map(i => ({ a: 'gatilho', i, id: e.pend[i].fonte, k: e.pend[i].k }));
       const op = ask(j, 'ordemGatilho', ops);
-      const p = e.pend[op.i], d = p.ficha || M.carta(p.n), g = d.gat[p.k];
+      const p = e.pend[op.i], g = M.gatilhoDe(p);
       const ctx = { voce: j, este: p.fonte };
       const alvos = M.escolherAlvos(e, j, { alvos: g.alvos || [] }, g.fx, ctx, ask);
       e.pend.splice(op.i, 1);
@@ -95,6 +137,7 @@ M.PROC.gatilhos = (e, P, ask) => {
         hab: { fonte: p.fonte, fonteTs: p.ts, gat: p.k, fx: g.fx, alvos: g.alvos || [], ficha: p.ficha, se: g.se || null },
         pil: { x: 0, alvos, ctrl: j, lki: { este: p.lki }, ev: p.ev } };
       e.pilha.push(id);
+      M.eventosAlvo(e, alvos, id);
       M.log(e, e.jogs[j].nome, 'gatilho de', p.n, '(' + g.ev + ')');
       ask.etapa();
     }
