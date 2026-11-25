@@ -1,0 +1,263 @@
+{
+ "bloco": "bloco17",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 801–850 (Haven of the Spirit Dragon … Infesting Radroach)",
+ "casos": [
+  {
+   "carta": "Haven of the Spirit Dragon",
+   "situacao": "vira para mana colorida",
+   "espera": "só paga mágica de criatura Dragão; {2}, vira e sacrifica: devolve um Dragão do cemitério à mão"
+  },
+  {
+   "carta": "Headless Rider",
+   "situacao": "um Zumbi não-ficha seu morre",
+   "espera": "cria um Zombie 2/2 preto"
+  },
+  {
+   "carta": "Heart Sliver",
+   "situacao": "um Sliver do oponente entra",
+   "espera": "ele tem pressa também"
+  },
+  {
+   "carta": "Hedge Shredder",
+   "situacao": "ataca e mói 2, uma é terreno",
+   "espera": "o terreno entra virado no campo"
+  },
+  {
+   "carta": "Hedron Archive",
+   "situacao": "{2}, vira e sacrifica",
+   "espera": "compra 2; vira para {C}{C}"
+  },
+  {
+   "carta": "Hedron Crab",
+   "situacao": "um terreno seu entra",
+   "espera": "o jogador alvo mói 3"
+  },
+  {
+   "carta": "Hei Bai, Forest Guardian",
+   "situacao": "entra; Santuário na 3ª do topo",
+   "espera": "revela até ele, pode pô-lo no campo, embaralha"
+  },
+  {
+   "carta": "Hellkite Courser",
+   "situacao": "entra com o comandante na zona de comando",
+   "espera": "pode pô-lo no campo com pressa; volta ao comando no próximo passo final"
+  },
+  {
+   "carta": "Hellkite Tyrant",
+   "situacao": "causa dano de combate a um jogador com 3 artefatos",
+   "espera": "você ganha o controle dos 3"
+  },
+  {
+   "carta": "Hellkite Tyrant",
+   "situacao": "sua manutenção com 20 artefatos",
+   "espera": "você ganha o jogo"
+  },
+  {
+   "carta": "Helpful Hunter",
+   "situacao": "entra",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Herald of Secret Streams",
+   "situacao": "sua criatura com marcador +1/+1 ataca",
+   "espera": "não pode ser bloqueada"
+  },
+  {
+   "carta": "Herald of War",
+   "situacao": "ataca duas vezes",
+   "espera": "2 marcadores; Anjos e Humanos custam 2 a menos"
+  },
+  {
+   "carta": "Hero of Bladehold",
+   "situacao": "ataca",
+   "espera": "cria 2 Soldiers 1/1 virados e atacando; as outras atacantes ganham +1/+0"
+  },
+  {
+   "carta": "Hero's Blade",
+   "situacao": "uma criatura lendária sua entra",
+   "espera": "pode anexar; ela ganha +3/+2"
+  },
+  {
+   "carta": "Hexing Squelcher",
+   "situacao": "oponente mira outra criatura sua",
+   "espera": "paga 2 de vida ou a mágica é anulada; suas mágicas não podem ser anuladas"
+  },
+  {
+   "carta": "Hibernation Sliver",
+   "situacao": "paga 2 de vida com um Sliver",
+   "espera": "ele volta à mão do dono"
+  },
+  {
+   "carta": "High Market",
+   "situacao": "vira e sacrifica uma criatura",
+   "espera": "ganha 1"
+  },
+  {
+   "carta": "Hobbit Hole",
+   "situacao": "vira e sacrifica",
+   "espera": "busca um terreno básico virado; ciclo de Halfling {4}"
+  },
+  {
+   "carta": "Hollowhenge Overlord",
+   "situacao": "sua manutenção com 3 Lobos",
+   "espera": "cria 3 Wolves 2/2 verdes"
+  },
+  {
+   "carta": "Homing Sliver",
+   "situacao": "outro Sliver na mão",
+   "espera": "tem ciclo de Sliver {3}"
+  },
+  {
+   "carta": "Honden of Cleansing Fire",
+   "situacao": "sua manutenção com 3 Santuários",
+   "espera": "ganha 6"
+  },
+  {
+   "carta": "Honden of Infinite Rage",
+   "situacao": "sua manutenção com 2 Santuários",
+   "espera": "2 de dano a qualquer alvo"
+  },
+  {
+   "carta": "Honden of Life's Web",
+   "situacao": "sua manutenção com 3 Santuários",
+   "espera": "cria 3 Spirits 1/1 incolores"
+  },
+  {
+   "carta": "Honden of Night's Reach",
+   "situacao": "sua manutenção com 2 Santuários",
+   "espera": "o oponente alvo descarta 2"
+  },
+  {
+   "carta": "Honden of Seeing Winds",
+   "situacao": "sua manutenção com 4 Santuários",
+   "espera": "compra 4"
+  },
+  {
+   "carta": "Hop to It",
+   "situacao": "resolve",
+   "espera": "cria 3 Rabbits 1/1 brancos"
+  },
+  {
+   "carta": "Hordeling Outburst",
+   "situacao": "resolve",
+   "espera": "cria 3 Goblins 1/1 vermelhos"
+  },
+  {
+   "carta": "Hordewing Skaab",
+   "situacao": "seus Zumbis causam dano de combate a um oponente",
+   "espera": "pode comprar 1 e descartar 1; os outros Zumbis voam"
+  },
+  {
+   "carta": "Horn of Gondor",
+   "situacao": "{3} e vira com 4 Humanos",
+   "espera": "cria 4 Human Soldiers 1/1"
+  },
+  {
+   "carta": "Hour of Reckoning",
+   "situacao": "resolve com fichas e não-fichas",
+   "espera": "destrói só as não-fichas"
+  },
+  {
+   "carta": "Howling Moon",
+   "situacao": "oponente conjura a 2ª mágica do turno",
+   "espera": "cria um Wolf 2/2; no início do seu combate um Lobo seu ganha +2/+2"
+  },
+  {
+   "carta": "Howlsquad Heavy",
+   "situacao": "início do seu combate",
+   "espera": "cria um Goblin 1/1 com pressa que deve atacar"
+  },
+  {
+   "carta": "Hulking Raptor",
+   "situacao": "sua principal 1",
+   "espera": "ganha {G}{G}"
+  },
+  {
+   "carta": "Hullbreaker Horror",
+   "situacao": "você conjura uma mágica com uma mágica do oponente na pilha",
+   "espera": "pode devolver essa mágica à mão do dono"
+  },
+  {
+   "carta": "Hungry Lynx",
+   "situacao": "seu passo final",
+   "espera": "o oponente alvo cria um Rat 1/1 com toque mortífero; quando um Rato morre, seus Gatos ganham +1/+1"
+  },
+  {
+   "carta": "Hunted Witness",
+   "situacao": "morre",
+   "espera": "cria um Soldier 1/1 com vínculo com a vida"
+  },
+  {
+   "carta": "Hunting Velociraptor",
+   "situacao": "bloqueia uma 2/2",
+   "espera": "mata com primeiro ataque (prowl é falta)"
+  },
+  {
+   "carta": "Icetill Explorer",
+   "situacao": "joga um terreno do cemitério",
+   "espera": "pode jogar 2 terrenos por turno e mói 1 a cada terreno"
+  },
+  {
+   "carta": "Ichor Wellspring",
+   "situacao": "entra e depois é destruído",
+   "espera": "compra 1 em cada"
+  },
+  {
+   "carta": "Idol of Oblivion",
+   "situacao": "{8}, vira e sacrifica",
+   "espera": "cria um Eldrazi 10/10 incolor"
+  },
+  {
+   "carta": "Idyllic Tutor",
+   "situacao": "resolve",
+   "espera": "busca um encantamento, revela, mão e embaralha"
+  },
+  {
+   "carta": "Imperious Perfect",
+   "situacao": "{G} e vira",
+   "espera": "cria um Elf Warrior 1/1; os outros Elfos ganham +1/+1"
+  },
+  {
+   "carta": "Impolite Entrance",
+   "situacao": "mira sua criatura",
+   "espera": "ganha atropelar e pressa; você compra 1"
+  },
+  {
+   "carta": "Inalla, Archmage Ritualist",
+   "situacao": "outro Mago não-ficha entra; paga {1}",
+   "espera": "cria uma cópia com pressa, exilada no próximo passo final"
+  },
+  {
+   "carta": "Inalla, Archmage Ritualist",
+   "situacao": "vira 5 Magos",
+   "espera": "o jogador alvo perde 7"
+  },
+  {
+   "carta": "Increasing Devotion",
+   "situacao": "conjurada pelo flashback",
+   "espera": "cria 10 Humans 1/1 (da mão: 5)"
+  },
+  {
+   "carta": "Indebted Spirit",
+   "situacao": "morre",
+   "espera": "cria um Spirit 1/1 branco e preto voador"
+  },
+  {
+   "carta": "Indulgent Aristocrat",
+   "situacao": "{2} e sacrifica uma criatura com 3 Vampiros",
+   "espera": "cada Vampiro ganha um marcador +1/+1"
+  },
+  {
+   "carta": "Inexorable Tide",
+   "situacao": "você conjura com um marcador +1/+1 no campo",
+   "espera": "prolifera"
+  },
+  {
+   "carta": "Infesting Radroach",
+   "situacao": "causa 2 de dano de combate",
+   "espera": "o jogador ganha 2 rad; no cemitério, volta à mão quando um oponente mói não-terreno"
+  }
+ ]
+}

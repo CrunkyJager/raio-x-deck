@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco18",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 851–900 (Ingris Stingerquill … Lazotep Plating)",
+ "casos": [
+  {
+   "carta": "Ingris Stingerquill",
+   "situacao": "uma criatura sua ataca",
+   "espera": "cada oponente leva 1; {4}: ficha 2/2 incolor Mago Soldado e suas criaturas ganham pressa"
+  },
+  {
+   "carta": "Inkshield",
+   "situacao": "conjurada antes do dano de combate",
+   "espera": "previne todo dano de combate a você neste turno (as fichas Inkling são falta)"
+  },
+  {
+   "carta": "Insidious Roots",
+   "situacao": "uma criatura volta do seu cemitério",
+   "espera": "cria Planta 0/1 e põe +1/+1 em cada Planta; suas fichas de criatura viram para mana de qualquer cor"
+  },
+  {
+   "carta": "Inspiring Overseer",
+   "situacao": "entra",
+   "espera": "ganha 1 de vida e compra 1"
+  },
+  {
+   "carta": "Iroas, God of Victory",
+   "situacao": "devoção a R e W = 5",
+   "espera": "não é criatura; suas criaturas têm ameaça; dano às suas atacantes é prevenido"
+  },
+  {
+   "carta": "Iron Myr",
+   "situacao": "vira",
+   "espera": "{R}"
+  },
+  {
+   "carta": "Izzet Boilerworks",
+   "situacao": "entra",
+   "espera": "virado, devolve um terreno seu à mão; vira para {U}{R}"
+  },
+  {
+   "carta": "Jacked Rabbit",
+   "situacao": "conjurado com X=5 e ataca",
+   "espera": "entra com 5 marcadores +1/+1 e compra 1; ao atacar cria 6 Coelhos 1/1"
+  },
+  {
+   "carta": "Jaheira, Friend of the Forest",
+   "situacao": "você tem 3 fichas",
+   "espera": "cada ficha vira para {G}"
+  },
+  {
+   "carta": "Jan Jansen, Chaos Crafter",
+   "situacao": "vira e sacrifica um artefato não-criatura",
+   "espera": "cria 2 Constructos 1/1; sacrificando artefato-criatura cria 2 Tesouros"
+  },
+  {
+   "carta": "Jarad, Golgari Lich Lord",
+   "situacao": "{1}{B}{G}, sacrifica criatura de poder 4",
+   "espera": "cada oponente perde 4; ele tem +1/+1 por criatura no seu cemitério"
+  },
+  {
+   "carta": "Jazal Goldmane",
+   "situacao": "ativa com 4 atacantes",
+   "espera": "as atacantes ganham +4/+4"
+  },
+  {
+   "carta": "Jeska's Will",
+   "situacao": "você controla o comandante; oponente com 5 cartas",
+   "espera": "pode escolher os dois: {R}×5 e exila 3 do topo jogáveis neste turno"
+  },
+  {
+   "carta": "Jhoira, Weatherlight Captain",
+   "situacao": "conjura um artefato",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Jinnie Fay, Jetmir's Second",
+   "situacao": "você criaria 2 Tesouros",
+   "espera": "pode criar em vez disso 2 Gatos 2/2 com pressa ou 2 Cães 3/1 com vigilância"
+  },
+  {
+   "carta": "Jolrael, Mwonvuli Recluse",
+   "situacao": "compra a 2ª carta do turno",
+   "espera": "cria Gato 2/2; {4}{G}{G} com 5 na mão: suas criaturas 5/5"
+  },
+  {
+   "carta": "Junk Winder",
+   "situacao": "uma ficha sua entra",
+   "espera": "vira uma permanente não-terreno do oponente; custa {1} a menos por ficha"
+  },
+  {
+   "carta": "Kaalia of the Vast",
+   "situacao": "ataca com um Dragão na mão",
+   "espera": "pode pô-lo no campo virado e atacando"
+  },
+  {
+   "carta": "Kaalia, Zenith Seeker",
+   "situacao": "entra",
+   "espera": "olha 6, revela Anjo/Demônio/Dragão para a mão, resto no fundo"
+  },
+  {
+   "carta": "Kaheera, the Orphanguard",
+   "situacao": "um Dinossauro seu no campo",
+   "espera": "ele tem +1/+1 e vigilância"
+  },
+  {
+   "carta": "Kalonian Hydra",
+   "situacao": "ataca com 4 marcadores",
+   "espera": "fica com 8 (dobra os +1/+1 de cada criatura sua)"
+  },
+  {
+   "carta": "Karlach, Fury of Avernus",
+   "situacao": "você ataca (1º combate)",
+   "espera": "desvira as atacantes, primeiro ataque e combate extra"
+  },
+  {
+   "carta": "Karn's Bastion",
+   "situacao": "{4}, vira",
+   "espera": "prolifera"
+  },
+  {
+   "carta": "Karplusan Forest",
+   "situacao": "vira para {R}",
+   "espera": "1 de dano em você; {C} sem dano"
+  },
+  {
+   "carta": "Kederekt Parasite",
+   "situacao": "oponente compra e você tem permanente vermelha",
+   "espera": "pode causar 1 de dano a ele"
+  },
+  {
+   "carta": "Keeper of Fables",
+   "situacao": "dois não-Humanos causam dano de combate a um jogador",
+   "espera": "compra 1 só"
+  },
+  {
+   "carta": "Kellogg, Dangerous Mind",
+   "situacao": "ataca; depois sacrifica 5 Tesouros",
+   "espera": "cria Tesouro; ganha o controle da criatura alvo enquanto estiver com Kellogg"
+  },
+  {
+   "carta": "Kess, Dissident Mage",
+   "situacao": "seu turno, instantânea no cemitério",
+   "espera": "pode conjurá-la do cemitério uma vez por turno"
+  },
+  {
+   "carta": "Kessig Wolf Run",
+   "situacao": "{X}{R}{G} com X=3, vira",
+   "espera": "criatura alvo +3/+0 e atropelar"
+  },
+  {
+   "carta": "Kher Keep",
+   "situacao": "{1}{R}, vira",
+   "espera": "ficha Kobold 0/1 vermelha"
+  },
+  {
+   "carta": "Kheru Goldkeeper",
+   "situacao": "seu turno, cartas saem do seu cemitério",
+   "espera": "cria 1 Tesouro; renovar põe 2 +1/+1 e voar na criatura alvo"
+  },
+  {
+   "carta": "Kindred Dominance",
+   "situacao": "escolhe Goblin",
+   "espera": "destrói toda criatura que não é Goblin"
+  },
+  {
+   "carta": "Kindred Judgment",
+   "situacao": "escolhe Elfo",
+   "espera": "destrói toda criatura que não é Elfo"
+  },
+  {
+   "carta": "King of the Pride",
+   "situacao": "outro Gato seu",
+   "espera": "+2/+1"
+  },
+  {
+   "carta": "Kinjalli's Sunwing",
+   "situacao": "criatura do oponente entra",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Kiora's Follower",
+   "situacao": "vira",
+   "espera": "desvira outra permanente alvo"
+  },
+  {
+   "carta": "Kishla Skimmer",
+   "situacao": "seu turno, duas cartas saem do cemitério",
+   "espera": "compra 1 (uma vez por turno)"
+  },
+  {
+   "carta": "Klauth, Unrivaled Ancient",
+   "situacao": "ataca com atacantes de poder total 9",
+   "espera": "9 manas de qualquer cor, só para mágicas"
+  },
+  {
+   "carta": "Kopala, Warden of Waves",
+   "situacao": "oponente mira seu Tritão com mágica",
+   "espera": "custa {2} a mais (habilidade também)"
+  },
+  {
+   "carta": "Kotis, Sibsig Champion",
+   "situacao": "criatura volta do cemitério ao campo",
+   "espera": "Kotis ganha 2 +1/+1; pode conjurar criatura do cemitério uma vez no seu turno"
+  },
+  {
+   "carta": "Krark-Clan Ironworks",
+   "situacao": "sacrifica um artefato",
+   "espera": "{C}{C}"
+  },
+  {
+   "carta": "Krenko's Command",
+   "situacao": "resolve",
+   "espera": "2 Goblins 1/1 vermelhos"
+  },
+  {
+   "carta": "Kuja, Genome Sorcerer",
+   "situacao": "seu passo final com 3 Magos",
+   "espera": "cria Mago 0/1 virado e transforma; Trance Kuja dobra o dano dos seus Magos"
+  },
+  {
+   "carta": "Kumena, Tyrant of Orazca",
+   "situacao": "vira 3 Tritões",
+   "espera": "compra 1; 5 Tritões: +1/+1 em cada Tritão; 1: não pode ser bloqueada"
+  },
+  {
+   "carta": "Kwain, Itinerant Meddler",
+   "situacao": "vira",
+   "espera": "cada jogador pode comprar 1; quem comprou ganha 1"
+  },
+  {
+   "carta": "Kyoshi Island Plaza",
+   "situacao": "entra com 3 Santuários",
+   "espera": "busca 3 terrenos básicos virados; outro Santuário entra: mais 1"
+  },
+  {
+   "carta": "Land Tax",
+   "situacao": "sua manutenção",
+   "espera": "pode buscar até 3 básicos para a mão (a condição de terrenos é falta)"
+  },
+  {
+   "carta": "Lathliss, Dragon Queen",
+   "situacao": "outro Dragão não-ficha seu entra",
+   "espera": "cria Dragão 5/5 com voar; {1}{R}: Dragões +1/+0"
+  },
+  {
+   "carta": "Lavabelly Sliver",
+   "situacao": "um Sliver seu entra",
+   "espera": "1 de dano no jogador ou planeswalker alvo e você ganha 1"
+  },
+  {
+   "carta": "Lazotep Plating",
+   "situacao": "resolve",
+   "espera": "amassa Zumbis 1; você e suas permanentes ganham resguardo até o fim do turno"
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Karn's Bastion","id":"9fb8cd81-403a-4988-8f1c-b8eccf8abd9c","oracleHash":"c651aaed","vm":0,"ci":"","cores":"","tipos":["Land"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["C"],"qtd":1}]},{"custo":{"mana":{"g":4},"virar":true},"fx":[{"op":"proliferar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco18.json"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Heart Sliver","id":"6dd1f375-e8f2-4725-8fbd-9750c4860820","oracleHash":"36961f78","custo":{"g":1,"p":["R"]},"vm":2,"ci":"R","cores":"R","tipos":["Creature"],"sub":["Sliver"],"pt":[1,1],"est":[{"modo":"continuo","afeta":{"tipo":["Creature"],"sub":["Sliver"],"zona":"campo"},"kw":[{"k":"pressa"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco17.json"}}

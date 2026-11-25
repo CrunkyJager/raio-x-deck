@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.17.0 — 25/11/2026 · banco com 961 cartas
+Testes: valida 961/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
+- **Banco (B):** correção 4 (22 cartas antigas com os campos dos lotes 15/16: Anel, Classe, ateAchar, explorar, amassar, popular, moe, porOponente, historico…), bloco 17 (801–850, 51 casos) e bloco 18 (851–900, 50 casos).
+
 ## v0.16.0 — 25/11/2026 · banco com 861 cartas
 Testes: valida 861/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
 - **Banco (B):** bloco 15 (fila 701–750, 49 casos) e bloco 16 (751–800, 49 casos). Goblin Anarchomancer corrigido pelo coordenador (era −2 numa mágica vermelha e verde; agora 1 redução com `cor ["R","G"]`).

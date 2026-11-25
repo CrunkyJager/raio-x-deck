@@ -1,0 +1,1 @@
+{"v":2,"n":"Idyllic Tutor","id":"57c9ff89-dd30-467b-bb3e-499eeea8cb94","oracleHash":"aefb0762","custo":{"g":2,"p":["W"]},"vm":3,"ci":"W","cores":"W","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"tipo":["Enchantment"]},"revelar":true,"para":"mao"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco17.json"}}

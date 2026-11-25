@@ -97,3 +97,35 @@ Contagem: banco 861 cartas / fila 724 ainda não escritas. As do bloco 15 seguem
 - filtro `cor` aceita lista = alguma destas. Goblin Anarchomancer: UMA redução com `cor ["R","G"]` (escrito com 2 reduções = −2 numa mágica RG: ERRADO).
 - alvo `porOponente: true`.
 - Ficam em `falta` por ora: desvirarOutros no custo, sacrificar este + outras, replicar, morph, skulk, marcadores do Gluntch.
+
+## Faltas em lote (bloco 17, para o FARSEER decidir junto)
+Contagem: banco 911 cartas / fila 674 ainda não escritas. Todas raras: nenhuma passa de 1/1.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| bestow (concessão) | 1 | 1 | Indebted Spirit (parte da Aura escrita como `equipada`) | kw `concessao custo` | |
+| prowl | 1 | 0 | Hunting Velociraptor | kw `espreitar custo` (ou deixar falta) | |
+| velocidade (Start your engines / Max speed) | 1 | 0 | Howlsquad Heavy | deixar falta | |
+| cond "criou ficha neste turno" | 1 | 0 | Idol of Oblivion (escrito sem a condição) | cond `fichaCriadaNoTurno` | |
+| tirar do combate / combate extra do oponente | 1 | 0 | Illusionist's Gambit | deixar falta | |
+| não bloqueia nem é bloqueada por não-Spirit | 1 | 0 | Hei Bai (ficha) | deixar falta | |
+| contar oponentes que levaram dano | 1 | 0 | Hordewing Skaab (escrito 1 por gatilho) | deixar falta | |
+| "ou Ugin planeswalker" no alvo | 1 | 0 | Haven of the Spirit Dragon | alvo com lista de filtros (ou deixar falta) | |
+
+## Faltas em lote (bloco 18, para o FARSEER decidir junto)
+Contagem: banco 961 cartas / fila 624 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| cond "oponente controla mais terrenos que você" | 2 | 3 | Archaeomancer's Map, Land Tax (escritos sem a condição) | cond `maisTerrenosOponente` (ou `compara` com o jogador do evento) | |
+| primeiro combate do turno | 2 | 1 | Genji Glove, Karlach (escritos como uma vez por turno) | cond `primeiroCombate` | |
+| mana que não some entre passos | 2 | 1 | Birgi, Klauth | fx mana `ficaNoTurno` | |
+| ficha com nome próprio + P/R | 2 | 2 | Ingris (Cadet), Kher Keep (Kobolds) | token `nome` junto com `pt` (nome só como rótulo) | |
+| "até X" no buscar | 1 | 2 | Kyoshi Island Plaza (escrito X) | qtd `ate` aceitar contagem | |
+| dobrar marcadores | 1 | 1 | Kalonian Hydra (escrito repetirCada + `marcadoresNoEvento` em `cadaAtual`) | op `dobrarMarcadores` ou confirmar a leitura | |
+| conjurada do cemitério (filtro / exílio / custo adicional) | 2 | 0 | Kess, Kotis | deixar falta | |
+| não desvira no próximo desvirar | 1 | 0 | Junk Winder | deixar falta | |
+| contar dano prevenido | 1 | 0 | Inkshield | deixar falta | |
+| Companion | 1 | 0 | Kaheera | deixar falta | |
+| custo com dois filtros (um Pântano E uma Floresta) | 1 | 0 | Jarad (escrito 2 entre Pântano/Floresta) | deixar falta | |
+| um de cada subtipo no cavar | 1 | 0 | Kaalia, Zenith Seeker (escrito até 3 entre os tipos) | deixar falta | |
