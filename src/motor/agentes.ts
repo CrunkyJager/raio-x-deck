@@ -14,7 +14,18 @@ M.agenteBasico = () => (e, p) => {
       const t = J.zonas.mao.filter(terra).length;
       return J.mulls < 2 && (t < 2 || t > 5) ? 1 : 0;
     }
-    case 'fundo': case 'descartar': {
+    case 'descartar': {               // filtrar: loucura e terreno sobrando primeiro; descarte opcional só com ganho
+      const k = escolheDescarte(e, p);
+      if (k >= 0) return k;
+      let b = 0, bv = -1;
+      p.ops.forEach((op, k2) => { if (op.a !== 'descartar') return; const v = terra(op.id) ? 0.5 : (M.dadoDe(e, o(op.id)).vm || 0); if (v > bv) { bv = v; b = k2; } });
+      return b;
+    }
+    case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
+      if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
+      return 0;
+    }
+    case 'fundo': {
       let b = 0, bv = -1;
       p.ops.forEach((op, k) => { const v = terra(op.id) ? 0.5 : (M.dadoDe(e, o(op.id)).vm || 0); if (v > bv) { bv = v; b = k; } });
       return b;
@@ -44,9 +55,12 @@ M.agenteBasico = () => (e, p) => {
         const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());
         if (k3 >= 0) return k3;
         // ficha de sacrificar (Clue, Food, Blood, Shard, Lander): com a mana que sobrou; Blood só descartando terreno de sobra
-        const sobraTerra = J.zonas.mao.filter(terra).length > (J.terrenos < M.terrenosPorTurno(e, p.j) ? 1 : 0);
-        const k4 = p.ops.findIndex(op => op.a === 'ativar' && o(op.id).ficha && (() => { const c = M.atvDe(e, o(op.id))[op.k].custo; return c.sacrificar === 'este' && (!c.descartar || sobraTerra); })());
+        const k4 = p.ops.findIndex(op => op.a === 'ativar' && o(op.id).ficha && (() => { const c = M.atvDe(e, o(op.id))[op.k].custo; return c.sacrificar === 'este' && (!c.descartar || querDescartar(e, p.j)); })());
         if (k4 >= 0) return k4;
+        // ciclar (702.29) com a mana que sobrou: com gatilho de descarte, ou a carta que não dá para conjurar agora
+        const k5 = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._ciclar
+          && (gatilhoDescarte(e, p.j) || !p.ops.some(x => x.a === 'conjurar' && x.id === op.id)));
+        if (k5 >= 0) return k5;
       }
       return 0;
     }
@@ -85,6 +99,40 @@ M.agenteBasico = () => (e, p) => {
     default: return 0;
   }
 };
+
+// ---- descarte (filtrar a mão) ----
+// valor de descartar a carta (menor = melhor descartar): loucura que dá para pagar depois (−3), terreno que sobra (−2),
+// o resto pelo valor de mana. Terreno sobra quando a mão já tem o da jogada deste turno e o campo tem 5 ou mais.
+function valorDescarte(e, j, id) {
+  const o = e.objs[id], d = M.dadoDe(e, o);
+  if ((d.kw || []).some(x => x.k === 'loucura' && x.custo)) return -3;
+  if (M.temTipo(e, o, 'Land')) {
+    const J = e.jogs[j], naMao = J.zonas.mao.filter(x => M.temTipo(e, e.objs[x], 'Land')).length;
+    const noCampo = e.campo.filter(x => e.objs[x].ctrl === j && M.temTipo(e, e.objs[x], 'Land')).length;
+    const precisa = J.terrenos < M.terrenosPorTurno(e, j) ? 1 : 0;
+    return naMao > precisa && noCampo >= 5 ? -2 : naMao > precisa + 1 ? -1 : naMao > precisa ? 1 : 3;   // 3: é a jogada do turno
+  }
+  return d.vm || 0;
+}
+// tem permanente com gatilho de descarte seu (Ivora, Glint-Horn, Brallin, Marauding Mako…)?
+function gatilhoDescarte(e, j) {
+  return e.campo.some(id => { const x = e.objs[id]; return x.ctrl === j && M.gatDe(e, x).some(g => g.ev === 'descarta' && (g.jog || 'qualquer') !== 'oponente' && M.gatOk(g)); });
+}
+function querDescartar(e, j) {
+  const mao = e.jogs[j].zonas.mao; if (!mao.length) return false;
+  const melhor = Math.min(...mao.map(id => valorDescarte(e, j, id)));
+  return melhor < 0 || (gatilhoDescarte(e, j) && melhor <= 1);
+}
+// índice da opção de descarte; −1 = deixa para a regra antiga (descarte obrigatório sem carta boa de descartar)
+function escolheDescarte(e, p) {
+  const ops = p.ops.map((op, i) => [op, i]).filter(([op]) => op.a === 'descartar');
+  const nenhum = p.ops.findIndex(op => op.a === 'nenhum');
+  if (!ops.length) return Math.max(0, nenhum);
+  let b = -1, bv = Infinity;
+  for (const [op, i] of ops) { const v = valorDescarte(e, p.j, op.id); if (v < bv) { bv = v; b = i; } }
+  if (nenhum >= 0) return bv < 0 || (gatilhoDescarte(e, p.j) && bv <= 1) ? b : nenhum;   // "quantas quiser": só as que ganham
+  return bv < 0 ? b : -1;
+}
 
 // ataque: no oponente com menos vida, com quem não morre de graça num bloqueio (sem troca) e tem poder > 0
 function atacarBasico(e, p) {

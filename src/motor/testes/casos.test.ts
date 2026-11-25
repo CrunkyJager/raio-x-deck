@@ -1383,6 +1383,88 @@ caso('111.10d', 'Powerstone: {C} só para mágica de artefato; Map/Junk existem 
   igual(M.fichaDe({ nome: 'Treasure', virada: 1 }).sub, ['Treasure']);
 });
 
+// descarte (CR 701.9) e loucura (702.35): o deck da Ivora
+// resolve a pilha respondendo: prioridade passa; o resto pela função (−1 = agente básico)
+const resolveCom = (e, f = (p: any) => -1) => {
+  for (let i = 0; i < 80 && e.perg && (e.pilha.length || e.perg.tipo !== 'acao'); i++) {
+    const p = e.perg, { passo, n } = e.turno, fim = x => x.turno.passo !== passo || x.turno.n !== n;
+    if (p.tipo === 'acao') { M.responder(e, p.ops.findIndex(o => o.a === 'passar'), fim); continue; }
+    const k = f(p); M.responder(e, k >= 0 ? k : M.agenteBasico()(e, p), fim);
+  }
+};
+const terras = (n, c = 'Mountain') => Array.from({ length: n }, () => [0, c]);
+caso('701.9a', 'descarta: um gatilho por carta, grupo uma vez com a conta do lote, quem descartou (Megrim) e lembrados (Path of the Pyromancer)', () => {
+  const e = cena({ campo: [...terras(5), [0, 'Ivora, Insatiable Heir'], [0, 'Glint-Horn Buccaneer'], [0, 'Marauding Mako'], [1, 'Megrim']],
+    mao: [[0, 'Path of the Pyromancer'], [0, 'Grizzly Bears'], [0, 'Forest']] });
+  e.pend = [];
+  M.avancar(e); conj(e, 'Path of the Pyromancer'); resolveCom(e);
+  const o = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  igual(naZona(e, 0, 'cemiterio').sort(), ['Forest', 'Grizzly Bears', 'Path of the Pyromancer'], JSON.stringify(e.log.slice(-12)));
+  igual(o('Ivora, Insatiable Heir').marc['+1/+1'], 2, 'Ivora: uma vez por carta');
+  igual(o('Marauding Mako').marc['+1/+1'], 2, 'Mako: uma vez, com as 2 do lote');
+  igual(e.jogs[1].vida, 38, 'Glint-Horn: 1 por carta');
+  igual(e.jogs[0].vida, 36, 'Megrim: 2 por carta, em quem descartou');
+  igual(e.jogs[0].zonas.mao.length, 3, 'comprou lembrados + 1');
+});
+caso('701.9b', '"descarte quantas quiser, compre essa quantidade + 1" (Brass\'s Tunnel-Grinder); 0 descartadas = compra 1', () => {
+  for (const [quantas, mao] of [[2, 4], [0, 4]] as any[]) {
+    const e = cena({ campo: terras(3), mao: [[0, "Brass's Tunnel-Grinder"], [0, 'Grizzly Bears'], [0, 'Forest'], [0, 'Wastes']] });
+    M.avancar(e); conj(e, "Brass's Tunnel-Grinder");
+    let feitas = 0;
+    resolveCom(e, p => p.tipo === 'descartar' ? (feitas < quantas ? (feitas++, p.ops.findIndex(o => o.a === 'descartar')) : p.ops.findIndex(o => o.a === 'nenhum')) : -1);
+    igual(naZona(e, 0, 'cemiterio').length, quantas, JSON.stringify(e.log.slice(-8)));
+    igual(e.jogs[0].zonas.mao.length, mao, `${quantas} descartadas`);
+  }
+});
+caso('702.35a', 'loucura: descartada vai ao exílio e o gatilho conjura pelo custo de loucura (fora da velocidade); recusar = cemitério', () => {
+  for (const quer of [true, false]) {
+    const e = cena({ campo: terras(5), mao: [[0, "Brass's Tunnel-Grinder"], [0, "Anje's Ravager"]] });
+    M.avancar(e); conj(e, "Brass's Tunnel-Grinder");
+    let feitas = 0;
+    resolveCom(e, p => p.tipo === 'descartar' ? (feitas++ ? p.ops.findIndex(o => o.a === 'nenhum') : p.ops.findIndex(o => o.a === 'descartar'))
+      : p.tipo === 'talvez' && p.ctx && p.ctx.op === 'loucura' ? (quer ? 0 : 1) : -1);
+    if (quer) {
+      ok(noCampo(e).includes("Anje's Ravager"), 'conjurou pela loucura: ' + JSON.stringify(e.log.slice(-10)));
+      igual(e.campo.filter(id => e.objs[id].n === 'Mountain' && e.objs[id].virada).length, 5, '{2}{R} + {1}{R}');
+    } else igual(naZona(e, 0, 'cemiterio'), ["Anje's Ravager"], JSON.stringify(e.log.slice(-10)));
+    igual(naZona(e, 0, 'exilio'), [], 'não fica no exílio');
+  }
+});
+caso('702.35b', 'loucura no descarte da limpeza (514.1): o agente descarta a de loucura primeiro e a conjura no turno de limpeza', () => {
+  const e = cena({ campo: [...terras(3), [0, 'Grizzly Bears']], mao: [[0, 'Stensia Masquerade'], ...enche(7, 'Forest').map(n => [0, n])], passo: 'final' });
+  e.pend = [];
+  M.avancar(e, x => x.turno.passo === 'limpeza');
+  for (let i = 0; i < 5 && e.perg && e.perg.tipo === 'acao' && e.turno.passo !== 'limpeza'; i++) M.responder(e, e.perg.ops.findIndex(o => o.a === 'passar'), x => x.turno.passo === 'limpeza');
+  if (!e.perg) M.avancar(e);
+  igual([e.turno.passo, e.perg && e.perg.tipo], ['limpeza', 'descartar']);
+  M.responder(e, M.agenteBasico()(e, e.perg));
+  ok(!naZona(e, 0, 'mao').includes('Stensia Masquerade'), 'descartou a de loucura');
+  resolveCom(e);
+  ok(noCampo(e).includes('Stensia Masquerade'), JSON.stringify([naZona(e, 0, 'cemiterio'), naZona(e, 0, 'exilio'), e.turno.passo]));
+});
+caso('702.29a', 'ciclar: da mão, paga e descarta esta, compra 1; o descarte dispara (Ivora, Marauding Mako); o agente cicla com gatilho de descarte', () => {
+  const e = cena({ campo: [...terras(2), [0, 'Ivora, Insatiable Heir'], [0, 'Marauding Mako']], mao: [[0, 'Magmakin Artillerist']] });
+  e.pend = []; e.jogs[0].terrenos = 1;
+  M.avancar(e);
+  const k = M.agenteBasico()(e, e.perg), op = e.perg.ops[k];
+  ok(op.a === 'ativar' && e.objs[op.id].n === 'Magmakin Artillerist', 'o agente cicla: ' + JSON.stringify(op));
+  M.responder(e, k); resolveCom(e);
+  const o = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  igual(naZona(e, 0, 'cemiterio'), ['Magmakin Artillerist']);
+  igual([o('Ivora, Insatiable Heir').marc['+1/+1'], o('Marauding Mako').marc['+1/+1']], [1, 1]);
+  igual(e.jogs[0].zonas.mao.length, 1, 'comprou 1');
+});
+caso('701.9c', 'agente: filtra com gatilho de descarte (Ivora + Blood com o último terreno da mão); sem gatilho, não', () => {
+  for (const ivora of [true, false]) {
+    const campo: any[] = [[0, 'Wastes']]; if (ivora) campo.push([0, 'Ivora, Insatiable Heir']);
+    const e = cena({ campo, mao: [[0, 'Forest']] }); e.pend = []; ficha(e, 0, 'Blood');
+    e.jogs[0].terrenos = 1;
+    M.avancar(e);
+    const k = M.agenteBasico()(e, e.perg), op = e.perg.ops[k];
+    igual(op.a === 'ativar' && e.objs[op.id].n === 'Blood', ivora, ivora ? 'com Ivora quebra o Blood' : 'sem gatilho guarda o terreno');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -194,19 +194,22 @@ M.facesParaConjurar = (e, j, o) => {
 // carta exilada pela própria aventura: o dono pode conjurá-la enquanto ela ficar lá (716.3d)
 const daAventura = (e, j, o) => o.zona === 'exilio' && o.aventura === j;
 // só a face que vai ficar para cima é avaliada (712.8c, 709.3a, 716.3a): avalia com o.face trocada e devolve
-M.podeConjurar = (e, j, o, face?) => {
+// opts.loucura: a carta exilada pela loucura, conjurada na resolução do gatilho (CR 702.35b), sem olhar a velocidade
+M.podeConjurar = (e, j, o, face?, opts?) => {
   const antes = o.face;
   o.face = face ?? null;
-  try { return podeConjurarFace(e, j, o, face); } finally { o.face = antes; }
+  try { return podeConjurarFace(e, j, o, face, opts || {}); } finally { o.face = antes; }
 };
-function podeConjurarFace(e, j, o, face) {
+const custoLoucura = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'loucura' && x.custo); return k ? k.custo : null; };
+function podeConjurarFace(e, j, o, face, opts: any = {}) {
+  const louc = !!opts.loucura && o.zona === 'exilio' && o.loucura && !!custoLoucura(e, o);
   const d = M.dadoDe(e, o);
   if (o.dono !== j) return false;
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
-  if (!(o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null))) return false;   // mão, comando, permissão (podeJogar) ou aventura
+  if (!(louc || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
-  if (!inst && !M.velFeitico(e, j)) return false;
+  if (!inst && !louc && !M.velFeitico(e, j)) return false;
   if (d.fx && !M.fxSuportado(d.fx)) return false;
   if (!M.ehPermanente(e, o) && !(d.fx && d.fx.length)) return false;   // mágica sem efeito lido: não conjura à toa
   if (modalTopo(d) && M.modosViaveis(e, j, d) < ((d.fx[0].escolhe || {}).min ?? 1)) return false;
@@ -214,7 +217,7 @@ function podeConjurarFace(e, j, o, face) {
   if (d.custoAd && !custoFisicoOk(e, j, null, d.custoAd, { daMao: o.id })) return false;
   const usados = alvosUsados(modalTopo(d) ? [] : d.fx || []);
   if (usados.some(i => !(d.alvos || [])[i] || !M.alvoSuportado(d.alvos[i]))) return false;
-  const custo0 = M.custoComImposto(e, o);
+  const custo0 = M.custoComImposto(e, o, louc ? custoLoucura(e, o) : undefined);
   return opcoesConj(e, j, d).some(opc => opcOk(e, j, d, usados, custo0, opc, o));
 }
 // a combinação de opções fecha? alvos ativos com escolha legal (CR 601.2c) e custo pagável
@@ -397,10 +400,10 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.vida) J.vida -= c.vida;
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   for (const id of esc.sac) M.mover(e, id, 'cemiterio');            // CR 701.21
-  for (const id of esc.desc) M.mover(e, id, 'cemiterio');
+  if (esc.desc.length) M.descartar(e, j, esc.desc);
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
   if (c.exilarEste) M.mover(e, o.id, 'exilio');
-  if (c.descartarEste) M.mover(e, o.id, 'cemiterio');               // CR 701.9 (Otawara, Trumpeting Carnosaur)
+  if (c.descartarEste) M.descartar(e, j, [o.id]);                  // CR 701.9 (Otawara, Trumpeting Carnosaur)
   for (const id of esc.dev || []) M.mover(e, id, 'mao');            // à mão do dono (Master Transmuter, Mina and Denn)
   if (c.devolver === 'este') M.mover(e, o.id, 'mao');              // Shigeki
 }
@@ -417,7 +420,7 @@ const PROC = {
     const d = M.dadoDe(e, o);
     const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask) : null;          // CR 601.2b
     const fx = fxEfetivo(d, d.fx || [], modos);
-    const custo0 = M.custoComImposto(e, o), usados = alvosUsados(fx);
+    const custo0 = M.custoComImposto(e, o, P.loucura ? custoLoucura(e, o) : undefined), usados = alvosUsados(fx);
     const viaveis = opcoesConj(e, j, d).filter(op => opcOk(e, j, d, usados, custo0, op, o));
     let opc: any = viaveis.length > 1 ? ask(j, 'opcao', viaveis.map(v => ({ a: 'opcao', v })), { id: o.id }).v : viaveis[0] || {};   // 601.2b
     if (opc.presente) opc = { ...opc, jog: ask(j, 'presente', M.vivos(e).filter(x => x !== j).map(x => ({ a: 'jogador', jog: x })), { id: o.id }).jog };   // 702.174a: um oponente
@@ -446,7 +449,7 @@ const PROC = {
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
     e.turno.magias = (e.turno.magias || 0) + 1;
     M.log(e, e.jogs[j].nome, 'conjura', o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
-    M.agiu(e, j);                                                                     // CR 601.2i → 117.3c
+    if (!P.loucura) M.agiu(e, j);                                                     // CR 601.2i → 117.3c (loucura: no meio da resolução)
   },
 
   ativar(e, P, ask) {

@@ -4,10 +4,10 @@
 import { M } from './nucleo';
 
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez']);
-const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono']);
+const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento']);
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X', 'resultado']);   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra']);
+  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X', 'resultado', 'lembrados', 'evento']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -18,7 +18,7 @@ const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 &
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
     && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo'].includes(k)));
-const emOk = v => v === undefined || v === 'este' || v === 'equipada' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
+const emOk = v => v === undefined || v === 'este' || v === 'equipada' || v === 'doEvento' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
   && M.condValorOk(se) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
 M.seOk = seOk;
@@ -49,6 +49,11 @@ function objsDe(e, f, ctx) {
     return t ? [t] : [];
   }
   if (v.todos) return M.objetosQue(e, v.todos.zona ? v.todos : { ...v.todos, zona: 'campo' }, ctx);
+  if (v === 'doEvento') {                                            // o objeto do evento do gatilho (no dano, a fonte)
+    const ev = ctx.ev, o = ev ? e.objs[ev.ev === 'dano' ? ev.fonte : ev.id] : null;
+    if (!o || (ev.ts !== undefined && o.ts !== ev.ts)) return [];   // mudou de zona depois do evento: outro objeto (400.7)
+    return o.zona === (f.de || 'campo') ? [o] : [];
+  }
   throw new Error('em sem suporte: ' + JSON.stringify(v));
 }
 // jogadores-alvo legais de um efeito com em:{alvo}
@@ -71,6 +76,7 @@ function jogsDe(e, f, ctx) {
     case 'alvoJogador': { for (let i = 0; i < ctx.alvos.length; i++) { const js = jogsAlvo(e, i, ctx); if (js.length) return js; } return []; }
     case 'controlador': return [...new Set(lkisDe(e, f, ctx).map(l => l.ctrl))].filter(j => vivos.includes(j));
     case 'dono': return [...new Set(lkisDe(e, f, ctx).map(l => l.dono))].filter(j => vivos.includes(j));
+    case 'doEvento': return ctx.ev && ctx.ev.j !== undefined && vivos.includes(ctx.ev.j) ? [ctx.ev.j] : [];   // quem descartou (Megrim)
   }
   throw new Error('quem sem suporte: ' + f.quem);
 }
@@ -95,6 +101,8 @@ function qtdDe(e, q, ctx) {
       case 'suaVida': v = e.jogs[ctx.voce].vida; break;
       case 'X': v = ctx.x || 0; break;
       case 'resultado': v = ctx.resultado || 0; break;
+      case 'lembrados': v = (ctx.lembrados || []).length; break;
+      case 'evento': v = ctx.ev ? ctx.ev.n ?? 1 : 0; break;
       default: throw new Error('conta sem suporte: ' + q.conta);
     }
     return Math.max(0, v * (q.mult || 1) + (q.soma || 0));
@@ -133,9 +141,10 @@ function fonteOutra(e, fo, ctx) {
 M.executar = (e, f, ctx, ask) => {
   if (f.se && !M.condicao(e, f.se, ctx)) return;                     // CR 608.2c: condição lida na hora
   const h0 = H[f.op];
-  if (f.talvez && !(h0 && h0.talvezDentro) && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') return;   // "pode"
+  if (f.talvez && !(h0 && h0.talvezDentro) && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') { ctx.pagou = false; return; }   // "pode"
   const h = H[f.op];
-  if (!h) throw new Error('efeito sem suporte no motor2: ' + f.op);
+  if (!h) throw new Error('efeito sem suporte no motor2: ' + f.op + ' (' + ((e.objs[ctx.item] || {}).n || '?') + ')');
+  if (f.talvez) ctx.pagou = true;                                    // "se fizer" (se.pagou) do efeito seguinte
   h.fx(e, f, ctx, ask);
 };
 
@@ -299,6 +308,22 @@ const H = {
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
     },
   },
+  // mana na resolução (CR 106.3, fora de habilidade de mana: Path of the Pyromancer, Neheb, Birgi). prod com várias
+  // cores = uma delas, à escolha; ficaNoTurno: não esvazia entre etapas e fases até o fim do turno (Neheb, Birgi)
+  mana: {
+    campos: ['prod', 'ficaNoTurno'],
+    ok: f => f.prod !== undefined && !['refletida', 'deSeusTerrenos'].includes(f.prod),
+    fx(e, f, ctx, ask) {
+      const q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
+      const F = e.objs[ctx.este] || { ctrl: ctx.voce, escolha: null };
+      const cs = M.coresDeProd(e, { ...F, ctrl: ctx.voce }, f.prod); if (!cs || !cs.length) return;
+      const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
+      const J = e.jogs[ctx.voce];
+      J.reserva[c] += q;
+      if (f.ficaNoTurno) { if (!J.fica || J.fica.t !== e.turno.n) J.fica = { t: e.turno.n, m: M.zeroMana() }; J.fica.m[c] += q; }
+      M.log(e, J.nome, 'recebe', c.repeat(q));
+    },
+  },
   ganharVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) M.ganharVida(e, j, q); } },   // CR 119.3
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) e.jogs[j].vida -= q; } },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
@@ -352,16 +377,35 @@ const H = {
       }
     },
   },
-  descartar: {                                                      // CR 701.9: quem descarta escolhe
-    qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira',
+  // CR 701.9: quem descarta escolhe; {ate:N|'qualquer'} = "descarte quantas quiser". As descartadas ficam lembradas
+  // (conta 'lembrados': "draw that many", Neheb, Path of the Pyromancer) e "se descartar" (se.pagou) = ao menos uma.
+  descartar: {
+    qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira' || (ateOk(q) && q.ate !== 'X'),
     fx(e, f, ctx, ask) {
-      const esc: any[] = [];
+      const por: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
         const mao = e.jogs[j].zonas.mao;
-        if (f.qtd === 'maoInteira') { esc.push(...mao); continue; }
-        esc.push(...escolherN(ask, j, 'descartar', mao, Math.min(qtdDe(e, f.qtd, ctx), mao.length)));
+        if (f.qtd === 'maoInteira') { por.push([j, mao.slice()]); continue; }
+        const ate = ateOk(f.qtd);
+        por.push([j, escolherN(ask, j, 'descartar', mao, Math.min(ate ? qtdDe(e, f.qtd, ctx) : qtdDe(e, f.qtd, ctx), mao.length), { podeMenos: ate, ctx: { op: 'descartar' } })]);
       }
-      for (const id of esc) M.mover(e, id, 'cemiterio');
+      const feitas: any[] = [];
+      for (const [j, ids] of por) feitas.push(...M.descartar(e, j, ids));
+      ctx.lembrados = feitas; ctx.pagou = feitas.length > 0;
+    },
+  },
+  // loucura (CR 702.35): o gatilho da carta exilada pela loucura. O dono pode conjurá-la pagando o custo de loucura
+  // (na resolução, sem olhar a velocidade: 608.2g); se não conjurar, ela vai para o cemitério.
+  loucura: {
+    fx(e, f, ctx, ask) {
+      const o = e.objs[ctx.este], L = ctx.lki && ctx.lki.este;
+      if (!o || o.zona !== 'exilio' || !o.loucura || (L && L.ts !== o.ts)) return;
+      if (M.podeConjurar(e, o.dono, o, undefined, { loucura: true }) && ask(o.dono, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'loucura', id: o.id }).a === 'sim') {
+        const P0 = e.proc;
+        M.PROC.conjurar(e, { j: o.dono, id: o.id, loucura: true, resp: [] }, ask);   // as perguntas do conjurar entram nesta resolução
+        e.proc = P0;
+      }
+      if (o.zona === 'exilio' && o.loucura) M.mover(e, o.id, 'cemiterio');
     },
   },
   moer: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) M.mover(e, g[g.length - 1], 'cemiterio'); } } },   // CR 701.13
