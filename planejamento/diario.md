@@ -38,3 +38,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · v0.25.0: B bloco 27, correção 11, bloco 28 (3b4eb15) → 1461 cartas; cobertura refeita (763 inteiras).
 - 25/11 · FARSEER · v0.26.0: A op cavar + camada sem nome repetido (18a38b7) + B correções 12–14, bloco 29 (a16506f) → 1511 cartas; cobertura 801 inteiras.
 - 25/11 · FARSEER · v0.27.0: A fichas em massa + token.est (45f5baf) + B correção 15, blocos 30/31 (b114435) → 1585 cartas, fila do Oracle acabou; cobertura 827 inteiras.
+- 25/11 · FARSEER · v0.28.0: B correção 16 + pente (99c17c7; 30 decks 1538/1538 → T20 fechada) + A ganhaVida, descartarEste (6d3ccb6); cobertura 825 inteiras.

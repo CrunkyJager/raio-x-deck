@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.28.0 — 25/11/2026 · T20 fechada: banco cobre os 30 decks; motor lê ganho de vida e "descartar esta carta"
+Testes: valida 1585/0 · check 0 erros · Vitest 173/173 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 825/1585.
+- **Banco (B):** correção 16 (fx dano `fonte` e filtro `nome`: Chandra's Ignition, Warstorm Surge, Wrathful Raptors, Ingris, Dragon Tempest, Scourge of Valkas, Ancestral Anger, Wedding Ring). Pente geral: as 1538 cartas dos 30 decks do banco de teste estão todas no banco (T20 fechada); top 10 das faltas no pedidos-esquema.md.
+- **Motor (A):** todo ganho de vida passa pelas substituições `ganhaVida` (Angel of Vitality, Bilbo, The Wind Crystal; somas antes dos dobros, 616.1); vínculo com a vida fora do combate dispara o evento. Custo `descartarEste` na habilidade da mão (canalizar: Shigeki, Ziatora's Proving Ground…).
+
 ## v0.27.0 — 25/11/2026 · banco completo da fila do Oracle (1585 cartas); motor rápido com fichas em massa
 Testes: valida 1585/0 · check 0 erros · Vitest 169/169 (~28 s; era ~65 s) · testa 161/161 · verifica verde · build ok. Motor joga inteiras 827/1585.
 - **Motor (A):** fichas em massa sem travar (índice do campo, lote e cemitério; a semente do fuzz com 13 mil Goblins caiu de 59 s para 5 s, partidas idênticas antes/depois); estáticas da própria ficha (`token.est`: Constructs, Gnome Soldier com P/R definido).
