@@ -386,7 +386,16 @@ export interface RxCustoAtv {
    * vida paga; contagem vale no momento de pagar (Bolas's Citadel: vmDoEvento)
    */
   vida?: number | 'X' | RxQtd;
-  exilarDe?: RxZona;
+  /**
+   * exilar como custo: só a zona (1 carta qualquer) ou {zona, f, qtd} (Drivnod: 3 criaturas do cemitério)
+   */
+  exilarDe?:
+    | RxZona
+    | {
+        zona: RxZona;
+        f?: RxFiltro;
+        qtd?: number | RxQtd;
+      };
   tirarMarcador?: {
     tipo?: string;
     qtd?: number;
@@ -819,6 +828,10 @@ export interface RxGat {
     | 'fichaCriada'
     | 'viraParaMana'
     | 'descarta';
+  /**
+   * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
+   */
+  naoMorre?: boolean;
   /**
    * objeto do evento (criatura que entra/ataca/morre, mágica conjurada…)
    */
