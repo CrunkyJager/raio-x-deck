@@ -171,8 +171,18 @@
   },
   {
    "carta": "Unbreakable Formation",
-   "situacao": "conjura na sua fase principal; depois no turno do oponente",
-   "espera": "1º: indestrutível + marcador +1/+1 + vigilância; 2º: só indestrutível"
+   "situacao": "conjura na sua fase principal",
+   "espera": "indestrutível + marcador +1/+1 + vigilância (Addendum)"
+  },
+  {
+   "carta": "Unbreakable Formation",
+   "situacao": "conjura no seu combate (depois de declarar atacantes)",
+   "espera": "só indestrutível; sem marcador nem vigilância (não é fase principal)"
+  },
+  {
+   "carta": "Unbreakable Formation",
+   "situacao": "conjura no turno do oponente",
+   "espera": "só indestrutível"
   },
   {
    "carta": "Unwinding Clock",
