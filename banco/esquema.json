@@ -295,7 +295,9 @@
           "vezesKicker",
           "maoDoEvento",
           "vidaPerdidaOpsNoTurno",
-          "vidaPerdidaNoTurno"
+          "vidaPerdidaNoTurno",
+          "maiorDescarte",
+          "resolucoesDestaHabNoTurno"
          ]
         }
        ]
