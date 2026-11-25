@@ -3,10 +3,12 @@
 // histórico e estado final; o motor2/ saiu depois disso). FUZZ=n muda o número de partidas (padrão 30, como antes).
 import { test, expect } from 'vitest';
 import { M } from '../index';
-import { cartasRx, exemplos } from './cartas';
+import { temCartasRx, cartasRx, exemplos } from './cartas';
 
-const cartas = cartasRx();
-M.usarCartas(cartas);
+// cartas reais dos 4 decks de exemplo: do cartas-rx.js enquanto o banco próprio não tiver os decks (T20)
+const TEM = temCartasRx();
+if (TEM) M.usarCartas(cartasRx());
+else console.warn('fuzz: sem cartas-rx.js (gerado, fora do git) — pulado; depois da T20 passa a usar banco/cartas');
 const N = +(process.env.FUZZ || 30);
 
 function invariantes(e) {
@@ -42,9 +44,9 @@ function partida(Mx, i, checa) {
 }
 
 let turnos = 0;
-for (let i = 0; i < N; i++) test(`fuzz semente ${1000 + i}`, () => {
+for (let i = 0; i < N; i++) test.skipIf(!TEM)(`fuzz semente ${1000 + i}`, () => {
   const { e } = partida(M, i, true);
   turnos += e.turno.n;
   expect(e.fim).toBeTruthy();
 });
-test('fuzz: resumo', () => { console.log(`fuzz: ${N} partidas de 4 · erros 0 · ${(turnos / N).toFixed(0)} turnos/partida`); });
+test.skipIf(!TEM)('fuzz: resumo', () => { console.log(`fuzz: ${N} partidas de 4 · erros 0 · ${(turnos / N).toFixed(0)} turnos/partida`); });
