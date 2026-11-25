@@ -332,3 +332,19 @@ Contagem: banco 1511 cartas / fila 74 ainda não escritas.
 | VM da carta revelada | 2 | 0 | Twilight Prophet, Caustic Bronco | conta `vmDoRevelado` depois do cavar | falta (2/0); volta ao lote com 3 |
 | rad de um jogador / de todos | 2 | 0 | Vault 12 (total de rad), Vexing Radgull (se ele não tem rad) | conta `marcadoresDoJogador` com `de` e `quem` | falta (2/0); volta ao lote com 3. Vault 12 conferido no Oracle: o capítulo II é o TOTAL de rad entre os jogadores (não 'cada jogador com rad'), sem contagem: segue falta |
 | o resto 1/0 | | | Twenty-Toed Toad (marcadores de qualquer tipo), Twinflame (uma cópia por alvo), Ultimate Magic: Holy (conjurada do exílio), Underworld Breach (dar escape; Jurassic Park na fila), Unnatural Growth (dobrar P/R), Urza's Saga (custo de mana {0}/{1}, não VM), Uthros (estação), Valgavoth (substituição no cemitério do oponente + jogar pagando vida), Venser (devolver mágica), Veyran (dobrar também na cópia), Vincent (cada OUTRO oponente), Visions of Glory (flashback mais barato pelo comandante) | deixar falta | falta (FARSEER) |
+
+## Faltas em lote (bloco 30, para o FARSEER decidir junto)
+Contagem: banco 1561 cartas / fila 24 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| a fonte do dano é outro objeto (a criatura que entrou, a alvo, a ferida) | 3 | 0 | Chandra's Ignition (criatura alvo causa), Warstorm Surge (a que entrou), Wrathful Raptors (o Dinossauro ferido) | fx dano com `fonte` (`{alvo:n}` / `doEvento`) | |
+| filtro por nome | 3 | 0 | Ancestral Anger (cartas com esse nome no cemitério), Gollum (oponente que levou dano de criatura chamada Gollum), Wedding Ring (oponente que controla um Wedding Ring) | filtro `nome` (string; o próprio nome da carta) | |
+| conjurada DA MÃO | 2 | 0 | Cyclone Summoner, Wakening Sun's Avatar (Wildsear também, mas depende da cascata) | filtro `conjuradaDe: "mao"` | |
+| redução de custo de UMA habilidade ativada | 2 | 0 | Otawara (a da mão), Voldaren Estate (o {5} da Blood, por Vampiro) | reduzCusto `deHabil` com índice da atv | |
+| cascata | 2 | 0 | The First Sliver, Wildsear | kw `cascata` (com `f` para "magias de encantamento da mão") | |
+| gatilho de subir de nível (Classe) | 2 | 0 | Caretaker's Talent, Wizard Class | niveis[].fx (efeito ao ganhar o nível) | |
+| Role com estática/gatilho | 2 | 0 | Monstrous Rage, Witch's Mark | ficha Role com `est`/`gat` (token.est já existe; falta `gat` com afeta encantada) | |
+| gastar N (expend) | 2 | 0 | Trailtracker Scout (8), Wandertale Mentor (4) | gat ev `gasta` com `n` | |
+| dar escape | 2 | 0 | Underworld Breach, Jurassic Park | kw `escape` + est continuo dando kw no cemitério | |
+| o resto 1/0 | | | War Room (vida = cores da identidade do comandante), Wave Goodbye (sem marcador +1/+1 especificamente), Wayward Swordtooth (negar a bênção), Wear Down (2 alvos com presente), Welcome the Dead (cartas no cemitério no turno), Welcome to… cap. I (animar 1 artefato por oponente), Well of Lost Dreams (pagar X no gatilho), Wilhelt (sem decaída), Winding Constrictor (marcador no jogador), Wolf-Skull Shaman (parentesco), Wrath of God (não regenera) | deixar falta | |
