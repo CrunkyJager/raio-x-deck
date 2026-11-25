@@ -42,3 +42,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · v0.29.0: A reduzCusto + dano fonte/filtro nome (1ad7bc5) + B correção 17 (9805610); cobertura 851 inteiras. B começa a T44.
 - 25/11 · FARSEER · v0.30.0: A T22 parte 2 (4f5e6fe): filtro e pausa do registro, ?beta=1 (pedido do Felipe).
 - 25/11 · FARSEER · v0.31.0: A fichas predefinidas + correção 17 no motor (7b765c3), depois do teste do Felipe com o deck da Ivora; cobertura 861.
+- 25/11 · FARSEER · v0.32.0: B blocos 32/33 (e437a7e, deck da Ivora inteiro, 1645 cartas) + A descarte/loucura/ciclar (b5d4a2c); lote 32/33 → correção 18; cobertura 958/1645 (Ivora 37/60).

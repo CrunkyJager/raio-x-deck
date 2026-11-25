@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.32.0 — 25/11/2026 · deck da Ivora inteiro no banco; motor joga descarte, loucura e ciclar
+Testes: valida 1645/0 · check 0 erros · Vitest 194/194 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 958/1645.
+- **Banco (B, T20 blocos 32/33):** as 60 cartas do deck da Ivora que faltavam (Ivora, Insatiable Heir, Inti, Magmakin Artillerist, Containment Construct, Kozilek, Ulamog, Brallin, Neheb, Spider-Man…), 50 casos; o deck inteiro (75) está no banco. Lote decidido: correção 18 (descartadasNoTurno, ev nivel, outro alvo / outros oponentes) na fila do B.
+- **Motor (A):** todo descarte passa por um só caminho e dispara `descarta` por carta e `descartaGrupo` pelo lote (efeito, custo e limpeza); fx descartar "até N"/"quantas quiser", conta das descartadas, "se fizer". Loucura (702.35): exílio e conjurar pelo custo de loucura, senão cemitério. Ciclar (702.29a). Mana na resolução (Path of the Pyromancer, Neheb). A IA descarta antes a carta de loucura e o terreno sobrando. Deck da Ivora: 37 de 60 jogam inteiras (ainda travam op jogar, modal em gatilho, classe, lutar, parceiro).
+
 ## v0.31.0 — 25/11/2026 · fichas com nome ganham habilidade (Treasure, Clue, Food, Blood…)
 Testes: check 0 erros · Vitest 188/188 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 861/1585.
 - **Motor (A):** fichas predefinidas (Treasure, Gold, Clue, Food, Blood, Powerstone, Lander, Shard; Map e Junk só com tipo). Antes saíam sem nome nem habilidade. O plano de mana usa Treasure, Gold e Lotus Petal; a IA quebra Clue/Food/Shard/Lander com mana sobrando e usa Blood para trocar terreno sobrando. Correção 17 lida: custo devolver, chute e presente na conjuração, alvo por opção.
