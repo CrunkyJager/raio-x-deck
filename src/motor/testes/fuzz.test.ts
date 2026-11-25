@@ -1,16 +1,14 @@
 // src/motor/testes/fuzz.test.ts — partidas com agente aleatório/básico checando invariantes a cada pergunta.
-// T43 (b): migrado de motor2/testes/fuzz.js; além das invariantes, cada partida roda também no motor2/ em JS
-// com a mesma semente e o mesmo agente, e o histórico de perguntas/respostas e o estado final têm de ser iguais
-// (prova de que a migração não mudou nada). FUZZ=n muda o número de partidas (padrão 30, como antes).
+// T43 (b): migrado de motor2/testes/fuzz.js (no 74fb095 cada partida era comparada com o motor2/ em JS, igual em
+// histórico e estado final; o motor2/ saiu depois disso). FUZZ=n muda o número de partidas (padrão 30, como antes).
 import { test, expect } from 'vitest';
-import { createRequire } from 'node:module';
 import { M } from '../index';
-import { cartasRx, exemplos } from './cartas';
+import { temCartasRx, cartasRx, exemplos } from './cartas';
 
-const req = createRequire(import.meta.url);
-const J = req('../../../motor2/index.js');          // motor antigo, só para comparar (sai quando o motor2/ sair)
-const cartas = cartasRx();
-M.usarCartas(cartas); J.usarCartas(cartas);
+// cartas reais dos 4 decks de exemplo: do cartas-rx.js enquanto o banco próprio não tiver os decks (T20)
+const TEM = temCartasRx();
+if (TEM) M.usarCartas(cartasRx());
+else console.warn('fuzz: sem cartas-rx.js (gerado, fora do git) — pulado; depois da T20 passa a usar banco/cartas');
 const N = +(process.env.FUZZ || 30);
 
 function invariantes(e) {
@@ -46,11 +44,9 @@ function partida(Mx, i, checa) {
 }
 
 let turnos = 0;
-for (let i = 0; i < N; i++) test(`fuzz semente ${1000 + i}`, () => {
-  const novo = partida(M, i, true), velho = partida(J, i, false);
-  turnos += novo.e.turno.n;
-  expect(novo.hist.length).toBe(velho.hist.length);
-  expect(novo.hist).toEqual(velho.hist);
-  expect(JSON.stringify(novo.e)).toBe(JSON.stringify(velho.e));
+for (let i = 0; i < N; i++) test.skipIf(!TEM)(`fuzz semente ${1000 + i}`, () => {
+  const { e } = partida(M, i, true);
+  turnos += e.turno.n;
+  expect(e.fim).toBeTruthy();
 });
-test('fuzz: resumo', () => { console.log(`fuzz: ${N} partidas de 4 · erros 0 · ${(turnos / N).toFixed(0)} turnos/partida (igual ao motor2/ JS)`); });
+test.skipIf(!TEM)('fuzz: resumo', () => { console.log(`fuzz: ${N} partidas de 4 · erros 0 · ${(turnos / N).toFixed(0)} turnos/partida`); });
