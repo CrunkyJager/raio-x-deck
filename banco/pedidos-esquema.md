@@ -321,3 +321,14 @@ Ficha com P/R contado: campo `token.est` (lista de `est` da própria ficha, `afe
 
 ## Pente no subst vidaMuda (correção 13, a pedido do FARSEER)
 Oracle com "If you would gain life" no banco: 3 (Angel of Vitality, Bilbo Birthday Celebrant, The Wind Crystal); na fila: 0. As três agora estão sem o `subst` (vidaMuda pegava a perda também) e só com a falta. Com 3, o lote "ganho de vida em substituição" passa a 3/0: proposta subst ev `ganhaVida` (`muda` soma/mult), para o lote 29. Decisão do FARSEER: APROVADO, subst ev `ganhaVida` (jog + muda soma/mult), só ganho; a perda segue em vidaMuda. Refeitas na correção 14.
+
+## Faltas em lote (bloco 29, para o FARSEER decidir junto)
+Contagem: banco 1511 cartas / fila 74 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| descartar esta carta como custo (canalizar e parecidas) | 3 | 1 | Otawara, Shigeki, Trumpeting Carnosaur (Ziatora's Proving Ground na fila) | custoAtv `descartarEste: true` (atv `zona mao`) | |
+| ficha-cópia com exceção (P/R, tipo a mais) | 2 | 1 | Urza Prince of Kroog (1/1 Soldier), Vaultborn Tyrant (também artefato) (Yenna na fila) | no token com `copiaDe`: `pt`/`tipos`/`sub` valem como exceção por cima da cópia | |
+| VM da carta revelada | 2 | 0 | Twilight Prophet, Caustic Bronco | conta `vmDoRevelado` depois do cavar | |
+| rad de um jogador / de todos | 2 | 0 | Vault 12 (total de rad), Vexing Radgull (se ele não tem rad) | conta `marcadoresDoJogador` com `de` e `quem` | |
+| o resto 1/0 | | | Twenty-Toed Toad (marcadores de qualquer tipo), Twinflame (uma cópia por alvo), Ultimate Magic: Holy (conjurada do exílio), Underworld Breach (dar escape; Jurassic Park na fila), Unnatural Growth (dobrar P/R), Urza's Saga (custo de mana {0}/{1}, não VM), Uthros (estação), Valgavoth (substituição no cemitério do oponente + jogar pagando vida), Venser (devolver mágica), Veyran (dobrar também na cópia), Vincent (cada OUTRO oponente), Visions of Glory (flashback mais barato pelo comandante) | deixar falta | |

@@ -1,0 +1,1 @@
+{"v":2,"n":"Vindicate","id":"63c1ac21-e3d8-40c2-8c09-3f31c52992ef","oracleHash":"aa9feeed","custo":{"g":1,"p":["W","B"]},"vm":3,"ci":"WB","cores":"WB","tipos":["Sorcery"],"alvos":[{"f":{"tipo":["Permanent"],"zona":"campo"}}],"fx":[{"op":"destruir","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco29.json"}}

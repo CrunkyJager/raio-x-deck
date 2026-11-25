@@ -1,0 +1,1 @@
+{"v":2,"n":"Utter End","id":"cba94732-1f1f-4ffd-9aba-45db990043fa","oracleHash":"d1164ee8","custo":{"g":2,"p":["W","B"]},"vm":4,"ci":"WB","cores":"WB","tipos":["Instant"],"alvos":[{"f":{"tipo":["Permanent"],"nao":["Land"],"zona":"campo"}}],"fx":[{"op":"exilar","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco29.json"}}
