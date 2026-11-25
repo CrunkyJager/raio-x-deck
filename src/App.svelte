@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Lista from './telas/Lista.svelte';
   // Casca Svelte 5 (T43 d): a parte fixa da página (cabeçalho, abas, aba Lista, as caixas onde análise, montar e mesa
   // desenham, o rodapé e o #pop) sai do index.html e vem daqui, igual ao HTML de antes. main.ts monta esta casca
   // direto no <body> (antes dos <script>) e só depois sobe os módulos, que continuam desenhando dentro de #out, #montar…
@@ -32,13 +33,7 @@
   </nav>
   <div class="empty" id="nodeck" hidden>Nenhum deck analisado ainda. <a href="#lista">Cole uma lista ou escolha um exemplo</a>.</div>
 
-  <section class="panel" data-s="lista">
-    <h2>Sua lista</h2>
-    <p class="lead">No Moxfield: Export → copiar como texto. Também funciona com Archidekt, LigaMagic, MTGO, MTGA e listas digitadas, uma carta por linha. Se a lista não marcar o comandante, ele é adivinhado e você pode trocar depois.</p>
-    <textarea id="deck-in" aria-label="Lista do deck" spellcheck="false"></textarea>
-    <div class="row"><button class="btn primary" id="go">Analisar</button><span class="note">Exemplos (decks médios do EDHREC):</span><span id="examples" class="row" style="margin:0"></span></div>
-    <p class="note" id="go-msg" role="status"></p>
-  </section>
+  <Lista />
 
   <div id="montar" class="tout" data-s="montar" hidden></div>
   <div id="out"></div>

@@ -1885,12 +1885,6 @@ document.addEventListener('error', (e: any) => {
   box.innerHTML = `<span class="noimg">${esc(im.alt || 'sem imagem')}</span>`;
 }, true);
 
-// exemplos e entrada
-const ex = window.EXEMPLOS || {};
-$('#examples').innerHTML = Object.keys(ex).map(k => `<button class="btn small" data-ex="${esc(k)}">${esc(k)}</button>`).join('');
-$$('[data-ex]').forEach(b => b.onclick = () => { $<HTMLInputElement>('#deck-in').value = ex[b.dataset.ex!]; run(); });
-$('#go').onclick = () => run();
-// a página abre sem deck: só analisa quando você cola uma lista ou escolhe um exemplo
-$<HTMLInputElement>('#deck-in').placeholder = 'Cole aqui a lista do deck (uma carta por linha, ex.: 1 Sol Ring).';
+// a aba Lista (caixa, Analisar e exemplos) é o src/telas/Lista.svelte; chama RAIOX.run
 show(location.hash.slice(1));
 export {};   // é módulo (escopo próprio), não script global
