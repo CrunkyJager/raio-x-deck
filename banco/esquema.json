@@ -630,6 +630,10 @@
     "historico": {
      "type": "boolean",
      "description": "artefato, lendário ou Saga (Excalibur)"
+    },
+    "entrouNoTurno": {
+     "type": "boolean",
+     "description": "o objeto entrou no campo neste turno (Motivated Pony, Ocelot Pride; ficha criada neste turno = ficha + entrouNoTurno, Idol of Oblivion)"
     }
    }
   },
@@ -1530,6 +1534,10 @@
     "primeiroCombate": {
      "type": "boolean",
      "description": "é a primeira fase de combate do turno (Genji Glove, Karlach)"
+    },
+    "fasePrincipal": {
+     "type": "boolean",
+     "description": "é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno"
     }
    }
   },
@@ -1601,7 +1609,8 @@
       "classe",
       "entraComMarcador",
       "tumulto",
-      "fusao"
+      "fusao",
+      "intimidar"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1859,8 +1868,10 @@
       "podeJogar",
       "podeOlhar",
       "dobraGatilho",
-      "ataqueCusta"
-     ]
+      "ataqueCusta",
+      "naoPodeAtivar"
+     ],
+     "description": "naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta"
     },
     "afeta": {
      "oneOf": [
@@ -2001,6 +2012,10 @@
       "type": "string"
      },
      "description": "subtipos que o continuo dá além dos tipos (Ashaya: tipo Land + sub Forest; 305.6/305.7)"
+    },
+    "cores": {
+     "type": "string",
+     "description": "continuo: o objeto passa a ter SÓ estas cores (Nim Deathmantle 'B'; Leyline of the Guildpact 'WUBRG')"
     }
    }
   },

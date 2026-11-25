@@ -343,6 +343,10 @@ export interface RxFiltro {
    * artefato, lendário ou Saga (Excalibur)
    */
   historico?: boolean;
+  /**
+   * o objeto entrou no campo neste turno (Motivated Pony, Ocelot Pride; ficha criada neste turno = ficha + entrouNoTurno, Idol of Oblivion)
+   */
+  entrouNoTurno?: boolean;
 }
 
 export interface RxCompara {
@@ -767,6 +771,10 @@ export interface RxCond {
    * é a primeira fase de combate do turno (Genji Glove, Karlach)
    */
   primeiroCombate?: boolean;
+  /**
+   * é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno
+   */
+  fasePrincipal?: boolean;
 }
 
 export interface RxKw {
@@ -833,7 +841,8 @@ export interface RxKw {
     | 'classe'
     | 'entraComMarcador'
     | 'tumulto'
-    | 'fusao';
+    | 'fusao'
+    | 'intimidar';
   custo?: RxMana;
   n?: number;
   /**
@@ -979,6 +988,9 @@ export interface RxGat {
 }
 
 export interface RxEst {
+  /**
+   * naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta
+   */
   modo:
     | 'continuo'
     | 'reduzCusto'
@@ -1001,7 +1013,8 @@ export interface RxEst {
     | 'podeJogar'
     | 'podeOlhar'
     | 'dobraGatilho'
-    | 'ataqueCusta';
+    | 'ataqueCusta'
+    | 'naoPodeAtivar';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1077,6 +1090,10 @@ export interface RxEst {
    * subtipos que o continuo dá além dos tipos (Ashaya: tipo Land + sub Forest; 305.6/305.7)
    */
   sub?: string[];
+  /**
+   * continuo: o objeto passa a ter SÓ estas cores (Nim Deathmantle 'B'; Leyline of the Guildpact 'WUBRG')
+   */
+  cores?: string;
 }
 
 /**

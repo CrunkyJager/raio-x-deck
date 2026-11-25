@@ -192,3 +192,13 @@ Contagem: banco 1111 cartas / fila 474 ainda não escritas.
 | vira cor / perde tipos de criatura | 2 | 0 | Nim Deathmantle | deixar falta | |
 | explora terreno / não-terreno | 1 | 0 | Nicanzil (escritas as duas com ev `explora`) | cond do card revelado | |
 | o resto 1/0 | | | Moraug (ataques por criatura), Mox Amber (cores das lendárias), New Blood (troca de texto), Nightkin Ambusher (rad do defensor) | deixar falta | |
+
+## Decisões do lote do bloco 21 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores).
+- cond `fasePrincipal` (Moraug).
+- filtro `entrouNoTurno` (Motivated Pony, Ocelot Pride; Idol of Oblivion = `ficha` + `entrouNoTurno`).
+- est modo `naoPodeAtivar` com `afeta` (Linvala do 19 + Myrel).
+- kw `intimidar` (Mikaeus do 20 + Nim Deathmantle).
+- est `cores` = passa a ter só estas cores (Nim Deathmantle 'B', Leyline of the Guildpact 'WUBRG'); perder tipos já é `tiraTipo`.
+- Ficam em `falta`: Role, comMarcador qualquer, explora terreno/não-terreno, o resto 1/0.
+- Reescrever na correção 5: Moraug, Motivated Pony, Ocelot Pride, Idol of Oblivion, Linvala, Myrel, Mikaeus, Nim Deathmantle, Leyline of the Guildpact.
