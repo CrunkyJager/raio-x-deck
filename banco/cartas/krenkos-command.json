@@ -1,0 +1,1 @@
+{"v":2,"n":"Krenko's Command","id":"9cfe86ae-eebe-44aa-a956-4b3e9e621105","oracleHash":"a04e2952","custo":{"g":1,"p":["R"]},"vm":2,"ci":"R","cores":"R","tipos":["Sorcery"],"fx":[{"op":"ficha","quem":"voce","qtd":2,"token":{"pt":[1,1],"cores":"R","tipos":["Creature"],"sub":["Goblin"]}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco18.json"}}
