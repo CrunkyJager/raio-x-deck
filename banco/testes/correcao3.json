@@ -1,0 +1,48 @@
+{
+ "bloco": "correcao3",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "correção das decisões do FARSEER (v0.12.0): semMarcador (Damning Verdict), custoAtv porMarcador (Devoted Druid), conta vmDoSacrificado (Demon of Fate's Design), gat na Aura com quem equipada e aOponente (Curiosity)",
+ "casos": [
+  {
+   "carta": "Damning Verdict",
+   "situacao": "criatura com marcador +1/+1, outra com marcador -1/-1 e outra sem marcador",
+   "espera": "só a sem marcador morre (semMarcador)"
+  },
+  {
+   "carta": "Devoted Druid",
+   "situacao": "ativa o desvirar uma vez numa 0/2 virada",
+   "espera": "o marcador -1/-1 entra como custo (porMarcador); fica 0/1 desvirada"
+  },
+  {
+   "carta": "Devoted Druid",
+   "situacao": "já tem um marcador -1/-1 (0/1) e tenta ativar de novo",
+   "espera": "pode ativar: o custo põe o marcador, fica 0/0 e morre; o desvirar ainda resolve sem efeito"
+  },
+  {
+   "carta": "Demon of Fate's Design",
+   "situacao": "ativa sacrificando um encantamento de vm 4",
+   "espera": "o Demônio fica 10/6 até o fim do turno (vmDoSacrificado)"
+  },
+  {
+   "carta": "Demon of Fate's Design",
+   "situacao": "tenta sacrificar ele mesmo (é encantamento)",
+   "espera": "não pode: o sacrifício é de outro encantamento"
+  },
+  {
+   "carta": "Curiosity",
+   "situacao": "a criatura encantada causa dano de combate a um oponente",
+   "espera": "o controlador da Aura pode comprar 1"
+  },
+  {
+   "carta": "Curiosity",
+   "situacao": "a criatura encantada causa dano a uma criatura ou a você mesmo",
+   "espera": "nada (aOponente)"
+  },
+  {
+   "carta": "Curiosity",
+   "situacao": "você encanta a criatura de um oponente e ela causa dano a outro oponente seu",
+   "espera": "você (controlador da Aura) pode comprar 1, não o dono da criatura"
+  }
+ ]
+}
