@@ -296,6 +296,8 @@ const T = [
   o:'Função e peso de cada carta (ramp, compra, remoção…) tirados do banco próprio, não do forge-db.js.', pq:'Tirar o Forge de tudo (Felipe 25/11).', q:'Claude.', on:'src/analise/', qd:'Depois da T20 cobrir o banco de 30', cm:'Banco de 30 (banco_mesa.py) não pode piorar em relação à linha de base.', qt:'1–2 sessões · R$ 0'},
  {id:'T45',f:'F7',p:'P1',col:'backlog',t:'Tirar o Forge do repositório',
   o:'Apagar cartas-rx.js, forge-db.js, forge-motor.js, ferramentas/forge/ e ferramentas/rx/converte_rx.py; créditos e licença revistos.', pq:'Nada derivado de roteiro de terceiros no produto.', q:'Claude.', on:'Repositório inteiro', qd:'Depois da T44', cm:'grep -ri forge sem resultado no código publicado; testes verdes.', qt:'1 sessão · R$ 0'},
+ {id:'T46',f:'F7',p:'P1',col:'proximo',t:'Fila automática de cartas pelo PC (ideia do Edigar)',
+  o:'Deck colado no site com cartas fora do banco → botão pedir → Apps Script grava na planilha de fila → script no PC do Felipe lê a fila e roda claude -p (conta Max, instruções do adepto B) → escreve as cartas, valida.py + testes, push → GitHub Pages; carta entra como provisória até revisão. Teto 300 cartas/dia.', pq:'Qualquer deck colado fica completo sem esperar o Felipe pedir; ordem de popularidade sai sozinha.', q:'Claude.', on:'Site (aviso + botão), Apps Script, script no PC, banco/', qd:'Depois do deck do Ultron', cm:'Deck de teste com 3 cartas fora → pedido → cartas no banco e no site sem mão humana; teto respeitado.', qt:'2 sessões · R$ 0 (sem API paga)'},
 ];
 
 const RISCOS = [
