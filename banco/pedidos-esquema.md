@@ -53,3 +53,11 @@
 - ao acaso: fx `aleatorio: true` no descartar.
 - deHabil vale também no reduzCusto (Forensic Gadgeteer).
 - Ficam em `falta` por ora (≤2 cartas): rebound, Room, monstruoso, meld, dash.
+
+## Decisões do lote do bloco 16 (FARSEER 25/11)
+- conta `poderDoSacrificado` (Greater Good).
+- op `explorar` (701.44), op `amassar` (`sub` = tipo do Exército, `qtd`), op `popular`.
+- gat ev `moe` (uma ou mais cartas moídas; `quem`/`f` filtram as cartas).
+- filtro `cor` aceita lista = alguma destas. Goblin Anarchomancer: UMA redução com `cor ["R","G"]` (escrito com 2 reduções = −2 numa mágica RG: ERRADO).
+- alvo `porOponente: true`.
+- Ficam em `falta` por ora: desvirarOutros no custo, sacrificar este + outras, replicar, morph, skulk, marcadores do Gluntch.
