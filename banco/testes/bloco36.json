@@ -1,0 +1,183 @@
+{
+ "bloco": "bloco36",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "deck de masmorras da Safana do Edigar (pedido do Felipe pelo FARSEER), parte 1: Safana … Knowledge Exploitation",
+ "casos": [
+  {
+   "carta": "Safana, Calimport Cutthroat",
+   "situacao": "etapa final com a iniciativa",
+   "espera": "cria 1 Tesouro (3 se completou uma masmorra) — falta: sem iniciativa no esquema"
+  },
+  {
+   "carta": "Aarakocra Sneak",
+   "situacao": "entra",
+   "espera": "você toma a iniciativa (falta)"
+  },
+  {
+   "carta": "Acererak the Archlich",
+   "situacao": "ataca com 3 oponentes e nenhum sacrifica",
+   "espera": "cria 3 Zumbis 2/2; ao entrar volta à mão (o venture fica falta)"
+  },
+  {
+   "carta": "Alora, Merry Thief",
+   "situacao": "você ataca mirando uma atacante",
+   "espera": "ela não pode ser bloqueada; na etapa final volta à mão do dono"
+  },
+  {
+   "carta": "Ashiok, Dream Render",
+   "situacao": "−1 mirando um oponente",
+   "espera": "ele mói 4 e os cemitérios dos oponentes são exilados"
+  },
+  {
+   "carta": "Bar the Gate",
+   "situacao": "mira uma mágica de criatura",
+   "espera": "anula (o venture fica falta)"
+  },
+  {
+   "carta": "Blackcleave Goblin",
+   "situacao": "entra e ataca",
+   "espera": "ataca no mesmo turno; dano normal (infect falta)"
+  },
+  {
+   "carta": "Blightbelly Rat",
+   "situacao": "causa dano de combate num jogador; depois morre",
+   "espera": "o jogador ganha 1 veneno; ao morrer prolifera"
+  },
+  {
+   "carta": "Blighted Agent",
+   "situacao": "ataca",
+   "espera": "não pode ser bloqueado"
+  },
+  {
+   "carta": "Candlekeep Sage",
+   "situacao": "seu comandante entra e depois sai do campo",
+   "espera": "compra 1 em cada vez"
+  },
+  {
+   "carta": "Clattering Skeletons",
+   "situacao": "morre",
+   "espera": "venture (falta)"
+  },
+  {
+   "carta": "Contagious Nim",
+   "situacao": "causa dano",
+   "espera": "dano normal (infect falta)"
+  },
+  {
+   "carta": "Contentious Plan",
+   "situacao": "com um marcador +1/+1 numa criatura sua",
+   "espera": "prolifera e compra 1"
+  },
+  {
+   "carta": "Core Prowler",
+   "situacao": "morre",
+   "espera": "prolifera"
+  },
+  {
+   "carta": "Corpse Cur",
+   "situacao": "entra com Plague Stinger no cemitério",
+   "espera": "pode devolver a Plague Stinger à mão"
+  },
+  {
+   "carta": "Cremate",
+   "situacao": "mira uma carta num cemitério",
+   "espera": "exila e compra 1"
+  },
+  {
+   "carta": "Demonic Gifts",
+   "situacao": "em resposta a uma remoção na sua criatura",
+   "espera": "+2/+0 e, se morrer, volta ao campo"
+  },
+  {
+   "carta": "Dimir Guildgate",
+   "situacao": "entra",
+   "espera": "virada; dá {U} ou {B}"
+  },
+  {
+   "carta": "Dire Fleet Ravager",
+   "situacao": "entra com você em 40",
+   "espera": "cada jogador perderia 1/3 da vida (falta)"
+  },
+  {
+   "carta": "Dismal Backwater",
+   "situacao": "entra",
+   "espera": "virada; ganha 1; dá {U} ou {B}"
+  },
+  {
+   "carta": "Dogged Pursuit",
+   "situacao": "sua etapa final com 3 oponentes",
+   "espera": "cada um perde 1 e você ganha 1"
+  },
+  {
+   "carta": "Dungeon Crawler",
+   "situacao": "entra",
+   "espera": "entra virado"
+  },
+  {
+   "carta": "Dungeon Delver",
+   "situacao": "antecedente com o comandante",
+   "espera": "as salas disparam 2 vezes (falta)"
+  },
+  {
+   "carta": "Dungeon Descent",
+   "situacao": "entra",
+   "espera": "virada; dá {C}"
+  },
+  {
+   "carta": "Escape Tunnel",
+   "situacao": "vira e sacrifica",
+   "espera": "busca um básico virado; ou deixa uma criatura de poder ≤2 imbloqueável"
+  },
+  {
+   "carta": "Essence Scatter",
+   "situacao": "mira mágica de criatura",
+   "espera": "anula"
+  },
+  {
+   "carta": "Fates' Reversal",
+   "situacao": "mira uma criatura do seu cemitério",
+   "espera": "volta à mão (venture falta)"
+  },
+  {
+   "carta": "Feed the Serpent",
+   "situacao": "mira criatura",
+   "espera": "exila"
+  },
+  {
+   "carta": "Feywild Caretaker",
+   "situacao": "entra; etapa final",
+   "espera": "iniciativa e ficha (falta)"
+  },
+  {
+   "carta": "Fifty Feet of Rope",
+   "situacao": "{3}, {T} mirando um bloqueador",
+   "espera": "ele não desvira no próximo turno"
+  },
+  {
+   "carta": "Flux Channeler",
+   "situacao": "conjura uma não-criatura",
+   "espera": "prolifera"
+  },
+  {
+   "carta": "Imoen, Mystic Trickster",
+   "situacao": "etapa final com a iniciativa",
+   "espera": "compra 1 (2 se completou) — falta"
+  },
+  {
+   "carta": "Irenicus's Vile Duplication",
+   "situacao": "mira o seu comandante lendário",
+   "espera": "cria cópia não lendária com voar"
+  },
+  {
+   "carta": "Jwar Isle Refuge",
+   "situacao": "entra",
+   "espera": "virada; ganha 1; dá {U} ou {B}"
+  },
+  {
+   "carta": "Knowledge Exploitation",
+   "situacao": "conjurada",
+   "espera": "tudo falta"
+  }
+ ]
+}

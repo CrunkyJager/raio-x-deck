@@ -1,0 +1,1 @@
+{"v":2,"n":"Cremate","id":"c6a2e410-b182-48d1-aeb2-bc8de27e9cd2","oracleHash":"f4e71ad1","custo":{"p":["B"]},"vm":1,"ci":"B","cores":"B","tipos":["Instant"],"alvos":[{"f":{"tipo":["Card"],"zona":"cemiterio"}}],"fx":[{"op":"exilar","em":{"alvo":0}},{"op":"comprar","quem":"voce","qtd":1}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco36.json"}}

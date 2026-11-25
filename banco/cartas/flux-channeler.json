@@ -1,0 +1,1 @@
+{"v":2,"n":"Flux Channeler","id":"83874e60-291b-47a7-ba9f-69437fa7e3c7","oracleHash":"c19832b0","custo":{"g":2,"p":["U"]},"vm":3,"ci":"U","cores":"U","tipos":["Creature"],"sub":["Human","Wizard"],"pt":[2,2],"gat":[{"ev":"conjura","jog":"voce","quem":{"nao":["Creature"]},"fx":[{"op":"proliferar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco36.json"}}
