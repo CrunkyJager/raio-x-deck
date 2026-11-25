@@ -1,0 +1,16 @@
+{
+ "bloco": "correcao16",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do bloco 30 (FARSEER): fx dano `fonte` (o objeto que causa o dano) e filtro `nome` (nome exato). Pente no banco: Ingris, Dragon Tempest e Scourge of Valkas também tinham 'it deals' com a fonte no objeto do evento. Gollum segue com falta (precisa do histórico de dano no jogo); Tiamat segue (não há 'not named'); Wedding Ring segue com a falta do turno do oponente",
+ "casos": [
+  {"carta": "Chandra's Ignition", "situacao": "mira sua criatura 4/4 com vínculo com a vida; há outras criaturas", "espera": "a criatura alvo causa 4 de dano a cada criatura e a cada oponente; o vínculo com a vida conta (a fonte é ela)"},
+  {"carta": "Warstorm Surge", "situacao": "entra uma criatura 3/3 sua com toque mortífero", "espera": "a criatura que entrou causa 3 de dano ao alvo; o toque mortífero conta"},
+  {"carta": "Wrathful Raptors", "situacao": "um Dinossauro seu com vínculo com a vida leva 2 de dano", "espera": "o Dinossauro ferido causa 2 de dano ao alvo; você ganha 2"},
+  {"carta": "Ingris Stingerquill", "situacao": "ataca com uma criatura com vínculo com a vida", "espera": "a atacante causa 1 de dano a cada oponente; o vínculo conta por oponente"},
+  {"carta": "Dragon Tempest", "situacao": "entra um Dragão seu com 3 Dragões no campo", "espera": "o Dragão que entrou causa 3 de dano ao alvo (não o encantamento)"},
+  {"carta": "Scourge of Valkas", "situacao": "entra outro Dragão seu com 2 Dragões no campo", "espera": "o Dragão que entrou causa 2 de dano ao alvo"},
+  {"carta": "Ancestral Anger", "situacao": "2 Ancestral Anger no seu cemitério", "espera": "a criatura alvo ganha atropelar e +3/+0 até o fim do turno; você compra 1"},
+  {"carta": "Wedding Ring", "situacao": "um oponente sem Wedding Ring compra fora do seu turno; depois o oponente que tem a cópia compra", "espera": "só a compra do oponente que controla um Wedding Ring faz você comprar"}
+ ]
+}
