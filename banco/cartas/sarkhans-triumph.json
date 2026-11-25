@@ -1,0 +1,1 @@
+{"v":2,"n":"Sarkhan's Triumph","id":"c4f7cdb7-aef9-4ab8-995b-4e5180d47214","oracleHash":"7208de7c","custo":{"g":2,"p":["R"]},"vm":3,"ci":"R","cores":"R","tipos":["Instant"],"fx":[{"op":"buscar","f":{"tipo":["Creature"],"sub":["Dragon"]},"revelar":true,"para":"mao"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco25.json"}}

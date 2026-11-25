@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco25",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1201–1250 (Sarkhan's Triumph … Sigil of Sleep)",
+ "casos": [
+  {
+   "carta": "Sarkhan's Triumph",
+   "situacao": "resolve",
+   "espera": "busca um Dragão criatura, revela, mão, embaralha"
+  },
+  {
+   "carta": "Sarkhan, Soul Aflame",
+   "situacao": "conjura um Dragão de vm 5",
+   "espera": "custa 1 a menos (a cópia é falta)"
+  },
+  {
+   "carta": "Savage Order",
+   "situacao": "sacrifica criatura de poder 4",
+   "espera": "busca Dinossauro para o campo; indestrutível até seu próximo turno"
+  },
+  {
+   "carta": "Savage Ventmaw",
+   "situacao": "ataca",
+   "espera": "{R}{R}{R}{G}{G}{G} que fica até o fim do turno"
+  },
+  {
+   "carta": "Savvy Hunter",
+   "situacao": "ataca e depois bloqueia; sacrifica 2 Foods",
+   "espera": "2 Foods; com 2 Foods compra 1"
+  },
+  {
+   "carta": "Scalelord Reckoner",
+   "situacao": "oponente mira seu Dragão",
+   "espera": "destrói permanente não-terreno desse oponente"
+  },
+  {
+   "carta": "Scapeshift",
+   "situacao": "6 terrenos no campo",
+   "espera": "sacrifica 6 e busca até 6 terrenos virados"
+  },
+  {
+   "carta": "Scattered Groves",
+   "situacao": "entra; ciclar {2}",
+   "espera": "entra virada; G ou W; ciclar compra 1"
+  },
+  {
+   "carta": "Scion of Calamity",
+   "situacao": "dano de combate a um jogador",
+   "espera": "destrói artefato/encantamento desse jogador"
+  },
+  {
+   "carta": "Scoured Barrens",
+   "situacao": "entra",
+   "espera": "virada, ganha 1; W ou B"
+  },
+  {
+   "carta": "Scourge of Valkas",
+   "situacao": "entra com 2 outros Dragões",
+   "espera": "3 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Scrap Trawler",
+   "situacao": "artefato seu de vm 3 vai ao cemitério",
+   "espera": "volta à mão artefato de vm até 2 do seu cemitério"
+  },
+  {
+   "carta": "Screeching Scorchbeast",
+   "situacao": "ataca; depois 3 não-terrenos moídos",
+   "espera": "cada jogador 2 rad; pode criar 3 Zumbis 2/2 (uma vez por turno)"
+  },
+  {
+   "carta": "Sculpting Steel",
+   "situacao": "entra com um Sol Ring no campo",
+   "espera": "pode entrar como cópia do Sol Ring"
+  },
+  {
+   "carta": "Sea Gate Oracle",
+   "situacao": "entra",
+   "espera": "olha 2: 1 na mão, 1 no fundo"
+  },
+  {
+   "carta": "Seachrome Coast",
+   "situacao": "entra com 3 outros terrenos",
+   "espera": "entra virada; com 2 ou menos, desvirada"
+  },
+  {
+   "carta": "Seafloor Oracle",
+   "situacao": "2 Merfolks seus causam dano de combate a jogador",
+   "espera": "compra 2"
+  },
+  {
+   "carta": "Searslicer Goblin",
+   "situacao": "fim do turno em que você atacou",
+   "espera": "cria Goblin 1/1; sem ataque nada"
+  },
+  {
+   "carta": "Seaside Citadel",
+   "situacao": "entra",
+   "espera": "virada; G, W ou U"
+  },
+  {
+   "carta": "Season of the Burrow",
+   "situacao": "modos 1 e 3",
+   "espera": "cria Coelho 1/1 e devolve permanente de vm ≤3 com marcador indestrutível"
+  },
+  {
+   "carta": "Secure the Wastes",
+   "situacao": "X=4",
+   "espera": "4 Guerreiros 1/1"
+  },
+  {
+   "carta": "Seedborn Muse",
+   "situacao": "turno do oponente",
+   "espera": "seus permanentes desviram no desvirar dele"
+  },
+  {
+   "carta": "Seething Song",
+   "situacao": "resolve",
+   "espera": "{R}{R}{R}{R}{R}"
+  },
+  {
+   "carta": "Segovian Angel",
+   "situacao": "ataca",
+   "espera": "voar e vigilância, não vira"
+  },
+  {
+   "carta": "Seizan, Perverter of Truth",
+   "situacao": "manutenção de cada jogador",
+   "espera": "esse jogador perde 2 e compra 2"
+  },
+  {
+   "carta": "Selesnya Sanctuary",
+   "situacao": "entra",
+   "espera": "virada; volta um terreno seu à mão; dá {G}{W}"
+  },
+  {
+   "carta": "Selfless Savior",
+   "situacao": "sacrifica, outra criatura sua alvo",
+   "espera": "ela fica indestrutível até o fim do turno"
+  },
+  {
+   "carta": "Selfless Squire",
+   "situacao": "entra em combate",
+   "espera": "previne todo dano a você neste turno"
+  },
+  {
+   "carta": "Selvala, Explorer Returned",
+   "situacao": "vira com 4 jogadores",
+   "espera": "2 G, ganha 2 (média do parley); cada um compra 1"
+  },
+  {
+   "carta": "Selvala, Heart of the Wilds",
+   "situacao": "{G},T com maior poder 5 entre as suas",
+   "espera": "5 mana de qualquer combinação"
+  },
+  {
+   "carta": "Sentinel Sliver",
+   "situacao": "Sliver seu ataca",
+   "espera": "não vira (vigilância)"
+  },
+  {
+   "carta": "Sephiroth, Fallen Hero",
+   "situacao": "ataca, marca criatura alvo",
+   "espera": "as suas modificadas ficam base 7/5 até o fim do turno"
+  },
+  {
+   "carta": "Seraph Sanctuary",
+   "situacao": "entra; depois entra um Anjo seu",
+   "espera": "ganha 1 e mais 1"
+  },
+  {
+   "carta": "Serra the Benevolent",
+   "situacao": "+2; −3",
+   "espera": "voadoras +1/+1; Anjo 4/4 voar e vigilância"
+  },
+  {
+   "carta": "Shadowspear",
+   "situacao": "equipada; ativa {1}",
+   "espera": "+1/+1, atropelar, vínculo; permanentes do oponente perdem hexproof e indestrutível"
+  },
+  {
+   "carta": "Shalai and Hallar",
+   "situacao": "2 marcadores +1/+1 numa criatura sua",
+   "espera": "2 de dano no oponente alvo"
+  },
+  {
+   "carta": "Shamanic Revelation",
+   "situacao": "4 criaturas, 2 de poder ≥4",
+   "espera": "compra 4, ganha 8"
+  },
+  {
+   "carta": "Sharding Sphinx",
+   "situacao": "criatura artefato sua causa dano de combate a jogador",
+   "espera": "pode criar Tóptero 1/1 voador"
+  },
+  {
+   "carta": "Sheltered Thicket",
+   "situacao": "entra; ciclar {2}",
+   "espera": "entra virada; R ou G"
+  },
+  {
+   "carta": "Sheoldred, the Apocalypse",
+   "situacao": "você compra 1; oponente compra 2",
+   "espera": "você ganha 2; ele perde 4"
+  },
+  {
+   "carta": "Shifting Sliver",
+   "situacao": "Sliver ataca",
+   "espera": "só Slivers podem bloquear"
+  },
+  {
+   "carta": "Shipwreck Marsh",
+   "situacao": "entra com 1 outro terreno",
+   "espera": "entra virada; com 2+, desvirada"
+  },
+  {
+   "carta": "Shrine Steward",
+   "situacao": "entra",
+   "espera": "pode buscar Aura ou Shrine para a mão"
+  },
+  {
+   "carta": "Sidisi, Brood Tyrant",
+   "situacao": "entra e mói 2 criaturas",
+   "espera": "um Zumbi 2/2 (um ou mais = um gatilho)"
+  },
+  {
+   "carta": "Siege Smash",
+   "situacao": "modo 2",
+   "espera": "+3/+2 e atropelar"
+  },
+  {
+   "carta": "Siege-Gang Commander",
+   "situacao": "entra; {1}{R} sacrifica Goblin",
+   "espera": "3 Goblins; 2 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Siege-Gang Lieutenant",
+   "situacao": "início do combate com seu comandante no campo",
+   "espera": "2 Goblins com pressa; sem comandante nada"
+  },
+  {
+   "carta": "Sifter of Skulls",
+   "situacao": "outra criatura não-ficha sua morre",
+   "espera": "Eldrazi Scion 1/1 que sacrifica por {C}"
+  },
+  {
+   "carta": "Sigarda's Aid",
+   "situacao": "Equipamento seu entra",
+   "espera": "pode anexar a criatura sua; Auras e Equipamentos com lampejo"
+  },
+  {
+   "carta": "Sigil of Sleep",
+   "situacao": "encantada causa dano a jogador",
+   "espera": "devolve criatura desse jogador à mão"
+  }
+ ]
+}

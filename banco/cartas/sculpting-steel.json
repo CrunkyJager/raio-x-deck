@@ -1,0 +1,1 @@
+{"v":2,"n":"Sculpting Steel","id":"6c85271c-c711-49b0-a72e-9e576c33714d","oracleHash":"80bafdae","custo":{"g":3},"vm":3,"ci":"","cores":"","tipos":["Artifact"],"subst":[{"ev":"entra","quem":{"este":true},"talvez":true,"emVez":[{"op":"copiarPermanente","f":{"tipo":["Artifact"],"zona":"campo"}}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco25.json"}}

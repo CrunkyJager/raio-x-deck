@@ -252,17 +252,25 @@ Contagem: banco 1211 cartas / fila 374 ainda não escritas.
 - Ficam em `falta`: exert, copiar habilidades ativadas, o resto 1/0.
 - Reescrever na correção 7: Archfiend, Ajani Nacatl Pariah, Promise of Loyalty, Raul, Bard.
 
-## Faltas em lote (bloco 24, para o FARSEER decidir junto)
+## Faltas em lote (bloco 24, decidido)
 Contagem: banco 1261 cartas / fila 324 ainda não escritas.
 
 | falta | no banco | na fila | cartas do banco | proposta | decisão |
 |---|---|---|---|---|---|
-| atacou neste turno | 2 | 1 | Riders of the Mark, Faramir (fila: Searslicer Goblin) | filtro `atacouNoTurno` (como `entrouNoTurno`) | |
-| dash | 2 | 0 | Riders of Rohan, Flamerush Rider | kw `investida` com custo (pressa + volta à mão no fim do turno) | |
-| mana de uma cor só | 2 | 0 | Gilded Lotus, Sanctum of Fruitful Harvest | prod `umaCor` (qualquer, mas toda da mesma) | |
-| descartar com filtro no custo | 1 | 1 | Sanctum of Shattered Heights (fila: Tortured Existence) | custo `descartar {f, qtd}` além do número | |
-| o resto 1/0 | | | Reforge the Soul (milagre), Resurgent Belief (suspender), Rith (dano excedente), Ruthless Technomancer (sacrificar X no custo), Runic Armasaur (ev ativa habilidade), Retreat to Coralhelm (virar ou desvirar), Sanctum of All (grimório e/ou cemitério), Righteous Valkyrie (vida inicial + 7: escrito vidaMin 47) | deixar falta | |
+| atacou neste turno | 2 | 1 | Riders of the Mark, Faramir (fila: Searslicer Goblin) | filtro `atacouNoTurno` (como `entrouNoTurno`) | filtro `atacouNoTurno` (correção 8: Riders; Faramir é "atacou você", fica falta) |
+| dash | 2 | 0 | Riders of Rohan, Flamerush Rider | kw `investida` com custo (pressa + volta à mão no fim do turno) | falta |
+| mana de uma cor só | 2 | 0 | Gilded Lotus, Sanctum of Fruitful Harvest | prod `umaCor` (qualquer, mas toda da mesma) | falta |
+| descartar com filtro no custo | 1 | 1 | Sanctum of Shattered Heights (fila: Tortured Existence) | custo `descartar {f, qtd}` além do número | falta |
+| o resto 1/0 | | | Reforge the Soul (milagre), Resurgent Belief (suspender), Rith (dano excedente), Ruthless Technomancer (sacrificar X no custo), Runic Armasaur (ev ativa habilidade), Retreat to Coralhelm (virar ou desvirar), Sanctum of All (grimório e/ou cemitério), Righteous Valkyrie (vida inicial + 7: escrito vidaMin 47) | deixar falta | falta |
 
 ## Decisões do lote do bloco 24 (FARSEER 25/11)
 - filtro `atacouNoTurno` (Riders of the Mark + 2 da fila). Reescrever Riders na correção 8.
 - Ficam em `falta`: dash (também 2 no lote 15), mana de uma cor só, descartar com filtro no custo (1/1), o resto 1/0.
+
+## Faltas em lote (bloco 25, para o FARSEER decidir junto)
+Contagem: banco 1311 cartas / fila 274 ainda não escritas. Nenhuma falta nova se repete na fila.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| sacrificar quantos quiser | 2 | 0 | Scapeshift, Feasting Hobbit | qtd `{ate:"qualquer"}` no sacrificar (hoje escrito "tudo") | |
+| o resto 1/0 | | | Sarkhan Soul Aflame (vira cópia até o fim do turno), Season of the Burrow (modos por {P}, repetidos), Selfless Squire (ev dano prevenido), Selvala Explorer Returned (parley: escrito a média, metade dos jogadores), Selvala Heart of the Wilds (maior poder que cada outra), Serra the Benevolent (emblema vida não cai abaixo de 1), Siege Smash (split second) | deixar falta | |
