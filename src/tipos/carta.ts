@@ -164,6 +164,7 @@ export type RxQtd =
             | 'vezesKicker'
             | 'maoDoEvento'
             | 'vidaPerdidaOpsNoTurno'
+            | 'maiorVidaPerdidaOpNoTurno'
             | 'vidaPerdidaNoTurno'
             | 'maiorDescarte'
             | 'resolucoesDestaHabNoTurno'
@@ -238,6 +239,10 @@ export interface RxFiltro {
    */
   tipo?: string[];
   /**
+   * TODOS estes tipos ao mesmo tempo (criatura artefato: Urza, Chief Artificer); o tipo é 'algum destes'
+   */
+  tipoTodos?: string[];
+  /**
    * nenhum destes tipos/subtipos/super (Land, Basic, Token…)
    */
   nao?: string[];
@@ -277,6 +282,10 @@ export interface RxFiltro {
    * com pelo menos uma Aura anexada (ex.: Calix)
    */
   encantada?: boolean;
+  /**
+   * com pelo menos um Equipamento anexado (Cloud, Ex-SOLDIER: 'as long as it's equipped')
+   */
+  comEquipamento?: boolean;
   /**
    * equipada, encantada ou com marcador
    */
@@ -368,7 +377,10 @@ export interface RxCustoAtv {
     qtd?: number;
   };
   exilarEste?: boolean;
-  vida?: number | 'X';
+  /**
+   * vida paga; contagem vale no momento de pagar (Bolas's Citadel: vmDoEvento)
+   */
+  vida?: number | 'X' | RxQtd;
   exilarDe?: RxZona;
   tirarMarcador?: {
     tipo?: string;
@@ -601,6 +613,10 @@ export interface RxToken {
    * cópia sem o supertipo lendário
    */
   naoLendaria?: boolean;
+  /**
+   * gatilhos da ficha (Circle of Power, Cornered by Black Mages)
+   */
+  gat?: RxGat[];
 }
 
 /**
@@ -623,6 +639,10 @@ export interface RxCond {
   eventoBate?: RxFiltro;
   vidaMax?: number;
   vidaMin?: number;
+  /**
+   * algum oponente tem vida ≤ N (Bloodghast)
+   */
+  vidaOponenteMax?: number;
   conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)

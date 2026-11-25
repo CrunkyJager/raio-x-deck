@@ -295,6 +295,7 @@
           "vezesKicker",
           "maoDoEvento",
           "vidaPerdidaOpsNoTurno",
+          "maiorVidaPerdidaOpNoTurno",
           "vidaPerdidaNoTurno",
           "maiorDescarte",
           "resolucoesDestaHabNoTurno"
@@ -435,6 +436,13 @@
      },
      "description": "algum destes tipos (Creature, Land, Permanent, Card, Spell, Token…)"
     },
+    "tipoTodos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "TODOS estes tipos ao mesmo tempo (criatura artefato: Urza, Chief Artificer); o tipo é 'algum destes'"
+    },
     "nao": {
      "type": "array",
      "items": {
@@ -521,8 +529,12 @@
      "description": "objeto lembrado pelo efeito"
     },
     "encantada": {
-      "type": "boolean",
-      "description": "com pelo menos uma Aura anexada (ex.: Calix)"
+     "type": "boolean",
+     "description": "com pelo menos uma Aura anexada (ex.: Calix)"
+    },
+    "comEquipamento": {
+     "type": "boolean",
+     "description": "com pelo menos um Equipamento anexado (Cloud, Ex-SOLDIER: 'as long as it's equipped')"
     },
     "modificada": {
      "type": "boolean",
@@ -744,14 +756,18 @@
      "type": "boolean"
     },
     "vida": {
-     "oneOf": [
+     "anyOf": [
       {
        "type": "integer"
       },
       {
        "const": "X"
+      },
+      {
+       "$ref": "#/$defs/qtd"
       }
-     ]
+     ],
+     "description": "vida paga; contagem vale no momento de pagar (Bolas's Citadel: vmDoEvento)"
     },
     "exilarDe": {
      "$ref": "#/$defs/zona"
@@ -1220,6 +1236,13 @@
     "naoLendaria": {
      "type": "boolean",
      "description": "cópia sem o supertipo lendário"
+    },
+    "gat": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/gat"
+     },
+     "description": "gatilhos da ficha (Circle of Power, Cornered by Black Mages)"
     }
    }
   },
@@ -1264,6 +1287,10 @@
     },
     "vidaMin": {
      "type": "integer"
+    },
+    "vidaOponenteMax": {
+     "type": "integer",
+     "description": "algum oponente tem vida ≤ N (Bloodghast)"
     },
     "conjuradaCom": {
      "enum": [
