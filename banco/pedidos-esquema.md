@@ -129,3 +129,22 @@ Contagem: banco 961 cartas / fila 624 ainda não escritas.
 | Companion | 1 | 0 | Kaheera | deixar falta | |
 | custo com dois filtros (um Pântano E uma Floresta) | 1 | 0 | Jarad (escrito 2 entre Pântano/Floresta) | deixar falta | |
 | um de cada subtipo no cavar | 1 | 0 | Kaalia, Zenith Seeker (escrito até 3 entre os tipos) | deixar falta | |
+
+## Faltas em lote (bloco 19, para o FARSEER decidir junto)
+Contagem: banco 1011 cartas / fila 574 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| cond "oponente controla mais terrenos que você" | 3 | 2 | Archaeomancer's Map, Land Tax, Loyal Warhound (escritos sem a condição) | cond `maisTerrenosOponente` (soma ao lote do bloco 18) | |
+| mana gasta na mágica | 2 | 0 | Liberator (escrito sem a condição), Mana Sculpt (escrito com vmDoAlvo) | conta `manaGasta` ou deixar vm | |
+| afflict | 1 | 0 | Lazotep Sliver | kw `aflingir` n + gat "fica bloqueada" | |
+| conivir | 1 | 0 | Lethal Scheme ("cada criatura que convocou") | deixar falta | |
+| dragar | 1 | 0 | Life from the Loam | deixar falta | |
+| travar habilidades ativadas | 1 | 0 | Linvala, Keeper of Silence | est `naoPodeAtivar` com afeta | |
+| continuo que muda cor / todas as cores | 1 | 0 | Leyline of the Guildpact (também mão inicial) | deixar falta | |
+| "um de cada tipo de permanente" | 1 | 0 | Liliana, Dreadhorde General −9 | deixar falta | |
+| N-ésima do topo | 1 | 0 | Lost to Legend (escrito no topo) | deixar falta | |
+| subst de dano a jogador E aos permanentes dele | 1 | 0 | Lightning, Army of One (escrito só o jogador) | subst `jog` valer para os permanentes dele (`eSeus`) | |
+| N atacantes contra você | 1 | 0 | Mangara (escrito sem a condição) | deixar falta | |
+| mágica incolor no filtro | 1 | 0 | Liberator (escrito só artefato) | filtro `incolor` | |
+| exilada virada para baixo | 1 | 3 | Lobelia | deixar falta | |
