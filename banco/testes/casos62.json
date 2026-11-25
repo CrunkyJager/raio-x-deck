@@ -1,0 +1,138 @@
+{
+ "bloco": "casos62",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "as 62 cartas dos casos de regra do motor (lista do RAIOX-A); mesmo formato do bloco1.json",
+ "casos": [
+  {
+   "carta": "Amrou Kithkin",
+   "situacao": "ataca; o oponente só tem uma criatura 3/3 e uma 2/2",
+   "espera": "só a 2/2 pode bloquear"
+  },
+  {
+   "carta": "Azusa, Lost but Seeking",
+   "situacao": "no seu turno, com 4 terrenos na mão",
+   "espera": "joga até 3 terrenos"
+  },
+  {
+   "carta": "Exploration",
+   "situacao": "no seu turno, com 3 terrenos na mão",
+   "espera": "joga até 2 terrenos"
+  },
+  {
+   "carta": "Blood Artist",
+   "situacao": "Blood Artist e outra criatura morrem juntas",
+   "espera": "dispara 2 vezes: o alvo perde 2, você ganha 2"
+  },
+  {
+   "carta": "Bloodrock Cyclops",
+   "situacao": "combate do seu turno, sem doença",
+   "espera": "tem que atacar"
+  },
+  {
+   "carta": "Craven Giant",
+   "situacao": "oponente ataca",
+   "espera": "não pode bloquear"
+  },
+  {
+   "carta": "Blooming Marsh",
+   "situacao": "entra com 2 outros terrenos",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Blooming Marsh",
+   "situacao": "entra com 3 outros terrenos",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Chandra, Torch of Defiance",
+   "situacao": "+1 (exilar): não conjura a carta exilada",
+   "espera": "2 de dano em cada oponente"
+  },
+  {
+   "carta": "Chandra, Torch of Defiance",
+   "situacao": "entra",
+   "espera": "com 4 de lealdade"
+  },
+  {
+   "carta": "Fireball",
+   "situacao": "X=3, um alvo",
+   "espera": "paga {3}{R}, 3 de dano"
+  },
+  {
+   "carta": "Goblin Bushwhacker",
+   "situacao": "conjurada com chute",
+   "espera": "suas criaturas +1/+0 e pressa até o fim do turno"
+  },
+  {
+   "carta": "Goblin Bushwhacker",
+   "situacao": "conjurada sem chute",
+   "espera": "nada"
+  },
+  {
+   "carta": "Goblin Guide",
+   "situacao": "ataca; topo do defensor é terreno",
+   "espera": "o defensor põe na mão"
+  },
+  {
+   "carta": "Gruul Turf",
+   "situacao": "entra com 1 Forest",
+   "espera": "entra virada e volta a Forest à mão"
+  },
+  {
+   "carta": "Jace Beleren",
+   "situacao": "−1 mirando um oponente",
+   "espera": "o oponente compra 1"
+  },
+  {
+   "carta": "Kolaghan's Command",
+   "situacao": "modos: descartar + 2 de dano",
+   "espera": "só pede o jogador e o alvo do dano"
+  },
+  {
+   "carta": "Krenko, Mob Boss",
+   "situacao": "vira com 3 Goblins seus (contando ele)",
+   "espera": "cria 3 fichas 1/1 Goblin"
+  },
+  {
+   "carta": "Lathril, Blade of the Elves",
+   "situacao": "causa 3 de dano de combate a um jogador",
+   "espera": "cria 3 fichas Elf Warrior 1/1"
+  },
+  {
+   "carta": "Liliana of the Veil",
+   "situacao": "+1",
+   "espera": "cada jogador descarta 1"
+  },
+  {
+   "carta": "Liliana of the Veil",
+   "situacao": "−2 num oponente",
+   "espera": "o oponente sacrifica uma criatura"
+  },
+  {
+   "carta": "Phyrexian Arena",
+   "situacao": "manutenção de um oponente",
+   "espera": "não dispara"
+  },
+  {
+   "carta": "Thriving Grove",
+   "situacao": "entra escolhendo azul",
+   "espera": "entra virada; dá G ou U"
+  },
+  {
+   "carta": "Village Rites",
+   "situacao": "sem criatura no campo",
+   "espera": "não pode conjurar"
+  },
+  {
+   "carta": "White Knight",
+   "situacao": "bloqueada por criatura preta",
+   "espera": "não é bloqueada (proteção)"
+  },
+  {
+   "carta": "Young Pyromancer",
+   "situacao": "conjura Lightning Bolt",
+   "espera": "a ficha vem antes do Bolt resolver"
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Swamp","id":"56719f6a-1a6c-4c0a-8d21-18f7d7350b68","oracleHash":"1d604e5c","vm":0,"ci":"B","cores":"","tipos":["Land"],"super":["Basic"],"sub":["Swamp"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["B"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

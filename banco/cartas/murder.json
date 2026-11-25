@@ -1,0 +1,1 @@
+{"v":2,"n":"Murder","id":"938b4e2c-88d9-4637-bc00-e228920c9a78","oracleHash":"85abb46e","custo":{"g":1,"p":["B","B"]},"vm":3,"ci":"B","cores":"B","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature"],"zona":"campo"}}],"fx":[{"op":"destruir","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Craven Giant","id":"3ebd9c8d-c840-4c2e-ace6-352a68d1c20f","oracleHash":"1fb5134a","custo":{"g":2,"p":["R"]},"vm":3,"ci":"R","cores":"R","tipos":["Creature"],"sub":["Giant"],"pt":[4,1],"est":[{"modo":"naoPodeBloquear","afeta":"este"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

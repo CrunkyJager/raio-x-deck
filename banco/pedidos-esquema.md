@@ -14,3 +14,7 @@
 | Esper Sentinel | "their first noncreature spell each turn" | `limite` `umaPorTurnoPorJogador` (cada oponente tem a sua primeira) | |
 | Harmonic Prodigy | "If a triggered ability of a Shaman or another Wizard you control triggers" | `dobraGatilho` com `afeta` = fonte do gatilho; confirmar (o `causa` é o objeto do evento) | |
 | Guardian Project / Kutzil | "doesn't have the same name as…" / "power greater than its base power" | filtro `nomeUnico` e `poderAcimaBase` | |
+| Amrou Kithkin | "can't be blocked by creatures with power 3 or greater" | `est` naoPodeSerBloqueada não tem campo do bloqueador: usei `f` (o rx/motor lê `por`, que o esquema não aceita). Escolher um e pôr no esquema | |
+| Kolaghan's Command / Jace / Liliana / Blood Artist | "Target player discards / draws / sacrifices…" | usei alvo `{f:"jogador"}` + `quem:"alvoJogador"`; com vários alvos (Kolaghan) não diz QUAL alvo é o jogador. Proposta: `quem:{alvo:N}` | |
+| Chandra, Torch of Defiance | "You may cast that card. If you don't, …" | `jogar` não distingue conjurar de jogar; o "se não fizer" usei `se.pagou:false` (o rx usa objBate anterior) | |
+| Fireball | "any number of targets, divided evenly…; costs {1} more for each target beyond the first" | alvo variável com divisão igual + imposto por alvo. Por ora 1 alvo e `falta` | |

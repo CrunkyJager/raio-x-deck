@@ -1,0 +1,1 @@
+{"v":2,"n":"Plains","id":"bc71ebf6-2056-41f7-be35-b2e5c34afa99","oracleHash":"926934ce","vm":0,"ci":"W","cores":"","tipos":["Land"],"super":["Basic"],"sub":["Plains"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["W"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}

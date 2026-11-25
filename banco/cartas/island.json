@@ -1,0 +1,1 @@
+{"v":2,"n":"Island","id":"b2c6aa39-2d2a-459c-a555-fb48ba993373","oracleHash":"da95296f","vm":0,"ci":"U","cores":"","tipos":["Land"],"super":["Basic"],"sub":["Island"],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"casos62.json"}}
