@@ -1,0 +1,1 @@
+{"v":2,"n":"Two-Headed Sliver","id":"be857d6e-5bf2-491b-ab46-963b4d45adee","oracleHash":"8eef1598","custo":{"g":1,"p":["R"]},"vm":2,"ci":"R","cores":"R","tipos":["Creature"],"sub":["Sliver"],"pt":[1,1],"est":[{"modo":"continuo","afeta":{"tipo":["Creature"],"sub":["Sliver"],"zona":"campo"},"kw":[{"k":"ameaca"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco29.json"}}

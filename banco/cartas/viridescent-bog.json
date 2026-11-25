@@ -1,0 +1,1 @@
+{"v":2,"n":"Viridescent Bog","id":"6bd6d259-1af7-4dff-a79c-48a616d2a36e","oracleHash":"de579aed","vm":0,"ci":"BG","cores":"","tipos":["Land"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["B"],"qtd":1},{"op":"mana","prod":["G"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco29.json"}}

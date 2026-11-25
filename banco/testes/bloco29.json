@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco29",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1401–1450 (Tributary Instructor … Vito, Thorn of the Dusk Rose)",
+ "casos": [
+  {
+   "carta": "Tributary Instructor",
+   "situacao": "ataca; depois morre sua criatura com marcador +1/+1",
+   "espera": "mentor: +1/+1 numa atacante de poder menor; compra 1"
+  },
+  {
+   "carta": "Triskaidekaphile",
+   "situacao": "sua manutenção com exatamente 13 cartas na mão",
+   "espera": "você ganha o jogo; sem limite de mão; {3}{U}: compra 1"
+  },
+  {
+   "carta": "Trumpeting Carnosaur",
+   "situacao": "entra; da mão paga {2}{R}",
+   "espera": "descobre 5; 3 de dano numa criatura ou planeswalker (descartar como custo é falta)"
+  },
+  {
+   "carta": "Twenty-Toed Toad",
+   "situacao": "ataca com 2 criaturas; com 20 cartas na mão ataca",
+   "espera": "+1/+1 e compra 1; ganha o jogo"
+  },
+  {
+   "carta": "Twilight Prophet",
+   "situacao": "sua manutenção com a bênção da cidade",
+   "espera": "revela o topo e põe na mão (drenar o VM é falta)"
+  },
+  {
+   "carta": "Twinflame",
+   "situacao": "conjura com 1 alvo, sua criatura",
+   "espera": "cópia com pressa, exilada no fim do turno"
+  },
+  {
+   "carta": "Twinflame Tyrant",
+   "situacao": "sua fonte causaria 3 a um oponente ou a uma permanente dele",
+   "espera": "causa 6"
+  },
+  {
+   "carta": "Two-Headed Hellkite",
+   "situacao": "ataca",
+   "espera": "compra 2; voar, ameaça, pressa"
+  },
+  {
+   "carta": "Two-Headed Sliver",
+   "situacao": "Slivers no campo, seus e do oponente",
+   "espera": "todos têm ameaça"
+  },
+  {
+   "carta": "Tyvar's Stand",
+   "situacao": "X=3 na sua criatura",
+   "espera": "+3/+3, antimagia e indestrutível no turno"
+  },
+  {
+   "carta": "Ultimate Magic: Holy",
+   "situacao": "conjura",
+   "espera": "suas permanentes ficam indestrutíveis no turno; prever {2}{W}"
+  },
+  {
+   "carta": "Undead Augur",
+   "situacao": "morre outro Zumbi seu",
+   "espera": "compra 1 e perde 1"
+  },
+  {
+   "carta": "Undead Warchief",
+   "situacao": "conjura um Zumbi",
+   "espera": "custa 1 a menos; Zumbis seus +2/+1"
+  },
+  {
+   "carta": "Underground River",
+   "situacao": "vira para cor",
+   "espera": "{U} ou {B} com 1 de dano; {C} sem dano"
+  },
+  {
+   "carta": "Undergrowth Stadium",
+   "situacao": "entra com 1 oponente; entra com 3",
+   "espera": "virada; desvirada; vira para {B} ou {G}"
+  },
+  {
+   "carta": "Underworld Breach",
+   "situacao": "fim de turno",
+   "espera": "sacrifica (escape é falta)"
+  },
+  {
+   "carta": "Underworld Dreams",
+   "situacao": "um oponente compra",
+   "espera": "1 de dano nele"
+  },
+  {
+   "carta": "Unearth",
+   "situacao": "criatura de VM 3 no seu cemitério",
+   "espera": "volta ao campo; ciclar {2}"
+  },
+  {
+   "carta": "Unholy Grotto",
+   "situacao": "{B}, vira com Zumbi no cemitério",
+   "espera": "Zumbi vai para o topo do grimório"
+  },
+  {
+   "carta": "Unnatural Growth",
+   "situacao": "início do combate",
+   "espera": "dobrar P/R é falta"
+  },
+  {
+   "carta": "Ureni of the Unwritten",
+   "situacao": "entra ou ataca",
+   "espera": "olha 8, pode pôr um Dragão no campo, resto embaixo"
+  },
+  {
+   "carta": "Urza's Saga",
+   "situacao": "capítulos I, II e III",
+   "espera": "ganha {T}: {C}; ganha {2},{T}: Construct (+1/+1 por artefato); busca artefato de VM ≤ 1"
+  },
+  {
+   "carta": "Urza, Prince of Kroog",
+   "situacao": "criatura artefato sua; paga {6}",
+   "espera": "+2/+2; cópia do artefato alvo (1/1 Soldier é falta)"
+  },
+  {
+   "carta": "Uthros, Titanic Godcore",
+   "situacao": "entra",
+   "espera": "virada; vira para {U} (estação é falta)"
+  },
+  {
+   "carta": "Utter End",
+   "situacao": "conjura",
+   "espera": "exila permanente não terreno"
+  },
+  {
+   "carta": "Utvara Hellkite",
+   "situacao": "um Dragão seu ataca",
+   "espera": "cria Dragão 6/6 voador"
+  },
+  {
+   "carta": "Valakut Exploration",
+   "situacao": "entra seu terreno; seu fim de turno com 2 exiladas",
+   "espera": "exila o topo e pode jogar; cada oponente leva 2 e elas vão ao cemitério"
+  },
+  {
+   "carta": "Valgavoth, Terror Eater",
+   "situacao": "oponente mira com mágica",
+   "espera": "resguardo: sacrificar 3 não terrenos; voar, vínculo"
+  },
+  {
+   "carta": "Valkyrie Harbinger",
+   "situacao": "fim de turno com 4 de vida ganha no turno",
+   "espera": "Anjo 4/4 voar e vigilância"
+  },
+  {
+   "carta": "Vault 12: The Necropolis",
+   "situacao": "capítulos I, II e III numa mesa de 4",
+   "espera": "3 rad em cada um; 12 Zumbis Mutantes 2/2; dois +1/+1 em cada Zumbi ou Mutante seu"
+  },
+  {
+   "carta": "Vault of the Archangel",
+   "situacao": "{2}{W}{B}, vira",
+   "espera": "suas criaturas: toque mortífero e vínculo no turno"
+  },
+  {
+   "carta": "Vaultborn Tyrant",
+   "situacao": "entra criatura sua de poder 4; ele morre (não ficha)",
+   "espera": "ganha 3 e compra 1; cria cópia (virar artefato é falta)"
+  },
+  {
+   "carta": "Vedalken Aethermage",
+   "situacao": "entra",
+   "espera": "devolve Sliver alvo; ciclar de Wizard {3}"
+  },
+  {
+   "carta": "Vengeful Dead",
+   "situacao": "morre um Zumbi de qualquer jogador",
+   "espera": "cada oponente perde 1"
+  },
+  {
+   "carta": "Venom Sliver",
+   "situacao": "Slivers seus",
+   "espera": "toque mortífero"
+  },
+  {
+   "carta": "Venser, Shaper Savant",
+   "situacao": "entra",
+   "espera": "devolve permanente alvo à mão (mágica é falta)"
+  },
+  {
+   "carta": "Verdant Sun's Avatar",
+   "situacao": "entra criatura sua 2/5",
+   "espera": "ganha 5"
+  },
+  {
+   "carta": "Verduran Enchantress",
+   "situacao": "conjura encantamento",
+   "espera": "pode comprar 1"
+  },
+  {
+   "carta": "Verge Rangers",
+   "situacao": "oponente tem mais terrenos",
+   "espera": "pode jogar terreno do topo; olha o topo"
+  },
+  {
+   "carta": "Vexing Radgull",
+   "situacao": "dano de combate num jogador",
+   "espera": "2 rad nele (proliferar é falta)"
+  },
+  {
+   "carta": "Veyran, Voice of Duality",
+   "situacao": "conjura instantânea",
+   "espera": "+1/+1; gatilhos de conjurar dobram"
+  },
+  {
+   "carta": "Vilis, Broker of Blood",
+   "situacao": "você perde 3 de vida",
+   "espera": "compra 3"
+  },
+  {
+   "carta": "Vincent, Vengeful Atoner",
+   "situacao": "suas criaturas causam dano de combate; Vincent 7 de poder causa 7 a um oponente",
+   "espera": "+1/+1 nele; 7 em cada oponente (o OUTRO é falta)"
+  },
+  {
+   "carta": "Vindicate",
+   "situacao": "conjura",
+   "espera": "destrói permanente"
+  },
+  {
+   "carta": "Vineglimmer Snarl",
+   "situacao": "entra sem revelar Forest/Island",
+   "espera": "virada; vira para {G} ou {U}"
+  },
+  {
+   "carta": "Viridescent Bog",
+   "situacao": "{1}, vira",
+   "espera": "{B}{G}"
+  },
+  {
+   "carta": "Virulent Sliver",
+   "situacao": "um Sliver causa dano de combate a um jogador",
+   "espera": "ele ganha 1 veneno"
+  },
+  {
+   "carta": "Vision Skeins",
+   "situacao": "conjura",
+   "espera": "cada jogador compra 2"
+  },
+  {
+   "carta": "Visions of Glory",
+   "situacao": "conjura com 4 criaturas",
+   "espera": "4 Humanos 1/1; flashback {8}{W}{W} (redução é falta)"
+  },
+  {
+   "carta": "Vito, Thorn of the Dusk Rose",
+   "situacao": "você ganha 3 de vida",
+   "espera": "oponente alvo perde 3"
+  }
+ ]
+}
