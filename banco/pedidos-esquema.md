@@ -244,3 +244,10 @@ Contagem: banco 1211 cartas / fila 374 ainda não escritas.
 | exert | 2 | 0 | Pride Sovereign, Combat Celebrant | deixar falta | |
 | copiar habilidades ativadas | 2 | 0 | Quicksilver Elemental, Drana and Linvala | deixar falta | |
 | o resto 1/0 | | | Preacher (maior vida), Hojo (1ª habilidade com alvo mais barata), Progenitor's Icon (só a próxima mágica), Yao Guai (vm total ≤ X), Quicksilver (mana azul como qualquer cor) | deixar falta | |
+
+## Decisões do lote do bloco 23 (FARSEER 25/11)
+- fx `exceto {qtd, porTipo?}` no sacrificar: cada jogador escolhe N que ficam e sacrifica o resto (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty).
+- filtro `moidaNoTurno` (Raul; fila: Tato Farmer, The Master).
+- subst `naoPrimeira` (Bard), igual ao gat.
+- Ficam em `falta`: exert, copiar habilidades ativadas, o resto 1/0.
+- Reescrever na correção 7: Archfiend, Ajani Nacatl Pariah, Promise of Loyalty, Raul, Bard.

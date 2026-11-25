@@ -635,6 +635,10 @@
     "entrouNoTurno": {
      "type": "boolean",
      "description": "o objeto entrou no campo neste turno (Motivated Pony, Ocelot Pride; ficha criada neste turno = ficha + entrouNoTurno, Idol of Oblivion)"
+    },
+    "moidaNoTurno": {
+     "type": "boolean",
+     "description": "a carta foi para o cemitério moída neste turno (Raul, Tato Farmer, The Master)"
     }
    }
   },
@@ -1312,6 +1316,26 @@
     "semRegenerar": {
      "type": "boolean",
      "description": "op destruir: não pode ser regenerada (Pongify, Artifact Mutation)"
+    },
+    "exceto": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "qtd"
+     ],
+     "properties": {
+      "qtd": {
+       "type": "integer"
+      },
+      "porTipo": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)"
+      }
+     },
+     "description": "op sacrificar: cada jogador escolhe N que ficam e sacrifica o resto do filtro (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty)"
     }
    },
    "additionalProperties": false,
@@ -2140,6 +2164,10 @@
     "marc": {
      "type": "string",
      "description": "tipo do marcador ('+1/+1', 'loyalty'…)"
+    },
+    "naoPrimeira": {
+     "type": "boolean",
+     "description": "compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)"
     }
    }
   },
