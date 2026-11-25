@@ -1199,7 +1199,24 @@ caso('601.2f', 'reduzCusto afeta este de mao: conta o campo; fora da mão não v
   igual(M.custoComImposto(e, naMao(e, 0, 'Cena Grandão')), { g: 4, p: ['G'] });
   const g = naMao(e, 0, 'Cena Grandão'); M.mover(e, g.id, 'exilio');
   igual(M.custoComImposto(e, g).g, 6, 'do exílio não');
-  ok(!M.estReduzOk({ modo: 'reduzCusto', afeta: 'este', qtd: { conta: { tipo: ['Creature'], zona: 'campo' }, prop: 'somaPoder' } }), 'prop ainda não');
+  ok(!M.estReduzOk({ modo: 'reduzCusto', afeta: 'este', qtd: { conta: { tipo: ['Creature'], zona: 'campo' }, prop: 'outra' } }), 'prop desconhecida não');
+});
+caso('601.2f', 'reduzCusto com qtd.prop (Ghalta: soma do poder; The Great Henge: maior poder; Excalibur: soma do vm históricos)', () => {
+  const pr = prop => ({ modo: 'reduzCusto', afeta: 'este', de: 'mao', qtd: { conta: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' }, prop } });
+  db['Cena Ghalta'] = { n: 'Cena Ghalta', custo: { g: 10, p: ['G', 'G'] }, cores: 'G', tipos: ['Creature'], pt: [12, 12], vm: 12, ci: 'G', est: [pr('somaPoder')] };
+  db['Cena Henge'] = { n: 'Cena Henge', custo: { g: 7, p: ['G', 'G'] }, cores: 'G', tipos: ['Artifact'], vm: 9, ci: 'G', super: ['Legendary'], est: [pr('maiorPoder')] };
+  db['Cena Espada'] = { n: 'Cena Espada', custo: { g: 11, p: ['W'] }, cores: 'W', tipos: ['Artifact'], sub: ['Equipment'], vm: 12, ci: 'W',
+    est: [{ modo: 'reduzCusto', afeta: 'este', qtd: { conta: { historico: true, tipo: ['Permanent'], ctrl: 'voce', zona: 'campo' }, prop: 'somaVm' } }] };
+  const e = cena({ campo: [[0, 'Cena Urso'], [0, 'Cena Chefe'], [1, 'Cena Urso'], [0, 'Sol Ring']], mao: [[0, 'Cena Ghalta'], [0, 'Cena Henge'], [0, 'Cena Espada']] });
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Ghalta')), { g: 6, p: ['G', 'G'] }, '2 + 2 de poder');
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Henge')), { g: 5, p: ['G', 'G'] }, 'maior poder 2');
+  igual(M.custoComImposto(e, naMao(e, 0, 'Cena Espada')), { g: 10, p: ['W'] }, 'só o Sol Ring é histórico (vm 1)');
+});
+caso('601.2f', 'filtro historico e tipoTodos (Jhoira\'s Familiar, Mycosynth Golem)', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Cena Urso']] });
+  const sr = objN(e, 0, 'Sol Ring'), ur = objN(e, 0, 'Cena Urso');
+  igual([M.bate(e, sr, { historico: true }), M.bate(e, ur, { historico: true })], [true, false], 'artefato é histórico; urso não');
+  igual([M.bate(e, sr, { tipoTodos: ['Artifact', 'Creature'] }), M.bate(e, ur, { tipoTodos: ['Creature'] })], [false, true], 'todos os tipos');
 });
 caso('601.2f', 'reduzCusto custo.p (Morophon): tira os símbolos coloridos da mágica do tipo escolhido', () => {
   db['Cena Morofão'] = { n: 'Cena Morofão', custo: { g: 7 }, tipos: ['Creature'], sub: ['Shapeshifter'], pt: [6, 6], vm: 7,
@@ -1618,6 +1635,13 @@ caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª princ
   const h = cena({}); const s3 = h.por(0, "Urza's Saga"); h.pend = [];
   M.porHistoria(h, s3, 1);
   igual([s3.marc.historia, h.pend.length], [2, 1], 'II desencadeia uma vez');
+});
+
+caso('105.2c', 'filtro cor C = incolor (Mystic Forge, Ugin)', () => {
+  const e = cena({});
+  const sr = e.por(0, 'Sol Ring'), le = e.por(0, 'Llanowar Elves');
+  igual([M.bate(e, sr, { cor: 'C' }), M.bate(e, le, { cor: 'C' })], [true, false], 'Sol Ring é incolor, Llanowar não');
+  igual([M.bate(e, sr, { cor: ['C', 'G'] }), M.bate(e, le, { cor: ['C', 'G'] })], [true, true], 'lista: incolor ou verde');
 });
 
 // ---------- rodar ----------
