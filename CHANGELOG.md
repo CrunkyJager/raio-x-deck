@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.34.0 — 25/11/2026 · deck do Ultra Magnus/Ultron inteiro no banco
+Testes: valida 1684/0 · check 0 erros · Vitest 198/198 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 987/1684.
+- **Banco (B, T20 blocos 34/35):** as 39 cartas do deck do Ultron que faltavam (Ultra Magnus, Ultron, Krang, Memnarch, Blightsteel Colossus, Darksteel Forge, Ishgard, Ugin, Cloud Key…), 39 casos; o deck inteiro (80) está no banco. Em 200 partidas, 199 sem erro; a outra foi lenta por causa das 1484 fichas do Krenko (desempenho do motor).
+- Ainda não funcionam na Mesa: Urza's Saga, Teferi's Protection, Smothering Tithe, Unwinding Clock, Organic Extinction e outras (com o adepto A).
+
 ## v0.33.0 — 25/11/2026 · motor conta ataques e obriga bloqueio
 Testes: valida 1645/0 · check 0 erros · Vitest 198/198 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 965/1645.
 - **Motor (A, item 6c):** contas de atacantes, atacantes em você e ataques no turno (Mangara, Firemane, Alesha, Windbrisk, Faramir); bloqueio obrigatório (509.1c), que a IA cumpre; filtro "tipo em comum" (metamorfo conta como todos); mover a carta transformada (712.14a) e mover esta do cemitério/exílio (Ojer Taq, Ajani). Fundir (meld) ainda fica de fora.
