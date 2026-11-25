@@ -1,0 +1,1 @@
+{"v":2,"n":"Gitaxian Probe","id":"1d67f5ff-1fce-45e5-b6a1-416c569351e2","oracleHash":"f831a3c0","custo":{"p":["U/P"]},"vm":1,"ci":"U","cores":"U","tipos":["Sorcery"],"alvos":[{"f":"jogador"}],"fx":[{"op":"comprar","quem":"voce","qtd":1}],"falta":["Look at target player's hand (sem olhar a mão)"],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco16.json"}}

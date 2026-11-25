@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.16.0 — 25/11/2026 · banco com 861 cartas
+Testes: valida 861/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
+- **Banco (B):** bloco 15 (fila 701–750, 49 casos) e bloco 16 (751–800, 49 casos). Goblin Anarchomancer corrigido pelo coordenador (era −2 numa mágica vermelha e verde; agora 1 redução com `cor ["R","G"]`).
+- **Esquema (lotes dos blocos 15 e 16):** cavar `ateAchar`, `destinos` no cavar, filtro `historico`, `cor` em lista, ops `moverMarcador`, `tentarAnel`, `explorar`, `amassar`, `popular`, cond `portadorDoAnel`, `niveis` de Classe, passo `fimCombate`, gat `moe`, descartar `aleatorio`, alvo `porOponente`, conta `poderDoSacrificado`. O motor ainda não lê esses campos (fila do A).
+
 ## v0.15.0 — 25/11/2026 · aba Montar em componentes Svelte
 Testes: valida 761/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · lacunas = base · verifica verde · build ok.
 - **Estrutura (A, T43 d):** a aba Montar vira `src/telas/montar/` (Montar + Topo, Passos, Cores, Ideia, Junto, Busca, Deck, Como, Saida); `montar.ts` fica só com estado, contas e ações (822 → 641 linhas). Roteiro de 59 etapas com HTML, texto, foco e decks salvos iguais aos de antes.

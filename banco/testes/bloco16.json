@@ -1,0 +1,253 @@
+{
+ "bloco": "bloco16",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 751–800 (Gishath, Sun's Avatar … Hatchery Sliver)",
+ "casos": [
+  {
+   "carta": "Gishath, Sun's Avatar",
+   "situacao": "causa 4 de dano de combate a um jogador; 2 Dinossauros entre as 4 do topo",
+   "espera": "põe os 2 Dinossauros no campo; as outras vão para o fundo"
+  },
+  {
+   "carta": "Gitaxian Probe",
+   "situacao": "conjurada pagando 2 de vida",
+   "espera": "compra 1 (olhar a mão é falta)"
+  },
+  {
+   "carta": "Glass-Cast Heart",
+   "situacao": "seus Vampiros atacam; depois paga {B}, vira e 1 de vida",
+   "espera": "cria uma Blood; cria um Vampire 1/1 branco e preto com vínculo com a vida"
+  },
+  {
+   "carta": "Gleaming Overseer",
+   "situacao": "você tem uma ficha Zombie Army",
+   "espera": "a ficha Zumbi tem antimagia e ameaça (amass é falta)"
+  },
+  {
+   "carta": "Gleaming Splendor",
+   "situacao": "um oponente compra a 2ª carta no turno",
+   "espera": "você cria um Tesouro; {2}{W}: dois jogadores alvo compram 1 cada"
+  },
+  {
+   "carta": "Glorious Sunrise",
+   "situacao": "início do seu combate, escolhe o modo 1 com 3 criaturas",
+   "espera": "suas criaturas ganham +1/+1 e atropelar até o fim do turno"
+  },
+  {
+   "carta": "Glowing One",
+   "situacao": "causa dano de combate a um jogador",
+   "espera": "esse jogador ganha 4 marcadores rad (ganhar vida quando alguém mói não-terreno é falta)"
+  },
+  {
+   "carta": "Gluntch, the Bestower",
+   "situacao": "seu passo final",
+   "espera": "você cria 2 Tesouros e o próximo jogador compra 1 (os 3 jogadores escolhidos e os marcadores são falta)"
+  },
+  {
+   "carta": "Go-Shintai of Ancient Wars",
+   "situacao": "seu passo final com 2 Santuários; paga {1}",
+   "espera": "causa 2 de dano ao jogador alvo"
+  },
+  {
+   "carta": "Go-Shintai of Boundless Vigor",
+   "situacao": "seu passo final com 3 Santuários; paga {1}",
+   "espera": "3 marcadores +1/+1 no Santuário alvo"
+  },
+  {
+   "carta": "Go-Shintai of Hidden Cruelty",
+   "situacao": "seu passo final com 2 Santuários; paga {1}",
+   "espera": "destrói uma criatura de resistência 2 ou menos"
+  },
+  {
+   "carta": "Go-Shintai of Life's Origin",
+   "situacao": "outro Santuário não-ficha seu entra; depois paga {W}{U}{B}{R}{G} e vira",
+   "espera": "cria um Shrine 1/1 incolor encantamento criatura; devolve um encantamento do cemitério ao campo"
+  },
+  {
+   "carta": "Go-Shintai of Lost Wisdom",
+   "situacao": "seu passo final com 3 Santuários; paga {1}",
+   "espera": "o jogador alvo mói 3"
+  },
+  {
+   "carta": "Go-Shintai of Shared Purpose",
+   "situacao": "seu passo final com 2 Santuários; não paga",
+   "espera": "não cria nada; pagando {1} cria 2 Spirits 1/1 incolores"
+  },
+  {
+   "carta": "Goblin Anarchomancer",
+   "situacao": "você conjura uma mágica verde de 3",
+   "espera": "custa 1 a menos"
+  },
+  {
+   "carta": "Goblin Anarchomancer",
+   "situacao": "você conjura uma mágica vermelha e verde de 3",
+   "espera": "custa 1 a menos (não 2)"
+  },
+  {
+   "carta": "Goblin Chieftain",
+   "situacao": "você tem outro Goblin 1/1",
+   "espera": "ele fica 2/2 com pressa; o Chieftain tem pressa"
+  },
+  {
+   "carta": "Goblin Chirurgeon",
+   "situacao": "sacrifica um Goblin mirando sua criatura",
+   "espera": "ela regenera"
+  },
+  {
+   "carta": "Goblin Instigator",
+   "situacao": "entra",
+   "espera": "cria um Goblin 1/1 vermelho"
+  },
+  {
+   "carta": "Goblin Matron",
+   "situacao": "entra",
+   "espera": "pode buscar um Goblin, revela, põe na mão e embaralha"
+  },
+  {
+   "carta": "Goblin Warchief",
+   "situacao": "você conjura um Goblin de 3",
+   "espera": "custa 1 a menos; seus Goblins têm pressa"
+  },
+  {
+   "carta": "Gold Myr",
+   "situacao": "vira",
+   "espera": "dá W"
+  },
+  {
+   "carta": "Golgari Rot Farm",
+   "situacao": "entra",
+   "espera": "entra virada, devolve um terreno seu à mão; vira para B e G"
+  },
+  {
+   "carta": "Gollum, Obsessed Stalker",
+   "situacao": "seu passo final; você ganhou 4 de vida no turno",
+   "espera": "cada oponente perde 4 (só quem levou dano do Gollum é falta)"
+  },
+  {
+   "carta": "Grand Crescendo",
+   "situacao": "X=3",
+   "espera": "cria 3 Citizens 1/1 verdes e brancos; suas criaturas ganham indestrutível até o fim do turno"
+  },
+  {
+   "carta": "Grapeshot",
+   "situacao": "3ª mágica do turno",
+   "espera": "tempestade: 2 cópias; 1 de dano a qualquer alvo por cópia (3 no total)"
+  },
+  {
+   "carta": "Grapple with the Past",
+   "situacao": "resolve com uma criatura no cemitério",
+   "espera": "mói 3 e pode devolver uma criatura ou terreno do cemitério à mão"
+  },
+  {
+   "carta": "Grasp of Fate",
+   "situacao": "entra mirando um permanente não-terreno de cada oponente",
+   "espera": "exila; voltam quando o Grasp sai do campo"
+  },
+  {
+   "carta": "Gratuitous Violence",
+   "situacao": "sua criatura causa 3 de dano",
+   "espera": "causa 6"
+  },
+  {
+   "carta": "Gray Merchant of Asphodel",
+   "situacao": "entra com devoção ao preto 4 e 3 oponentes",
+   "espera": "cada oponente perde 4; você ganha 12"
+  },
+  {
+   "carta": "Graypelt Refuge",
+   "situacao": "entra",
+   "espera": "entra virada; ganha 1 de vida; vira para G ou W"
+  },
+  {
+   "carta": "Great Furnace",
+   "situacao": "vira",
+   "espera": "dá R"
+  },
+  {
+   "carta": "Greater Auramancy",
+   "situacao": "você tem outro encantamento e uma criatura sua encantada",
+   "espera": "os dois têm manto"
+  },
+  {
+   "carta": "Greater Good",
+   "situacao": "sacrifica uma criatura de poder 3",
+   "espera": "compra 3 e descarta 3 (a quantidade pelo poder é falta)"
+  },
+  {
+   "carta": "Grim Guardian",
+   "situacao": "outro encantamento seu entra",
+   "espera": "cada oponente perde 1"
+  },
+  {
+   "carta": "Grim Haruspex",
+   "situacao": "outra criatura não-ficha sua morre",
+   "espera": "compra 1 (morph é falta)"
+  },
+  {
+   "carta": "Grisly Salvage",
+   "situacao": "resolve",
+   "espera": "revela 5, pode pegar uma criatura ou terreno; o resto vai para o cemitério"
+  },
+  {
+   "carta": "Gruul Signet",
+   "situacao": "paga {1} e vira",
+   "espera": "dá R e G"
+  },
+  {
+   "carta": "Gruul War Chant",
+   "situacao": "você ataca com 2 criaturas",
+   "espera": "as atacantes ganham +1/+0 e ameaça"
+  },
+  {
+   "carta": "Gwaihir, Greatest of the Eagles",
+   "situacao": "ataca; no passo final você ganhou 3 de vida",
+   "espera": "a atacante alvo ganha voar; cria um Bird 3/3 branco com voar"
+  },
+  {
+   "carta": "Gyre Sage",
+   "situacao": "tem 2 marcadores +1/+1 e vira",
+   "espera": "dá GG"
+  },
+  {
+   "carta": "Hakbal of the Surging Soul",
+   "situacao": "ataca com um terreno na mão",
+   "espera": "pode pôr o terreno no campo; se não puser compra 1 (explorar é falta)"
+  },
+  {
+   "carta": "Hallowed Haunting",
+   "situacao": "você conjura um encantamento com 2 Espíritos",
+   "espera": "cria um Spirit Cleric 2/2 (P/R contínua é falta); com 7 encantamentos suas criaturas voam e têm vigilância"
+  },
+  {
+   "carta": "Hallowed Spiritkeeper",
+   "situacao": "morre com 3 criaturas no cemitério (contando ela)",
+   "espera": "cria 3 Spirits 1/1 brancos com voar"
+  },
+  {
+   "carta": "Halo Fountain",
+   "situacao": "paga {W} e vira com uma criatura sua virada",
+   "espera": "cria um Citizen 1/1 (desvirar a criatura como custo é falta)"
+  },
+  {
+   "carta": "Hammer of Nazahn",
+   "situacao": "outro Equipamento seu entra",
+   "espera": "pode anexá-lo a uma criatura sua; a equipada pelo Hammer ganha +2/+0 e indestrutível"
+  },
+  {
+   "carta": "Hanweir Garrison",
+   "situacao": "ataca",
+   "espera": "cria 2 Humans 1/1 vermelhos virados e atacando"
+  },
+  {
+   "carta": "Harmonic Sliver",
+   "situacao": "um Sliver qualquer entra",
+   "espera": "destrói o artefato ou encantamento alvo"
+  },
+  {
+   "carta": "Haste Magic",
+   "situacao": "mira uma criatura 2/2 no seu turno",
+   "espera": "fica 5/3 com pressa; exila o topo e pode jogá-lo até o fim do turno"
+  }
+ ]
+}

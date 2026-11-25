@@ -1,0 +1,253 @@
+{
+ "bloco": "bloco15",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 701–750 (Firemane Commando … Gisela, Blade of Goldnight)",
+ "casos": [
+  {
+   "carta": "Firemane Commando",
+   "situacao": "você ataca com 2 criaturas; depois um oponente ataca com 3",
+   "espera": "você compra 1; o oponente compra 1 (o 'se nenhuma atacou você' é falta)"
+  },
+  {
+   "carta": "Fists of Flame",
+   "situacao": "você já comprou 1 no turno; mira sua criatura 2/2",
+   "espera": "compra 1 (2 no turno); a criatura fica 4/2 com atropelar até o fim do turno"
+  },
+  {
+   "carta": "Flamerush Rider",
+   "situacao": "ataca junto com uma criatura 4/4",
+   "espera": "cria uma cópia da 4/4 virada e atacando (o exílio no fim do combate é falta)"
+  },
+  {
+   "carta": "Flare of Fortitude",
+   "situacao": "conjurada sacrificando uma criatura branca não-ficha",
+   "espera": "não paga mana; sua vida não muda até o fim do turno; seus permanentes ganham antimagia e indestrutível"
+  },
+  {
+   "carta": "Flashback",
+   "situacao": "mira uma instantânea do seu cemitério",
+   "espera": "ela ganha flashback até o fim do turno (custo = custo de mana: falta)"
+  },
+  {
+   "carta": "Fleshbag Marauder",
+   "situacao": "entra com 2 criaturas suas e 1 de cada oponente",
+   "espera": "cada jogador sacrifica uma criatura que escolhe (você pode sacrificar o próprio Marauder)"
+  },
+  {
+   "carta": "Flooded Grove",
+   "situacao": "paga {G/U} e vira",
+   "espera": "dá 2 manas, cada uma G ou U"
+  },
+  {
+   "carta": "Flowering of the White Tree",
+   "situacao": "você tem um comandante lendário 3/3 e um elfo 1/1",
+   "espera": "o lendário fica 5/4 com resguardo {1}; o elfo fica 2/2"
+  },
+  {
+   "carta": "Flusterstorm",
+   "situacao": "3ª mágica do turno, mirando uma instantânea",
+   "espera": "tempestade: 2 cópias; anula a instantânea a menos que o controlador dela pague {1} por cópia"
+  },
+  {
+   "carta": "Folk Hero",
+   "situacao": "seu comandante está no campo e você conjura duas mágicas no turno",
+   "espera": "compra 1 só na primeira (compartilhar tipo de criatura é falta)"
+  },
+  {
+   "carta": "Font of Fertility",
+   "situacao": "paga {1}{G} e sacrifica",
+   "espera": "busca um terreno básico, entra virado, embaralha"
+  },
+  {
+   "carta": "For the Common Good",
+   "situacao": "X=2 mirando sua ficha Soldier; você tem 3 fichas",
+   "espera": "cria 2 cópias (5 fichas); todas ganham indestrutível até seu próximo turno; ganha 5 de vida"
+  },
+  {
+   "carta": "Force of Will",
+   "situacao": "conjurada pagando 1 de vida e exilando uma carta azul da mão",
+   "espera": "não paga mana; anula a mágica alvo"
+  },
+  {
+   "carta": "Foreboding Landscape",
+   "situacao": "vira e sacrifica",
+   "espera": "busca Pântano, Floresta ou Ilha básica, entra virada, embaralha; ciclar {B}{G}{U} compra 1"
+  },
+  {
+   "carta": "Forensic Gadgeteer",
+   "situacao": "você conjura um artefato; depois ativa uma habilidade {2} de artefato",
+   "espera": "cria uma Clue; a habilidade custa {1}"
+  },
+  {
+   "carta": "Forge Anew",
+   "situacao": "entra com um Equipamento no cemitério",
+   "espera": "o Equipamento volta ao campo (equipar como instantânea e o primeiro equipar grátis são falta)"
+  },
+  {
+   "carta": "Forgotten Ancient",
+   "situacao": "um oponente conjura uma mágica",
+   "espera": "você pode pôr 1 marcador +1/+1 no Ancient (mover marcadores é falta)"
+  },
+  {
+   "carta": "Forgotten Cave",
+   "situacao": "entra",
+   "espera": "entra virada; vira para R; ciclar {R} compra 1"
+  },
+  {
+   "carta": "Forth Eorlingas!",
+   "situacao": "X=3; duas criaturas suas causam dano de combate a um jogador",
+   "espera": "cria 3 Human Knight 2/2 vermelhos com atropelar e pressa; você vira o monarca"
+  },
+  {
+   "carta": "Frodo, Adventurous Hobbit",
+   "situacao": "ataca",
+   "espera": "vigilância; parceiro com Sam, Loyal Attendant (o Anel é falta)"
+  },
+  {
+   "carta": "From the Rubble",
+   "situacao": "escolheu Zombie; seu passo final com um Zumbi no cemitério",
+   "espera": "o Zumbi volta ao campo com 1 marcador finality"
+  },
+  {
+   "carta": "Frontier Bivouac",
+   "situacao": "entra",
+   "espera": "entra virada; vira para G, U ou R"
+  },
+  {
+   "carta": "Frontier Warmonger",
+   "situacao": "você ataca com 2 criaturas",
+   "espera": "as atacantes ganham ameaça até o fim do turno"
+  },
+  {
+   "carta": "Frontline Heroism",
+   "situacao": "entra",
+   "espera": "cria um Soldier 1/1 vermelho com pressa (a cópia da mágica é falta)"
+  },
+  {
+   "carta": "Frontline Medic",
+   "situacao": "ataca com mais 2 criaturas; depois sacrifica mirando uma mágica",
+   "espera": "suas criaturas ganham indestrutível; a mágica é anulada a menos que o controlador pague {3}"
+  },
+  {
+   "carta": "Frostboil Snarl",
+   "situacao": "entra sem Ilha nem Montanha na mão",
+   "espera": "entra virada; com uma delas revelada entra desvirada; vira para U ou R"
+  },
+  {
+   "carta": "Funeral Room",
+   "situacao": "porta Funeral Room no campo; uma criatura sua morre",
+   "espera": "cada oponente perde 1 e você ganha 1 (destrancar a Awakening Hall é falta)"
+  },
+  {
+   "carta": "Fyndhorn Elves",
+   "situacao": "vira",
+   "espera": "dá G"
+  },
+  {
+   "carta": "Galecaster Colossus",
+   "situacao": "vira um Mago seu desvirado",
+   "espera": "devolve à mão um permanente não-terreno de um oponente"
+  },
+  {
+   "carta": "Galerider Sliver",
+   "situacao": "você controla outro Sliver",
+   "espera": "seus Slivers têm voar"
+  },
+  {
+   "carta": "Gamble",
+   "situacao": "resolve",
+   "espera": "busca qualquer carta para a mão, descarta 1 e embaralha (descarte aleatório é falta)"
+  },
+  {
+   "carta": "Gavony Township",
+   "situacao": "paga {2}{G}{W} e vira com 3 criaturas",
+   "espera": "cada criatura sua ganha 1 marcador +1/+1"
+  },
+  {
+   "carta": "Geier Reach Sanitarium",
+   "situacao": "paga {2} e vira",
+   "espera": "cada jogador compra 1 e depois descarta 1"
+  },
+  {
+   "carta": "Gemhide Sliver",
+   "situacao": "você controla 2 Slivers",
+   "espera": "cada Sliver vira para 1 mana de qualquer cor"
+  },
+  {
+   "carta": "General Kreat, the Boltbringer",
+   "situacao": "você ataca com um Goblin; depois outra criatura sua entra",
+   "espera": "cria um Goblin 1/1 virado e atacando; Kreat causa 1 de dano a cada oponente (pela ficha também)"
+  },
+  {
+   "carta": "Genji Glove",
+   "situacao": "a criatura equipada ataca no primeiro combate",
+   "espera": "golpe duplo; desvira e há um combate extra (uma vez por turno)"
+  },
+  {
+   "carta": "Ghalta and Mavren",
+   "situacao": "você ataca com Ghalta e mais 2 criaturas (poder 3 e 5)",
+   "espera": "modo 1: ficha Dinosaur 5/5 atropelar virada e atacando; modo 2: 2 Vampires 1/1 com vínculo com a vida"
+  },
+  {
+   "carta": "Ghalta, Primal Hunger",
+   "situacao": "você controla criaturas com poder total 9",
+   "espera": "custa {1}{G}{G} (12 − 9)"
+  },
+  {
+   "carta": "Ghalta, Stampede Tyrant",
+   "situacao": "entra com 3 criaturas na mão",
+   "espera": "põe quantas quiser delas no campo"
+  },
+  {
+   "carta": "Ghostly Flicker",
+   "situacao": "mira 2 criaturas suas",
+   "espera": "exila as duas e devolve sob seu controle (os gatilhos de entrar disparam)"
+  },
+  {
+   "carta": "Ghostly Prison",
+   "situacao": "um oponente ataca você com 3 criaturas",
+   "espera": "ele paga {6} para atacar com as 3"
+  },
+  {
+   "carta": "Ghyrson Starn, Kelermorph",
+   "situacao": "outra fonte sua causa exatamente 1 de dano a um oponente",
+   "espera": "Ghyrson causa 2 de dano a esse oponente (permanente é falta)"
+  },
+  {
+   "carta": "Giant Growth",
+   "situacao": "mira uma criatura 2/2",
+   "espera": "fica 5/5 até o fim do turno"
+  },
+  {
+   "carta": "Giggling Skitterspike",
+   "situacao": "ataca com poder 1; depois é alvo de uma mágica",
+   "espera": "causa 1 a cada oponente em cada gatilho; {5}: 5 marcadores +1/+1 (monstruoso é falta)"
+  },
+  {
+   "carta": "Gilded Lotus",
+   "situacao": "vira",
+   "espera": "dá 3 manas (de uma cor: falta)"
+  },
+  {
+   "carta": "Gilraen, Dúnedain Protector",
+   "situacao": "paga {2} e vira mirando sua criatura; não devolve na hora",
+   "espera": "exila; no próximo passo final volta com marcadores vigilance e lifelink"
+  },
+  {
+   "carta": "Gimli's Reckless Might",
+   "situacao": "você ataca com poder total 8 no campo",
+   "espera": "suas criaturas têm pressa; uma atacante sua luta com até uma criatura de oponente"
+  },
+  {
+   "carta": "Gisa and Geralf",
+   "situacao": "entra; no seu turno há um Zumbi no cemitério",
+   "espera": "mói 4; pode conjurar uma criatura Zumbi do cemitério por turno"
+  },
+  {
+   "carta": "Gisela, Blade of Goldnight",
+   "situacao": "sua fonte causa 3 a um oponente; uma fonte causa 5 a você",
+   "espera": "o oponente leva 6; você leva 2 (previne 3, metade arredondada para cima)"
+  }
+ ]
+}

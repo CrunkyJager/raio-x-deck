@@ -1,0 +1,1 @@
+{"v":2,"n":"Frontier Bivouac","id":"e4cf6c2f-0f1e-4980-9ef9-e4eabcae42a9","oracleHash":"d07cb014","vm":0,"ci":"URG","cores":"","tipos":["Land"],"subst":[{"ev":"entra","quem":{"este":true},"muda":{"virada":true}}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G","U","R"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco15.json"}}

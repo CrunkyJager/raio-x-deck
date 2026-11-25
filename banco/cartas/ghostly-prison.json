@@ -1,0 +1,1 @@
+{"v":2,"n":"Ghostly Prison","id":"e828b189-0e8f-43b8-b909-4c23e742e028","oracleHash":"f3c53984","custo":{"g":2,"p":["W"]},"vm":3,"ci":"W","cores":"W","tipos":["Enchantment"],"est":[{"modo":"ataqueCusta","afeta":{"tipo":["Creature"],"zona":"campo"},"contra":{"jog":"voce"},"custo":{"g":2}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco15.json"}}

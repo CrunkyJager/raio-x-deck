@@ -1,0 +1,1 @@
+{"v":2,"n":"Goblin Anarchomancer","id":"e9319f13-1f2b-429c-9d61-e58a3cbec86a","oracleHash":"3868b507","custo":{"p":["R","G"]},"vm":2,"ci":"RG","cores":"RG","tipos":["Creature"],"sub":["Goblin","Shaman"],"pt":[2,2],"est":[{"modo":"reduzCusto","afeta":{"cor":["R","G"],"ctrl":"voce","zona":"pilha"},"qtd":1}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco16.json"}}

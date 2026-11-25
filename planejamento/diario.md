@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.16.0: B blocos 15+16 (8179415, 861 cartas). Faltas repetidas decididas em lote (0372ad4, 7dbb223); ficam falta: rebound, Room, monstruoso, meld, dash, replicar, morph, skulk. Recusada: Goblin Anarchomancer (2 reduções) → consertada no merge com cor em lista. Leituras ok: Forensic Gadgeteer, Frodo, Ghyrson, Gilded Lotus, Frontier Warmonger, Gluntch, Haste Magic, Hallowed Haunting, Greater Good.
 - 25/11 · FARSEER · v0.15.0: A aba Montar em componentes (1c8c907). Resto da (d): janelas #pop/hover/zoom, depois render()/wire() → próxima versão do A. Mesa fica .js até a T09.
 - 25/11 · FARSEER · v0.14.0: B correção 3 (a15d9b7) + bloco 13 (4212885) + bloco 14 (9eab834), 761 cartas. Leituras ok: Dread Return, Electroduplicate (token.gat), Dracogenesis, Emeria Shepherd, Exquisite Blood, Fertile Ground, Feasting Hobbit (devour como subst), Empty the Laboratory, Finality, Fiery Emancipation. Faltas novas: rebound, warp, historic, exílio jogável, níveis de Classe.
 - 25/11 · FARSEER · v0.13.0: A telas Lista (1924c36), Resumo (87da164), Análise (2bb36fd), Trocas + preço (8ca7b7e). Preço do Stangg 112,0×106,1 travou a versão até a causa: soma feita com USD_BRL padrão antes da awesomeapi; prova do A: 10 aberturas iguais (o velho errou 1/10). Esquema 3a96323 (exilarDe, naoMorre).

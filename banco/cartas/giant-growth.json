@@ -1,0 +1,1 @@
+{"v":2,"n":"Giant Growth","id":"5748ebf1-24e3-499d-ab7c-c2cebd462a24","oracleHash":"2f03ea10","custo":{"p":["G"]},"vm":1,"ci":"G","cores":"G","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature"],"zona":"campo"}}],"fx":[{"op":"modificar","em":{"alvo":0},"p":3,"r":3,"dura":"fimDoTurno"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco15.json"}}
