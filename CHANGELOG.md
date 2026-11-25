@@ -2,6 +2,25 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.23.0 — 25/11/2026 · banco com 1311 cartas
+Testes: valida 1311/0 · check 0 erros · Vitest 160/160 · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 685/1311.
+- **Banco (B):** correção 8 (Riders of the Mark com `atacouNoTurno`, Rivaz só do seu cemitério) e bloco 25 (1201–1250, 50 casos). Sem campo novo no esquema (sacrificar quantos quiser usa `ate: "qualquer"`).
+
+## v0.22.0 — 25/11/2026 · camadas volta 2: equipar e habilidades dadas
+Testes: valida 1261/0 · check 0 erros · Vitest 160/160 (20 s: fuzz com Equipamento) · testa 161/161 · partidas = base, erros 0 · verifica verde · build ok. Motor joga inteiras 660/1261 (eram 638).
+- **Motor (A):** anexar/equipar (equipar = ativada na velocidade de feitiço, ações do estado 704.5m/n, `afeta 'equipada'`), habilidades dadas (gatilhos e ativadas que vêm de estáticas, LKI 603.10a). Consertado um O(n²) que deixava uma partida em 145 s.
+
+## v0.21.0 — 25/11/2026 · banco com 1261 cartas
+Testes: valida 1261/0 · check 0 erros · Vitest 153/153 · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok. Motor joga inteiras 638/1261.
+- **Banco (B):** bloco 23 (1101–1150) e bloco 24 (1151–1200), 50 casos cada; correção 6 (12 cartas do lote 22, Ponder certo) e correção 7 (6 cartas do lote 23).
+- **Esquema (lotes 23 e 24):** fx `exceto` no sacrificar (escolhe N que ficam), filtros `moidaNoTurno` e `atacouNoTurno`, `naoPrimeira` também na subst.
+
+## v0.20.0 — 25/11/2026 · camadas do motor (CR 613) e banco com 1161 cartas
+Testes: valida 1161/0 · check 0 erros · Vitest 153/153 (15 s) · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok. Motor joga inteiras 601/1161 (eram 488/1061).
+- **Motor (A, camadas volta 1):** CR 613 camada 6 (palavras-chave dadas) e 7c (somar P/R) a partir das estáticas `continuo` no campo; `modificar` até o fim do turno com números presos na resolução (611.2c) e limpeza (514.2). Poder, resistência e palavras-chave passam pelas camadas; proteção e toque mortífero dados valem no combate. Lista de fontes guardada: Vitest em 15 s. Ferramenta `ferramentas/motor-cobertura.mjs`.
+- **Banco (B):** bloco 21 (1001–1050) e bloco 22 (1051–1100), 50 casos cada; correção 5 (22 cartas com os campos dos lotes 17–21).
+- **Esquema (lotes 21 e 22):** cond `fasePrincipal`, filtro `entrouNoTurno`, est `naoPodeAtivar` e `cores`, kw `intimidar` e `decaida`, fx `semRegenerar`, prop `maiorVm`, gat `naoPrimeira`, modos `aleatorio`.
+
 ## v0.19.0 — 25/11/2026 · banco com 1061 cartas
 Testes: valida 1061/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok.
 - **Banco (B):** bloco 19 (901–950, 50 casos: Living Death, Liesa, Luminous Broodmoth, Lotus Cobra…) e bloco 20 (951–1000, 50 casos: Meren, Mikaeus, Mirari's Wake, Mizzix's Mastery…).

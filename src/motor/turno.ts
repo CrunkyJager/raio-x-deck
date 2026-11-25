@@ -108,6 +108,7 @@ function acaoDoTurno(e) {
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
   for (const id of e.campo) { e.objs[id].dano = 0; e.objs[id].mortal = false; }
+  e.temp = [];                                                      // 'modificar' até o fim do turno (efeitos.ts)
 }
 // tamanho máximo de mão (CR 402.2: 7) — Reliquary Tower e cia. (est maoMax) lidos aqui até as camadas da T18
 function maoMax(e, j) {
@@ -207,6 +208,15 @@ M.abe = e => {
         else if ((o.dano >= r || (o.mortal && o.dano > 0)) && !M.temKw(e, o, 'indestrutivel')) morrem.push(id);   // 704.5g–h; regenerar = T19
       }
       if (M.temTipo(e, o, 'Planeswalker') && (o.marc.lealdade || 0) <= 0) morrem.push(id);
+    }
+    // CR 704.5m/n: Aura presa a nada (ou a objeto ilegal) vai ao cemitério; Equipamento preso a nada ou a não-criatura
+    // (ou que virou criatura, 301.5c) se solta e fica no campo
+    for (const id of e.campo) {
+      const o = e.objs[id]; if (!o.anexo) continue;
+      const t = M.anexadoA(e, o), aura = (M.dadoDe(e, o).sub || []).includes('Aura');
+      if (aura ? !t : !t || !M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) {
+        if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
+      }
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
