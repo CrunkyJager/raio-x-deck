@@ -1,0 +1,18 @@
+{
+ "bloco": "correcao13",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "pente no subst vidaMuda (FARSEER): Angel of Vitality e Bilbo saem do subst (só ganho de vida no Oracle; vidaMuda pegava a perda também), ficam na falta como a Wind Crystal",
+ "casos": [
+  {
+   "carta": "Angel of Vitality",
+   "situacao": "você ganharia 2 de vida; você perderia 2 de vida",
+   "espera": "ganha 2 (o +1 é falta); perde 2 (não soma mais na perda)"
+  },
+  {
+   "carta": "Bilbo, Birthday Celebrant",
+   "situacao": "você ganharia 3 de vida; você perderia 3 de vida",
+   "espera": "ganha 3 (o +1 é falta); perde 3"
+  }
+ ]
+}
