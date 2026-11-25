@@ -6,13 +6,16 @@ import { M } from './nucleo';
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez']);
 const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono']);
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X']);
+  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X', 'resultado']);   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
 const quemAlvo = q => !!q && typeof q === 'object' && typeof q.alvo === 'number' && Object.keys(q).length === 1;
-const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X'
+// {dado:N}: rola um dado de N lados (CR 706) com o RNG da partida; {ate:N|'X'|'qualquer'} ("up to") só onde o handler aceita
+const dadoOk = q => !!q && typeof q === 'object' && Number.isInteger(q.dado) && q.dado >= 2 && Object.keys(q).length === 1;
+const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && (Number.isInteger(q.ate) || q.ate === 'X' || q.ate === 'qualquer');
+const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
     && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo'].includes(k)));
 const emOk = v => v === undefined || v === 'este' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
@@ -68,6 +71,8 @@ function jogsDe(e, f, ctx) {
 }
 function qtdDe(e, q, ctx) {
   if (q === undefined) return 1;
+  if (dadoOk(q)) { const v = 1 + Math.floor(M.aleat(e) * q.dado); M.log(e, 'd' + q.dado, 'deu', v); return v; }   // CR 706
+  if (ateOk(q)) return q.ate === 'qualquer' ? Infinity : q.ate === 'X' ? ctx.x || 0 : q.ate;   // o máximo; quem escolhe para antes
   if (q && typeof q === 'object' && typeof q.conta === 'string') {
     const L = ctx.lki, a = L.alvos && L.alvos[q.alvo || 0] && L.alvos[q.alvo || 0][0];
     const este = e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : L.este;
@@ -84,6 +89,7 @@ function qtdDe(e, q, ctx) {
       case 'jogadores': v = M.vivos(e).length; break;
       case 'suaVida': v = e.jogs[ctx.voce].vida; break;
       case 'X': v = ctx.x || 0; break;
+      case 'resultado': v = ctx.resultado || 0; break;
       default: throw new Error('conta sem suporte: ' + q.conta);
     }
     return Math.max(0, v * (q.mult || 1) + (q.soma || 0));
@@ -210,7 +216,8 @@ const H = {
   exilar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.mover(e, o.id, 'exilio'); } },
   mover: {
     campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle'],
-    ok: f => ['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) && (f.em !== undefined || (f.f && typeof f.qtd === 'number')),
+    qtd: q => qtdOk(q) || ateOk(q),
+    ok: f => ['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
       let ids;
       if (f.em !== undefined) ids = objsDe(e, f, ctx).map(o => o.id);
@@ -218,8 +225,9 @@ const H = {
         const j = jogsDe(e, f, ctx)[0]; if (j === undefined) return;
         const z = f.de || f.f.zona || 'mao';
         const cand = M.objetosQue(e, { ...f.f, zona: z, dono: f.f.dono || 'voce' }, { ...ctx, voce: j }).map(o => o.id);
-        ids = escolherN(ask, j, 'escolherCarta', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { ctx: { op: 'mover', para: f.para } });
+        ids = escolherN(ask, j, 'escolherCarta', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: ateOk(f.qtd), ctx: { op: 'mover', para: f.para } });
       }
+      ctx.resultado = ids.length;                                   // "then draw that many" (Valakut Awakening)
       const ent = f.para === 'campo' ? ids.map(id => M.decidirEntrada(e, id, f.sobControle === 'voce' ? ctx.voce : e.objs[id].dono, { virada: !!f.virada }, ask)) : [];
       if (f.para === 'campo') ent.forEach(p => M.aplicarEntrada(e, p));
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });

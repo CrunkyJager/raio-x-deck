@@ -164,6 +164,7 @@ export type RxQtd =
             | 'vezesKicker'
             | 'maoDoEvento'
             | 'vidaPerdidaOpsNoTurno'
+            | 'maiorVidaPerdidaOpNoTurno'
             | 'vidaPerdidaNoTurno'
             | 'maiorDescarte'
             | 'resolucoesDestaHabNoTurno'
@@ -191,7 +192,13 @@ export type RxQtd =
       de?: string;
     }
   | {
-      ate: number | 'X';
+      ate: number | 'X' | 'qualquer';
+    }
+  | {
+      /**
+       * rola um dado de N lados (706); o resultado é a quantidade. O motor usa o RNG com semente; a análise usa a média (N+1)/2
+       */
+      dado: number;
     };
 
 /**
@@ -232,6 +239,10 @@ export interface RxFiltro {
    */
   tipo?: string[];
   /**
+   * TODOS estes tipos ao mesmo tempo (criatura artefato: Urza, Chief Artificer); o tipo é 'algum destes'
+   */
+  tipoTodos?: string[];
+  /**
    * nenhum destes tipos/subtipos/super (Land, Basic, Token…)
    */
   nao?: string[];
@@ -267,6 +278,14 @@ export interface RxFiltro {
    * objeto lembrado pelo efeito
    */
   lembrada?: boolean;
+  /**
+   * com pelo menos uma Aura anexada (ex.: Calix)
+   */
+  encantada?: boolean;
+  /**
+   * com pelo menos um Equipamento anexado (Cloud, Ex-SOLDIER: 'as long as it's equipped')
+   */
+  comEquipamento?: boolean;
   /**
    * equipada, encantada ou com marcador
    */
@@ -358,7 +377,10 @@ export interface RxCustoAtv {
     qtd?: number;
   };
   exilarEste?: boolean;
-  vida?: number | 'X';
+  /**
+   * vida paga; contagem vale no momento de pagar (Bolas's Citadel: vmDoEvento)
+   */
+  vida?: number | 'X' | RxQtd;
   exilarDe?: RxZona;
   tirarMarcador?: {
     tipo?: string;
@@ -572,7 +594,13 @@ export interface RxFx {
  */
 export interface RxToken {
   nome?: string;
-  pt?: number[];
+  /**
+   * P/R da ficha; contagem ou X vale o número no momento de criar (Assemble the Entmoot X/X)
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  pt?: [number | RxQtd, number | RxQtd];
   cores?: string;
   tipos?: string[];
   sub?: string[];
@@ -585,6 +613,10 @@ export interface RxToken {
    * cópia sem o supertipo lendário
    */
   naoLendaria?: boolean;
+  /**
+   * gatilhos da ficha (Circle of Power, Cornered by Black Mages)
+   */
+  gat?: RxGat[];
 }
 
 /**
@@ -607,7 +639,15 @@ export interface RxCond {
   eventoBate?: RxFiltro;
   vidaMax?: number;
   vidaMin?: number;
+  /**
+   * algum oponente tem vida ≤ N (Bloodghast)
+   */
+  vidaOponenteMax?: number;
   conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  /**
+   * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
+   */
+  conjuradaNaPrincipal?: boolean;
   /**
    * a contagem q compara (min/max/igual)
    */
@@ -707,7 +747,8 @@ export interface RxKw {
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
-    | 'tumulto';
+    | 'tumulto'
+    | 'fusao';
   custo?: RxMana;
   n?: number;
   /**
@@ -933,6 +974,10 @@ export interface RxEst {
    * naoPodeSerBloqueada / naoPodeBloquear: filtro de QUEM bloqueia (Amrou Kithkin)
    */
   por?: RxFiltro;
+  /**
+   * subtipos que o continuo dá além dos tipos (Ashaya: tipo Land + sub Forest; 305.6/305.7)
+   */
+  sub?: string[];
 }
 
 /**

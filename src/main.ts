@@ -6,13 +6,14 @@
 import { mount } from 'svelte';
 import App from './App.svelte';
 
+// A casca (App.svelte) vai primeiro e direto no <body>, antes do primeiro <script>, no mesmo lugar onde o HTML
+// fixo estava: os módulos abaixo procuram #deck-in, #examples, #out… assim que sobem.
+mount(App, { target: document.body, anchor: document.body.querySelector('script') ?? undefined });
+
 async function sobe(nome: string, carrega: () => Promise<unknown>) {
   try { await carrega(); } catch (err) { console.error(`Raio-X: ${nome} não subiu`, err); }
 }
 
 await sobe('análise', () => import('./analise/analise'));
 await sobe('mesa', () => import('./mesa/mesa-ui.js'));
-if (window.RAIOX) await sobe('montar', () => import('./montar/montar.js'));   // antes: if (!R) return; no começo do montar.js
-
-const alvo = document.getElementById('rx-app');
-if (alvo) mount(App, { target: alvo });
+if (window.RAIOX) await sobe('montar', () => import('./montar/montar'));   // antes: if (!R) return; no começo do montar.js

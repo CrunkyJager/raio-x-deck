@@ -1,7 +1,7 @@
 {
-  // T43 (c): análise, montar e mesa viraram módulos ES mas seguem em JS (migração mecânica); o TypeScript checa
-  // mesmo assim (checkJs, não estrito). Viram .ts no passo (d).
+  // T43 (c): a mesa virou módulo ES mas segue em JS (migração mecânica); o TypeScript checa mesmo assim (checkJs,
+  // não estrito). análise e montar já viraram .ts estrito no passo (d); o mesa-ui.js fica .js até a T09.
   "extends": "../tsconfig.json",
   "compilerOptions": { "allowJs": true, "checkJs": true, "strict": false, "types": ["vite/client"] },
-  "include": ["montar/**/*.js", "mesa/**/*.js", "globais.d.ts"], "exclude": []
+  "include": ["mesa/**/*.js", "globais.d.ts"], "exclude": []
 }
