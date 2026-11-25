@@ -274,3 +274,15 @@ Contagem: banco 1311 cartas / fila 274 ainda não escritas. Nenhuma falta nova s
 |---|---|---|---|---|---|
 | sacrificar quantos quiser | 2 | 0 | Scapeshift, Feasting Hobbit | qtd `{ate:"qualquer"}` no sacrificar (hoje escrito "tudo") | decidido FARSEER: `qtd {ate:"qualquer"}`; escrito (correção 9) |
 | o resto 1/0 | | | Sarkhan Soul Aflame (vira cópia até o fim do turno), Season of the Burrow (modos por {P}, repetidos), Selfless Squire (ev dano prevenido), Selvala Explorer Returned (parley: escrito a média, metade dos jogadores), Selvala Heart of the Wilds (maior poder que cada outra), Serra the Benevolent (emblema vida não cai abaixo de 1), Siege Smash (split second) | deixar falta | falta |
+
+## Faltas em lote (bloco 26, para o FARSEER decidir junto)
+Contagem: banco 1361 cartas / fila 224 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| retrace | 2 | 0 | Deeproot Historian, Six | kw `retrace` concedida às cartas do cemitério (est continuo `afeta` cemitério, como o bis do Homing/Mist Dancer) | |
+| bestow (concedido) | 2 | 0 | Indebted Spirit, Springheart Nantuko | kw `concedido` com custo; a parte Aura fica como `equipada` | |
+| ficha por jogador atacado | 3 | 0 | Adeline, Ainok Strike Leader, Soaring Lightbringer | `repetirCada` por jogador atacado, ficha atacando `atacado` | |
+| ficha de artefato com +1/+1 por artefato | 2 | 0 | Simulacrum Synthesizer (e o Construct do lote anterior) | `est` na ficha | |
+| o resto 1/0 | | | Silumgar (só o jogador defensor), Sink into Stupor (mágica OU permanente no mesmo alvo), Sliver Gravemother (regra de lenda; bis {X} = vm da carta), Spelunking (4 de vida se for Cave), Spiteful Sliver (jogador ou planeswalker), Starfield of Nyx (P/R base = vm de cada encantamento) | deixar falta | |
+

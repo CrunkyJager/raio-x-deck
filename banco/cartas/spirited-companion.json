@@ -1,0 +1,1 @@
+{"v":2,"n":"Spirited Companion","id":"9c5f0d91-9d86-4e66-94fd-4af93ad01838","oracleHash":"a0958f48","custo":{"g":1,"p":["W"]},"vm":2,"ci":"W","cores":"W","tipos":["Creature","Enchantment"],"sub":["Dog"],"pt":[1,1],"gat":[{"ev":"entra","quem":{"este":true},"fx":[{"op":"comprar","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco26.json"}}

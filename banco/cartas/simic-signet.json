@@ -1,0 +1,1 @@
+{"v":2,"n":"Simic Signet","id":"44503105-3e13-408d-a44f-37d503c61d72","oracleHash":"7a1cb6c9","custo":{"g":2},"vm":2,"ci":"UG","cores":"","tipos":["Artifact"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["G"],"qtd":1},{"op":"mana","prod":["U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco26.json"}}

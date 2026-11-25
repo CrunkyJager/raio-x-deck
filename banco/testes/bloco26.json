@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco26",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1251–1300 (Silumgar … Stormfist Crusader)",
+ "casos": [
+  {
+   "carta": "Silumgar, the Drifting Death",
+   "situacao": "um Dragão seu ataca",
+   "espera": "criaturas dos oponentes −1/−1 até o fim do turno (o 'só do defensor' é falta)"
+  },
+  {
+   "carta": "Silver Myr",
+   "situacao": "vira",
+   "espera": "{U}"
+  },
+  {
+   "carta": "Silverbluff Bridge",
+   "situacao": "entra",
+   "espera": "virada, indestrutível; U ou R"
+  },
+  {
+   "carta": "Simian Spirit Guide",
+   "situacao": "exila da mão",
+   "espera": "{R} sem ir ao campo"
+  },
+  {
+   "carta": "Simic Charm",
+   "situacao": "modo 2",
+   "espera": "seus permanentes com antimagia até o fim do turno"
+  },
+  {
+   "carta": "Simic Signet",
+   "situacao": "{1} e vira",
+   "espera": "{G}{U}"
+  },
+  {
+   "carta": "Simulacrum Synthesizer",
+   "situacao": "entra; depois artefato seu de vm 3",
+   "espera": "vidência 2; ficha Construct (o +1/+1 por artefato é falta)"
+  },
+  {
+   "carta": "Sinew Sliver",
+   "situacao": "Sliver de qualquer jogador no campo",
+   "espera": "+1/+1 em todos os Slivers"
+  },
+  {
+   "carta": "Singer of Swift Rivers",
+   "situacao": "entra com outra criatura sua",
+   "espera": "marcador shield nela; Merfolk com lampejo"
+  },
+  {
+   "carta": "Sink into Stupor",
+   "situacao": "conjura em permanente não-terreno do oponente; ou joga a face terreno pagando 3 de vida",
+   "espera": "volta à mão; o terreno entra desvirado e dá {U}"
+  },
+  {
+   "carta": "Six",
+   "situacao": "ataca",
+   "espera": "moe 3 e pode pôr um terreno delas na mão (retrace é falta)"
+  },
+  {
+   "carta": "Skirk Prospector",
+   "situacao": "sacrifica um Goblin",
+   "espera": "{R}"
+  },
+  {
+   "carta": "Skull Prophet",
+   "situacao": "vira para cada habilidade",
+   "espera": "B ou G; ou moe 2"
+  },
+  {
+   "carta": "Skycloud Expanse",
+   "situacao": "{1} e vira",
+   "espera": "{W}{U}"
+  },
+  {
+   "carta": "Skyhunter Strike Force",
+   "situacao": "controla o comandante",
+   "espera": "as outras criaturas suas com corpo a corpo"
+  },
+  {
+   "carta": "Skyknight Squire",
+   "situacao": "três criaturas suas entram",
+   "espera": "3 marcadores +1/+1; voa e é Knight"
+  },
+  {
+   "carta": "Skyknight Vanguard",
+   "situacao": "ataca",
+   "espera": "ficha Soldier 1/1 virada e atacando"
+  },
+  {
+   "carta": "Slayers' Stronghold",
+   "situacao": "{R}{W} e vira",
+   "espera": "criatura +2/+0, vigilância e pressa até o fim do turno"
+  },
+  {
+   "carta": "Sliver Gravemother",
+   "situacao": "está no cemitério; {5}",
+   "espera": "bis: fichas atacando (regra de lenda e bis concedido são falta)"
+  },
+  {
+   "carta": "Sliver Hive",
+   "situacao": "vira; {5} e vira com Sliver",
+   "espera": "{C} ou qualquer cor só para Sliver; ficha Sliver 1/1"
+  },
+  {
+   "carta": "Sliver Hivelord",
+   "situacao": "Slivers seus",
+   "espera": "indestrutíveis"
+  },
+  {
+   "carta": "Sliver Legion",
+   "situacao": "4 Slivers no campo",
+   "espera": "cada Sliver +3/+3"
+  },
+  {
+   "carta": "Sliver Overlord",
+   "situacao": "{3}; {3} em Sliver do oponente",
+   "espera": "busca Sliver, revela, mão; ganha o controle dele"
+  },
+  {
+   "carta": "Snakeskin Veil",
+   "situacao": "criatura sua",
+   "espera": "marcador +1/+1 e antimagia até o fim do turno"
+  },
+  {
+   "carta": "Soaring Lightbringer",
+   "situacao": "você ataca",
+   "espera": "ficha Glimmer 1/1 virada e atacando; criaturas-encantamento suas voam"
+  },
+  {
+   "carta": "Solphim, Mayhem Dominus",
+   "situacao": "fonte sua causa 3 de dano fora de combate a um oponente",
+   "espera": "6 de dano; em combate não dobra"
+  },
+  {
+   "carta": "Song of the Worldsoul",
+   "situacao": "conjura uma mágica com ficha de criatura no campo",
+   "espera": "copia uma ficha de criatura sua"
+  },
+  {
+   "carta": "Sorin, Lord of Innistrad",
+   "situacao": "−6 em 3 criaturas",
+   "espera": "destrói e as 3 voltam ao campo sob seu controle"
+  },
+  {
+   "carta": "Southern Air Temple",
+   "situacao": "entra com 2 Shrines (ela inclusa); depois outro Shrine",
+   "espera": "2 marcadores em cada criatura sua; depois +1 em cada"
+  },
+  {
+   "carta": "Spara's Headquarters",
+   "situacao": "entra; ciclar {3}",
+   "espera": "virada; G, W ou U; ciclar compra 1"
+  },
+  {
+   "carta": "Spellseeker",
+   "situacao": "entra",
+   "espera": "pode buscar instantânea/feitiço de vm até 2, revela, mão"
+  },
+  {
+   "carta": "Spelunking",
+   "situacao": "entra; depois um terreno seu entra",
+   "espera": "compra 1 e pode pôr terreno da mão; terrenos entram desvirados (os 4 de vida da Cave são falta)"
+  },
+  {
+   "carta": "Spirited Companion",
+   "situacao": "entra",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Spiteful Sliver",
+   "situacao": "Sliver seu leva 3 de dano",
+   "espera": "3 de dano num jogador alvo"
+  },
+  {
+   "carta": "Spiteful Visions",
+   "situacao": "passo de compra de um jogador",
+   "espera": "compra 1 a mais; leva 1 por carta comprada"
+  },
+  {
+   "carta": "Splendid Reclamation",
+   "situacao": "resolve com 5 terrenos no cemitério",
+   "espera": "os 5 voltam virados"
+  },
+  {
+   "carta": "Spore Frog",
+   "situacao": "sacrifica",
+   "espera": "previne todo o dano de combate do turno"
+  },
+  {
+   "carta": "Springbloom Druid",
+   "situacao": "entra e sacrifica um terreno",
+   "espera": "busca até 2 básicos virados; sem sacrificar não busca"
+  },
+  {
+   "carta": "Springheart Nantuko",
+   "situacao": "terreno seu entra",
+   "espera": "ficha Insect 1/1 (concedido e cópia são falta)"
+  },
+  {
+   "carta": "Sram, Senior Edificer",
+   "situacao": "conjura Aura, Equipamento ou Veículo",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Starfield Mystic",
+   "situacao": "conjura encantamento; encantamento seu vai do campo ao cemitério",
+   "espera": "custa 1 a menos; marcador +1/+1"
+  },
+  {
+   "carta": "Starfield of Nyx",
+   "situacao": "sua manutenção",
+   "espera": "pode devolver encantamento do cemitério ao campo (as criaturas de 5+ são falta)"
+  },
+  {
+   "carta": "Starnheim Aspirant",
+   "situacao": "conjura um Anjo",
+   "espera": "custa 2 a menos"
+  },
+  {
+   "carta": "Steel Overseer",
+   "situacao": "vira",
+   "espera": "marcador +1/+1 em cada criatura-artefato sua"
+  },
+  {
+   "carta": "Steelshaper's Gift",
+   "situacao": "resolve",
+   "espera": "busca Equipamento, revela, mão"
+  },
+  {
+   "carta": "Step Through",
+   "situacao": "duas criaturas; ou cicla por Wizard {2}",
+   "espera": "as duas voltam à mão; ou busca um Wizard"
+  },
+  {
+   "carta": "Stitcher's Supplier",
+   "situacao": "entra e depois morre",
+   "espera": "moe 3 e moe 3"
+  },
+  {
+   "carta": "Stoneforge Mystic",
+   "situacao": "entra; {1}{W} e vira",
+   "espera": "busca Equipamento; põe Equipamento da mão no campo"
+  },
+  {
+   "carta": "Stormcatch Mentor",
+   "situacao": "conjura instantânea",
+   "espera": "custa 1 a menos; proeza +1/+1"
+  },
+  {
+   "carta": "Stormfist Crusader",
+   "situacao": "sua manutenção",
+   "espera": "cada jogador compra 1 e perde 1"
+  }
+ ]
+}

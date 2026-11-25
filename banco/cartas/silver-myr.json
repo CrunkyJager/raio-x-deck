@@ -1,0 +1,1 @@
+{"v":2,"n":"Silver Myr","id":"66e8f7f8-3a6d-46ba-837c-b9713ddf7f40","oracleHash":"d5ecce2f","custo":{"g":2},"vm":2,"ci":"U","cores":"","tipos":["Creature","Artifact"],"sub":["Myr"],"pt":[1,1],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco26.json"}}
