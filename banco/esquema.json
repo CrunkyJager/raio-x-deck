@@ -520,6 +520,10 @@
      "type": "boolean",
      "description": "objeto lembrado pelo efeito"
     },
+    "encantada": {
+      "type": "boolean",
+      "description": "com pelo menos uma Aura anexada (ex.: Calix)"
+    },
     "modificada": {
      "type": "boolean",
      "description": "equipada, encantada ou com marcador"

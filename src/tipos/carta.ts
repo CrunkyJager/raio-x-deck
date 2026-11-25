@@ -191,7 +191,13 @@ export type RxQtd =
       de?: string;
     }
   | {
-      ate: number | 'X';
+      ate: number | 'X' | 'qualquer';
+    }
+  | {
+      /**
+       * rola um dado de N lados (706); o resultado é a quantidade. O motor usa o RNG com semente; a análise usa a média (N+1)/2
+       */
+      dado: number;
     };
 
 /**
@@ -267,6 +273,10 @@ export interface RxFiltro {
    * objeto lembrado pelo efeito
    */
   lembrada?: boolean;
+  /**
+   * com pelo menos uma Aura anexada (ex.: Calix)
+   */
+  encantada?: boolean;
   /**
    * equipada, encantada ou com marcador
    */
@@ -572,7 +582,13 @@ export interface RxFx {
  */
 export interface RxToken {
   nome?: string;
-  pt?: number[];
+  /**
+   * P/R da ficha; contagem ou X vale o número no momento de criar (Assemble the Entmoot X/X)
+   *
+   * @minItems 2
+   * @maxItems 2
+   */
+  pt?: [number | RxQtd, number | RxQtd];
   cores?: string;
   tipos?: string[];
   sub?: string[];
@@ -608,6 +624,10 @@ export interface RxCond {
   vidaMax?: number;
   vidaMin?: number;
   conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  /**
+   * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
+   */
+  conjuradaNaPrincipal?: boolean;
   /**
    * a contagem q compara (min/max/igual)
    */
@@ -707,7 +727,8 @@ export interface RxKw {
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
-    | 'tumulto';
+    | 'tumulto'
+    | 'fusao';
   custo?: RxMana;
   n?: number;
   /**
@@ -933,6 +954,10 @@ export interface RxEst {
    * naoPodeSerBloqueada / naoPodeBloquear: filtro de QUEM bloqueia (Amrou Kithkin)
    */
   por?: RxFiltro;
+  /**
+   * subtipos que o continuo dá além dos tipos (Ashaya: tipo Land + sub Forest; 305.6/305.7)
+   */
+  sub?: string[];
 }
 
 /**
