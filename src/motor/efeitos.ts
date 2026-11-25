@@ -97,7 +97,7 @@ const fonteDado = (e, ctx) => {
   const it = e.objs[ctx.item];
   if (it && !it.hab) return M.dadoDe(e, it);
   if (it && it.hab && it.hab.ficha) return it.hab.ficha;
-  return ctx.lki.este ? M.carta(ctx.lki.este.n) : {};
+  return ctx.lki.este ? M.dadoFace(M.carta(ctx.lki.este.n), ctx.lki.este.face) : {};
 };
 
 // ---------- executar um efeito ----------
@@ -112,8 +112,9 @@ M.executar = (e, f, ctx, ask) => {
 // entrar no campo (CR 110.2: sob o controle de quem conjurou/pôs; 614.1c "entra virado"; 614.12 escolha ao entrar)
 // Em duas metades: decidirEntrada só pergunta (pode rodar de novo), aplicarEntrada mexe no estado.
 M.entrarPermanente = (e, id, ctrl, opc, ask) => M.aplicarEntrada(e, M.decidirEntrada(e, id, ctrl, opc, ask));
-M.decidirEntrada = (e, id, ctrl, { virada = false } = {}, ask) => {
-  const o = e.objs[id], d = M.dadoDe(e, o), ctx = { voce: ctrl, este: id };
+// face: a face que vai entrar para cima quando não é a de agora (terreno modal, 712.9); sem ela, a do objeto
+M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {}, ask) => {
+  const o = e.objs[id], d = face === undefined ? M.dadoDe(e, o) : M.dadoFace(M.carta(o.n), face), ctx = { voce: ctrl, este: id };
   let vir = virada, pagaVida = 0;
   const s = (d.subst || []).find(x => x.ev === 'entra' && x.muda && x.muda.virada && x.quem && x.quem.este);
   if (s && M.condicao(e, s.se, ctx)) {
@@ -145,11 +146,11 @@ M.decidirEntrada = (e, id, ctrl, { virada = false } = {}, ask) => {
       }
     }
   }
-  return { id, ctrl, vir, pagaVida, escolha };
+  return { id, ctrl, vir, pagaVida, escolha, face };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha }) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face }) => {
   if (pagaVida) e.jogs[ctrl].vida -= pagaVida;
-  const o = M.mover(e, id, 'campo', { virada: vir });
+  const o = M.mover(e, id, 'campo', { virada: vir, face });
   o.ctrl = ctrl; o.escolha = escolha;
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
@@ -239,6 +240,24 @@ const H = {
     },
   },
   virar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) o.virada = true; } },
+  // CR 701.27: vira para a outra face. Não é objeto novo (701.27c): ts, marcadores, dano e virada ficam.
+  // Só carta de dupla face (701.27d), nunca para uma face de instantânea/feitiço (701.27e), e a habilidade da própria
+  // permanente só transforma se ela não transformou desde que a habilidade foi para a pilha (701.27g).
+  transformar: {
+    fx(e, f, ctx) {
+      for (const o of objsDe(e, f, ctx)) {
+        const c = o.ficha ? null : M.carta(o.n);
+        if (!c || c.forma !== 'duplaFace' || !c.faces) continue;
+        const nova = o.face == null ? 0 : null, dn = M.dadoFace(c, nova);
+        if ((dn.tipos || []).some(t => t === 'Instant' || t === 'Sorcery')) continue;
+        const L = ctx.lki && ctx.lki.este;
+        if (f.em === 'este' && L && L.id === o.id && (L.transf || 0) !== (o.transf || 0)) continue;
+        o.face = nova; o.transf = (o.transf || 0) + 1;
+        M.log(e, o.n, 'transforma em', dn.n);
+        M.evento(e, { ev: 'transforma', id: o.id });
+      }
+    },
+  },
   desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) o.virada = false; } },
   descartar: {                                                      // CR 701.9: quem descarta escolhe
     qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira',

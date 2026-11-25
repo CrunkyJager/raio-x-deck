@@ -6,7 +6,8 @@ import { test } from 'vitest';
 import { M } from '../index';
 import { temCartasRx, cartasRx, exemplos } from './cartas';
 import { bancoProprio, comReserva, anotandoFaltas } from '../../dados/cartas';
-const banco = anotandoFaltas(bancoProprio());
+import { comCenaFaces } from './faces-cena';
+const banco = anotandoFaltas(comCenaFaces(bancoProprio()));   // T43 faces: o que falta no banco para os casos de faces
 M.usarCartas(banco.db);
 
 const casos: any[] = [];
@@ -785,6 +786,100 @@ caso('106.7', "prod 'deSeusTerrenos' (Incubation Druid): tipos que terrenos SEUS
   igual(M.coresDeProd(e, objN(e, 0, 'Incubation Druid'), 'deSeusTerrenos'), ['G', 'C']);
   const f = cena({ campo: [[0, 'Incubation Druid'], [1, 'Mountain']] });
   igual(M.coresDeProd(f, objN(f, 0, 'Incubation Druid'), 'deSeusTerrenos'), []);
+});
+
+// ---------- cartas de mais de uma face (T43 faces; cartas do banco + testes/faces-cena.ts) ----------
+const naMao = (e, j, n) => e.objs[e.jogs[j].zonas.mao.find(id => e.objs[id].n === n)];
+caso('712.9', 'modal: joga a face de terreno (Bala Ged Sanctuary), entra virada e conta como a jogada de terreno', () => {
+  const e = cena({ mao: [[0, 'Bala Ged Recovery'], [0, 'Forest']] });
+  const c = naMao(e, 0, 'Bala Ged Recovery');
+  M.avancar(e);
+  igual(opsDe(e, 'terreno').filter(o => o.id === c.id).map(o => o.face ?? null), [0], 'só a face de terreno');
+  igual(opsDe(e, 'conjurar').length, 0, 'sem carta no cemitério a frente não tem alvo');
+  respE(e, o => o.a === 'terreno' && o.id === c.id);
+  ok(c.zona === 'campo' && c.face === 0, 'entrou com a face de terreno');
+  igual(M.dadoDe(e, c).n, 'Bala Ged Sanctuary'); ok(M.temTipo(e, c, 'Land') && c.virada, 'terreno virado');
+  igual(e.jogs[0].terrenos, 1);
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'terreno').length, 0, 'a Forest não entra mais');
+  M.mover(e, c.id, 'mao');
+  ok(c.face === null && M.temTipo(e, c, 'Sorcery'), 'fora do campo volta à frente (712.6a)');
+});
+caso('712.8b', 'modal: conjura a frente (Bala Ged Recovery) sem gastar a jogada de terreno', () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest'], [0, 'Forest'], [0, 'Grizzly Bears', { zona: 'cemiterio' }]], mao: [[0, 'Bala Ged Recovery']] });
+  const c = naMao(e, 0, 'Bala Ged Recovery');
+  M.avancar(e);
+  respE(e, o => o.a === 'conjurar' && o.id === c.id && o.face === undefined);
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Grizzly Bears'], 'o Bears voltou para a mão');
+  ok(c.zona === 'cemiterio' && c.face === null, 'feitiço vai ao cemitério com a frente');
+  igual(e.jogs[0].terrenos, 0);
+});
+caso('701.27', "dupla face: Legion's Landing transforma com 3 atacantes; mesmo objeto, marcadores ficam (701.27c)", () => {
+  const e = combate([[0, "Legion's Landing"], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']]);
+  const L = objN(e, 0, "Legion's Landing"); L.marc.teste = 1; const ts = L.ts;
+  ate(e, 'atacar');
+  for (const id of e.campo.filter(id => e.objs[id].n === 'Grizzly Bears')) atacaCom(e, e.objs[id]);
+  fecha(e, 'atacar');
+  ateFimCombate(e);
+  ok(L.zona === 'campo' && L.face === 0, 'transformou'); igual(M.dadoDe(e, L).n, 'Adanto, the First Fort');
+  ok(M.temTipo(e, L, 'Land') && !M.temTipo(e, L, 'Enchantment'), 'só as características da face de trás (712.6d)');
+  igual(L.ts, ts, 'não é objeto novo'); igual(L.marc.teste, 1, 'marcador ficou');
+  igual(M.dadoDe(e, L).vm, 1, 'valor de mana da frente (712.6d)');
+});
+caso('701.27', "dupla face: com 2 atacantes Legion's Landing não transforma", () => {
+  const e = combate([[0, "Legion's Landing"], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']]);
+  const L = objN(e, 0, "Legion's Landing");
+  ate(e, 'atacar');
+  for (const id of e.campo.filter(id => e.objs[id].n === 'Grizzly Bears')) atacaCom(e, e.objs[id]);
+  fecha(e, 'atacar');
+  ateFimCombate(e);
+  ok(L.face == null && M.temTipo(e, L, 'Enchantment'), 'continua a frente');
+});
+caso('716.3d', 'aventura: Heart’s Desire cria a ficha, a carta vai ao exílio e de lá se conjura a criatura', () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest'], [0, 'Forest'], [0, 'Forest']], mao: [[0, 'Lovestruck Beast']] });
+  const c = naMao(e, 0, 'Lovestruck Beast');
+  M.avancar(e);
+  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), [null, 0], 'criatura ou Aventura (716.3)');
+  respE(e, o => o.a === 'conjurar' && o.id === c.id && o.face === 0);
+  ok(c.zona === 'exilio' && c.aventura === 0, 'exilada pela aventura, não no cemitério');
+  igual(noCampo(e).filter(n => n === 'Human Token').length, 1, 'a ficha 1/1');
+  M.avancar(e);
+  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), [null], 'do exílio só a criatura');
+  respE(e, o => o.a === 'conjurar' && o.id === c.id);
+  ok(c.zona === 'campo' && c.face === null && c.aventura === null, 'a criatura entrou');
+  igual(M.poder(e, c), 5);
+});
+caso('716.3a', 'aventura: só a face anunciada é avaliada (Stomp sem efeito lido não aparece; o gigante sim)', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Bonecrusher Giant']] });
+  const c = naMao(e, 0, 'Bonecrusher Giant');
+  M.avancar(e);
+  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), [null]);
+});
+caso('709.3', 'split: escolhe uma metade (Ice); na pilha só ela existe (709.3b); no cemitério, a carta inteira', () => {
+  const e = cena({ campo: [[0, 'Island'], [0, 'Mountain'], [1, 'Forest']], mao: [[0, 'Fire']] });
+  const c = naMao(e, 0, 'Fire'), mao0 = e.jogs[0].zonas.mao.length;
+  M.avancar(e);
+  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), [0], 'Fire divide à escolha (T16): só Ice');
+  igual(M.dadoFace(M.carta('Fire'), 0).cores, 'U', 'cores de Ice: as do custo dela');
+  igual(M.dadoFace(M.carta('Fire'), 'esq').vm, 2, 'Fire sozinha vale 2');
+  respE(e, o => o.a === 'conjurar' && o.id === c.id);
+  if (e.perg && e.perg.tipo === 'alvo') respE(e, o => o.a === 'alvo' && e.objs[o.o] && e.objs[o.o].ctrl === 1);
+  const f = objN(e, 1, 'Forest');
+  ok(f.virada, 'Ice virou a Forest do oponente');
+  igual(e.jogs[0].zonas.mao.length, mao0, 'comprou 1 (a Fire saiu, entrou 1)');
+  ok(c.zona === 'cemiterio' && c.face === null, 'no cemitério com as duas metades (709.4)');
+});
+caso('702.102', 'fusão: Wear // Tear da mão paga as duas e resolve a esquerda e depois a direita', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Plains'], [0, 'Wastes'], [1, 'Sol Ring'], [1, 'Propaganda']], mao: [[0, 'Wear']] });
+  const c = naMao(e, 0, 'Wear');
+  M.avancar(e);
+  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), ['esq', 0, 'fundida']);
+  igual(M.dadoFace(M.carta('Wear'), 'fundida').fx.map(f => f.em.alvo), [0, 1], 'alvos de Tear depois dos de Wear');
+  respE(e, o => o.a === 'conjurar' && o.id === c.id && o.face === 'fundida');
+  ok(!noCampo(e).includes('Sol Ring') && !noCampo(e).includes('Propaganda'), 'destruiu os dois');
+  ok(e.campo.filter(id => e.objs[id].ctrl === 0).every(id => e.objs[id].virada), 'pagou {1}{R}{W}');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Plains'], [0, 'Wastes'], [1, 'Sol Ring'], [1, 'Propaganda']], mao: [[0, 'Wear']] });
+  M.mover(f, naMao(f, 0, 'Wear').id, 'cemiterio');
+  igual(M.facesParaConjurar(f, 0, f.objs[f.jogs[0].zonas.cemiterio[0]]), ['esq', 0], 'fusão só da mão');
 });
 
 // ---------- rodar ----------

@@ -151,16 +151,18 @@ M.terrenosPorTurno = terrenosPorTurno;
 
 // jogar terreno (CR 305.1: ação especial, não usa a pilha). "Entra virado" (CR 614.1c) e escolha ao entrar em
 // M.decidirEntrada (efeitos.js), que pergunta pelo processo.
+// Carta modal (712.9): P.face = a face de terreno escolhida, que entra para cima; conta como a jogada de terreno.
 M.PROC.terreno = (e, P, ask) => {
   const j = P.j, o = e.objs[P.id];
-  if (!(o.zona === 'mao' || M.podeJogarDe(e, j, o)) || o.dono !== j || !M.temTipo(e, o, 'Land')) throw new Error('terreno ilegal');
-  const plano = M.decidirEntrada(e, P.id, j, {}, ask);
+  const terra = P.face === undefined ? M.temTipo(e, o, 'Land') : M.faceTerreno(e, o);
+  if (!(o.zona === 'mao' || M.podeJogarDe(e, j, o)) || o.dono !== j || !terra) throw new Error('terreno ilegal');
+  const plano = M.decidirEntrada(e, P.id, j, P.face === undefined ? {} : { face: P.face }, ask);
   e.proc = null;
   e.jogs[j].terrenos++;
   M.aplicarEntrada(e, plano);
   M.agiu(e, j);                                                     // CR 117.3c
 };
-const jogarTerreno = (e, j, id) => M.iniciarProc(e, { tp: 'terreno', j, id });
+const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });
 M.jogarTerreno = jogarTerreno;
 
 // ---------- respostas ----------
@@ -169,9 +171,9 @@ const RESP = {
   fundo(e, p, op) { M.mover(e, op.id, 'grimorio', { topo: false }); e.mull.fundo[p.j]--; },
   acao(e, p, op) {
     if (op.a === 'passar') M.passar(e);
-    else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id);
+    else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id, op.face);
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
-    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id);
+    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
   },
   descartar(e, p, op) {

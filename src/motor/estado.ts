@@ -15,7 +15,38 @@ M.carta = n => {
   if (!c) throw new Error('carta fora da base RX: ' + n);
   return c;
 };
-M.dadoDe = (e, o) => o.ficha ? o.ficha : M.carta(o.n);   // ficha leva o próprio dado
+// ficha leva o próprio dado; carta de mais de uma face devolve a face que está para cima (o.face)
+M.dadoDe = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
+
+// ---- faces (CR 709 split, 712 dupla face e modal, 716 aventura) ----
+// No banco: os campos de cima são a frente (ou a metade esquerda / a criatura da aventura) e faces[0] é a outra.
+// o.face: undefined/null = frente; 0 = faces[0]; na pilha um split pode estar 'esq' (só a metade esquerda, 709.3b)
+// ou 'fundida' (as duas, 702.102b). Fora da pilha e do campo a carta tem só a frente (712.6a, 716.4) — o mover zera.
+const coresDoCusto = custo => CORES.filter(c => JSON.stringify((custo && custo.p) || []).includes(c)).join('');
+// os alvos da metade direita vêm depois dos da esquerda na mágica fundida: {alvo: N} anda N + deslocamento
+const deslocaAlvos = (v, d) => Array.isArray(v) ? v.map(x => deslocaAlvos(x, d))
+  : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, k === 'alvo' && typeof x === 'number' ? x + d : deslocaAlvos(x, d)])) : v;
+const FACES = new WeakMap<object, Map<any, any>>();
+M.dadoFace = (c, face) => {
+  if (face == null || !c.faces) return c;
+  let m = FACES.get(c); if (!m) FACES.set(c, (m = new Map()));
+  if (m.has(face)) return m.get(face);
+  const { faces, ...frente } = c, f = faces[0] || {};
+  let d;
+  if (face === 'esq') d = { ...frente, vm: M.vmDe(c.custo || {}), cores: coresDoCusto(c.custo) };   // 709.3b
+  else if (face === 'fundida') {                                                                   // 702.102b–d
+    const n = (c.alvos || []).length;
+    d = { ...frente, custo: M.somaCusto(c.custo || {}, f.custo || {}), alvos: [...(c.alvos || []), ...(f.alvos || [])],
+      fx: [...(c.fx || []), ...deslocaAlvos(f.fx || [], n)], vm: c.vm };
+  } else {
+    // 712.6d: dupla face que transforma tem o valor de mana da frente; modal, aventura e split, o da própria face
+    const vm = c.forma === 'duplaFace' ? (c.vm || 0) : f.vm ?? (f.custo ? M.vmDe(f.custo) : 0);
+    d = { ...f, ci: c.ci, vm, ...(c.forma === 'split' ? { cores: coresDoCusto(f.custo) } : {}) };
+  }
+  m.set(face, d);
+  return d;
+};
+M.formaDe = (e, o) => (o.ficha ? null : M.carta(o.n).forma) || null;
 
 // ---- sorteio determinístico (mulberry32; o estado guarda a semente, clone repete a sorte) ----
 M.aleat = e => {
@@ -80,13 +111,16 @@ M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilh
 // CR 903.3), mas timestamp novo e o estado do campo zera. Ficha fora do campo deixa de existir (CR 704.5d, nas ABE).
 // CR 903.9b (comandante iria para mão/grimório → pode ir ao comando): escolha do dono; por ora sempre aceita
 // (pergunta de substituição entra na T19).
-M.mover = (e, id, zona, { topo = true, virada = false }: any = {}) => {
+// Face: entra no campo com a face que estava na pilha (712.10) ou a pedida (terreno modal, 712.9); de outra zona,
+// com a frente (712.11). Em qualquer outra zona volta à frente (712.6a, 716.4) e perde a permissão da aventura.
+M.mover = (e, id, zona, { topo = true, virada = false, face = undefined }: any = {}) => {
   const o = e.objs[id];
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
   const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
   const de = M.listaDe(e, o), k = de.indexOf(id);
   if (k >= 0) de.splice(k, 1);
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null });
+  const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null });
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
