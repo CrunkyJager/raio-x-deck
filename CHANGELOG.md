@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.38.0 — 25/11/2026 · decks do Edigar: Ivora 71/75 no motor, masmorras no banco
+Testes: valida 1753/0 · check 0 erros · Vitest 219/219 · testa 161/161 · verifica verde · build ok.
+- **Motor (A):** jogar carta de outro lugar, lutar, modal em gatilho, recapitular, proeza, parceiro, gatilhos de/não de/a oponente, modificar até o fim do turno (Key to the City, Wedding Invitation, Witch's Mark), laço obrigatório (104.4b). Ivora: faltam Anger, Brotherhood Regalia, Cool but Rude e Clive.
+- **Banco (B):** 69 cartas do deck de masmorras (81/81 no banco) e 28 casos de teste para o motor (iniciativa, masmorra, completou, infectar). O motor ainda não faz masmorra, iniciativa nem antecedente.
+- Patch T44 (analise lê o banco) continua fora da main até a medida dos 30 decks.
+
 ## v0.37.1 — 25/11/2026 · textos da Mesa mais claros
 Testes: check (motor) ok · Vitest 210/210.
 - **Mesa:** a pergunta do comandante diz qual é a carta, e as opções dizem para onde ela vai ("Deixar no cemitério/exílio" × "Mandar de volta para a zona de comando"). Só a opção segura fica destacada. A regra da lenda diz qual fica e que a outra vai para o cemitério. A escolha de modo mostra o efeito de cada modo, e o botão "Recarregar motor" só aparece com `?dev=1`.

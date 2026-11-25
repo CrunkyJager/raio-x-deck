@@ -1,4 +1,4 @@
-# Linha de base do plano (T06, 2026-11-23)
+# Linha de base do plano (T06, 2026-11-25)
 
 Gabarito: `planos.json` (T05 23/11/2026 (21 duvidosos revisados pelo Felipe)), 109 comandantes.
 Sistema medido: `planoDe` + temas do comandante (`themesOf`) em `analise.js`, **só o comandante** (sem as 99).
