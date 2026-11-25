@@ -1043,6 +1043,75 @@ caso('603.10a', 'habilidade dada olha para trás: o Constricting Sliver que sai 
   ok(!M.gatDe(e, snap).some(g => g.ev === 'sai'), 'sem o lote, a fonte já saiu');
 });
 
+// fila do motor (depois da T22): op cavar — olhar/revelar do topo, pegar o que bate, o resto para outra zona
+const topoN = (e, j, n) => e.jogs[j].zonas.grimorio.slice(-n).reverse().map(id => e.objs[id].n);   // do topo para baixo
+const fundoN = (e, j, n) => e.jogs[j].zonas.grimorio.slice(0, n).map(id => e.objs[id].n);
+const ctxDe = (e?) => ({ voce: 0, este: undefined, alvos: [], ilegal: {}, lki: {}, item: undefined });
+caso('701.16', 'cavar: Grisly Salvage revela 5, pega 1 criatura/terreno para a mão, o resto vai ao cemitério', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Wastes', 'Llanowar Elves', 'Wastes', 'Wastes']) e.por(0, n, { zona: 'grimorio' });   // o último fica no topo
+  const g0 = e.jogs[0].zonas.grimorio.length, vistos: any[] = [];
+  M.executar(e, M.carta('Grisly Salvage').fx[0], ctxDe(e), (j, tipo, ops) => { vistos.push(tipo); return ops.find(o => o.a === 'cavar' && e.objs[o.id].n === 'Llanowar Elves') || ops[0]; });
+  igual(vistos, ['cavar'], 'uma pergunta (o "pode" fica dentro do cavar)');
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Llanowar Elves']);
+  igual(e.jogs[0].zonas.cemiterio.map(id => e.objs[id].n).sort(), ['Forest', 'Wastes', 'Wastes', 'Wastes']);
+  igual(e.jogs[0].zonas.grimorio.length, g0 - 5);
+  ok(M.fxSuportado(M.carta('Grisly Salvage').fx), 'o motor oferece a carta');
+});
+caso('701.16', 'cavar com "pode": não pegar nada ainda manda as 5 ao cemitério', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Wastes', 'Wastes', 'Wastes', 'Wastes']) e.por(0, n, { zona: 'grimorio' });
+  M.executar(e, M.carta('Grisly Salvage').fx[0], ctxDe(e), (j, tipo, ops) => ops.find(o => o.a === 'nenhum') || ops[0]);
+  igual(e.jogs[0].zonas.mao.length, 0);
+  igual(e.jogs[0].zonas.cemiterio.length, 5);
+});
+caso('701.16', 'cavar: Sea Gate Oracle olha 2, uma na mão, a outra no fundo', () => {
+  const e = cena();
+  e.por(0, 'Forest', { zona: 'grimorio' }); e.por(0, 'Island', { zona: 'grimorio' });
+  M.executar(e, M.carta('Sea Gate Oracle').gat[0].fx[0], ctxDe(e), (j, tipo, ops) => ops.find(o => o.a === 'cavar' && e.objs[o.id].n === 'Forest') || ops[0]);
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Forest']);
+  igual(fundoN(e, 0, 1), ['Island']);
+  igual(topoN(e, 0, 1), ['Wastes']);
+});
+caso('701.16', 'cavar com destinos: Expressive Iteration — 1 na mão, 1 no exílio, 1 no fundo', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Island', 'Mountain']) e.por(0, n, { zona: 'grimorio' });   // topo: Mountain
+  M.executar(e, M.carta('Expressive Iteration').fx[0], ctxDe(e), (j, tipo, ops, c) => {
+    igual(tipo, 'destino');
+    return ops.find(o => o.a === 'destino' && e.objs[o.id].n === (c.para === 'mao' ? 'Island' : 'Mountain'));
+  });
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Island']);
+  igual(e.jogs[0].zonas.exilio.map(id => e.objs[id].n), ['Mountain']);
+  igual(fundoN(e, 0, 1), ['Forest']);
+});
+caso('701.16', 'cavar até achar: Empty the Laboratory com X=2 revela até 2 Zumbis, põe no campo, o resto no fundo', () => {
+  const e = cena({ campo: [[0, 'Gravecrawler'], [0, 'Gravecrawler']] });
+  for (const n of ['Wastes', 'Gravecrawler', 'Forest', 'Feral Ghoul', 'Island']) e.por(0, n, { zona: 'grimorio' });   // topo: Island
+  const c = { ...ctxDe(e), x: 2 };
+  for (const f of M.carta('Empty the Laboratory').fx) M.executar(e, f, c, (j, tipo, ops) => ops.find(o => o.a !== 'nenhum') || ops[0]);
+  igual(e.jogs[0].zonas.cemiterio.map(id => e.objs[id].n), ['Gravecrawler', 'Gravecrawler'], 'sacrificou os 2');
+  igual(e.campo.map(id => e.objs[id].n).sort(), ['Feral Ghoul', 'Gravecrawler'], 'achou 2 Zumbis');
+  igual(fundoN(e, 0, 2).sort(), ['Forest', 'Island'], 'os outros revelados no fundo');
+  igual(topoN(e, 0, 1), ['Wastes'], 'parou no 2º Zumbi');
+  ok(M.fxSuportado(M.carta('Empty the Laboratory').fx), 'o motor oferece a carta');
+});
+caso('701.16', 'cavar: Risen Reef — terreno do topo entra virado; se não for terreno (ou não quiser), vai para a mão', () => {
+  const e = cena();
+  e.por(0, 'Forest', { zona: 'grimorio' });
+  M.executar(e, M.carta('Risen Reef').gat[0].fx[0], ctxDe(e), (j, tipo, ops) => ops.find(o => o.a === 'destino') || ops[0]);
+  const f = objN(e, 0, 'Forest'); ok(f && f.virada, 'Forest no campo virada');
+  e.por(0, 'Llanowar Elves', { zona: 'grimorio' });
+  M.executar(e, M.carta('Risen Reef').gat[0].fx[0], ctxDe(e), (j, tipo, ops) => ops[0]);
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n), ['Llanowar Elves']);
+});
+caso('701.16', 'cavar: Ponder olha 3 e devolve no topo na mesma ordem (pega 0)', () => {
+  const e = cena();
+  for (const n of ['Forest', 'Island', 'Mountain']) e.por(0, n, { zona: 'grimorio' });
+  const fx = M.carta('Ponder').fx.find(f => f.op === 'cavar');
+  M.executar(e, fx, ctxDe(e), (j, tipo, ops) => ops[0]);
+  igual(topoN(e, 0, 3), ['Mountain', 'Island', 'Forest']);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

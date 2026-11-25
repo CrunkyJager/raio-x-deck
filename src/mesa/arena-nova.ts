@@ -273,7 +273,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
             const j = it ? it.ctrl : ctx.voce, ci = it && !it.hab ? iDe(it) : nomeObj(fonte, j);
             // um lance por efeito: "Lightning Bolt: Grizzly Bears leva 3 de dano; Grizzly Bears morre"
             const tp = fs.some(x => x.tp === 'morte') ? 'remo' : fs.every(x => x.tp === 'camada') ? 'camada' : fs.every(x => x.tp === 'compra') ? 'compra' : 'efeito';
-            diz(j, tp, `${fonte}: ${fs.map(x => x.txt).join('; ')}`, ci, fs.find(x => x.a >= 0 && x.a !== j)?.a ?? -1);
+            const semFonte = (t: string) => fonte && t.startsWith(fonte + ': ') ? t.slice(fonte.length + 2) : t;   // "Elenda: 1/1 → 2/2", não "Elenda: Elenda: …"
+            diz(j, tp, `${fonte}: ${fs.map(x => semFonte(x.txt)).join('; ')}`, ci, fs.find(x => x.a >= 0 && x.a !== j)?.a ?? -1);
           }
         }
       }
