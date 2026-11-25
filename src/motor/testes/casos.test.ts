@@ -1612,6 +1612,17 @@ caso('611.2b', "efeitoTemporario até o fim do turno: Rogue's Passage (o alvo n�
   ateTurno(e, 3, 'manutencao');
   igual([M.bloqueiaEste(e, hg, gb), M.podeBloquear(e, hg, 1), (e.efTemp || []).length], [true, true, 0], 'acabou na limpeza');
 });
+caso('611.2c', "modificar com estática de regra até o fim do turno (Key to the City, Wedding Invitation): o alvo preso não pode ser bloqueado", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant']] });
+  const [gb, le, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 0, 'Llanowar Elves'), objN(e, 1, 'Hill Giant')];
+  const fx = [{ op: 'modificar', em: { alvo: 0 }, est: [{ modo: 'naoPodeSerBloqueada', afeta: 'este' }], dura: 'fimDoTurno' }];
+  ok(M.fxSuportado(fx, { topo: false }));
+  ok(!M.fxSuportado([{ op: 'modificar', em: { alvo: 0 }, est: [{ modo: 'naoPodeSerBloqueada', afeta: 'este', x: 1 }], dura: 'fimDoTurno' }], { topo: false }), 'campo desconhecido: recusa');
+  M.executar(e, fx[0], { voce: 0, alvos: [[{ o: gb.id, ts: gb.ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([M.bloqueiaEste(e, hg, gb), M.bloqueiaEste(e, hg, le)], [false, true]);
+  ateTurno(e, 3, 'manutencao');
+  igual(M.bloqueiaEste(e, hg, gb), true, 'a limpeza tira (514.2)');
+});
 
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
   const e = cena({ campo: terras(2, 'Wastes') });
