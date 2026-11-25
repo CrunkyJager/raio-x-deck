@@ -53,8 +53,11 @@ def nossas():
     """nome → caminho das cartas já escritas"""
     out = {}
     for a in glob.glob(os.path.join(BANCO, 'cartas', '*.json')):
-        try: out[json.load(open(a))['n']] = a
-        except Exception: pass
+        try: c = json.load(open(a))
+        except Exception: continue
+        out[c['n']] = a
+        if c.get('faces'):  # carta de duas faces: a fila usa o nome do Scryfall "A // B"
+            out[' // '.join([c['n']] + [f['n'] for f in c['faces']])] = a
     return out
 
 TIPOS = ['Kindred', 'Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Instant', 'Sorcery', 'Battle']

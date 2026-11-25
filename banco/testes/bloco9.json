@@ -1,0 +1,253 @@
+{
+ "bloco": "bloco9",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 401–450, escritas do Oracle; mesmo formato do bloco1.json",
+ "casos": [
+  {
+   "carta": "Archaeomancer",
+   "situacao": "entra com Lightning Bolt no seu cemitério",
+   "espera": "Lightning Bolt volta para a mão"
+  },
+  {
+   "carta": "Archaeomancer's Map",
+   "situacao": "entra",
+   "espera": "busca até 2 Plains básicas, revela, põe na mão e embaralha"
+  },
+  {
+   "carta": "Archaeomancer's Map",
+   "situacao": "oponente joga terreno; Plains na sua mão",
+   "espera": "pode pôr a Plains no campo (escrito sem a condição de ter mais terrenos)"
+  },
+  {
+   "carta": "Archangel of Thune",
+   "situacao": "ataca e causa 5 de dano (vínculo)",
+   "espera": "um ganho de vida: cada criatura sua ganha um marcador +1/+1"
+  },
+  {
+   "carta": "Archangel of Tithes",
+   "situacao": "desvirada; oponente ataca você com 3 criaturas",
+   "espera": "ele paga {3} ou não ataca"
+  },
+  {
+   "carta": "Archangel of Tithes",
+   "situacao": "virada; oponente ataca",
+   "espera": "ataque sem custo"
+  },
+  {
+   "carta": "Archfiend of Despair",
+   "situacao": "oponente perdeu 7 no turno",
+   "espera": "na etapa final ele perde mais 7"
+  },
+  {
+   "carta": "Archmage Emeritus",
+   "situacao": "conjura uma instantânea e a copia",
+   "espera": "compra 2 (conjurar e copiar contam)"
+  },
+  {
+   "carta": "Archmage of Echoes",
+   "situacao": "conjura uma criatura Wizard",
+   "espera": "copia a mágica; a cópia vira ficha"
+  },
+  {
+   "carta": "Archmage of Echoes",
+   "situacao": "conjura uma instantânea Wizard (Kindred)",
+   "espera": "não copia: só mágica de permanente"
+  },
+  {
+   "carta": "Archon of Sun's Grace",
+   "situacao": "entra um encantamento seu",
+   "espera": "ficha Pegasus 2/2 voadora, com vínculo"
+  },
+  {
+   "carta": "Army of the Damned",
+   "situacao": "conjura do cemitério por {7}{B}{B}{B}",
+   "espera": "13 Zombies 2/2 virados; exila"
+  },
+  {
+   "carta": "Artifact Mutation",
+   "situacao": "destrói Sol Ring (valor de mana 1)",
+   "espera": "1 Saproling 1/1"
+  },
+  {
+   "carta": "Arwen, Weaver of Hope",
+   "situacao": "Arwen 2/1 (resistência 1); outra criatura sua entra",
+   "espera": "entra com 1 marcador +1/+1 (se a resistência da Arwen subir, mais)"
+  },
+  {
+   "carta": "Asceticism",
+   "situacao": "oponente mira sua criatura",
+   "espera": "não pode: antimagia (as suas criaturas ainda podem ser alvo seu)"
+  },
+  {
+   "carta": "Ashaya, Soul of the Wild",
+   "situacao": "7 terrenos; 3 criaturas não-ficha",
+   "espera": "Ashaya 10/10 (contam as criaturas, que viram Forest)"
+  },
+  {
+   "carta": "Assemble the Entmoot",
+   "situacao": "ganhou 6 de vida no turno; sacrifica",
+   "espera": "3 Treefolk virados 0/0 com 6 marcadores +1/+1 e alcance"
+  },
+  {
+   "carta": "Atarka, World Render",
+   "situacao": "ataca com 2 Dragões",
+   "espera": "os dois ganham golpe duplo"
+  },
+  {
+   "carta": "Athreos, God of Passage",
+   "situacao": "devoção W/B 4",
+   "espera": "não é criatura"
+  },
+  {
+   "carta": "Athreos, God of Passage",
+   "situacao": "criatura sua morre; oponente alvo não paga 3 vidas",
+   "espera": "a carta volta para a sua mão"
+  },
+  {
+   "carta": "Aura Shards",
+   "situacao": "entra criatura sua",
+   "espera": "pode destruir artefato ou encantamento alvo"
+  },
+  {
+   "carta": "Authority of the Consuls",
+   "situacao": "criatura do oponente entra",
+   "espera": "entra virada e você ganha 1"
+  },
+  {
+   "carta": "Avacyn, Angel of Horror",
+   "situacao": "criatura não-ficha sua morre",
+   "espera": "volta ao campo no início da próxima etapa final"
+  },
+  {
+   "carta": "Avacyn, Angel of Horror",
+   "situacao": "ficha sua morre",
+   "espera": "não volta"
+  },
+  {
+   "carta": "Awaken the Honored Dead",
+   "situacao": "capítulo III",
+   "espera": "pode descartar 1; se descartar, criatura/terreno alvo do cemitério volta à mão"
+  },
+  {
+   "carta": "Azami, Lady of Scrolls",
+   "situacao": "vira 2 Wizards desvirados",
+   "espera": "compra 2"
+  },
+  {
+   "carta": "Bag End Banquet",
+   "situacao": "entra; vira",
+   "espera": "3 Foods; produz {C}{C}{C}"
+  },
+  {
+   "carta": "Baleful Mastery",
+   "situacao": "conjura por {1}{B}",
+   "espera": "exila criatura/planeswalker; o oponente compra 1 (escrito: compra também pelo custo normal)"
+  },
+  {
+   "carta": "Banquet Guests",
+   "situacao": "X=2, 2 Foods",
+   "espera": "custa 2 a menos e entra com 4 marcadores +1/+1"
+  },
+  {
+   "carta": "Bard, King of Dale",
+   "situacao": "cria 1 Treasure",
+   "espera": "cria 2"
+  },
+  {
+   "carta": "Barret, Avalanche Leader",
+   "situacao": "entra um Equipamento seu",
+   "espera": "ficha Rebel 2/2"
+  },
+  {
+   "carta": "Basalt Ravager",
+   "situacao": "5 Goblins e 2 Elfos",
+   "espera": "5 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Bastion of Remembrance",
+   "situacao": "criatura sua morre com 3 oponentes",
+   "espera": "cada oponente perde 1, você ganha 1"
+  },
+  {
+   "carta": "Battle Hymn",
+   "situacao": "6 criaturas suas",
+   "espera": "{R}×6"
+  },
+  {
+   "carta": "Battle at the Helvault",
+   "situacao": "capítulo I",
+   "espera": "exila permanentes não-terreno não-Saga alvo até a Saga sair"
+  },
+  {
+   "carta": "Battle at the Helvault",
+   "situacao": "capítulo III",
+   "espera": "Avacyn 8/8 lendária voadora, vigilância, indestrutível"
+  },
+  {
+   "carta": "Baylen, the Haymaker",
+   "situacao": "vira 4 fichas",
+   "espera": "3 marcadores +1/+1 e atropelar até o fim do turno"
+  },
+  {
+   "carta": "Behemoth Sledge",
+   "situacao": "equipa {3}",
+   "espera": "+2/+2, atropelar e vínculo"
+  },
+  {
+   "carta": "Bello, Bard of the Brambles",
+   "situacao": "seu turno; Sol Ring não; Gilded Lotus (vm 5)",
+   "espera": "o Lotus é criatura 4/4 indestrutível com pressa"
+  },
+  {
+   "carta": "Benthic Biomancer",
+   "situacao": "{1}{U} sem marcador",
+   "espera": "marcador +1/+1, compra e descarta"
+  },
+  {
+   "carta": "Beregond of the Guard",
+   "situacao": "entra um Human seu",
+   "espera": "suas criaturas +1/+1 e vigilância"
+  },
+  {
+   "carta": "Berserkers' Onslaught",
+   "situacao": "ataca com 3",
+   "espera": "as 3 têm golpe duplo"
+  },
+  {
+   "carta": "Bilbo, Birthday Celebrant",
+   "situacao": "ganha 3",
+   "espera": "ganha 4"
+  },
+  {
+   "carta": "Bilbo, Fellow Conspirator",
+   "situacao": "cria Food",
+   "espera": "cria Food e Treasure"
+  },
+  {
+   "carta": "Binding the Old Gods",
+   "situacao": "capítulo II",
+   "espera": "Forest do grimório entra virada"
+  },
+  {
+   "carta": "Birgi, God of Storytelling",
+   "situacao": "conjura uma mágica",
+   "espera": "adiciona {R}"
+  },
+  {
+   "carta": "Birgi, God of Storytelling",
+   "situacao": "face Harnfel: descarta 1",
+   "espera": "exila as 2 do topo; pode jogá-las neste turno"
+  },
+  {
+   "carta": "Bishop of Wings",
+   "situacao": "Angel seu morre",
+   "espera": "ficha Spirit 1/1 voadora"
+  },
+  {
+   "carta": "Black Market Connections",
+   "situacao": "primeira fase principal; escolhe os 3 modos",
+   "espera": "Treasure, compra 1, Shapeshifter 3/2; perde 6"
+  }
+ ]
+}
