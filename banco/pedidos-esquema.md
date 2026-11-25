@@ -388,9 +388,17 @@ Decisão do FARSEER (25/11), correção 17: fundir (op `fundir` + forma `fundir`
 
 | # | falta | cartas | proposta | decisão |
 |---|---|---|---|---|
-| 1 | descartadas no turno / "discarded this way" | Change of Fortune, Misty Knight (no turno); Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb (escritas com `lembrados`) | conta `descartadasNoTurno`; confirmar que `descartar` grava `lembrados` | |
-| 2 | gatilhos que faltam | ciclar (Magmakin), subir de nível de Classe (Cool but Rude nv3; já Caretaker's Talent), desvirar (Key to the City; já Mesmeric Orb), jogar terreno (Shadow of the Goblin) | ev `cicla`, `nivel`, `desvira`, `jogaTerreno` | |
-| 3 | "outro alvo" / "cada outro oponente" | Markov Retribution (another target creature), Kediss (each other opponent); junto com a Chandra's Ignition (`outro`) | alvo `diferenteDe: i`; jogador `outrosOponentes` (≠ doEvento) | |
-| 4 | dar palavra-chave a carta fora do campo | Falkenrath Gorger (loucura = custo de mana dela); Tectonic Reformation foi escrita como est continuo na mão | `kw.custo: "proprio"` | |
-| 5 | palavras-chave sem vocabulário | fuga (Ox of Agonas), reconfigurar (Lizard Blades, escrito como equipar {2}), preparada (Pompous Battlemage), descer (Brass's Tunnel-Grinder), descobrir por mana gasta (Tecutlan) | deixar falta (1 cada) | |
-| 6 | o resto 1/0 | Demand Answers (custoAd "A ou B"), Grab the Prize (condição na carta descartada no custo), Bag of Holding ("exiled with this"), Monument to Endurance (modo não escolhido no turno), Markov Enforcer (criatura que recebeu dano deste no turno), Inti (alvo do gatilho reflexo; "até sua próxima etapa final"), Neheb (jogador OU planeswalker), Library of Leng (só descarte por efeito, não custo) | deixar falta | |
+| 1 | descartadas no turno / "discarded this way" | Change of Fortune, Misty Knight (no turno); Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb (escritas com `lembrados`) | conta `descartadasNoTurno`; confirmar que `descartar` grava `lembrados` | **sim** (5) |
+| 2 | gatilhos que faltam | ciclar (Magmakin), subir de nível de Classe (Cool but Rude nv3; já Caretaker's Talent), desvirar (Key to the City; já Mesmeric Orb), jogar terreno (Shadow of the Goblin) | ev `cicla`, `nivel`, `desvira`, `jogaTerreno` | só `nivel` (3 com Caretaker's Talent e Wizard Class); `desvira` 2, `cicla` 1, `jogaTerreno` 1 = falta |
+| 3 | "outro alvo" / "cada outro oponente" | Markov Retribution (another target creature), Kediss (each other opponent); junto com a Chandra's Ignition (`outro`) | alvo `diferenteDe: i`; jogador `outrosOponentes` (≠ doEvento) | **sim** (3) |
+| 4 | dar palavra-chave a carta fora do campo | Falkenrath Gorger (loucura = custo de mana dela); Tectonic Reformation foi escrita como est continuo na mão | `kw.custo: "proprio"` | falta (2) |
+| 5 | palavras-chave sem vocabulário | fuga (Ox of Agonas), reconfigurar (Lizard Blades, escrito como equipar {2}), preparada (Pompous Battlemage), descer (Brass's Tunnel-Grinder), descobrir por mana gasta (Tecutlan) | deixar falta (1 cada) | falta |
+| 6 | o resto 1/0 | Demand Answers (custoAd "A ou B"), Grab the Prize (condição na carta descartada no custo), Bag of Holding ("exiled with this"), Monument to Endurance (modo não escolhido no turno), Markov Enforcer (criatura que recebeu dano deste no turno), Inti (alvo do gatilho reflexo; "até sua próxima etapa final"), Neheb (jogador OU planeswalker), Library of Leng (só descarte por efeito, não custo) | deixar falta | falta |
+
+## Decisões do lote dos blocos 32/33 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores). Correção 18 do esquema:
+- conta `descartadasNoTurno` e `descartar` sempre grava `lembrados` ("discarded this way"): Change of Fortune, Misty Knight, Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb.
+- ev `nivel` (gatilho de subir de nível de Classe, `niveis[].fx`): Caretaker's Talent, Wizard Class, Cool but Rude.
+- alvo `diferenteDe` + jogador `outrosOponentes`: Chandra's Ignition, Markov Retribution, Kediss.
+- Ficam em `falta`: ev `desvira` (2), `cicla` (1), `jogaTerreno` (1), `kw.custo: "proprio"` (2), fuga/reconfigurar/preparada/descer/descobrir por mana, o resto 1/0.
+- Motor (adepto A): `ev descarta` + loucura em andamento; depois ler a correção 18.
