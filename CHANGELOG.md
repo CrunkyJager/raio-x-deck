@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.21.0 — 25/11/2026 · banco com 1261 cartas
+Testes: valida 1261/0 · check 0 erros · Vitest 153/153 · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok. Motor joga inteiras 638/1261.
+- **Banco (B):** bloco 23 (1101–1150) e bloco 24 (1151–1200), 50 casos cada; correção 6 (12 cartas do lote 22, Ponder certo) e correção 7 (6 cartas do lote 23).
+- **Esquema (lotes 23 e 24):** fx `exceto` no sacrificar (escolhe N que ficam), filtros `moidaNoTurno` e `atacouNoTurno`, `naoPrimeira` também na subst.
+
 ## v0.20.0 — 25/11/2026 · camadas do motor (CR 613) e banco com 1161 cartas
 Testes: valida 1161/0 · check 0 erros · Vitest 153/153 (15 s) · testa 161/161 · Stangg 26.5 / Krenko 29.5 · erros 0 · jogáveis 20/20 nos 4 decks · verifica verde · build ok. Motor joga inteiras 601/1161 (eram 488/1061).
 - **Motor (A, camadas volta 1):** CR 613 camada 6 (palavras-chave dadas) e 7c (somar P/R) a partir das estáticas `continuo` no campo; `modificar` até o fim do turno com números presos na resolução (611.2c) e limpeza (514.2). Poder, resistência e palavras-chave passam pelas camadas; proteção e toque mortífero dados valem no combate. Lista de fontes guardada: Vitest em 15 s. Ferramenta `ferramentas/motor-cobertura.mjs`.
