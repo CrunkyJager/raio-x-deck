@@ -27,8 +27,9 @@ jobs:
         with: { node-version: '22' }
       - name: testa.py + partida + gabarito de planos
         run: python3 ferramentas/ci/verifica.py
-      - name: tipos (svelte-check) e build do Vite (T43)
-        run: npm ci && npm run check && npm run build
+      - name: tipos (svelte-check), Vitest e build do Vite (T43)
+        # casos de regra com as cartas de banco/cartas (o que falta pula com aviso); fuzz pula sem cartas-rx.js
+        run: npm ci && npm run check && npm test && npm run build
   site:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: testes

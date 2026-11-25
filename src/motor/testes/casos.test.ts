@@ -1,9 +1,13 @@
 // src/motor/testes/casos.test.ts — casos de regra do núcleo (cena montada → ação → estado esperado), cada um com o número da CR.
 // T43 (b): migrado de motor2/testes/casos.js sem mudar caso nenhum. Rodar: npx vitest run src/motor
+// T43: as cartas vêm do banco próprio (banco/cartas/, escritas do Oracle). Caso que pede carta que ainda não está lá
+// pula com aviso dizendo quais faltam; só o caso dos 4 decks de exemplo usa o cartas-rx.js, e pula sem ele.
 import { test } from 'vitest';
 import { M } from '../index';
-import { cartasRx, exemplos } from './cartas';
-M.usarCartas(cartasRx());
+import { temCartasRx, cartasRx, exemplos } from './cartas';
+import { bancoProprio, comReserva, anotandoFaltas } from '../../dados/cartas';
+const banco = anotandoFaltas(bancoProprio());
+M.usarCartas(banco.db);
 
 const casos: any[] = [];
 const caso = (cr, nome, fn) => casos.push({ cr, nome, fn });
@@ -323,7 +327,12 @@ caso('800.4k', 'quem saiu não tem turno', () => {
 });
 
 // ---------- estado clonável e determinístico ----------
-caso('—', 'mesma semente = mesma partida; clonar no meio e continuar dá o mesmo fim', () => {
+caso('—', 'mesma semente = mesma partida; clonar no meio e continuar dá o mesmo fim', ({ skip }) => {
+  if (!temCartasRx()) return skip('sem cartas-rx.js (gerado, fora do git): os 4 decks de exemplo precisam dele até a T20');
+  M.usarCartas(comReserva(cartasRx()));
+  try { mesmaSemente(); } finally { M.usarCartas(banco.db); }
+});
+function mesmaSemente() {
   const ds = Object.values<any>(exemplos()).map(M.lerLista);
   const roda = e => M.rodar(e, ds.map(() => M.agenteBasico()));
   const a = roda(M.novoJogo(ds, { semente: 11 })), b = roda(M.novoJogo(ds, { semente: 11 }));
@@ -333,7 +342,7 @@ caso('—', 'mesma semente = mesma partida; clonar no meio e continuar dá o mes
   for (let i = 0; i < 300 && c.perg; i++) M.responder(c, ag(c, c.perg));
   const d = M.clonar(c);
   igual(roda(c).fim, roda(d).fim);
-});
+}
 
 
 // ---------- T15: pilha e prioridade ----------
@@ -687,4 +696,12 @@ caso('603.3b', 'manutenção: Phyrexian Arena só na do controlador', () => {
 });
 
 // ---------- rodar ----------
-for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, c.fn);
+// a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
+// por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
+for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
+  banco.faltas.clear();
+  let erro: unknown = null;
+  try { c.fn(ctx); } catch (err) { erro = err; }
+  if (banco.faltas.size) return ctx.skip(`faltam no banco/cartas: ${[...banco.faltas].sort().join(', ')}`);
+  if (erro) throw erro;
+});
