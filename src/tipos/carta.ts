@@ -94,6 +94,19 @@ export interface Carta {
    * custo a mais para cada alvo além do primeiro (Fireball)
    */
   impostoPorAlvo?: RxMana;
+  /**
+   * Classe: ganhar o nível como feitiço pagando o custo (716)
+   */
+  niveis?: {
+    /**
+     * nível (2, 3…); o nível 1 é o resto da carta
+     */
+    n: number;
+    custo: RxMana;
+    est?: RxEst[];
+    gat?: RxGat[];
+    atv?: RxAtv[];
+  }[];
 }
 
 /**
@@ -319,6 +332,10 @@ export interface RxFiltro {
    * poder maior que o poder base
    */
   poderAcimaBase?: boolean;
+  /**
+   * artefato, lendário ou Saga (Excalibur)
+   */
+  historico?: boolean;
 }
 
 export interface RxCompara {
@@ -462,7 +479,9 @@ export interface RxFx {
     | 'virarMonarca'
     | 'descobrir'
     | 'vigiar'
-    | 'lutar';
+    | 'lutar'
+    | 'moverMarcador'
+    | 'tentarAnel';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -494,7 +513,7 @@ export interface RxFx {
   pega?: RxQtd;
   resto?: RxZona;
   /**
-   * buscar com divisão (Cultivate: 1 no campo virado, 1 na mão)
+   * buscar com divisão (Cultivate: 1 no campo virado, 1 na mão); também no cavar (Expressive Iteration: 1 na mão, 1 no fundo, 1 no exílio jogável)
    */
   destinos?: {
     para?: RxZona;
@@ -604,6 +623,21 @@ export interface RxFx {
    */
   soConjurar?: boolean;
   /**
+   * cavar: revela do topo ATÉ achar qtd cartas que batem em f (Empty the Laboratory, Etali); o resto vai conforme `resto`
+   */
+  ateAchar?: {
+    f: RxFiltro;
+    qtd?: RxQtd;
+  };
+  /**
+   * moverMarcador: o objeto que recebe os marcadores (o `em` é de onde saem; Forgotten Ancient)
+   */
+  paraObj?: RxObjeto;
+  /**
+   * descartar ao acaso (Gamble)
+   */
+  aleatorio?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -703,6 +737,10 @@ export interface RxCond {
    * você é o monarca
    */
   monarca?: boolean;
+  /**
+   * você tem um Portador do Anel (o Anel te tentou)
+   */
+  portadorDoAnel?: boolean;
 }
 
 export interface RxKw {
@@ -843,7 +881,7 @@ export interface RxGat {
   /**
    * ev fase
    */
-  passo?: 'manutencao' | 'compra' | 'inicioCombate' | 'final' | 'principal1' | 'principal2';
+  passo?: 'manutencao' | 'compra' | 'inicioCombate' | 'final' | 'principal1' | 'principal2' | 'fimCombate';
   /**
    * ev fase: no turno de quem
    */
@@ -996,7 +1034,7 @@ export interface RxEst {
    */
   quem?: RxJogador;
   /**
-   * aumentaCusto: vale para habilidades, não mágicas
+   * aumentaCusto/reduzCusto: vale para habilidades, não mágicas (Forensic Gadgeteer)
    */
   deHabil?: boolean;
   /**
