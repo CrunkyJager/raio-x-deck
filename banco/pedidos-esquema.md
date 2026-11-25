@@ -318,3 +318,6 @@ Contagem: banco 1461 cartas / fila 124 ainda não escritas.
 
 ## Decisões do lote do bloco 28 (FARSEER 25/11)
 Ficha com P/R contado: campo `token.est` (lista de `est` da própria ficha, `afeta: este`). Reescritos na correção 12: Constructs de Digsite Engineer, Simulacrum Synthesizer, Urza Chief Artificer e Urza Lord High Artificer; Gnome Soldier das duas faces de Thousand Moons Smithy. Maior poder da mesa e ganho de vida em substituição ficam em `falta` (2/0). The Wind Crystal perde o `subst` vidaMuda (dobrava a perda). Trailblazer's Boots: o `nao` já pega supertipo. O resto 1/0 fica falta.
+
+## Pente no subst vidaMuda (correção 13, a pedido do FARSEER)
+Oracle com "If you would gain life" no banco: 3 (Angel of Vitality, Bilbo Birthday Celebrant, The Wind Crystal); na fila: 0. As três agora estão sem o `subst` (vidaMuda pegava a perda também) e só com a falta. Com 3, o lote "ganho de vida em substituição" passa a 3/0: proposta subst ev `ganhaVida` (`muda` soma/mult), para o lote 29.
