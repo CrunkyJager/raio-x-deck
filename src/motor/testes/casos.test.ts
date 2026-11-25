@@ -1612,6 +1612,16 @@ caso('611.2b', "efeitoTemporario até o fim do turno: Rogue's Passage (o alvo n�
   ateTurno(e, 3, 'manutencao');
   igual([M.bloqueiaEste(e, hg, gb), M.podeBloquear(e, hg, 1), (e.efTemp || []).length], [true, true, 0], 'acabou na limpeza');
 });
+caso('611.2a', "modificar +1/+1 com dura 'sempre' (Witch's Mark): passa da limpeza e acaba quando a criatura sai", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] });
+  const gb = objN(e, 0, 'Grizzly Bears');
+  const fx = { op: 'modificar', em: { alvo: 0 }, p: 1, r: 1, dura: 'sempre' };
+  ok(M.fxSuportado([fx], { topo: false }));
+  M.executar(e, fx, { voce: 0, alvos: [[{ o: gb.id, ts: gb.ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([M.poder(e, gb), M.resistencia(e, gb)], [3, 3]);
+  ateTurno(e, 3, 'manutencao');
+  igual([M.poder(e, gb), M.resistencia(e, gb)], [3, 3], 'não acaba na limpeza');
+});
 caso('611.2c', "modificar com estática de regra até o fim do turno (Key to the City, Wedding Invitation): o alvo preso não pode ser bloqueado", () => {
   const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant']] });
   const [gb, le, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 0, 'Llanowar Elves'), objN(e, 1, 'Hill Giant')];

@@ -362,7 +362,7 @@ const H = {
   modificar: {
     campos: ['p', 'r', 'kw', 'dura', 'est', 'habil'],
     qtd: q => q === undefined,
-    ok: f => f.dura === 'enquantoNoCampo' ? ganhoOk(f) : f.habil === undefined && f.dura === 'fimDoTurno' && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0)
+    ok: f => f.dura === 'enquantoNoCampo' ? ganhoOk(f) : f.habil === undefined && (f.dura === 'fimDoTurno' || (f.dura === 'sempre' && !(f.est || []).length)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
       && (f.est || []).every(s => s.afeta === 'este' && (s.modo === 'deveBloquear' ? Object.keys(s).every(k => ['modo', 'afeta', 'atacante'].includes(k)) && (s.atacante === undefined || s.atacante === 'doEvento')
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k)))),
@@ -379,7 +379,7 @@ const H = {
       if (regra.length) (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: regra.map(s => ({ modo: s.modo })), este: null, ids: os.map(o => ({ id: o.id, ts: o.ts })), fim: 'turno', ts: ++e.ts });
       const est = (f.est || []).filter(s => s.modo === 'deveBloquear').map(s => ({ modo: s.modo, atk: s.atacante === 'doEvento' ? (at && at.zona === 'campo' ? { id: at.id, ts: at.ts } : { id: -1, ts: -1 }) : null }));
       if (f.p === undefined && f.r === undefined && !(f.kw || []).length && !est.length) return;
-      (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: f.kw || [], ...(est.length ? { est } : {}), ts: ++e.ts });
+      (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: f.kw || [], ...(est.length ? { est } : {}), ...(f.dura === 'sempre' ? { sempre: true } : {}), ts: ++e.ts });
     },
   },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)

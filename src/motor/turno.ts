@@ -112,7 +112,9 @@ function acaoDoTurno(e) {
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
   for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
-  e.temp = [];                                                      // 'modificar' até o fim do turno (efeitos.ts)
+  // 'modificar' até o fim do turno (efeitos.ts) sai; o de dura 'sempre' (Witch's Mark: +1/+1 sem prazo, 611.2a) fica
+  // enquanto o objeto (mesmo ts) estiver no campo. Array novo: o índice do somaTemp refaz.
+  e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== 'turno' && e.objs[p.id] && e.objs[p.id].ts === p.ts);   // jogar até o fim do turno
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');   // efeitoTemporario até o fim do turno
 }
