@@ -1,0 +1,1 @@
+{"v":2,"n":"Dragonlord's Servant","id":"faf81ae0-0b35-45ef-a50d-6cecf0c0eeeb","oracleHash":"b2a77966","custo":{"g":1,"p":["R"]},"vm":2,"ci":"R","cores":"R","tipos":["Creature"],"sub":["Goblin","Shaman"],"pt":[1,3],"est":[{"modo":"reduzCusto","afeta":{"sub":["Dragon"],"ctrl":"voce","zona":"pilha"},"qtd":1}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco13.json"}}

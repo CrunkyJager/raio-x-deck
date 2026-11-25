@@ -1,0 +1,1 @@
+{"v":2,"n":"Dream Fracture","id":"c5843d13-855f-41dd-ac13-3c7f7e18bb39","oracleHash":"26f709fb","custo":{"g":1,"p":["U","U"]},"vm":3,"ci":"U","cores":"U","tipos":["Instant"],"alvos":[{"f":"magica"}],"fx":[{"op":"anular","em":{"alvo":0}},{"op":"comprar","quem":"controlador","em":{"alvo":0},"qtd":1},{"op":"comprar","quem":"voce","qtd":1}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

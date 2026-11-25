@@ -1,0 +1,278 @@
+{
+ "bloco": "bloco14",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 651–700 (Empty the Laboratory … Firebender Ascension) e as correções de Drivnod (exilarDe {zona,f,qtd}) e Dour Port-Mage (naoMorre)",
+ "casos": [
+  {
+   "carta": "Drivnod, Carnage Dominus",
+   "situacao": "ativa com 3 cartas de criatura e 1 terreno no cemitério",
+   "espera": "exila as 3 criaturas (o terreno fica); paga B/P B/P; Drivnod ganha 1 marcador indestructible"
+  },
+  {
+   "carta": "Dour Port-Mage",
+   "situacao": "outra criatura sua morre",
+   "espera": "não compra (naoMorre); se ela for exilada ou voltar à mão, compra 1"
+  },
+  {
+   "carta": "Empty the Laboratory",
+   "situacao": "X=2 com 3 Zumbis; grimório tem Zumbi, terreno, Zumbi",
+   "espera": "sacrifica 2 Zumbis e põe 2 cartas de criatura Zumbi no campo; o resto vai para o fundo"
+  },
+  {
+   "carta": "Empty the Warrens",
+   "situacao": "conjurada como a 3ª mágica do turno",
+   "espera": "tempestade: 2 cópias, total 6 Goblins 1/1 vermelhos"
+  },
+  {
+   "carta": "Endless Ranks of the Dead",
+   "situacao": "sua manutenção com 5 Zumbis",
+   "espera": "cria 2 Zumbis 2/2 (metade, para baixo)"
+  },
+  {
+   "carta": "Enduring Courage",
+   "situacao": "outra criatura sua entra; depois o Courage morre como criatura",
+   "espera": "a que entrou ganha +2/+0 e pressa até o fim do turno; o Courage volta ao campo (como encantamento: falta)"
+  },
+  {
+   "carta": "Enthusiastic Mechanaut",
+   "situacao": "você conjura um artefato de 3",
+   "espera": "custa 2; a Mechanaut voa"
+  },
+  {
+   "carta": "Entish Restoration",
+   "situacao": "com e sem criatura de poder 4+",
+   "espera": "sacrifica 1 terreno; sem: busca 2 básicos virados; com: 3 básicos virados; embaralha"
+  },
+  {
+   "carta": "Ephemerate",
+   "situacao": "em uma criatura sua com gatilho de entrar",
+   "espera": "exila e volta: o gatilho de entrar dispara de novo"
+  },
+  {
+   "carta": "Erkenbrand, Lord of Westfold",
+   "situacao": "entra um Humano seu (ou o próprio Erkenbrand)",
+   "espera": "suas criaturas ganham +1/+0 até o fim do turno"
+  },
+  {
+   "carta": "Ertai Resurrected",
+   "situacao": "entra com o oponente conjurando uma mágica",
+   "espera": "escolhe até 1 modo: anula a mágica e o controlador dela compra 1; ou destrói outra criatura/planeswalker e o controlador compra 1"
+  },
+  {
+   "carta": "Esika's Chariot",
+   "situacao": "entra e depois ataca",
+   "espera": "cria 2 Gatos 2/2 verdes; ao atacar copia uma ficha sua alvo; tripular 4"
+  },
+  {
+   "carta": "Essence Warden",
+   "situacao": "entra uma criatura do oponente",
+   "espera": "você ganha 1 de vida (qualquer outra criatura conta)"
+  },
+  {
+   "carta": "Etali, Primal Conqueror",
+   "situacao": "entra",
+   "espera": "cada jogador exila do topo; você pode conjurar de graça as não terreno exiladas"
+  },
+  {
+   "carta": "Etali, Primal Conqueror",
+   "situacao": "transformada causa 5 de combate a um jogador",
+   "espera": "o jogador recebe 5 marcadores poison; tem atropelar e indestrutível"
+  },
+  {
+   "carta": "Etchings of the Chosen",
+   "situacao": "escolhe Elfo; sacrifica um Elfo pagando 1",
+   "espera": "Elfos seus +1/+1; a criatura alvo sua fica indestrutível até o fim do turno"
+  },
+  {
+   "carta": "Eternal Witness",
+   "situacao": "entra com Wrath no cemitério",
+   "espera": "pode voltar o Wrath para a mão"
+  },
+  {
+   "carta": "Exalted Sunborn",
+   "situacao": "um efeito criaria 2 fichas para você",
+   "espera": "cria 4"
+  },
+  {
+   "carta": "Excalibur, Sword of Eden",
+   "situacao": "com 2 artefatos de vm 3 e 4 no campo",
+   "espera": "custa 7 a menos; equipada ganha +10/+0 e vigilância; equipar 2 só em criatura lendária"
+  },
+  {
+   "carta": "Exemplar of Light",
+   "situacao": "você ganha vida duas vezes no mesmo turno",
+   "espera": "põe 2 marcadores +1/+1 (um por vez) e compra só 1 (uma vez por turno)"
+  },
+  {
+   "carta": "Expedite",
+   "situacao": "em uma criatura que acabou de entrar",
+   "espera": "ela ganha pressa; você compra 1"
+  },
+  {
+   "carta": "Expressive Iteration",
+   "situacao": "resolve",
+   "espera": "olha 3: 1 na mão e o resto no fundo (o exílio jogável é falta)"
+  },
+  {
+   "carta": "Exquisite Blood",
+   "situacao": "um oponente perde 3 de vida",
+   "espera": "você ganha 3"
+  },
+  {
+   "carta": "Fabled Passage",
+   "situacao": "ativada com 4 terrenos (contando o novo) e com 2",
+   "espera": "busca básico virado; com 4+ terrenos o básico desvira; embaralha"
+  },
+  {
+   "carta": "Fabricate",
+   "situacao": "resolve",
+   "espera": "busca artefato, revela, põe na mão, embaralha"
+  },
+  {
+   "carta": "Faeburrow Elder",
+   "situacao": "você controla permanentes verdes e vermelhos",
+   "espera": "é 4/4 com vigilância; vira para 2 manas"
+  },
+  {
+   "carta": "Faithless Looting",
+   "situacao": "conjurada da mão e depois do cemitério por {2}{R}",
+   "espera": "compra 2 e descarta 2 cada vez"
+  },
+  {
+   "carta": "Fanatic of Rhonas",
+   "situacao": "com e sem criatura de poder 4+",
+   "espera": "vira para G; com poder 4+ também pode virar para GGGG"
+  },
+  {
+   "carta": "Faramir, Prince of Ithilien",
+   "situacao": "seu passo final",
+   "espera": "no próximo final de oponente você compra 1 (o 'se não atacou, senão 3 fichas' é falta)"
+  },
+  {
+   "carta": "Faramir, Steward of Gondor",
+   "situacao": "entra sua criatura lendária de vm 5; no seu final",
+   "espera": "você vira monarca; no final, sendo monarca, cria 2 Humanos Soldados 1/1"
+  },
+  {
+   "carta": "Farewell",
+   "situacao": "escolhe criaturas e cemitérios",
+   "espera": "exila todas as criaturas e todos os cemitérios; artefatos e encantamentos ficam"
+  },
+  {
+   "carta": "Fate Unraveler",
+   "situacao": "um oponente compra 2",
+   "espera": "causa 1 de dano a ele por carta"
+  },
+  {
+   "carta": "Fathom Mage",
+   "situacao": "entra uma criatura sua maior",
+   "espera": "evolui: ganha +1/+1 e você pode comprar 1"
+  },
+  {
+   "carta": "Feasting Hobbit",
+   "situacao": "entra com 2 Foods",
+   "espera": "sacrifica as Foods e entra com 6 marcadores +1/+1"
+  },
+  {
+   "carta": "Feed the Swarm",
+   "situacao": "em encantamento de vm 4 do oponente",
+   "espera": "destrói; você perde 4"
+  },
+  {
+   "carta": "Feline Sovereign",
+   "situacao": "dois Gatos seus causam dano de combate ao mesmo jogador",
+   "espera": "outros Gatos +1/+1 e proteção contra Cães; destrói até 1 artefato/encantamento daquele jogador (uma vez)"
+  },
+  {
+   "carta": "Feral Ghoul",
+   "situacao": "outra criatura sua morre; depois ele morre com poder 3",
+   "espera": "ganha +1/+1; ao morrer cada oponente recebe 3 marcadores rad"
+  },
+  {
+   "carta": "Fertile Ground",
+   "situacao": "encantando uma Floresta virada para mana",
+   "espera": "dá G e mais 1 mana de qualquer cor"
+  },
+  {
+   "carta": "Fervent Charge",
+   "situacao": "três criaturas suas atacam",
+   "espera": "cada uma ganha +2/+2 até o fim do turno"
+  },
+  {
+   "carta": "Fetid Heath",
+   "situacao": "paga W/B e vira",
+   "espera": "dá 2 manas entre W e B"
+  },
+  {
+   "carta": "Fetid Pools",
+   "situacao": "entra; ou ciclada por 2",
+   "espera": "entra virada; vira para U ou B; ciclar compra 1"
+  },
+  {
+   "carta": "Field of Ruin",
+   "situacao": "ativada em terreno não básico do oponente",
+   "espera": "destrói o terreno; cada jogador busca 1 básico no campo e embaralha"
+  },
+  {
+   "carta": "Field of the Dead",
+   "situacao": "entra seu 7º terreno de nome diferente",
+   "espera": "cria Zumbi 2/2; com nomes repetidos não cria"
+  },
+  {
+   "carta": "Field-Tested Frying Pan",
+   "situacao": "entra; depois você ganha 3 de vida",
+   "espera": "cria Food e Halfling 1/1 e equipa nele; o equipado ganha +3/+3 até o fim do turno"
+  },
+  {
+   "carta": "Fiend Hunter",
+   "situacao": "entra exilando a criatura do oponente; depois sai do campo",
+   "espera": "a criatura exilada volta ao campo"
+  },
+  {
+   "carta": "Fierce Guardianship",
+   "situacao": "com seu comandante no campo",
+   "espera": "conjura de graça; anula mágica não criatura"
+  },
+  {
+   "carta": "Fiery Emancipation",
+   "situacao": "sua criatura causaria 2 de dano",
+   "espera": "causa 6"
+  },
+  {
+   "carta": "Fiery Islet",
+   "situacao": "vira; ou paga 1 e sacrifica",
+   "espera": "vira para U ou R perdendo 1 de vida; sacrificada compra 1"
+  },
+  {
+   "carta": "Fighter Class",
+   "situacao": "entra",
+   "espera": "busca Equipamento, revela, põe na mão (níveis 2 e 3 são falta)"
+  },
+  {
+   "carta": "Find // Finality",
+   "situacao": "Find com 2 criaturas no cemitério",
+   "espera": "volta as 2 para a mão"
+  },
+  {
+   "carta": "Find // Finality",
+   "situacao": "Finality com uma criatura 3/3 sua",
+   "espera": "pode pôr 2 marcadores +1/+1 nela; depois todas ganham -4/-4 (a sua 5/5 sobrevive)"
+  },
+  {
+   "carta": "Finneas, Ace Archer",
+   "situacao": "ataca com uma ficha 1/1, um Coelho 2/2 e um Elfo",
+   "espera": "ficha e Coelho ganham +1/+1 (o Elfo não); compra se o poder total for 10+"
+  },
+  {
+   "carta": "Fire-Lit Thicket",
+   "situacao": "paga R/G e vira",
+   "espera": "dá 2 manas entre R e G"
+  },
+  {
+   "carta": "Firebender Ascension",
+   "situacao": "entra",
+   "espera": "cria Soldado 2/2 vermelho (firebending e o marcador quest são falta)"
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Emergency Regeneration","id":"58e9f5db-c369-42c6-a26d-fc31e25d5f83","oracleHash":"09f774b3","custo":{"g":1,"p":["W"]},"vm":2,"ci":"W","cores":"W","tipos":["Instant"],"fx":[{"op":"modificar","em":{"todos":{"tipo":["Artifact"],"ctrl":"voce","zona":"campo"}},"kw":[{"k":"antimagia"},{"k":"indestrutivel"}],"dura":"fimDoTurno"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}
