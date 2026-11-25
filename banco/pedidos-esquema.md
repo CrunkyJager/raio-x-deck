@@ -9,3 +9,8 @@
 | Cavern of Souls | "Spend this mana only to cast a creature spell of the chosen type, and that spell can't be countered." | campo no fx mana (ex.: `naoAnulavel:true`) para a mágica paga com ela. Por ora em `falta` | |
 | Arcane Denial (e "draw up to N") | "may draw up to two cards" | `qtd` com `ate:true` (0 a N, quem escolhe). Por ora `talvez` + qtd 2 e a frase em `falta` | |
 | Akroma's Will | "protection from each color" | usei 5 `protecao` (de W/U/B/R/G); o rx usa `de:"cadaCor"`. Escolher um e pôr no vocabulário | |
+| Spire of Industry | "Activate only if you control an artifact." | `se` (cond) no `atv`. Por ora `se` no fx mana e a frase em `falta` | |
+| Syr Konrad, the Grim | "a creature card is put into a graveyard from anywhere other than the battlefield" | campo `de`/`naoDe` (zona de origem) no `gat` vaiCemiterio | |
+| Esper Sentinel | "their first noncreature spell each turn" | `limite` `umaPorTurnoPorJogador` (cada oponente tem a sua primeira) | |
+| Harmonic Prodigy | "If a triggered ability of a Shaman or another Wizard you control triggers" | `dobraGatilho` com `afeta` = fonte do gatilho; confirmar (o `causa` é o objeto do evento) | |
+| Guardian Project / Kutzil | "doesn't have the same name as…" / "power greater than its base power" | filtro `nomeUnico` e `poderAcimaBase` | |

@@ -1,0 +1,1 @@
+{"v":2,"n":"Ashnod's Altar","id":"4d18bcba-a346-445e-a182-6cc30b7e066d","oracleHash":"bf50bc12","custo":{"g":3},"vm":3,"ci":"","cores":"","tipos":["Artifact"],"atv":[{"custo":{"sacrificar":{"f":{"tipo":["Creature"]},"qtd":1}},"deMana":true,"fx":[{"op":"mana","prod":["C"],"qtd":2}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

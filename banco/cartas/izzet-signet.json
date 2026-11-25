@@ -1,0 +1,1 @@
+{"v":2,"n":"Izzet Signet","id":"2fda4fe7-8b0c-489c-a000-6d358e614e34","oracleHash":"8e39cdc5","custo":{"g":2},"vm":2,"ci":"UR","cores":"","tipos":["Artifact"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["U"],"qtd":1},{"op":"mana","prod":["R"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

@@ -1,0 +1,1 @@
+{"v":2,"n":"Propaganda","id":"ea9709b6-4c37-4d5a-b04d-cd4c42e4f9dd","oracleHash":"f3c53984","custo":{"g":2,"p":["U"]},"vm":3,"ci":"U","cores":"U","tipos":["Enchantment"],"est":[{"modo":"ataqueCusta","afeta":{"tipo":["Creature"],"zona":"campo"},"contra":{"jog":"voce"},"custo":{"g":2}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco3.json"}}

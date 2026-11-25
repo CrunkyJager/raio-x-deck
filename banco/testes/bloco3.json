@@ -1,0 +1,133 @@
+{
+ "bloco": 3,
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "mesmo formato do bloco1.json (carta, situação, espera); o motor ainda não roda",
+ "casos": [
+  {
+   "carta": "Woodland Cemetery",
+   "situacao": "entra controlando uma Forest",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Woodland Cemetery",
+   "situacao": "entra sem Swamp nem Forest",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Dreamroot Cascade",
+   "situacao": "entra com 2 outros terrenos no campo",
+   "espera": "entra desvirada"
+  },
+  {
+   "carta": "Dreamroot Cascade",
+   "situacao": "entra com 1 outro terreno",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Luxury Suite",
+   "situacao": "entra num 1x1",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Furycalm Snarl",
+   "situacao": "entra sem Mountain nem Plains na mão",
+   "espera": "entra virada"
+  },
+  {
+   "carta": "Anointed Procession",
+   "situacao": "um efeito cria 1 Treasure para você",
+   "espera": "cria 2"
+  },
+  {
+   "carta": "Doubling Season",
+   "situacao": "põe 1 marcador de lealdade num planeswalker seu ao entrar",
+   "espera": "entra com o dobro"
+  },
+  {
+   "carta": "Austere Command",
+   "situacao": "escolhe artefatos e criaturas VM ≤3",
+   "espera": "destrói todos os artefatos e as criaturas de VM 0–3; as de VM 4+ ficam"
+  },
+  {
+   "carta": "Dispatch",
+   "situacao": "alvo: criatura; você controla 2 artefatos",
+   "espera": "só vira a criatura"
+  },
+  {
+   "carta": "Dispatch",
+   "situacao": "alvo: criatura; você controla 3 artefatos",
+   "espera": "vira e exila a criatura"
+  },
+  {
+   "carta": "Eidolon of Blossoms",
+   "situacao": "entra o próprio Eidolon",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Esper Sentinel",
+   "situacao": "poder 1; oponente conjura a 1ª não-criatura do turno e paga {1}",
+   "espera": "você não compra"
+  },
+  {
+   "carta": "Evolution Witness",
+   "situacao": "ativa Adapt 2 já com marcador +1/+1",
+   "espera": "não põe marcador e não dispara"
+  },
+  {
+   "carta": "Evolution Witness",
+   "situacao": "ativa Adapt 2 sem marcador",
+   "espera": "põe 2 marcadores; volta 1 permanente do cemitério para a mão"
+  },
+  {
+   "carta": "Felidar Retreat",
+   "situacao": "entra um terreno seu, escolhe o 2º modo",
+   "espera": "+1/+1 em cada criatura sua e vigilância até o fim do turno"
+  },
+  {
+   "carta": "Garruk's Uprising",
+   "situacao": "entra sem criatura de poder 4+",
+   "espera": "não compra"
+  },
+  {
+   "carta": "Kutzil, Malamet Exemplar",
+   "situacao": "no seu turno um oponente tenta conjurar um instantâneo",
+   "espera": "não pode"
+  },
+  {
+   "carta": "Propaganda",
+   "situacao": "oponente ataca você com 3 criaturas",
+   "espera": "paga {6}"
+  },
+  {
+   "carta": "Psychosis Crawler",
+   "situacao": "você tem 5 cartas na mão e compra 1",
+   "espera": "fica 6/6; cada oponente perde 1"
+  },
+  {
+   "carta": "Rhythm of the Wild",
+   "situacao": "oponente tenta anular sua mágica de criatura",
+   "espera": "não é anulada"
+  },
+  {
+   "carta": "Sanctum Weaver",
+   "situacao": "você controla 4 encantamentos (com ela)",
+   "espera": "vira por 4 manas de uma cor"
+  },
+  {
+   "carta": "Scrawling Crawler",
+   "situacao": "sua manutenção numa mesa de 4",
+   "espera": "cada jogador compra 1; cada oponente perde 1"
+  },
+  {
+   "carta": "Spire of Industry",
+   "situacao": "sem artefato, vira para mana colorida",
+   "espera": "não pode (frase em falta)"
+  },
+  {
+   "carta": "Temple of Mystery",
+   "situacao": "entra",
+   "espera": "entra virada; vidência 1"
+  }
+ ]
+}

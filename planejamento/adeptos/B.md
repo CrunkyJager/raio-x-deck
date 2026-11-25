@@ -1,5 +1,5 @@
 # Adepto B — T20 banco
-Feito: bloco 1 (fila 1–50, 22 casos em bloco1.json, ferramentas oraculo/fila/mostra/compara) e bloco 2 (fila 51–100, 22 casos em bloco2.json). valida: 102 cartas, 0 erros.
-Compara bloco 2: 32 iguais, 18 divergem — decididas pelo Oracle: Negate/Kindred Discovery/Arcane Denial (rx perde "noncreature", o gatilho de ataque e o compra do oponente), Secluded Courtyard (rx "Card"; é criatura, mágica ou fonte), Unclaimed/Cavern só mágica (zona pilha), Flawless/Akroma "you control a commander" com ctrl voce; check lands max 0 = igual 0.
-Agora: bloco 3 (fila 101–150).
-Dúvidas: 7 pedidos em pedidos-esquema.md (4 novos: tipo do marcador no subst, mana que não deixa anular, "up to N", proteção de cada cor); formato de banco/testes.
+Feito: blocos 1–3 (fila 1–150; casos em bloco1/2/3.json). valida: 152 cartas, 0 erros.
+Compara bloco 3: 28 iguais, 22 divergem — decididas pelo Oracle: slow lands "two or more other lands" (outro), Esper Sentinel é de oponente (rx cadaJogador), Syr Konrad separa morre/vaiCemiterio/saiCemiterio (rx juntou), Reflections sem novoAlvo (Oracle não dá), Deflecting Swat gratis em vez de pagar {0}; resto é forma (controla×existe, max 0×igual 0).
+Agora: bloco 4 (fila 151–200).
+Dúvidas: 12 pedidos em pedidos-esquema.md (5 novos: se no atv, origem no vaiCemiterio, primeira de cada oponente, fonte do dobraGatilho, nome único/poder acima do base).
