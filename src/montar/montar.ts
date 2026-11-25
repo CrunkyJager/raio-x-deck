@@ -3,6 +3,8 @@
 // T43 (d): virou montar.ts estrito, só com anotações de tipo (o JS que sai é o mesmo). Conversa com as outras partes
 // pelos mesmos window.* de antes até as telas virarem Svelte; o tipo do window.RAIOX vem do analise.ts (RaioX).
 import type { RaioX, Carta, Analise } from '../analise/analise';
+import { mount, flushSync } from 'svelte';
+import Montar from '../telas/montar/Montar.svelte';
 type Dic<T = any> = Record<string, T>;
 type Campo = HTMLInputElement;   // input, select ou textarea: aqui só se lê e escreve o value
 /** um deck salvo: comandantes, cartas (nome → cópias), alvo (bracket e orçamento) e o estado da montagem guiada */
@@ -101,141 +103,40 @@ function analisa() { const d = D(); A = (d.cmds.length && total() > d.cmds.lengt
 const LIM_GC: Dic<number> = { 2: 0, 3: 3 };
 
 // ---------- desenho ----------
+// T43 (d): o HTML da tela está nos componentes de src/telas/montar (Montar.svelte e um por painel). Aqui fica o estado
+// (decks salvos, busca, passos) e as ações; cada ação muda o estado e chama desenha(), que refaz a tela inteira, como
+// o innerHTML de antes (o Montar.svelte troca o {#key}), ou só o painel da busca enquanto se digita.
 const ROOT = () => $('#montar');
-const cardBtn = (n: string) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</button>`;
-function painelTopo() {
-  const ids = Object.keys(S.decks).sort((a, b) => S.decks[b].t - S.decks[a].t);
-  return `<section class="panel mt-topo"><h2>Montar deck</h2>
-    <p class="lead">Monte em quatro passos: escolha as cores e o comandante, conte a ideia do deck, monte junto com as sugestões e faça o ajuste fino. Os decks ficam salvos neste navegador; para levar ao Moxfield, use <b>Copiar para o Moxfield</b> no passo 4.</p>
-    <div class="mt-decks">
-      <label class="mt-campo"><span>Deck</span><select id="mt-sel">${ids.map(id => `<option value="${id}" ${id === S.atual ? 'selected' : ''}>${esc(S.decks[id].nome)} · ${contar(S.decks[id])}/100</option>`).join('')}</select></label>
-      <label class="mt-campo mt-nome"><span>Nome</span><input class="txt" id="mt-nome" value="${esc(D().nome)}" maxlength="60"></label>
-      <div class="row mt-acoes"><button class="btn" id="mt-novo">Novo deck</button><button class="btn" id="mt-dup">Duplicar</button><button class="btn" id="mt-del">Apagar</button></div>
-    </div>
-    <details class="mt-imp" id="mt-imp"><summary>Importar um deck (Moxfield, Archidekt, aba Lista)</summary>
-      <div class="mt-imp-g">
-        <div><h3>Do Moxfield (ou qualquer site)</h3><p class="note">No Moxfield: abra o deck → <b>More</b> → <b>Export</b> → copie o texto (Plain Text ou MTGO) e cole aqui.</p>
-          <textarea id="mt-imp-txt" spellcheck="false" placeholder="1 Sol Ring&#10;1 Command Tower&#10;…"></textarea>
-          <div class="row"><button class="btn primary" id="mt-imp-ok">Importar texto</button></div></div>
-        <div><h3>Por link do Archidekt</h3><p class="note">Cole o endereço do deck (archidekt.com/decks/123456/…). O deck precisa ser público. Link do Moxfield não funciona fora do site deles: use o texto ao lado.</p>
-          <input class="txt" id="mt-imp-url" placeholder="https://archidekt.com/decks/…" style="width:100%">
-          <div class="row"><button class="btn" id="mt-imp-arch">Importar do Archidekt</button></div>
-          <h3 style="margin-top:18px">Da aba Lista</h3><p class="note">Traz o deck que está na aba Lista agora.</p>
-          <div class="row"><button class="btn" id="mt-imp-lista">Trazer da Lista</button></div></div>
-      </div>
-      <p class="note" id="mt-imp-msg" role="status"></p>
-    </details>
-  </section>`;
-}
 const contar = (d: Deck) => d.cmds.length + Object.values(d.cartas).reduce((s, q) => s + q, 0);
-
-function painelBusca() {
-  const d = D(), I = ident(), r = busca();
-  const cores = [...I];
-  const titulo = r.modoCmd ? (d.cmds.length ? 'Segundo comandante (parceiro ou antecedente)' : '1. Escolha o comandante') : 'Buscar cartas';
-  const filtros = r.modoCmd ? '' : `<div class="mt-filtros">
-      <select id="mt-tipo" aria-label="Tipo">${TIPOS.map(([k, n]) => `<option value="${k}" ${Q.tipo === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
-      <select id="mt-papel" aria-label="Função"><option value="">Todas as funções</option>${ROLES.filter(x => x.k !== 'body' && x.k !== 'enabler').map(x => `<option value="${x.k}" ${Q.papel === x.k ? 'selected' : ''}>${esc(x.n)}</option>`).join('')}</select>
-      <select id="mt-cmc" aria-label="Custo"><option value="">Qualquer custo</option>${[0, 1, 2, 3, 4, 5, 6, 7].map(v => `<option value="${v}" ${Q.cmc === String(v) ? 'selected' : ''}>Custo ${v}${v === 7 ? '+' : ''}</option>`).join('')}</select>
-      <span class="mt-cores">${['', ...cores, 'C'].map(x => `<button class="mt-cor ${Q.cor === x ? 'on' : ''}" data-cor="${x}" title="${x === '' ? 'Todas as cores' : x === 'C' ? 'Incolor' : 'Tem ' + x}">${x === '' ? 'todas' : x === 'C' ? '<span class="ms">C</span>' : `<span class="ms ${x}"></span>`}</button>`).join('')}</span>
-    </div>`;
-  const linhas = r.lista.map(x => {
-    const c = C(x.n); const q = d.cartas[x.n] || 0;
-    const ps = r.modoCmd ? [] : [...papeis(x.n)].filter(k => k !== 'body' && k !== 'enabler').slice(0, 2).map(k => (ROLES.find(o => o.k === k) || {}).n).filter(Boolean);
-    const bloq = !r.modoCmd && q && !multiOk(c);
-    return `<div class="mt-res ${q ? 'tem' : ''}"><span class="mt-mana">${manaHTML(c.m)}</span><span class="mt-rn">${cardBtn(x.n)}<small>${esc(c.t.split(' // ')[0])}${ps.length ? ' · ' + ps.map(esc).join(', ') : ''}${c.gc ? ' · <b class="mt-gc">game changer</b>' : ''}</small></span><span class="mt-pr">${c.usd ? brl(c.usd, c.usd < 10) : '—'}</span>
-      ${r.modoCmd ? `<button class="btn small primary" data-cmd="${esc(x.n)}">Escolher</button>` : `<button class="btn small ${bloq ? '' : 'primary'}" data-add="${esc(x.n)}" ${bloq ? 'disabled title="Já está no deck (só 1 de cada)"' : ''}>${q ? (bloq ? 'no deck' : '+1 (' + q + ')') : '+ pôr'}</button>`}</div>`;
-  }).join('');
-  const basicos = r.modoCmd ? '' : `<div class="mt-bas"><span class="note">Terrenos básicos:</span>${(cores.length ? cores : ['C']).map(x => { const n = (<Dic<string>>{ W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest', C: 'Wastes' })[x]; return `<button class="btn small" data-add="${n}"><span class="ms ${x === 'C' ? '' : x}">${x === 'C' ? 'C' : ''}</span> +1 ${n}${d.cartas[n] ? ` (${d.cartas[n]})` : ''}</button>`; }).join('')}</div>`;
-  return `<section class="panel mt-busca"><h2>${titulo}</h2>
-    ${d.cmds.length && !Q.cmd ? `<p class="note">Só aparecem cartas dentro da identidade de cor do comandante e fora da lista de banidas. Clique no nome para ver a carta.</p>` : `<p class="note">${d.cmds.length ? 'Só comandantes que aceitam parceiro.' : 'O comandante trava as cores do deck: depois só aparecem cartas que cabem nele.'} Busque em inglês${Object.keys(R.PTIDX || {}).length ? ' ou português' : ''}.</p>`}
-    <input class="txt mt-q" id="mt-q" type="search" placeholder="${r.modoCmd ? 'Nome do comandante…' : 'Nome da carta…'}" value="${esc(Q.txt)}" autocomplete="off">
-    ${filtros}${basicos}
-    <div class="mt-lista" id="mt-lista">${linhas || '<p class="note">Nada encontrado com esses filtros.</p>'}</div>
-    ${r.mais ? '<div class="row"><button class="btn" id="mt-mais">Mostrar mais</button></div>' : ''}
-    ${Q.cmd ? '<div class="row"><button class="btn" id="mt-cmd-x">Voltar para as cartas</button></div>' : ''}
-  </section>`;
-}
-
-function painelDeck() {
-  const d = D(), n = total();
-  if (!d.cmds.length) return `<section class="panel mt-deck"><h2>O deck</h2><p class="note">Escolha o comandante ao lado para começar. Ou importe um deck pronto em <b>Importar um deck</b>, acima.</p></section>`;
-  const grupos: Dic<[Carta, number][]> = {}; for (const [nm, q] of Object.entries(d.cartas)) { const c = C(nm); if (!c) continue; (grupos[grupoDe(c)] = grupos[grupoDe(c)] || []).push([c, q]); }
-  const linha = (c: Carta, q: number) => `<div class="mt-li"><span class="mt-q2">${q}</span><span class="mt-mana">${manaHTML(c.m)}</span>${cardBtn(c.name)}<span class="mt-pr">${c.usd ? brl(c.usd * q, c.usd * q < 10) : ''}</span><span class="mt-bt"><button class="mt-mm" data-sub="${esc(c.name)}" aria-label="Tirar uma">−</button>${multiOk(c) ? `<button class="mt-mm" data-add="${esc(c.name)}" aria-label="Pôr mais uma">+</button>` : ''}</span></div>`;
-  const cor = n === 100 ? 'ok' : n > 100 ? 'mais' : '';
-  return `<section class="panel mt-deck"><h2>O deck</h2>
-    <div class="mt-cont ${cor}"><b>${n}</b><span>/100 cartas</span><div class="prog"><div style="width:${Math.min(100, n)}%"></div></div><small>${n === 100 ? 'Completo.' : n < 100 ? `Faltam ${100 - n}.` : `Sobram ${n - 100}: tire ${n - 100}.`}</small></div>
-    <div class="mt-cmds"><span class="k">Comandante${d.cmds.length > 1 ? 's' : ''}</span>${d.cmds.map(x => `<div class="mt-li mt-cmd"><span class="mt-mana">${manaHTML(C(x).m)}</span>${cardBtn(x)}<span class="mt-bt"><button class="mt-mm" data-uncmd="${esc(x)}" aria-label="Trocar comandante">✕</button></span></div>`).join('')}
-      ${d.cmds.length === 1 && temPar(C(d.cmds[0])) ? '<button class="btn small" id="mt-cmd2">+ segundo comandante</button>' : ''}</div>
-    ${GRUPOS.filter(([k]) => grupos[k]).map(([k, nome]) => { const g = grupos[k].sort((a, b) => a[0].v - b[0].v || a[0].name.localeCompare(b[0].name)); return `<div class="mt-g"><h3>${nome} <span class="note">${g.reduce((s, [, q]) => s + q, 0)}</span></h3>${g.map(([c, q]) => linha(c, q)).join('')}</div>`; }).join('')}
-    <div class="row mt-fim">${n > d.cmds.length ? '<button class="btn small" id="mt-limpa">Esvaziar o deck</button>' : ''}</div>
-  </section>`;
-}
-
-function painelAnalise() {
-  const d = D(); if (!A) return '';
-  const alvoBr = +d.alvo.br || 0, teto = parseFloat(String(d.alvo.teto || '').replace(',', '.')) || 0;
-  const usdBrl = R.usd || 5.56;
-  const reais = A.price * usdBrl;
-  const gcLim = LIM_GC[alvoBr];
-  const avisos = [];
-  if (alvoBr && A.bracket > alvoBr) avisos.push(`O deck está no bracket ${A.bracket}, acima do ${alvoBr} que você quer${A.bracketWhy.length ? ': ' + A.bracketWhy.join(', ') : ''}.`);
-  if (gcLim != null && A.gc.length > gcLim) avisos.push(`${A.gc.length} game changer${A.gc.length > 1 ? 's' : ''} (${A.gc.join(', ')}); o bracket ${alvoBr} aceita ${gcLim}.`);
-  if (teto && reais > teto) avisos.push(`Passou do orçamento: ${R.brlTxt(A.price)} de ${R.brlTxt(teto / usdBrl)}.`);
-  const regra = A.issues.filter(i => i.sev === 3 && !/exatamente 100/.test(i.t));
-  const reguas = A.refs.map(r => {
-    const max = Math.max(r.hi * 1.35, r.have) + 1, x = (v: number) => (100 * v / max).toFixed(1) + '%';
-    const dentro = r.have >= r.lo && r.have <= r.hi, falta = r.have < r.lo;
-    const papel = r.k === 'lands' ? '' : r.k;
-    return `<div class="rg"><span class="rg-n">${esc(r.n)}</span><span class="rg-t" title="Faixa comum: ${r.lo}–${r.hi}"><span class="rg-band" style="left:${x(r.lo)};width:calc(${x(r.hi)} - ${x(r.lo)})"></span><i class="rg-dep ${dentro ? '' : 'ruim'}" style="left:${x(r.have)}"></i></span><span class="rg-v">${r.have % 1 ? r.have.toFixed(1) : r.have} <small>/ ${r.lo}–${r.hi}</small>${falta ? ` <button class="btn small" data-papel="${papel}" data-tipo="${r.k === 'lands' ? 'Land' : ''}">buscar</button>` : ''}</span></div>`;
-  }).join('');
-  const cmax = Math.max(1, ...A.curve);
-  const curva = A.curve.map((q, v) => `<div class="col" title="Custo ${v}${v === 7 ? '+' : ''}: ${q}"><span class="col-q">${q}</span><span class="col-b"><i class="dep" style="height:${(100 * q / cmax).toFixed(1)}%"></i></span><span class="col-l">${v}${v === 7 ? '+' : ''}</span></div>`).join('');
-  return `<section class="panel mt-ana"><h2>Como o deck está</h2>
-    <div class="stats mt-stats">
-      <div class="stat price"><span class="k">Preço do deck</span><b>${brl(A.price)}</b><small>${teto ? `orçamento ${R.brlTxt(teto / usdBrl)}` : 'sem orçamento definido'}</small><small class="cot">${R.fontePrecos(A.uniq.concat(A.cmds).map(c => c.name))}</small></div>
-      <div class="stat"><span class="k">Bracket</span><b>${A.bracket}</b><small>${alvoBr ? 'quer ' + alvoBr : 'estimado'}</small></div>
-      <div class="stat"><span class="k">Game changers</span><b>${A.gc.length}</b><small>${gcLim != null ? 'limite ' + gcLim : '—'}</small></div>
-      <div class="stat"><span class="k">Custo médio</span><b>${A.avgMV.toFixed(2).replace('.', ',')}</b><small>${A.lands} terrenos</small></div>
-    </div>
-    <div class="mt-alvo"><label class="mt-campo"><span>Bracket que você quer</span><select id="mt-br"><option value="">Qualquer</option>${[2, 3, 4].map(b => `<option value="${b}" ${alvoBr === b ? 'selected' : ''}>${b}</option>`).join('')}</select></label>
-      <label class="mt-campo"><span>Orçamento do deck (R$)</span><input class="txt" id="mt-teto" inputmode="decimal" value="${esc(d.alvo.teto || '')}" placeholder="ex.: 800"></label></div>
-    ${avisos.length || regra.length ? `<ul class="mt-av">${regra.map(i => `<li class="ruim">${esc(i.t)}</li>`).join('')}${avisos.map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-    <div class="graf2">
-      <div class="gbox"><h3>Funções</h3><p class="note">A faixa clara é o normal para Commander. <b>buscar</b> filtra a busca pela função que falta.</p><div class="reguas">${reguas}</div></div>
-      <div class="gbox"><h3>Curva de mana</h3><p class="note">Cartas que não são terreno, por custo.</p><div class="curva2">${curva}</div></div>
-    </div>
-  </section>`;
-}
-
-function painelSaida() {
-  const d = D(); if (!d.cmds.length) return '';
-  return `<section class="panel mt-saida"><h2>Levar o deck</h2>
-    <div class="mt-sai-g">
-      <div><h3>Moxfield</h3><p class="note">Copia a lista no formato que o Moxfield importa (comandante em cima). Lá: <b>Create Deck</b> → <b>Import</b> → colar.</p>
-        <div class="row"><button class="btn primary" id="mt-copia">Copiar para o Moxfield</button><a class="btn" href="https://moxfield.com/decks/personal" target="_blank" rel="noopener">Abrir o Moxfield</a><button class="btn" id="mt-baixa">Baixar .txt</button></div></div>
-      <div><h3>Aqui no Raio-X</h3><p class="note">Manda o deck para a análise completa (trocas sugeridas, plano) ou para a mesa, como deck de amigo.</p>
-        <div class="row"><button class="btn primary" id="mt-analisa">Analisar no Raio-X</button><button class="btn" id="mt-mesa">Jogar na Mesa</button></div></div>
-    </div>
-    <p class="note" id="mt-msg" role="status"></p>
-  </section>`;
-}
-
+let TELA: { tudo: () => void; busca: () => void } | null = null;
+let VIVA: ReturnType<typeof mount> | null = null;
 function desenha(soBusca?: boolean) {
   const root = ROOT(); if (!root) return;
-  if (soBusca) { const y = window.scrollY; const b = $('.mt-busca', root); if (b) { const foco = document.activeElement && document.activeElement.id; const pos = foco === 'mt-q' ? (document.activeElement as HTMLInputElement).selectionStart : null; b.outerHTML = painelBusca(); liga(); G.liga(); if (foco) { const el = $<HTMLInputElement>('#' + foco); if (el) { el.focus(); if (pos != null && el.setSelectionRange) el.setSelectionRange(pos, pos); } } window.scrollTo(0, y); return; } }
-  const d = D(); if (!d.cmds.length && d.passo > 1) d.passo = 1;
-  analisa();
-  let corpo;
-  if (d.passo === 1) corpo = G.painelCores();
-  else if (d.passo === 2) corpo = G.painelIdeia();
-  else if (d.passo === 3) corpo = `<div class="mt-grade mt-g3">${G.painelJunto()}${painelDeck()}</div>`;
-  else corpo = `<div class="mt-grade">${painelBusca()}${painelDeck()}</div>` + painelAnalise() + painelSaida();
-  root.innerHTML = painelTopo() + G.passos() + corpo;
-  liga(); G.liga(); G.imagens(root);
+  if (soBusca && TELA && $('.mt-busca', root)) {
+    const y = window.scrollY; const foco = document.activeElement && document.activeElement.id; const pos = foco === 'mt-q' ? (document.activeElement as HTMLInputElement).selectionStart : null;
+    TELA.busca(); flushSync();
+    if (foco) { const el = $<HTMLInputElement>('#' + foco); if (el) { el.focus(); if (pos != null && el.setSelectionRange) el.setSelectionRange(pos, pos); } }
+    window.scrollTo(0, y); return;
+  }
+  // tirar da tela o campo com foco dispara o change dele de novo, no meio do flushSync: essa ação entra na fila e a
+  // tela é refeita mais uma vez depois (com o innerHTML de antes o desenho aninhado não fazia mal)
+  if (PINTANDO) { DE_NOVO = true; return; }
+  PINTANDO = true;
+  try {
+    do {
+      DE_NOVO = false;
+      const d = D(); if (!d.cmds.length && d.passo > 1) d.passo = 1;
+      analisa();
+      if (TELA) TELA.tudo(); else VIVA = mount(Montar, { target: root, props: { mt: API } });
+      flushSync();
+    } while (DE_NOVO);
+  } finally { PINTANDO = false; }
+  G.imagens(root);
 }
+let PINTANDO = false, DE_NOVO = false;
 // redesenha tudo, sem perder o lugar da tela nem o campo de busca
 function atualiza() { const y = window.scrollY; const lista = $('#mt-lista'); const ly = lista ? lista.scrollTop : 0; const foco = document.activeElement && document.activeElement.id; desenha(); window.scrollTo(0, y); const l2 = $('#mt-lista'); if (l2) l2.scrollTop = ly; if (foco === 'mt-q') $('#mt-q').focus(); }
+const rolaPara = (s: string, folga: number) => { const t = $(s); if (t) window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY - folga); };
 
 const msg = (t: string, id = 'mt-msg') => { const el = $('#' + id); if (el) el.textContent = t; };
 function poe(n: string) {
@@ -244,39 +145,39 @@ function poe(n: string) {
   d.cartas[n] = (d.cartas[n] || 0) + 1; toque(); atualiza();
 }
 let BT: any = null;
-function liga() {
-  const root = ROOT(), d = D();
-  $('#mt-sel').onchange = (e) => { S.atual = (e.target as HTMLSelectElement).value; salva(); Q.cmd = false; desenha(); };
-  $('#mt-nome').onchange = (e) => { d.nome = (e.target as HTMLInputElement).value.trim() || 'Deck sem nome'; toque(); desenha(); };
-  $('#mt-novo').onclick = () => { novoDeck(); Q = { ...Q, txt: '', cmd: false }; desenha(); $('#mt-q') && $('#mt-q').focus(); };
-  $('#mt-dup').onclick = () => { const o = D(); const n = novoDeck(o.nome + ' (cópia)'); n.cmds = o.cmds.slice(); n.cartas = { ...o.cartas }; n.alvo = { ...o.alvo }; salva(); desenha(); };
-  $('#mt-del').onclick = () => { if (!confirmar('Apagar o deck "' + d.nome + '"?')) return; delete S.decks[S.atual!]; S.atual = Object.keys(S.decks).sort((a, b) => S.decks[b].t - S.decks[a].t)[0] || null; if (!S.atual) novoDeck(); salva(); desenha(); };
-  // importar
-  $('#mt-imp-ok').onclick = () => { const r = deTexto($<Campo>('#mt-imp-txt').value); if (r.erro) { msg(r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Importado: ${contar(r.d!)} cartas${r.unknown!.length ? `. Não reconheci ${r.unknown!.length}: ${r.unknown!.slice(0, 6).join(', ')}` : ''}.`, 'mt-imp-msg'); $<HTMLDetailsElement>('#mt-imp').open = true; };
-  $('#mt-imp-lista').onclick = () => { const t = ($<Campo>('#deck-in') || <Campo>{}).value || ''; const r = deTexto(t, 'Da aba Lista'); if (r.erro) { msg('A aba Lista está vazia. ' + r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Trazido da Lista: ${contar(r.d!)} cartas.`, 'mt-imp-msg'); $<HTMLDetailsElement>('#mt-imp').open = true; };
-  $('#mt-imp-arch').onclick = () => archidekt($<Campo>('#mt-imp-url').value);
+const abreImp = () => { $<HTMLDetailsElement>('#mt-imp').open = true; };
+// ações dos painéis do passo 4 e do topo (antes: liga(), que punha onclick/onchange depois de cada innerHTML)
+const acoes = {
+  selDeck(id: string) { S.atual = id; salva(); Q.cmd = false; desenha(); },
+  nome(v: string) { D().nome = v.trim() || 'Deck sem nome'; toque(); desenha(); },
+  novo() { novoDeck(); Q = { ...Q, txt: '', cmd: false }; desenha(); $('#mt-q') && $('#mt-q').focus(); },
+  dup() { const o = D(); const n = novoDeck(o.nome + ' (cópia)'); n.cmds = o.cmds.slice(); n.cartas = { ...o.cartas }; n.alvo = { ...o.alvo }; salva(); desenha(); },
+  apaga() { const d = D(); if (!confirmar('Apagar o deck "' + d.nome + '"?')) return; delete S.decks[S.atual!]; S.atual = Object.keys(S.decks).sort((a, b) => S.decks[b].t - S.decks[a].t)[0] || null; if (!S.atual) novoDeck(); salva(); desenha(); },
+  impTexto(t: string) { const r = deTexto(t); if (r.erro) { msg(r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Importado: ${contar(r.d!)} cartas${r.unknown!.length ? `. Não reconheci ${r.unknown!.length}: ${r.unknown!.slice(0, 6).join(', ')}` : ''}.`, 'mt-imp-msg'); abreImp(); },
+  impLista() { const t = ($<Campo>('#deck-in') || <Campo>{}).value || ''; const r = deTexto(t, 'Da aba Lista'); if (r.erro) { msg('A aba Lista está vazia. ' + r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Trazido da Lista: ${contar(r.d!)} cartas.`, 'mt-imp-msg'); abreImp(); },
+  impArch: (url: string) => archidekt(url),
   // busca
-  const q = $<Campo>('#mt-q'); if (q) q.oninput = () => { Q.txt = q.value; Q.pag = 40; clearTimeout(BT); BT = setTimeout(() => desenha(true), 140); };
-  [['#mt-tipo', 'tipo'], ['#mt-papel', 'papel'], ['#mt-cmc', 'cmc']].forEach(([s, k]) => { const el = $<Campo>(s); if (el) el.onchange = () => { Q[k] = el.value; Q.pag = 40; desenha(true); }; });
-  $$('[data-cor]', root).forEach(b => b.onclick = () => { Q.cor = b.dataset.cor!; Q.pag = 40; desenha(true); });
-  const mais = $('#mt-mais'); if (mais) mais.onclick = () => { Q.pag += 40; desenha(true); };
-  const cx = $('#mt-cmd-x'); if (cx) cx.onclick = () => { Q.cmd = false; Q.txt = ''; desenha(); };
-  const c2 = $('#mt-cmd2'); if (c2) c2.onclick = () => { Q.cmd = true; Q.txt = ''; desenha(); $('#mt-q').focus(); };
-  const lp = $('#mt-limpa'); if (lp) lp.onclick = () => { if (!confirmar('Tirar todas as cartas (o comandante fica)?')) return; d.cartas = {}; toque(); atualiza(); };
+  buscaTxt(v: string) { Q.txt = v; Q.pag = 40; clearTimeout(BT); BT = setTimeout(() => desenha(true), 140); },
+  filtro(k: 'tipo' | 'papel' | 'cmc', v: string) { Q[k] = v; Q.pag = 40; desenha(true); },
+  cor(x: string) { Q.cor = x; Q.pag = 40; desenha(true); },
+  mais() { Q.pag += 40; desenha(true); },
+  cmdX() { Q.cmd = false; Q.txt = ''; desenha(); },
+  cmd2() { Q.cmd = true; Q.txt = ''; desenha(); $('#mt-q').focus(); },
+  limpa() { if (!confirmar('Tirar todas as cartas (o comandante fica)?')) return; D().cartas = {}; toque(); atualiza(); },
   // análise
-  const br = $<Campo>('#mt-br'); if (br) br.onchange = () => { d.alvo.br = br.value; toque(); atualiza(); };
-  const tt = $<Campo>('#mt-teto'); if (tt) tt.onchange = () => { d.alvo.teto = tt.value.trim(); toque(); atualiza(); };
-  $$('[data-papel]', root).forEach(b => b.onclick = () => { Q = { ...Q, txt: '', papel: b.dataset.papel!, tipo: b.dataset.tipo!, cmc: '', cor: '', cmd: false, pag: 40 }; desenha(); const s = $('.mt-busca'); if (s) window.scrollTo(0, s.getBoundingClientRect().top + window.scrollY - 90); });
+  alvo(k: 'br' | 'teto', v: string) { D().alvo[k] = k === 'teto' ? v.trim() : v; toque(); atualiza(); },
+  buscarPapel(papel: string, tipo: string) { Q = { ...Q, txt: '', papel, tipo, cmc: '', cor: '', cmd: false, pag: 40 }; desenha(); rolaPara('.mt-busca', 90); },
   // saída
-  const cp = $('#mt-copia'); if (cp) cp.onclick = async () => { try { await navigator.clipboard.writeText(texto()); msg('Lista copiada. No Moxfield: Create Deck → Import → colar.'); } catch (e) { msg('Não deu para copiar daqui. Use "Baixar .txt".'); } };
-  const bx = $('#mt-baixa'); if (bx) bx.onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto()], { type: 'text/plain' })); a.download = (d.nome || 'deck').replace(/[^\w\- ]+/g, '').trim() + '.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
-  const an = $('#mt-analisa'); if (an) an.onclick = () => { $<Campo>('#deck-in').value = texto(); R.run(d.cmds.slice(), 'resumo'); };
-  const ms = $('#mt-mesa'); if (ms) ms.onclick = () => {
+  async copia() { try { await navigator.clipboard.writeText(texto()); msg('Lista copiada. No Moxfield: Create Deck → Import → colar.'); } catch (e) { msg('Não deu para copiar daqui. Use "Baixar .txt".'); } },
+  baixa() { const d = D(); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto()], { type: 'text/plain' })); a.download = (d.nome || 'deck').replace(/[^\w\- ]+/g, '').trim() + '.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); },
+  analisar() { $<Campo>('#deck-in').value = texto(); R.run(D().cmds.slice(), 'resumo'); },
+  mesa() {
+    const d = D();
     try { const k = 'raiox:amigos'; const am = JSON.parse(localStorage.getItem(k) || '[]').filter((a: { nome: string }) => a.nome !== d.nome); am.push({ nome: d.nome, lista: texto() }); localStorage.setItem(k, JSON.stringify(am)); } catch (e) {}
     msg(`"${d.nome}" entrou na Mesa simulada como deck de amigo. Para ele jogar como o seu deck, use "Analisar no Raio-X".`);
     document.dispatchEvent(new CustomEvent('raiox:amigos'));
-  };
-}
+  },
+};
 const confirmar = (t: string) => { try { return window.confirm(t); } catch (e) { return true; } };
 
 // =====================================================================
@@ -346,38 +247,6 @@ const G = (() => {
     l = l.slice().sort(P1.ord === 'preco' ? (a, b) => a.usd - b.usd || a.r - b.r : (a, b) => a.r - b.r);
     return l;
   }
-  function painelCores() {
-    const l = listaCmds(), mostra = l.slice(0, P1.pag);
-    const sel = P1.cores, sl = sel || '';
-    const botoes = ORDEM.split('').map(x => `<button class="g-cor ${sl.includes(x) ? 'on' : ''}" data-c1="${x}" aria-pressed="${sl.includes(x)}" title="${R.COLORNAME[x]}"><span class="ms ${x}"></span><small>${R.COLORNAME[x]}</small></button>`).join('');
-    const temas = [['', 'Todos os temas'], ...R.THEMES.map(t => [t.k, t.n]), ['tribo', 'Tribo (um tipo de criatura)']];
-    const cartoes = mostra.map(x => {
-      const c = C(x.n), p = perfil(x.n);
-      const tags = [p.tribo ? `<span class="tag th">Tribo: ${esc(p.tribo)}</span>` : '', ...p.temas.slice(0, 3).map(k => `<span class="tag th">${esc(temaNome(k))}</span>`)].join('');
-      const ia = window.PAPEIS_IA && window.PAPEIS_IA[x.n];
-      return `<article class="g-cmd"><button class="g-img" data-card="${esc(x.n)}" data-img="${esc(x.n)}" aria-label="Ver ${esc(x.n)}"><span class="note">carregando…</span></button>
-        <div class="g-cmd-tx"><b>${esc(x.n)}</b><span class="g-sub"><span class="mt-mana">${manaHTML(c.m)}</span> <span class="note">${esc(nomeCores(x.ci))}</span></span>
-        ${ia && ia.r ? `<p class="g-ia">${esc(ia.r)}</p>` : ''}
-        <div class="chips">${tags || '<span class="tag">sem tema claro</span>'}</div>
-        <span class="g-meta"><span title="Posição entre os comandantes e cartas mais jogadas">Nº ${x.r < 1e6 ? x.r.toLocaleString('pt-BR') : '—'}</span><span>${x.usd ? brl(x.usd, x.usd < 10) : '—'}</span></span>
-        <button class="btn primary small" data-cmd="${esc(x.n)}">Escolher este</button></div></article>`;
-    }).join('');
-    return `<section class="panel g-p1"><h2>Passo 1 · Cores e comandante</h2>
-      <p class="lead">Não precisa saber o nome do comandante. Escolha as cores que você quer jogar e veja quem comanda essa combinação.</p>
-      <div class="g-cores">${botoes}<button class="g-cor g-inc ${sel === '' && P1.modo === 'exato' ? 'on' : ''}" data-c1="C" title="Sem cor"><span class="ms">C</span><small>Incolor</small></button></div>
-      <div class="g-comb"><span class="g-comb-n">${pipsHTML(sel)} <b>${esc(nomeCores(sel))}</b></span>
-        <label class="g-modo"><input type="radio" name="g-modo" value="exato" ${P1.modo === 'exato' ? 'checked' : ''}> exatamente essas cores</label>
-        <label class="g-modo"><input type="radio" name="g-modo" value="cabe" ${P1.modo === 'cabe' ? 'checked' : ''}> estas cores ou menos</label></div>
-      <div class="mt-filtros g-f1">
-        <label class="mt-campo"><span>Tema</span><select id="g-tema">${temas.map(([k, n]) => `<option value="${k}" ${P1.tema === k ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
-        <label class="mt-campo"><span>Ordem</span><select id="g-ord"><option value="pop" ${P1.ord === 'pop' ? 'selected' : ''}>Mais jogados primeiro</option><option value="preco" ${P1.ord === 'preco' ? 'selected' : ''}>Mais baratos primeiro</option></select></label><span class="note mt-fonte">Preços: ${R.fonteMyp()}</span>
-        <label class="mt-campo g-busca1"><span>Já sabe o nome? (atalho)</span><input class="txt" id="g-q1" type="search" placeholder="Nome do comandante…" value="${esc(P1.txt)}" autocomplete="off"></label>
-      </div>
-      <p class="note">${P1.txt ? `Busca por nome: ${l.length} comandante(s), em qualquer cor.` : `${l.length.toLocaleString('pt-BR')} comandante(s) em ${esc(nomeCores(sel))}${P1.modo === 'cabe' && sel ? ' ou menos cores' : ''}${sel == null ? ' (escolha as cores acima para filtrar)' : ''}${P1.tema ? ' com o tema escolhido' : ''}.`} Clique na imagem para ler a carta.</p>
-      <div class="g-grade" id="g-grade">${cartoes || '<p class="note">Nenhum comandante com esses filtros. Tente outra combinação ou tire o tema.</p>'}</div>
-      ${l.length > P1.pag ? '<div class="row"><button class="btn" id="g-mais1">Mostrar mais comandantes</button></div>' : ''}
-    </section>`;
-  }
 
   // ---------- passo 2: a ideia ----------
   const CONC = () => R.CONCEITOS || [];
@@ -402,33 +271,6 @@ const G = (() => {
     } catch (e) {}
   }
   const BR_TX: Dic<string> = { '': 'Sem limite: a ferramenta só sugere, não barra nada.', 2: 'Bracket 2 (casual): sem game changers, sem destruir terrenos em massa, sem turnos extras em sequência, poucos tutores.', 3: 'Bracket 3 (otimizado): até 3 game changers, sem destruir terrenos em massa, sem turnos extras em sequência.', 4: 'Bracket 4 (alto poder): vale tudo que não é banido.' };
-  function painelIdeia() {
-    const d = D(), on = temasIdeia(), tb = triboDeck();
-    const cmd = d.cmds[0], ia = window.PAPEIS_IA && window.PAPEIS_IA[cmd];
-    const p = perfil(cmd);
-    const chips = CONC().filter(x => x.k !== 'tribe' || tb).map(x => `<button class="cn lock ${on.has(x.k) ? 'on' : ''}" data-g2="${x.k}" aria-pressed="${on.has(x.k)}">${esc(x.k === 'tribe' ? 'Tribo: ' + tb : x.n)}</button>`).join('');
-    return `<section class="panel g-p2"><h2>Passo 2 · A ideia do deck</h2>
-      <div class="g-ideia">
-        <div class="g-cmdbox">${d.cmds.map(n => `<button class="g-img" data-card="${esc(n)}" data-img="${esc(n)}"><span class="note">carregando…</span></button>`).join('')}
-          ${ia && ia.r ? `<p class="g-ia"><b>O que ele faz:</b> ${esc(ia.r)}</p>` : ''}
-          <p class="note">${p.temas.length || p.tribo ? 'Pelo texto, ele puxa para: ' + esc([p.tribo ? 'tribo ' + p.tribo : '', ...p.temas.map(temaNome)].filter(Boolean).join(', ')) + '.' : 'O texto dele não aponta um tema claro: a ideia fica por sua conta.'}</p>
-          <div class="row">${d.cmds.length === 1 && temPar(C(cmd)) ? '<button class="btn small" id="g-par">+ segundo comandante</button>' : ''}<button class="btn small" id="g-troca">Trocar de comandante</button></div>
-        </div>
-        <div class="g-ideia-f">
-          <label class="mt-campo"><span>Como o deck ganha? Escreva do seu jeito</span><textarea id="g-txt" spellcheck="false" placeholder="ex.: encher a mesa de goblins e atacar com todos; ou: equipar o comandante e bater com ele">${esc(d.ideia.texto || '')}</textarea></label>
-          <div><span class="g-rot">O plano (marque o que vale)</span><div class="chips g-chips">${chips}</div>
-          <p class="note">Já vem marcado o que o comandante pede. O que você escrever acende os temas sozinho; clique para ligar ou desligar.</p></div>
-          <div class="g-nivel">
-            <label class="mt-campo"><span>Bracket que você quer</span><select id="g-br">${['', 2, 3, 4].map(b => `<option value="${b}" ${String(d.alvo.br || '') === String(b) ? 'selected' : ''}>${b || 'Qualquer'}</option>`).join('')}</select></label>
-            <label class="mt-campo"><span>Orçamento do deck (R$)</span><input class="txt" id="g-teto" inputmode="decimal" value="${esc(d.alvo.teto || '')}" placeholder="ex.: 800"></label>
-            <label class="mt-campo"><span>Máximo por carta (R$)</span><input class="txt" id="g-tetoc" inputmode="decimal" value="${esc(d.alvo.tetoCarta || '')}" placeholder="ex.: 40"></label>
-          </div>
-          <p class="note" id="g-brtx">${esc(BR_TX[d.alvo.br || ''])}</p>
-        </div>
-      </div>
-      <div class="row g-nav"><button class="btn" data-passo="1">← Voltar às cores</button><button class="btn primary" data-passo="3">Próximo: montar junto →</button></div>
-    </section>`;
-  }
 
   // ---------- passo 3: montar junto ----------
   const num = (v: unknown) => parseFloat(String(v || '').replace(/\./g, '').replace(',', '.')) || 0;
@@ -678,56 +520,24 @@ const G = (() => {
     q.map(([x, v], i) => [i, v - Math.floor(v)]).sort((a, b) => b[1] - a[1]).forEach(([i]) => { if (sobra > 0) { base[i][1]++; sobra--; } });
     return base.filter(([, v]) => v > 0).map(([x, v]) => [BASICO[x], v]);
   }
-  function painelJunto() {
+  // ---------- passo 3: o que a tela mostra (Junto.svelte) ----------
+  function junto() {
     const E = estado();
     const auto = proximo(E);
     const k = P3.slot && (P3.slot !== 'tema' || E.on.size) ? P3.slot : auto;
-    const trilho = E.slots.map(x => {
-      const pct = Math.min(100, 100 * x.tem / Math.max(1, x.alvo)), ok = x.tem >= x.alvo;
-      return `<button class="g-slot ${ok ? 'ok' : ''} ${x.k === k ? 'on' : ''}" data-slot="${x.k}" title="${esc(x.n)}: ${x.tem} de ${x.alvo}"><span class="g-slot-n">${esc(x.n)}</span><span class="g-slot-v"><b>${x.tem}</b>/${x.alvo}${ok ? ' ✓' : ''}</span><span class="g-slot-b"><i style="width:${pct}%"></i></span></button>`;
-    }).join('');
-    let corpo;
-    if (!k) {
-      corpo = `<div class="g-fim"><h3>O deck chegou a ${E.total} cartas.</h3><p>${E.total > 100 ? `Passou ${E.total - 100}: no ajuste fino dá para ver o que tirar.` : 'Esqueleto completo. Agora é o ajuste fino: ver a análise, trocar uma ou outra carta e levar para o Moxfield ou para a mesa.'}</p><div class="row"><button class="btn primary" data-passo="4">Ir para o ajuste fino →</button></div></div>`;
-    } else {
-      const slot = <Slot>(E.slots.find(x => x.k === k) || { n: 'Mais cartas', alvo: 0, tem: 0, why: 'o deck ainda tem vagas' });
-      let falta = Math.max(0, slot.alvo - slot.tem);
-      const extra = !falta && k !== 'lands' && E.vagasSpells > 0; if (extra) falta = E.vagasSpells;
-      const lista = sugestoes(k, E, P3.pag);
-      const bas = k === 'lands' ? planoBasicos(E) : [];
-      const cartas = lista.map(s => {
-        const c = s.c, ia = window.PAPEIS_IA && window.PAPEIS_IA[c.name];
-        return `<article class="g-sug"><button class="g-img g-img-s" data-card="${esc(c.name)}" data-img="${esc(c.name)}"><span class="note">…</span></button>
-          <div class="g-sug-tx"><div class="g-sug-h"><b>${esc(c.name)}</b><span class="mt-mana">${manaHTML(c.m)}</span></div>
-          <span class="note">${esc(c.t.split(' // ')[0])} · ${c.usd ? brl(c.usd, c.usd < 10) + (R.temMyp(c.name) ? ' no ' + R.fonteMyp() : ' (Scryfall convertido)') : 'sem preço'}${c.gc ? ' · <b class="mt-gc">game changer</b>' : ''}</span>
-          ${ia && ia.r ? `<p class="g-ia">${esc(ia.r)}</p>` : ''}
-          <ul class="g-pq">${porque(s, k, E).map(t => `<li>${esc(t)}</li>`).join('')}</ul>
-          <div class="row"><button class="btn primary small" data-aceita="${esc(c.name)}">Pôr no deck</button><button class="btn small" data-nao="${esc(c.name)}">Agora não</button></div></div></article>`;
-      }).join('');
-      const filtros = [E.d.alvo.br ? 'bracket ' + E.d.alvo.br : '', num(E.d.alvo.tetoCarta) ? 'até R$ ' + num(E.d.alvo.tetoCarta) + ' por carta' : '', num(E.d.alvo.teto) ? 'orçamento de R$ ' + num(E.d.alvo.teto) : ''].filter(Boolean);
-      corpo = `<div class="g-prox"><span class="g-rot">${k === auto ? 'Próximo passo' : 'Você escolheu'}</span>
-        <h3>${esc(slot.n)}${extra ? `: ainda cabem ${falta} mágica${falta > 1 ? 's' : ''}` : slot.alvo ? `: ${falta ? `faltam ${falta} de ${slot.alvo}` : `já tem ${slot.tem} (o normal é ${slot.alvo})`}` : ''}</h3>
-        ${extra ? `<p class="note">O esqueleto de funções já está completo; as vagas que sobram (100 menos os ${E.landsT} terrenos) vão para ${E.on.size ? 'mais cartas da ideia' : 'as cartas mais jogadas nas suas cores'}.</p>` : ''}
-        <p class="note">Por que importa: ${esc(slot.why)}. Sugestões nas cores do comandante${E.edh ? `, pela sinergia com a sua ideia (no EDHREC: quanto a carta aparece nos decks do${E.edh.pags.length > 1 ? "s temas escolhidos" : " tema escolhido"} nessas cores a mais que nos decks dessas cores em geral)` : E.on.size ? ', pela popularidade geral' : ', pela popularidade geral (escolha temas no passo 2 para puxar para a ideia)'}${E.on.size && k !== 'lands' ? ', puxando para a ideia' : ''}${filtros.length ? ', dentro de ' + esc(filtros.join(', ')) : ''}.</p>
-        ${bas.length ? `<div class="g-bas"><span>Completar com básicos pela cor das cartas: <b>${bas.map(([n, q]) => q + ' ' + n).join(', ')}</b></span><button class="btn small primary" id="g-bas">Pôr os ${bas.reduce((s, [, q]) => s + q, 0)} básicos</button></div><p class="note">Ou escolha terrenos especiais abaixo antes (eles dão mais de uma cor).</p>` : ''}
-        <div class="g-sugs">${cartas || '<p class="note">Nenhuma sugestão cabe nos filtros (bracket, orçamento, cartas recusadas). Escolha outra etapa no trilho acima, mude o orçamento no passo 2 ou busque livre no passo 4.</p>'}</div>
-        <div class="row">${lista.length ? `<button class="btn" id="g-todas">Pôr ${Math.min(lista.length, falta || lista.length) === 1 ? 'a primeira' : 'as ' + Math.min(lista.length, falta || lista.length) + ' primeiras'}</button>` : ''}<button class="btn" id="g-mais3">Ver mais sugestões</button>${Object.keys(E.d.recusadas).length ? `<button class="btn" id="g-desrec">Rever as ${Object.keys(E.d.recusadas).length} recusadas</button>` : ''}${P3.slot ? '<button class="btn" id="g-auto">Seguir a ordem sugerida</button>' : ''}</div>
-      </div>`;
-    }
-    return `<section class="panel g-p3"><h2>Passo 3 · Montar junto</h2>
-      <p class="lead">O esqueleto de um deck de Commander, etapa por etapa. Aceite ou recuse cada sugestão; clique numa etapa do trilho para pular para ela.</p>
-      <div class="g-trilho">${trilho}</div>
-      ${corpo}
-      <div class="row g-nav"><button class="btn" data-passo="2">← A ideia</button><button class="btn" data-passo="4">Ajuste fino →</button></div>
-    </section>`;
+    if (!k) return { E, auto, k };
+    const slot = <Slot>(E.slots.find(x => x.k === k) || { n: 'Mais cartas', alvo: 0, tem: 0, why: 'o deck ainda tem vagas' });
+    let falta = Math.max(0, slot.alvo - slot.tem);
+    const extra = !falta && k !== 'lands' && E.vagasSpells > 0; if (extra) falta = E.vagasSpells;
+    const lista = sugestoes(k, E, P3.pag);
+    const bas = k === 'lands' ? planoBasicos(E) : [];
+    const sugs = lista.map(s => ({ ...s, ia: window.PAPEIS_IA && window.PAPEIS_IA[s.c.name], pq: porque(s, k, E) }));
+    const filtros = [E.d.alvo.br ? 'bracket ' + E.d.alvo.br : '', num(E.d.alvo.tetoCarta) ? 'até R$ ' + num(E.d.alvo.tetoCarta) + ' por carta' : '', num(E.d.alvo.teto) ? 'orçamento de R$ ' + num(E.d.alvo.teto) : ''].filter(Boolean);
+    return { E, auto, k, slot, falta, extra, sugs, bas, filtros };
   }
 
   // ---------- trilho dos passos ----------
-  function passos() {
-    const d = D(), tem = d.cmds.length > 0;
-    const P = <[number, string, string][]>[[1, 'Cores e comandante', 'palette'], [2, 'A ideia', 'lightbulb'], [3, 'Montar junto', 'handshake'], [4, 'Ajuste fino', 'tune']];
-    return `<nav class="g-passos" aria-label="Passos da montagem">${P.map(([n, t]) => `<button class="g-passo ${d.passo === n ? 'on' : ''} ${d.passo > n ? 'feito' : ''}" data-passo="${n}" ${n > 1 && !tem ? 'disabled title="Escolha o comandante primeiro"' : ''} aria-current="${d.passo === n ? 'step' : 'false'}"><b>${n}</b><span>${t}</span></button>`).join('<i class="g-seta" aria-hidden="true"></i>')}</nav>`;
-  }
+  const PASSOS = <[number, string, string][]>[[1, 'Cores e comandante', 'palette'], [2, 'A ideia', 'lightbulb'], [3, 'Montar junto', 'handshake'], [4, 'Ajuste fino', 'tune']];
 
   // ---------- imagens (fila do analise.js; a mesma carta não espera de novo) ----------
   const JA = new Map();
@@ -740,34 +550,35 @@ const G = (() => {
     });
   }
 
-  function liga() {
-    const root = ROOT(), d = D();
-    $$('[data-passo]', root).forEach(b => b.onclick = () => { const n = +b.dataset.passo!; if (n > 1 && !d.cmds.length) return; if (d.passo === 2) salvaConceito(); d.passo = n; P3.slot = ''; P3.pag = 6; toque(); desenha(); const t = $('.g-passos'); if (t) window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY - 80); });
+  // ações dos passos 1 a 3 (antes: liga())
+  const acoes = {
+    passo(n: number) { const d = D(); if (n > 1 && !d.cmds.length) return; if (d.passo === 2) salvaConceito(); d.passo = n; P3.slot = ''; P3.pag = 6; toque(); desenha(); rolaPara('.g-passos', 80); },
     // passo 1
-    $$('[data-c1]', root).forEach(b => b.onclick = () => { const x = b.dataset.c1!; if (x === 'C') { P1.cores = ''; P1.modo = 'exato'; } else { const b0 = P1.cores || ''; P1.cores = ordena(b0.includes(x) ? b0.replace(x, '') : b0 + x) || null; } P1.txt = ''; P1.pag = 24; desenha(); });
-    $$('input[name="g-modo"]', root).forEach(r => r.onchange = () => { P1.modo = (r as Campo).value; P1.pag = 24; desenha(); });
-    const tm = $<Campo>('#g-tema'); if (tm) tm.onchange = () => { P1.tema = tm.value; P1.pag = 24; desenha(); };
-    const od = $<Campo>('#g-ord'); if (od) od.onchange = () => { P1.ord = od.value; desenha(); };
-    const q1 = $<Campo>('#g-q1'); if (q1) q1.oninput = () => { P1.txt = q1.value; P1.pag = 24; clearTimeout(BT); BT = setTimeout(() => { desenha(); const e = $<Campo>('#g-q1'); if (e) { e.focus(); e.setSelectionRange(e.value.length, e.value.length); } }, 220); };
-    const m1 = $('#g-mais1'); if (m1) m1.onclick = () => { P1.pag += 24; atualiza(); };
-    // passo 2
-    const tx = $<Campo>('#g-txt'); if (tx) tx.oninput = () => { d.ideia.texto = tx.value; toque(); const on = temasIdeia(); $$('[data-g2]', root).forEach(b => { b.classList.toggle('on', on.has(b.dataset.g2!)); b.setAttribute('aria-pressed', <string><unknown>on.has(b.dataset.g2!)); }); salvaConceito(); };
-    $$('[data-g2]', root).forEach(b => b.onclick = () => { const k = b.dataset.g2!; const agora = !b.classList.contains('on'); d.ideia.man![k] = agora; toque(); salvaConceito(); b.classList.toggle('on', agora); b.setAttribute('aria-pressed', <string><unknown>agora); });
-    const br = $<Campo>('#g-br'); if (br) br.onchange = () => { d.alvo.br = br.value; toque(); salvaConceito(); $('#g-brtx').textContent = BR_TX[br.value || '']; };
-    [['#g-teto', 'teto'], ['#g-tetoc', 'tetoCarta']].forEach(([s, k]) => { const el = $<Campo>(s); if (el) el.onchange = () => { (<Dic<string>>d.alvo)[k] = el.value.trim(); toque(); salvaConceito(); }; });
-    const pr = $('#g-par'); if (pr) pr.onclick = () => { d.passo = 4; Q.cmd = true; Q.txt = ''; toque(); desenha(); };
-    const tc = $('#g-troca'); if (tc) tc.onclick = () => { if (Object.keys(d.cartas).length && !confirmar('Trocar de comandante? As cartas que não couberem nas cores novas vão ficar marcadas.')) return; d.cmds = []; d.passo = 1; d.ideia = { texto: '', man: null }; toque(); desenha(); };
+    c1(x: string) { if (x === 'C') { P1.cores = ''; P1.modo = 'exato'; } else { const b0 = P1.cores || ''; P1.cores = ordena(b0.includes(x) ? b0.replace(x, '') : b0 + x) || null; } P1.txt = ''; P1.pag = 24; desenha(); },
+    modo(v: string) { P1.modo = v; P1.pag = 24; desenha(); },
+    tema(v: string) { P1.tema = v; P1.pag = 24; desenha(); },
+    ord(v: string) { P1.ord = v; desenha(); },
+    q1(v: string) { P1.txt = v; P1.pag = 24; clearTimeout(BT); BT = setTimeout(() => { desenha(); const e = $<Campo>('#g-q1'); if (e) { e.focus(); e.setSelectionRange(e.value.length, e.value.length); } }, 220); },
+    mais1() { P1.pag += 24; atualiza(); },
+    // passo 2 (sem redesenhar: a tela só acende os temas)
+    ideiaTexto(v: string) { D().ideia.texto = v; toque(); const on = temasIdeia(); salvaConceito(); return on; },
+    chip(k: string, agora: boolean) { D().ideia.man![k] = agora; toque(); salvaConceito(); },
+    br(v: string) { D().alvo.br = v; toque(); salvaConceito(); return BR_TX[v || '']; },
+    teto(k: 'teto' | 'tetoCarta', v: string) { D().alvo[k] = v.trim(); toque(); salvaConceito(); },
+    par() { const d = D(); d.passo = 4; Q.cmd = true; Q.txt = ''; toque(); desenha(); },
+    troca() { const d = D(); if (Object.keys(d.cartas).length && !confirmar('Trocar de comandante? As cartas que não couberem nas cores novas vão ficar marcadas.')) return; d.cmds = []; d.passo = 1; d.ideia = { texto: '', man: null }; toque(); desenha(); },
     // passo 3
-    $$('[data-slot]', root).forEach(b => b.onclick = () => { P3.slot = b.dataset.slot!; P3.pag = 6; desenha(); });
-    const todas = $('#g-todas'); if (todas) todas.onclick = () => { const ns = $$('[data-aceita]', root).map(b => b.dataset.aceita!); const E = estado(); const kk = P3.slot || proximo(E); const slot = E.slots.find(x => x.k === kk); const falta = (slot ? Math.max(0, slot.alvo - slot.tem) : 0) || (kk !== 'lands' ? E.vagasSpells : 0) || ns.length; ns.slice(0, falta || ns.length).forEach(n => { if (!d.cartas[n]) d.cartas[n] = 1; }); toque(); atualiza(); };
-    const m3 = $('#g-mais3'); if (m3) m3.onclick = () => { P3.pag += 6; atualiza(); };
-    const dr = $('#g-desrec'); if (dr) dr.onclick = () => { d.recusadas = {}; toque(); atualiza(); };
-    const au = $('#g-auto'); if (au) au.onclick = () => { P3.slot = ''; P3.pag = 6; atualiza(); };
-    const gb = $('#g-bas'); if (gb) gb.onclick = () => { for (const [n, q] of planoBasicos(estado())) d.cartas[n] = (d.cartas[n] || 0) + q; toque(); atualiza(); };
-    $$('[data-aceita]', root).forEach(b => b.onclick = () => { const n = b.dataset.aceita!; if (!d.cartas[n]) d.cartas[n] = 1; toque(); atualiza(); });
-    $$('[data-nao]', root).forEach(b => b.onclick = () => { d.recusadas[b.dataset.nao!] = 1; toque(); atualiza(); });
-  }
-  return { painelCores, painelIdeia, painelJunto, passos, liga, imagens, perfil, estado, sugestoes, porque, nomeCores, salvaConceito };
+    slot(k: string) { P3.slot = k; P3.pag = 6; desenha(); },
+    todas(ns: string[]) { const d = D(); const E = estado(); const kk = P3.slot || proximo(E); const slot = E.slots.find(x => x.k === kk); const falta = (slot ? Math.max(0, slot.alvo - slot.tem) : 0) || (kk !== 'lands' ? E.vagasSpells : 0) || ns.length; ns.slice(0, falta || ns.length).forEach(n => { if (!d.cartas[n]) d.cartas[n] = 1; }); toque(); atualiza(); },
+    mais3() { P3.pag += 6; atualiza(); },
+    desrec() { D().recusadas = {}; toque(); atualiza(); },
+    auto() { P3.slot = ''; P3.pag = 6; atualiza(); },
+    bas() { const d = D(); for (const [n, q] of planoBasicos(estado())) d.cartas[n] = (d.cartas[n] || 0) + q; toque(); atualiza(); },
+    aceita(n: string) { const d = D(); if (!d.cartas[n]) d.cartas[n] = 1; toque(); atualiza(); },
+    nao(n: string) { D().recusadas[n] = 1; toque(); atualiza(); },
+  };
+  const P = () => ({ P1, P3 });
+  return { acoes, P, listaCmds, perfil, temaNome, nomeCores, pipsHTML, ordena, ORDEM, temasIdeia, triboDeck, CONC, BR_TX, junto, PASSOS, imagens, estado, sugestoes, porque, salvaConceito };
 })();
 window.RAIOX_GUIADO = G;
 
@@ -814,9 +625,17 @@ async function archidekt(url: string) {
   }
 }
 
+// o que os componentes da tela (src/telas/montar) leem e chamam; o Montar.svelte põe no contexto ('mt')
+const API = {
+  S: () => S, D, Q: () => Q, A: () => A, R, C, esc, brl, manaHTML, ROLES, TIPOS, GRUPOS, LIM_GC,
+  contar, total, ident, busca, papeis, multiOk, temPar, grupoDe, acoes, G,
+  ligaTela(t: { tudo: () => void; busca: () => void }) { TELA = t; },
+};
+export type MontarAPI = typeof API;
+export type { Deck, Item };
+
 // a tela só é desenhada quando aberta (a base de cartas é grande)
 function abre(t: string) { if (t !== 'montar') return; if (!S.atual || !S.decks[S.atual]) { const ids = Object.keys(S.decks); S.atual = ids[0] || null; if (!S.atual) novoDeck(); } desenha(); }
 document.addEventListener('raiox:tela', (e: any) => abre(e.detail));
 if (location.hash === '#montar') { ROOT() && (ROOT().hidden = false); abre('montar'); }
 window.RAIOX_MONTAR = { texto: () => texto(), get deck() { return D(); }, deTexto };
-export {};   // é módulo (escopo próprio), não script global
