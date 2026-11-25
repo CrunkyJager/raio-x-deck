@@ -121,7 +121,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   const para = M.listaDe(e, o);
@@ -132,6 +132,28 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
   return o;
 };
+
+// descartar (CR 701.9): o único caminho do descarte (efeito, custo, limpeza). Cada carta dispara 'descarta' {id, j, ts}
+// e o lote todo 'descartaGrupo' {j, n, ids} (gatilho com grupo: "uma ou mais cartas", Marauding Mako).
+// Loucura (702.35a): a carta vai para o exílio em vez do cemitério e o gatilho da loucura vai para a pilha.
+// Simplificação: o exílio da loucura é sempre escolhido; quem não quer conjurar recusa no gatilho e ela vai ao cemitério.
+M.descartar = (e, j, ids) => {
+  const feitas: any[] = [];
+  for (const id of ids) {
+    const o = e.objs[id]; if (!o || o.zona !== 'mao') continue;
+    const lk = (M.dadoDe(e, o).kw || []).find(x => x.k === 'loucura' && x.custo);
+    if (lk) {
+      M.mover(e, id, 'exilio'); o.loucura = true;
+      if (e.pend && e.turno.passo !== 'mulligan') e.pend.push({ fonte: id, ts: o.ts, ctrl: o.dono, k: 'loucura', g: GAT_LOUCURA, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'descarta', id, j, ts: o.ts } });
+    } else M.mover(e, id, 'cemiterio');
+    feitas.push(id);
+    M.evento(e, { ev: 'descarta', id, j, ts: o.ts });
+  }
+  if (feitas.length) M.evento(e, { ev: 'descartaGrupo', j, n: feitas.length, ids: feitas });
+  if (feitas.length) M.log(e, e.jogs[j].nome, 'descarta', feitas.map(id => e.objs[id].n).join(', '));
+  return feitas;
+};
+const GAT_LOUCURA = { ev: 'descarta', fx: [{ op: 'loucura' }] };
 
 // comprar (CR 121; grimório vazio → perde nas ABE, CR 704.5b)
 M.comprar = (e, j, qtd = 1) => {
@@ -326,9 +348,19 @@ M.qtdEst = (e, q, ctx) => {
 M.kwDe = (e, o) => { const b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw; return c.length ? b.concat(c) : b; };
 /** habilidades ativadas: as da carta, as de equipar (palavra-chave) e as dadas pelas camadas, nessa ordem (k estável) */
 const ATV_CARTA = new WeakMap<object, any[]>();   // atv da carta + equipar, por dado (não muda na partida)
+// ciclar N (CR 702.29a): "[custo], descarte esta carta: compre um card", ativada da mão. O descarte dispara 'descarta'.
+const CICLAR = new WeakMap<object, any>();
+const ciclarDe = kw => {
+  let a = CICLAR.get(kw);
+  if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }));
+  return a;
+};
 const atvCarta = d => {
   let l = ATV_CARTA.get(d);
-  if (!l) { const eq = (d.kw || []).filter(x => x.k === 'equipar'); ATV_CARTA.set(d, (l = eq.length ? [...(d.atv || []), ...eq.map(equiparDe)] : d.atv || NADA.atv)); }
+  if (!l) {
+    const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
+    ATV_CARTA.set(d, (l = eq.length || ci.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe)] : d.atv || NADA.atv));
+  }
   return l as any[];
 };
 M.atvDe = (e, o) => {
@@ -411,11 +443,12 @@ M.qtd = (e, q, ctx: any = {}) => {
   if (typeof q === 'number') return q;
   if (q === 'X') return ctx.x || 0;
   if (q && typeof q.conta === 'object') return M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
+  if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
   return null;      // contagem que o núcleo ainda não sabe → quem chama não oferece a habilidade
 };
 
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); as outras palavras (metalcraft, coven…) ainda não
 M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift');
 M.condicao = (e, se, ctx) => {
@@ -435,6 +468,7 @@ M.condicao = (e, se, ctx) => {
     if (se.conjuradaCom === 'kicker' && !((op && op.chute) || (cc && cc.kicker))) return false;
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
   }
+  if (se.pagou !== undefined && !!ctx.pagou !== !!se.pagou) return false;   // "se fizer" do efeito anterior (ctx da resolução)
   const vida = e.jogs[ctx.voce].vida;
   if (se.vidaMin !== undefined && vida < se.vidaMin) return false;
   if (se.vidaMax !== undefined && vida > se.vidaMax) return false;

@@ -114,7 +114,14 @@ M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
 };
 
 // CR 106.4: a reserva esvazia no fim de cada etapa e fase
-M.esvaziarReservas = e => { for (const J of e.jogs) J.reserva = M.zeroMana(); };
+// ficaNoTurno (efeito mana: Neheb, Birgi): dessa mana, o que ainda não foi gasto fica até o fim do turno
+M.esvaziarReservas = e => {
+  for (const J of e.jogs) {
+    const F = J.fica && J.fica.t === e.turno.n && e.turno.passo !== 'limpeza' ? J.fica : null, r = M.zeroMana();
+    if (F) for (const c of TIPOS) { r[c] = Math.min(J.reserva[c], F.m[c]); F.m[c] = r[c]; }
+    J.reserva = r;
+  }
+};
 
 const soma = p => TIPOS.reduce((s, c) => s + p[c], 0);
 const fmt = p => TIPOS.filter(c => p[c]).map(c => c.repeat(p[c])).join('') || '—';
@@ -174,8 +181,9 @@ M.somaCusto = (c, extra, vezes = 1) => {
   if (extra.p && extra.p.length) r.p = [...(r.p || []), ...Array.from({ length: vezes }, () => extra.p).flat()];
   return r;
 };
-M.custoComImposto = (e, o) => {
-  const c = { ...(M.dadoDe(e, o).custo || {}) };
+// base: um custo alternativo no lugar do custo de mana (loucura, CR 702.35b); imposto e reduções valem igual (601.2f)
+M.custoComImposto = (e, o, base?) => {
+  const c = { ...(base || M.dadoDe(e, o).custo || {}) };
   if (o.cmd && o.zona === 'comando') c.g = (c.g || 0) + 2 * (e.jogs[o.dono].imposto[o.id] || 0);
   return reduz(c, reducoes(e, o.dono, o, false));
 };

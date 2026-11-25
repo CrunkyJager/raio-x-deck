@@ -178,7 +178,7 @@ const RESP = {
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
   },
   descartar(e, p, op) {
-    M.mover(e, op.id, 'cemiterio');
+    M.descartar(e, p.j, [op.id]);                                   // CR 514.1 (dispara 'descarta'; loucura vale)
     const f = p.ctx.faltam - 1;
     if (f > 0) e.perg = { j: p.j, tipo: 'descartar', ops: e.jogs[p.j].zonas.mao.map(id => ({ a: 'descartar', id })), ctx: { faltam: f } };
     else limpar(e);
