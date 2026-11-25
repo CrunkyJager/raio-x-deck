@@ -41,3 +41,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · v0.28.0: B correção 16 + pente (99c17c7; 30 decks 1538/1538 → T20 fechada) + A ganhaVida, descartarEste (6d3ccb6); cobertura 825 inteiras.
 - 25/11 · FARSEER · v0.29.0: A reduzCusto + dano fonte/filtro nome (1ad7bc5) + B correção 17 (9805610); cobertura 851 inteiras. B começa a T44.
 - 25/11 · FARSEER · v0.30.0: A T22 parte 2 (4f5e6fe): filtro e pausa do registro, ?beta=1 (pedido do Felipe).
+- 25/11 · FARSEER · v0.31.0: A fichas predefinidas + correção 17 no motor (7b765c3), depois do teste do Felipe com o deck da Ivora; cobertura 861.

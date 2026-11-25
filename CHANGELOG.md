@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.31.0 — 25/11/2026 · fichas com nome ganham habilidade (Treasure, Clue, Food, Blood…)
+Testes: check 0 erros · Vitest 188/188 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 861/1585.
+- **Motor (A):** fichas predefinidas (Treasure, Gold, Clue, Food, Blood, Powerstone, Lander, Shard; Map e Junk só com tipo). Antes saíam sem nome nem habilidade. O plano de mana usa Treasure, Gold e Lotus Petal; a IA quebra Clue/Food/Shard/Lander com mana sobrando e usa Blood para trocar terreno sobrando. Correção 17 lida: custo devolver, chute e presente na conjuração, alvo por opção.
+
 ## v0.30.0 — 25/11/2026 · Mesa ao vivo beta: filtro do registro, parar em gatilho/efeito e link ?beta=1
 Testes: check 0 erros · Vitest 180/180 · testa 161/161 · verifica verde · build ok · Chromium headless (filtro, pausa, ?beta) sem erro no console.
 - **Mesa ao vivo (A, T22 parte 2, pedido do usuário):** botões Mostrar (todos / ⚡ gatilho / ✧ efeito / ▲ camada / ⚙ habilidade); chave "parar em ⚡ gatilho / ✧ efeito" (desligada por padrão) que segura o replay e o você-joga até Continuar; `?beta=1` na URL liga o motor novo (beta), `?beta=0` desliga. Só no motor beta.
