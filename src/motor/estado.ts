@@ -219,13 +219,13 @@ let lendoCamada = 0;
 // O mover e o criarFicha avisam quem entra e sai (M.campoEntra/M.campoSai); e.vCamada (transformar, trocar de
 // controle, anexar) ou o tamanho do campo fora do esperado refazem tudo. Antes a chave era e.ts: cada ficha nova
 // refazia a varredura, e com milhares de Goblins do Krenko cada evento era O(campo) — O(n²) na partida.
-type Idx = { v: number; n: number; gat: number[]; est: number[]; l: [any, any][] | null; hab: boolean };
+type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; l: [any, any][] | null; hab: boolean };
 const IDX = new WeakMap<any, Idx>();
 function indice(e): Idx {
   let I = IDX.get(e);
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
-  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], l: null, hab: false };
-  for (const id of e.campo) { const d = M.dadoDe(e, e.objs[id]); if (d.gat) I.gat.push(id); if (d.est) I.est.push(id); }
+  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], l: null, hab: false };
+  for (const id of e.campo) { const d = M.dadoDe(e, e.objs[id]); if (d.gat) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); }
   IDX.set(e, I);
   return I;
 }
@@ -237,6 +237,7 @@ M.campoEntra = (e, id) => {
   const d = M.dadoDe(e, e.objs[id]); I.n++;
   if (d.gat) I.gat.push(id);
   if (d.est) { I.est.push(id); I.l = null; }
+  if (d.subst) I.sb.push(id);
 };
 M.campoSai = (e, id) => {
   const I = IDX.get(e); if (!I) return;
@@ -244,6 +245,28 @@ M.campoSai = (e, id) => {
   I.n--;
   let k = I.gat.indexOf(id); if (k >= 0) I.gat.splice(k, 1);
   k = I.est.indexOf(id); if (k >= 0) { I.est.splice(k, 1); I.l = null; }
+  k = I.sb.indexOf(id); if (k >= 0) I.sb.splice(k, 1);
+};
+// ganho de vida (CR 119.3) com as substituições 'ganhaVida' do campo (CR 614.1a): Angel of Vitality/Bilbo (soma),
+// The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
+// dos dobros, que é a que dá mais. jog: de quem é o ganho, visto do controlador da fonte. Devolve o que ganhou.
+M.ganharVida = (e, j, q) => {
+  if (!(q > 0) || e.jogs[j].saiu) return 0;
+  let soma = 0, mult = 1;
+  for (const id of indice(e).sb) {
+    const F = e.objs[id];
+    for (const sb of M.dadoDe(e, F).subst || []) {
+      if (sb.ev !== 'ganhaVida' || !sb.muda) continue;
+      if (sb.jog === 'voce' ? j !== F.ctrl : sb.jog === 'oponente' ? j === F.ctrl : sb.jog !== undefined && sb.jog !== 'qualquer') continue;
+      if (sb.se) { let ok = false; try { ok = M.condicao(e, sb.se, { voce: F.ctrl, este: F.id }); } catch (_) { ok = false; } if (!ok) continue; }
+      if (sb.muda.soma) soma += sb.muda.soma;
+      if (sb.muda.mult) mult *= sb.muda.mult;
+    }
+  }
+  q = (q + soma) * mult;
+  e.jogs[j].vida += q;
+  M.evento(e, { ev: 'ganhaVida', j, q });
+  return q;
 };
 // quem no campo tem estática 'continuo' lida (sem isso, cada leitura de P/R ou palavra-chave varria o campo inteiro)
 function fontesCont(e): Idx & { l: [any, any][] } {

@@ -1136,6 +1136,46 @@ caso('604.3', 'token.est ptDefinido: Gnome Soldier P/R = seus artefatos e/ou cri
   igual(M.poder(e, g), 4);
 });
 
+// subst ganhaVida (correção 14 do banco): só o ganho. Fontes como fichas com o subst do banco (Angel of Vitality:
+// soma 1; The Wind Crystal: mult 2), para não depender do lote
+const SUBST_VIDA = (muda) => ({ n: 'Fonte ' + JSON.stringify(muda), tipos: ['Enchantment'], subst: [{ ev: 'ganhaVida', jog: 'voce', muda }] });
+caso('614.1a', 'subst ganhaVida: +1 (Angel) e dobro (Wind Crystal) só no ganho de quem controla; somas antes do dobro (616.1)', () => {
+  const e = cena();
+  M.criarFicha(e, 0, SUBST_VIDA({ soma: 1 }));
+  igual(M.ganharVida(e, 0, 3), 4, '+1');
+  igual(M.ganharVida(e, 1, 3), 3, 'o do oponente não muda');
+  M.criarFicha(e, 0, SUBST_VIDA({ mult: 2 }));
+  igual(M.ganharVida(e, 0, 3), 8, '(3+1)×2');
+  igual(M.ganharVida(e, 0, 0), 0, 'ganhar 0 não é ganho (119.3)');
+  igual(e.jogs[0].vida, 52);
+  M.executar(e, { op: 'perderVida', quem: 'voce', qtd: 3 }, ctxDe(e), (j, t, ops) => ops[0]);
+  igual(e.jogs[0].vida, 49, 'perda não dobra');
+});
+caso('702.15b', 'vínculo com a vida fora do combate passa pelo ganho (substituição e gatilho de ganhaVida)', () => {
+  const e = cena();
+  M.criarFicha(e, 0, SUBST_VIDA({ mult: 2 }));
+  const fonte = M.criarFicha(e, 0, { n: 'Fonte', tipos: ['Creature'], pt: [1, 1], kw: [{ k: 'vinculoVida' }] });
+  M.executar(e, { op: 'dano', qtd: 2, em: { alvo: 0 } }, { ...ctxDe(e), alvos: [[{ jog: 1 }]], defAlvos: [{}], item: fonte.id }, (j, t, ops) => ops[0]);
+  igual(e.jogs[1].vida, 38); igual(e.jogs[0].vida, 44);
+});
+
+// custoAtv descartarEste (correção 15 do banco): habilidade ativada da mão cujo custo é descartar a própria carta.
+// A carta da cena tem a atv do Trumpeting Carnosaur como o banco escreve (nome à parte: vale mesmo antes do lote)
+(banco.db as any)['Cena Canalizar'] = { n: 'Cena Canalizar', custo: { g: 4, p: ['R', 'R'] }, cores: 'R', tipos: ['Creature'], sub: ['Dinosaur'], pt: [7, 6], vm: 6, ci: 'R',
+  atv: [{ zona: 'mao', custo: { mana: { g: 2, p: ['R'] }, descartarEste: true }, alvos: [{ f: { tipo: ['Creature', 'Planeswalker'], zona: 'campo' } }], fx: [{ op: 'dano', em: { alvo: 0 }, qtd: 3 }] }] };
+caso('602.2', 'descartarEste: ativa da mão, a carta vai ao cemitério no custo e a habilidade resolve', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Cena Canalizar']] });
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 1, 'a da mão aparece');
+  M.avancar(e); respE(e, o => o.a === 'ativar'); if (e.perg) alvoObj(e, 'Grizzly Bears');
+  igual(naZona(e, 0, 'cemiterio'), ['Cena Canalizar'], JSON.stringify(e.log.slice(-6))); igual(naZona(e, 1, 'cemiterio'), ['Grizzly Bears']);
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0, 'do cemitério não');
+});
+caso('602.2', 'atv da mão sem custo que tira a carta de lá não é oferecida (não repete de graça)', () => {
+  (banco.db as any)['Cena Sem Descarte'] = { ...(banco.db as any)['Cena Canalizar'], n: 'Cena Sem Descarte', atv: [{ ...(banco.db as any)['Cena Canalizar'].atv[0], custo: { mana: { g: 2, p: ['R'] } } }] };
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Cena Sem Descarte']] });
+  igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -227,7 +227,7 @@ function aplicarGolpes(e, golpes) {
     M.evento(e, { ev: 'dano', fonte: g.fonte.id, combate: true, q: g.q, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: g.alvo.o }) });   // 510.3a
     if (kw(e, g.fonte, 'vinculoVida')) vida[g.fonte.ctrl] = (vida[g.fonte.ctrl] || 0) + g.q;   // 702.15b
   }
-  for (const j in vida) if (!e.jogs[j].saiu) { e.jogs[j].vida += vida[j]; M.evento(e, { ev: 'ganhaVida', j: +j, q: vida[j] }); }
+  for (const j in vida) M.ganharVida(e, +j, vida[j]);
   if (golpes.length) M.log(e, 'dano de combate:', golpes.map(g => g.fonte.n + '→' + (g.alvo.jog !== undefined ? e.jogs[g.alvo.jog].nome : e.objs[g.alvo.o].n) + ' ' + g.q).join(', '));
 }
 // "você tem proteção" (protecaoJogador) só do tipo tudo: o resto ainda não é lido
