@@ -297,5 +297,36 @@ const H = {
       for (const id of fundo) M.mover(e, id, 'grimorio', { topo: false });
     },
   },
+  proliferar: {                                                     // CR 701.34: escolhe quantos quiser (permanentes e
+    fx(e, f, ctx, ask) {                                            // jogadores com marcador); +1 de cada tipo que já tem
+      for (const j of jogsDe(e, f, ctx)) {
+        const temMarc = o => Object.values<any>(o.marc).some(n => n > 0);
+        const cand: any[] = e.campo.filter(id => temMarc(e.objs[id])).map(id => ({ a: 'proliferar', id }));
+        for (const J of e.jogs) if (!J.saiu && J.veneno > 0) cand.push({ a: 'proliferar', jog: J.i });
+        const esc: any[] = [];
+        while (cand.length) {
+          const x = ask(j, 'proliferar', [{ a: 'pronto' }, ...cand], {});
+          if (x.a === 'pronto') break;
+          esc.push(x); cand.splice(cand.indexOf(x), 1);
+        }
+        for (const x of esc) {
+          if (x.jog !== undefined) { e.jogs[x.jog].veneno++; continue; }
+          const o = e.objs[x.id];
+          for (const t in o.marc) if (o.marc[t] > 0) o.marc[t]++;
+        }
+        if (esc.length) M.log(e, e.jogs[j].nome, 'prolifera', esc.length);
+      }
+    },
+  },
+  fabricar: {                                                       // CR 702.123a: N marcadores +1/+1 nela, ou N Servos 1/1
+    fx(e, f, ctx, ask) {
+      const q = qtdDe(e, f.qtd, ctx), o = e.objs[ctx.este];
+      const nela = o && o.zona === 'campo' && (!ctx.lki.este || o.ts === ctx.lki.este.ts);   // saiu: só as fichas
+      const r = nela ? ask(ctx.voce, 'fabricar', [{ a: 'marcadores', q }, { a: 'fichas', q }], {}) : { a: 'fichas' };
+      if (r.a === 'marcadores') { o.marc['+1/+1'] = (o.marc['+1/+1'] || 0) + q; return; }
+      for (let i = 0; i < q; i++) criarFicha(e, ctx.voce, SERVO);
+    },
+  },
 };
+const SERVO = { n: 'Servo', tipos: ['Artifact', 'Creature'], sub: ['Servo'], pt: [1, 1], cores: '', vm: 0 };
 M.EFEITOS = H;

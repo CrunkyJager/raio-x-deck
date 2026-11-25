@@ -124,7 +124,7 @@ M.poder = (e, o) => {
 };
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
-const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder']);
+const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -145,8 +145,10 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
   if (f.vm && !compara(d.vm || 0, f.vm)) return false;
   if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
+  if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;   // CR 506.4: atacando até o fim do combate
   return true;
 };
+M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));
 const quemBate = (e, j, q, voce) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : true;
 const compara = (v, c) => typeof c === 'number' ? v === c
   : (c.min === undefined || v >= c.min) && (c.max === undefined || v <= c.max) && (c.igual === undefined || v === c.igual);
