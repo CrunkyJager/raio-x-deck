@@ -388,12 +388,20 @@ Decisão do FARSEER (25/11), correção 17: fundir (op `fundir` + forma `fundir`
 
 | # | falta | cartas | proposta | decisão |
 |---|---|---|---|---|
-| 1 | descartadas no turno / "discarded this way" | Change of Fortune, Misty Knight (no turno); Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb (escritas com `lembrados`) | conta `descartadasNoTurno`; confirmar que `descartar` grava `lembrados` | |
-| 2 | gatilhos que faltam | ciclar (Magmakin), subir de nível de Classe (Cool but Rude nv3; já Caretaker's Talent), desvirar (Key to the City; já Mesmeric Orb), jogar terreno (Shadow of the Goblin) | ev `cicla`, `nivel`, `desvira`, `jogaTerreno` | |
-| 3 | "outro alvo" / "cada outro oponente" | Markov Retribution (another target creature), Kediss (each other opponent); junto com a Chandra's Ignition (`outro`) | alvo `diferenteDe: i`; jogador `outrosOponentes` (≠ doEvento) | |
-| 4 | dar palavra-chave a carta fora do campo | Falkenrath Gorger (loucura = custo de mana dela); Tectonic Reformation foi escrita como est continuo na mão | `kw.custo: "proprio"` | |
-| 5 | palavras-chave sem vocabulário | fuga (Ox of Agonas), reconfigurar (Lizard Blades, escrito como equipar {2}), preparada (Pompous Battlemage), descer (Brass's Tunnel-Grinder), descobrir por mana gasta (Tecutlan) | deixar falta (1 cada) | |
-| 6 | o resto 1/0 | Demand Answers (custoAd "A ou B"), Grab the Prize (condição na carta descartada no custo), Bag of Holding ("exiled with this"), Monument to Endurance (modo não escolhido no turno), Markov Enforcer (criatura que recebeu dano deste no turno), Inti (alvo do gatilho reflexo; "até sua próxima etapa final"), Neheb (jogador OU planeswalker), Library of Leng (só descarte por efeito, não custo) | deixar falta | |
+| 1 | descartadas no turno / "discarded this way" | Change of Fortune, Misty Knight (no turno); Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb (escritas com `lembrados`) | conta `descartadasNoTurno`; confirmar que `descartar` grava `lembrados` | **sim** (5) |
+| 2 | gatilhos que faltam | ciclar (Magmakin), subir de nível de Classe (Cool but Rude nv3; já Caretaker's Talent), desvirar (Key to the City; já Mesmeric Orb), jogar terreno (Shadow of the Goblin) | ev `cicla`, `nivel`, `desvira`, `jogaTerreno` | só `nivel` (3 com Caretaker's Talent e Wizard Class); `desvira` 2, `cicla` 1, `jogaTerreno` 1 = falta |
+| 3 | "outro alvo" / "cada outro oponente" | Markov Retribution (another target creature), Kediss (each other opponent); junto com a Chandra's Ignition (`outro`) | alvo `diferenteDe: i`; jogador `outrosOponentes` (≠ doEvento) | **sim** (3) |
+| 4 | dar palavra-chave a carta fora do campo | Falkenrath Gorger (loucura = custo de mana dela); Tectonic Reformation foi escrita como est continuo na mão | `kw.custo: "proprio"` | falta (2) |
+| 5 | palavras-chave sem vocabulário | fuga (Ox of Agonas), reconfigurar (Lizard Blades, escrito como equipar {2}), preparada (Pompous Battlemage), descer (Brass's Tunnel-Grinder), descobrir por mana gasta (Tecutlan) | deixar falta (1 cada) | falta |
+| 6 | o resto 1/0 | Demand Answers (custoAd "A ou B"), Grab the Prize (condição na carta descartada no custo), Bag of Holding ("exiled with this"), Monument to Endurance (modo não escolhido no turno), Markov Enforcer (criatura que recebeu dano deste no turno), Inti (alvo do gatilho reflexo; "até sua próxima etapa final"), Neheb (jogador OU planeswalker), Library of Leng (só descarte por efeito, não custo) | deixar falta | falta |
+
+## Decisões do lote dos blocos 32/33 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores). Correção 18 do esquema:
+- conta `descartadasNoTurno` e `descartar` sempre grava `lembrados` ("discarded this way"): Change of Fortune, Misty Knight, Path of the Pyromancer, Brass's Tunnel-Grinder, Neheb.
+- ev `nivel` (gatilho de subir de nível de Classe, `niveis[].fx`): Caretaker's Talent, Wizard Class, Cool but Rude.
+- alvo `diferenteDe` + jogador `outrosOponentes`: Chandra's Ignition, Markov Retribution, Kediss.
+- Ficam em `falta`: ev `desvira` (2), `cicla` (1), `jogaTerreno` (1), `kw.custo: "proprio"` (2), fuga/reconfigurar/preparada/descer/descobrir por mana, o resto 1/0.
+- Motor (adepto A): `ev descarta` + loucura em andamento; depois ler a correção 18.
 
 ## Blocos 34/35 — deck do Ultra Magnus/Ultron do Edigar (39 cartas fora do banco, 25/11)
 39 cartas escritas (Ultra Magnus primeiro), 39 casos em banco/testes/bloco34.json e bloco35.json; o deck inteiro (80 sem básicos) agora está no banco. Mesa: 200 partidas do deck contra os 3 exemplos, 0 erros.
@@ -402,8 +410,15 @@ Decisão do FARSEER (25/11), correção 17: fundir (op `fundir` + forma `fundir`
 
 | # | falta | cartas | proposta | decisão |
 |---|---|---|---|---|
-| 1 | More Than Meets the Eye (conjurar já convertida) | Ultra Magnus, Arcee, Ratchet | kw `maisQueOlhos` com `custo`: conjura e entra com a face de trás (como `transformada` no mover) | |
-| 2 | "não pode perder o jogo / oponentes não podem ganhar" | Platinum Angel, Darksteel Angel (+ 1 que já estava como falta) | est `naoPerde` (afeta voce) | |
-| 3 | desenterrar | Salvation Colossus (pagar 8 energia) + Unearth {R} que já estava | kw `desenterrar` com `custo`/`pagar` | |
-| 4 | tipo de CARTA escolhido / em comum com a exilada | Cloud Key (escrito: artefato), Semblance Anvil (redução toda falta); junto da linha 9 (Braids, Cemetery Prowler) | filtro `tipo: ["escolhido"]` e `tipoEmComum: "lembrada"` | |
-| 5 | o resto 1 cada | infect (Blightsteel), protótipo (Cradle Clearcutter: só a 3/6), tirar N marcadores à escolha como custo (Arcee: escrito 1), mágica que mira o que é seu (Arcee Coupe), gatilho reflexo "when you do" (Ratchet: alvo junto do gatilho) | deixar falta | |
+| 1 | More Than Meets the Eye (conjurar já convertida) | Ultra Magnus, Arcee, Ratchet | kw `maisQueOlhos` com `custo`: conjura e entra com a face de trás (como `transformada` no mover) | **sim** (3) |
+| 2 | "não pode perder o jogo / oponentes não podem ganhar" | Platinum Angel, Darksteel Angel (+ 1 que já estava como falta) | est `naoPerde` (afeta voce) | **sim** (3) |
+| 3 | desenterrar | Salvation Colossus (pagar 8 energia) + Unearth {R} que já estava | kw `desenterrar` com `custo`/`pagar` | falta (2) |
+| 4 | tipo de CARTA escolhido / em comum com a exilada | Cloud Key (escrito: artefato), Semblance Anvil (redução toda falta); junto da linha 9 (Braids, Cemetery Prowler) | filtro `tipo: ["escolhido"]` e `tipoEmComum: "lembrada"` | **sim** (4) |
+| 5 | o resto 1 cada | infect (Blightsteel), protótipo (Cradle Clearcutter: só a 3/6), tirar N marcadores à escolha como custo (Arcee: escrito 1), mágica que mira o que é seu (Arcee Coupe), gatilho reflexo "when you do" (Ratchet: alvo junto do gatilho) | deixar falta | falta |
+
+## Decisões do lote dos blocos 34/35 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores). Correção 19 do esquema:
+- kw `maisQueOlhos` com `custo` (conjura já convertida): Ultra Magnus, Arcee, Ratchet.
+- est `naoPerde` (afeta voce): Platinum Angel, Darksteel Angel + a que já estava.
+- filtro `tipo: ["escolhido"]` (tipo de carta) e `tipoEmComum: "lembrada"`: Cloud Key, Semblance Anvil, Braids, Cemetery Prowler.
+- Ficam em `falta`: desenterrar (2), infect (1; candidato forte, peso alto no Blightsteel), protótipo, tirar N marcadores como custo, mágica que mira o que é seu, gatilho reflexo "when you do".

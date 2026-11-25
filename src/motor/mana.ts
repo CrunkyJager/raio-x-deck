@@ -71,7 +71,7 @@ M.podeCustoAtv = (e, o, c) => {
   for (const k in c) if (!CUSTO_OK.has(k)) return false;
   if (c.sacrificar && c.sacrificar !== 'este') return false;
   if (c.virar && (o.virada || (o.doente && M.temTipo(e, o, 'Creature') && !M.temKw(e, o, 'pressa')))) return false;   // CR 302.6, 702.10
-  if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida)) return false; // CR 119.4
+  if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida || M.vidaFixa(e, o.ctrl))) return false; // CR 119.4, 119.8
   if (c.mana && !M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana)) return false;
   return true;
 };
@@ -93,9 +93,10 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
     if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => {
       if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo)) return;
-      if (soVirar && Object.keys(a.custo).some(x => x !== 'virar')) return;
+      // soVirar: sem pagar mana nem vida ({T} e/ou sacrificar este: terreno, Lotus Petal, Treasure, Gold)
+      if (soVirar && Object.keys(a.custo).some(x => x !== 'virar' && !(x === 'sacrificar' && a.custo.sacrificar === 'este'))) return;
       const p = M.pacotesDe(e, o, a, { para });
-      if (p && p.length && p.some(x => soma(x) > 0)) r.push({ id, k, pacotes: p });
+      if (p && p.length && p.some(x => soma(x) > 0)) r.push({ id, k, pacotes: p, sac: a.custo.sacrificar === 'este' ? 1 : 0 });
     });
   }
   return r;
@@ -113,7 +114,14 @@ M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
 };
 
 // CR 106.4: a reserva esvazia no fim de cada etapa e fase
-M.esvaziarReservas = e => { for (const J of e.jogs) J.reserva = M.zeroMana(); };
+// ficaNoTurno (efeito mana: Neheb, Birgi): dessa mana, o que ainda não foi gasto fica até o fim do turno
+M.esvaziarReservas = e => {
+  for (const J of e.jogs) {
+    const F = J.fica && J.fica.t === e.turno.n && e.turno.passo !== 'limpeza' ? J.fica : null, r = M.zeroMana();
+    if (F) for (const c of TIPOS) { r[c] = Math.min(J.reserva[c], F.m[c]); F.m[c] = r[c]; }
+    J.reserva = r;
+  }
+};
 
 const soma = p => TIPOS.reduce((s, c) => s + p[c], 0);
 const fmt = p => TIPOS.filter(c => p[c]).map(c => c.repeat(p[c])).join('') || '—';
@@ -173,11 +181,51 @@ M.somaCusto = (c, extra, vezes = 1) => {
   if (extra.p && extra.p.length) r.p = [...(r.p || []), ...Array.from({ length: vezes }, () => extra.p).flat()];
   return r;
 };
-M.custoComImposto = (e, o) => {
-  const c = { ...(M.dadoDe(e, o).custo || {}) };
+// base: um custo alternativo no lugar do custo de mana (loucura, CR 702.35b); imposto e reduções valem igual (601.2f)
+M.custoComImposto = (e, o, base?) => {
+  const c = { ...(base || M.dadoDe(e, o).custo || {}) };
   if (o.cmd && o.zona === 'comando') c.g = (c.g || 0) + 2 * (e.jogs[o.dono].imposto[o.id] || 0);
-  return c;
+  return reduz(c, reducoes(e, o.dono, o, false));
 };
+// custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
+M.custoAtv = (e, o, a) => a.custo.mana ? reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true)) : a.custo.mana;
+
+// ---- reduzCusto (CR 601.2f): depois dos aumentos (imposto), tira genérico; custo.p tira símbolos coloridos (Morophon).
+// Fontes: as estáticas do campo (afeta filtro: a mágica que você conjura, ou o permanente dono da habilidade) e a da
+// própria carta (afeta 'este', de 'mao' = só da mão: Ghalta, Otawara). O filtro com zona 'pilha' fala da mágica que
+// está sendo conjurada (ainda na mão quando o custo é calculado). Redução de genérico não mexe no X (simplificação).
+const RED_OK = new Set(['modo', 'afeta', 'de', 'qtd', 'custo', 'deHabil', 'se']);
+M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => RED_OK.has(k) || k.startsWith('_'))
+  && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
+  && (s.de === undefined || s.de === 'mao')
+  && (s.custo === undefined ? s.qtd !== undefined && M.qtdEstOk(s.qtd)
+    : s.qtd === undefined && Object.keys(s.custo).every(k => k === 'p') && Array.isArray(s.custo.p))
+  && (!s.se || M.seOk(s.se));
+function reducoes(e, j, o, deHabil) {
+  const r = { g: 0, p: [] as string[] };
+  const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
+  if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
+  for (const F of fontes) for (const s of M.dadoDe(e, F).est || []) {
+    if (s.modo !== 'reduzCusto' || !!s.deHabil !== deHabil || !M.estReduzOk(s)) continue;
+    const ctx = { voce: F.ctrl, este: F.id };
+    if (s.afeta === 'este') { if (F.id !== o.id || (s.de && o.zona !== s.de)) continue; }
+    else {
+      if (F.zona !== 'campo') continue;                               // a estática com filtro só vale do campo
+      const { zona, ctrl, ...f } = s.afeta;
+      if (ctrl && ctrl !== 'qualquer' && (ctrl === 'voce') !== (j === F.ctrl)) continue;
+      if (deHabil ? zona && zona !== 'qualquer' && o.zona !== zona : zona && zona !== 'pilha') continue;
+      if (!M.bate(e, o, f, ctx)) continue;
+    }
+    if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
+    if (s.custo) r.p.push(...s.custo.p); else r.g += Math.max(0, M.qtdEst(e, s.qtd, ctx));
+  }
+  return r;
+}
+function reduz(c, r) {
+  if (r.g && c.g) c.g = Math.max(0, c.g - r.g);
+  if (r.p.length && c.p && c.p.length) { const p = c.p.slice(); for (const x of r.p) { const i = p.indexOf(x); if (i >= 0) p.splice(i, 1); } c.p = p; }
+  return c;
+}
 
 // ---- plano: quais fontes ativar para pagar um custo (a IA e a conjuração da T15 usam) ----
 // Busca em profundidade: fontes menos flexíveis primeiro (Floresta antes de Command Tower), poda por quantidade.
@@ -191,7 +239,7 @@ M.planoMana = (e, j, custo, { x = 0, vidaDisp = 0, limite = 4000, excluir = null
   const precisa = Math.max(0, s.g + s.cor.length + s.hib.length + s.dois.length + s.fir.length - Math.floor(vidaDisp / 2));
   const fontes = M.fontesDeMana(e, j, { soVirar: true, para }).filter(f => !excluir || !excluir.includes(f.id))
     .map(f => ({ ...f, max: Math.max(...f.pacotes.map(soma)), flex: f.pacotes.length }))
-    .sort((a, b) => a.flex - b.flex || b.max - a.max);
+    .sort((a, b) => a.sac - b.sac || a.flex - b.flex || b.max - a.max);   // a que se sacrifica por último
   const sufixo: any[] = []; let acc = 0;
   for (let i = fontes.length - 1; i >= 0; i--) { acc += fontes[i].max; sufixo[i] = acc; }
   let nos = 0;

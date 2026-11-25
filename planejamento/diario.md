@@ -39,3 +39,12 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · v0.26.0: A op cavar + camada sem nome repetido (18a38b7) + B correções 12–14, bloco 29 (a16506f) → 1511 cartas; cobertura 801 inteiras.
 - 25/11 · FARSEER · v0.27.0: A fichas em massa + token.est (45f5baf) + B correção 15, blocos 30/31 (b114435) → 1585 cartas, fila do Oracle acabou; cobertura 827 inteiras.
 - 25/11 · FARSEER · v0.28.0: B correção 16 + pente (99c17c7; 30 decks 1538/1538 → T20 fechada) + A ganhaVida, descartarEste (6d3ccb6); cobertura 825 inteiras.
+- 25/11 · FARSEER · v0.29.0: A reduzCusto + dano fonte/filtro nome (1ad7bc5) + B correção 17 (9805610); cobertura 851 inteiras. B começa a T44.
+- 25/11 · FARSEER · v0.30.0: A T22 parte 2 (4f5e6fe): filtro e pausa do registro, ?beta=1 (pedido do Felipe).
+- 25/11 · FARSEER · v0.31.0: A fichas predefinidas + correção 17 no motor (7b765c3), depois do teste do Felipe com o deck da Ivora; cobertura 861.
+- 25/11 · FARSEER · v0.32.0: B blocos 32/33 (e437a7e, deck da Ivora inteiro, 1645 cartas) + A descarte/loucura/ciclar (b5d4a2c); lote 32/33 → correção 18; cobertura 958/1645 (Ivora 37/60).
+- 25/11 · FARSEER · v0.33.0: A (6c) (328a6c9): contas de ataque, deveBloquear, tipoEmComum, mover transformada; cobertura 965/1645. A segue nas travas do Ultron; B nos blocos 34/35 (Ultron).
+- 25/11 · FARSEER · v0.34.0: B blocos 34/35 (295fafb, deck do Ultron 80/80 no banco, 1684 cartas); cobertura 987/1684. Patch T44 (a42e2eb) ainda fora, B refaz a medida.
+- 25/11 · FARSEER · v0.35.0: A travas do Ultron parte 1 (57aaa6e): aMenosQue, efeito temporário, fasear, sagas; cobertura 1004/1684. Vitest: 2 falhas numa rodada, verde na seguinte (instável → A).
+- 25/11 · FARSEER · v0.36.0: A (2631abb) desempenho com muitas fichas (Krenko 34 s → 2,6 s), filtro incolor, qtd.prop/historico/tipoTodos, fuzz sem instabilidade; cobertura 1022/1684.
+- 25/11 · FARSEER · v0.37.0: A (e01d81c) Ultra Magnus, Ultron e Arcee inteiros; cobertura 1098/1684.

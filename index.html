@@ -792,6 +792,16 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 .j-mao .mc { width: 92px; }
 .vlog2 { padding: 16px 18px; border-radius: 16px; background: var(--felt-2); border: 1px solid var(--line); }
 .vlog2 h3 { margin: 0 0 10px !important; font-size: 1rem; }
+/* T22 parte 2: filtro do registro e pausa (motor beta) */
+.vreg { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 10px; }
+.vreg-k { font-size: .82rem; color: var(--ink-3); margin-right: 2px; }
+.vchip { background: var(--felt-3); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: .88rem; color: var(--ink-2); cursor: pointer; min-height: 32px; }
+.vchip:hover { border-color: var(--accent); }
+.vchip.on { background: color-mix(in srgb, var(--accent) 22%, var(--felt-3)); border-color: var(--accent); color: var(--ink); font-weight: 600; }
+.vpausa { display: inline-flex; gap: 6px; align-items: center; font-size: .88rem; color: var(--ink-2); cursor: pointer; padding: 4px 8px; }
+.vpausa input { accent-color: var(--accent); width: 16px; height: 16px; }
+.vpausou { margin: 6px 0 0; font-size: .85rem; color: var(--accent-2); }
+.ja > .vreg { margin: 10px 0 0; }
 .vlog2 ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; max-height: 260px; overflow-y: auto; font-size: .92rem; color: var(--ink-2); }
 .vlog2 li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 5px 8px; border-radius: 8px; }
 .vlog2 li.agora { background: rgb(255 194 61 / .1); color: var(--ink); box-shadow: inset 3px 0 0 var(--accent); }
@@ -929,15 +939,15 @@ a.fonte{color:inherit;text-decoration:underline;text-underline-offset:2px;font-w
 </head>
 <body>
 <!-- a página (cabeçalho, abas, aba Lista, caixas e rodapé) vem do src/App.svelte, montado pelo src/main.ts aqui no começo do body -->
-<script src="cards-db.js?v=202611251640"></script>
-<script src="precos-myp.js?v=202611251640"></script>
-<script src="exemplos.js?v=202611251640"></script>
-<script src="papeis-ia.js?v=202611251640"></script>
-<script src="sinergia-db.js?v=202611251640"></script>
-<script>window.RAIOX_V = "202611251640";</script>
-<script src="forge-motor.js?v=202611251640"></script>
-<script src="motor/engine.js?v=202611251640"></script>
+<script src="cards-db.js?v=202611252220"></script>
+<script src="precos-myp.js?v=202611252220"></script>
+<script src="exemplos.js?v=202611252220"></script>
+<script src="papeis-ia.js?v=202611252220"></script>
+<script src="sinergia-db.js?v=202611252220"></script>
+<script>window.RAIOX_V = "202611252220";</script>
+<script src="forge-motor.js?v=202611252220"></script>
+<script src="motor/engine.js?v=202611252220"></script>
 
-<script src="oponentes-edhrec.js?v=202611251640"></script>
+<script src="oponentes-edhrec.js?v=202611252220"></script>
 <script type="module" src="/src/main.ts"></script>
 </body></html>

@@ -2,6 +2,45 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.37.0 — 25/11/2026 · comandantes do Ultron funcionam (Ultra Magnus, Ultron, Arcee)
+Testes: valida 1684/0 · check 0 erros · Vitest verde · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1098/1684.
+- **Motor (A):** gatilho atrasado (603.7), entrar atacando, resguardo, animar, tipo dado a esta, pagar genérico, ficha cópia e gatilho opcional.
+
+## v0.36.0 — 25/11/2026 · Mesa rápida com muitas fichas; incolor, poder somado e histórico
+Testes: valida 1684/0 · check 0 erros · Vitest 205/205 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1022/1684.
+- **Motor (A):** partida com centenas de fichas deixou de travar (Krenko: 34 s → 2,6 s); filtro incolor (Mystic Forge, Ugin); soma/maior poder (Ghalta, The Great Henge, Metalwork Colossus, Jhoira's Familiar, Mycosynth Golem); teste aleatório sem instabilidade.
+
+## v0.35.0 — 25/11/2026 · motor joga sagas, fases e efeitos temporários (deck do Ultron)
+Testes: valida 1684/0 · check 0 erros · Vitest 202/202 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1004/1684.
+- **Motor (A):** "a menos que" genérico (Smothering Tithe), efeito até o fim do turno (Teferi's Protection, Rogue's Passage), fasear, sagas com capítulos (Urza's Saga) e leitura do banco em lote.
+
+## v0.34.0 — 25/11/2026 · deck do Ultra Magnus/Ultron inteiro no banco
+Testes: valida 1684/0 · check 0 erros · Vitest 198/198 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 987/1684.
+- **Banco (B, T20 blocos 34/35):** as 39 cartas do deck do Ultron que faltavam (Ultra Magnus, Ultron, Krang, Memnarch, Blightsteel Colossus, Darksteel Forge, Ishgard, Ugin, Cloud Key…), 39 casos; o deck inteiro (80) está no banco. Em 200 partidas, 199 sem erro; a outra foi lenta por causa das 1484 fichas do Krenko (desempenho do motor).
+- Ainda não funcionam na Mesa: Urza's Saga, Teferi's Protection, Smothering Tithe, Unwinding Clock, Organic Extinction e outras (com o adepto A).
+
+## v0.33.0 — 25/11/2026 · motor conta ataques e obriga bloqueio
+Testes: valida 1645/0 · check 0 erros · Vitest 198/198 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 965/1645.
+- **Motor (A, item 6c):** contas de atacantes, atacantes em você e ataques no turno (Mangara, Firemane, Alesha, Windbrisk, Faramir); bloqueio obrigatório (509.1c), que a IA cumpre; filtro "tipo em comum" (metamorfo conta como todos); mover a carta transformada (712.14a) e mover esta do cemitério/exílio (Ojer Taq, Ajani). Fundir (meld) ainda fica de fora.
+
+## v0.32.0 — 25/11/2026 · deck da Ivora inteiro no banco; motor joga descarte, loucura e ciclar
+Testes: valida 1645/0 · check 0 erros · Vitest 194/194 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 958/1645.
+- **Banco (B, T20 blocos 32/33):** as 60 cartas do deck da Ivora que faltavam (Ivora, Insatiable Heir, Inti, Magmakin Artillerist, Containment Construct, Kozilek, Ulamog, Brallin, Neheb, Spider-Man…), 50 casos; o deck inteiro (75) está no banco. Lote decidido: correção 18 (descartadasNoTurno, ev nivel, outro alvo / outros oponentes) na fila do B.
+- **Motor (A):** todo descarte passa por um só caminho e dispara `descarta` por carta e `descartaGrupo` pelo lote (efeito, custo e limpeza); fx descartar "até N"/"quantas quiser", conta das descartadas, "se fizer". Loucura (702.35): exílio e conjurar pelo custo de loucura, senão cemitério. Ciclar (702.29a). Mana na resolução (Path of the Pyromancer, Neheb). A IA descarta antes a carta de loucura e o terreno sobrando. Deck da Ivora: 37 de 60 jogam inteiras (ainda travam op jogar, modal em gatilho, classe, lutar, parceiro).
+
+## v0.31.0 — 25/11/2026 · fichas com nome ganham habilidade (Treasure, Clue, Food, Blood…)
+Testes: check 0 erros · Vitest 188/188 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 861/1585.
+- **Motor (A):** fichas predefinidas (Treasure, Gold, Clue, Food, Blood, Powerstone, Lander, Shard; Map e Junk só com tipo). Antes saíam sem nome nem habilidade. O plano de mana usa Treasure, Gold e Lotus Petal; a IA quebra Clue/Food/Shard/Lander com mana sobrando e usa Blood para trocar terreno sobrando. Correção 17 lida: custo devolver, chute e presente na conjuração, alvo por opção.
+
+## v0.30.0 — 25/11/2026 · Mesa ao vivo beta: filtro do registro, parar em gatilho/efeito e link ?beta=1
+Testes: check 0 erros · Vitest 180/180 · testa 161/161 · verifica verde · build ok · Chromium headless (filtro, pausa, ?beta) sem erro no console.
+- **Mesa ao vivo (A, T22 parte 2, pedido do usuário):** botões Mostrar (todos / ⚡ gatilho / ✧ efeito / ▲ camada / ⚙ habilidade); chave "parar em ⚡ gatilho / ✧ efeito" (desligada por padrão) que segura o replay e o você-joga até Continuar; `?beta=1` na URL liga o motor novo (beta), `?beta=0` desliga. Só no motor beta.
+
+## v0.29.0 — 25/11/2026 · motor lê redução de custo e a fonte do dano; esquema do pente geral
+Testes: valida 1585/0 · check 0 erros · Vitest 180/180 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 851/1585.
+- **Motor (A):** redução de custo (601.2f) em mágicas e habilidades, inclusive símbolos coloridos (Morophon) e tipo escolhido (Herald's Horn); fx dano com `fonte` (o alvo ou o objeto do evento causa o dano, com toque mortífero e vínculo dele) e filtro `nome`.
+- **Banco (B):** correção 17, o lote do pente geral (25 cartas): custo `devolver`, defensor (`atacado` no filtro), conta `atacantesEmVoce`, `deveBloquear`, alvo `opcao` (chute/presente), filtro `tipoEmComum`, `fundir` (Brisela, Mishra), mover `transformada`. O motor ainda não lê esses campos (próximos itens do A).
+
 ## v0.28.0 — 25/11/2026 · T20 fechada: banco cobre os 30 decks; motor lê ganho de vida e "descartar esta carta"
 Testes: valida 1585/0 · check 0 erros · Vitest 173/173 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 825/1585.
 - **Banco (B):** correção 16 (fx dano `fonte` e filtro `nome`: Chandra's Ignition, Warstorm Surge, Wrathful Raptors, Ingris, Dragon Tempest, Scourge of Valkas, Ancestral Anger, Wedding Ring). Pente geral: as 1538 cartas dos 30 decks do banco de teste estão todas no banco (T20 fechada); top 10 das faltas no pedidos-esquema.md.
