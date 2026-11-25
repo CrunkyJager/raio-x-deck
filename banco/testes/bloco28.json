@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco28",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1351–1400 (The Gaffer … Treebeard, Gracious Host)",
+ "casos": [
+  {
+   "carta": "The Gaffer",
+   "situacao": "fim de turno de um oponente; você ganhou 3 de vida neste turno",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "The Gitrog Monster",
+   "situacao": "sua manutenção sem sacrificar terreno; depois um terreno vai do grimório para o cemitério",
+   "espera": "sacrifica a Gitrog se não sacrificar terreno; com terreno indo ao cemitério compra 1; joga 1 terreno a mais por turno"
+  },
+  {
+   "carta": "The Great Henge",
+   "situacao": "conjura com criatura de poder 5; depois entra uma criatura não ficha sua",
+   "espera": "custa 5 a menos; vira por {G}{G} e ganha 2; a criatura ganha +1/+1 e você compra 1"
+  },
+  {
+   "carta": "The Master of Lake-town",
+   "situacao": "um oponente perde 3 de vida",
+   "espera": "ele moe 3"
+  },
+  {
+   "carta": "The Master, Transcendent",
+   "situacao": "entra; depois vira com criatura moída neste turno num cemitério",
+   "espera": "jogador alvo ganha 2 rad; a criatura volta sob seu controle (virar Mutante 3/3 é falta)"
+  },
+  {
+   "carta": "The Meathook Massacre",
+   "situacao": "entra com X=2; criaturas morrem",
+   "espera": "todas −2/−2 no turno; morre sua: cada oponente perde 1; morre do oponente: você ganha 1"
+  },
+  {
+   "carta": "The One Ring",
+   "situacao": "conjurada; depois vira duas vezes em turnos seguidos",
+   "espera": "proteção contra tudo até seu próximo turno; compra 1, depois 2; na manutenção perde vida igual aos marcadores burden"
+  },
+  {
+   "carta": "The Reaver Cleaver",
+   "situacao": "equipada causa 4 de dano de combate a um jogador",
+   "espera": "+1/+1, atropelar; cria 4 Treasures"
+  },
+  {
+   "carta": "The Sackville-Bagginses",
+   "situacao": "entra e você sacrifica um artefato; depois sacrifica uma ficha",
+   "espera": "compra 1 e cria Treasure; o oponente alvo perde 1"
+  },
+  {
+   "carta": "The Shire",
+   "situacao": "entra sem criatura lendária sua",
+   "espera": "entra virada; vira para {G}; {1}{G}, vira e vira uma criatura: Food"
+  },
+  {
+   "carta": "The Skullspore Nexus",
+   "situacao": "sua criatura não ficha morre; habilidade numa criatura de poder 3",
+   "espera": "cria Fungus Dinosaur (P/R pela soma é falta, sai 0/0); a criatura fica com poder 6"
+  },
+  {
+   "carta": "The Spirit Oasis",
+   "situacao": "entra com 2 Shrines (contando ela); depois entra outro Shrine",
+   "espera": "compra 2; compra 1"
+  },
+  {
+   "carta": "The Ur-Dragon",
+   "situacao": "ataca com 3 Dragons",
+   "espera": "compra 3 e pode pôr uma permanente da mão no campo; Dragons custam 1 a menos"
+  },
+  {
+   "carta": "The Water Crystal",
+   "situacao": "ativa com 5 cartas na mão",
+   "espera": "cada oponente moe 5; mágicas azuis custam 1 a menos (+4 na moagem é falta)"
+  },
+  {
+   "carta": "The Wind Crystal",
+   "situacao": "você ganharia 3 de vida",
+   "espera": "ganha 6; mágicas brancas custam 1 a menos"
+  },
+  {
+   "carta": "The Wise Mothman",
+   "situacao": "entra; um oponente moe 2 cartas não terreno",
+   "espera": "cada jogador ganha 1 rad; duas criaturas alvo (uma por carta) ganham +1/+1"
+  },
+  {
+   "carta": "The World Tree",
+   "situacao": "com 6 terrenos",
+   "espera": "seus terrenos viram para qualquer cor; sacrificando por WWUUBBRRGG busca todos os Gods"
+  },
+  {
+   "carta": "Thickest in the Thicket",
+   "situacao": "entra mirando criatura de poder 4; seu fim de turno",
+   "espera": "a criatura ganha quatro +1/+1; compra 2 (condição de maior poder é falta)"
+  },
+  {
+   "carta": "Thieving Skydiver",
+   "situacao": "conjurada com chute X=2",
+   "espera": "ganha controle de artefato de VM ≤ 2; se for Equipamento, anexa nela"
+  },
+  {
+   "carta": "Thopter Foundry",
+   "situacao": "{1} e sacrifica artefato não ficha",
+   "espera": "Thopter 1/1 azul voador e ganha 1"
+  },
+  {
+   "carta": "Thornspire Verge",
+   "situacao": "sem Mountain nem Forest",
+   "espera": "só vira para {R}"
+  },
+  {
+   "carta": "Thousand Moons Smithy",
+   "situacao": "entra; sua primeira fase principal",
+   "espera": "cria Gnome Soldier (P/R é falta); pode transformar (virar 5 é falta)"
+  },
+  {
+   "carta": "Thraben Watcher",
+   "situacao": "com criaturas não ficha suas",
+   "espera": "as outras não ficha ganham +1/+1 e vigilância; fichas não"
+  },
+  {
+   "carta": "Thran Dynamo",
+   "situacao": "vira",
+   "espera": "{C}{C}{C}"
+  },
+  {
+   "carta": "Thrashing Brontodon",
+   "situacao": "{1} e sacrifica",
+   "espera": "destrói artefato ou encantamento alvo"
+  },
+  {
+   "carta": "Thrumming Hivepool",
+   "situacao": "sua manutenção",
+   "espera": "duas fichas Sliver 1/1; Slivers com golpe duplo e pressa"
+  },
+  {
+   "carta": "Thrummingbird",
+   "situacao": "causa dano de combate a um jogador",
+   "espera": "prolifera"
+  },
+  {
+   "carta": "Thunderherd Migration",
+   "situacao": "conjura revelando um Dinosaur",
+   "espera": "busca terreno básico e põe virado"
+  },
+  {
+   "carta": "Thundering Falls",
+   "situacao": "entra",
+   "espera": "entra virada; vigia 1; vira para {U} ou {R}"
+  },
+  {
+   "carta": "Théoden, King of Rohan",
+   "situacao": "entra outro Humano seu",
+   "espera": "criatura alvo ganha golpe duplo no turno"
+  },
+  {
+   "carta": "Tiamat",
+   "situacao": "conjurada",
+   "espera": "busca até 5 Dragons para a mão (nomes diferentes é falta)"
+  },
+  {
+   "carta": "Tifa, Martial Artist",
+   "situacao": "criatura sua de poder 7 causa dano de combate a jogador no primeiro combate",
+   "espera": "desvira suas criaturas e há um combate extra"
+  },
+  {
+   "carta": "Time Sieve",
+   "situacao": "vira e sacrifica cinco artefatos",
+   "espera": "turno extra"
+  },
+  {
+   "carta": "Timeless Witness",
+   "situacao": "entra",
+   "espera": "volta uma carta do seu cemitério para a mão; eternizar {5}{G}{G}"
+  },
+  {
+   "carta": "Timestream Navigator",
+   "situacao": "com a bênção da cidade, ativa",
+   "espera": "vai para o fundo do grimório e você ganha turno extra"
+  },
+  {
+   "carta": "Tireless Tracker",
+   "situacao": "entra terreno seu; depois sacrifica a Clue",
+   "espera": "cria Clue; ganha +1/+1"
+  },
+  {
+   "carta": "Tishana's Tidebinder",
+   "situacao": "entra",
+   "espera": "só lampejo (anular habilidade é falta)"
+  },
+  {
+   "carta": "Tishana, Voice of Thunder",
+   "situacao": "entra com 4 criaturas suas, 2 cartas na mão",
+   "espera": "compra 4; P/R = cartas na mão; sem máximo de mão"
+  },
+  {
+   "carta": "Titan's Strength",
+   "situacao": "resolve",
+   "espera": "+3/+1 no turno e vidência 1"
+  },
+  {
+   "carta": "Tolsimir, Friend to Wolves",
+   "situacao": "entra",
+   "espera": "cria Voja 3/3 lendária; você ganha 3 e Voja pode lutar com criatura do oponente"
+  },
+  {
+   "carta": "Tolsimir, Midnight's Light",
+   "situacao": "entra",
+   "espera": "cria Voja Fenstalker 5/5 lendária com atropelar (bloqueio forçado é falta)"
+  },
+  {
+   "carta": "Tomb Tyrant",
+   "situacao": "seu turno, 3 Zombies no cemitério, ativa",
+   "espera": "volta um Zombie aleatório; outros Zombies seus +1/+1"
+  },
+  {
+   "carta": "Topiary Stomper",
+   "situacao": "entra com 5 terrenos",
+   "espera": "busca básico virado; não ataca nem bloqueia até ter 7 terrenos"
+  },
+  {
+   "carta": "Topography Tracker",
+   "situacao": "entra",
+   "espera": "cria Map (explorar duas vezes é falta)"
+  },
+  {
+   "carta": "Tortured Existence",
+   "situacao": "{B} e descarta",
+   "espera": "volta criatura do cemitério para a mão"
+  },
+  {
+   "carta": "Trailblazer's Boots",
+   "situacao": "equipada, oponente com terreno não básico",
+   "espera": "não pode ser bloqueada"
+  },
+  {
+   "carta": "Trailtracker Scout",
+   "situacao": "vira",
+   "espera": "um de qualquer cor (gastar 8 é falta)"
+  },
+  {
+   "carta": "Tranquil Cove",
+   "situacao": "entra",
+   "espera": "entra virada, ganha 1; vira para {W} ou {U}"
+  },
+  {
+   "carta": "Trash for Treasure",
+   "situacao": "conjura sacrificando um artefato",
+   "espera": "volta artefato do cemitério para o campo"
+  },
+  {
+   "carta": "Treebeard, Gracious Host",
+   "situacao": "entra; depois você ganha 3 de vida",
+   "espera": "dois Food; Halfling ou Treefolk alvo ganha três +1/+1"
+  }
+ ]
+}

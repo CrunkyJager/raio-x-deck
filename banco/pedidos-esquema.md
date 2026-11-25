@@ -305,3 +305,13 @@ Contagem: banco 1411 cartas / fila 174 ainda não escritas.
 
 ## Decisões do lote do bloco 27 (FARSEER 25/11)
 Somando os lotes anteriores: cond `modoEscolhido` (3), op `incitar` (Marisi do 20 + 2), fx `naoDesvira` (Junk Winder do 18 + 2). Reescrever na correção 11. Ficam em `falta`: cascata (1/1), virar cópia, o resto 1/0. Leituras do bloco 27 aprovadas.
+
+## Faltas em lote (bloco 28, para o FARSEER decidir junto)
+Contagem: banco 1461 cartas / fila 124 ainda não escritas.
+
+| falta | no banco | na fila | cartas do banco | proposta | decisão |
+|---|---|---|---|---|---|
+| ficha com P/R contado | 3 | 0 | Thousand Moons Smithy (as duas faces), Simulacrum Synthesizer, o Construct do lote do bloco 25 | `est` ptDefinido na ficha (hoje saem 0/0) | |
+| maior poder da mesa | 2 | 0 | Thickest in the Thicket, Selvala | cond `maiorPoder: {f}` (você controla a de maior poder, empate vale) | |
+| ganho de vida em substituição | 2 | 0 | The Wind Crystal, Angel of Vitality | subst ev `ganhaVida` (hoje `vidaMuda` pega perda também) | |
+| o resto 1/0 | | | Master of Lake-town (cemitérios com 7+), The Master Transcendent (volta como Mutante 3/3 verde), The Skullspore Nexus (P/R da ficha = soma do poder de quem morreu), The Ur-Dragon (eminência numa est), The Water Crystal (moer +4), The Wise Mothman (até X alvos), Thieving Skydiver (chute X ≥ 1), Thousand Moons Smithy (virar 5 como custo; mana da Barracks), Thunderherd Migration (revelar OU pagar {1}), Tiamat (nomes diferentes), Tifa (uma vez por grupo de dano), Timestream Navigator (ir para o fundo é custo), Tishana's Tidebinder (anular habilidade), Tolsimir Midnight's Light (deve bloquear), Topography Tracker (explorar duas vezes), Tortured Existence (descartar com filtro), Trailblazer's Boots (caminhada não básica; o `nao` do filtro é de tipo), Trailtracker Scout (gastar 8), The Reaver Cleaver (ou planeswalker) | deixar falta | |
