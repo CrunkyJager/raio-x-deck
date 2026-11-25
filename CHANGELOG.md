@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.30.0 — 25/11/2026 · Mesa ao vivo beta: filtro do registro, parar em gatilho/efeito e link ?beta=1
+Testes: check 0 erros · Vitest 180/180 · testa 161/161 · verifica verde · build ok · Chromium headless (filtro, pausa, ?beta) sem erro no console.
+- **Mesa ao vivo (A, T22 parte 2, pedido do usuário):** botões Mostrar (todos / ⚡ gatilho / ✧ efeito / ▲ camada / ⚙ habilidade); chave "parar em ⚡ gatilho / ✧ efeito" (desligada por padrão) que segura o replay e o você-joga até Continuar; `?beta=1` na URL liga o motor novo (beta), `?beta=0` desliga. Só no motor beta.
+
 ## v0.29.0 — 25/11/2026 · motor lê redução de custo e a fonte do dano; esquema do pente geral
 Testes: valida 1585/0 · check 0 erros · Vitest 180/180 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 851/1585.
 - **Motor (A):** redução de custo (601.2f) em mágicas e habilidades, inclusive símbolos coloridos (Morophon) e tipo escolhido (Herald's Horn); fx dano com `fonte` (o alvo ou o objeto do evento causa o dano, com toque mortífero e vínculo dele) e filtro `nome`.
