@@ -1,0 +1,208 @@
+{
+ "bloco": "bloco5",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 201–250, escritas do Oracle; mesmo formato do bloco1.json (Windfall e Belladonna Took refeitas com as contagens do 8dde966)",
+ "casos": [
+  {
+   "carta": "Enchantress's Presence",
+   "situacao": "você conjura um encantamento",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Enduring Vitality",
+   "situacao": "sua criatura vira para mana; depois a Vitality morre",
+   "espera": "a criatura dá 1 mana de qualquer cor; a Vitality volta ao campo (o 'não é criatura' está em falta)"
+  },
+  {
+   "carta": "Enlightened Tutor",
+   "situacao": "grimório com 1 artefato",
+   "espera": "embaralha e o artefato fica no topo (revelado), não vai para a mão"
+  },
+  {
+   "carta": "Etali, Primal Storm",
+   "situacao": "ataca; topos: terreno, mágica de 3, mágica de 5",
+   "espera": "exila os 3 topos; pode conjurar as 2 mágicas de graça; o terreno fica exilado"
+  },
+  {
+   "carta": "Etherium Sculptor",
+   "situacao": "você conjura um artefato de 3",
+   "espera": "custa {2}; o oponente não ganha desconto"
+  },
+  {
+   "carta": "Evolution Sage",
+   "situacao": "entra um terreno seu com uma criatura sua de 1 marcador +1/+1",
+   "espera": "prolifera: a criatura fica com 2"
+  },
+  {
+   "carta": "Extinguish All Hope",
+   "situacao": "campo: 2 criaturas e 1 criatura-encantamento",
+   "espera": "morrem as 2; a criatura-encantamento fica"
+  },
+  {
+   "carta": "Faerie Mastermind",
+   "situacao": "o oponente compra a 1ª e depois a 2ª carta do turno",
+   "espera": "compra 1 só na 2ª"
+  },
+  {
+   "carta": "Farmer Cotton",
+   "situacao": "conjurada com X=3",
+   "espera": "3 fichas Halfling 1/1 brancas e 3 Food"
+  },
+  {
+   "carta": "Fevered Visions",
+   "situacao": "fim do turno do oponente com 4 cartas na mão depois da compra",
+   "espera": "o oponente compra 1 e leva 2; no seu fim de turno você só compra 1"
+  },
+  {
+   "carta": "Flame of Anor",
+   "situacao": "sem Wizard: escolhe 5 de dano numa criatura",
+   "espera": "só 1 modo; com Wizard pode 2 (ex.: compra 2 + destrói artefato)"
+  },
+  {
+   "carta": "Font of Mythos",
+   "situacao": "passo de compra do oponente",
+   "espera": "ele compra 2 a mais"
+  },
+  {
+   "carta": "Forced Fruition",
+   "situacao": "o oponente conjura uma mágica",
+   "espera": "ele compra 7"
+  },
+  {
+   "carta": "Frantic Search",
+   "situacao": "3 terrenos virados",
+   "espera": "compra 2, descarta 2, desvira até 3 terrenos"
+  },
+  {
+   "carta": "Giada, Font of Hope",
+   "situacao": "com Giada e 1 outro Anjo, entra um Anjo",
+   "espera": "entra com 2 marcadores +1/+1; a mana da Giada só paga Anjo"
+  },
+  {
+   "carta": "Gilded Goose",
+   "situacao": "entra; depois vira e sacrifica a Food",
+   "espera": "cria 1 Food; dá 1 mana de qualquer cor"
+  },
+  {
+   "carta": "Goblin Bombardment",
+   "situacao": "sacrifica 3 criaturas mirando o oponente",
+   "espera": "3 de dano nele"
+  },
+  {
+   "carta": "Goldspan Dragon",
+   "situacao": "ataca; depois vira uma Treasure",
+   "espera": "cria Treasure; a Treasure dá 2 manas de uma cor (alvo de mágica também cria Treasure)"
+  },
+  {
+   "carta": "Grave Pact",
+   "situacao": "sua criatura morre, 2 oponentes",
+   "espera": "cada oponente sacrifica 1 criatura à escolha dele"
+  },
+  {
+   "carta": "Gravecrawler",
+   "situacao": "no cemitério com um Zumbi seu no campo",
+   "espera": "pode conjurar do cemitério; sem Zumbi não pode; não bloqueia"
+  },
+  {
+   "carta": "Guttersnipe",
+   "situacao": "você conjura um instantâneo",
+   "espera": "2 de dano em cada oponente"
+  },
+  {
+   "carta": "Harrow",
+   "situacao": "sacrifica um terreno ao conjurar",
+   "espera": "até 2 terrenos básicos desvirados no campo, embaralha"
+  },
+  {
+   "carta": "Herald of the Pantheon",
+   "situacao": "conjura encantamento de 3",
+   "espera": "custa {2} e ganha 1 de vida"
+  },
+  {
+   "carta": "Howling Mine",
+   "situacao": "virada no passo de compra do oponente",
+   "espera": "não dá carta extra; desvirada dá 1"
+  },
+  {
+   "carta": "Incubation Druid",
+   "situacao": "paga {3}{G}{G} sem marcador",
+   "espera": "3 marcadores +1/+1; pagar de novo com marcador não faz nada"
+  },
+  {
+   "carta": "Inventors' Fair",
+   "situacao": "manutenção com 3 artefatos",
+   "espera": "ganha 1; com 2 artefatos a busca não pode ser ativada"
+  },
+  {
+   "carta": "Isshin, Two Heavens as One",
+   "situacao": "Isshin + Aurelia, the Warleader atacando",
+   "espera": "o gatilho de ataque da Aurelia dispara 2 vezes"
+  },
+  {
+   "carta": "Jace's Archivist",
+   "situacao": "você tem 2 na mão, o oponente 5",
+   "espera": "todos descartam a mão e cada jogador compra 5"
+  },
+  {
+   "carta": "Jetmir, Nexus of Revels",
+   "situacao": "6 criaturas suas",
+   "espera": "+2/+0, vigilância e atropelar; golpe duplo só com 9"
+  },
+  {
+   "carta": "Kami of Whispered Hopes",
+   "situacao": "põe 1 marcador +1/+1 numa criatura sua; Kami com poder 3",
+   "espera": "recebe 2 marcadores; o Kami dá 3 manas de uma cor"
+  },
+  {
+   "carta": "Kodama of the East Tree",
+   "situacao": "entra outro permanente seu de valor 3",
+   "espera": "pode pôr da mão um permanente de valor ≤3 (o 'não posto por esta habilidade' está em falta)"
+  },
+  {
+   "carta": "Krenko, Tin Street Kingpin",
+   "situacao": "ataca com poder 1 e 0 marcador",
+   "espera": "fica 2/3 e cria 2 Goblins 1/1"
+  },
+  {
+   "carta": "Long River's Pull",
+   "situacao": "sem presente, mira mágica de criatura",
+   "espera": "anula; com presente o oponente compra 1 e anula qualquer mágica"
+  },
+  {
+   "carta": "Lyra Dawnbringer",
+   "situacao": "outro Anjo seu",
+   "espera": "+1/+1 e vínculo com a vida; a Lyra não ganha o bônus dela"
+  },
+  {
+   "carta": "Magus of the Wheel",
+   "situacao": "paga {1}{R}, vira e sacrifica",
+   "espera": "todos descartam a mão e compram 7"
+  },
+  {
+   "carta": "Marionette Apprentice",
+   "situacao": "um artefato seu vai do campo para o cemitério",
+   "espera": "cada oponente perde 1; fabricar 1 ao entrar"
+  },
+  {
+   "carta": "Maskwood Nexus",
+   "situacao": "paga {3} e vira",
+   "espera": "ficha 2/2 azul Shapeshifter com metamorfo; suas criaturas têm todos os tipos"
+  },
+  {
+   "carta": "Midnight Reaper",
+   "situacao": "morre uma criatura sua que não é ficha",
+   "espera": "1 de dano em você e compra 1; ficha morrendo não dispara"
+  },
+  {
+   "carta": "Windfall",
+   "situacao": "você tem 1 na mão, o oponente 6",
+   "espera": "todos descartam e cada um compra 6"
+  },
+  {
+   "carta": "Belladonna Took",
+   "situacao": "entram 3 fichas suas no mesmo turno, uma por vez",
+   "espera": "1ª: ganha 1; 2ª: compra 1; 3ª: marcador +1/+1 em cada criatura sua"
+  }
+ ]
+}

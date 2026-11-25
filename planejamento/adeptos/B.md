@@ -4,5 +4,10 @@ Compara 62: 47 iguais, 15 divergem — decididas pelo Oracle: Blood Artist/Jace 
 Correção (decisões 5647b7b): Amrou est.por; Unclaimed/Cavern sem zona no so; Kolaghan alvos com modo (índice 0-based do modos) e quem {alvo:1}; Arcane Denial qtd {ate:2}; Akroma protecao cadaCor; Spire atv.se; Syr Konrad naoDe campo; Esper umaPorTurnoPorJogador; Hardened Scales subst.marc; Cavern naoAnulavel; Path aoGastar (falta: tipo em comum com o comandante); Fireball max qualquer/dividir igual/impostoPorAlvo; Chandra soConjurar; Guardian Project nomeUnico (falta: cemitério); Kutzil poderAcimaBase. Casos em correcao1.json.
 Bloco 4 (fila 151–200): 50 escritas, 30 casos em bloco4.json; valida 253/0. Primeiro uso de atacantesDeclarados, animar, faseExtra, prole, afinidade, caminhadaTerreno, ofertaPresente, trocaPor; vale o A conferir no motor.
 Vitest: 2 falhas (Fireball, Kolaghan) vêm do bloco de correção (campos novos que o motor ainda não lê), não do bloco 4.
-Agora: bloco 5 (fila 201–250).
-Dúvidas: 2 pedidos novos (Windfall, Belladonna Took).
+Windfall/Belladonna Took refeitas com maiorDescarte/resolucoesDestaHabNoTurno (8dde966), sem falta.
+Bloco 5 (fila 201–250): 50 escritas, 40 casos em bloco5.json; valida 303/0. Primeiro uso de proliferar, alvoDe, dobraGatilho com evs/causa, fabricar, est.podeJogar do próprio cemitério (Gravecrawler), mana.so por subtipo (Giada).
+Consertos: Brainstorm (bloco 4) e Growth Spiral (bloco 3) usavam buscar de:mao — o motor busca sempre no grimório; agora mover f/qtd da mão (como o motor lê o Brainstorm).
+Leituras a confirmar: Faerie Mastermind = compradasNoTurno igual 2 (do jogador do evento); Minas Tirith = ataquesNoTurno min 2 (criaturas que atacaram no turno); Enlightened Tutor = embaralha ANTES e põe no topo (mesmo resultado; buscar para grimorio põe no topo).
+Faltas novas: Enduring Vitality (volta sem ser criatura), Incubation Druid (mana do tipo que seus terrenos produzem: pedido de prod), Kodama (não posta por esta habilidade), Gisela (fundir), Long River's Pull (alvo sem presente só criatura).
+Vitest: as mesmas 2 falhas (Fireball, Kolaghan).
+Agora: bloco 6 (fila 251–300), se liberado.
