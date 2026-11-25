@@ -1,0 +1,1 @@
+{"v":2,"n":"Atomize","id":"4b457bc2-2d8c-42cb-9a63-bb4c459d14e3","oracleHash":"9fe84fb1","custo":{"g":2,"p":["B","G"]},"vm":4,"ci":"BG","cores":"BG","tipos":["Instant"],"alvos":[{"f":{"tipo":["Permanent"],"nao":["Land"],"zona":"campo"}}],"fx":[{"op":"destruir","em":{"alvo":0}},{"op":"proliferar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

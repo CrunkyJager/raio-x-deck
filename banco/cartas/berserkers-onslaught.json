@@ -1,0 +1,1 @@
+{"v":2,"n":"Berserkers' Onslaught","id":"85d2948c-1a79-418d-80c4-bc1012a4d313","oracleHash":"9c75c5dd","custo":{"g":3,"p":["R","R"]},"vm":5,"ci":"R","cores":"R","tipos":["Enchantment"],"est":[{"modo":"continuo","afeta":{"tipo":["Creature"],"ctrl":"voce","zona":"campo","atacando":true},"kw":[{"k":"golpeDuplo"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco9.json"}}
