@@ -1,0 +1,1 @@
+{"v":2,"n":"Brightstone Ritual","id":"08e90e85-4103-4acb-a8a7-e1329b460aa7","oracleHash":"55fb9ca7","custo":{"p":["R"]},"vm":1,"ci":"R","cores":"R","tipos":["Instant"],"fx":[{"op":"mana","prod":["R"],"qtd":{"conta":{"sub":["Goblin"],"zona":"campo"}}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco10.json"}}

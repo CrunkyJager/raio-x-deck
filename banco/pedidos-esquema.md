@@ -27,3 +27,6 @@
 | Ancient Copper/Gold/Silver Dragon | "roll a d20" | o bloco 8 usou média 10 + falta | decidido FARSEER: `qtd {dado:20}` (o motor rola com semente; a análise usa a média (N+1)/2 = 10,5); escrito |
 | Ashaya, Soul of the Wild | "are Forest lands in addition to their other types" | o bloco 9 pôs "Forest" em est.tipo | decidido FARSEER: est `sub` (tipo ["Land"] + sub ["Forest"]); o Forest dá o {T}: G (305.6) |
 | Assemble the Entmoot | "create an X/X … where X is the life you gained this turn" | o bloco 9 escreveu 0/0 + X marcadores | decidido FARSEER: token.pt aceita qtd (contagem fixada ao criar) |
+| Bolas's Citadel | "pay life equal to its mana value rather than pay its mana cost" | `custoAlternativo` com `pagar {vida:{conta:'vmDoEvento'}}` (hoje vida só aceita número ou X). Por ora `falta` | |
+| Bloodghast | "has haste as long as an opponent has 10 or less life" | cond de vida de oponente (ex.: `vidaOponenteMax: 10`, algum oponente). Por ora a pressa está em `falta` | |
+| Bloodchief Ascension | "if an opponent lost 2 or more life this turn" | contagem de UM oponente (hoje `vidaPerdidaOpsNoTurno` soma os oponentes); escrito com a soma + `falta` | |

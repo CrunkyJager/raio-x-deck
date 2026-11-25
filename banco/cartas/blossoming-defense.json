@@ -1,0 +1,1 @@
+{"v":2,"n":"Blossoming Defense","id":"5a851367-1c4a-4cc9-a9c3-3d2775986b4c","oracleHash":"a773c3b9","custo":{"p":["G"]},"vm":1,"ci":"G","cores":"G","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature"],"zona":"campo","ctrl":"voce"}}],"fx":[{"op":"modificar","em":{"alvo":0},"p":2,"r":2,"kw":[{"k":"antimagia"}],"dura":"fimDoTurno"}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

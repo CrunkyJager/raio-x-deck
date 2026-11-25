@@ -1,0 +1,283 @@
+{
+ "bloco": "bloco10",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 451–500, escritas do Oracle; mesmo formato do bloco1.json",
+ "casos": [
+  {
+   "carta": "Blackblade Reforged",
+   "situacao": "equipada; 6 terrenos",
+   "espera": "+6/+6; equipar custa 3 em lendária, 7 em outra"
+  },
+  {
+   "carta": "Blade of the Bloodchief",
+   "situacao": "equipando um Vampiro; morre uma criatura",
+   "espera": "2 marcadores +1/+1 (1 se não for Vampiro)"
+  },
+  {
+   "carta": "Bladewing the Risen",
+   "situacao": "entra com Shivan Dragon no cemitério",
+   "espera": "pode devolver o Shivan ao campo; {B}{R}: Dragões +1/+1"
+  },
+  {
+   "carta": "Blazing Crescendo",
+   "situacao": "em criatura 2/2",
+   "espera": "4/3 no turno; exila o topo, pode jogar até o fim do seu próximo turno"
+  },
+  {
+   "carta": "Bloatfly Swarm",
+   "situacao": "entra",
+   "espera": "5/5 voadora (5 marcadores)"
+  },
+  {
+   "carta": "Bloodchief Ascension",
+   "situacao": "fim do turno, oponente perdeu 3",
+   "espera": "pode pôr 1 marcador quest"
+  },
+  {
+   "carta": "Bloodchief Ascension",
+   "situacao": "3 quest; carta vai ao cemitério do oponente",
+   "espera": "oponente perde 2, você ganha 2"
+  },
+  {
+   "carta": "Bloodghast",
+   "situacao": "um terreno seu entra, Bloodghast no cemitério",
+   "espera": "pode voltar ao campo; não bloqueia"
+  },
+  {
+   "carta": "Bloodline Keeper",
+   "situacao": "{T}",
+   "espera": "ficha Vampire 2/2 voadora"
+  },
+  {
+   "carta": "Bloodline Keeper",
+   "situacao": "5 Vampiros; {B}",
+   "espera": "transforma: outros Vampiros +2/+2"
+  },
+  {
+   "carta": "Bloom Tender",
+   "situacao": "controla permanentes verde e branca",
+   "espera": "{T}: 2 manas"
+  },
+  {
+   "carta": "Blossoming Defense",
+   "situacao": "em criatura sua 3/3",
+   "espera": "5/5 com antimagia no turno"
+  },
+  {
+   "carta": "Blur Sliver",
+   "situacao": "Sliver novo entra",
+   "espera": "tem pressa"
+  },
+  {
+   "carta": "Body of Knowledge",
+   "situacao": "5 cartas na mão; leva 3 de dano",
+   "espera": "5/5 antes; compra 3"
+  },
+  {
+   "carta": "Bolas's Citadel",
+   "situacao": "topo é terreno",
+   "espera": "pode jogar do topo; olha o topo a qualquer hora"
+  },
+  {
+   "carta": "Bolas's Citadel",
+   "situacao": "{T} e sacrifica 10 não-terrenos",
+   "espera": "cada oponente perde 10"
+  },
+  {
+   "carta": "Bonders' Enclave",
+   "situacao": "com criatura de poder 4",
+   "espera": "{3},{T}: compra 1"
+  },
+  {
+   "carta": "Bonders' Enclave",
+   "situacao": "sem criatura de poder 4",
+   "espera": "não ativa a compra"
+  },
+  {
+   "carta": "Bonehoard Dracosaur",
+   "situacao": "manutenção: exila terreno e mágica",
+   "espera": "pode jogar as duas no turno; Dinosaur 3/1 e Treasure"
+  },
+  {
+   "carta": "Bonescythe Sliver",
+   "situacao": "Slivers seus",
+   "espera": "golpe duplo"
+  },
+  {
+   "carta": "Boon of the Spirit Realm",
+   "situacao": "entra e depois outro encantamento",
+   "espera": "2 blessing: criaturas +2/+2"
+  },
+  {
+   "carta": "Boromir, Gondor's Hope",
+   "situacao": "entra",
+   "espera": "olha 6, pode pegar um artefato; resto embaixo"
+  },
+  {
+   "carta": "Boromir, Warden of the Tower",
+   "situacao": "sacrifica",
+   "espera": "suas criaturas indestrutíveis no turno"
+  },
+  {
+   "carta": "Boros Garrison",
+   "situacao": "entra",
+   "espera": "virado, devolve um terreno seu; {T}: R e W"
+  },
+  {
+   "carta": "Braids, Arisen Nightmare",
+   "situacao": "seu fim de turno; sacrifica um terreno",
+   "espera": "cada oponente pode sacrificar; perde 2 e você compra"
+  },
+  {
+   "carta": "Brain Freeze",
+   "situacao": "terceira mágica do turno",
+   "espera": "moer 3 ×3 (tempestade 2 cópias)"
+  },
+  {
+   "carta": "Bramblewood Paragon",
+   "situacao": "Warrior entra",
+   "espera": "com +1/+1 a mais e atropelar"
+  },
+  {
+   "carta": "Breena, the Demagogue",
+   "situacao": "jogador ataca oponente",
+   "espera": "quem ataca compra 1; 2 marcadores numa criatura sua"
+  },
+  {
+   "carta": "Breya, Etherium Shaper",
+   "situacao": "entra",
+   "espera": "2 Thopter 1/1 voadoras"
+  },
+  {
+   "carta": "Breya, Etherium Shaper",
+   "situacao": "{2}, sacrifica 2 artefatos, modo 1",
+   "espera": "alvo -4/-4"
+  },
+  {
+   "carta": "Brightclimb Pathway",
+   "situacao": "joga a face Grimclimb",
+   "espera": "{T}: B"
+  },
+  {
+   "carta": "Brightstone Ritual",
+   "situacao": "3 Goblins no campo",
+   "espera": "RRR"
+  },
+  {
+   "carta": "Brimaz, King of Oreskos",
+   "situacao": "ataca",
+   "espera": "Cat Soldier 1/1 vigilante atacando"
+  },
+  {
+   "carta": "Bronze Guardian",
+   "situacao": "4 artefatos",
+   "espera": "4/5 golpe duplo; outros artefatos com resguardo 2"
+  },
+  {
+   "carta": "Bronzebeak Foragers",
+   "situacao": "entra, 2 oponentes",
+   "espera": "exila até 2 não-terrenos de oponentes"
+  },
+  {
+   "carta": "Brood Sliver",
+   "situacao": "Sliver seu dá dano de combate",
+   "espera": "pode criar Sliver 1/1"
+  },
+  {
+   "carta": "Brutal Hordechief",
+   "situacao": "ataca com 3",
+   "espera": "defensor perde 3, você ganha 3"
+  },
+  {
+   "carta": "Brute Force",
+   "situacao": "em 2/2",
+   "espera": "5/5 no turno"
+  },
+  {
+   "carta": "Bugenhagen, Wise Elder",
+   "situacao": "manutenção com criatura de poder 7",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Burrowguard Mentor",
+   "situacao": "4 criaturas",
+   "espera": "4/4 atropelar"
+  },
+  {
+   "carta": "Buster Sword",
+   "situacao": "equipada dá 4 de dano a jogador",
+   "espera": "compra 1; pode conjurar grátis mágica da mão com valor ≤ 4"
+  },
+  {
+   "carta": "Bygone Marvels",
+   "situacao": "8 permanentes no cemitério",
+   "espera": "2 cópias: volta 3 permanentes à mão; o original exilado"
+  },
+  {
+   "carta": "Cacophony Unleashed",
+   "situacao": "conjurado",
+   "espera": "destrói criaturas não-encantamento; vira 6/6 ameaça e toque mortífero no turno"
+  },
+  {
+   "carta": "Cadira, Caller of the Small",
+   "situacao": "dano a jogador com 3 fichas",
+   "espera": "3 Rabbit 1/1"
+  },
+  {
+   "carta": "Caesar, Legion's Emperor",
+   "situacao": "ataca, sacrifica outra, escolhe fichas e compra",
+   "espera": "2 Soldier 1/1 pressa atacando; compra 1, perde 1"
+  },
+  {
+   "carta": "Calix, Guided by Fate",
+   "situacao": "encantamento seu entra",
+   "espera": "+1/+1 em criatura alvo"
+  },
+  {
+   "carta": "Call the Spirit Dragons",
+   "situacao": "Dragão seu",
+   "espera": "indestrutível"
+  },
+  {
+   "carta": "Captain Lannery Storm",
+   "situacao": "ataca e sacrifica o Treasure",
+   "espera": "Treasure; +1/+0 no turno"
+  },
+  {
+   "carta": "Captivating Vampire",
+   "situacao": "vira 5 Vampiros",
+   "espera": "ganha o controle da criatura alvo"
+  },
+  {
+   "carta": "Caretaker's Talent",
+   "situacao": "2 fichas entram no turno",
+   "espera": "compra 1 só"
+  },
+  {
+   "carta": "Carmen, Cruel Skymarcher",
+   "situacao": "criatura é sacrificada; ataca com poder 3",
+   "espera": "+1/+1 e ganha 1; volta permanente de valor ≤ 3"
+  },
+  {
+   "carta": "Cascade Bluffs",
+   "situacao": "{U/R},{T}",
+   "espera": "UU, UR ou RR"
+  },
+  {
+   "carta": "Case of the Locked Hothouse",
+   "situacao": "no campo",
+   "espera": "um terreno a mais por turno"
+  },
+  {
+   "carta": "Castle Ardenvale",
+   "situacao": "entra sem Plains",
+   "espera": "virado; {2}{W}{W},{T}: Human 1/1"
+  },
+  {
+   "carta": "Castle Ardenvale",
+   "situacao": "entra com Plains",
+   "espera": "desvirado"
+  }
+ ]
+}
