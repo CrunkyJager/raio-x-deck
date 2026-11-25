@@ -7,6 +7,7 @@ import { mount, unmount } from 'svelte';
 import App from './App.svelte';
 import Resumo from './telas/Resumo.svelte';
 import TelaAnalise from './telas/Analise.svelte';
+import Trocas from './telas/Trocas.svelte';
 import type { Analise } from './analise/analise';
 
 // A casca (App.svelte) vai primeiro e direto no <body>, antes do primeiro <script>, no mesmo lugar onde o HTML
@@ -20,7 +21,7 @@ const tela = (nome: string, C: typeof Resumo) => (lugar: Element, A: Analise) =>
   if (vivas[nome]) unmount(vivas[nome]);
   vivas[nome] = mount(C, { target: lugar.parentNode as Element, anchor: lugar, props: { A } });
 };
-window.RAIOX_TELAS = { resumo: tela('resumo', Resumo), analise: tela('analise', TelaAnalise) };
+window.RAIOX_TELAS = { resumo: tela('resumo', Resumo), analise: tela('analise', TelaAnalise), trocas: tela('trocas', Trocas) };
 
 async function sobe(nome: string, carrega: () => Promise<unknown>) {
   try { await carrega(); } catch (err) { console.error(`Raio-X: ${nome} não subiu`, err); }

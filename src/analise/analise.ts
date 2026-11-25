@@ -329,18 +329,28 @@ const aplicaMyp = () => { for (const n in MYP) { const e = DB.cards[n]; if (e) e
 const brlTxt = (usd: number, cents?: boolean | number) => 'R$ ' + ((usd || 0) * USD_BRL).toLocaleString('pt-BR', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
 const brl = (usd: number, cents?: boolean | number) => `<span data-usd="${usd || 0}"${cents ? ' data-cents="1"' : ''}>${brlTxt(usd, cents)}</span>`;
 const toUsd = (reais: number) => (reais > 0 ? reais / USD_BRL : Infinity);
+// A análise espera a cotação (COTA_OK): o preço do MYP vira dólar pela cotação na hora da soma (A.price), e uma
+// cotação que chega depois corrige as cartas, mas não a soma já feita, e o pinta() multiplicava essa soma antiga pela
+// nova (a 1ª análise saía ~6% acima quando não havia cotação guardada). Agora a soma espera até 2,5 s; se a cotação
+// chega depois disso, a análise é refeita na mesma tela.
+let COTA_OK = false;
+let COTA_ESPERA: Promise<void> = Promise.resolve();
 (function cotacao() {
   const pinta = () => { document.querySelectorAll('[data-usd]').forEach((el: any) => { el.textContent = brlTxt(+el.dataset.usd, !!el.dataset.cents); }); document.querySelectorAll('[data-cotacao]').forEach(el => { el.textContent = USD_BRL_INFO; }); };
-  try { const c = JSON.parse(localStorage.getItem('raiox:usdbrl') || 'null'); if (c && Date.now() - c.t < 12 * 3600e3) { USD_BRL = c.v; USD_BRL_INFO = c.info; } } catch (e) {}
+  try { const c = JSON.parse(localStorage.getItem('raiox:usdbrl') || 'null'); if (c && Date.now() - c.t < 12 * 3600e3) { USD_BRL = c.v; USD_BRL_INFO = c.info; COTA_OK = true; } } catch (e) {}
   aplicaMyp();
-  fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL').then(r => r.json()).then(j => {
+  if (COTA_OK) return; // cotação guardada há menos de 12 h: fica ela (a página toda soma com a mesma)
+  if (typeof fetch !== 'function') { COTA_OK = true; return; }
+  const busca = fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL').then(r => r.json()).then(j => {
     const v = +(j.USDBRL && j.USDBRL.bid); if (!(v > 3 && v < 12)) return;
     const d = new Date((+j.USDBRL.timestamp || Date.now() / 1000) * 1000);
     USD_BRL = v; USD_BRL_INFO = `dólar a R$ ${v.toFixed(2).replace('.', ',')} em ${d.toLocaleDateString('pt-BR')}`;
     try { localStorage.setItem('raiox:usdbrl', JSON.stringify({ v, info: USD_BRL_INFO, t: Date.now() })); } catch (e) {}
-    aplicaMyp(); // a carta do MYP continua com o mesmo preço em reais (o que já está na tela foi calculado com a cotação anterior)
+    aplicaMyp(); // a carta do MYP continua com o mesmo preço em reais
+    if (COTA_OK && LAST && !LAST.empty) run(LAST.cmds.map((c: Carta) => c.name), location.hash.slice(1) || 'resumo'); // chegou tarde: refaz a soma
     pinta();
   }).catch(() => {});
+  COTA_ESPERA = Promise.race([busca, new Promise(r => setTimeout(r, 2500))]).then(() => { COTA_OK = true; });
 })();
 const COLORNAME: Dic<string> = { W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde' };
 const COLORADJ: Dic<string> = { W: 'brancos', U: 'azuis', B: 'pretos', R: 'vermelhos', G: 'verdes' };
@@ -370,9 +380,35 @@ const listLinks = (arr: string[], max = 40) => arr.slice(0, max).map(cardLink).j
 let LAST: Analise | null = null;
 // T43 (d): o objeto ganha nome só para o tipo (RaioX) que o montar.ts importa; o window.RAIOX é o mesmo de antes
 const API = { esc, fmt, suggestions: (A: Analise, k: string, n?: number) => suggestions(A, k, n), terrenosHTML: (A: Analise) => terrenosHTML(A), THEMES, themesOf, valorPlano: (A: Analise, c: Carta) => valorPlano(A, c), edhPagina: (c: string) => edhPagina(c), edhJa: (c: string) => edhJa(c), edhCmdCam: (n: string[]) => edhCmdCam(n), edhIdeia: (t: Iterable<string>, i: Set<string>, tb?: string | null) => edhIdeia(t, i, tb), edhCarta: (I: Ideia | null, c: Carta) => edhCarta(I, c), edhNota: (I: Ideia | null, c: Carta) => edhNota(I, c), edhPorque: (I: Ideia | null, c: Carta) => edhPorque(I, c), planoDe: (A: Analise) => planoDe(A), tipoRamp: (c: Carta) => tipoRamp(c), custoRamp: (c: Carta) => custoRamp(c), terrenosFormula: (cs: Carta[], cm: Carta[]) => terrenosFormula(cs, cm), isMdfcLand, get RAMP_N() { return RAMP_N; }, efeitos: (c: Carta) => efeitos(c), subtypes, CONCEITOS: null as typeof CONCEITOS | null, COLORNAME, parseList, guessCommanders, C, rolesOf, isLand, lookupName: (n: string) => lookupName(n), analyze, ROLES, canBeCommander, norm, brl, brlTxt, fonteMyp, fontePrecos, temMyp, manaHTML, cardLink, isTutor, semPreco: (c: Carta) => semPreco(c), ANY_NUMBER, DB, PTIDX, run: (cmds?: string[] | null, goTo?: string) => run(cmds, goTo), get usd() { return USD_BRL; }, swaps: () => SWAPS.map((s, i) => ({ out: s.out, inn: s.inn, on: !!SWAP_ON[i] })), swapsFull: () => SWAPS, efetiv: (A: Analise, c: Carta) => efetiv(A, c), sinergia: (A: Analise, c: Carta) => sinergia(A, c), temaSin: (A: Analise) => temaSin(A), sinTema: (c: Carta, T: Dic<number>) => sinTema(c, T), sinTexto: (A: Analise, c: Carta) => sinTexto(A, c), buildSwaps: (A: Analise) => buildSwaps(A), get TETO_EF() { return TETO_EF; }, get PORTA_EF() { return PORTA_EF; }, perfilDeck: (A: Analise) => perfilDeck(A), efPlano: (A: Analise, c: Carta) => efPlano(A, c), imgFor: (n: string, v?: string) => imgFor(n, v), imgsDe: (l: string[]) => imgsDe(l), get imgCache() { return IMGC; }, get last() { return LAST; } };
+// tela Trocas (src/telas/Trocas.svelte): o estado das trocas (SWAPS, SWAP_ON) e a ideia (CONC) continuam aqui,
+// porque o buildSwaps, o newList e a Mesa (RAIOX.swaps) leem deles; a tela pede e muda por estas funções.
+const TROCAS = {
+  get CONC() { return CONC; }, get CONCEITOS() { return CONCEITOS; }, get MODOS() { return MODOS; },
+  concOn: (A: Analise) => concOn(A), concDetected: (A: Analise) => concDetected(A), salva: (A: Analise) => saveConcept(A),
+  resolveNames: (t: string) => resolveNames(t),
+  /** refaz as trocas (todas marcadas), como o renderSwaps fazia a cada desenho */
+  novas: (A: Analise) => { SWAPS = buildSwaps(A); SWAP_ON = SWAPS.map(() => true); return SWAPS; },
+  marca: (i: number, v: boolean) => { SWAP_ON[i] = v; },
+  marcada: (i: number) => !!SWAP_ON[i],
+  algumaMarcada: () => SWAP_ON.some(Boolean),
+  nMarcadas: () => SWAP_ON.filter(Boolean).length,
+  /** outra carta para entrar (lado 'in') ou para sair ('out') na troca i; false se ela já está em outra troca */
+  alt: (A: Analise, i: number, lado: 'in' | 'out', n: string) => {
+    const s = SWAPS[i];
+    if (lado === 'in') { if (SWAPS.some((x, j) => j !== i && x.inn === n)) return false; s.alts = s.alts.map(x => (x === n ? s.inn : x)); s.inn = n; }
+    else { if (SWAPS.some((x, j) => j !== i && x.out === n)) return false; s.altsOut = s.altsOut.map(x => (x === n ? s.out : x)); s.out = n; s.whyOut = whyCut(A, C(n)!); }
+    return true;
+  },
+  listaNova: (A: Analise) => newList(A), imgs: (root: ParentNode) => swapImgs(root),
+  soma: (A: Analise) => swapSum(A), graf: (A: Analise) => swapGraf(A), nums: (A: Analise, s: Troca) => swapNums(A, s),
+  planoBox: (A: Analise) => planoBox(A), box: (n: string, tag: string) => swapBox(n, tag), compara: (A: Analise, s: Troca) => compareText(A, s),
+  planoTroca: (A: Analise, s: Troca) => planoTroca(A, s), edhTroca: (A: Analise, s: Troca) => edhTroca(A, s),
+};
+(API as any).trocas = TROCAS;
 window.RAIOX = API;
-export type RaioX = typeof API;
+export type RaioX = typeof API & { trocas: typeof TROCAS };
 function run(forcedCmd?: string[] | null, goTo?: string) {
+  if (!COTA_OK) { const m = $('#go-msg'); if (m) m.textContent = 'Buscando a cotação do dólar…'; COTA_ESPERA.then(() => run(forcedCmd, goTo)); return; }
   const text = $<HTMLInputElement>('#deck-in').value;
   const A = analyze(text, forcedCmd);
   const out = $('#out');
@@ -382,7 +418,7 @@ function run(forcedCmd?: string[] | null, goTo?: string) {
   loadConcept(A);
   out.innerHTML = render(A);
   telas(out, A);
-  wire(A); wireConcept(A); wireSwaps(A);
+  wire(A);
   document.dispatchEvent(new CustomEvent('raiox:deck', { detail: A }));
   // EDHREC ainda não veio para este comandante: busca e refaz a análise uma vez (fica guardado 7 dias)
   // página do comandante no EDHREC (só informação): busca uma vez e redesenha as trocas
@@ -401,7 +437,7 @@ function telas(out: HTMLElement, A: Analise) {
 function render(A: Analise) {
   return `
   <template data-tela="resumo"></template>
-  <div class="screen" data-s="trocas">${renderConcept(A)}${renderSwaps(A)}</div>
+  <template data-tela="trocas"></template>
   <template data-tela="analise"></template>`;
 }
 
@@ -485,41 +521,8 @@ function terrenosHTML(A: Analise) {
     <p class="note"><b>Para comparar com a prática:</b> os decks médios do EDHREC (382 decks, os comandantes mais jogados de cada tema, tribo, bracket e orçamento) com custo médio ${fmtD(F.media, 2)} jogam ${fmtD(F.edh)} terrenos (${String(TERR_EDH.a).replace('.', ',')} + ${String(TERR_EDH.b).replace('.', ',')} × custo médio; erro médio de 1,2 terreno). É só referência: a Mesa simulada joga essa quantidade ao lado das fórmulas para medir qual rende mais.</p>
     <p class="note">O Raio-X usa a ajustada nas faixas e no Montar até você escolher.</p></section>`;
 }
-function renderConcept(A: Analise) {
-  const on = concOn(A);
-  const chips = CONCEITOS.filter(x => x.k !== 'tribe' || A.tribe).map(x => `<button class="cn lock ${on.has(x.k) ? 'on' : ''}" data-cc="${x.k}" aria-pressed="${on.has(x.k)}">${esc(x.k === 'tribe' ? 'Tribo: ' + A.tribe![0] : x.n)}</button>`).join('');
-  const lockR = resolveNames(CONC.lock), testR = resolveNames(CONC.test);
-  const bad = lockR.bad.concat(testR.bad);
-  return `<section class="panel conc"><h2>A ideia do deck</h2>
-    <p class="lead">Conte em poucas palavras como o deck quer ganhar. As trocas passam a seguir isso: carta que encaixa na ideia pesa mais para ficar e para entrar. Fica salvo neste navegador para este comandante.</p>
-    <textarea id="cc-text" rows="2" style="min-height:60px;font-family:var(--body);font-size:1rem" placeholder="Ex.: equipar o comandante e bater com ele; fichas para segurar a mesa">${esc(CONC.text)}</textarea>
-    <div class="cc-row"><span class="note">Temas que li na ideia (clique para ligar ou desligar):</span><div class="links">${chips}</div></div>
-    <label class="field">Como seguir <select id="cc-mode">${MODOS.map(([v, l]) => `<option value="${v}" ${CONC.mode === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-    <div class="grid2" style="margin-top:12px">
-      <label class="cc-box"><b>Cartas que não saem</b><span class="note">Uma por linha ou separadas por vírgula. Vale nome em português.</span><textarea id="cc-lock" rows="3" style="min-height:70px">${esc(CONC.lock)}</textarea></label>
-      <label class="cc-box"><b>Cartas que quero testar entrando</b><span class="note">Cada uma vira uma troca, no lugar da carta que menos faz falta.</span><textarea id="cc-test" rows="3" style="min-height:70px">${esc(CONC.test)}</textarea></label>
-    </div>
-    <div class="nivel">
-      <h3>Nível e orçamento</h3>
-      <p class="note">As trocas mudam bastante com isso: num bracket menor saem os game changers, a destruição de terrenos e o excesso de tutores; num maior entram cartas mais fortes. Com teto de preço, nenhuma carta que entra passa dele e as caras demais saem por outras da mesma função. Deixe em branco para não limitar.</p>
-      <div class="nivel-campos">
-        <label class="cc-box"><b>Bracket que você quer</b><select id="cc-br">${[['', `Manter o estimado (Bracket ${A.bracket})`], ['2', 'Bracket 2 · núcleo, nível de pré-montado'], ['3', 'Bracket 3 · melhorado, até 3 game changers'], ['4', 'Bracket 4 · otimizado, sem limites']].map(([v, l]) => `<option value="${v}" ${String(CONC.br || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-        <label class="cc-box"><b>Preço máximo do deck</b><span class="reais"><i>R$</i><input id="cc-teto" class="txt" type="number" min="0" step="50" inputmode="numeric" placeholder="sem limite" value="${esc(String(CONC.teto || ''))}"></span><span class="note">Hoje: ${brl(A.price)} · preços do ${fonteMyp()}</span></label>
-        <label class="cc-box"><b>Preço máximo por carta</b><span class="reais"><i>R$</i><input id="cc-tetoc" class="txt" type="number" min="0" step="5" inputmode="numeric" placeholder="sem limite" value="${esc(String(CONC.tetoCarta || ''))}"></span><span class="note">${A.pricey && A.pricey[0] ? `A mais cara hoje: ${esc(A.pricey[0].name)}, ${brl(A.pricey[0].usd)}` : 'Nenhuma carta cara no deck'}</span></label>
-      </div>
-    </div>
-    <div class="row"><button class="btn primary" id="cc-go">Refazer as trocas com esta ideia</button>${bad.length ? `<span class="note" style="color:var(--warn)">Não reconheci: ${esc(bad.join(', '))}</span>` : ''}${on.size && CONC.mode !== 'livre' ? `<span class="note">Seguindo: ${esc([...on].map(k => k === 'tribe' ? A.tribe![0] : CONCEITOS.find(x => x.k === k)!.n.toLowerCase()).join(', '))}</span>` : ''}</div>
-  </section>`;
-}
-function rerenderTrocas(A: Analise) { const box = $('[data-s="trocas"]'); if (!box) return; box.innerHTML = renderConcept(A) + renderSwaps(A); wireConcept(A); wireSwaps(A); }
-function wireConcept(A: Analise) {
-  const t = $<HTMLTextAreaElement>('#cc-text'); if (!t) return;
-  const sync = () => { CONC.text = t.value; CONC.mode = $<HTMLInputElement>('#cc-mode').value; CONC.lock = $<HTMLInputElement>('#cc-lock').value; CONC.test = $<HTMLInputElement>('#cc-test').value; CONC.br = $<HTMLInputElement>('#cc-br').value; CONC.teto = $<HTMLInputElement>('#cc-teto').value; CONC.tetoCarta = $<HTMLInputElement>('#cc-tetoc').value; saveConcept(A); };
-  t.addEventListener('input', () => { sync(); const on = concOn(A); $$('[data-cc]').forEach(b => { b.classList.toggle('on', on.has(b.dataset.cc!)); b.setAttribute('aria-pressed', String(on.has(b.dataset.cc!))); }); });
-  $$('[data-cc]').forEach(b => b.onclick = (e) => { e.stopPropagation(); sync(); const k = b.dataset.cc!; const det = concDetected(A).has(k); const now = !b.classList.contains('on'); CONC.man = CONC.man || {}; if (now === det) delete CONC.man[k]; else CONC.man[k] = now; saveConcept(A); b.classList.toggle('on', now); b.setAttribute('aria-pressed', String(now)); });
-  ['#cc-mode', '#cc-lock', '#cc-test', '#cc-br', '#cc-teto', '#cc-tetoc'].forEach(s => $(s).addEventListener('change', sync));
-  $('#cc-go').onclick = () => { sync(); rerenderTrocas(A); };
-}
+// a tela Trocas (Trocas.svelte) escuta e se refaz: a ideia mudou, travou uma carta ou o EDHREC chegou
+function rerenderTrocas(A: Analise) { document.dispatchEvent(new CustomEvent('raiox:trocas', { detail: A })); }
 
 
 // ---------- plano do comandante: o que cada carta faz por ele, lendo o texto (19/11/2026) ----------
@@ -1552,16 +1555,6 @@ function planoBox(A: Analise) {
   const o = P.goad ? `${P.nome} vence fazendo os oponentes se atacarem enquanto você fica protegido` : P.voltron ? `${P.nome} vence atacando e carregando auras e equipamentos` : `${P.nome} vence atacando`;
   return `<div class="plano-box"><b>O plano de ${esc(P.nome)}</b><p>${esc(o)}. Cada turno que ele demora a entrar ou a atacar armado custa a partida. As trocas abaixo protegem e procuram o que adianta isso:</p><ul>${P.quer.map((q: string) => `<li>${esc(q)}</li>`).join('')}</ul><p class="note">Cartas do tema não ficam só por serem do tema: uma aura cara que dá pouco pode sair, e uma barata com evasão ou proteção fica.</p>${edhBox(A)}</div>`;
 }
-function renderSwapCard(s: Troca, i: number) {
-  return `<div class="swapcard${SWAP_ON[i] ? '' : ' off'}" data-sw="${i}">
-    <div class="sw-h"><span class="tag">${esc(s.goal)}</span><h3>Troca ${i + 1}: ${esc(s.out)} → ${esc(s.inn)}</h3><button class="btn small" style="margin-left:auto" data-lockout="${esc(s.out)}" title="Trava a carta que sai e refaz as trocas">Não tirar ${esc(s.out)}</button><label class="field" style="margin:0"><input type="checkbox" data-swon="${i}" ${SWAP_ON[i] ? 'checked' : ''}> fazer esta troca</label></div>
-    <div class="pair">${swapBox(s.out, 'SAI')}${swapBox(s.inn, 'ENTRA')}</div>
-    ${swapNums(LAST!, s)}
-    <dl class="sw-why"><dt>Por que sai</dt><dd>${esc(s.whyOut)}.</dd><dt>Por que entra</dt><dd>${esc(s.whyIn)}</dd><dt>Na prática</dt><dd class="cmp">${esc(compareText(LAST!, s))}</dd>${planoTroca(LAST!, s)}${edhTroca(LAST!, s)}</dl>
-    ${s.alts.length ? `<div class="alt"><span class="note">Prefere outra para entrar?</span><div class="links">${s.alts.map(n => `<button class="cn" data-altin="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
-    ${s.altsOut.length ? `<div class="alt"><span class="note">Ou tirar outra no lugar:</span><div class="links">${s.altsOut.map(n => `<button class="cn" data-altout="${i}" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div></div>` : ''}
-  </div>`;
-}
 // ---------- gráficos das trocas (linguagem do Grimório Arena: KPI, trilho com a média, colunas, réguas) ----------
 const pctTxt = (v: number | null | undefined) => (v == null ? '—' : (100 * v).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%');
 const ptsTxt = (d: number) => (d > 0 ? '+' : d < 0 ? '−' : '') + Math.abs(d).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
@@ -1643,24 +1636,6 @@ function swapNums(A: Analise, s: Troca) {
     <div><span class="eyebrow">Nas funções</span><div class="fxs">${fun + mv || '<span class="note">Mesmas funções medidas.</span>'}</div></div>
   </div>`;
 }
-function renderSwaps(A: Analise) {
-  SWAPS = buildSwaps(A); SWAP_ON = SWAPS.map(() => true);
-  if (!SWAPS.length) return `<section class="panel"><h2>Trocas sugeridas</h2><p>Nenhuma troca óbvia pela lista: as funções estão nas faixas, a base de mana cobre as cores e não sobraram cartas sem papel. Para afinar daqui, use a <a href="#mesa">mesa simulada</a>, que mede carta por carta.</p></section>`;
-  return `<section class="panel"><h2>Trocas sugeridas</h2>
-    <p class="lead">Cada troca é um par: a carta que menos contribui sai, e entra uma das mais jogadas nas suas cores para o buraco apontado no resumo. A lista final continua com 100 cartas. Desmarque o que não quiser, troque a carta que entra pelas outras opções e clique em qualquer nome para ler a carta.</p>
-    ${planoBox(A)}
-    <div class="kpis sw-sum" id="sw-sum">${swapSum(A)}</div>
-    <div id="sw-graf">${swapGraf(A)}</div>
-    ${A._testBad && A._testBad.length ? `<p class="note" style="color:var(--warn)">Fora das cores do comandante, não dá para testar: ${esc(A._testBad.join(', '))}.</p>` : ''}
-    <div id="sw-list">${SWAPS.map(renderSwapCard).join('')}</div>
-    <div class="row" style="margin-top:16px"><button class="btn primary" id="sw-apply">Aplicar as trocas marcadas e analisar de novo</button><button class="btn" id="sw-copy">Copiar a lista nova</button><button class="btn" id="sw-test">Testar na mesa simulada</button><button class="btn" id="sw-vivo">Jogar ao vivo com as trocas</button><span class="note" id="sw-msg"></span></div>
-  </section>`;
-}
-function refreshSum(A: Analise) { const sm = $('#sw-sum'); if (sm) sm.innerHTML = swapSum(A); const g = $('#sw-graf'); if (g) g.innerHTML = swapGraf(A); }
-document.addEventListener('raiox:teste', () => {
-  const A = LAST; if (!A || !$('#sw-list')) return; refreshSum(A);
-  SWAPS.forEach((s, i) => { const el = $(`[data-sw="${i}"] .sw-num`); if (el) el.outerHTML = swapNums(A, s); });
-});
 function swapImgs(root: ParentNode) { $$('[data-swimg]', root).forEach(el => imgFor(el.dataset.swimg!).then(src => { el.innerHTML = src ? `<img src="${src}" alt="${esc(el.dataset.swimg)}">` : '<span class="note" style="padding:8px;text-align:center">sem imagem</span>'; })); }
 function newList(A: Analise) {
   const swapped: Dic = {}; SWAPS.forEach((s, i) => { if (SWAP_ON[i]) swapped[s.out] = s.inn; });
@@ -1669,27 +1644,6 @@ function newList(A: Analise) {
   const k: Dic = {}; out.forEach(n => (k[n] = (k[n] || 0) + 1));
   return `// Commander\n${A.cmds.map((c: Carta) => '1 ' + c.name).join('\n')}\n// Deck\n${Object.entries(k).map(([n, q]) => `${q} ${n}`).join('\n')}`;
 }
-function wireSwaps(A: Analise) {
-  const box = $('#sw-list'); if (!box) return;
-  swapImgs(box);
-  const redraw = (i: number) => { const el = $(`[data-sw="${i}"]`); el.outerHTML = renderSwapCard(SWAPS[i], i); swapImgs($(`[data-sw="${i}"]`)); refreshSum(A); };
-  box.addEventListener('change', (e: any) => { const i = e.target.dataset.swon; if (i == null) return; SWAP_ON[+i] = e.target.checked; e.target.closest('.swapcard').classList.toggle('off', !e.target.checked); refreshSum(A); });
-  box.addEventListener('click', (e: any) => {
-    const lk = e.target.closest('[data-lockout]');
-    if (lk) { e.stopPropagation(); CONC.lock = (CONC.lock ? CONC.lock.replace(/\s+$/, '') + '\n' : '') + lk.dataset.lockout; saveConcept(A); rerenderTrocas(A); return; }
-    const bi = e.target.closest('[data-altin]'), bo = e.target.closest('[data-altout]');
-    if (bi) { e.stopPropagation(); const i = +bi.dataset.altin, s = SWAPS[i], n = bi.dataset.n; if (SWAPS.some((x, j) => j !== i && x.inn === n)) return; s.alts = s.alts.map(x => (x === n ? s.inn : x)); s.inn = n; redraw(i); }
-    if (bo) { e.stopPropagation(); const i = +bo.dataset.altout, s = SWAPS[i], n = bo.dataset.n; if (SWAPS.some((x, j) => j !== i && x.out === n)) return; s.altsOut = s.altsOut.map(x => (x === n ? s.out : x)); s.out = n; s.whyOut = whyCut(A, C(n)!); redraw(i); }
-  }, true);
-  const msg = (t: string) => { $('#sw-msg').textContent = t; };
-  $('#sw-copy').onclick = async () => { try { await navigator.clipboard.writeText(newList(A)); msg('Lista copiada. Cole no Moxfield ou no Archidekt.'); } catch (e) { $<HTMLInputElement>('#deck-in').value = newList(A); msg('Não deu para copiar daqui; a lista nova foi para a caixa da aba Lista.'); } };
-  $('#sw-apply').onclick = () => { const n = SWAP_ON.filter(Boolean).length; if (!n) { msg('Nenhuma troca marcada.'); return; } $<HTMLInputElement>('#deck-in').value = newList(A); run(A.cmds.map((c: Carta) => c.name), 'resumo'); };
-  const sec = box.closest('.panel')!;
-  sec.addEventListener('click', (e: any) => { if (e.target.closest('[data-swtest]')) $('#sw-test').click(); });
-  $('#sw-vivo').onclick = () => { if (!SWAP_ON.some(Boolean)) { msg('Nenhuma troca marcada.'); return; } try { localStorage.setItem('raiox:vivoTrocas', '1'); } catch (e) {} window.RAIOX_VIVO_JA = true; location.hash = 'aovivo'; };
-  $('#sw-test').onclick = () => { window.RAIOX_VOLTA = 'trocas'; location.hash = 'mesa'; setTimeout(() => { const b = $<HTMLButtonElement>('#m-tro'); if (b && !b.disabled) b.click(); }, 60); };
-}
-
 // ---------- telas ----------
 const SCREENS = ['montar', 'lista', 'resumo', 'trocas', 'funcoes', 'mesa', 'aovivo'];
 const SUBS: Dic<string> = { mana: 'funcoes', plano: 'funcoes' }; // Funções, Mana e Plano viraram uma aba só (Análise)
