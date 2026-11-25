@@ -20,7 +20,8 @@ M.agenteBasico = () => (e, p) => {
       return b;
     }
     case 'acao': {                    // terreno (desvirado primeiro) → a mágica mais cara → habilidade de {T}/lealdade → passa
-      const k = p.ops.findIndex(op => op.a === 'terreno' && !(M.dadoDe(e, o(op.id)).subst || []).length);
+      const dOp = op => op.face === undefined ? M.dadoDe(e, o(op.id)) : M.dadoFace(M.carta(o(op.id).n), op.face);   // a face da opção
+      const k = p.ops.findIndex(op => op.a === 'terreno' && !(dOp(op).subst || []).length);
       if (k >= 0) return k;
       const k2 = p.ops.findIndex(op => op.a === 'terreno');
       if (k2 >= 0) return k2;
@@ -28,7 +29,7 @@ M.agenteBasico = () => (e, p) => {
       let b = -1, bv = -1;
       p.ops.forEach((op, i) => {
         if (op.a !== 'conjurar') return;
-        const d = M.dadoDe(e, o(op.id)), inst = (d.tipos || []).includes('Instant');
+        const d = dOp(op), inst = (d.tipos || []).includes('Instant');
         if (!meu && !inst) return;
         if (inst && !d.alvos && !meu) return;            // instantânea sem alvo: no próprio turno
         if ((d.vm || 0) > bv) { bv = d.vm || 0; b = i; }

@@ -74,7 +74,8 @@ function extras(e, F, g, ev) {
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
 const fabricarDe = d => { const k = (d.kw || []).find(x => x.k === 'fabricar'); return k ? { ev: 'entra', quem: { este: true }, fx: [{ op: 'fabricar', qtd: k.n || 1 }] } : null; };
-M.gatilhoDe = (p) => p.g || (p.ficha || M.carta(p.n)).gat[p.k];
+// p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
+M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];
 
 // ---------- evento: dispara na hora (603.2) ----------
 M.evento = (e, ev) => {
@@ -101,7 +102,7 @@ M.evento = (e, ev) => {
       if (!bateEv(e, g, ev, F)) continue;
       if (!cond(e, g.se, { voce: F.ctrl, este: F.id })) continue;                          // 603.4
       const vezes = 1 + extras(e, F, g, ev);
-      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
   }
   if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar
