@@ -1,0 +1,1 @@
+{"v":2,"n":"Viscera Seer","id":"f82a4e85-526d-4456-b700-7760043a31be","oracleHash":"1aed871d","custo":{"p":["B"]},"vm":1,"ci":"B","cores":"B","tipos":["Creature"],"sub":["Vampire","Wizard"],"pt":[1,1],"atv":[{"custo":{"sacrificar":{"f":{"tipo":["Creature"]},"qtd":1}},"fx":[{"op":"videncia","quem":"voce","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco7.json"}}
