@@ -2,7 +2,7 @@
  "bloco": "correcao5",
  "por": "adepto-b",
  "em": "2026-11-25",
- "nota": "decisões do FARSEER nos lotes 17–20 (183dd8d): maisTerrenosOponente, gat recebe, ev explora, ficha com nome, ate com contagem, primeiroCombate, mana ficaNoTurno",
+ "nota": "decisões do FARSEER nos lotes 17–20 (183dd8d): maisTerrenosOponente, gat recebe, ev explora, ficha com nome, ate com contagem, primeiroCombate, mana ficaNoTurno; e do lote do bloco 21 (f70aabd): fasePrincipal, entrouNoTurno, naoPodeAtivar, intimidar, est cores",
  "casos": [
   {
    "carta": "Land Tax",
@@ -68,6 +68,51 @@
    "carta": "Klauth, Unrivaled Ancient",
    "situacao": "ataca",
    "espera": "mana = poder total das atacantes, só para mágicas, fica até o fim do turno"
+  },
+  {
+   "carta": "Moraug, Fury of Akoum",
+   "situacao": "terreno seu entra na fase principal",
+   "espera": "combate extra; no combate não dispara"
+  },
+  {
+   "carta": "Motivated Pony",
+   "situacao": "ataca depois de uma Food sua entrar no turno",
+   "espera": "desvira as atacantes e elas ganham +3/+3 no total"
+  },
+  {
+   "carta": "Ocelot Pride",
+   "situacao": "passo final com a bênção, ganhou vida e 2 fichas entraram",
+   "espera": "cria o Gato e uma cópia de cada ficha que entrou no turno"
+  },
+  {
+   "carta": "Idol of Oblivion",
+   "situacao": "vira sem ficha criada no turno",
+   "espera": "não pode ativar; com ficha nova compra 1"
+  },
+  {
+   "carta": "Linvala, Keeper of Silence",
+   "situacao": "oponente com criatura de habilidade ativada",
+   "espera": "não pode ativar"
+  },
+  {
+   "carta": "Myrel, Shield of Argive",
+   "situacao": "seu turno",
+   "espera": "oponentes não conjuram nem ativam artefatos, criaturas e encantamentos"
+  },
+  {
+   "carta": "Mikaeus, the Unhallowed",
+   "situacao": "ataca",
+   "espera": "intimidar"
+  },
+  {
+   "carta": "Nim Deathmantle",
+   "situacao": "equipada",
+   "espera": "+2/+2, intimidar, preta e Zumbi"
+  },
+  {
+   "carta": "Leyline of the Guildpact",
+   "situacao": "suas permanentes não-terreno",
+   "espera": "têm todas as cores; terrenos são todos os básicos"
   }
  ]
 }
