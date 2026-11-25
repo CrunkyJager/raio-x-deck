@@ -105,7 +105,66 @@ function novoObj(e, n, dono, zona) {
 }
 
 // ---- zonas ----
-M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilha : e.jogs[o.dono].zonas[o.zona];
+M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilha : o.zona === 'faseado' ? (e.faseados || (e.faseados = [])) : e.jogs[o.dono].zonas[o.zona];
+
+// ---------- sagas (CR 714) ----------
+// capítulo final = kw capitulo n; marcadores de história em marc.historia. Pôr marcador dispara 'capitulo' {de, para}:
+// o capítulo N desencadeia quando a contagem passa de < N para ≥ N (714.2b). Entrar (714.3a), a 1ª principal do
+// controlador (714.3b, turno.ts) e marcador/proliferar com 'historia' passam por aqui. Sacrifício nas ABE (714.4).
+M.capitulos = d => { const k = (d.kw || []).find(x => x.k === 'capitulo'); return k ? k.n || 0 : 0; };
+M.porHistoria = (e, o, n) => {
+  const de = o.marc.historia || 0; o.marc.historia = de + n;
+  M.evento(e, { ev: 'capitulo', id: o.id, ts: o.ts, de, para: de + n });
+};
+
+// ---------- fases (CR 702.26) ----------
+// Faseada = como se não existisse (702.26b), mas é o mesmo objeto (702.26d: sem mudar de zona, sem evento, ts igual).
+// Fica na lista e.faseados com zona 'faseado'; o que está preso a ela fase junto (702.26g, indireto). Volta no
+// desvirar de quem a controlava (702.26c, 502.1), antes de desvirar; quem estava em combate já saiu (emCombate olha a zona).
+M.fasearFora = (e, id, quando?) => {
+  const o = e.objs[id]; if (!o || o.zona !== 'campo') return;
+  const k = e.campo.lastIndexOf(id); if (k < 0) return;
+  const presos = e.campo.filter(x => { const a = e.objs[x].anexo; return x !== id && a && a.id === id && a.ts === o.ts; });
+  e.campo.splice(k, 1); M.campoSai(e, id);
+  o.zona = 'faseado'; o.faseVolta = quando === undefined ? o.ctrl : quando;
+  (e.faseados || (e.faseados = [])).push(id);
+  for (const x of presos) M.fasearFora(e, x, o.faseVolta);
+};
+M.fasearDentro = (e, j) => {
+  for (const id of (e.faseados || []).filter(x => e.objs[x].faseVolta === j)) {
+    const o = e.objs[id];
+    e.faseados.splice(e.faseados.indexOf(id), 1);
+    o.zona = 'campo'; o.faseVolta = null; e.campo.push(id); M.campoEntra(e, id);
+    M.log(e, o.n, 'volta (fase)');
+  }
+};
+
+// ---------- efeitos temporários de regra (op efeitoTemporario, CR 611.2b) ----------
+// e.efTemp = [{ctrl, est, este:{id,ts}|null, ids:[{id,ts}]|null, fim:'turno'|j, ts}]: estáticas que valem até o fim
+// do turno (limpeza, 514.2) ou até o próximo turno de j ("until your next turn": acaba quando ele começa).
+// afeta: 'voce' (o jogador ctrl), 'este' (a fonte presa por id+ts), filtro (lido na hora: regra, não característica,
+// então o conjunto não fica preso, 611.2c) ou nada (os objetos do em, presos na resolução).
+M.tempDe = (e, modo) => { const r: any[] = []; for (const t of e.efTemp || []) for (const s of t.est) if (s.modo === modo) r.push({ s, t }); return r; };
+M.tempAfeta = (e, o, s, t) => {
+  if (s.afeta === 'este') return !!t.este && o.id === t.este.id && o.ts === t.este.ts;
+  if (s.afeta === undefined) return !!t.ids && t.ids.some(x => x.id === o.id && x.ts === o.ts);
+  if (s.afeta && typeof s.afeta === 'object') { try { return M.bate(e, o, s.afeta, { voce: t.ctrl, este: t.este ? t.este.id : undefined }); } catch (_) { return false; } }
+  return false;
+};
+M.tempNoObj = (e, o, modo) => !!(e.efTemp && e.efTemp.length) && M.tempDe(e, modo).some(({ s, t }) => M.tempAfeta(e, o, s, t));
+const protTudo = s => s.de === 'tudo' || s.de === 'everything' || (s.kw || []).some(k => k.k === 'protecao' && (k.de === 'tudo' || k.de === 'everything'));
+function estJog(e, j, ok) {
+  for (const t of e.efTemp || []) if (t.ctrl === j && t.est.some(s => s.afeta === 'voce' && ok(s))) return true;
+  for (const id of indice(e).est) {
+    const o = e.objs[id]; if (o.ctrl !== j) continue;
+    for (const s of M.dadoDe(e, o).est || []) if (s.afeta === 'voce' && !s.se && ok(s)) return true;
+  }
+  return false;
+}
+// "sua vida não pode mudar" (Teferi's Protection, Flare of Fortitude, Platinum Emperion): sem ganho, perda nem pagar vida (119.8)
+M.vidaFixa = (e, j) => estJog(e, j, s => s.modo === 'vidaNaoMuda');
+// "você tem proteção contra tudo" (702.16j, 702.16b): não é alvo, dano a você é prevenido. Só 'tudo' por ora.
+M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protTudo(s));
 
 // Mover de zona. CR 400.7: vira objeto novo — o id fica (é a carta física, a designação de comandante vai junto,
 // CR 903.3), mas timestamp novo e o estado do campo zera. Ficha fora do campo deixa de existir (CR 704.5d, nas ABE).
@@ -121,7 +180,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   const para = M.listaDe(e, o);
@@ -129,6 +188,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zona === 'campo') M.campoEntra(e, id);
   if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap });   // gatilhos.js
+  if (zona === 'campo' && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1);   // CR 714.3a: a saga entra com 1 marcador de história
   if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
   return o;
 };
@@ -275,7 +335,7 @@ M.campoSai = (e, id) => {
 // The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
 // dos dobros, que é a que dá mais. jog: de quem é o ganho, visto do controlador da fonte. Devolve o que ganhou.
 M.ganharVida = (e, j, q) => {
-  if (!(q > 0) || e.jogs[j].saiu) return 0;
+  if (!(q > 0) || e.jogs[j].saiu || M.vidaFixa(e, j)) return 0;
   let soma = 0, mult = 1;
   for (const id of indice(e).sb) {
     const F = e.objs[id];
@@ -307,6 +367,20 @@ function afeta(e, F, s, o, ctx) {
   if (s.afeta === 'equipada') return !!F.anexo && F.anexo.id === o.id && F.anexo.ts === o.ts;
   return M.bate(e, o, { zona: 'campo', ...s.afeta }, ctx);
 }
+// Leitura em lote (M.lote): enquanto o estado não muda (ABE olhando o campo, opções de prioridade/ataque/bloqueio,
+// agente decidindo), a contagem de uma estática ('conta', ex. Coat of Arms) é a mesma para todo objeto afetado: ela
+// só depende da fonte (ctx = controlador e a própria fonte, lida sem camadas). Sem isso, mil fichas de Goblin com o
+// Coat of Arms custavam mil contagens de mil a cada leitura do campo — O(n²) por passo (fuzz semente 1022, Krenko +
+// Staff of Domination). Fora do lote nada é guardado.
+let LOTE: Map<any, Map<string, number>> | null = null;
+M.lote = fn => { if (LOTE) return fn(); LOTE = new Map(); try { return fn(); } finally { LOTE = null; } };
+function qtdCamada(e, s, q, F, ctx) {
+  if (!LOTE || typeof q === 'number') return M.qtdEst(e, q, ctx);
+  let m = LOTE.get(q); if (!m) LOTE.set(q, m = new Map());
+  const k = F.id + ':' + F.ts + ':' + F.ctrl;
+  let v = m.get(k); if (v === undefined) m.set(k, v = M.qtdEst(e, q, ctx));
+  return v;
+}
 // lote: objetos que acabaram de sair do campo (LKI, CR 603.10a) — continuam valendo como fonte para quem olha para trás
 function camadas(e, o, lote?: any[]) {
   if (lendoCamada || o.zona !== 'campo') return NADA;
@@ -322,8 +396,8 @@ function camadas(e, o, lote?: any[]) {
       const ctx = { voce: F.ctrl, este: F.id };
       if (!afeta(e, F, s, o, ctx)) continue;
       if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
-      if (s.p !== undefined) p += M.qtdEst(e, s.p, ctx);
-      if (s.r !== undefined) r += M.qtdEst(e, s.r, ctx);
+      if (s.p !== undefined) p += qtdCamada(e, s, s.p, F, ctx);
+      if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx);
       for (const x of s.kw || []) kw.push(x);
       if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
@@ -363,8 +437,10 @@ const atvCarta = d => {
   }
   return l as any[];
 };
+// ganhas por efeito de resolução enquanto no campo (o.ganhos.atv: Urza's Saga) vêm logo depois das da carta: só crescem, k estável
 M.atvDe = (e, o) => {
-  const b = atvCarta(M.dadoDe(e, o));
+  let b = atvCarta(M.dadoDe(e, o));
+  if (o.ganhos && o.ganhos.atv) b = b.concat(o.ganhos.atv);
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
   return h.length ? b.concat(h) : b;
 };

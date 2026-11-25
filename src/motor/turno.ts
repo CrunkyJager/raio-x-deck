@@ -91,9 +91,13 @@ function acaoDoTurno(e) {
   if (J.saiu) return;                                               // CR 800.4j: turno segue sem jogador ativo
   switch (T.passo) {
     case 'atacantes': case 'bloqueadores': case 'dano': M.acaoCombate(e); break;   // combate.js (CR 508–510)
-    case 'desvirar':                                                // CR 502.2–502.3
+    case 'desvirar':                                                // CR 502.1 (fases antes), 502.2–502.3
       J.terrenos = 0;
+      if (e.faseados && e.faseados.length) M.fasearDentro(e, a);
       for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { o.virada = false; o.doente = false; } }
+      break;
+    case 'principal1':                                              // CR 714.3b: marcador de história nas sagas de quem joga
+      for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
       if (!(T.n === 1 && e.jogs.length === 2)) M.comprar(e, a, 1);
@@ -109,6 +113,7 @@ function acaoDoTurno(e) {
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
   for (const id of e.campo) { e.objs[id].dano = 0; e.objs[id].mortal = false; }
   e.temp = [];                                                      // 'modificar' até o fim do turno (efeitos.ts)
+  if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');   // efeitoTemporario até o fim do turno
 }
 // tamanho máximo de mão (CR 402.2: 7) — Reliquary Tower e cia. (est maoMax) lidos aqui até as camadas da T18
 function maoMax(e, j) {
@@ -133,6 +138,7 @@ function proximoPasso(e) {
   let p = T.ativo;
   do p = (p + 1) % n; while (e.jogs[p].saiu);
   T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null;
+  if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
   M.evento(e, { ev: 'fase', passo: 'desvirar', ativo: p });
   if (T.n > e.cfg.maxTurnos) e.fim = { vencedor: null, motivo: 'limite de turnos' };
 }
@@ -200,7 +206,7 @@ M.abe = e => {
     }
     // permanentes (CR 704.5f, g, i) e fichas fora do campo (704.5d)
     const morrem: any[] = [];
-    for (const id of e.campo) {
+    M.lote(() => { for (const id of e.campo) {
       const o = e.objs[id];
       if (M.temTipo(e, o, 'Creature')) {
         const r = M.resistencia(e, o);
@@ -208,7 +214,7 @@ M.abe = e => {
         else if ((o.dano >= r || (o.mortal && o.dano > 0)) && !M.temKw(e, o, 'indestrutivel')) morrem.push(id);   // 704.5g–h; regenerar = T19
       }
       if (M.temTipo(e, o, 'Planeswalker') && (o.marc.lealdade || 0) <= 0) morrem.push(id);
-    }
+    } });
     // CR 704.5m/n: Aura presa a nada (ou a objeto ilegal) vai ao cemitério; Equipamento preso a nada ou a não-criatura
     // (ou que virou criatura, 301.5c) se solta e fica no campo
     for (const id of e.campo) {
@@ -217,6 +223,13 @@ M.abe = e => {
       if (aura ? !t : !t || !M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }
+    }
+    // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
+    for (const id of e.campo) {
+      const o = e.objs[id], n = M.capitulos(M.dadoDe(e, o));
+      if (!n || (o.marc.historia || 0) < n) continue;
+      if ((e.pend || []).some(p => p.fonte === id && p.ts === o.ts) || e.pilha.some(h => { const x = e.objs[h].hab; return x && x.fonte === id && x.fonteTs === o.ts; })) continue;
+      morrem.push(id);
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
@@ -256,7 +269,7 @@ M.sair = (e, j, motivo) => {
   for (const id in e.objs) {
     const o = e.objs[id];
     if (o.dono === j) { const l = M.listaDe(e, o), k = l.indexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[id]; }
-    else if (o.ctrl === j && o.zona === 'campo') M.mover(e, o.id, 'exilio');
+    else if (o.ctrl === j && (o.zona === 'campo' || o.zona === 'faseado')) M.mover(e, o.id, 'exilio');
   }
   if (e.perg && e.perg.j === j) e.perg = null;
   M.log(e, J.nome, 'sai do jogo:', motivo);
