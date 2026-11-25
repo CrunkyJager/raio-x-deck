@@ -1,8 +1,8 @@
-# T07: a cada push na main roda os testes rápidos; o site (GitHub Pages) só publica se ficarem verdes.
+# T07: a cada push na main ou na integracao roda os testes rápidos; o site (GitHub Pages) só publica da main e se ficarem verdes.
 name: Testes e site
 on:
   push:
-    branches: [main]
+    branches: [main, integracao]
   pull_request:
   workflow_dispatch:
   workflow_run:  # commit do robô de preços (GITHUB_TOKEN) não dispara push: republica quando ele termina
