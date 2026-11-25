@@ -1,0 +1,1 @@
+{"v":2,"n":"Ruin Crab","id":"8afc00d4-a1c6-4329-af2c-a7f58a0c33e7","oracleHash":"9eb7d886","custo":{"p":["U"]},"vm":1,"ci":"U","cores":"U","tipos":["Creature"],"sub":["Crab"],"pt":[0,3],"gat":[{"ev":"entra","quem":{"tipo":["Land"],"ctrl":"voce"},"fx":[{"op":"moer","quem":"cadaOponente","qtd":3}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco24.json"}}

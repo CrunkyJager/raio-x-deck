@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco24",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1151–1200 (Reforge the Soul … Sarkhan Unbroken)",
+ "casos": [
+  {
+   "carta": "Reforge the Soul",
+   "situacao": "resolve com mãos de 2 e 5 cartas",
+   "espera": "cada jogador descarta a mão e compra 7 (milagre é falta)"
+  },
+  {
+   "carta": "Regal Behemoth",
+   "situacao": "entra; depois vira um terreno para mana sendo o monarca",
+   "espera": "vira monarca; o terreno dá 1 mana a mais de qualquer cor"
+  },
+  {
+   "carta": "Regal Caracal",
+   "situacao": "entra",
+   "espera": "cria 2 Gatos 1/1 com vínculo; os outros Gatos ficam 2/2 com vínculo"
+  },
+  {
+   "carta": "Regisaur Alpha",
+   "situacao": "entra",
+   "espera": "cria Dinossauro 3/3 com atropelar e pressa (os outros Dinossauros têm pressa)"
+  },
+  {
+   "carta": "Renegade Tactics",
+   "situacao": "alvo numa criatura",
+   "espera": "ela não bloqueia neste turno; você compra 1"
+  },
+  {
+   "carta": "Resplendent Angel",
+   "situacao": "passo final em que você ganhou 5 de vida",
+   "espera": "cria Anjo 4/4 com voar e vigilância (também no turno do oponente)"
+  },
+  {
+   "carta": "Resurgent Belief",
+   "situacao": "resolve com 3 encantamentos no cemitério",
+   "espera": "os 3 voltam ao campo"
+  },
+  {
+   "carta": "Retreat to Coralhelm",
+   "situacao": "terreno seu entra",
+   "espera": "escolhe: virar criatura alvo, ou vidência 1"
+  },
+  {
+   "carta": "Return of the Wildspeaker",
+   "situacao": "controla não-Humanos de poder 2 e 5",
+   "espera": "modo 1 compra 5; modo 2 dá +3/+3 aos não-Humanos"
+  },
+  {
+   "carta": "Return to Dust",
+   "situacao": "conjurada na sua fase principal",
+   "espera": "exila até 2 artefatos/encantamentos; fora da principal, só 1"
+  },
+  {
+   "carta": "Revive the Shire",
+   "situacao": "permanente no cemitério",
+   "espera": "volta à mão e cria uma Food"
+  },
+  {
+   "carta": "Reya Dawnbringer",
+   "situacao": "sua manutenção com criatura no cemitério",
+   "espera": "pode devolvê-la ao campo"
+  },
+  {
+   "carta": "Riders of Rohan",
+   "situacao": "entra",
+   "espera": "cria 2 Human Knight 2/2 com atropelar e pressa"
+  },
+  {
+   "carta": "Riders of the Mark",
+   "situacao": "seu passo final (resistência 4)",
+   "espera": "volta à mão e cria 4 Human Soldier 1/1 (a condição de ter atacado é falta)"
+  },
+  {
+   "carta": "Righteous Valkyrie",
+   "situacao": "outro Anjo 4/4 entra; você com 47 de vida",
+   "espera": "ganha 4 de vida; suas criaturas +2/+2"
+  },
+  {
+   "carta": "Rin and Seri, Inseparable",
+   "situacao": "conjura um Cão; depois ativa com 2 Cães e 3 Gatos",
+   "espera": "cria Gato 1/1; a habilidade causa 2 e você ganha 3"
+  },
+  {
+   "carta": "Riot Control",
+   "situacao": "oponentes com 4 criaturas",
+   "espera": "ganha 4 e o dano a você é prevenido no turno"
+  },
+  {
+   "carta": "Ripjaw Raptor",
+   "situacao": "recebe dano",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Riptide Laboratory",
+   "situacao": "{1}{U}, vira mirando seu Mago",
+   "espera": "o Mago volta à mão; ou vira para {C}"
+  },
+  {
+   "carta": "Risen Reef",
+   "situacao": "outro Elemental entra, topo é terreno",
+   "espera": "pode pôr o terreno virado no campo; se não, vai para a mão"
+  },
+  {
+   "carta": "Rishkar's Expertise",
+   "situacao": "maior poder entre suas criaturas é 4",
+   "espera": "compra 4 e pode conjurar de graça uma mágica de vm ≤ 5 da mão"
+  },
+  {
+   "carta": "Rite of Oblivion",
+   "situacao": "sacrifica permanente não-terreno",
+   "espera": "exila permanente não-terreno alvo; flashback {2}{W}{B}"
+  },
+  {
+   "carta": "Rith, Liberated Primeval",
+   "situacao": "seu passo final",
+   "espera": "cria Dragão 4/4 voador (a condição de dano excedente é falta); seus Dragões têm resguardo 2"
+  },
+  {
+   "carta": "Rivaz of the Claw",
+   "situacao": "seu turno, Dragão no cemitério",
+   "espera": "conjura uma vez por turno; a mana dela só paga Dragões; morrendo, o Dragão é exilado"
+  },
+  {
+   "carta": "River Kelpie",
+   "situacao": "permanente volta do cemitério ao campo; jogador conjura do cemitério",
+   "espera": "compra 1 cada vez; persistir"
+  },
+  {
+   "carta": "Riverpyre Verge",
+   "situacao": "controla Ilha ou Montanha",
+   "espera": "vira para R ou U; sem elas, só R"
+  },
+  {
+   "carta": "Roaming Throne",
+   "situacao": "escolhe Elfo; um Elfo seu dispara gatilho",
+   "espera": "o gatilho dispara duas vezes; o Throne também é Elfo"
+  },
+  {
+   "carta": "Roil Elemental",
+   "situacao": "terreno seu entra",
+   "espera": "pode tomar criatura alvo enquanto o Elemental estiver no campo"
+  },
+  {
+   "carta": "Roiling Regrowth",
+   "situacao": "resolve",
+   "espera": "sacrifica 1 terreno e busca até 2 básicos virados"
+  },
+  {
+   "carta": "Rolling Hamsphere",
+   "situacao": "ataca tripulada com 0 Hamsters",
+   "espera": "cria 3 Hamsters; causa 3 a qualquer alvo; fica +3/+3"
+  },
+  {
+   "carta": "Rooftop Storm",
+   "situacao": "conjura Zumbi da mão",
+   "espera": "pode pagar {0}"
+  },
+  {
+   "carta": "Root Sliver",
+   "situacao": "oponente tenta anular um Sliver",
+   "espera": "não pode ser anulado"
+  },
+  {
+   "carta": "Ruby Medallion",
+   "situacao": "conjura mágica vermelha de {2}{R}",
+   "espera": "custa {1}{R}"
+  },
+  {
+   "carta": "Rugged Prairie",
+   "situacao": "paga {R/W} e vira",
+   "espera": "dá RR, RW ou WW; ou {C}"
+  },
+  {
+   "carta": "Ruin Crab",
+   "situacao": "terreno seu entra",
+   "espera": "cada oponente moe 3"
+  },
+  {
+   "carta": "Run Amok",
+   "situacao": "alvo numa criatura atacando",
+   "espera": "+3/+3 e atropelar no turno"
+  },
+  {
+   "carta": "Runaway Steam-Kin",
+   "situacao": "conjura mágica vermelha com 2 marcadores; depois tira 3",
+   "espera": "ganha o 3º marcador; tira 3 por RRR"
+  },
+  {
+   "carta": "Rune-Scarred Demon",
+   "situacao": "entra",
+   "espera": "busca qualquer carta para a mão"
+  },
+  {
+   "carta": "Runic Armasaur",
+   "situacao": "oponente ativa habilidade",
+   "espera": "nada (falta: sem evento de ativar)"
+  },
+  {
+   "carta": "Rustvale Bridge",
+   "situacao": "entra",
+   "espera": "entra virado, indestrutível, dá R ou W"
+  },
+  {
+   "carta": "Ruthless Technomancer",
+   "situacao": "entra sacrificando criatura de poder 3",
+   "espera": "cria 3 Treasures"
+  },
+  {
+   "carta": "Samwise Gamgee",
+   "situacao": "outra criatura não-ficha sua entra; sacrifica 3 Foods",
+   "espera": "cria Food; devolve carta histórica do cemitério à mão"
+  },
+  {
+   "carta": "Sanctum Seeker",
+   "situacao": "dois Vampiros seus atacam",
+   "espera": "cada oponente perde 2 e você ganha 2"
+  },
+  {
+   "carta": "Sanctum of All",
+   "situacao": "sua manutenção; 6 Shrines",
+   "espera": "pode buscar Shrine para o campo; gatilhos dos outros Shrines disparam duas vezes"
+  },
+  {
+   "carta": "Sanctum of Calm Waters",
+   "situacao": "primeira fase principal com 3 Shrines",
+   "espera": "pode comprar 3; se comprar, descarta 1"
+  },
+  {
+   "carta": "Sanctum of Fruitful Harvest",
+   "situacao": "primeira fase principal com 4 Shrines",
+   "espera": "4 mana"
+  },
+  {
+   "carta": "Sanctum of Shattered Heights",
+   "situacao": "{1} e descarta, com 3 Shrines",
+   "espera": "3 de dano em criatura ou planeswalker alvo"
+  },
+  {
+   "carta": "Sanctum of Stone Fangs",
+   "situacao": "primeira fase principal com 2 Shrines",
+   "espera": "cada oponente perde 2, você ganha 2"
+  },
+  {
+   "carta": "Sanctum of Tranquil Light",
+   "situacao": "ativa com 3 Shrines",
+   "espera": "custa {2}{W} e vira criatura alvo"
+  },
+  {
+   "carta": "Sarkhan Unbroken",
+   "situacao": "+1; −2; −8",
+   "espera": "compra e 1 mana; Dragão 4/4 voador; todos os Dragões do grimório no campo"
+  }
+ ]
+}
