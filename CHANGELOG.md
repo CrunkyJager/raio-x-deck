@@ -2,6 +2,14 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.37.0 — 25/11/2026 · comandantes do Ultron funcionam (Ultra Magnus, Ultron, Arcee)
+Testes: valida 1684/0 · check 0 erros · Vitest verde · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1098/1684.
+- **Motor (A):** gatilho atrasado (603.7), entrar atacando, resguardo, animar, tipo dado a esta, pagar genérico, ficha cópia e gatilho opcional.
+
+## v0.36.0 — 25/11/2026 · Mesa rápida com muitas fichas; incolor, poder somado e histórico
+Testes: valida 1684/0 · check 0 erros · Vitest 205/205 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1022/1684.
+- **Motor (A):** partida com centenas de fichas deixou de travar (Krenko: 34 s → 2,6 s); filtro incolor (Mystic Forge, Ugin); soma/maior poder (Ghalta, The Great Henge, Metalwork Colossus, Jhoira's Familiar, Mycosynth Golem); teste aleatório sem instabilidade.
+
 ## v0.35.0 — 25/11/2026 · motor joga sagas, fases e efeitos temporários (deck do Ultron)
 Testes: valida 1684/0 · check 0 erros · Vitest 202/202 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1004/1684.
 - **Motor (A):** "a menos que" genérico (Smothering Tithe), efeito até o fim do turno (Teferi's Protection, Rogue's Passage), fasear, sagas com capítulos (Urza's Saga) e leitura do banco em lote.
