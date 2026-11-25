@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.6.0 — 25/11/2026 · banco com 353 cartas; fila do motor
+Testes: valida 353/0 · check 0 erros · Vitest 137/137 (fuzz 30 partidas, erros 0) · testa 161/161 · verifica verde · build ok.
+- **Banco (B):** bloco 6 (fila 251–300, 33 casos em banco/testes/bloco6.json); Incubation Druid com prod `deSeusTerrenos` (sai da falta). Campos novos: copiarPermanente, token.copiaDe, repetirCada com filtro, esconderijo, improvisar, est.tiraTipo + devocao, est.limite por tipo, custoAlternativo pagar.virarOutros, muda.maisFicha, comMarcador 'qualquer', fx.pagando.
+- **Motor (A, T43):** proliferar, alvoDe (por), dobraGatilho (evs/causa, aditivo, vale para fabricar), fabricar, est.podeJogar do cemitério, mana.so por subtipo, prod deSeusTerrenos; 9 casos de regra novos.
+
 ## v0.5.0 — 25/11/2026 · análise, Montar e Mesa em módulos
 Testes: check 0 erros · Vitest 128/128 · testa 161/161 · partidas = linha de base · build ok.
 - **Estrutura (A, T43 c):** analise.js, montar.js e mesa-ui.js → `src/analise/`, `src/montar/`, `src/mesa/` como módulos ES carregados pelo `src/main.ts` (com hash no build, sem ?v=); JS checado pelo TypeScript (checkJs); minificado idêntico ao original. Ferramentas (mede.js, gera_meta.py, coleta.py, banco_mesa.py) apontam para `src/` e `npx vite`.
