@@ -690,6 +690,10 @@ export interface RxFx {
     porTipo?: string[];
   };
   /**
+   * op ficha: cria qtd fichas PARA CADA jogador atacado, cada grupo atacando aquele jogador (Adeline, Ainok Strike Leader, Soaring Lightbringer)
+   */
+  porJogadorAtacado?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */

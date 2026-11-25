@@ -1,0 +1,28 @@
+{
+ "bloco": "correcao9",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do bloco 25 (decisão FARSEER 13:12): sacrificar quantos quiser = qtd {ate:'qualquer'} em Scapeshift e Feasting Hobbit",
+ "casos": [
+  {
+   "carta": "Scapeshift",
+   "situacao": "você controla 7 terrenos e escolhe sacrificar 5",
+   "espera": "busca até 5 terrenos e põe no campo virados; os outros 2 ficam; embaralha"
+  },
+  {
+   "carta": "Scapeshift",
+   "situacao": "você escolhe sacrificar 0 terrenos",
+   "espera": "não busca nada; embaralha"
+  },
+  {
+   "carta": "Feasting Hobbit",
+   "situacao": "entra com 3 Foods suas no campo; você devora 2",
+   "espera": "entra com seis marcadores +1/+1 (2×3); sobra 1 Food"
+  },
+  {
+   "carta": "Feasting Hobbit",
+   "situacao": "entra e você não devora nenhuma Food",
+   "espera": "entra 2/2 sem marcadores"
+  }
+ ]
+}

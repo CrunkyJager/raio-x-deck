@@ -1,0 +1,1 @@
+{"v":2,"n":"Splendid Reclamation","id":"13fe5e46-77a6-45d8-ac0b-c3d740eccf86","oracleHash":"83771761","custo":{"g":3,"p":["G"]},"vm":4,"ci":"G","cores":"G","tipos":["Sorcery"],"fx":[{"op":"mover","em":{"todos":{"tipo":["Land"],"dono":"voce","zona":"cemiterio"}},"de":"cemiterio","para":"campo","virada":true}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco26.json"}}

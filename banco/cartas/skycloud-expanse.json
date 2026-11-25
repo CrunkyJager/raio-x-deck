@@ -1,0 +1,1 @@
+{"v":2,"n":"Skycloud Expanse","id":"76f335d0-7f71-4b1a-b60d-73de954cbe2c","oracleHash":"376f7791","vm":0,"ci":"WU","cores":"","tipos":["Land"],"atv":[{"custo":{"mana":{"g":1},"virar":true},"deMana":true,"fx":[{"op":"mana","prod":["W"],"qtd":1},{"op":"mana","prod":["U"],"qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco26.json"}}

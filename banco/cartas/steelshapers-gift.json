@@ -1,0 +1,1 @@
+{"v":2,"n":"Steelshaper's Gift","id":"d9abda7e-6ca2-42ea-ab24-c542e57014f1","oracleHash":"40a66756","custo":{"p":["W"]},"vm":1,"ci":"W","cores":"W","tipos":["Sorcery"],"fx":[{"op":"buscar","f":{"sub":["Equipment"]},"revelar":true,"para":"mao"},{"op":"embaralhar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco26.json"}}

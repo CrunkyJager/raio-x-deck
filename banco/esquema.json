@@ -1340,6 +1340,10 @@
       }
      },
      "description": "op sacrificar: cada jogador escolhe N que ficam e sacrifica o resto do filtro (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty)"
+    },
+    "porJogadorAtacado": {
+     "type": "boolean",
+     "description": "op ficha: cria qtd fichas PARA CADA jogador atacado, cada grupo atacando aquele jogador (Adeline, Ainok Strike Leader, Soaring Lightbringer)"
     }
    },
    "additionalProperties": false,
