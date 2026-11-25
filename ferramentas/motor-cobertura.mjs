@@ -3,7 +3,7 @@
 // achar o motivo, tira um campo de cada vez: o campo cuja falta faz o bloco passar é o que o motor não lê.
 // Estáticas, palavras-chave e substituições: o motor lê por nome solto no código, então conta como lido o modo/kw
 // que aparece entre aspas em src/motor (aproximação: aparecer não quer dizer que todo parâmetro é lido).
-// Uso: node ferramentas/motor-cobertura.mjs [--cartas] [--json saida.json]
+// Uso: node ferramentas/motor-cobertura.mjs [--cartas] [--json saida.json] [--por-carta src/mesa/motor-novo-cobertura.json]
 //   sai a fila: cada motivo com quantas cartas do banco ele trava (e as cartas), do mais para o menos.
 import { createServer } from 'vite';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -93,5 +93,8 @@ try {
   console.log(`banco: ${cartas.length} cartas; o motor joga inteiras ${cartas.length - travadas.size}; travadas ${travadas.size}; ${fila.length} motivos`);
   console.log('cartas  só-ele  motivo');
   for (const it of fila) console.log(`${String(it.cartas.length).padStart(6)}  ${String(it.liberaSozinho).padStart(6)}  ${it.motivo}${arg.includes('--cartas') ? '  — ' + it.cartas.slice(0, 8).join('; ') + (it.cartas.length > 8 ? ' …' : '') : ''}`);
+  // --por-carta f: {carta: [motivos]} só das travadas (a Mesa ao vivo com o motor novo mostra o selo ⓘ com isso)
+  const pc = arg.indexOf('--por-carta');
+  if (pc >= 0) { const o = {}; for (const [n, ms] of [...porCarta].sort((a, b) => a[0].localeCompare(b[0]))) o[n] = ms; writeFileSync(arg[pc + 1], JSON.stringify(o, null, 0).replace(/\],"/g, '],\n"') + '\n'); }
   const j = arg.indexOf('--json'); if (j >= 0) writeFileSync(arg[j + 1], JSON.stringify({ total: cartas.length, inteiras: cartas.length - travadas.size, fila }, null, 1));
 } finally { await srv.close(); }
