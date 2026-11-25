@@ -1,8 +1,10 @@
 /* Mesa simulada e Mesa ao vivo do Raio-X.
    O motor de jogo é o do Grimório Arena (Edgar): motor/engine.js e motor/mesa.js, rodando num Worker.
    Aqui ficam só os dados (cartas e oponentes), a interface e a leitura dos resultados. */
-(function () {
-'use strict';
+// T43 (c): era o mesa-ui.js (script clássico dentro de uma função anônima); virou módulo ES, carregado pelo src/main.ts.
+// Migração mecânica: só saiu o embrulho (o módulo já tem escopo próprio e modo estrito). Conversa com as outras
+// partes pelos mesmos window.* de antes até as telas virarem Svelte (passo d). Fica em JS checado pelo TypeScript
+// (checkJs, src/tsconfig.js.json); vira .ts quando for dividido em componentes no passo (d).
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -212,7 +214,7 @@ async function testarTerrenos() {
   const D = meuDeck(), L = D.base.filter(i => D.M[i].land).length;
   const alvos = [['Fórmula pura', Math.round(F.pura)], ['Com os ajustes', Math.round(F.ajust)], ['Decks médios do EDHREC', Math.round(F.edh)]];
   const vs = alvos.map(([nome, alvo]) => ({ nome, alvo, ...variaTerrenos(D, alvo) }));
-  const rodar = vs.filter(v => v.mud.length);
+  const rodar = /** @type {any} */ (vs.filter(v => v.mud.length));
   const Ops = opsEscolhidos(), N = Math.max(500, +store.get('n', 500));
   prog(0, 'Comparando terrenos');
   const r = rodar.length ? await roda('variantes', { Dv: limpo(D), Ops, bases: rodar.map(v => v.base), N, seed: 20261120, nOp: nOp() }, (fase, p) => prog(p, `${fase}: ${Math.round(100 * p)}%`)) : null;
@@ -702,7 +704,7 @@ function lugarHTML(p, k, ev, pv) {
   </div>`;
 }
 // clique na imagem da mesa: abre grande (mesmo visual de ampliar do resto do site)
-document.addEventListener('click', (e) => {
+document.addEventListener('click', (/** @type {any} */ e) => {
   const im = e.target.closest('.arena img[data-big], .c-card img'); if (!im) return;
   e.preventDefault(); e.stopPropagation();
   const z = document.createElement('div'); z.className = 'zoom'; z.innerHTML = `<div class="zoom-box solo"><button class="btn small zoom-x">Fechar ✕</button><div class="zoom-img"><img src="${esc(im.dataset.big || im.src)}" alt="${esc(im.alt)}"></div></div>`;
@@ -710,8 +712,8 @@ document.addEventListener('click', (e) => {
 }, true);
 
 // ---------- liga com o resto do Raio-X ----------
-document.addEventListener('raiox:deck', (e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; RTERRA = null; JOGO = null; JG = null; parar(); painel(); painelVivo(); });
+document.addEventListener('raiox:deck', (/** @type {any} */ e) => { A = e.detail; EU = null; RES = null; RTROCAS = null; RTERRA = null; JOGO = null; JG = null; parar(); painel(); painelVivo(); });
 if (window.RAIOX && window.RAIOX.last) { A = window.RAIOX.last; painel(); painelVivo(); }
 window.addEventListener('hashchange', () => { if (location.hash !== '#aovivo') parar(); else if (A) painelVivo(); });
 pronto.then(() => { painel(); painelVivo(); });
-})();
+export {};   // é módulo (escopo próprio), não script global

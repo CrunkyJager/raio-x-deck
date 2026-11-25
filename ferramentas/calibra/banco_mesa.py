@@ -1,5 +1,5 @@
 # Roda a Mesa (todas as trocas ligadas × lista original) nos decks do banco.json e grava banco_<tag>.json.
-# Uso: servidor na 8765; ~/.venv-pw/bin/python ferramentas/calibra/banco_mesa.py TAG [N=200] [paralelo=4]
+# Uso: servidor na 8765 (T43: `npx vite --port 8765 --strictPort`); ~/.venv-pw/bin/python ferramentas/calibra/banco_mesa.py TAG [N=200] [paralelo=4]
 import json, os, sys, time, statistics as st
 from concurrent.futures import ThreadPoolExecutor
 from playwright.sync_api import sync_playwright

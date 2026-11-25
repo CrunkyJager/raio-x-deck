@@ -1,7 +1,9 @@
 /* Raio-X do Deck: aba Montar — construtor de decks com busca na base, análise ao vivo e ida e volta com o Moxfield. */
-(function () {
-'use strict';
-const R = window.RAIOX; if (!R) return;
+// T43 (c): era o montar.js (script clássico dentro de uma função anônima); virou módulo ES, carregado pelo src/main.ts.
+// Migração mecânica: só saiu o embrulho (o módulo já tem escopo próprio e modo estrito). Conversa com as outras
+// partes pelos mesmos window.* de antes até as telas virarem Svelte (passo d). Fica em JS checado pelo TypeScript
+// (checkJs, src/tsconfig.js.json); vira .ts quando for dividido em componentes no passo (d).
+const R = window.RAIOX;   // o src/main.ts só carrega o Montar se a Análise subiu (antes: if (!R) return)
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -208,7 +210,7 @@ function painelSaida() {
 
 function desenha(soBusca) {
   const root = ROOT(); if (!root) return;
-  if (soBusca) { const y = window.scrollY; const b = $('.mt-busca', root); if (b) { const foco = document.activeElement && document.activeElement.id; const pos = foco === 'mt-q' ? document.activeElement.selectionStart : null; b.outerHTML = painelBusca(); liga(); G.liga(); if (foco) { const el = $('#' + foco); if (el) { el.focus(); if (pos != null && el.setSelectionRange) el.setSelectionRange(pos, pos); } } window.scrollTo(0, y); return; } }
+  if (soBusca) { const y = window.scrollY; const b = $('.mt-busca', root); if (b) { const foco = document.activeElement && document.activeElement.id; const pos = foco === 'mt-q' ? (/** @type {any} */ (document.activeElement)).selectionStart : null; b.outerHTML = painelBusca(); liga(); G.liga(); if (foco) { const el = $('#' + foco); if (el) { el.focus(); if (pos != null && el.setSelectionRange) el.setSelectionRange(pos, pos); } } window.scrollTo(0, y); return; } }
   const d = D(); if (!d.cmds.length && d.passo > 1) d.passo = 1;
   analisa();
   let corpo;
@@ -670,7 +672,7 @@ const G = (() => {
     if (!k) {
       corpo = `<div class="g-fim"><h3>O deck chegou a ${E.total} cartas.</h3><p>${E.total > 100 ? `Passou ${E.total - 100}: no ajuste fino dá para ver o que tirar.` : 'Esqueleto completo. Agora é o ajuste fino: ver a análise, trocar uma ou outra carta e levar para o Moxfield ou para a mesa.'}</p><div class="row"><button class="btn primary" data-passo="4">Ir para o ajuste fino →</button></div></div>`;
     } else {
-      const slot = E.slots.find(x => x.k === k) || { n: 'Mais cartas', alvo: 0, tem: 0, why: 'o deck ainda tem vagas' };
+      const slot = /** @type {any} */ (E.slots.find(x => x.k === k) || { n: 'Mais cartas', alvo: 0, tem: 0, why: 'o deck ainda tem vagas' });
       let falta = Math.max(0, slot.alvo - slot.tem);
       const extra = !falta && k !== 'lands' && E.vagasSpells > 0; if (extra) falta = E.vagasSpells;
       const lista = sugestoes(k, E, P3.pag);
@@ -706,6 +708,7 @@ const G = (() => {
   function passos() {
     const d = D(), tem = d.cmds.length > 0;
     const P = [[1, 'Cores e comandante', 'palette'], [2, 'A ideia', 'lightbulb'], [3, 'Montar junto', 'handshake'], [4, 'Ajuste fino', 'tune']];
+    // @ts-ignore T43 (c): n vem da lista de passos (número)
     return `<nav class="g-passos" aria-label="Passos da montagem">${P.map(([n, t]) => `<button class="g-passo ${d.passo === n ? 'on' : ''} ${d.passo > n ? 'feito' : ''}" data-passo="${n}" ${n > 1 && !tem ? 'disabled title="Escolha o comandante primeiro"' : ''} aria-current="${d.passo === n ? 'step' : 'false'}"><b>${n}</b><span>${t}</span></button>`).join('<i class="g-seta" aria-hidden="true"></i>')}</nav>`;
   }
 
@@ -752,7 +755,7 @@ const G = (() => {
 window.RAIOX_GUIADO = G;
 
 // cliques nas listas (um só ouvinte para a tela toda)
-document.addEventListener('click', (e) => {
+document.addEventListener('click', (/** @type {any} */ e) => {
   const root = ROOT(); if (!root || !root.contains(e.target)) return;
   const b = e.target.closest('[data-add],[data-sub],[data-cmd],[data-uncmd]'); if (!b || b.disabled) return;
   const d = D();
@@ -796,7 +799,7 @@ async function archidekt(url) {
 
 // a tela só é desenhada quando aberta (a base de cartas é grande)
 function abre(t) { if (t !== 'montar') return; if (!S.atual || !S.decks[S.atual]) { const ids = Object.keys(S.decks); S.atual = ids[0] || null; if (!S.atual) novoDeck(); } desenha(); }
-document.addEventListener('raiox:tela', (e) => abre(e.detail));
+document.addEventListener('raiox:tela', (/** @type {any} */ e) => abre(e.detail));
 if (location.hash === '#montar') { ROOT() && (ROOT().hidden = false); abre('montar'); }
 window.RAIOX_MONTAR = { texto: () => texto(), get deck() { return D(); }, deTexto };
-})();
+export {};   // é módulo (escopo próprio), não script global

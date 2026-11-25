@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p src/motor",
+    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p src/motor && tsc -p src/tsconfig.js.json",
     "tipos": "node ferramentas/tipos.mjs",
     "test": "vitest run --silent=false"
   },

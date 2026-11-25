@@ -1,0 +1,7 @@
+{
+  // T43 (c): análise, montar e mesa viraram módulos ES mas seguem em JS (migração mecânica); o TypeScript checa
+  // mesmo assim (checkJs, não estrito). Viram .ts no passo (d).
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "allowJs": true, "checkJs": true, "strict": false, "types": ["vite/client"] },
+  "include": ["analise/**/*.js", "montar/**/*.js", "mesa/**/*.js", "globais.d.ts"], "exclude": []
+}

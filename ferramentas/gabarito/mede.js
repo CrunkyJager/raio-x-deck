@@ -9,9 +9,10 @@ const ctx = { console, document: { addEventListener: noop, dispatchEvent: noop, 
   setTimeout, CustomEvent: function () {}, scrollTo: noop, scrollY: 0, requestAnimationFrame: noop, addEventListener: noop };
 ctx.window = ctx; vm.createContext(ctx);
 for (const f of ['cards-db.js', 'forge-db.js', 'papeis-ia.js']) if (fs.existsSync(path.join(raiz, f))) vm.runInContext(fs.readFileSync(path.join(raiz, f), 'utf8'), ctx, { filename: f });
-// analise.js é um IIFE: expõe as funções só na memória, o arquivo não muda
-const src = fs.readFileSync(path.join(raiz, 'analise.js'), 'utf8').replace(/\}\)\(\);\s*$/, 'window.__R = { planoDe, themesOf, C };\n})();');
-vm.runInContext(src, ctx, { filename: 'analise.js' });
+// src/analise/analise.js é módulo ES sem import (T43 c): embrulhado aqui numa função, expõe as funções só na memória
+const AN = path.join(raiz, 'src', 'analise', 'analise.js');
+const corpo = fs.readFileSync(AN, 'utf8').replace(/^export \{\};.*$/m, '');
+vm.runInContext('(function () {\n' + corpo + '\nwindow.__R = { planoDe, themesOf, C };\n})();', ctx, { filename: AN });
 const { planoDe, themesOf, C } = ctx.__R;
 
 // o que o sistema de hoje sabe dizer → número do plano (planos.md v3). Suposição da T06, documentada no relatório.
