@@ -836,6 +836,10 @@
     "exilarEste": {
      "type": "boolean"
     },
+    "descartarEste": {
+     "type": "boolean",
+     "description": "descartar esta carta como custo (canalizar, Trumpeting Carnosaur): a habilidade é ativada da mão"
+    },
     "vida": {
      "anyOf": [
       {

@@ -1,0 +1,23 @@
+{
+ "bloco": "correcao15",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do bloco 29 (FARSEER): custoAtv descartarEste (descartar esta carta como custo) em Otawara, Shigeki e Trumpeting Carnosaur; Vault 12 segue com falta (capítulo II conta o total de rad entre os jogadores, sem contagem)",
+ "casos": [
+  {
+   "carta": "Otawara, Soaring City",
+   "situacao": "na mão, paga {3}{U} e descarta Otawara mirando uma criatura",
+   "espera": "Otawara vai ao cemitério; a criatura volta à mão do dono"
+  },
+  {
+   "carta": "Shigeki, Jukai Visionary",
+   "situacao": "na mão, X=2, paga {2}{G}{G} e descarta Shigeki",
+   "espera": "Shigeki vai ao cemitério; até 2 cartas não lendárias do cemitério voltam à mão"
+  },
+  {
+   "carta": "Trumpeting Carnosaur",
+   "situacao": "na mão, paga {2}{R} e descarta o Carnosaur mirando uma criatura",
+   "espera": "o Carnosaur vai ao cemitério; 3 de dano na criatura"
+  }
+ ]
+}

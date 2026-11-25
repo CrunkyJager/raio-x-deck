@@ -1,0 +1,1 @@
+{"v":2,"n":"Wheel of Fortune","id":"a8abd966-de7b-46a3-8ac7-8747ab35653a","oracleHash":"32c48aef","custo":{"g":2,"p":["R"]},"vm":3,"ci":"R","cores":"R","tipos":["Sorcery"],"fx":[{"op":"descartar","quem":"cadaJogador","qtd":"maoInteira"},{"op":"comprar","quem":"cadaJogador","qtd":7}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco30.json"}}

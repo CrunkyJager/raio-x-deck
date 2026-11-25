@@ -1,0 +1,1 @@
+{"v":2,"n":"Winged Sliver","id":"24e96682-14ca-4a62-a920-2d686c8a5dbf","oracleHash":"a3690c04","custo":{"g":1,"p":["U"]},"vm":2,"ci":"U","cores":"U","tipos":["Creature"],"sub":["Sliver"],"pt":[1,1],"est":[{"modo":"continuo","afeta":{"tipo":["Creature"],"sub":["Sliver"],"zona":"campo"},"kw":[{"k":"voar"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco30.json"}}

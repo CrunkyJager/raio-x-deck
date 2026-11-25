@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco30",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1451–1500 (Vivi Ornitier … Wren's Run Packmaster)",
+ "casos": [
+  {
+   "carta": "Vivi Ornitier",
+   "situacao": "seu turno, poder 2; depois conjura mágica não criatura",
+   "espera": "{0}: 2 manas em {U}/{R}, uma vez no turno; +1/+1 e 1 de dano em cada oponente"
+  },
+  {
+   "carta": "Vodalian Hexcatcher",
+   "situacao": "oponente conjura não criatura; você sacrifica um Tritão",
+   "espera": "anula a menos que ele pague {1}; outros Tritões seus +1/+1"
+  },
+  {
+   "carta": "Voice of Victory",
+   "situacao": "ataca no seu turno",
+   "espera": "2 Guerreiros 1/1 virados e atacando (mobilizar 2); oponentes não conjuram no seu turno"
+  },
+  {
+   "carta": "Void Rend",
+   "situacao": "oponente tenta anular",
+   "espera": "não pode ser anulada; destrói permanente não terreno"
+  },
+  {
+   "carta": "Voja, Jaws of the Conclave",
+   "situacao": "ataca com 2 Elfos e 1 Lobo",
+   "espera": "+2 marcadores +1/+1 em cada criatura sua; compra 1"
+  },
+  {
+   "carta": "Voldaren Estate",
+   "situacao": "vira pagando 1 de vida; paga {5}",
+   "espera": "mana de qualquer cor só para Vampiro; ficha Blood (redução por Vampiro é falta)"
+  },
+  {
+   "carta": "Wakening Sun's Avatar",
+   "situacao": "conjurada e entra",
+   "espera": "destrói toda criatura não Dinossauro (só da mão é falta)"
+  },
+  {
+   "carta": "Wandertale Mentor",
+   "situacao": "vira",
+   "espera": "{R} ou {G} (gastar 4 é falta)"
+  },
+  {
+   "carta": "War Room",
+   "situacao": "paga {3} e vira",
+   "espera": "compra 1 (pagar vida pela identidade é falta)"
+  },
+  {
+   "carta": "Warren Warleader",
+   "situacao": "você ataca",
+   "espera": "escolhe: Coelho 1/1 virado e atacando, ou atacantes +1/+1; prole {2}"
+  },
+  {
+   "carta": "Warstorm Surge",
+   "situacao": "entra criatura sua de poder 4",
+   "espera": "4 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Waste Not",
+   "situacao": "oponente descarta criatura, terreno e mágica",
+   "espera": "Zumbi 2/2; {B}{B}; compra 1"
+  },
+  {
+   "carta": "Watcher for Tomorrow",
+   "situacao": "entra; depois sai do campo",
+   "espera": "virada, esconde 1 de 4; a carta escondida vai para a mão"
+  },
+  {
+   "carta": "Wave Goodbye",
+   "situacao": "criatura com marcador +1/+1 e outra sem",
+   "espera": "só a sem marcador volta à mão"
+  },
+  {
+   "carta": "Wayfarer's Bauble",
+   "situacao": "paga {2}, vira e sacrifica",
+   "espera": "terreno básico no campo virado"
+  },
+  {
+   "carta": "Wayward Swordtooth",
+   "situacao": "seu turno",
+   "espera": "joga 1 terreno a mais; não ataca nem bloqueia (com a bênção é falta)"
+  },
+  {
+   "carta": "Weapons Manufacturing",
+   "situacao": "entra artefato seu não ficha; a Munitions sai",
+   "espera": "ficha Munitions; 2 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Wear Down",
+   "situacao": "conjura sem presente",
+   "espera": "destrói artefato ou encantamento (2 alvos com presente é falta)"
+  },
+  {
+   "carta": "Weathered Wayfarer",
+   "situacao": "{W}, vira com oponente com mais terrenos",
+   "espera": "busca terreno para a mão"
+  },
+  {
+   "carta": "Wedding Ring",
+   "situacao": "conjurada; depois oponente compra fora do seu turno",
+   "espera": "oponente alvo ganha cópia; você compra 1"
+  },
+  {
+   "carta": "Welcome the Dead",
+   "situacao": "conjura",
+   "espera": "compra 2, descarta 1, perde 2, Zumbi Druida 2/2 virado; flashback {5}{B}"
+  },
+  {
+   "carta": "Welcome to . . .",
+   "situacao": "capítulos II e III; depois Jurassic Park vira com 2 Dinossauros",
+   "espera": "Dinossauro 3/3 com atropelar; destrói Muros e transforma; {G}{G}"
+  },
+  {
+   "carta": "Welcoming Vampire",
+   "situacao": "entram 2 criaturas suas de poder 2 no mesmo turno",
+   "espera": "compra 1 só uma vez"
+  },
+  {
+   "carta": "Well of Lost Dreams",
+   "situacao": "você ganha 3 de vida",
+   "espera": "pode comprar 3 (pagar {X} é falta)"
+  },
+  {
+   "carta": "Wheel of Fortune",
+   "situacao": "conjura",
+   "espera": "cada jogador descarta a mão e compra 7"
+  },
+  {
+   "carta": "Whir of Invention",
+   "situacao": "X=3",
+   "espera": "busca artefato de VM ≤ 3 para o campo; improvisar"
+  },
+  {
+   "carta": "Whispering Madness",
+   "situacao": "mãos de 2, 5 e 3",
+   "espera": "todos descartam e compram 5 (cifrar é falta)"
+  },
+  {
+   "carta": "White Lotus Hideout",
+   "situacao": "vira",
+   "espera": "{C}; qualquer cor só para Lesson/Shrine; {1},{T}: qualquer cor"
+  },
+  {
+   "carta": "White Sun's Zenith",
+   "situacao": "X=3",
+   "espera": "3 Gatos 2/2; volta ao grimório e embaralha"
+  },
+  {
+   "carta": "Whitemane Lion",
+   "situacao": "entra",
+   "espera": "devolve uma criatura sua à mão; lampejo"
+  },
+  {
+   "carta": "Wight of the Reliquary",
+   "situacao": "3 criaturas no seu cemitério; vira e sacrifica outra",
+   "espera": "4/5 com vigilância; terreno no campo virado"
+  },
+  {
+   "carta": "Wild Growth",
+   "situacao": "o terreno encantado vira para mana",
+   "espera": "{G} a mais"
+  },
+  {
+   "carta": "Wildfire Awakener",
+   "situacao": "X=2; uma ficha vira",
+   "espera": "2 Elementais 1/1; 1 de dano no jogador alvo"
+  },
+  {
+   "carta": "Wildsear, Scouring Maw",
+   "situacao": "conjura encantamento",
+   "espera": "atropelar (cascata é falta)"
+  },
+  {
+   "carta": "Wilhelt, the Rotcleaver",
+   "situacao": "morre outro Zumbi seu; seu fim de turno",
+   "espera": "Zumbi 2/2 decaído; pode sacrificar Zumbi e comprar 1"
+  },
+  {
+   "carta": "Will of the Sultai",
+   "situacao": "com comandante no campo, os dois modos",
+   "espera": "jogador mói 3, terrenos do cemitério voltam virados; marcadores = terrenos e atropelar"
+  },
+  {
+   "carta": "Wind-Scarred Crag",
+   "situacao": "entra",
+   "espera": "virada; ganha 1; vira para {R} ou {W}"
+  },
+  {
+   "carta": "Winding Constrictor",
+   "situacao": "poria 2 marcadores +1/+1 na sua criatura",
+   "espera": "põe 3"
+  },
+  {
+   "carta": "Winged Sliver",
+   "situacao": "Slivers no campo, seus e do oponente",
+   "espera": "todos voam"
+  },
+  {
+   "carta": "Witch's Mark",
+   "situacao": "descarta 1, mira sua criatura",
+   "espera": "compra 2; Wicked Role na criatura, +1/+1"
+  },
+  {
+   "carta": "Witty Roastmaster",
+   "situacao": "entra outra criatura sua",
+   "espera": "1 de dano em cada oponente"
+  },
+  {
+   "carta": "Wizard Class",
+   "situacao": "nível 3; você compra",
+   "espera": "sem limite de mão; marcador +1/+1 em criatura sua (comprar 2 no nível 2 é falta)"
+  },
+  {
+   "carta": "Wizard's Retort",
+   "situacao": "com Mago no campo",
+   "espera": "custa 1 a menos; anula mágica"
+  },
+  {
+   "carta": "Wizard's Staff",
+   "situacao": "equipada conjura não criatura; gatilho da equipada",
+   "espera": "proeza; o gatilho dispara 2 vezes; equipar Mago {1}"
+  },
+  {
+   "carta": "Wolf-Skull Shaman",
+   "situacao": "sua manutenção",
+   "espera": "parentesco é falta"
+  },
+  {
+   "carta": "Wonder",
+   "situacao": "no cemitério com Ilha sua",
+   "espera": "suas criaturas voam"
+  },
+  {
+   "carta": "Wrath of God",
+   "situacao": "conjura",
+   "espera": "destrói todas as criaturas"
+  },
+  {
+   "carta": "Wrathful Raptors",
+   "situacao": "Dinossauro seu leva 3",
+   "espera": "3 de dano em qualquer alvo"
+  },
+  {
+   "carta": "Wrecking Ball Arm",
+   "situacao": "equipada",
+   "espera": "7/7 base; não bloqueada por poder ≤ 2; equipar lendária {3}"
+  },
+  {
+   "carta": "Wren's Run Packmaster",
+   "situacao": "paga {2}{G}",
+   "espera": "Lobo 2/2; Lobos seus com toque mortífero (campeão é falta)"
+  }
+ ]
+}
