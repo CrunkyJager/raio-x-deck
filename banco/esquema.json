@@ -357,11 +357,28 @@
         },
         {
          "const": "X"
+        },
+        {
+         "const": "qualquer"
         }
        ]
       }
      },
      "description": "de 0 a N, quem age escolhe (\"up to N\")"
+    },
+    {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "dado"
+     ],
+     "properties": {
+      "dado": {
+       "type": "integer",
+       "minimum": 2,
+       "description": "rola um dado de N lados (706); o resultado é a quantidade. O motor usa o RNG com semente; a análise usa a média (N+1)/2"
+      }
+     }
     }
    ]
   },
@@ -1384,7 +1401,8 @@
       "capitulo",
       "classe",
       "entraComMarcador",
-      "tumulto"
+      "tumulto",
+      "fusao"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
