@@ -286,3 +286,7 @@ Contagem: banco 1361 cartas / fila 224 ainda não escritas.
 | ficha de artefato com +1/+1 por artefato | 2 | 0 | Simulacrum Synthesizer (e o Construct do lote anterior) | `est` na ficha | |
 | o resto 1/0 | | | Silumgar (só o jogador defensor), Sink into Stupor (mágica OU permanente no mesmo alvo), Sliver Gravemother (regra de lenda; bis {X} = vm da carta), Spelunking (4 de vida se for Cave), Spiteful Sliver (jogador ou planeswalker), Starfield of Nyx (P/R base = vm de cada encantamento) | deixar falta | |
 
+
+## Decisões do lote do bloco 26 (FARSEER 25/11)
+- fx `porJogadorAtacado` no op ficha (cria para cada jogador atacado, atacando aquele jogador). Reescrever Adeline, Ainok Strike Leader e Soaring Lightbringer na correção 10.
+- Ficam em `falta`: retrace, bestow, ficha com +1/+1 por artefato (2 cada), o resto 1/0.
