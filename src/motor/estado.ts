@@ -113,7 +113,7 @@ M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilh
 // (pergunta de substituição entra na T19).
 // Face: entra no campo com a face que estava na pilha (712.10) ou a pedida (terreno modal, 712.9); de outra zona,
 // com a frente (712.11). Em qualquer outra zona volta à frente (712.6a, 716.4) e perde a permissão da aventura.
-M.mover = (e, id, zona, { topo = true, virada = false, face = undefined }: any = {}) => {
+M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null }: any = {}) => {
   const o = e.objs[id];
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
   const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
@@ -121,7 +121,8 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined }: any =
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null });
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null,
+    conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
@@ -414,7 +415,9 @@ M.qtd = (e, q, ctx: any = {}) => {
 };
 
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra']);
+// conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); as outras palavras (metalcraft, coven…) ainda não
+M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift');
 M.condicao = (e, se, ctx) => {
   if (!se) return true;
   for (const k in se) if (!COND_OK.has(k)) throw new Error('condição sem suporte no motor2: ' + k);
@@ -426,6 +429,12 @@ M.condicao = (e, se, ctx) => {
   }
   if (se.controla && M.objetosQue(e, { ...se.controla.f, ctrl: 'voce' }, ctx).length < (se.controla.min || 1)) return false;
   if (se.turno && (se.turno === 'seu') !== (e.turno.ativo === ctx.voce)) return false;
+  if (se.conjuradaCom !== undefined || se.palavra !== undefined) {   // a mágica resolvendo (ctx.opc) ou a permanente que ela virou
+    if (!M.condValorOk(se)) throw new Error('condição sem suporte no motor2: ' + (se.conjuradaCom || se.palavra));
+    const E = e.objs[ctx.este], cc = E && E.zona === 'campo' ? E.conjCom : null, op = ctx.opc;
+    if (se.conjuradaCom === 'kicker' && !((op && op.chute) || (cc && cc.kicker))) return false;
+    if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
+  }
   const vida = e.jogs[ctx.voce].vida;
   if (se.vidaMin !== undefined && vida < se.vidaMin) return false;
   if (se.vidaMax !== undefined && vida > se.vidaMax) return false;

@@ -7,7 +7,7 @@ const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez']);
 const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono']);
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
   'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X', 'resultado']);   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -20,7 +20,7 @@ const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dado
     && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo'].includes(k)));
 const emOk = v => v === undefined || v === 'este' || v === 'equipada' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
-  && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
+  && M.condValorOk(se) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
 M.seOk = seOk;
 M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   if (f.op === 'modal') return topo && fx.length === 1 && f.modos.some(m => M.fxSuportado(m, { topo: false }));
@@ -178,9 +178,9 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
   }
   return { id, ctrl, vir, pagaVida, escolha, face };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face }) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null }) => {
   if (pagaVida) e.jogs[ctrl].vida -= pagaVida;
-  const o = M.mover(e, id, 'campo', { virada: vir, face });
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
@@ -199,8 +199,31 @@ function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {} }: any = 
   }
   return r;
 }
-function criarFicha(e, j, tok, { virada = false }: any = {}) {
-  const id = e.prox++;
+// Fichas predefinidas (CR 111.10): o banco escreve só {nome:'Treasure'}; o tipo e as habilidades vêm daqui,
+// escritos a partir do texto Oracle da ficha. O que o token trouxer além do nome vale por cima.
+// Powerstone: a restrição vira so {tipo:Artifact} (paga mágica de artefato; ainda não paga habilidade).
+// Map (explorar) e Junk (exila o topo e pode jogar) usam ops que o motor não tem: a ficha existe, a habilidade não é ativada.
+const art = (sub, atv) => ({ tipos: ['Artifact'], sub: [sub], cores: '', vm: 0, atv });
+const sacE = (c: any = {}) => ({ ...c, sacrificar: 'este' });
+M.FICHAS = {
+  Treasure: art('Treasure', [{ custo: sacE({ virar: true }), deMana: true, fx: [{ op: 'mana', prod: 'qualquer', qtd: 1 }] }]),
+  Gold: art('Gold', [{ custo: sacE(), deMana: true, fx: [{ op: 'mana', prod: 'qualquer', qtd: 1 }] }]),
+  Clue: art('Clue', [{ custo: sacE({ mana: { g: 2 } }), fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }]),
+  Food: art('Food', [{ custo: sacE({ mana: { g: 2 }, virar: true }), fx: [{ op: 'ganharVida', quem: 'voce', qtd: 3 }] }]),
+  Blood: art('Blood', [{ custo: sacE({ mana: { g: 1 }, virar: true, descartar: 1 }), fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }]),
+  Powerstone: art('Powerstone', [{ custo: { virar: true }, deMana: true, fx: [{ op: 'mana', prod: ['C'], qtd: 1, so: { tipo: ['Artifact'] } }] }]),
+  Map: art('Map', [{ custo: sacE({ mana: { g: 1 }, virar: true }), vel: 'feitico', alvos: [{ f: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } }], fx: [{ op: 'explorar', em: { alvo: 0 } }] }]),
+  Junk: art('Junk', [{ custo: sacE({ virar: true }), vel: 'feitico', fx: [{ op: 'exilarTopoJogar', quem: 'voce', qtd: 1 }] }]),
+  Lander: art('Lander', [{ custo: sacE({ mana: { g: 2 }, virar: true }), fx: [{ op: 'buscar', f: { tipo: ['Land'], super: ['Basic'] }, para: 'campo', virada: true }, { op: 'embaralhar', quem: 'voce' }] }]),
+  Shard: { tipos: ['Enchantment'], sub: ['Shard'], cores: '', vm: 0, atv: [{ custo: sacE({ mana: { g: 2 } }), fx: [{ op: 'videncia', quem: 'voce', qtd: 1 }, { op: 'comprar', quem: 'voce', qtd: 1 }] }] },
+};
+M.fichaDe = tok => {
+  if (!tok || !tok.nome) return tok;
+  const { nome, ...resto } = tok, pre = M.FICHAS[nome];
+  return pre ? { ...pre, ...resto, n: nome } : { ...resto, n: nome };
+};
+function criarFicha(e, j, tok0, { virada = false }: any = {}) {
+  const id = e.prox++, tok = M.fichaDe(tok0);
   const n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim();
   const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, virada, dano: 0, marc: {} as any, doente: true, cmd: false, ficha: { ...tok, n } };
   e.objs[id] = o; e.campo.push(id);

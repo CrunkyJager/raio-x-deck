@@ -14,7 +14,7 @@ M.gatOk = g => {
   let ok = EV_OK.has(g.ev) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && M.fxSuportado(g.fx) && !g.fx.some(f => f.op === 'modal')   // modo do gatilho (603.3c) = depois
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por));
-  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta'].includes(k));
+  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra'].includes(k)) && M.condValorOk(g.se);
   memoOk.set(g, ok);
   return ok;
 };
@@ -89,7 +89,7 @@ function noCemiterio(e) {
   if (!C) { C = { p: 0, ids: [] }; CEM.set(e, C); }
   if (C.p !== e.prox) {
     const ini = C.p > e.prox ? 0 : C.p; if (!ini) C.ids = [];
-    for (let id = ini; id < e.prox; id++) { const o = e.objs[id]; if (o && temGatCem(o.ficha || M.carta(o.n))) C.ids.push(id); }
+    for (let id = ini; id < e.prox; id++) { const o = e.objs[id]; if (o && !o.hab && temGatCem(o.ficha || M.carta(o.n))) C.ids.push(id); }
     C.p = e.prox;
   }
   const r: any[] = [];
