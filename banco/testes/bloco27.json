@@ -1,0 +1,258 @@
+{
+ "bloco": "bloco27",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "fila 1301–1350 (Stridehangar Automaton … The First Sliver)",
+ "casos": [
+  {
+   "carta": "Stridehangar Automaton",
+   "situacao": "você cria um Treasure",
+   "espera": "cria o Treasure e mais uma ficha Thopter 1/1 voadora; Thopters seus +1/+1"
+  },
+  {
+   "carta": "Strike It Rich",
+   "situacao": "conjura; depois flashback por {2}{R}",
+   "espera": "um Treasure cada vez"
+  },
+  {
+   "carta": "Striking Sliver",
+   "situacao": "Sliver seu no campo",
+   "espera": "primeiro ataque"
+  },
+  {
+   "carta": "Stroke of Midnight",
+   "situacao": "destrói permanente não-terreno do oponente",
+   "espera": "o controlador dele cria um Humano 1/1"
+  },
+  {
+   "carta": "Strong, the Brutish Thespian",
+   "situacao": "leva dano",
+   "espera": "você ganha 3 marcadores rad e Strong ganha três +1/+1 (vida em vez de perda é falta)"
+  },
+  {
+   "carta": "Struggle for Project Purity",
+   "situacao": "sua manutenção, mesa de 4",
+   "espera": "cada oponente compra 1; você compra 3"
+  },
+  {
+   "carta": "Stun",
+   "situacao": "resolve",
+   "espera": "a criatura alvo não bloqueia no turno; você compra 1"
+  },
+  {
+   "carta": "Sudden Breakthrough",
+   "situacao": "resolve",
+   "espera": "+2/+0 e primeiro ataque; um Treasure"
+  },
+  {
+   "carta": "Sulfurous Springs",
+   "situacao": "vira para B ou R",
+   "espera": "1 de dano em você"
+  },
+  {
+   "carta": "Summoning Materia",
+   "situacao": "equipada numa criatura",
+   "espera": "+2/+2, vigilância e vira para {G}; você conjura criaturas do topo"
+  },
+  {
+   "carta": "Sun Titan",
+   "situacao": "entra ou ataca",
+   "espera": "pode devolver permanente de vm 3 ou menos do seu cemitério ao campo"
+  },
+  {
+   "carta": "Sunbird's Invocation",
+   "situacao": "conjura da mão uma mágica de vm 4",
+   "espera": "revela 4 e pode conjurar de graça uma de vm até 4; o resto no fundo"
+  },
+  {
+   "carta": "Sundown Pass",
+   "situacao": "entra com um terreno seu",
+   "espera": "virado; com dois ou mais, desvirado"
+  },
+  {
+   "carta": "Sunfrill Imitator",
+   "situacao": "ataca",
+   "espera": "nada (virar cópia é falta)"
+  },
+  {
+   "carta": "Sunscorched Divide",
+   "situacao": "{1} e vira",
+   "espera": "{R}{W}"
+  },
+  {
+   "carta": "Supreme Verdict",
+   "situacao": "conjura",
+   "espera": "não pode ser anulada; destrói todas as criaturas"
+  },
+  {
+   "carta": "Svyelun of Sea and Sky",
+   "situacao": "ataca com dois outros Merfolk",
+   "espera": "indestrutível; compra 1; os outros Merfolk com resguardo {1}"
+  },
+  {
+   "carta": "Swan Song",
+   "situacao": "anula instantânea do oponente",
+   "espera": "ele cria um Pássaro 2/2 voador"
+  },
+  {
+   "carta": "Sword of Feast and Famine",
+   "situacao": "a equipada causa dano de combate a um jogador",
+   "espera": "ele descarta 1 e você desvira seus terrenos"
+  },
+  {
+   "carta": "Sword of the Meek",
+   "situacao": "no cemitério; entra criatura 1/1 sua",
+   "espera": "pode voltar ao campo anexada a ela"
+  },
+  {
+   "carta": "Synapse Sliver",
+   "situacao": "Sliver causa dano de combate a um jogador",
+   "espera": "o controlador do Sliver pode comprar 1"
+  },
+  {
+   "carta": "Syphon Sliver",
+   "situacao": "Sliver seu no campo",
+   "espera": "vínculo com a vida"
+  },
+  {
+   "carta": "Tainted Wood",
+   "situacao": "vira sem Pântano",
+   "espera": "só {C}"
+  },
+  {
+   "carta": "Talisman of Curiosity",
+   "situacao": "vira para G ou U",
+   "espera": "1 de dano em você"
+  },
+  {
+   "carta": "Talisman of Impulse",
+   "situacao": "vira para R ou G",
+   "espera": "1 de dano em você"
+  },
+  {
+   "carta": "Talisman of Resilience",
+   "situacao": "vira para B ou G",
+   "espera": "1 de dano em você"
+  },
+  {
+   "carta": "Tamiyo's Safekeeping",
+   "situacao": "em permanente seu alvo de remoção",
+   "espera": "antimagia e indestrutível; ganha 2"
+  },
+  {
+   "carta": "Tamiyo, Field Researcher",
+   "situacao": "−7",
+   "espera": "compra 3; emblema: conjura da mão sem pagar"
+  },
+  {
+   "carta": "Tandem Lookout",
+   "situacao": "entra",
+   "espera": "nada (soulbond é falta)"
+  },
+  {
+   "carta": "Tannuk, Memorial Ensign",
+   "situacao": "segundo terreno no turno",
+   "espera": "1 de dano em cada oponente nas duas vezes; compra 1 na segunda"
+  },
+  {
+   "carta": "Tataru Taru",
+   "situacao": "oponente compra no seu turno",
+   "espera": "Treasure virado, uma vez por turno"
+  },
+  {
+   "carta": "Tato Farmer",
+   "situacao": "vira com terreno moído neste turno num cemitério",
+   "espera": "põe o terreno no seu campo virado"
+  },
+  {
+   "carta": "Taunt from the Rampart",
+   "situacao": "resolve",
+   "espera": "as criaturas dos oponentes não bloqueiam até seu próximo turno (incitar é falta)"
+  },
+  {
+   "carta": "Tear Asunder",
+   "situacao": "sem chute",
+   "espera": "exila artefato ou encantamento alvo"
+  },
+  {
+   "carta": "Teleportation Circle",
+   "situacao": "sua etapa final",
+   "espera": "pode exilar e devolver um artefato ou criatura sua (entra de novo)"
+  },
+  {
+   "carta": "Tempered Steel",
+   "situacao": "criaturas-artefato suas",
+   "espera": "+2/+2"
+  },
+  {
+   "carta": "Temple Altisaur",
+   "situacao": "outro Dinossauro seu leva 5 de dano",
+   "espera": "leva só 1"
+  },
+  {
+   "carta": "Temple of Abandon",
+   "situacao": "entra",
+   "espera": "virado; vidência 1; R ou G"
+  },
+  {
+   "carta": "Temple of Plenty",
+   "situacao": "entra",
+   "espera": "virado; vidência 1; G ou W"
+  },
+  {
+   "carta": "Tempt with Discovery",
+   "situacao": "dois oponentes aceitam",
+   "espera": "você busca 3 terrenos para o campo, cada um deles 1"
+  },
+  {
+   "carta": "Temur Ascendancy",
+   "situacao": "entra criatura sua de poder 4",
+   "espera": "pode comprar 1; criaturas com pressa"
+  },
+  {
+   "carta": "Temur Battle Rage",
+   "situacao": "com criatura de poder 4+",
+   "espera": "golpe duplo e atropelar"
+  },
+  {
+   "carta": "Teval's Judgment",
+   "situacao": "carta sai do seu cemitério",
+   "espera": "escolhe compra, Treasure ou Zumbi 2/2"
+  },
+  {
+   "carta": "Teval, the Balanced Scale",
+   "situacao": "ataca",
+   "espera": "moe 3 e pode pôr um terreno do cemitério no campo virado; o terreno saindo do cemitério dá um Zumbi 2/2"
+  },
+  {
+   "carta": "Teysa, Orzhov Scion",
+   "situacao": "sacrifica 3 criaturas brancas",
+   "espera": "exila criatura alvo"
+  },
+  {
+   "carta": "Thalia's Lieutenant",
+   "situacao": "entra com 2 outros Humanos",
+   "espera": "+1/+1 em cada um; ganha +1/+1 a cada Humano novo"
+  },
+  {
+   "carta": "The Battle of Bywater",
+   "situacao": "resolve com 2 criaturas suas de poder 2",
+   "espera": "destrói as de poder 3+; 2 Foods"
+  },
+  {
+   "carta": "The Book of Exalted Deeds",
+   "situacao": "sua etapa final, ganhou 3 de vida",
+   "espera": "Anjo 3/3 voador"
+  },
+  {
+   "carta": "The Eldest Reborn",
+   "situacao": "capítulos I, II e III",
+   "espera": "cada oponente sacrifica criatura/planeswalker; descarta 1; você traz uma de qualquer cemitério"
+  },
+  {
+   "carta": "The First Sliver",
+   "situacao": "conjura",
+   "espera": "nada (cascata é falta)"
+  }
+ ]
+}

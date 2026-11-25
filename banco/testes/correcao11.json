@@ -1,0 +1,58 @@
+{
+ "bloco": "correcao11",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote do bloco 27 (6d84eaf): cond modoEscolhido em Mirrodin Besieged, Windcrag Siege e Struggle for Project Purity; op incitar em Marisi e Taunt from the Rampart; naoDesvira em Junk Winder e Tamiyo −2. Combat Celebrant e Pride Sovereign ficam (exert é custo, não 'não desvira' de efeito)",
+ "casos": [
+  {
+   "carta": "Mirrodin Besieged",
+   "situacao": "entrou escolhendo Mirran; você conjura um artefato",
+   "espera": "cria uma ficha 1/1 Myr; no seu fim de turno não compra/descarta"
+  },
+  {
+   "carta": "Mirrodin Besieged",
+   "situacao": "entrou escolhendo Phyrexian; seu fim de turno com 15 artefatos no cemitério",
+   "espera": "compra 1, descarta 1 e o oponente alvo perde o jogo; conjurar artefato não cria Myr"
+  },
+  {
+   "carta": "Windcrag Siege",
+   "situacao": "entrou escolhendo Mardu; uma criatura sua ataca e dispara um gatilho de permanente sua",
+   "espera": "o gatilho dispara uma vez a mais; na manutenção não cria Goblin"
+  },
+  {
+   "carta": "Windcrag Siege",
+   "situacao": "entrou escolhendo Jeskai; sua manutenção",
+   "espera": "cria um Goblin 1/1 com vínculo com a vida e pressa até o fim do turno; ataques não dobram gatilhos"
+  },
+  {
+   "carta": "Struggle for Project Purity",
+   "situacao": "entrou escolhendo Brotherhood; sua manutenção com 3 oponentes",
+   "espera": "cada oponente compra 1 e você compra 3"
+  },
+  {
+   "carta": "Struggle for Project Purity",
+   "situacao": "entrou escolhendo Enclave; um oponente ataca com 2 criaturas",
+   "espera": "ele ganha 4 marcadores rad; na sua manutenção ninguém compra"
+  },
+  {
+   "carta": "Marisi, Breaker of the Coil",
+   "situacao": "uma criatura sua causa dano de combate a um oponente",
+   "espera": "todas as criaturas daquele jogador ficam incitadas até o seu próximo turno"
+  },
+  {
+   "carta": "Taunt from the Rampart",
+   "situacao": "você conjura com 2 oponentes com criaturas",
+   "espera": "todas as criaturas dos oponentes ficam incitadas e não podem bloquear até o seu próximo turno"
+  },
+  {
+   "carta": "Junk Winder",
+   "situacao": "uma ficha sua entra; alvo um artefato do oponente",
+   "espera": "o artefato é virado e não desvira no próximo passo de desvirar do controlador dele"
+  },
+  {
+   "carta": "Tamiyo, Field Researcher",
+   "situacao": "−2 em duas permanentes não terreno",
+   "espera": "as duas viram e não desviram no próximo passo de desvirar dos controladores"
+  }
+ ]
+}

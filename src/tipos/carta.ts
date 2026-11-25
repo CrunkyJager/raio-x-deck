@@ -515,7 +515,8 @@ export interface RxFx {
     | 'tentarAnel'
     | 'explorar'
     | 'amassar'
-    | 'popular';
+    | 'popular'
+    | 'incitar';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -694,6 +695,10 @@ export interface RxFx {
    */
   porJogadorAtacado?: boolean;
   /**
+   * op virar/efeito: não desvira no próximo passo de desvirar do controlador (Junk Winder + 2)
+   */
+  naoDesvira?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -809,6 +814,10 @@ export interface RxCond {
    * é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno
    */
   fasePrincipal?: boolean;
+  /**
+   * o modo escolhido quando a permanente entrou (Mirrodin Besieged 'Mirran'/'Phyrexian', Windcrag Siege, Struggle); a escolha = op escolher o 'modo' ao entrar
+   */
+  modoEscolhido?: string;
 }
 
 export interface RxKw {

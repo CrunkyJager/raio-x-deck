@@ -981,7 +981,8 @@
       "tentarAnel",
       "explorar",
       "amassar",
-      "popular"
+      "popular",
+      "incitar"
      ]
     },
     "talvez": {
@@ -1344,6 +1345,10 @@
     "porJogadorAtacado": {
      "type": "boolean",
      "description": "op ficha: cria qtd fichas PARA CADA jogador atacado, cada grupo atacando aquele jogador (Adeline, Ainok Strike Leader, Soaring Lightbringer)"
+    },
+    "naoDesvira": {
+     "type": "boolean",
+     "description": "op virar/efeito: não desvira no próximo passo de desvirar do controlador (Junk Winder + 2)"
     }
    },
    "additionalProperties": false,
@@ -1575,6 +1580,10 @@
     "fasePrincipal": {
      "type": "boolean",
      "description": "é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno"
+    },
+    "modoEscolhido": {
+     "type": "string",
+     "description": "o modo escolhido quando a permanente entrou (Mirrodin Besieged 'Mirran'/'Phyrexian', Windcrag Siege, Struggle); a escolha = op escolher o 'modo' ao entrar"
     }
    }
   },
