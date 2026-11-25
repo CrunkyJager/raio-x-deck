@@ -431,6 +431,10 @@ export interface RxCustoAtv {
   };
   exilarEste?: boolean;
   /**
+   * descartar esta carta como custo (canalizar, Trumpeting Carnosaur): a habilidade é ativada da mão
+   */
+  descartarEste?: boolean;
+  /**
    * vida paga; contagem vale no momento de pagar (Bolas's Citadel: vmDoEvento)
    */
   vida?: number | 'X' | RxQtd;
