@@ -1,0 +1,1 @@
+{"v":2,"n":"Seedborn Muse","id":"463865bc-087e-477b-9e86-84e77f1ad931","oracleHash":"fe6d94a1","custo":{"g":3,"p":["G","G"]},"vm":5,"ci":"G","cores":"G","tipos":["Creature"],"sub":["Spirit"],"pt":[2,4],"est":[{"modo":"desviraNoTurnoDeOutro","afeta":{"tipo":["Permanent"],"ctrl":"voce","zona":"campo"}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco25.json"}}
