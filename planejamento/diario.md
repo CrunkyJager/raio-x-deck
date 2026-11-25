@@ -46,3 +46,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · v0.33.0: A (6c) (328a6c9): contas de ataque, deveBloquear, tipoEmComum, mover transformada; cobertura 965/1645. A segue nas travas do Ultron; B nos blocos 34/35 (Ultron).
 - 25/11 · FARSEER · v0.34.0: B blocos 34/35 (295fafb, deck do Ultron 80/80 no banco, 1684 cartas); cobertura 987/1684. Patch T44 (a42e2eb) ainda fora, B refaz a medida.
 - 25/11 · FARSEER · v0.35.0: A travas do Ultron parte 1 (57aaa6e): aMenosQue, efeito temporário, fasear, sagas; cobertura 1004/1684. Vitest: 2 falhas numa rodada, verde na seguinte (instável → A).
+- 25/11 · FARSEER · v0.36.0: A (2631abb) desempenho com muitas fichas (Krenko 34 s → 2,6 s), filtro incolor, qtd.prop/historico/tipoTodos, fuzz sem instabilidade; cobertura 1022/1684.
