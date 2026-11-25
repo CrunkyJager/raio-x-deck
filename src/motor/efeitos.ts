@@ -216,7 +216,7 @@ const H = {
       const js = f.em && typeof f.em.alvo === 'number' ? jogsAlvo(e, f.em.alvo, ctx) : [];
       const jq = f.quem ? jogsDe(e, f, ctx) : [];
       for (const j of [...new Set([...js, ...jq])]) { e.jogs[j].vida -= q; total += q; }   // CR 120.3a
-      if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) e.jogs[ctx.voce].vida += total;   // CR 702.15b
+      if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, ctx.voce, total);   // CR 702.15b
     },
   },
   // "X ganha +N/+N e/ou palavra-chave até o fim do turno" (CR 611.2): números e conjunto afetado presos na resolução
@@ -255,7 +255,7 @@ const H = {
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
     },
   },
-  ganharVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { e.jogs[j].vida += q; if (q > 0) M.evento(e, { ev: 'ganhaVida', j, q }); } } },   // CR 119.3
+  ganharVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) M.ganharVida(e, j, q); } },   // CR 119.3
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) e.jogs[j].vida -= q; } },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
