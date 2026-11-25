@@ -10,6 +10,7 @@ on:
     types: [completed]
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -44,5 +45,15 @@ jobs:
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with: { path: dist }
+      # actions/deploy-pages#451: o artefato demora a aparecer na listagem; espera até 2 min em vez de falhar
+      - name: espera o artefato github-pages aparecer
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          for i in $(seq 24); do
+            n=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '[.artifacts[]|select(.name=="github-pages")]|length')
+            [ "$n" -gt 0 ] && { echo "artefato visível após $((i*5)) s"; sleep 5; exit 0; }
+            sleep 5
+          done
+          echo "artefato não apareceu em 2 min"; exit 1
       - id: publica
         uses: actions/deploy-pages@v5
