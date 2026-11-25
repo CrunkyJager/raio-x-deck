@@ -1,0 +1,1 @@
+{"v":2,"n":"Mortify","id":"faa01ed1-ccfa-4e58-951f-cd81f9068027","oracleHash":"adb13052","custo":{"g":1,"p":["W","B"]},"vm":3,"ci":"WB","cores":"WB","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature","Enchantment"],"zona":"campo"}}],"fx":[{"op":"destruir","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

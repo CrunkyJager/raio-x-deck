@@ -7,7 +7,11 @@ Vitest: 2 falhas (Fireball, Kolaghan) vêm do bloco de correção (campos novos 
 Windfall/Belladonna Took refeitas com maiorDescarte/resolucoesDestaHabNoTurno (8dde966), sem falta.
 Bloco 5 (fila 201–250): 50 escritas, 40 casos em bloco5.json; valida 303/0. Primeiro uso de proliferar, alvoDe, dobraGatilho com evs/causa, fabricar, est.podeJogar do próprio cemitério (Gravecrawler), mana.so por subtipo (Giada).
 Consertos: Brainstorm (bloco 4) e Growth Spiral (bloco 3) usavam buscar de:mao — o motor busca sempre no grimório; agora mover f/qtd da mão (como o motor lê o Brainstorm).
-Leituras a confirmar: Faerie Mastermind = compradasNoTurno igual 2 (do jogador do evento); Minas Tirith = ataquesNoTurno min 2 (criaturas que atacaram no turno); Enlightened Tutor = embaralha ANTES e põe no topo (mesmo resultado; buscar para grimorio põe no topo).
+Leituras confirmadas pelo FARSEER (v0.4.0): Faerie Mastermind = compradasNoTurno igual 2 (do jogador do evento); Minas Tirith = ataquesNoTurno min 2 (criaturas que atacaram no turno); Enlightened Tutor = embaralha ANTES e põe no topo (mesmo resultado; buscar para grimorio põe no topo).
 Faltas novas: Enduring Vitality (volta sem ser criatura), Incubation Druid (mana do tipo que seus terrenos produzem: pedido de prod), Kodama (não posta por esta habilidade), Gisela (fundir), Long River's Pull (alvo sem presente só criatura).
-Vitest: as mesmas 2 falhas (Fireball, Kolaghan).
-Agora: bloco 6 (fila 251–300), se liberado.
+Vitest (bloco 5): 96 ok.
+Incubation Druid refeita com prod deSeusTerrenos (v0.4.0): duas habilidades de mana, 1 sem marcador e 3 com marcador +1/+1; sem falta.
+Bloco 6 (fila 251–300): 50 escritas, 33 casos em bloco6.json; valida 353/0; vitest 96 ok. Primeiro uso de fichaCriada/sacrificado (quem ficha), copiarPermanente (Metamorph), token.copiaDe com doEvento/este/cadaAtual, repetirCada com filtro, esconderijo, improvisar, est.tiraTipo + devocao (Purphoros), est.limite por tipo (Muldrotha), reduzCusto com custo colorido (Morophon), custoAlternativo pagar virarOutros (Sephara), muda.maisFicha (Peregrin), comMarcador 'qualquer' (Rishkar), mover pagando (Ripples of Undeath).
+Leituras a confirmar: Molten Psyche compra {conta:'resultado'} (= quantas o mover levou) e dano compradasNoTurno do cadaAtual; Mystic Forge incolor = filtro cor 'C' + nao Land; Rishkar comMarcador 'qualquer'.
+Faltas novas: Padeem (artefato de maior valor de mana), Putrefy (não pode regenerar), Reconnaissance (tirar do combate), Myriad Landscape (mesmo tipo de terreno).
+Agora: bloco 7 (fila 301–350), se liberado.

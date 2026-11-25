@@ -1,0 +1,1 @@
+{"v":2,"n":"Ornithopter of Paradise","id":"3a940dfa-a026-4969-8981-ef90cdfbe9ef","oracleHash":"045e3249","custo":{"g":2},"vm":2,"ci":"","cores":"","tipos":["Creature","Artifact"],"sub":["Thopter"],"pt":[0,2],"kw":[{"k":"voar"}],"atv":[{"custo":{"virar":true},"deMana":true,"fx":[{"op":"mana","prod":"qualquer","qtd":1}]}],"rev":{"por":"adepto-b","em":"2026-11-25"}}

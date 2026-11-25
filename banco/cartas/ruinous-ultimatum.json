@@ -1,0 +1,1 @@
+{"v":2,"n":"Ruinous Ultimatum","id":"a6f38908-aa4f-4f99-a28e-85d11dab52e4","oracleHash":"4471b541","custo":{"p":["R","R","W","W","W","B","B"]},"vm":7,"ci":"WBR","cores":"WBR","tipos":["Sorcery"],"fx":[{"op":"destruir","em":{"todos":{"tipo":["Permanent"],"nao":["Land"],"ctrl":"oponente","zona":"campo"}}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco6.json"}}
