@@ -10,6 +10,8 @@ const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEst
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
+// quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
+const quemAlvo = q => !!q && typeof q === 'object' && typeof q.alvo === 'number' && Object.keys(q).length === 1;
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X'
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
     && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo'].includes(k)));
@@ -21,7 +23,7 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   const h = H[f.op];
   if (!h) return false;
   for (const k in f) if (!BASE.has(k) && !(h.campos || []).includes(k)) return false;
-  if (f.quem !== undefined && !QUEM_OK.has(f.quem)) return false;
+  if (f.quem !== undefined && !QUEM_OK.has(f.quem) && !quemAlvo(f.quem)) return false;
   if (!emOk(f.em) || !seOk(f.se)) return false;
   if (!(h.qtd ? h.qtd(f.qtd) : qtdOk(f.qtd))) return false;
   if (f.f && !M.filtroOk(f.f)) return false;
@@ -53,6 +55,7 @@ function lkisDe(e, f, ctx) {
 function jogsDe(e, f, ctx) {
   const vivos = M.vivos(e);
   if (f.em && typeof f.em.alvo === 'number' && !f.quem) { const js = jogsAlvo(e, f.em.alvo, ctx); if (js.length) return js; }
+  if (quemAlvo(f.quem)) return jogsAlvo(e, f.quem.alvo, ctx);
   switch (f.quem) {
     case undefined: case 'voce': return vivos.includes(ctx.voce) ? [ctx.voce] : [];
     case 'cadaOponente': return vivos.filter(j => j !== ctx.voce);
@@ -187,7 +190,12 @@ const H = {
   comprar: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) M.comprar(e, j, q); } },
   dano: {
     fx(e, f, ctx) {                                                 // CR 120
-      const q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
+      let q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
+      // dividir 'igual' (Fireball): cada alvo leva o piso de X ÷ alvos escolhidos ao conjurar (CR 601.2d); o que
+      // ficou ilegal não devolve a parte aos outros (CR 608.2b)
+      const ia = f.em && typeof f.em.alvo === 'number' ? f.em.alvo : -1, def = ia >= 0 && (ctx.defAlvos || [])[ia];
+      if (def && def.dividir === 'igual') q = Math.floor(q / Math.max(1, (ctx.alvos[ia] || []).length));
+      if (q <= 0) return;
       const fonte = fonteDado(e, ctx);
       let total = 0;
       for (const o of objsDe(e, f, ctx)) { danoEm(e, o, q, fonte); total += q; }
