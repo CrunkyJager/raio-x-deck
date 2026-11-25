@@ -1,0 +1,98 @@
+{
+ "bloco": "faces",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "pedido do Felipe via FARSEER: 2 cartas de cada forma (modal, duplaFace, aventura, split), escritas do Oracle",
+ "casos": [
+  {
+   "carta": "Bala Ged Recovery",
+   "situacao": "joga como terreno (face Bala Ged Sanctuary) no seu turno",
+   "espera": "conta como jogada de terreno; entra virada; {T}: G; não volta carta"
+  },
+  {
+   "carta": "Bala Ged Recovery",
+   "situacao": "conjura a frente por {2}{G} com criatura no cemitério",
+   "espera": "feitiço: a carta alvo do seu cemitério volta à mão; não usa a jogada de terreno"
+  },
+  {
+   "carta": "Valakut Awakening",
+   "situacao": "joga como terreno (face Valakut Stoneforge)",
+   "espera": "entra virada; {T}: R"
+  },
+  {
+   "carta": "Valakut Awakening",
+   "situacao": "conjura no fim do turno do oponente com 4 cartas na mão",
+   "espera": "põe as 4 no fundo e compra 5 (escrito: a mão toda ou nada)"
+  },
+  {
+   "carta": "Legion's Landing",
+   "situacao": "entra; depois você ataca com 2 criaturas",
+   "espera": "ficha Vampire 1/1 vínculo; com 2 atacantes não transforma"
+  },
+  {
+   "carta": "Legion's Landing",
+   "situacao": "ataca com 3 criaturas",
+   "espera": "transforma em Adanto, the First Fort (terreno lendário): {T}: W; {2}{W},{T}: ficha Vampire 1/1 vínculo"
+  },
+  {
+   "carta": "Search for Azcanta",
+   "situacao": "sua manutenção com 6 cartas no cemitério; vigia e põe a do topo no cemitério",
+   "espera": "agora 7: pode transformar em Azcanta, the Sunken Ruin"
+  },
+  {
+   "carta": "Search for Azcanta",
+   "situacao": "Azcanta, {2}{U},{T} com 4 do topo: 1 feitiço, 3 terrenos",
+   "espera": "pode revelar o feitiço e pôr na mão; as outras 3 vão para o fundo"
+  },
+  {
+   "carta": "Bonecrusher Giant",
+   "situacao": "conjura Stomp (aventura) mirando um oponente",
+   "espera": "2 de dano, dano não prevenível no turno; a carta vai para o EXÍLIO (não para o cemitério)"
+  },
+  {
+   "carta": "Bonecrusher Giant",
+   "situacao": "depois, conjura o Bonecrusher do exílio por {2}{R}",
+   "espera": "criatura 4/3 entra no campo; no cemitério só depois de morrer"
+  },
+  {
+   "carta": "Bonecrusher Giant",
+   "situacao": "oponente mira o Bonecrusher com Murder",
+   "espera": "Bonecrusher causa 2 ao controlador da Murder (e morre)"
+  },
+  {
+   "carta": "Beanstalk Giant",
+   "situacao": "conjura Fertile Footsteps (aventura) por {2}{G}",
+   "espera": "busca terreno básico para o campo (desvirado), embaralha; carta vai ao exílio"
+  },
+  {
+   "carta": "Beanstalk Giant",
+   "situacao": "conjura o gigante do exílio com 7 terrenos",
+   "espera": "entra 7/7 (P/R = seus terrenos)"
+  },
+  {
+   "carta": "Fire",
+   "situacao": "conjura Fire dividindo 1 e 1 em duas criaturas 1/1",
+   "espera": "as duas morrem; Ice não acontece"
+  },
+  {
+   "carta": "Fire",
+   "situacao": "conjura Ice (metade) num terreno do oponente",
+   "espera": "vira o terreno e você compra 1; custo {1}{U}"
+  },
+  {
+   "carta": "Wear",
+   "situacao": "conjura só Wear por {1}{R} num artefato",
+   "espera": "destrói o artefato"
+  },
+  {
+   "carta": "Wear",
+   "situacao": "conjura FUNDIDA (Wear + Tear) da mão por {1}{R}{W}",
+   "espera": "destrói o artefato e o encantamento alvos (escrito em falta: sem kw fundir)"
+  },
+  {
+   "carta": "Wear",
+   "situacao": "tenta fundir do cemitério (com flashback emprestado)",
+   "espera": "só uma metade: fundir é só da mão"
+  }
+ ]
+}
