@@ -422,3 +422,21 @@ Regra ≥3 ocorrências (somando os lotes anteriores). Correção 19 do esquema:
 - est `naoPerde` (afeta voce): Platinum Angel, Darksteel Angel + a que já estava.
 - filtro `tipo: ["escolhido"]` (tipo de carta) e `tipoEmComum: "lembrada"`: Cloud Key, Semblance Anvil, Braids, Cemetery Prowler.
 - Ficam em `falta`: desenterrar (2), infect (1; candidato forte, peso alto no Blightsteel), protótipo, tirar N marcadores como custo, mágica que mira o que é seu, gatilho reflexo "when you do".
+
+## Blocos 36/37 — deck de masmorras da Safana do Edigar (69 cartas fora do banco, 25/11)
+69 cartas escritas, 69 casos em banco/testes/bloco36.json e bloco37.json. Deck: no banco 81/81; motor joga 70/81 (travadas: Safana, Acererak, Alora, Demonic Gifts, Escape Tunnel, Fifty Feet of Rope, Imoen, Prosperous Thief, Replicating Ring, Slip Through Space, Withercrown). Atenção: "motor joga" conta só o que está escrito; o que está em `falta` (abaixo) não joga em nenhuma carta.
+**Formato das faltas novas:** string em `falta` começando com etiqueta fixa (dá para achar com `grep '\[iniciativa\]' banco/cartas/*.json`), o texto da carta e uma `(proposta: ...)`:
+- `[iniciativa]` tomar a iniciativa (proposta fx `{op: tomarIniciativa, quem: voce}`) e "if you have the initiative" (proposta cond `se: {temIniciativa: true}`): Safana, Aarakocra Sneak, Feywild Caretaker (2), Imoen, Passageway Seer (2), Ravenloft Adventurer, Rilsa Rael, Sarevok's Tome (2), Underdark Explorer.
+- `[masmorra]` venture into the dungeon (proposta fx `{op: aventurar, quem: voce}`): Acererak, Bar the Gate, Clattering Skeletons, Dungeon Descent, Fates' Reversal, Fifty Feet of Rope, Precipitous Drop, Secret Door, Shortcut Seeker, Yuan-Ti Fang-Blade, Zombie Ogre; Dungeon Delver (salas disparam 2×: proposta est `dobraGatilho` com ev `sala`).
+- `[completou]` "if you've completed a dungeon" (proposta cond `se: {completouMasmorra: true}`, com `nome` para Tomb of Annihilation) e gat `completaMasmorra`: Safana, Acererak, Imoen, Precipitous Drop, Ravenloft Adventurer, Rilsa Rael, Sarevok's Tome, Dungeon Crawler (gatilho).
+- `[infect]` (proposta kw `infectar`): Blackcleave Goblin, Blighted Agent, Contagious Nim, Core Prowler, Corpse Cur (+ filtro "com infect"), Necropede, Phyrexian Digester, Plague Myr, Plague Stinger — com o Blightsteel são 10.
+- Antecedente: `kw escolhaAntecedente` já existia (Safana, Alora, Imoen); os antecedentes (Candlekeep Sage, Dungeon Delver) são `est continuo` em `{tipo Creature, comandante, dono voce}` com `habil`.
+**Escrito sem falta:** veneno/toxic/poisonous como `marcador` no jogador `tipoMarc: "veneno"` (toxic = gat dano de combate em jogador → marcador em `doEvento`). Motor: precisa da regra dos 10 venenos (704.5c).
+
+| # | falta | cartas | proposta | decisão |
+|---|---|---|---|---|
+| 1 | iniciativa | 10 cartas (acima) | fx `tomarIniciativa` + cond `temIniciativa` | |
+| 2 | venture / masmorra | 12 cartas | fx `aventurar`; est `dobraGatilho` ev `sala` | |
+| 3 | completou masmorra | 8 cartas | cond `completouMasmorra` (+nome), gat `completaMasmorra` | |
+| 4 | infect | 9 + Blightsteel | kw `infectar` | |
+| 5 | o resto 1 cada | Dire Fleet Ravager (um terço da vida), Ashiok (oponentes não procuram), Knowledge Exploitation (prowl; buscar no grimório do oponente), Prosperous Thief (ninjutsu, 2ª ocorrência), Skull Raid (foretell; "fewer discarded"), Voidwing Hybrid (ev prolifera), Fifty Feet of Rope (não desvira sem virar) | deixar falta | |

@@ -1,0 +1,1 @@
+{"v":2,"n":"Feed the Serpent","id":"ad404b46-dee7-41bb-969d-35b4cbaadece","oracleHash":"1a411a15","custo":{"g":2,"p":["B","B"]},"vm":4,"ci":"B","cores":"B","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature","Planeswalker"],"zona":"campo"}}],"fx":[{"op":"exilar","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco36.json"}}

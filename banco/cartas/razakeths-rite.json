@@ -1,0 +1,1 @@
+{"v":2,"n":"Razaketh's Rite","id":"0ab0be8e-d6be-411b-827f-584bb5d03766","oracleHash":"e8e20b18","custo":{"g":3,"p":["B","B"]},"vm":5,"ci":"B","cores":"B","tipos":["Sorcery"],"kw":[{"k":"ciclar","custo":{"p":["B"]}}],"fx":[{"op":"buscar","f":{"tipo":["Card"]},"qtd":1,"para":"mao"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco37.json"}}

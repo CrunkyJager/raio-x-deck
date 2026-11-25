@@ -1,0 +1,1 @@
+{"v":2,"n":"Essence Scatter","id":"46665089-aa3d-44c3-964d-6638dfbb5782","oracleHash":"bc5e95a0","custo":{"g":1,"p":["U"]},"vm":2,"ci":"U","cores":"U","tipos":["Instant"],"alvos":[{"f":{"tipo":["Creature"],"zona":"pilha"}}],"fx":[{"op":"anular","em":{"alvo":0}}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco36.json"}}
