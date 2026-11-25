@@ -410,8 +410,15 @@ Regra ≥3 ocorrências (somando os lotes anteriores). Correção 18 do esquema:
 
 | # | falta | cartas | proposta | decisão |
 |---|---|---|---|---|
-| 1 | More Than Meets the Eye (conjurar já convertida) | Ultra Magnus, Arcee, Ratchet | kw `maisQueOlhos` com `custo`: conjura e entra com a face de trás (como `transformada` no mover) | |
-| 2 | "não pode perder o jogo / oponentes não podem ganhar" | Platinum Angel, Darksteel Angel (+ 1 que já estava como falta) | est `naoPerde` (afeta voce) | |
-| 3 | desenterrar | Salvation Colossus (pagar 8 energia) + Unearth {R} que já estava | kw `desenterrar` com `custo`/`pagar` | |
-| 4 | tipo de CARTA escolhido / em comum com a exilada | Cloud Key (escrito: artefato), Semblance Anvil (redução toda falta); junto da linha 9 (Braids, Cemetery Prowler) | filtro `tipo: ["escolhido"]` e `tipoEmComum: "lembrada"` | |
-| 5 | o resto 1 cada | infect (Blightsteel), protótipo (Cradle Clearcutter: só a 3/6), tirar N marcadores à escolha como custo (Arcee: escrito 1), mágica que mira o que é seu (Arcee Coupe), gatilho reflexo "when you do" (Ratchet: alvo junto do gatilho) | deixar falta | |
+| 1 | More Than Meets the Eye (conjurar já convertida) | Ultra Magnus, Arcee, Ratchet | kw `maisQueOlhos` com `custo`: conjura e entra com a face de trás (como `transformada` no mover) | **sim** (3) |
+| 2 | "não pode perder o jogo / oponentes não podem ganhar" | Platinum Angel, Darksteel Angel (+ 1 que já estava como falta) | est `naoPerde` (afeta voce) | **sim** (3) |
+| 3 | desenterrar | Salvation Colossus (pagar 8 energia) + Unearth {R} que já estava | kw `desenterrar` com `custo`/`pagar` | falta (2) |
+| 4 | tipo de CARTA escolhido / em comum com a exilada | Cloud Key (escrito: artefato), Semblance Anvil (redução toda falta); junto da linha 9 (Braids, Cemetery Prowler) | filtro `tipo: ["escolhido"]` e `tipoEmComum: "lembrada"` | **sim** (4) |
+| 5 | o resto 1 cada | infect (Blightsteel), protótipo (Cradle Clearcutter: só a 3/6), tirar N marcadores à escolha como custo (Arcee: escrito 1), mágica que mira o que é seu (Arcee Coupe), gatilho reflexo "when you do" (Ratchet: alvo junto do gatilho) | deixar falta | falta |
+
+## Decisões do lote dos blocos 34/35 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores). Correção 19 do esquema:
+- kw `maisQueOlhos` com `custo` (conjura já convertida): Ultra Magnus, Arcee, Ratchet.
+- est `naoPerde` (afeta voce): Platinum Angel, Darksteel Angel + a que já estava.
+- filtro `tipo: ["escolhido"]` (tipo de carta) e `tipoEmComum: "lembrada"`: Cloud Key, Semblance Anvil, Braids, Cemetery Prowler.
+- Ficam em `falta`: desenterrar (2), infect (1; candidato forte, peso alto no Blightsteel), protótipo, tirar N marcadores como custo, mágica que mira o que é seu, gatilho reflexo "when you do".
