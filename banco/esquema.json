@@ -775,7 +775,37 @@
      "description": "vida paga; contagem vale no momento de pagar (Bolas's Citadel: vmDoEvento)"
     },
     "exilarDe": {
-     "$ref": "#/$defs/zona"
+     "anyOf": [
+      {
+       "$ref": "#/$defs/zona"
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "zona"
+       ],
+       "properties": {
+        "zona": {
+         "$ref": "#/$defs/zona"
+        },
+        "f": {
+         "$ref": "#/$defs/filtro"
+        },
+        "qtd": {
+         "anyOf": [
+          {
+           "type": "integer"
+          },
+          {
+           "$ref": "#/$defs/qtd"
+          }
+         ]
+        }
+       }
+      }
+     ],
+     "description": "exilar como custo: só a zona (1 carta qualquer) ou {zona, f, qtd} (Drivnod: 3 criaturas do cemitério)"
     },
     "tirarMarcador": {
      "type": "object",
@@ -1568,6 +1598,10 @@
       "viraParaMana",
       "descarta"
      ]
+    },
+    "naoMorre": {
+     "type": "boolean",
+     "description": "com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)"
     },
     "quem": {
      "$ref": "#/$defs/filtro",
