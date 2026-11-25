@@ -9,9 +9,12 @@ const ctx = { console, document: { addEventListener: noop, dispatchEvent: noop, 
   setTimeout, CustomEvent: function () {}, scrollTo: noop, scrollY: 0, requestAnimationFrame: noop, addEventListener: noop };
 ctx.window = ctx; vm.createContext(ctx);
 for (const f of ['cards-db.js', 'forge-db.js', 'papeis-ia.js']) if (fs.existsSync(path.join(raiz, f))) vm.runInContext(fs.readFileSync(path.join(raiz, f), 'utf8'), ctx, { filename: f });
-// src/analise/analise.js é módulo ES sem import (T43 c): embrulhado aqui numa função, expõe as funções só na memória
-const AN = path.join(raiz, 'src', 'analise', 'analise.js');
-const corpo = fs.readFileSync(AN, 'utf8').replace(/^export \{\};.*$/m, '');
+// src/analise/analise.ts é módulo ES sem import (T43 d): o TypeScript tira os tipos (transpileModule), os export somem,
+// e o corpo é embrulhado aqui numa função que expõe as funções só na memória
+const AN = path.join(raiz, 'src', 'analise', 'analise.ts');
+const ts = require('typescript');
+const corpo = ts.transpileModule(fs.readFileSync(AN, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText
+  .replace(/^export \{\};.*$/mg, '').replace(/^export (interface|type|const|function|let) /mg, '$1 ');
 vm.runInContext('(function () {\n' + corpo + '\nwindow.__R = { planoDe, themesOf, C };\n})();', ctx, { filename: AN });
 const { planoDe, themesOf, C } = ctx.__R;
 
