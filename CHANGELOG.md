@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.12.0 — 25/11/2026 · banco com 661 cartas
+Testes: valida 661/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
+- **Banco (B):** bloco 11 (fila 501–550, 55 casos) e bloco 12 (551–600, 51 casos); correção 2 (13 casos): Urza, Chief Artificer dava ameaça a TODA criatura sua → `tipoTodos` (também Chief of the Foundry, Thopter Spy Network, Weaver of Harmony); Citadel, Bloodghast, Bloodchief, Circle of Power, Cornered, Cloud sem falta.
+- **Esquema:** custoAtv.vida com contagem, cond `vidaOponenteMax`, contas `maiorVidaPerdidaOpNoTurno` e `vmDoSacrificado`, `token.gat`, filtros `tipoTodos`, `comEquipamento` e `semMarcador`, custoAtv `porMarcador`, gat `aOponente`. O motor ainda não lê esses campos (fila do A).
+
 ## v0.11.0 — 25/11/2026 · banco com 561 cartas; montar.ts e casca Svelte
 Testes: valida 561/0 · check 0 erros · Vitest 148/148 · testa 161/161 · Stangg 26.5 / Krenko 29.5 / Lathril 7.0 / Edgar 36.0 · erros 0 · verifica verde · build ok.
 - **Banco (B):** bloco 10 (fila 451–500, 55 casos); correção Ashaya (est tipo Land + sub Forest) e Assemble the Entmoot (token X/X pela vida ganha no turno).
