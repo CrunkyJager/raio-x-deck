@@ -850,14 +850,15 @@
      }
     },
     "prod": {
-     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções",
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)",
      "oneOf": [
       {
        "enum": [
         "qualquer",
         "comandante",
         "refletida",
-        "escolhida"
+        "escolhida",
+        "deSeusTerrenos"
        ]
       },
       {

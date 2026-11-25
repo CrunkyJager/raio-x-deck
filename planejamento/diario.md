@@ -2,6 +2,7 @@
 
 Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A = RAIOX-A (T43), B = RAIOX-B (T20).
 
+- 25/11 · FARSEER · v0.4.0: B bloco 5 (583c7c0, 303 cartas); prod deSeusTerrenos; leituras confirmadas (Faerie Mastermind, Minas Tirith, Enlightened Tutor). Fila do A depois do (c): conferir no motor proliferar, alvoDe, dobraGatilho evs/causa, fabricar, est.podeJogar do cemitério, mana.so por subtipo, prod deSeusTerrenos.
 - 25/11 · FARSEER · v0.3.0: integracao = B 6b56c8c (correção + bloco 4 + Windfall/Belladonna) + A d82d443 (motor lê Fireball/Kolaghan); 253/0, Vitest 128/128.
 - 25/11 · FARSEER · v0.2.0 na main; push das tags falhou 1x por queda de rede, repetido ok.
 - 25/11 · FARSEER · v0.2.0: ramo `integracao`, tags, CHANGELOG, este diário (pedido do Felipe: "log do que está acontecendo, versões, branch para unir").

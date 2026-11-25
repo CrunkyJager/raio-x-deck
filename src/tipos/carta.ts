@@ -430,9 +430,9 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
    */
-  prod?: ('qualquer' | 'comandante' | 'refletida' | 'escolhida') | string[];
+  prod?: ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos') | string[];
   de?: RxZona;
   para?: RxZona;
   /**
