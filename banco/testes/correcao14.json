@@ -1,0 +1,23 @@
+{
+ "bloco": "correcao14",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "lote ganho de vida em substituição (3/0, FARSEER): subst ev ganhaVida só para o ganho; Angel of Vitality e Bilbo com soma 1, The Wind Crystal com mult 2",
+ "casos": [
+  {
+   "carta": "Angel of Vitality",
+   "situacao": "você ganha 2 de vida; depois perde 2",
+   "espera": "ganha 3; perde só 2"
+  },
+  {
+   "carta": "Bilbo, Birthday Celebrant",
+   "situacao": "você ganha 4 de vida; depois perde 3",
+   "espera": "ganha 5; perde só 3"
+  },
+  {
+   "carta": "The Wind Crystal",
+   "situacao": "você ganha 3 de vida; depois perde 3",
+   "espera": "ganha 6; perde só 3"
+  }
+ ]
+}

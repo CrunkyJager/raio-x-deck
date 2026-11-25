@@ -1152,7 +1152,20 @@ export interface RxEst {
  * substituição (CR 614): quando o evento ev for acontecer com quem, faz 'muda' ou 'emVez'
  */
 export interface RxSubst {
-  ev: 'entra' | 'ficha' | 'marcador' | 'morre' | 'vaiCemiterio' | 'dano' | 'compra' | 'anulada' | 'vidaMuda';
+  /**
+   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda
+   */
+  ev:
+    | 'entra'
+    | 'ficha'
+    | 'marcador'
+    | 'morre'
+    | 'vaiCemiterio'
+    | 'dano'
+    | 'compra'
+    | 'anulada'
+    | 'vidaMuda'
+    | 'ganhaVida';
   quem?: RxFiltro;
   muda?: {
     virada?: boolean;
