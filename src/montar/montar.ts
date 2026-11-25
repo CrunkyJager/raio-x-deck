@@ -1,51 +1,64 @@
 /* Raio-X do Deck: aba Montar — construtor de decks com busca na base, análise ao vivo e ida e volta com o Moxfield. */
 // T43 (c): era o montar.js (script clássico dentro de uma função anônima); virou módulo ES, carregado pelo src/main.ts.
-// Migração mecânica: só saiu o embrulho (o módulo já tem escopo próprio e modo estrito). Conversa com as outras
-// partes pelos mesmos window.* de antes até as telas virarem Svelte (passo d). Fica em JS checado pelo TypeScript
-// (checkJs, src/tsconfig.js.json); vira .ts quando for dividido em componentes no passo (d).
-const R = window.RAIOX;   // o src/main.ts só carrega o Montar se a Análise subiu (antes: if (!R) return)
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const { C, norm, rolesOf, isLand, canBeCommander, brl, manaHTML, ROLES, DB } = R;
+// T43 (d): virou montar.ts estrito, só com anotações de tipo (o JS que sai é o mesmo). Conversa com as outras partes
+// pelos mesmos window.* de antes até as telas virarem Svelte; o tipo do window.RAIOX vem do analise.ts (RaioX).
+import type { RaioX, Carta, Analise } from '../analise/analise';
+type Dic<T = any> = Record<string, T>;
+type Campo = HTMLInputElement;   // input, select ou textarea: aqui só se lê e escreve o value
+/** um deck salvo: comandantes, cartas (nome → cópias), alvo (bracket e orçamento) e o estado da montagem guiada */
+interface Deck { nome: string; cmds: string[]; cartas: Dic<number>; alvo: { br: string; teto: string; tetoCarta?: string }; t: number; passo?: number; ideia?: { texto: string; man: Dic<boolean> | null }; recusadas?: Dic<number> }
+/** D() sempre devolve o deck com passo, ideia e recusadas preenchidos */
+type DeckPronto = Deck & Required<Pick<Deck, 'passo' | 'ideia' | 'recusadas'>>;
+interface Salvos { atual: string | null; decks: Dic<Deck> }
+/** linha do índice da busca: nome, nome normalizado, nomes em português, tipo, identidade, valor de mana, posição, banida */
+interface Item { n: string; k: string; pt: string; t: string; ci: string; v: number; r: number; ban: boolean }
+const R: RaioX = window.RAIOX;   // o src/main.ts só carrega o Montar se a Análise subiu (antes: if (!R) return)
+// o código sempre supôs que o elemento existe: o tipo segue a mesma suposição (como no analise.ts)
+const $ = <T extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector(s) as T;
+const $$ = <T extends HTMLElement = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll(s)] as T[];
+const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => (<Dic<string>>{ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+// C(n) devolve null para nome fora da base; o Montar quase sempre pergunta por nome que veio da própria base, então o
+// tipo aqui é Carta (o código que já testava o null continua testando)
+const { C, norm, rolesOf, isLand, canBeCommander, brl, manaHTML, ROLES, DB } = R as Omit<RaioX, 'C'> & { C: (n: string) => Carta };
 
 // ---------- decks salvos (localStorage) ----------
 const KEY = 'raiox:montar';
-let S = (() => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } })() || { atual: null, decks: {} };
+let S: Salvos = (() => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } })() || { atual: null, decks: {} };
 const salva = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 const novoId = () => 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-function novoDeck(nome) { const id = novoId(); S.decks[id] = { nome: nome || 'Deck novo', cmds: [], cartas: {}, alvo: { br: '', teto: '' }, t: Date.now() }; S.atual = id; salva(); return S.decks[id]; }
-const D = () => { const d = S.decks[S.atual] || novoDeck(); if (!d.passo) d.passo = d.cmds.length ? (Object.keys(d.cartas).length ? 4 : 2) : 1; if (!d.ideia) d.ideia = { texto: '', man: null }; if (!d.recusadas) d.recusadas = {}; if (!d.alvo) d.alvo = { br: '', teto: '' }; return d; };
+function novoDeck(nome?: string) { const id = novoId(); S.decks[id] = { nome: nome || 'Deck novo', cmds: [], cartas: {}, alvo: { br: '', teto: '' }, t: Date.now() }; S.atual = id; salva(); return S.decks[id]; }
+const D = (): DeckPronto => { const d = S.decks[S.atual!] || novoDeck(); if (!d.passo) d.passo = d.cmds.length ? (Object.keys(d.cartas).length ? 4 : 2) : 1; if (!d.ideia) d.ideia = { texto: '', man: null }; if (!d.recusadas) d.recusadas = {}; if (!d.alvo) d.alvo = { br: '', teto: '' }; return d as DeckPronto; };
 const toque = () => { D().t = Date.now(); salva(); };
 
 // ---------- regras de cópia e identidade ----------
-const isBasic = (c) => /Basic/.test(c.t) && isLand(c);
-const multiOk = (c) => isBasic(c) || R.ANY_NUMBER.test(c.o || '');
+const isBasic = (c: Carta) => /Basic/.test(c.t) && isLand(c);
+const multiOk = (c: Carta) => isBasic(c) || R.ANY_NUMBER.test(c.o || '');
 const ident = () => new Set(D().cmds.map(n => (C(n) || {}).ci || '').join('').split('').filter(Boolean));
-const cabeCor = (c, I) => (c.ci || '').split('').every(x => !x || I.has(x));
-const temPar = (c) => /Partner|Choose a Background|Friends forever|Doctor's companion/.test(c.o || '') || /Background/.test(c.t);
+const cabeCor = (c: Carta, I: Set<string>) => (c.ci || '').split('').every(x => !x || I.has(x));
+const temPar = (c: Carta) => /Partner|Choose a Background|Friends forever|Doctor's companion/.test(c.o || '') || /Background/.test(c.t);
 const total = () => D().cmds.length + Object.values(D().cartas).reduce((s, q) => s + q, 0);
 
 // ---------- índice leve para a busca ----------
-let IX = null;
+let IX: Item[] | null = null;
 function indice() {
   if (IX) return IX;
-  const F = Object.fromEntries(DB.fields.map((f, i) => [f, i]));
-  const pt = {}; for (const [k, en] of Object.entries(R.PTIDX || {})) (pt[en] = pt[en] || []).push(k);
+  const F: Dic<number> = Object.fromEntries(DB.fields.map((f: string, i: number) => [f, i]));
+  const pt: Dic<string[]> = {}; for (const [k, en] of Object.entries<string>(R.PTIDX || {})) (pt[en] = pt[en] || []).push(k);
   IX = Object.keys(DB.cards).map(n => { const e = DB.cards[n]; return { n, k: norm(n), pt: (pt[n] || []).join(' '), t: e[F.t], ci: e[F.ci], v: e[F.v], r: e[F.r] || 1e6, ban: !!e[F.ban] }; });
   return IX;
 }
-const ROLEC = new Map();
-const papeis = (n) => { if (!ROLEC.has(n)) ROLEC.set(n, rolesOf(C(n))); return ROLEC.get(n); };
+const ROLEC = new Map<string, Set<string>>();
+const papeis = (n: string) => { if (!ROLEC.has(n)) ROLEC.set(n, rolesOf(C(n))); return ROLEC.get(n)!; };
 const TIPOS = [['', 'Todos os tipos'], ['Creature', 'Criatura'], ['Instant', 'Instantânea'], ['Sorcery', 'Feitiço'], ['Artifact', 'Artefato'], ['Enchantment', 'Encantamento'], ['Planeswalker', 'Planeswalker'], ['Land', 'Terreno'], ['Battle', 'Batalha']];
 const GRUPOS = [['Creature', 'Criaturas'], ['Planeswalker', 'Planeswalkers'], ['Instant', 'Instantâneas'], ['Sorcery', 'Feitiços'], ['Artifact', 'Artefatos'], ['Enchantment', 'Encantamentos'], ['Battle', 'Batalhas'], ['Land', 'Terrenos']];
-const grupoDe = (c) => { const f = c.t.split(' // ')[0]; if (/Land/.test(f)) return 'Land'; for (const [k] of GRUPOS) if (new RegExp(k).test(f)) return k; return 'Artifact'; };
-let Q = { txt: '', tipo: '', papel: '', cmc: '', cor: '', cmd: false, pag: 40 };
+const grupoDe = (c: Carta) => { const f = c.t.split(' // ')[0]; if (/Land/.test(f)) return 'Land'; for (const [k] of GRUPOS) if (new RegExp(k).test(f)) return k; return 'Artifact'; };
+let Q: { txt: string; tipo: string; papel: string; cmc: string; cor: string; cmd: boolean; pag: number; [k: string]: any } = { txt: '', tipo: '', papel: '', cmc: '', cor: '', cmd: false, pag: 40 };
 
 function busca() {
   const I = ident(), modoCmd = !D().cmds.length || Q.cmd;
   const q = norm(Q.txt), deck = D();
-  const out = [];
+  const out: Item[] = [];
   for (const x of indice()) {
     if (x.ban) continue;
     if (q && !x.k.includes(q) && !(x.pt && x.pt.includes(q))) continue;
@@ -60,7 +73,7 @@ function busca() {
     }
     out.push(x);
   }
-  out.sort((a, b) => (q ? (b.k.startsWith(q) - a.k.startsWith(q)) : 0) || a.r - b.r);
+  out.sort((a, b) => (q ? (<number><unknown>b.k.startsWith(q) - <number><unknown>a.k.startsWith(q)) : 0) || a.r - b.r);
   let res = out;
   if (!modoCmd && Q.papel) { res = []; for (const x of out) { if (papeis(x.n).has(Q.papel)) res.push(x); if (res.length >= Q.pag + 1) break; } }
   return { lista: res.slice(0, Q.pag), mais: res.length > Q.pag, modoCmd };
@@ -68,28 +81,28 @@ function busca() {
 
 // ---------- texto do deck (formato que o Moxfield, o Archidekt e a aba Lista entendem) ----------
 function texto(d = D()) {
-  const linhas = [];
+  const linhas: string[] = [];
   if (d.cmds.length) linhas.push('Commander', ...d.cmds.map(n => '1 ' + n), '', 'Deck');
   for (const [n, q] of Object.entries(d.cartas).sort((a, b) => a[0].localeCompare(b[0]))) linhas.push(q + ' ' + n);
   return linhas.join('\n');
 }
-function deTexto(txt, nome) {
+function deTexto(txt: string, nome?: string): { erro: string; d?: undefined; unknown?: undefined } | { erro?: undefined; d: Deck; unknown: string[] } {
   const p = R.parseList(txt); if (!p.cards.length) return { erro: 'Não reconheci nenhuma carta.' + (p.unknown.length ? ' Exemplos do que não achei: ' + p.unknown.slice(0, 5).join(', ') : '') };
   const cmds = R.guessCommanders(p);
-  const cartas = {}; const resto = p.cards.slice(); for (const c of cmds) { const i = resto.indexOf(c); if (i >= 0) resto.splice(i, 1); }
+  const cartas: Dic<number> = {}; const resto = p.cards.slice(); for (const c of cmds) { const i = resto.indexOf(c); if (i >= 0) resto.splice(i, 1); }
   for (const n of resto) cartas[n] = (cartas[n] || 0) + 1;
   const d = novoDeck(nome || (cmds[0] ? cmds[0].split(',')[0] : 'Deck importado')); d.cmds = cmds; d.cartas = cartas; salva();
   return { d, unknown: p.unknown };
 }
 
 // ---------- análise ao vivo ----------
-let A = null;
+let A: Analise | null = null;
 function analisa() { const d = D(); A = (d.cmds.length && total() > d.cmds.length) ? R.analyze(texto(d), d.cmds) : null; if (A && A.empty) A = null; }
-const LIM_GC = { 2: 0, 3: 3 };
+const LIM_GC: Dic<number> = { 2: 0, 3: 3 };
 
 // ---------- desenho ----------
 const ROOT = () => $('#montar');
-const cardBtn = (n) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</button>`;
+const cardBtn = (n: string) => `<button class="cn" data-card="${esc(n)}">${esc(n)}</button>`;
 function painelTopo() {
   const ids = Object.keys(S.decks).sort((a, b) => S.decks[b].t - S.decks[a].t);
   return `<section class="panel mt-topo"><h2>Montar deck</h2>
@@ -114,7 +127,7 @@ function painelTopo() {
     </details>
   </section>`;
 }
-const contar = (d) => d.cmds.length + Object.values(d.cartas).reduce((s, q) => s + q, 0);
+const contar = (d: Deck) => d.cmds.length + Object.values(d.cartas).reduce((s, q) => s + q, 0);
 
 function painelBusca() {
   const d = D(), I = ident(), r = busca();
@@ -133,7 +146,7 @@ function painelBusca() {
     return `<div class="mt-res ${q ? 'tem' : ''}"><span class="mt-mana">${manaHTML(c.m)}</span><span class="mt-rn">${cardBtn(x.n)}<small>${esc(c.t.split(' // ')[0])}${ps.length ? ' · ' + ps.map(esc).join(', ') : ''}${c.gc ? ' · <b class="mt-gc">game changer</b>' : ''}</small></span><span class="mt-pr">${c.usd ? brl(c.usd, c.usd < 10) : '—'}</span>
       ${r.modoCmd ? `<button class="btn small primary" data-cmd="${esc(x.n)}">Escolher</button>` : `<button class="btn small ${bloq ? '' : 'primary'}" data-add="${esc(x.n)}" ${bloq ? 'disabled title="Já está no deck (só 1 de cada)"' : ''}>${q ? (bloq ? 'no deck' : '+1 (' + q + ')') : '+ pôr'}</button>`}</div>`;
   }).join('');
-  const basicos = r.modoCmd ? '' : `<div class="mt-bas"><span class="note">Terrenos básicos:</span>${(cores.length ? cores : ['C']).map(x => { const n = { W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest', C: 'Wastes' }[x]; return `<button class="btn small" data-add="${n}"><span class="ms ${x === 'C' ? '' : x}">${x === 'C' ? 'C' : ''}</span> +1 ${n}${d.cartas[n] ? ` (${d.cartas[n]})` : ''}</button>`; }).join('')}</div>`;
+  const basicos = r.modoCmd ? '' : `<div class="mt-bas"><span class="note">Terrenos básicos:</span>${(cores.length ? cores : ['C']).map(x => { const n = (<Dic<string>>{ W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest', C: 'Wastes' })[x]; return `<button class="btn small" data-add="${n}"><span class="ms ${x === 'C' ? '' : x}">${x === 'C' ? 'C' : ''}</span> +1 ${n}${d.cartas[n] ? ` (${d.cartas[n]})` : ''}</button>`; }).join('')}</div>`;
   return `<section class="panel mt-busca"><h2>${titulo}</h2>
     ${d.cmds.length && !Q.cmd ? `<p class="note">Só aparecem cartas dentro da identidade de cor do comandante e fora da lista de banidas. Clique no nome para ver a carta.</p>` : `<p class="note">${d.cmds.length ? 'Só comandantes que aceitam parceiro.' : 'O comandante trava as cores do deck: depois só aparecem cartas que cabem nele.'} Busque em inglês${Object.keys(R.PTIDX || {}).length ? ' ou português' : ''}.</p>`}
     <input class="txt mt-q" id="mt-q" type="search" placeholder="${r.modoCmd ? 'Nome do comandante…' : 'Nome da carta…'}" value="${esc(Q.txt)}" autocomplete="off">
@@ -147,8 +160,8 @@ function painelBusca() {
 function painelDeck() {
   const d = D(), n = total();
   if (!d.cmds.length) return `<section class="panel mt-deck"><h2>O deck</h2><p class="note">Escolha o comandante ao lado para começar. Ou importe um deck pronto em <b>Importar um deck</b>, acima.</p></section>`;
-  const grupos = {}; for (const [nm, q] of Object.entries(d.cartas)) { const c = C(nm); if (!c) continue; (grupos[grupoDe(c)] = grupos[grupoDe(c)] || []).push([c, q]); }
-  const linha = (c, q) => `<div class="mt-li"><span class="mt-q2">${q}</span><span class="mt-mana">${manaHTML(c.m)}</span>${cardBtn(c.name)}<span class="mt-pr">${c.usd ? brl(c.usd * q, c.usd * q < 10) : ''}</span><span class="mt-bt"><button class="mt-mm" data-sub="${esc(c.name)}" aria-label="Tirar uma">−</button>${multiOk(c) ? `<button class="mt-mm" data-add="${esc(c.name)}" aria-label="Pôr mais uma">+</button>` : ''}</span></div>`;
+  const grupos: Dic<[Carta, number][]> = {}; for (const [nm, q] of Object.entries(d.cartas)) { const c = C(nm); if (!c) continue; (grupos[grupoDe(c)] = grupos[grupoDe(c)] || []).push([c, q]); }
+  const linha = (c: Carta, q: number) => `<div class="mt-li"><span class="mt-q2">${q}</span><span class="mt-mana">${manaHTML(c.m)}</span>${cardBtn(c.name)}<span class="mt-pr">${c.usd ? brl(c.usd * q, c.usd * q < 10) : ''}</span><span class="mt-bt"><button class="mt-mm" data-sub="${esc(c.name)}" aria-label="Tirar uma">−</button>${multiOk(c) ? `<button class="mt-mm" data-add="${esc(c.name)}" aria-label="Pôr mais uma">+</button>` : ''}</span></div>`;
   const cor = n === 100 ? 'ok' : n > 100 ? 'mais' : '';
   return `<section class="panel mt-deck"><h2>O deck</h2>
     <div class="mt-cont ${cor}"><b>${n}</b><span>/100 cartas</span><div class="prog"><div style="width:${Math.min(100, n)}%"></div></div><small>${n === 100 ? 'Completo.' : n < 100 ? `Faltam ${100 - n}.` : `Sobram ${n - 100}: tire ${n - 100}.`}</small></div>
@@ -171,7 +184,7 @@ function painelAnalise() {
   if (teto && reais > teto) avisos.push(`Passou do orçamento: ${R.brlTxt(A.price)} de ${R.brlTxt(teto / usdBrl)}.`);
   const regra = A.issues.filter(i => i.sev === 3 && !/exatamente 100/.test(i.t));
   const reguas = A.refs.map(r => {
-    const max = Math.max(r.hi * 1.35, r.have) + 1, x = (v) => (100 * v / max).toFixed(1) + '%';
+    const max = Math.max(r.hi * 1.35, r.have) + 1, x = (v: number) => (100 * v / max).toFixed(1) + '%';
     const dentro = r.have >= r.lo && r.have <= r.hi, falta = r.have < r.lo;
     const papel = r.k === 'lands' ? '' : r.k;
     return `<div class="rg"><span class="rg-n">${esc(r.n)}</span><span class="rg-t" title="Faixa comum: ${r.lo}–${r.hi}"><span class="rg-band" style="left:${x(r.lo)};width:calc(${x(r.hi)} - ${x(r.lo)})"></span><i class="rg-dep ${dentro ? '' : 'ruim'}" style="left:${x(r.have)}"></i></span><span class="rg-v">${r.have % 1 ? r.have.toFixed(1) : r.have} <small>/ ${r.lo}–${r.hi}</small>${falta ? ` <button class="btn small" data-papel="${papel}" data-tipo="${r.k === 'lands' ? 'Land' : ''}">buscar</button>` : ''}</span></div>`;
@@ -208,9 +221,9 @@ function painelSaida() {
   </section>`;
 }
 
-function desenha(soBusca) {
+function desenha(soBusca?: boolean) {
   const root = ROOT(); if (!root) return;
-  if (soBusca) { const y = window.scrollY; const b = $('.mt-busca', root); if (b) { const foco = document.activeElement && document.activeElement.id; const pos = foco === 'mt-q' ? (/** @type {any} */ (document.activeElement)).selectionStart : null; b.outerHTML = painelBusca(); liga(); G.liga(); if (foco) { const el = $('#' + foco); if (el) { el.focus(); if (pos != null && el.setSelectionRange) el.setSelectionRange(pos, pos); } } window.scrollTo(0, y); return; } }
+  if (soBusca) { const y = window.scrollY; const b = $('.mt-busca', root); if (b) { const foco = document.activeElement && document.activeElement.id; const pos = foco === 'mt-q' ? (document.activeElement as HTMLInputElement).selectionStart : null; b.outerHTML = painelBusca(); liga(); G.liga(); if (foco) { const el = $<HTMLInputElement>('#' + foco); if (el) { el.focus(); if (pos != null && el.setSelectionRange) el.setSelectionRange(pos, pos); } } window.scrollTo(0, y); return; } }
   const d = D(); if (!d.cmds.length && d.passo > 1) d.passo = 1;
   analisa();
   let corpo;
@@ -224,77 +237,77 @@ function desenha(soBusca) {
 // redesenha tudo, sem perder o lugar da tela nem o campo de busca
 function atualiza() { const y = window.scrollY; const lista = $('#mt-lista'); const ly = lista ? lista.scrollTop : 0; const foco = document.activeElement && document.activeElement.id; desenha(); window.scrollTo(0, y); const l2 = $('#mt-lista'); if (l2) l2.scrollTop = ly; if (foco === 'mt-q') $('#mt-q').focus(); }
 
-const msg = (t, id = 'mt-msg') => { const el = $('#' + id); if (el) el.textContent = t; };
-function poe(n) {
+const msg = (t: string, id = 'mt-msg') => { const el = $('#' + id); if (el) el.textContent = t; };
+function poe(n: string) {
   const c = C(n); if (!c) return; const d = D();
   if (d.cartas[n] && !multiOk(c)) return;
   d.cartas[n] = (d.cartas[n] || 0) + 1; toque(); atualiza();
 }
-let BT = null;
+let BT: any = null;
 function liga() {
   const root = ROOT(), d = D();
-  $('#mt-sel').onchange = (e) => { S.atual = e.target.value; salva(); Q.cmd = false; desenha(); };
-  $('#mt-nome').onchange = (e) => { d.nome = e.target.value.trim() || 'Deck sem nome'; toque(); desenha(); };
+  $('#mt-sel').onchange = (e) => { S.atual = (e.target as HTMLSelectElement).value; salva(); Q.cmd = false; desenha(); };
+  $('#mt-nome').onchange = (e) => { d.nome = (e.target as HTMLInputElement).value.trim() || 'Deck sem nome'; toque(); desenha(); };
   $('#mt-novo').onclick = () => { novoDeck(); Q = { ...Q, txt: '', cmd: false }; desenha(); $('#mt-q') && $('#mt-q').focus(); };
   $('#mt-dup').onclick = () => { const o = D(); const n = novoDeck(o.nome + ' (cópia)'); n.cmds = o.cmds.slice(); n.cartas = { ...o.cartas }; n.alvo = { ...o.alvo }; salva(); desenha(); };
-  $('#mt-del').onclick = () => { if (!confirmar('Apagar o deck "' + d.nome + '"?')) return; delete S.decks[S.atual]; S.atual = Object.keys(S.decks).sort((a, b) => S.decks[b].t - S.decks[a].t)[0] || null; if (!S.atual) novoDeck(); salva(); desenha(); };
+  $('#mt-del').onclick = () => { if (!confirmar('Apagar o deck "' + d.nome + '"?')) return; delete S.decks[S.atual!]; S.atual = Object.keys(S.decks).sort((a, b) => S.decks[b].t - S.decks[a].t)[0] || null; if (!S.atual) novoDeck(); salva(); desenha(); };
   // importar
-  $('#mt-imp-ok').onclick = () => { const r = deTexto($('#mt-imp-txt').value); if (r.erro) { msg(r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Importado: ${contar(r.d)} cartas${r.unknown.length ? `. Não reconheci ${r.unknown.length}: ${r.unknown.slice(0, 6).join(', ')}` : ''}.`, 'mt-imp-msg'); $('#mt-imp').open = true; };
-  $('#mt-imp-lista').onclick = () => { const t = ($('#deck-in') || {}).value || ''; const r = deTexto(t, 'Da aba Lista'); if (r.erro) { msg('A aba Lista está vazia. ' + r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Trazido da Lista: ${contar(r.d)} cartas.`, 'mt-imp-msg'); $('#mt-imp').open = true; };
-  $('#mt-imp-arch').onclick = () => archidekt($('#mt-imp-url').value);
+  $('#mt-imp-ok').onclick = () => { const r = deTexto($<Campo>('#mt-imp-txt').value); if (r.erro) { msg(r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Importado: ${contar(r.d!)} cartas${r.unknown!.length ? `. Não reconheci ${r.unknown!.length}: ${r.unknown!.slice(0, 6).join(', ')}` : ''}.`, 'mt-imp-msg'); $<HTMLDetailsElement>('#mt-imp').open = true; };
+  $('#mt-imp-lista').onclick = () => { const t = ($<Campo>('#deck-in') || <Campo>{}).value || ''; const r = deTexto(t, 'Da aba Lista'); if (r.erro) { msg('A aba Lista está vazia. ' + r.erro, 'mt-imp-msg'); return; } desenha(); msg(`Trazido da Lista: ${contar(r.d!)} cartas.`, 'mt-imp-msg'); $<HTMLDetailsElement>('#mt-imp').open = true; };
+  $('#mt-imp-arch').onclick = () => archidekt($<Campo>('#mt-imp-url').value);
   // busca
-  const q = $('#mt-q'); if (q) q.oninput = () => { Q.txt = q.value; Q.pag = 40; clearTimeout(BT); BT = setTimeout(() => desenha(true), 140); };
-  [['#mt-tipo', 'tipo'], ['#mt-papel', 'papel'], ['#mt-cmc', 'cmc']].forEach(([s, k]) => { const el = $(s); if (el) el.onchange = () => { Q[k] = el.value; Q.pag = 40; desenha(true); }; });
-  $$('[data-cor]', root).forEach(b => b.onclick = () => { Q.cor = b.dataset.cor; Q.pag = 40; desenha(true); });
+  const q = $<Campo>('#mt-q'); if (q) q.oninput = () => { Q.txt = q.value; Q.pag = 40; clearTimeout(BT); BT = setTimeout(() => desenha(true), 140); };
+  [['#mt-tipo', 'tipo'], ['#mt-papel', 'papel'], ['#mt-cmc', 'cmc']].forEach(([s, k]) => { const el = $<Campo>(s); if (el) el.onchange = () => { Q[k] = el.value; Q.pag = 40; desenha(true); }; });
+  $$('[data-cor]', root).forEach(b => b.onclick = () => { Q.cor = b.dataset.cor!; Q.pag = 40; desenha(true); });
   const mais = $('#mt-mais'); if (mais) mais.onclick = () => { Q.pag += 40; desenha(true); };
   const cx = $('#mt-cmd-x'); if (cx) cx.onclick = () => { Q.cmd = false; Q.txt = ''; desenha(); };
   const c2 = $('#mt-cmd2'); if (c2) c2.onclick = () => { Q.cmd = true; Q.txt = ''; desenha(); $('#mt-q').focus(); };
   const lp = $('#mt-limpa'); if (lp) lp.onclick = () => { if (!confirmar('Tirar todas as cartas (o comandante fica)?')) return; d.cartas = {}; toque(); atualiza(); };
   // análise
-  const br = $('#mt-br'); if (br) br.onchange = () => { d.alvo.br = br.value; toque(); atualiza(); };
-  const tt = $('#mt-teto'); if (tt) tt.onchange = () => { d.alvo.teto = tt.value.trim(); toque(); atualiza(); };
-  $$('[data-papel]', root).forEach(b => b.onclick = () => { Q = { ...Q, txt: '', papel: b.dataset.papel, tipo: b.dataset.tipo, cmc: '', cor: '', cmd: false, pag: 40 }; desenha(); const s = $('.mt-busca'); if (s) window.scrollTo(0, s.getBoundingClientRect().top + window.scrollY - 90); });
+  const br = $<Campo>('#mt-br'); if (br) br.onchange = () => { d.alvo.br = br.value; toque(); atualiza(); };
+  const tt = $<Campo>('#mt-teto'); if (tt) tt.onchange = () => { d.alvo.teto = tt.value.trim(); toque(); atualiza(); };
+  $$('[data-papel]', root).forEach(b => b.onclick = () => { Q = { ...Q, txt: '', papel: b.dataset.papel!, tipo: b.dataset.tipo!, cmc: '', cor: '', cmd: false, pag: 40 }; desenha(); const s = $('.mt-busca'); if (s) window.scrollTo(0, s.getBoundingClientRect().top + window.scrollY - 90); });
   // saída
   const cp = $('#mt-copia'); if (cp) cp.onclick = async () => { try { await navigator.clipboard.writeText(texto()); msg('Lista copiada. No Moxfield: Create Deck → Import → colar.'); } catch (e) { msg('Não deu para copiar daqui. Use "Baixar .txt".'); } };
   const bx = $('#mt-baixa'); if (bx) bx.onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([texto()], { type: 'text/plain' })); a.download = (d.nome || 'deck').replace(/[^\w\- ]+/g, '').trim() + '.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
-  const an = $('#mt-analisa'); if (an) an.onclick = () => { $('#deck-in').value = texto(); R.run(d.cmds.slice(), 'resumo'); };
+  const an = $('#mt-analisa'); if (an) an.onclick = () => { $<Campo>('#deck-in').value = texto(); R.run(d.cmds.slice(), 'resumo'); };
   const ms = $('#mt-mesa'); if (ms) ms.onclick = () => {
-    try { const k = 'raiox:amigos'; const am = JSON.parse(localStorage.getItem(k) || '[]').filter(a => a.nome !== d.nome); am.push({ nome: d.nome, lista: texto() }); localStorage.setItem(k, JSON.stringify(am)); } catch (e) {}
+    try { const k = 'raiox:amigos'; const am = JSON.parse(localStorage.getItem(k) || '[]').filter((a: { nome: string }) => a.nome !== d.nome); am.push({ nome: d.nome, lista: texto() }); localStorage.setItem(k, JSON.stringify(am)); } catch (e) {}
     msg(`"${d.nome}" entrou na Mesa simulada como deck de amigo. Para ele jogar como o seu deck, use "Analisar no Raio-X".`);
     document.dispatchEvent(new CustomEvent('raiox:amigos'));
   };
 }
-const confirmar = (t) => { try { return window.confirm(t); } catch (e) { return true; } };
+const confirmar = (t: string) => { try { return window.confirm(t); } catch (e) { return true; } };
 
 // =====================================================================
 // Construção guiada: 1 cores e comandante → 2 a ideia → 3 montar junto → 4 ajuste fino
 // =====================================================================
 const G = (() => {
   const ORDEM = 'WUBRG';
-  const ordena = (s) => [...new Set(String(s).split(''))].filter(x => ORDEM.includes(x)).sort((a, b) => ORDEM.indexOf(a) - ORDEM.indexOf(b)).join('');
-  const NOMES = {
+  const ordena = (s: string) => [...new Set(String(s).split(''))].filter(x => ORDEM.includes(x)).sort((a, b) => ORDEM.indexOf(a) - ORDEM.indexOf(b)).join('');
+  const NOMES: Dic<string> = {
     '': 'Incolor', W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde',
     WU: 'Azorius', UB: 'Dimir', BR: 'Rakdos', RG: 'Gruul', WG: 'Selesnya', WB: 'Orzhov', UR: 'Izzet', BG: 'Golgari', WR: 'Boros', UG: 'Simic',
     WUB: 'Esper', UBR: 'Grixis', BRG: 'Jund', WRG: 'Naya', WUG: 'Bant', WBG: 'Abzan', WUR: 'Jeskai', UBG: 'Sultai', WBR: 'Mardu', URG: 'Temur',
     WUBR: 'Sem verde (Yore-Tiller)', UBRG: 'Sem branco (Glint-Eye)', WBRG: 'Sem azul (Dune-Brood)', WURG: 'Sem preto (Ink-Treader)', WUBG: 'Sem vermelho (Witch-Maw)', WUBRG: 'Cinco cores',
   };
-  const nomeCores = (k) => k == null ? 'todas as cores' : (NOMES[ordena(k)] || ordena(k));
-  const pipsHTML = (k) => k == null ? ORDEM.split('').map(x => `<span class="ms ${x}"></span>`).join('') : k ? k.split('').map(x => `<span class="ms ${x}"></span>`).join('') : '<span class="ms">C</span>';
-  const temaNome = (k) => (R.THEMES.find(t => t.k === k) || {}).n || k;
+  const nomeCores = (k: string | null) => k == null ? 'todas as cores' : (NOMES[ordena(k)] || ordena(k));
+  const pipsHTML = (k: string | null) => k == null ? ORDEM.split('').map(x => `<span class="ms ${x}"></span>`).join('') : k ? k.split('').map(x => `<span class="ms ${x}"></span>`).join('') : '<span class="ms">C</span>';
+  const temaNome = (k: string) => (R.THEMES.find(t => t.k === k) || {}).n || k;
 
   // ---------- comandantes: perfil (temas e tribo) ----------
-  let TIPOS_CRI = null;
+  let TIPOS_CRI: Set<string> | null = null;
   function tiposCriatura() {
     if (TIPOS_CRI) return TIPOS_CRI;
-    const s = new Set();
+    const s = new Set<string>();
     for (const x of indice()) if (/Creature/.test(x.t)) for (const t of R.subtypes(C(x.n))) if (t.length > 2) s.add(t);
     TIPOS_CRI = s; return s;
   }
-  const PLURAL = { Elf: 'Elves', Dwarf: 'Dwarves', Wolf: 'Wolves', Werewolf: 'Werewolves', Fungus: 'Fungi', Sphinx: 'Sphinxes', Fox: 'Foxes', Ox: 'Oxen', Mouse: 'Mice', Octopus: 'Octopuses', Djinn: 'Djinn', Leech: 'Leeches', Witch: 'Witches', Lynx: 'Lynxes', Phoenix: 'Phoenixes', Thief: 'Thieves' };
-  function triboDe(c) {
+  const PLURAL: Dic<string> = { Elf: 'Elves', Dwarf: 'Dwarves', Wolf: 'Wolves', Werewolf: 'Werewolves', Fungus: 'Fungi', Sphinx: 'Sphinxes', Fox: 'Foxes', Ox: 'Oxen', Mouse: 'Mice', Octopus: 'Octopuses', Djinn: 'Djinn', Leech: 'Leeches', Witch: 'Witches', Lynx: 'Lynxes', Phoenix: 'Phoenixes', Thief: 'Thieves' };
+  function triboDe(c: Carta) {
     const o = (c.o || '').split('\n//\n')[0];
     const tipos = tiposCriatura();
-    const achou = [];
+    const achou: string[] = [];
     for (const t of tipos) {
       const pl = PLURAL[t] || t + 's';
       const rx = new RegExp(`\\b${pl}\\b|\\b(?:other|another) ${t}\\b|\\b${t} (?:spells?|cards?|creatures? you control|you control)\\b|\\bnon-?${t}\\b`);
@@ -304,14 +317,14 @@ const G = (() => {
     const proprios = R.subtypes(c);
     return achou.find(t => proprios.includes(t)) || achou[0];
   }
-  const PERF = new Map();
-  function perfil(n) {
-    if (PERF.has(n)) return PERF.get(n);
+  const PERF = new Map<string, { temas: string[]; tribo: string }>();
+  function perfil(n: string) {
+    if (PERF.has(n)) return PERF.get(n)!;
     const c = C(n);
     const p = { temas: [...R.themesOf(c)], tribo: triboDe(c) };
     PERF.set(n, p); return p;
   }
-  let CMDS = null;
+  let CMDS: { n: string; k: string; pt: string; ci: string; r: number; usd: number }[] | null = null;
   function comandantes() {
     if (CMDS) return CMDS;
     CMDS = indice().filter(x => !x.ban && canBeCommander(C(x.n))).map(x => ({ n: x.n, k: x.k, pt: x.pt, ci: ordena(x.ci || ''), r: x.r, usd: C(x.n).usd || 0 }));
@@ -319,13 +332,13 @@ const G = (() => {
   }
 
   // ---------- passo 1: cores e comandante ----------
-  let P1 = { cores: null, modo: 'exato', tema: '', txt: '', ord: 'pop', pag: 24 };
+  let P1: { cores: string | null; modo: string; tema: string; txt: string; ord: string; pag: number } = { cores: null, modo: 'exato', tema: '', txt: '', ord: 'pop', pag: 24 };
   function listaCmds() {
     const q = norm(P1.txt);
     let l = comandantes();
     if (q) l = l.filter(x => x.k.includes(q) || (x.pt && x.pt.includes(q)));
     else if (P1.cores !== null) {
-      const alvo = P1.cores;
+      const alvo: string = P1.cores;
       if (P1.modo === 'exato') l = l.filter(x => x.ci === alvo);
       else l = l.filter(x => x.ci.split('').every(c => alvo.includes(c)));
     }
@@ -381,14 +394,14 @@ const G = (() => {
   // a ideia também vale para a aba Trocas (mesma chave que a análise usa)
   function salvaConceito() {
     const d = D(); if (!d.cmds.length) return;
-    const on = temasIdeia(); const man = {}; for (const x of CONC()) man[x.k] = on.has(x.k);
+    const on = temasIdeia(); const man: Dic<boolean> = {}; for (const x of CONC()) man[x.k] = on.has(x.k);
     try {
       const k = 'raiox:conceito:' + d.cmds.join('+');
       const old = JSON.parse(localStorage.getItem(k) || '{}');
       localStorage.setItem(k, JSON.stringify(Object.assign(old, { text: d.ideia.texto || '', man, mode: old.mode || 'seguir', br: d.alvo.br || '', teto: d.alvo.teto || '', tetoCarta: d.alvo.tetoCarta || '' })));
     } catch (e) {}
   }
-  const BR_TX = { '': 'Sem limite: a ferramenta só sugere, não barra nada.', 2: 'Bracket 2 (casual): sem game changers, sem destruir terrenos em massa, sem turnos extras em sequência, poucos tutores.', 3: 'Bracket 3 (otimizado): até 3 game changers, sem destruir terrenos em massa, sem turnos extras em sequência.', 4: 'Bracket 4 (alto poder): vale tudo que não é banido.' };
+  const BR_TX: Dic<string> = { '': 'Sem limite: a ferramenta só sugere, não barra nada.', 2: 'Bracket 2 (casual): sem game changers, sem destruir terrenos em massa, sem turnos extras em sequência, poucos tutores.', 3: 'Bracket 3 (otimizado): até 3 game changers, sem destruir terrenos em massa, sem turnos extras em sequência.', 4: 'Bracket 4 (alto poder): vale tudo que não é banido.' };
   function painelIdeia() {
     const d = D(), on = temasIdeia(), tb = triboDeck();
     const cmd = d.cmds[0], ia = window.PAPEIS_IA && window.PAPEIS_IA[cmd];
@@ -418,8 +431,8 @@ const G = (() => {
   }
 
   // ---------- passo 3: montar junto ----------
-  const num = (v) => parseFloat(String(v || '').replace(/\./g, '').replace(',', '.')) || 0;
-  let POOL = null, POOLK = '';
+  const num = (v: unknown) => parseFloat(String(v || '').replace(/\./g, '').replace(',', '.')) || 0;
+  let POOL: Carta[] | null = null, POOLK = '';
   function pool() {
     const I = ident(), k = [...I].sort().join('');
     if (POOL && POOLK === k) return POOL;
@@ -433,11 +446,11 @@ const G = (() => {
     POOL.sort((a, b) => a.r - b.r);
     return POOL;
   }
-  const canBeCommanderOnly = (c) => /Background/.test(c.t) && !/Creature/.test(c.t); // antecedentes só como segundo comandante
-  const isLandC = (c) => isLand(c);
-  function encaixa(c, on, tb) {
+  const canBeCommanderOnly = (c: Carta) => /Background/.test(c.t) && !/Creature/.test(c.t); // antecedentes só como segundo comandante
+  const isLandC = (c: Carta) => isLand(c);
+  function encaixa(c: Carta, on: Set<string>, tb: string) {
     if (isLandC(c)) return [];
-    const out = [];
+    const out: string[] = [];
     for (const k of on) {
       if (k === 'tribe') { if (tb && (R.subtypes(c).includes(tb) || /Changeling/.test(c.o) || new RegExp('\\b' + tb + '|' + (PLURAL[tb] || tb + 's') + '\\b').test(c.o))) out.push(k); }
       else if (k === 'flying') { if (/Flying/.test(c.o)) out.push(k); }
@@ -445,29 +458,30 @@ const G = (() => {
     }
     return out;
   }
+  interface Meta { base: number[]; contraAzul: number; verde: number; azulCompra: number; tema: Dic<number[]>; tribo: Dic<number[]>; bracket: Dic<number[]>; barato: number[]; terrenos: { a: number; b: number; tema: Dic<number>; bracket: Dic<number>; barato: number } }
   // metas do Passo 3 calibradas nos decks médios do EDHREC (ferramentas/calibra, 382 decks: os 10 comandantes mais jogados de cada tema,
   // 3 de cada tribo, e 36 comandantes em cada bracket e no orçamento baixo). Ordem: ramp, compra, remoção, limpa-mesa, proteção, contramágica.
   // Tema/tribo/bracket/orçamento = diferença para a média geral (tema já sem o efeito da cor). Gerado por ferramentas/calibra/gera_meta.py.
-  const META = { base: [10,13.6,7.3,2.5,5.2,1.8], contraAzul: 3.7, verde: 2.1, azulCompra: 0.5,
+  const META: Meta = { base: [10,13.6,7.3,2.5,5.2,1.8], contraAzul: 3.7, verde: 2.1, azulCompra: 0.5,
     tema: { voltron: [-2,-3.6,-2.1,-0.6,9,-0.1], tokens: [-0.7,-2.6,0.5,-0.2,-1,0.5], counters: [-0.4,-0.7,-0.7,-0.3,1,-0.5], graveyard: [0.1,2,0.3,-0.2,-2.6,-0.4], artifacts: [2.4,1.6,-1.7,-0.6,-0.1,-0.1], enchant: [-0.9,0.8,1.2,-0.5,1.4,-1.5], spells: [1.1,7.3,1.8,-0.1,-2,1], sac: [-0.3,-3.2,1.9,1.3,-2.7,-0.3], life: [-0.9,-1.8,0.5,0.5,-2.1,0.1], lands: [2.8,-1.5,-2.4,-1.3,-2.2,-0.8], combat: [0.2,-4,0.9,0.1,2,0], draw: [0.1,10.9,-0.6,-0.3,-1.9,0.7], flying: [0.5,-2.2,-0,0.4,0.8,0.5], tribe: [-0.5,-1.1,0.5,0.3,0.3,0.2] },
     tribo: { Elf: [1.7,-1.1,0.7,-0.1,1.4,-0.9], Goblin: [-1.2,-0.7,1.4,-0.1,-1,-0.9], Zombie: [-1.2,-2.6,-0.8,1.4,-0.6,0.3], Dragon: [0.9,-2.1,1.2,0.3,-0.6,-0.4], Vampire: [-1,0.4,0.4,0.6,-1.1,-0.9], Merfolk: [-1.8,1.9,-1.3,0.8,0.4,2.6], Angel: [-0.7,-2.2,0.6,1.1,3.2,-0.9], Dinosaur: [-0.3,-0.1,1.7,0.1,0.4,-0.9], Wizard: [-0.3,0.4,1.4,0.6,-1.1,2.9], Human: [0.3,-0.4,1.4,-0.1,1.2,0.1], Sliver: [-0.8,-4.3,-1.1,-0.6,0.9,-0.4], Cat: [-1.6,-2.4,-0.1,-0.4,0.5,-0.9] },
     bracket: { 1: [-0.3,0.9,1.1,-0.2,-0.9,-0.5], 2: [-0.2,1.1,1,0.2,-0.6,-0.6], 3: [-0.1,0.1,0,0,0.1,-0.1], 4: [-1.1,-1.2,-1.2,0.1,0.8,0.6] },
     barato: [-0.1,2.2,2.4,-0,-1.7,-0.6],
     // terrenos = a + b × custo médio das mágicas (regressão nos decks médios) + a mais/a menos por tema, bracket e orçamento
     terrenos: { a: 31.53, b: 1.28, tema: { voltron: 0.1, tokens: -0.4, counters: 0.3, graveyard: 0.4, artifacts: -1, enchant: -0.2, spells: -0.7, sac: -0.6, life: -0.3, lands: 1.9, combat: -0.5, draw: 0.1, flying: -0.5, tribe: -0.2 }, bracket: { 1: 1, 2: 0.5, 3: 0.2, 4: -0.5 }, barato: 1 } };
-  window.RAIOX_METAS = (on, I, d, tb) => metas(on, I, d, tb); // para a análise usar as mesmas metas (teste: raiox:refsMeta)
-  const META_N = { voltron: 'Auras e equipamentos', tokens: 'Fichas', counters: 'Marcadores', graveyard: 'Cemitério', artifacts: 'Artefatos', enchant: 'Encantamentos', spells: 'Mágicas', sac: 'Sacrifício', life: 'Ganho de vida', lands: 'Landfall', combat: 'Ataque', draw: 'Comprar muitas', flying: 'Voar', tribe: 'Tribo' };
+  window.RAIOX_METAS = (on: Set<string>, I: Set<string>, d: Deck, tb: string) => metas(on, I, d, tb); // para a análise usar as mesmas metas (teste: raiox:refsMeta)
+  const META_N: Dic<string> = { voltron: 'Auras e equipamentos', tokens: 'Fichas', counters: 'Marcadores', graveyard: 'Cemitério', artifacts: 'Artefatos', enchant: 'Encantamentos', spells: 'Mágicas', sac: 'Sacrifício', life: 'Ganho de vida', lands: 'Landfall', combat: 'Ataque', draw: 'Comprar muitas', flying: 'Voar', tribe: 'Tribo' };
   // vários temas: média das diferenças dos temas marcados. Cada meta vem com a conta, para a tela mostrar.
-  function metas(on, I, d, tb) {
+  function metas(on: Set<string>, I: Set<string>, d: Deck, tb: string) {
     const ts = [...on].filter(t => META.tema[t]);
-    const dif = (t, i) => t === 'tribe' && META.tribo[tb] ? META.tribo[tb][i] : META.tema[t][i];
-    const nomeT = (t) => t === 'tribe' && tb ? 'tribo ' + tb + (META.tribo[tb] ? '' : ' (média das tribos)') : META_N[t];
+    const dif = (t: string, i: number) => t === 'tribe' && META.tribo[tb] ? META.tribo[tb][i] : META.tema[t][i];
+    const nomeT = (t: string) => t === 'tribe' && tb ? 'tribo ' + tb + (META.tribo[tb] ? '' : ' (média das tribos)') : META_N[t];
     const br = +d.alvo.br || 0, teto = num(d.alvo.teto), tetoC = num(d.alvo.tetoCarta);
     const barato = (teto && teto <= 1000) || (tetoC && tetoC <= 15) ? 1 : (teto && teto <= 2500) || (tetoC && tetoC <= 30) ? 0.5 : 0;
-    const out = {};
+    const out: Dic<{ alvo: number; conta: string }> & { lands?: { adj: number; conta: string } } = {};
     ['ramp', 'draw', 'removal', 'wipe', 'protect', 'counter'].forEach((k, i) => {
       if (k === 'counter' && !I.has('U')) return;
-      const partes = [];
+      const partes: [string, number][] = [];
       let x = k === 'counter' ? META.contraAzul : META.base[i];
       partes.push(['média geral', x]);
       if (ts.length) { const v = ts.reduce((s, t) => s + dif(t, i), 0) / ts.length; partes.push([ts.length > 1 ? 'temas ' + ts.map(nomeT).join(' + ') + ' (média)' : (ts[0] === 'tribe' ? '' : 'tema ') + nomeT(ts[0]), v]); }
@@ -476,26 +490,26 @@ const G = (() => {
       if (META.bracket[br]) partes.push(['bracket ' + br, META.bracket[br][i]]);
       if (barato) partes.push([barato === 1 ? 'orçamento baixo' : 'orçamento médio', META.barato[i] * barato]);
       const tot = partes.reduce((s, p) => s + p[1], 0);
-      const min = { ramp: 6, draw: 6, removal: 4, wipe: 1, protect: 2, counter: 1 }[k];
+      const min = (<Dic<number>>{ ramp: 6, draw: 6, removal: 4, wipe: 1, protect: 2, counter: 1 })[k];
       const alvo = Math.max(min, Math.round(tot));
-      const f = (v) => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1).replace('.', ',').replace(',0', '');
+      const f = (v: number) => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1).replace('.', ',').replace(',0', '');
       const conta = partes.filter((p, j) => j === 0 || Math.abs(p[1]) >= 0.05).map((p, j) => j === 0 ? `${p[0]} ${p[1].toFixed(1).replace('.', ',')}` : `${p[0]} ${f(p[1])}`).join(', ');
       out[k] = { alvo, conta: `decks médios do EDHREC: ${conta} = ${alvo}` };
     });
     // terrenos: a + b × custo médio (no estado()) + a mais/a menos por tema, bracket e orçamento
-    const TT = META.terrenos, pl = [];
+    const TT = META.terrenos, pl: [string, number][] = [];
     if (ts.length) { const v = ts.reduce((s, t) => s + (TT.tema[t] || 0), 0) / ts.length; if (Math.abs(v) >= 0.05) pl.push([ts.length > 1 ? 'temas ' + ts.map(nomeT).join(' + ') : (ts[0] === 'tribe' ? 'tribo' : 'tema ' + nomeT(ts[0])), v]); }
     if (TT.bracket[br]) pl.push(['bracket ' + br, TT.bracket[br]]);
     if (barato) pl.push([barato === 1 ? 'orçamento baixo' : 'orçamento médio', TT.barato * barato]);
-    const fT = (v) => (v > 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ',').replace(',0', '');
+    const fT = (v: number) => (v > 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ',').replace(',0', '');
     out.lands = { adj: pl.reduce((s, p) => s + p[1], 0), conta: pl.map(p => `${p[0]} ${fT(p[1])}`).join(', ') };
     return out;
   }
   function estado() {
     const d = D(), I = ident();
-    const cartas = Object.entries(d.cartas).map(([n, q]) => [C(n), q]).filter(([c]) => c);
+    const cartas = Object.entries(d.cartas).map(([n, q]) => <[Carta, number]>[C(n), q]).filter(([c]) => c);
     const on = temasIdeia(), tb = triboDeck();
-    const cnt = {}; let lands = 0, spells = 0, sv = 0, tema = 0, gc = d.cmds.filter(n => C(n).gc).length, tut = 0, usd = d.cmds.reduce((s, n) => s + (C(n).usd || 0), 0);
+    const cnt: Dic<number> = {}; let lands = 0, spells = 0, sv = 0, tema = 0, gc = d.cmds.filter(n => C(n).gc).length, tut = 0, usd = d.cmds.reduce((s, n) => s + (C(n).usd || 0), 0);
     for (const [c, q] of cartas) {
       usd += (c.usd || 0) * q;
       if (c.gc) gc++; if (R.isTutor(c)) tut++;
@@ -508,31 +522,31 @@ const G = (() => {
     const media = spells ? sv / spells : 3;
     // plano do comandante (o mesmo das trocas): o que adianta Nelly/Stangg/… entrar e atacar
     const cmdC = d.cmds.map(C).filter(Boolean), cth = new Set(on); cmdC.forEach(c => R.themesOf(c).forEach(t => cth.add(t)));
-    const AP = { cmds: cmdC, uniq: cartas.map(([c]) => c), cmdThemes: cth, tribe: tb ? [tb, 10] : null };
+    const AP = <Analise>{ cmds: cmdC, uniq: cartas.map(([c]) => c), cmdThemes: cth, tribe: tb ? [tb, 10] : null };
     AP.plano = R.planoDe ? R.planoDe(AP) : null;
     // terrenos pela fórmula do Karsten (pura e ajustada, lado a lado); com poucas mágicas ainda, a média fica em 3
-    const lista = []; for (const [c, q] of cartas) for (let j = 0; j < q; j++) lista.push(c);
-    const TF = R.terrenosFormula(lista, cmdC);
+    const lista: Carta[] = []; for (const [c, q] of cartas) for (let j = 0; j < q; j++) lista.push(c);
+    const TF: ReturnType<RaioX['terrenosFormula']> & { cedo?: boolean } = R.terrenosFormula(lista, cmdC);
     // no começo: média 3 e pelo menos 8 de compra/ramp baratos (as metas de 10 ramp e 10 compra ainda vão entrar)
     if (spells < 15) { TF.media = 3; TF.barato = Math.max(TF.barato, 8); TF.pura = 31.42 + 3.13 * 3 - 0.28 * TF.barato; TF.ajust = TF.pura + TF.ajustes.reduce((s, a) => s + a.v, 0); TF.cedo = true; }
     const M = metas(on, I, d, tb);
     const landsK = Math.max(30, Math.min(42, Math.round(TF.ajust))), landsPura = Math.max(30, Math.min(42, Math.round(TF.pura)));
     // meta = Karsten ajustada; o EDHREC (decks médios, com tema/bracket/orçamento) fica só para comparar
-    const landsT = landsK, baseT = META.terrenos.a + META.terrenos.b * TF.media, landsE = Math.max(30, Math.min(42, Math.round(baseT + M.lands.adj)));
-    const fD = (v) => v.toFixed(1).replace('.', ',').replace(',0', '');
-    const slots = [
+    const landsT = landsK, baseT = META.terrenos.a + META.terrenos.b * TF.media, landsE = Math.max(30, Math.min(42, Math.round(baseT + M.lands!.adj)));
+    const fD = (v: number) => v.toFixed(1).replace('.', ',').replace(',0', '');
+    const slots = <Slot[]>[
       { k: 'ramp', n: 'Ramp', why: 'mana extra cedo põe você um turno à frente da mesa' },
       { k: 'draw', n: 'Compra de cartas', why: 'em mesa de 4, quem fica sem cartas na mão perde' },
       { k: 'removal', n: 'Remoção pontual', why: 'responde ao comandante dos outros e às peças que viram o jogo' },
       { k: 'wipe', n: 'Limpa-mesa', why: 'salva você quando alguém dispara na frente' },
       { k: 'protect', n: 'Proteção', why: 'segura o plano quando tentam remover a peça principal' },
     ];
-    if (M.counter) slots.push({ k: 'counter', n: 'Contramágica', why: 'anula a jogada que ganharia o jogo' });
+    if (M.counter) slots.push(<Slot>{ k: 'counter', n: 'Contramágica', why: 'anula a jogada que ganharia o jogo' });
     for (const x of slots) { x.alvo = M[x.k].alvo; x.why += ` (meta pelos ${M[x.k].conta})`; }
     const soma = slots.reduce((s, x) => s + x.alvo, 0);
     const temaAlvo = on.size ? Math.max(12, 99 - (d.cmds.length - 1) - landsT - soma) : 0;
-    if (on.size) slots.push({ k: 'tema', n: 'Cartas da ideia', alvo: temaAlvo, why: 'é o que faz o deck ser o seu deck' });
-    slots.push({ k: 'lands', n: 'Terrenos', alvo: landsT, why: `pela fórmula do Frank Karsten (custo médio ${TF.media.toFixed(2).replace('.', ',')}${TF.cedo ? ', estimado até haver 15 mágicas' : ''}, ${TF.barato} de compra ou ramp até 2): ${landsPura} pura, ${landsK} com os ajustes${TF.ajustes.length ? '; ' + TF.ajustes.map(a => a.t).join('; ') : ''}. O Montar segue a ajustada. Para comparar, os decks médios do EDHREC jogam ${landsE} (${fD(META.terrenos.a)} + ${fD(META.terrenos.b)} × custo médio = ${fD(baseT)}${M.lands.conta ? `; ${M.lands.conta}` : ''})` });
+    if (on.size) slots.push(<Slot>{ k: 'tema', n: 'Cartas da ideia', alvo: temaAlvo, why: 'é o que faz o deck ser o seu deck' });
+    slots.push(<Slot>{ k: 'lands', n: 'Terrenos', alvo: landsT, why: `pela fórmula do Frank Karsten (custo médio ${TF.media.toFixed(2).replace('.', ',')}${TF.cedo ? ', estimado até haver 15 mágicas' : ''}, ${TF.barato} de compra ou ramp até 2): ${landsPura} pura, ${landsK} com os ajustes${TF.ajustes.length ? '; ' + TF.ajustes.map(a => a.t).join('; ') : ''}. O Montar segue a ajustada. Para comparar, os decks médios do EDHREC jogam ${landsE} (${fD(META.terrenos.a)} + ${fD(META.terrenos.b)} × custo médio = ${fD(baseT)}${M.lands!.conta ? `; ${M.lands!.conta}` : ''})` });
     for (const x of slots) x.tem = x.k === 'lands' ? lands : x.k === 'tema' ? tema : (cnt[x.k] || 0);
     const total = d.cmds.length + lands + spells;
     const vagasSpells = Math.max(0, 100 - d.cmds.length - landsT - spells);
@@ -542,17 +556,21 @@ const G = (() => {
     if (edh && !edh.pags.length) edh = null;
     return { d, I, on, tb, AP, edh, slots, lands, spells, total, usd, gc, tut, landsT, landsPura, TF, vagasSpells, media };
   }
+  type Estado = ReturnType<typeof estado>;
+  /** uma etapa do trilho do passo 3: meta (alvo) e quanto o deck já tem */
+  interface Slot { k: string; n: string; why: string; alvo: number; tem: number }
+  interface Sug { c: Carta; nota: number; fit: string[]; ps: Set<string> }
   let P3 = { slot: '', pag: 6 };
   const RAMP_OK = new Set(['pedra', 'dork', 'terreno', 'tesouro']);
-  const RAMP_BASE = { pedra: 1, terreno: 0.95, dork: 0.85, tesouro: 0.45 };
+  const RAMP_BASE: Dic<number> = { pedra: 1, terreno: 0.95, dork: 0.85, tesouro: 0.45 };
   // preço pesa sempre (a mesma função existe barata); com orçamento definido pesa o dobro
-  function pesoPreco(c, E) {
+  function pesoPreco(c: Carta, E: Estado) {
     const brlC = (c.usd || 0) * (R.usd || 5.56); if (brlC < 3) return 0;
     const capC = num(E.d.alvo.tetoCarta), teto = num(E.d.alvo.teto);
     const ref = capC || (teto ? Math.max(5, teto / 60) : 25);
     return (capC || teto ? 0.4 : 0.22) * Math.log2(1 + brlC / ref);
   }
-  function proximo(E) {
+  function proximo(E: Estado) {
     if (E.total >= 100) return null;
     const falta = E.slots.filter(x => x.tem < x.alvo);
     // feitiços primeiro (a curva decide os terrenos); terreno quando as mágicas já ocupam a vaga delas
@@ -562,7 +580,7 @@ const G = (() => {
     if (E.lands < E.landsT) return 'lands';
     return E.on.size ? 'tema' : 'mais';
   }
-  function cabeNivel(c, E) {
+  function cabeNivel(c: Carta, E: Estado) {
     const br = +E.d.alvo.br || 0;
     if (br) {
       if (br < 4 && c.tags.includes('mass-land-denial')) return false;
@@ -577,9 +595,9 @@ const G = (() => {
     if (teto) { const resto = Math.max(0, 100 - E.total - 1); if ((E.usd + (c.usd || 0) + resto * 0.25) * usdBrl > teto) return false; }
     return true;
   }
-  function sugestoes(k, E, n) {
-    const d = E.d, out = [];
-    const FUN = {}; for (const x of E.slots) if (x.k !== 'tema' && x.k !== 'lands') FUN[x.k] = x;
+  function sugestoes(k: string, E: Estado, n: number) {
+    const d = E.d, out: Sug[] = [];
+    const FUN: Dic<Slot> = {}; for (const x of E.slots) if (x.k !== 'tema' && x.k !== 'lands') FUN[x.k] = x;
     for (const c of pool()) {
       if (d.cartas[c.name] || d.cmds.includes(c.name) || d.recusadas[c.name]) continue;
       const land = isLandC(c);
@@ -624,9 +642,9 @@ const G = (() => {
     }
     return out.sort((a, b) => b.nota - a.nota).slice(0, n);
   }
-  function porque(s, k, E) {
-    const c = s.c, r = [];
-    const roleN = (x) => (ROLES.find(o => o.k === x) || {}).n;
+  function porque(s: Sug, k: string, E: Estado) {
+    const c = s.c, r: string[] = [];
+    const roleN = (x: string) => (ROLES.find(o => o.k === x) || {}).n;
     const fun = [...s.ps].filter(x => x !== 'body' && x !== 'enabler').map(roleN).filter(Boolean);
     if (fun.length && k !== 'lands') r.push('Faz: ' + fun.slice(0, 3).join(', ').toLowerCase());
     const P = E.AP.plano;
@@ -644,19 +662,19 @@ const G = (() => {
     r.push(`Popularidade: nº ${c.r.toLocaleString('pt-BR')} no Commander`);
     return r;
   }
-  function pipsDeck(d) {
-    const p = {}; for (const x of ident()) p[x] = 0;
+  function pipsDeck(d: Deck) {
+    const p: Dic<number> = {}; for (const x of ident()) p[x] = 0;
     for (const [n, q] of Object.entries(d.cartas)) { const c = C(n); if (!c || isLandC(c)) continue; ((c.m || '').split(' // ')[0].match(/\{[^}]+\}/g) || []).forEach(s => s.slice(1, -1).split('/').forEach(x => { if (x in p) p[x] += q; })); }
     for (const n of d.cmds) ((C(n).m || '').match(/\{[^}]+\}/g) || []).forEach(s => s.slice(1, -1).split('/').forEach(x => { if (x in p) p[x] += 2; }));
     return p;
   }
-  const BASICO = { W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest' };
-  function planoBasicos(E) {
+  const BASICO: Dic<string> = { W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest' };
+  function planoBasicos(E: Estado): [string, number][] {
     const falta = Math.min(E.landsT - E.lands, 100 - E.total); if (falta <= 0) return [];
     const cores = [...E.I]; if (!cores.length) return [['Wastes', falta]];
     const p = pipsDeck(E.d); const tot = cores.reduce((s, x) => s + p[x], 0) || cores.length;
-    const q = cores.map(x => [x, (p[x] || (tot === cores.length ? 1 : 0)) / tot * falta]);
-    const base = q.map(([x, v]) => [x, Math.floor(v)]); let sobra = falta - base.reduce((s, [, v]) => s + v, 0);
+    const q = cores.map(x => <[string, number]>[x, (p[x] || (tot === cores.length ? 1 : 0)) / tot * falta]);
+    const base = q.map(([x, v]) => <[string, number]>[x, Math.floor(v)]); let sobra = falta - base.reduce((s, [, v]) => s + v, 0);
     q.map(([x, v], i) => [i, v - Math.floor(v)]).sort((a, b) => b[1] - a[1]).forEach(([i]) => { if (sobra > 0) { base[i][1]++; sobra--; } });
     return base.filter(([, v]) => v > 0).map(([x, v]) => [BASICO[x], v]);
   }
@@ -672,7 +690,7 @@ const G = (() => {
     if (!k) {
       corpo = `<div class="g-fim"><h3>O deck chegou a ${E.total} cartas.</h3><p>${E.total > 100 ? `Passou ${E.total - 100}: no ajuste fino dá para ver o que tirar.` : 'Esqueleto completo. Agora é o ajuste fino: ver a análise, trocar uma ou outra carta e levar para o Moxfield ou para a mesa.'}</p><div class="row"><button class="btn primary" data-passo="4">Ir para o ajuste fino →</button></div></div>`;
     } else {
-      const slot = /** @type {any} */ (E.slots.find(x => x.k === k) || { n: 'Mais cartas', alvo: 0, tem: 0, why: 'o deck ainda tem vagas' });
+      const slot = <Slot>(E.slots.find(x => x.k === k) || { n: 'Mais cartas', alvo: 0, tem: 0, why: 'o deck ainda tem vagas' });
       let falta = Math.max(0, slot.alvo - slot.tem);
       const extra = !falta && k !== 'lands' && E.vagasSpells > 0; if (extra) falta = E.vagasSpells;
       const lista = sugestoes(k, E, P3.pag);
@@ -707,55 +725,54 @@ const G = (() => {
   // ---------- trilho dos passos ----------
   function passos() {
     const d = D(), tem = d.cmds.length > 0;
-    const P = [[1, 'Cores e comandante', 'palette'], [2, 'A ideia', 'lightbulb'], [3, 'Montar junto', 'handshake'], [4, 'Ajuste fino', 'tune']];
-    // @ts-ignore T43 (c): n vem da lista de passos (número)
+    const P = <[number, string, string][]>[[1, 'Cores e comandante', 'palette'], [2, 'A ideia', 'lightbulb'], [3, 'Montar junto', 'handshake'], [4, 'Ajuste fino', 'tune']];
     return `<nav class="g-passos" aria-label="Passos da montagem">${P.map(([n, t]) => `<button class="g-passo ${d.passo === n ? 'on' : ''} ${d.passo > n ? 'feito' : ''}" data-passo="${n}" ${n > 1 && !tem ? 'disabled title="Escolha o comandante primeiro"' : ''} aria-current="${d.passo === n ? 'step' : 'false'}"><b>${n}</b><span>${t}</span></button>`).join('<i class="g-seta" aria-hidden="true"></i>')}</nav>`;
   }
 
   // ---------- imagens (fila do analise.js; a mesma carta não espera de novo) ----------
   const JA = new Map();
-  function imagens(root) {
+  function imagens(root: ParentNode) {
     $$('[data-img]', root).forEach(el => {
       const n = el.dataset.img;
-      const pinta = (src) => { if (el.dataset.img === n) el.innerHTML = src ? `<img src="${src}" alt="${esc(n)}" loading="lazy">` : '<span class="note">sem imagem</span>'; };
+      const pinta = (src: string | null) => { if (el.dataset.img === n) el.innerHTML = src ? `<img src="${src}" alt="${esc(n)}" loading="lazy">` : '<span class="note">sem imagem</span>'; };
       if (JA.has(n)) { pinta(JA.get(n)); return; }
-      R.imgFor(n).then(src => { JA.set(n, src); pinta(src); });
+      R.imgFor(n!).then(src => { JA.set(n, src); pinta(src); });
     });
   }
 
   function liga() {
     const root = ROOT(), d = D();
-    $$('[data-passo]', root).forEach(b => b.onclick = () => { const n = +b.dataset.passo; if (n > 1 && !d.cmds.length) return; if (d.passo === 2) salvaConceito(); d.passo = n; P3.slot = ''; P3.pag = 6; toque(); desenha(); const t = $('.g-passos'); if (t) window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY - 80); });
+    $$('[data-passo]', root).forEach(b => b.onclick = () => { const n = +b.dataset.passo!; if (n > 1 && !d.cmds.length) return; if (d.passo === 2) salvaConceito(); d.passo = n; P3.slot = ''; P3.pag = 6; toque(); desenha(); const t = $('.g-passos'); if (t) window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY - 80); });
     // passo 1
-    $$('[data-c1]', root).forEach(b => b.onclick = () => { const x = b.dataset.c1; if (x === 'C') { P1.cores = ''; P1.modo = 'exato'; } else { const b0 = P1.cores || ''; P1.cores = ordena(b0.includes(x) ? b0.replace(x, '') : b0 + x) || null; } P1.txt = ''; P1.pag = 24; desenha(); });
-    $$('input[name="g-modo"]', root).forEach(r => r.onchange = () => { P1.modo = r.value; P1.pag = 24; desenha(); });
-    const tm = $('#g-tema'); if (tm) tm.onchange = () => { P1.tema = tm.value; P1.pag = 24; desenha(); };
-    const od = $('#g-ord'); if (od) od.onchange = () => { P1.ord = od.value; desenha(); };
-    const q1 = $('#g-q1'); if (q1) q1.oninput = () => { P1.txt = q1.value; P1.pag = 24; clearTimeout(BT); BT = setTimeout(() => { desenha(); const e = $('#g-q1'); if (e) { e.focus(); e.setSelectionRange(e.value.length, e.value.length); } }, 220); };
+    $$('[data-c1]', root).forEach(b => b.onclick = () => { const x = b.dataset.c1!; if (x === 'C') { P1.cores = ''; P1.modo = 'exato'; } else { const b0 = P1.cores || ''; P1.cores = ordena(b0.includes(x) ? b0.replace(x, '') : b0 + x) || null; } P1.txt = ''; P1.pag = 24; desenha(); });
+    $$('input[name="g-modo"]', root).forEach(r => r.onchange = () => { P1.modo = (r as Campo).value; P1.pag = 24; desenha(); });
+    const tm = $<Campo>('#g-tema'); if (tm) tm.onchange = () => { P1.tema = tm.value; P1.pag = 24; desenha(); };
+    const od = $<Campo>('#g-ord'); if (od) od.onchange = () => { P1.ord = od.value; desenha(); };
+    const q1 = $<Campo>('#g-q1'); if (q1) q1.oninput = () => { P1.txt = q1.value; P1.pag = 24; clearTimeout(BT); BT = setTimeout(() => { desenha(); const e = $<Campo>('#g-q1'); if (e) { e.focus(); e.setSelectionRange(e.value.length, e.value.length); } }, 220); };
     const m1 = $('#g-mais1'); if (m1) m1.onclick = () => { P1.pag += 24; atualiza(); };
     // passo 2
-    const tx = $('#g-txt'); if (tx) tx.oninput = () => { d.ideia.texto = tx.value; toque(); const on = temasIdeia(); $$('[data-g2]', root).forEach(b => { b.classList.toggle('on', on.has(b.dataset.g2)); b.setAttribute('aria-pressed', on.has(b.dataset.g2)); }); salvaConceito(); };
-    $$('[data-g2]', root).forEach(b => b.onclick = () => { const k = b.dataset.g2; const agora = !b.classList.contains('on'); d.ideia.man[k] = agora; toque(); salvaConceito(); b.classList.toggle('on', agora); b.setAttribute('aria-pressed', agora); });
-    const br = $('#g-br'); if (br) br.onchange = () => { d.alvo.br = br.value; toque(); salvaConceito(); $('#g-brtx').textContent = BR_TX[br.value || '']; };
-    [['#g-teto', 'teto'], ['#g-tetoc', 'tetoCarta']].forEach(([s, k]) => { const el = $(s); if (el) el.onchange = () => { d.alvo[k] = el.value.trim(); toque(); salvaConceito(); }; });
+    const tx = $<Campo>('#g-txt'); if (tx) tx.oninput = () => { d.ideia.texto = tx.value; toque(); const on = temasIdeia(); $$('[data-g2]', root).forEach(b => { b.classList.toggle('on', on.has(b.dataset.g2!)); b.setAttribute('aria-pressed', <string><unknown>on.has(b.dataset.g2!)); }); salvaConceito(); };
+    $$('[data-g2]', root).forEach(b => b.onclick = () => { const k = b.dataset.g2!; const agora = !b.classList.contains('on'); d.ideia.man![k] = agora; toque(); salvaConceito(); b.classList.toggle('on', agora); b.setAttribute('aria-pressed', <string><unknown>agora); });
+    const br = $<Campo>('#g-br'); if (br) br.onchange = () => { d.alvo.br = br.value; toque(); salvaConceito(); $('#g-brtx').textContent = BR_TX[br.value || '']; };
+    [['#g-teto', 'teto'], ['#g-tetoc', 'tetoCarta']].forEach(([s, k]) => { const el = $<Campo>(s); if (el) el.onchange = () => { (<Dic<string>>d.alvo)[k] = el.value.trim(); toque(); salvaConceito(); }; });
     const pr = $('#g-par'); if (pr) pr.onclick = () => { d.passo = 4; Q.cmd = true; Q.txt = ''; toque(); desenha(); };
     const tc = $('#g-troca'); if (tc) tc.onclick = () => { if (Object.keys(d.cartas).length && !confirmar('Trocar de comandante? As cartas que não couberem nas cores novas vão ficar marcadas.')) return; d.cmds = []; d.passo = 1; d.ideia = { texto: '', man: null }; toque(); desenha(); };
     // passo 3
-    $$('[data-slot]', root).forEach(b => b.onclick = () => { P3.slot = b.dataset.slot; P3.pag = 6; desenha(); });
-    const todas = $('#g-todas'); if (todas) todas.onclick = () => { const ns = $$('[data-aceita]', root).map(b => b.dataset.aceita); const E = estado(); const kk = P3.slot || proximo(E); const slot = E.slots.find(x => x.k === kk); const falta = (slot ? Math.max(0, slot.alvo - slot.tem) : 0) || (kk !== 'lands' ? E.vagasSpells : 0) || ns.length; ns.slice(0, falta || ns.length).forEach(n => { if (!d.cartas[n]) d.cartas[n] = 1; }); toque(); atualiza(); };
+    $$('[data-slot]', root).forEach(b => b.onclick = () => { P3.slot = b.dataset.slot!; P3.pag = 6; desenha(); });
+    const todas = $('#g-todas'); if (todas) todas.onclick = () => { const ns = $$('[data-aceita]', root).map(b => b.dataset.aceita!); const E = estado(); const kk = P3.slot || proximo(E); const slot = E.slots.find(x => x.k === kk); const falta = (slot ? Math.max(0, slot.alvo - slot.tem) : 0) || (kk !== 'lands' ? E.vagasSpells : 0) || ns.length; ns.slice(0, falta || ns.length).forEach(n => { if (!d.cartas[n]) d.cartas[n] = 1; }); toque(); atualiza(); };
     const m3 = $('#g-mais3'); if (m3) m3.onclick = () => { P3.pag += 6; atualiza(); };
     const dr = $('#g-desrec'); if (dr) dr.onclick = () => { d.recusadas = {}; toque(); atualiza(); };
     const au = $('#g-auto'); if (au) au.onclick = () => { P3.slot = ''; P3.pag = 6; atualiza(); };
     const gb = $('#g-bas'); if (gb) gb.onclick = () => { for (const [n, q] of planoBasicos(estado())) d.cartas[n] = (d.cartas[n] || 0) + q; toque(); atualiza(); };
-    $$('[data-aceita]', root).forEach(b => b.onclick = () => { const n = b.dataset.aceita; if (!d.cartas[n]) d.cartas[n] = 1; toque(); atualiza(); });
-    $$('[data-nao]', root).forEach(b => b.onclick = () => { d.recusadas[b.dataset.nao] = 1; toque(); atualiza(); });
+    $$('[data-aceita]', root).forEach(b => b.onclick = () => { const n = b.dataset.aceita!; if (!d.cartas[n]) d.cartas[n] = 1; toque(); atualiza(); });
+    $$('[data-nao]', root).forEach(b => b.onclick = () => { d.recusadas[b.dataset.nao!] = 1; toque(); atualiza(); });
   }
   return { painelCores, painelIdeia, painelJunto, passos, liga, imagens, perfil, estado, sugestoes, porque, nomeCores, salvaConceito };
 })();
 window.RAIOX_GUIADO = G;
 
 // cliques nas listas (um só ouvinte para a tela toda)
-document.addEventListener('click', (/** @type {any} */ e) => {
+document.addEventListener('click', (e: any) => {
   const root = ROOT(); if (!root || !root.contains(e.target)) return;
   const b = e.target.closest('[data-add],[data-sub],[data-cmd],[data-uncmd]'); if (!b || b.disabled) return;
   const d = D();
@@ -771,7 +788,7 @@ document.addEventListener('click', (/** @type {any} */ e) => {
 });
 
 // Archidekt: API pública de leitura (archidekt.com/api/decks/ID/)
-async function archidekt(url) {
+async function archidekt(url: string) {
   const m = String(url || '').match(/archidekt\.com\/(?:api\/)?decks\/(\d+)/i) || String(url || '').match(/^\s*(\d{3,})\s*$/);
   if (!m) { msg('Não achei o número do deck no link. Exemplo: https://archidekt.com/decks/123456/meu_deck', 'mt-imp-msg'); return; }
   msg('Buscando no Archidekt…', 'mt-imp-msg');
@@ -779,7 +796,7 @@ async function archidekt(url) {
     const r = await fetch(`https://archidekt.com/api/decks/${m[1]}/`, { headers: { Accept: 'application/json' } });
     if (!r.ok) throw new Error(r.status === 404 ? 'deck não encontrado (é público?)' : 'resposta ' + r.status);
     const j = await r.json();
-    const fora = new Set((j.categories || []).filter(c => c.includedInDeck === false).map(c => c.name));
+    const fora = new Set((j.categories || []).filter((c: any) => c.includedInDeck === false).map((c: any) => c.name));
     const cmds = [], linhas = [];
     for (const it of j.cards || []) {
       const cats = it.categories || []; const nome = it.card && (it.card.oracleCard && it.card.oracleCard.name || it.card.name); if (!nome) continue;
@@ -789,7 +806,7 @@ async function archidekt(url) {
     const t = (cmds.length ? 'Commander\n' + cmds.join('\n') + '\n\nDeck\n' : '') + linhas.join('\n');
     const res = deTexto(t, j.name);
     if (res.erro) { msg(res.erro, 'mt-imp-msg'); return; }
-    desenha(); msg(`Importado do Archidekt: "${res.d.nome}", ${contar(res.d)} cartas${res.unknown.length ? `. Não reconheci ${res.unknown.length}: ${res.unknown.slice(0, 6).join(', ')}` : ''}.`, 'mt-imp-msg'); $('#mt-imp').open = true;
+    desenha(); msg(`Importado do Archidekt: "${res.d!.nome}", ${contar(res.d!)} cartas${res.unknown!.length ? `. Não reconheci ${res.unknown!.length}: ${res.unknown!.slice(0, 6).join(', ')}` : ''}.`, 'mt-imp-msg'); $<HTMLDetailsElement>('#mt-imp').open = true;
   } catch (e) {
     // o Archidekt só libera a API para o site dele (CORS; conferido em 19/11/2026): de uma página estática não dá
     const el = $('#mt-imp-msg');
@@ -798,8 +815,8 @@ async function archidekt(url) {
 }
 
 // a tela só é desenhada quando aberta (a base de cartas é grande)
-function abre(t) { if (t !== 'montar') return; if (!S.atual || !S.decks[S.atual]) { const ids = Object.keys(S.decks); S.atual = ids[0] || null; if (!S.atual) novoDeck(); } desenha(); }
-document.addEventListener('raiox:tela', (/** @type {any} */ e) => abre(e.detail));
+function abre(t: string) { if (t !== 'montar') return; if (!S.atual || !S.decks[S.atual]) { const ids = Object.keys(S.decks); S.atual = ids[0] || null; if (!S.atual) novoDeck(); } desenha(); }
+document.addEventListener('raiox:tela', (e: any) => abre(e.detail));
 if (location.hash === '#montar') { ROOT() && (ROOT().hidden = false); abre('montar'); }
 window.RAIOX_MONTAR = { texto: () => texto(), get deck() { return D(); }, deTexto };
 export {};   // é módulo (escopo próprio), não script global

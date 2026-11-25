@@ -12,7 +12,7 @@ async function sobe(nome: string, carrega: () => Promise<unknown>) {
 
 await sobe('análise', () => import('./analise/analise'));
 await sobe('mesa', () => import('./mesa/mesa-ui.js'));
-if (window.RAIOX) await sobe('montar', () => import('./montar/montar.js'));   // antes: if (!R) return; no começo do montar.js
+if (window.RAIOX) await sobe('montar', () => import('./montar/montar'));   // antes: if (!R) return; no começo do montar.js
 
 const alvo = document.getElementById('rx-app');
 if (alvo) mount(App, { target: alvo });
