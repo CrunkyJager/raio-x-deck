@@ -164,6 +164,13 @@ M.pagarDaReserva = (reserva, custo, { x = 0, vidaDisp = 0 }: any = {}) => {
 };
 
 // imposto do comandante (CR 903.8): +{2} por vez que já foi conjurado da zona de comando
+// custo + vezes × extra (só a parte de mana: genérico g e símbolos p)
+M.somaCusto = (c, extra, vezes = 1) => {
+  const r = { ...c };
+  if (extra.g) r.g = (r.g || 0) + extra.g * vezes;
+  if (extra.p && extra.p.length) r.p = [...(r.p || []), ...Array.from({ length: vezes }, () => extra.p).flat()];
+  return r;
+};
 M.custoComImposto = (e, o) => {
   const c = { ...(M.dadoDe(e, o).custo || {}) };
   if (o.cmd && o.zona === 'comando') c.g = (c.g || 0) + 2 * (e.jogs[o.dono].imposto[o.id] || 0);

@@ -459,6 +459,23 @@ caso('107.3', 'Fireball: escolhe X, paga X+{R}, causa X', () => {
   respE(e, o => o.v === 3); alvoJog(e, 1);
   igual(e.jogs[1].vida, 37); ok(e.campo.every(id => e.objs[id].virada));
 });
+caso('601.2f', 'Fireball em 2 alvos: {1} a mais por alvo além do primeiro; X dividido igual, para baixo (601.2d)', () => {
+  const e = cena({ jogs: 3, campo: enche(6, 'Mountain').map(n => [0, n]), mao: [[0, 'Fireball']] });
+  M.avancar(e); conj(e, 'Fireball');
+  respE(e, o => o.v === 3); alvoJog(e, 1); alvoJog(e, 2);
+  if (e.perg && e.perg.tipo === 'alvo') respE(e, o => o.a === 'pronto');
+  igual([e.jogs[1].vida, e.jogs[2].vida], [39, 39]);                       // 3 ÷ 2 = 1 cada
+  igual(e.campo.filter(id => e.objs[id].virada).length, 5);               // X=3 + {R} + {1} do 2º alvo
+});
+caso('700.2', 'Kolaghan\'s Command: o modo "jogador-alvo descarta" pede o alvo e quem descarta é ele', () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, "Kolaghan's Command"], [1, 'Forest']] });
+  M.avancar(e); conj(e, "Kolaghan's Command");
+  respE(e, o => o.a === 'modo' && o.m === 1);
+  if (e.perg.tipo === 'modo') respE(e, o => o.a === 'modo' && o.m === 3);   // único que sobra: o núcleo pode não perguntar
+  alvoJog(e, 1); alvoJog(e, 1);
+  if (e.perg && e.perg.tipo === 'descartar') respE(e, () => true);
+  igual(naZona(e, 1, 'cemiterio'), ['Forest']); igual(e.jogs[1].vida, 38);
+});
 caso('602.2', 'habilidade ativada usa a pilha; {T} de criatura doente não (302.6)', () => {
   const e = cena({ campo: [[0, 'Prodigal Pyromancer', { doente: true }]] });
   igual(M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar').length, 0);

@@ -165,6 +165,8 @@ export type RxQtd =
             | 'maoDoEvento'
             | 'vidaPerdidaOpsNoTurno'
             | 'vidaPerdidaNoTurno'
+            | 'maiorDescarte'
+            | 'resolucoesDestaHabNoTurno'
           );
       mult?: number;
       soma?: number;
