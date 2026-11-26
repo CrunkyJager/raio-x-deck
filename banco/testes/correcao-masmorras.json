@@ -1,0 +1,243 @@
+{
+ "bloco": "correcao-masmorras",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "reescrita das cartas com [iniciativa]/[masmorra]/[completou]/[infect] pelos campos aceitos em 737b085: fx tomarIniciativa e aventurar, cond temIniciativa e completouMasmorra (false = não completou, como monarca:false do Court of Grace), gat ev completaMasmorra e sala, kw infectar (+ filtro kw infectar no Corpse Cur). Regras: 725 (iniciativa), 309/701.46 (venture), 702.90 (infect), 704.5c (10 venenos). Segue falta: Acererak (não completou Tomb of Annihilation: sem negação no {nome}), Fifty Feet of Rope (Tie Up).",
+ "casos": [
+  {
+   "carta": "Aarakocra Sneak",
+   "situacao": "entra; ninguém tem a iniciativa",
+   "espera": "você toma a iniciativa (fx tomarIniciativa) e entra na Undercity"
+  },
+  {
+   "carta": "Underdark Explorer",
+   "situacao": "entra; um oponente tem a iniciativa",
+   "espera": "a iniciativa passa para você e você avança na Undercity"
+  },
+  {
+   "carta": "Feywild Caretaker",
+   "situacao": "sua etapa final com a iniciativa",
+   "espera": "cria 1 Dragão Feérico 1/1 azul voador"
+  },
+  {
+   "carta": "Feywild Caretaker",
+   "situacao": "sua etapa final sem a iniciativa",
+   "espera": "não cria nada (se temIniciativa é intervenção: conferido ao disparar e ao resolver)"
+  },
+  {
+   "carta": "Passageway Seer",
+   "situacao": "entra; na sua etapa final você ainda tem a iniciativa",
+   "espera": "toma a iniciativa ao entrar e ganha um marcador +1/+1 na etapa final"
+  },
+  {
+   "carta": "Safana, Calimport Cutthroat",
+   "situacao": "etapa final com a iniciativa; nunca completou masmorra",
+   "espera": "cria 1 Tesouro"
+  },
+  {
+   "carta": "Safana, Calimport Cutthroat",
+   "situacao": "etapa final com a iniciativa; já completou uma masmorra",
+   "espera": "cria 3 Tesouros (não 4)"
+  },
+  {
+   "carta": "Safana, Calimport Cutthroat",
+   "situacao": "etapa final sem a iniciativa",
+   "espera": "não cria nada"
+  },
+  {
+   "carta": "Imoen, Mystic Trickster",
+   "situacao": "etapa final com a iniciativa; nunca completou masmorra",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Imoen, Mystic Trickster",
+   "situacao": "etapa final com a iniciativa; já completou uma masmorra",
+   "espera": "compra 2"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "entra; depois vira com a iniciativa",
+   "espera": "toma a iniciativa; o {T} dá {C}{C}"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "vira sem a iniciativa",
+   "espera": "dá {C}"
+  },
+  {
+   "carta": "Rilsa Rael, Kingpin",
+   "situacao": "entra",
+   "espera": "você toma a iniciativa"
+  },
+  {
+   "carta": "Ravenloft Adventurer",
+   "situacao": "entra",
+   "espera": "você toma a iniciativa"
+  },
+  {
+   "carta": "Bar the Gate",
+   "situacao": "mira uma mágica de criatura",
+   "espera": "anula e você aventura (fx aventurar)"
+  },
+  {
+   "carta": "Fates' Reversal",
+   "situacao": "sem criatura no seu cemitério (0 alvos)",
+   "espera": "resolve e você aventura (o alvo é \"up to one\")"
+  },
+  {
+   "carta": "Clattering Skeletons",
+   "situacao": "morre; você não tem masmorra no jogo",
+   "espera": "você escolhe uma masmorra (fora da Undercity) e entra na primeira sala"
+  },
+  {
+   "carta": "Shortcut Seeker",
+   "situacao": "causa dano de combate num jogador",
+   "espera": "você aventura"
+  },
+  {
+   "carta": "Yuan-Ti Fang-Blade",
+   "situacao": "causa dano de combate numa criatura bloqueadora",
+   "espera": "não aventura (só dano a jogador)"
+  },
+  {
+   "carta": "Zombie Ogre",
+   "situacao": "sua etapa final; uma criatura (de qualquer jogador, ficha também) morreu neste turno",
+   "espera": "você aventura (se palavra morbid)"
+  },
+  {
+   "carta": "Zombie Ogre",
+   "situacao": "sua etapa final; nenhuma criatura morreu neste turno",
+   "espera": "nada"
+  },
+  {
+   "carta": "Dungeon Descent",
+   "situacao": "{4}, {T} e vira uma criatura lendária desvirada sua, na sua fase principal com a pilha vazia",
+   "espera": "você aventura; sem lendária desvirada não dá para ativar"
+  },
+  {
+   "carta": "Fifty Feet of Rope",
+   "situacao": "Rappel Down: {4}, {T} como feitiço",
+   "espera": "você aventura"
+  },
+  {
+   "carta": "Secret Door",
+   "situacao": "{4}{U} como feitiço (não precisa virar)",
+   "espera": "você aventura; dá para ativar de novo no mesmo turno com mais {4}{U}"
+  },
+  {
+   "carta": "Dungeon Delver",
+   "situacao": "seu comandante criatura no campo; você entra numa sala que compra 1",
+   "espera": "a sala dispara 2 vezes: compra 2"
+  },
+  {
+   "carta": "Dungeon Delver",
+   "situacao": "seu comandante na zona de comando; você entra numa sala",
+   "espera": "a sala dispara 1 vez (a habilidade é do comandante no campo)"
+  },
+  {
+   "carta": "Acererak the Archlich",
+   "situacao": "entra; nunca completou Tomb of Annihilation",
+   "espera": "volta à mão do dono e você aventura"
+  },
+  {
+   "carta": "Precipitous Drop",
+   "situacao": "entra encantando uma criatura",
+   "espera": "você aventura"
+  },
+  {
+   "carta": "Dungeon Crawler",
+   "situacao": "no seu cemitério; você completa uma masmorra",
+   "espera": "pode voltar à sua mão (gat completaMasmorra do cemitério)"
+  },
+  {
+   "carta": "Dungeon Crawler",
+   "situacao": "no campo; você completa uma masmorra",
+   "espera": "nada (só dispara do cemitério)"
+  },
+  {
+   "carta": "Precipitous Drop",
+   "situacao": "encanta uma 4/4; depois você completa uma masmorra",
+   "espera": "−2/−2 (fica 2/2); ao completar passa a −5/−5 e ela morre"
+  },
+  {
+   "carta": "Ravenloft Adventurer",
+   "situacao": "completou uma masmorra; ataca um oponente que tem 3 cartas com hit no exílio",
+   "espera": "ele perde 3 de vida"
+  },
+  {
+   "carta": "Ravenloft Adventurer",
+   "situacao": "sem masmorra completa; ataca",
+   "espera": "nada"
+  },
+  {
+   "carta": "Rilsa Rael, Kingpin",
+   "situacao": "completou uma masmorra; você ataca mirando uma atacante 2/2",
+   "espera": "ela fica 7/2 com toque mortífero, primeiro ataque e ameaça até o fim do turno"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "completou uma masmorra; {3}, {T}; o topo é terreno, terreno, Cultivate",
+   "espera": "exila os três; pode conjurar Cultivate sem pagar; os terrenos ficam no exílio"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "nunca completou masmorra",
+   "espera": "a habilidade de {3}, {T} não pode ser ativada"
+  },
+  {
+   "carta": "Acererak the Archlich",
+   "situacao": "entra depois de você completar Tomb of Annihilation",
+   "espera": "fica no campo e não aventura (FALTA: hoje o banco volta sempre; pedido de negação no completouMasmorra {nome})"
+  },
+  {
+   "carta": "Plague Stinger",
+   "situacao": "ataca sem bloqueio",
+   "espera": "o jogador ganha 1 marcador de veneno (não perde vida)"
+  },
+  {
+   "carta": "Contagious Nim",
+   "situacao": "bloqueia uma 3/3",
+   "espera": "a 3/3 ganha 2 marcadores −1/−1 (não leva dano marcado); o Nim leva 3 e morre"
+  },
+  {
+   "carta": "Blighted Agent",
+   "situacao": "ataca 10 vezes sem bloqueio no mesmo oponente",
+   "espera": "ele chega a 10 venenos e perde (704.5c)"
+  },
+  {
+   "carta": "Blackcleave Goblin",
+   "situacao": "entra e ataca no mesmo turno",
+   "espera": "ataca (pressa) e dá 2 venenos"
+  },
+  {
+   "carta": "Phyrexian Digester",
+   "situacao": "causa dano de combate num jogador",
+   "espera": "2 venenos, a vida não muda"
+  },
+  {
+   "carta": "Plague Myr",
+   "situacao": "vira para mana; outro turno ataca",
+   "espera": "dá {C}; o dano vira 1 veneno"
+  },
+  {
+   "carta": "Core Prowler",
+   "situacao": "deu 2 venenos num oponente; depois morre",
+   "espera": "prolifera: o oponente vai a 3 venenos"
+  },
+  {
+   "carta": "Necropede",
+   "situacao": "bloqueia uma 2/2 e morre",
+   "espera": "a 2/2 ganha 1 −1/−1 do dano e mais 1 do gatilho (pode mirar outra)"
+  },
+  {
+   "carta": "Corpse Cur",
+   "situacao": "entra com Plague Stinger e Grizzly Bears no cemitério",
+   "espera": "só a Plague Stinger pode ser o alvo (filtro kw infectar)"
+  },
+  {
+   "carta": "Blightsteel Colossus",
+   "situacao": "ataca sem bloqueio",
+   "espera": "11 venenos: o jogador perde; com atropelar sobre uma 2/2, ela ganha 2 −1/−1 e o jogador 9 venenos"
+  }
+ ]
+}

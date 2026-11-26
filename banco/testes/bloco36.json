@@ -7,17 +7,17 @@
   {
    "carta": "Safana, Calimport Cutthroat",
    "situacao": "etapa final com a iniciativa",
-   "espera": "cria 1 Tesouro (3 se completou uma masmorra) — falta: sem iniciativa no esquema"
+   "espera": "cria 1 Tesouro (3 se completou uma masmorra)"
   },
   {
    "carta": "Aarakocra Sneak",
    "situacao": "entra",
-   "espera": "você toma a iniciativa (falta)"
+   "espera": "você toma a iniciativa"
   },
   {
    "carta": "Acererak the Archlich",
    "situacao": "ataca com 3 oponentes e nenhum sacrifica",
-   "espera": "cria 3 Zumbis 2/2; ao entrar volta à mão (o venture fica falta)"
+   "espera": "cria 3 Zumbis 2/2; ao entrar volta à mão e aventura"
   },
   {
    "carta": "Alora, Merry Thief",
@@ -32,12 +32,12 @@
   {
    "carta": "Bar the Gate",
    "situacao": "mira uma mágica de criatura",
-   "espera": "anula (o venture fica falta)"
+   "espera": "anula e você aventura"
   },
   {
    "carta": "Blackcleave Goblin",
    "situacao": "entra e ataca",
-   "espera": "ataca no mesmo turno; dano normal (infect falta)"
+   "espera": "ataca no mesmo turno; o dano vira veneno (infectar)"
   },
   {
    "carta": "Blightbelly Rat",
@@ -57,12 +57,12 @@
   {
    "carta": "Clattering Skeletons",
    "situacao": "morre",
-   "espera": "venture (falta)"
+   "espera": "você aventura"
   },
   {
    "carta": "Contagious Nim",
    "situacao": "causa dano",
-   "espera": "dano normal (infect falta)"
+   "espera": "dano como veneno em jogador e −1/−1 em criatura (infectar)"
   },
   {
    "carta": "Contentious Plan",
@@ -117,7 +117,7 @@
   {
    "carta": "Dungeon Delver",
    "situacao": "antecedente com o comandante",
-   "espera": "as salas disparam 2 vezes (falta)"
+   "espera": "as salas disparam 2 vezes"
   },
   {
    "carta": "Dungeon Descent",
@@ -137,7 +137,7 @@
   {
    "carta": "Fates' Reversal",
    "situacao": "mira uma criatura do seu cemitério",
-   "espera": "volta à mão (venture falta)"
+   "espera": "volta à mão e você aventura"
   },
   {
    "carta": "Feed the Serpent",
@@ -147,7 +147,7 @@
   {
    "carta": "Feywild Caretaker",
    "situacao": "entra; etapa final",
-   "espera": "iniciativa e ficha (falta)"
+   "espera": "toma a iniciativa; na etapa final, com a iniciativa, cria 1 Dragão Feérico 1/1 voador"
   },
   {
    "carta": "Fifty Feet of Rope",
@@ -162,7 +162,7 @@
   {
    "carta": "Imoen, Mystic Trickster",
    "situacao": "etapa final com a iniciativa",
-   "espera": "compra 1 (2 se completou) — falta"
+   "espera": "compra 1 (2 se completou uma masmorra)"
   },
   {
    "carta": "Irenicus's Vile Duplication",
