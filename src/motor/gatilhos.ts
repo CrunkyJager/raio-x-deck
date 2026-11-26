@@ -93,6 +93,19 @@ function atrasados(e, ev) {
   }
   e.atras = e.atras.filter(A => !A.feito);
 }
+// gatilho de emblema (114.4) e de efeito temporário (603.7a: "neste turno, sempre que…"): vive em e.efTemp, sem objeto
+// no campo; dispara toda vez (não é o atrasado de uma vez só) enquanto o efeito durar. A fonte é o emblema: fonte -1.
+function temporarios(e, ev) {
+  if (!e.efTemp || !e.efTemp.length) return;
+  for (const t of e.efTemp) {
+    if (!t.gat || !t.gat.length) continue;
+    const F = { id: -1, ctrl: t.ctrl, ts: t.ts };
+    for (const g of t.gat) {
+      if (!bateEv(e, g, ev, F) || !cond(e, g.se, { voce: t.ctrl, este: -1, ev })) continue;
+      e.pend.push({ fonte: -1, ts: t.ts, ctrl: t.ctrl, k: 'atrasado', g, n: t.n, face: null, ficha: null, lki: null, ev: { ...ev, snap: undefined } });
+    }
+  }
+}
 // resguardo (CR 702.21): quando vira alvo de mágica/habilidade de um oponente, anula a menos que ele pague. Cada
 // instância dispara à parte (702.21b); a dada pelas camadas também (kwDe). custo = mana; pagar = vida ou sacrificar.
 const custoResg = k => k.custo ? { mana: k.custo } : k.pagar && Object.keys(k.pagar).length === 1 && (k.pagar.vida || k.pagar.sacrificar) ? k.pagar : null;
@@ -234,6 +247,7 @@ M.evento = (e, ev) => {
     }
   }
   atrasados(e, ev);
+  temporarios(e, ev);
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
