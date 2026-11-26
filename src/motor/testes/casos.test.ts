@@ -1905,6 +1905,18 @@ caso('702.35', 'loucura dada (Falkenrath Gorger): Vampiro descartado vai ao exí
     igual([e.objs[id].zona, e.campo.filter(x => e.objs[x].n === 'Mountain' && e.objs[x].virada).length], [louca ? 'campo' : 'cemiterio', louca ? 5 : 3], `${carta}, Gorger ${gorger}`);
   }
 });
+caso('702.94', 'milagre (Reforge the Soul): a primeira compra do turno revela e conjura por {1}{R} fora da velocidade; a segunda compra não', () => {
+  for (const primeira of [true, false]) {
+    const e = cena({ campo: terras(2), passo: 'manutencao' }); e.pend = [];
+    if (!primeira) M.comprar(e, 0, 1);                                 // já comprou uma neste turno
+    const top = e.jogs[0].zonas.grimorio[e.jogs[0].zonas.grimorio.length - 1]; e.objs[top].n = 'Reforge the Soul';
+    M.comprar(e, 0, 1);
+    igual(e.pend.filter(p => p.k === 'milagre').length, primeira ? 1 : 0, 'gatilho do milagre');
+    if (!primeira) continue;
+    M.avancar(e); resolveCom(e);
+    igual([e.objs[top].zona, e.jogs[0].zonas.mao.length, e.jogs[1].zonas.mao.length, e.campo.filter(x => e.objs[x].virada).length], ['cemiterio', 7, 7, 2], 'conjurou pelo milagre');
+  }
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

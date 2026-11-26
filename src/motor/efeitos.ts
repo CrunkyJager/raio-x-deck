@@ -820,6 +820,20 @@ const H = {
       if (o.zona === 'exilio' && o.loucura) M.mover(e, o.id, 'cemiterio');
     },
   },
+  // milagre (CR 702.94): o gatilho da primeira carta comprada no turno. Se ela ainda está na mão, o dono pode conjurá-la
+  // pagando o custo de milagre (na resolução, sem olhar a velocidade: 608.2g).
+  milagre: {
+    fx(e, f, ctx, ask) {
+      const o = e.objs[ctx.este], L = ctx.lki && ctx.lki.este;
+      if (!o || o.zona !== 'mao' || (L && L.ts !== o.ts)) return;
+      if (M.podeConjurar(e, o.dono, o, undefined, { milagre: true }) && ask(o.dono, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'milagre', id: o.id }).a === 'sim') {
+        const P0 = e.proc;
+        M.PROC.conjurar(e, { j: o.dono, id: o.id, milagre: true, resp: [] }, ask);
+        e.proc = P0;
+        if (o.zona === 'pilha') M.log(e, e.jogs[o.dono].nome, 'conjura', o.n, 'pelo milagre');
+      }
+    },
+  },
   moer: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) M.mover(e, g[g.length - 1], 'cemiterio'); } } },   // CR 701.13
   sacrificar: {                                                     // CR 701.21: quem sacrifica escolhe
     campos: ['f'],

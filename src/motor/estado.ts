@@ -308,6 +308,8 @@ M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte p
   return feitas;
 };
 const GAT_LOUCURA = { ev: 'descarta', fx: [{ op: 'loucura' }] };
+const GAT_MILAGRE = { ev: 'compra', fx: [{ op: 'milagre' }] };
+M.milagreDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'milagre' && x.custo); return k ? k.custo : null; };
 
 // comprar (CR 121; grimório vazio → perde nas ABE, CR 704.5b)
 M.comprar = (e, j, qtd = 1) => {
@@ -315,7 +317,11 @@ M.comprar = (e, j, qtd = 1) => {
   for (let i = 0; i < qtd; i++) {
     const g = J.zonas.grimorio;
     if (!g.length) { J.comprouVazio = true; continue; }
-    M.mover(e, g[g.length - 1], 'mao');
+    const id = g[g.length - 1];
+    M.mover(e, id, 'mao');
+    J.compT = { t: e.turno.n, n: (J.compT && J.compT.t === e.turno.n ? J.compT.n : 0) + 1 };
+    // milagre (702.94): a primeira compra do turno com milagre é revelada (simplificação: sempre) e o gatilho vai para a pilha
+    if (J.compT.n === 1 && e.pend && e.turno.passo !== 'mulligan' && M.milagreDe(e, e.objs[id])) { const o = e.objs[id]; e.pend.push({ fonte: id, ts: o.ts, ctrl: j, k: 'milagre', g: GAT_MILAGRE, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'compra', j } }); M.log(e, J.nome, 'revela', o.n, '(milagre)'); }
     if (M.evento) M.evento(e, { ev: 'compra', j });
   }
 };
