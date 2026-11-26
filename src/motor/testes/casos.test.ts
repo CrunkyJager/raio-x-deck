@@ -1612,6 +1612,39 @@ caso('101.4', 'repetirCada com pausas (o processo roda de novo a cada resposta):
   igual(g.jogs[0].zonas.mao.length - mao0, 1, 'compra 1 (um oponente não sacrificou)');
   ok(!ctx.rep && ctx.cadaAtual === undefined, 'limpa o progresso');
 });
+caso('702.90', 'filtro kw: Corpse Cur devolve do cemitério só criatura com infectar', () => {
+  const g = cena({ campo: [[0, 'Corpse Cur', { zona: 'mao' }]] });
+  g.por(0, 'Grizzly Bears', { zona: 'cemiterio' }); const cur2 = g.por(0, 'Corpse Cur', { zona: 'cemiterio' });
+  const d = M.carta('Corpse Cur');
+  ok(M.gatOk(d.gat[0]), 'gatilho aceito');
+  const f = d.gat[0].alvos[0].f;
+  igual(M.objetosQue(g, f, { voce: 0 }).map(o => o.id), [cur2.id], 'só a com infectar');
+});
+caso('613.1f', 'modificar com gat: Demonic Gifts — +2/+0 e "quando morrer, volta ao campo" até o fim do turno; olha para trás (603.10a)', () => {
+  const d = M.carta('Demonic Gifts');
+  ok(M.fxSuportado(d.fx), 'Demonic Gifts aceito');
+  for (const limpa of [false, true]) {
+    const e = cena({ campo: [[0, 'Grizzly Bears']], passo: 'final' });
+    const u = e.campo.find(id => e.objs[id].n === 'Grizzly Bears');
+    M.executar(e, d.fx[0], { voce: 0, alvos: [[{ o: u, ts: e.objs[u].ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+    igual(M.poder(e, e.objs[u]), 4, '+2/+0');
+    if (limpa) { passarAte(e, 'limpeza'); M.avancar(e); if (e.perg) M.responder(e, 0); }   // limpeza do turno (514.2): a habilidade ganha acabou (514.2)
+    M.mover(e, u, 'cemiterio');
+    M.avancar(e);
+    for (let i = 0; i < 6 && e.perg && e.pilha.length + e.pend.length; i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
+    igual(noCampo(e).filter(n => n === 'Grizzly Bears').length, limpa ? 0 : 1, limpa ? 'depois da limpeza não volta' : 'voltou ao campo');
+  }
+});
+caso('122.1b', 'marcador de palavra-chave: Luminous Broodmoth devolve a que não voa com marcador flying — ela passa a voar e não volta de novo', () => {
+  const e = cena({ campo: [[0, 'Luminous Broodmoth'], [0, 'Grizzly Bears']] });
+  const u = e.campo.find(id => e.objs[id].n === 'Grizzly Bears');
+  for (let volta = 0; volta < 2; volta++) {
+    M.mover(e, u, 'cemiterio'); M.avancar(e);
+    for (let i = 0; i < 12 && e.perg && e.pilha.length + e.pend.length; i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho' || o.a === 'pronto');
+    igual(noCampo(e).includes('Grizzly Bears'), volta === 0, (volta === 0 ? 'voltou' : 'com voar não volta') + JSON.stringify(e.log.slice(-6)));
+    if (volta === 0) ok(M.temKw(e, e.objs[u], 'voar') && e.objs[u].marc.flying === 1, 'voa pelo marcador');
+  }
+});
 // substituições (CR 614): entra com marcadores, marcadores a mais, fichas dobradas, dano dobrado/prevenido
 caso('614.1c', 'entra com marcadores: Kalonian Hydra entra com 4 (+1 com Hardened Scales) e não morre como 0/0', () => {
   for (const escamas of [false, true]) {

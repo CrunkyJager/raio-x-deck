@@ -173,7 +173,7 @@ function loteInfo(e, lote) {
   if (!I || I.n > lote.length) { I = { n: 0, gat: [], hab: [], set: new Set() }; LOTE.set(lote, I); }
   for (; I.n < lote.length; I.n++) {
     const S = lote[I.n]; I.set.add(S);
-    if (M.dadoDe(e, S).gat) I.gat.push(S);
+    if (M.dadoDe(e, S).gat || (S.ganhos && S.ganhos.gat)) I.gat.push(S);
     if (daHabil(e, S)) I.hab.push(S);
   }
   return I;
@@ -206,7 +206,7 @@ M.evento = (e, ev) => {
       if (!zonas(g).includes(onde) && !(onde === 'pilha' && g.ev === 'conjura' && g.quem && g.quem.este)) continue;
       if (onde === 'pilha' && !(g.quem && g.quem.este)) continue;
       if (!bateEv(e, g, ev, F)) continue;
-      if (!cond(e, g.se, { voce: F.ctrl, este: F.id })) continue;                          // 603.4
+      if (!cond(e, g.se, { voce: F.ctrl, este: F.id, ev })) continue;                      // 603.4 (com o evento: objBate doEvento lê quem morreu)
       // "uma ou mais entram" (grupo): uma vez pelo que entra junto. Simplificação: o lote = o que ainda não foi para a
       // pilha (e.pend esvazia antes de cada prioridade), então duas entradas na mesma resolução contam como uma.
       if (g.grupo && (g.ev === 'entra' || SAIDA.has(g.ev)) && e.pend.some(p => p.fonte === F.id && p.ts === F.ts && p.k === k)) continue;   // "uma ou mais vão ao cemitério" (Ratchet)

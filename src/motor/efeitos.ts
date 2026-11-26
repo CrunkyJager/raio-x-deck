@@ -469,9 +469,10 @@ const H = {
   // est: estáticas dadas até o fim do turno; por ora só deveBloquear afeta 'este' (509.1c), com atacante 'doEvento' =
   // bloqueia aquela criatura (presa na resolução: Fighter Class, Tolsimir); sem ele, bloqueia se puder (Brutal Hordechief)
   modificar: {
-    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil'],
+    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat'],
     qtd: q => q === undefined,
-    ok: f => f.dura === 'enquantoNoCampo' ? ganhoOk(f) : f.habil === undefined && (f.dura === 'fimDoTurno' || (f.dura === 'sempre' && !(f.est || []).length)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0)
+    ok: f => f.dura === 'enquantoNoCampo' ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (f.dura === 'sempre' && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
+      && (f.gat === undefined || (Array.isArray(f.gat) && f.gat.every(g => M.gatOk(g))))   // "ganha 'quando morrer, …'" até o fim do turno (Demonic Gifts)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
       && (f.est || []).every(s => s.afeta === 'este' && (s.modo === 'deveBloquear' ? Object.keys(s).every(k => ['modo', 'afeta', 'atacante'].includes(k)) && (s.atacante === undefined || s.atacante === 'doEvento')
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k)))),
@@ -484,6 +485,7 @@ const H = {
       const n = q => q === undefined ? 0 : typeof q === 'number' ? q : qtdDe(e, q, ctx);   // número direto: −4/−4 não vira 0
       const p = n(f.p), r = n(f.r);
       const ev = ctx.ev, at = ev && e.objs[ev.id];
+      if ((f.gat || []).length) { for (const o of os) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.gat] }; e.vCamada = (e.vCamada || 0) + 1; }   // sai na limpeza (514.2) ou ao mudar de zona
       const regra = (f.est || []).filter(s => EST_REGRA.includes(s.modo));   // "não pode ser bloqueada até o fim do turno": e.efTemp com os objetos presos (611.2c)
       if (regra.length) (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: regra.map(s => ({ modo: s.modo })), este: null, ids: os.map(o => ({ id: o.id, ts: o.ts })), fim: 'turno', ts: ++e.ts });
       const est = (f.est || []).filter(s => s.modo === 'deveBloquear').map(s => ({ modo: s.modo, atk: s.atacante === 'doEvento' ? (at && at.zona === 'campo' ? { id: at.id, ts: at.ts } : { id: -1, ts: -1 }) : null }));

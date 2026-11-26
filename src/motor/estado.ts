@@ -404,7 +404,7 @@ function indice(e): Idx {
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
   I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], l: null, hab: false };
   lendoTipo++;   // o dadoDe daqui não lê o tipo dado pela equipada (é o próprio índice que ele usa)
-  try { for (const id of e.campo) { const d = M.dadoDe(e, e.objs[id]); if (d.gat) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
+  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && o.ganhos.gat)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
   finally { lendoTipo--; }
   IDX.set(e, I);
   return I;
@@ -566,7 +566,16 @@ M.qtdEst = (e, q, ctx) => {
   return v * (q.mult || 1) + (q.soma || 0);
 };
 /** palavras-chave do objeto: as da carta (ou face/ficha) e as dadas pelas camadas (CR 613.1f) */
-M.kwDe = (e, o) => { const b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw; return c.length ? b.concat(c) : b; };
+// CR 122.1b: marcador de palavra-chave dá a palavra-chave (Luminous Broodmoth põe "flying"; sem isso a que voltou voltava de novo)
+const MARC_KW = { flying: 'voar', 'first strike': 'primeiroAtaque', 'double strike': 'golpeDuplo', deathtouch: 'toqueMortifero', haste: 'pressa', hexproof: 'antimagia',
+  indestructible: 'indestrutivel', lifelink: 'vinculoVida', menace: 'ameaca', reach: 'alcance', trample: 'atropelar', vigilance: 'vigilancia' };
+M.MARC_KW = MARC_KW;
+M.kwDe = (e, o) => {
+  let b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw;
+  if (c.length) b = b.concat(c);
+  if (o.zona === 'campo' && o.marc) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
+  return b;
+};
 /** habilidades ativadas: as da carta, as de equipar (palavra-chave) e as dadas pelas camadas, nessa ordem (k estável) */
 const ATV_CARTA = new WeakMap<object, any[]>();   // atv da carta + equipar, por dado (não muda na partida)
 // ciclar N (CR 702.29a): "[custo], descarte esta carta: compre um card", ativada da mão. O descarte dispara 'descarta'.
@@ -605,7 +614,8 @@ M.temHabil = e => fontesCont(e).hab;
  *  lote: só os que saíram do campo E dão habilidade (M.loteHabil) — o lote inteiro aqui ficava O(n²) num Blasphemous Act */
 M.loteHabil = (e, lote) => (lote || []).filter(S => (M.dadoDe(e, S).est || []).some(s => s.modo === 'continuo' && s.habil));
 M.gatDe = (e, o, lote?) => {
-  const b = M.dadoDe(e, o).gat || [];
+  let b = M.dadoDe(e, o).gat || [];
+  if (o.ganhos && o.ganhos.gat) b = b.concat(o.ganhos.gat);   // ganho por resolução até o fim do turno (Demonic Gifts); o mover zera
   if (!fontesCont(e).hab && !(lote && lote.length)) return b;
   const h = camadas(e, o, lote).gat;
   return h.length ? b.concat(h) : b;
@@ -613,7 +623,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -634,6 +644,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.dono && !quemBate(e, o.dono, f.dono, voce, ctx)) return false;
   // 'C'/'Colorless' = incolor (CR 105.2c: sem cor nenhuma; Mystic Forge, Ugin): includes('C') nunca casava
   if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => c === 'C' || c === 'Colorless' ? !(d.cores || '') : (d.cores || '').includes(COR_NOME[c] || c))) return false;
+  if (f.kw && !f.kw.every(k => M.temKw(e, o, k))) return false;   // "com infectar" (Corpse Cur): palavras-chave dela, com as camadas
   if (f.virada !== undefined && !!o.virada !== !!f.virada) return false;
   if (f.comandante !== undefined && !!o.cmd !== !!f.comandante) return false;
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
@@ -760,7 +771,9 @@ M.condicao = (e, se, ctx) => {
   if (se.pagou !== undefined && !!ctx.pagou !== !!se.pagou) return false;
   if (se.esteEm) { const E = e.objs[ctx.este]; if (!E || !se.esteEm.includes(E.zona)) return false; }   // "as long as this is in your graveyard" (Anger, Wonder)
   if (se.objBate) {                                                 // o objeto (este, doEvento, equipada, criadas, alvo) bate no filtro? nao: o contrário
-    const b = M.objsDe(e, { em: se.objBate.em }, ctx).some(o => M.bate(e, o, se.objBate.f || {}, ctx));
+    // doEvento que saiu do campo: como estava ao sair (LKI, 603.10a — "criatura sem voar morre" olha o marcador que ela tinha)
+    const lki = se.objBate.em === 'doEvento' && ctx.ev && ctx.ev.snap && ctx.ev.de === 'campo' ? [ctx.ev.snap] : null;
+    const b = (lki || M.objsDe(e, { em: se.objBate.em }, ctx)).some(o => M.bate(e, o, se.objBate.f || {}, ctx));
     if (b === !!se.objBate.nao) return false;
   }   // "se fizer" do efeito anterior (ctx da resolução)
   const vida = e.jogs[ctx.voce].vida;
