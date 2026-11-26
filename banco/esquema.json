@@ -2074,6 +2074,10 @@
      "$ref": "#/$defs/zona",
      "description": "\"from anywhere other than …\""
     },
+    "comManaDe": {
+     "const": "este",
+     "description": "conjura: só se a mana desta fonte pagou a mágica (\"using mana produced by\", Tecutlan)"
+    },
     "recebe": {
      "$ref": "#/$defs/filtro",
      "description": "ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)"

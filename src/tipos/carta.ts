@@ -1174,6 +1174,10 @@ export interface RxGat {
    */
   naoDe?: RxZona;
   /**
+   * conjura: só se a mana desta fonte pagou a mágica ("using mana produced by", Tecutlan)
+   */
+  comManaDe?: 'este';
+  /**
    * ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)
    */
   recebe?: RxFiltro;
