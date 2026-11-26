@@ -280,3 +280,6 @@ Motor próprio pelas regras (CR 06/11/2026), lê `cartas-rx.js`; o velho (`motor
 `node ferramentas/lacunas.js` mede o que o motor ignora (ver pendência 7).
 `node ferramentas/partida.js Stangg` joga uma partida com log (Stangg contra os outros 3 exemplos); `node ferramentas/partida.js Stangg 200 5` joga 200 (taxa de vitória, erros, tempo). Rodar depois de mexer no motor: erros tem que dar 0.
 `npx vite` na pasta e abrir o endereço que ele mostra (T43: o `http.server` não serve mais a página). Clicar num deck de exemplo, passar pelas abas, jogar na Mesa simulada (200 partidas) e uma partida na Mesa ao vivo.
+
+### Aviso de versão nova (26/11)
+`src/versao.ts`: a cada 5 min, ao voltar para a aba e ao trocar de tela, baixa o `index.html` publicado (sem cache) e compara o nome do pacote (`assets/index-HASH.js`) com o carregado. Diferente → faixa amarela "Saiu uma versão nova… Recarregar". Motivo: aba aberta desde 25/11 mostrou ⚠ em Kediss e Cool but Rude (motor daquele dia), já lidas no site atual. No `vite` (dev) fica desligado.
