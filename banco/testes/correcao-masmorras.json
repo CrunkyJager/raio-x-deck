@@ -1,0 +1,78 @@
+{
+ "bloco": "correcao-masmorras",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "reescrita das cartas com [iniciativa]/[masmorra]/[completou]/[infect] pelos campos aceitos em 737b085: fx tomarIniciativa e aventurar, cond temIniciativa e completouMasmorra (false = não completou, como monarca:false do Court of Grace), gat ev completaMasmorra e sala, kw infectar (+ filtro kw infectar no Corpse Cur). Regras: 725 (iniciativa), 309/701.46 (venture), 702.90 (infect), 704.5c (10 venenos). Segue falta: Acererak (não completou Tomb of Annihilation: sem negação no {nome}), Fifty Feet of Rope (Tie Up).",
+ "casos": [
+  {
+   "carta": "Aarakocra Sneak",
+   "situacao": "entra; ninguém tem a iniciativa",
+   "espera": "você toma a iniciativa (fx tomarIniciativa) e entra na Undercity"
+  },
+  {
+   "carta": "Underdark Explorer",
+   "situacao": "entra; um oponente tem a iniciativa",
+   "espera": "a iniciativa passa para você e você avança na Undercity"
+  },
+  {
+   "carta": "Feywild Caretaker",
+   "situacao": "sua etapa final com a iniciativa",
+   "espera": "cria 1 Dragão Feérico 1/1 azul voador"
+  },
+  {
+   "carta": "Feywild Caretaker",
+   "situacao": "sua etapa final sem a iniciativa",
+   "espera": "não cria nada (se temIniciativa é intervenção: conferido ao disparar e ao resolver)"
+  },
+  {
+   "carta": "Passageway Seer",
+   "situacao": "entra; na sua etapa final você ainda tem a iniciativa",
+   "espera": "toma a iniciativa ao entrar e ganha um marcador +1/+1 na etapa final"
+  },
+  {
+   "carta": "Safana, Calimport Cutthroat",
+   "situacao": "etapa final com a iniciativa; nunca completou masmorra",
+   "espera": "cria 1 Tesouro"
+  },
+  {
+   "carta": "Safana, Calimport Cutthroat",
+   "situacao": "etapa final com a iniciativa; já completou uma masmorra",
+   "espera": "cria 3 Tesouros (não 4)"
+  },
+  {
+   "carta": "Safana, Calimport Cutthroat",
+   "situacao": "etapa final sem a iniciativa",
+   "espera": "não cria nada"
+  },
+  {
+   "carta": "Imoen, Mystic Trickster",
+   "situacao": "etapa final com a iniciativa; nunca completou masmorra",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Imoen, Mystic Trickster",
+   "situacao": "etapa final com a iniciativa; já completou uma masmorra",
+   "espera": "compra 2"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "entra; depois vira com a iniciativa",
+   "espera": "toma a iniciativa; o {T} dá {C}{C}"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "vira sem a iniciativa",
+   "espera": "dá {C}"
+  },
+  {
+   "carta": "Rilsa Rael, Kingpin",
+   "situacao": "entra",
+   "espera": "você toma a iniciativa"
+  },
+  {
+   "carta": "Ravenloft Adventurer",
+   "situacao": "entra",
+   "espera": "você toma a iniciativa"
+  }
+ ]
+}

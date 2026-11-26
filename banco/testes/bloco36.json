@@ -7,12 +7,12 @@
   {
    "carta": "Safana, Calimport Cutthroat",
    "situacao": "etapa final com a iniciativa",
-   "espera": "cria 1 Tesouro (3 se completou uma masmorra) — falta: sem iniciativa no esquema"
+   "espera": "cria 1 Tesouro (3 se completou uma masmorra)"
   },
   {
    "carta": "Aarakocra Sneak",
    "situacao": "entra",
-   "espera": "você toma a iniciativa (falta)"
+   "espera": "você toma a iniciativa"
   },
   {
    "carta": "Acererak the Archlich",
@@ -147,7 +147,7 @@
   {
    "carta": "Feywild Caretaker",
    "situacao": "entra; etapa final",
-   "espera": "iniciativa e ficha (falta)"
+   "espera": "toma a iniciativa; na etapa final, com a iniciativa, cria 1 Dragão Feérico 1/1 voador"
   },
   {
    "carta": "Fifty Feet of Rope",
@@ -162,7 +162,7 @@
   {
    "carta": "Imoen, Mystic Trickster",
    "situacao": "etapa final com a iniciativa",
-   "espera": "compra 1 (2 se completou) — falta"
+   "espera": "compra 1 (2 se completou uma masmorra)"
   },
   {
    "carta": "Irenicus's Vile Duplication",

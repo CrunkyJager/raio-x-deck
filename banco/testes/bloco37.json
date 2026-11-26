@@ -27,7 +27,7 @@
   {
    "carta": "Passageway Seer",
    "situacao": "entra",
-   "espera": "iniciativa (falta)"
+   "espera": "você toma a iniciativa"
   },
   {
    "carta": "Phyrexian Digester",
@@ -137,7 +137,7 @@
   {
    "carta": "Underdark Explorer",
    "situacao": "entra",
-   "espera": "iniciativa (falta)"
+   "espera": "você toma a iniciativa"
   },
   {
    "carta": "Vat Emergence",
