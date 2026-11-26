@@ -1677,6 +1677,52 @@ caso('502.3', 'naoDesvira: Junk Winder vira e ela não desvira no próximo desvi
     ok(e.turno.ativo === 1 && e.objs[u].virada, 'não desvirou no desvirar dele');
   }
 });
+caso('510.2', 'danoUmaVez: Prosperous Thief — dois Rogues/Ninjas dão dano de combate juntos = 1 Tesouro; Urso não conta', () => {
+  ok(M.gatOk(M.carta('Prosperous Thief').gat[0]), 'gatilho aceito');
+  const e = cena({ campo: [[0, 'Prosperous Thief'], [0, 'Aarakocra Sneak'], [0, 'Grizzly Bears']] });
+  const id = n => e.campo.find(x => e.objs[x].n === n);
+  M.evento(e, { ev: 'dano', fonte: id('Grizzly Bears'), combate: true, q: 2, jog: 1 });
+  igual(e.pend.length, 0, 'Urso não é Ninja/Rogue');
+  M.evento(e, { ev: 'dano', fonte: id('Prosperous Thief'), combate: true, q: 3, jog: 1 });
+  M.evento(e, { ev: 'dano', fonte: id('Aarakocra Sneak'), combate: true, q: 1, jog: 1 });
+  igual(e.pend.length, 1, 'uma vez pelo dano simultâneo');
+  M.evento(e, { ev: 'dano', fonte: id('Prosperous Thief'), combate: false, q: 3, jog: 1 });
+  igual(e.pend.length, 1, 'dano fora de combate não conta');
+});
+caso('614.1a', 'subst morre/vaiCemiterio: Ravenloft exila a do oponente com marcador hit (a minha morre); Liesa exila; Blightsteel volta ao grimório', () => {
+  const e = cena({ campo: [[0, 'Ravenloft Adventurer'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const de = (j, n) => e.campo.find(id => e.objs[id].ctrl === j && e.objs[id].n === n);
+  const meu = de(0, 'Grizzly Bears'), dele = de(1, 'Grizzly Bears'), elfo = de(1, 'Llanowar Elves');
+  M.mover(e, meu, 'cemiterio'); M.mover(e, dele, 'cemiterio');
+  igual([naZona(e, 0, 'cemiterio'), naZona(e, 1, 'cemiterio'), naZona(e, 1, 'exilio')], [['Grizzly Bears'], [], ['Grizzly Bears']], 'só a do oponente vai ao exílio');
+  igual(e.objs[dele].marc.hit, 1, 'com marcador hit');
+  M.mover(e, elfo, 'exilio');                                       // exílio direto: não é morte, sem hit
+  const rav = M.carta('Ravenloft Adventurer'), g = rav.gat.find(x => x.ev === 'ataca');
+  ok(M.gatOk(g), 'gatilho de ataque aceito');
+  const v = e.jogs[1].vida;
+  M.executar(e, g.fx[0], { voce: 0, este: de(0, 'Ravenloft Adventurer'), ev: { ev: 'ataca', def: 1 }, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(v - e.jogs[1].vida, 1, 'perde 1 por carta dele no exílio com hit (o Elfo sem hit não conta)');
+  const l = cena({ campo: [[1, 'Liesa, Forgotten Archangel'], [0, 'Grizzly Bears']], mao: [[0, 'Blightsteel Colossus']] });
+  M.mover(l, l.campo.find(id => l.objs[id].n === 'Grizzly Bears'), 'cemiterio');
+  igual(naZona(l, 0, 'exilio'), ['Grizzly Bears'], 'Liesa: a do oponente vai ao exílio');
+  const bs = l.jogs[0].zonas.mao[0], n0 = l.jogs[0].zonas.grimorio.length;
+  M.descartar(l, 0, [bs]);
+  igual([l.objs[bs].zona, l.jogs[0].zonas.grimorio.length - n0], ['grimorio', 1], 'Blightsteel descartado volta ao grimório');
+});
+caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
+  const g = M.carta('Alora, Merry Thief').gat[0];
+  ok(M.gatOk(g), 'gatilho da Alora aceito');
+  for (const piscou of [false, true]) {
+    const e = cena({ campo: [[0, 'Alora, Merry Thief'], [0, 'Grizzly Bears']], passo: 'principal2' });
+    const u = e.campo.find(id => e.objs[id].n === 'Grizzly Bears'), al = e.campo.find(id => e.objs[id].n === 'Alora, Merry Thief');
+    const ctx: any = { voce: 0, este: al, alvos: [[{ o: u, ts: e.objs[u].ts }]], ilegal: {}, lki: { alvos: [] } };
+    for (const f of g.fx) M.executar(e, f, ctx, null);
+    if (piscou) { M.mover(e, u, 'exilio'); M.mover(e, u, 'campo'); }
+    passarAte(e, 'final'); M.avancar(e);
+    for (let i = 0; i < 8 && e.perg && e.pilha.length + e.pend.length; i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
+    igual(naZona(e, 0, 'mao'), piscou ? [] : ['Grizzly Bears'], piscou ? 'objeto novo: fica' : 'voltou à mão');
+  }
+});
 // substituições (CR 614): entra com marcadores, marcadores a mais, fichas dobradas, dano dobrado/prevenido
 caso('614.1c', 'entra com marcadores: Kalonian Hydra entra com 4 (+1 com Hardened Scales) e não morre como 0/0', () => {
   for (const escamas of [false, true]) {

@@ -63,9 +63,20 @@ const SUBST: Record<string, (s) => boolean> = {
   ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')),
   marcador: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || Number.isInteger(s.muda.soma) || s.muda.impedir === true)
     && Object.keys(s).every(k => ['ev', 'quem', 'marc', 'muda', 'se'].includes(k)),
+  // morre / vaiCemiterio (CR 614.1a, lido no M.mover): muda.para (Liesa), "exile com marcador" (Ravenloft), "embaralhe no grimório" (Blightsteel)
+  morre: s => saidaOk(s),
+  vaiCemiterio: s => saidaOk(s),
   dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
     && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente'),
 };
+function saidaOk(s) {
+  if (!Object.keys(s).every(k => ['ev', 'quem', 'muda', 'emVez', 'se'].includes(k)) || !!s.muda === !!s.emVez) return false;
+  if (s.muda) return Object.keys(s.muda).length === 1 && ['exilio', 'grimorio', 'mao'].includes(s.muda.para);
+  const [a, b, ...r] = s.emVez; if (r.length || !a) return false;
+  if (a.op === 'exilar' && a.em === 'doEvento' && Object.keys(a).length === 2) return !b || (b.op === 'marcador' && b.em === 'doEvento' && typeof b.tipoMarc === 'string' && Number.isInteger(b.qtd) && Object.keys(b).length === 4);
+  if (a.op === 'mover' && a.em === 'este' && a.para === 'grimorio' && Object.keys(a).length === 3) return !!b && b.op === 'embaralhar' && b.quem === 'dono' && Object.keys(b).length === 2 && !!s.quem && s.quem.este;
+  return false;
+}
 const tipoSubst = s => s.ev === 'entra' && s.muda && s.muda.marcadores ? 'entraMarc' : s.ev;
 M.substOk = s => !!s && !!SUBST[tipoSubst(s)] && SUBST[tipoSubst(s)](s) && (!s.se || seOk(s.se)) && (!s.quem || typeof s.quem !== 'object' || M.filtroOk(s.quem));
 M.SUBST = SUBST;
@@ -597,7 +608,7 @@ const H = {
     ok: f => M.atrasadoOk(f.quando),
     fx(e, f, ctx) {
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
-        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [] }, ts: ++e.ts });
+        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}) }, ts: ++e.ts });
     },
   },
   // "para cada oponente/jogador, …" (Acererak, Tempt with…): os efeitos de dentro valem para o jogador da vez (quem/ctrl/dono

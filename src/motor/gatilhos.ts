@@ -5,7 +5,7 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez']);
 const CAMPOS_OK = new Set(['ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio']);
 const LACO = 500;
@@ -36,6 +36,8 @@ function bateEv(e, g, ev, F) {
     case 'atacantesDeclarados': return ev.ev === 'atacantesDeclarados' && !g.quem && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'bloqueia': return ev.ev === 'bloqueia' && q(e.objs[ev.id]);
     case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.aJogador || ev.jog !== undefined) && (!g.aOponente || (ev.jog !== undefined && ev.jog !== F.ctrl)) && q(ev.snap || e.objs[ev.fonte]);
+    // "uma ou mais … causam dano de combate a um jogador" (Prosperous Thief): o mesmo teste do dano, uma vez só por lote (abaixo)
+    case 'danoUmaVez': return bateEv(e, { ...g, ev: 'dano' }, ev, F);
     case 'conjura': return ev.ev === 'conjura' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(e.objs[ev.id]);   // de/naoDe: de onde foi conjurada
     case 'capitulo': return ev.ev === 'capitulo' && ev.id === F.id && ev.ts === F.ts && ev.de < g.n && ev.para >= g.n;   // CR 714.2b
     // masmorras.ts: entrar numa sala (309.4c), completar (309.7), tomar a iniciativa (727.2); jog: de quem (padrão: você)
@@ -65,7 +67,9 @@ M.atrasadoOk = g => {
   if (!g || typeof g !== 'object') return false;
   if (memoAtr.has(g)) return memoAtr.get(g);
   const { nesteTurno, proximoTurno, ...resto } = g;
-  const ok = ['fase', 'conjura'].includes(g.ev) && !g.alvos && !g.zonaAtiva && M.gatOk(resto) && !JSON.stringify(g.fx).includes('"anterior"');
+  // {alvo:N} dentro do atrasado = o alvo N de quem o criou (Alora: "devolva aquela criatura"), herdado no mem; o ts diz se ainda é o mesmo (400.7)
+  const us = M.alvosUsados(g.fx), comAlvos = us.length ? { ...resto, alvos: Array.from({ length: Math.max(...us) + 1 }, () => ({ f: {} })) } : resto;
+  const ok = ['fase', 'conjura'].includes(g.ev) && !g.alvos && !g.zonaAtiva && M.gatOk(comAlvos) && !JSON.stringify(g.fx).includes('"anterior"');
   memoAtr.set(g, ok);
   return ok;
 };
@@ -210,6 +214,7 @@ M.evento = (e, ev) => {
       // "uma ou mais entram" (grupo): uma vez pelo que entra junto. Simplificação: o lote = o que ainda não foi para a
       // pilha (e.pend esvazia antes de cada prioridade), então duas entradas na mesma resolução contam como uma.
       if (g.grupo && (g.ev === 'entra' || SAIDA.has(g.ev)) && e.pend.some(p => p.fonte === F.id && p.ts === F.ts && p.k === k)) continue;   // "uma ou mais vão ao cemitério" (Ratchet)
+      if (g.ev === 'danoUmaVez' && e.pend.some(p => p.fonte === F.id && p.ts === F.ts && p.k === k)) continue;   // o dano de combate é simultâneo (510.2): um disparo pela etapa
       if (g.limite) { const T = e.turno, ch = F.id + ':' + F.ts + ':' + k; T.lim = T.lim || {}; if (T.lim[ch]) continue; T.lim[ch] = true; }   // "só uma vez a cada turno"
 
       // CR 104.4b: laço que ninguém pode parar = empate. Mais de LACO disparos da mesma habilidade num turno só acontece
@@ -253,9 +258,10 @@ M.PROC.gatilhos = (e, P, ask) => {
       const modos = modal ? M.escolherModos(e, j, dg, g.fx[0], ask) : null;              // 603.3c
       if (modal && !modos.length) { e.pend.splice(op.i, 1); M.log(e, p.n, 'gatilho modal sem modo possível: sai (603.3c)'); ask.etapa(); continue; }
       const fxE = M.fxEfetivo(dg, g.fx, modos);
-      const alvos = M.escolherAlvos(e, j, dg, fxE, ctx, ask);
+      const herda = p.k === 'atrasado' && !!p.mem && !!p.mem.alvos;     // atrasado com alvo herdado: já escolhido por quem o criou
+      const alvos = herda ? [] : M.escolherAlvos(e, j, dg, fxE, ctx, ask);
       e.pend.splice(op.i, 1);
-      const falta = M.alvosUsados(fxE).some(i => (alvos[i] || []).length < ((g.alvos[i].min ?? 1)));
+      const falta = !herda && M.alvosUsados(fxE).some(i => (alvos[i] || []).length < ((g.alvos[i].min ?? 1)));
       if (falta) { M.log(e, p.n, 'gatilho sem alvo legal: sai (603.3d)'); ask.etapa(); continue; }
       const id = e.prox++;
       e.objs[id] = { id, n: p.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,

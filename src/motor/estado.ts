@@ -234,8 +234,28 @@ M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protT
 // (pergunta de substituição entra na T19).
 // Face: entra no campo com a face que estava na pilha (712.10) ou a pedida (terreno modal, 712.9); de outra zona,
 // com a frente (712.11). Em qualquer outra zona volta à frente (712.6a, 716.4) e perde a permissão da aventura.
+// CR 614.1a: "se iria morrer / ir ao cemitério, em vez disso…" — a fonte no campo (ou a própria carta, de qualquer zona:
+// Blightsteel). Várias: a primeira (616.1, a escolha do afetado fica para depois). Retorna {zona, marc?, embaralhar?}.
+function substCemiterio(e, o) {
+  const fontes = M.indiceCampo(e).sb.map(i => e.objs[i]);
+  if (o.zona !== 'campo' && (M.dadoDe(e, o).subst || []).length) fontes.push(o);
+  for (const F of fontes) for (const sb of M.dadoDe(e, F).subst || []) {
+    if (sb.ev !== 'vaiCemiterio' && !(sb.ev === 'morre' && o.zona === 'campo' && M.temTipo(e, o, 'Creature'))) continue;
+    if (!M.substOk(sb)) continue;
+    const ctx = { voce: F.ctrl ?? F.dono, este: F.id };
+    if (sb.quem && (sb.quem.este ? o.id !== F.id : !M.bate(e, o, sb.quem, ctx))) continue;
+    if (sb.se) { let ok = false; try { ok = M.condicao(e, sb.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
+    if (sb.muda) return { zona: sb.muda.para, n: F.n };
+    const [a, b] = sb.emVez;
+    if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n };
+    return { zona: 'grimorio', embaralhar: true, n: F.n };
+  }
+  return null;
+}
 M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null }: any = {}) => {
   const o = e.objs[id];
+  const sub = zona === 'cemiterio' ? substCemiterio(e, o) : null;
+  if (sub) { zona = sub.zona; M.log(e, o.n, 'vai para', zona, 'em vez do cemitério (' + sub.n + ')'); }
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
   const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
   const de = M.listaDe(e, o), k = de.lastIndexOf(id);   // id único na lista; o fim (topo, ficha nova) é o mais comum
@@ -248,6 +268,8 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
+  if (sub && sub.marc) for (const m in sub.marc) o.marc[m] = (o.marc[m] || 0) + sub.marc[m];   // "exile-a com um marcador hit" (fica no exílio)
+  if (sub && sub.embaralhar) M.embaralhar(e, para);
   if (zona === 'campo') M.campoEntra(e, id);
   if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap });   // gatilhos.js
@@ -623,7 +645,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -644,7 +666,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.dono && !quemBate(e, o.dono, f.dono, voce, ctx)) return false;
   // 'C'/'Colorless' = incolor (CR 105.2c: sem cor nenhuma; Mystic Forge, Ugin): includes('C') nunca casava
   if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => c === 'C' || c === 'Colorless' ? !(d.cores || '') : (d.cores || '').includes(COR_NOME[c] || c))) return false;
-  if (f.kw && !f.kw.every(k => M.temKw(e, o, k))) return false;   // "com infectar" (Corpse Cur): palavras-chave dela, com as camadas
+  if (f.kw && !f.kw.every(k => M.temKw(e, o, k))) return false;
+  if (f.comMarcador && !((o.marc || {})[f.comMarcador] > 0)) return false;   // "com um marcador hit" (Ravenloft Adventurer)   // "com infectar" (Corpse Cur): palavras-chave dela, com as camadas
   if (f.virada !== undefined && !!o.virada !== !!f.virada) return false;
   if (f.comandante !== undefined && !!o.cmd !== !!f.comandante) return false;
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
@@ -680,7 +703,7 @@ function tipoEmComum(e, o, ref, ctx) {
 }
 const escolhidoDe = (e, ctx) => { const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));
-const quemBate = (e, j, q, voce, ctx: any = {}) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : q === 'cadaAtual' ? j === ctx.cadaAtual : true;   // cadaAtual: o jogador da vez no repetirCada
+const quemBate = (e, j, q, voce, ctx: any = {}) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : q === 'cadaAtual' ? j === ctx.cadaAtual : q === 'atacado' ? !!ctx.ev && ctx.ev.def !== undefined && j === ctx.ev.def : true;   // cadaAtual: o jogador da vez no repetirCada
 const compara = (v, c) => typeof c === 'number' ? v === c
   : (c.min === undefined || v >= c.min) && (c.max === undefined || v <= c.max) && (c.igual === undefined || v === c.igual);
 M.compara = compara;
