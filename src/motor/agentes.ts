@@ -22,6 +22,7 @@ const basico = (e, p) => {
     }
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
+      if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || M.dadoDe(e, o(p.ctx.id)).kw?.some(x => x.k === 'loucura') ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
       return 0;
     }
     case 'fundo': {

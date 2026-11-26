@@ -70,7 +70,8 @@ const SUBST: Record<string, (s) => boolean> = {
     && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente'),
 };
 function saidaOk(s) {
-  if (!Object.keys(s).every(k => ['ev', 'quem', 'muda', 'emVez', 'se'].includes(k)) || !!s.muda === !!s.emVez) return false;
+  if (!Object.keys(s).every(k => ['ev', 'quem', 'muda', 'emVez', 'se', 'talvez'].includes(k)) || !!s.muda === !!s.emVez) return false;
+  if (s.talvez !== undefined && (s.talvez !== true || s.ev !== 'vaiCemiterio' || !s.quem || s.quem.zona !== 'mao')) return false;   // só "descartada por efeito" (Leng)
   if (s.muda) return Object.keys(s.muda).length === 1 && ['exilio', 'grimorio', 'mao'].includes(s.muda.para);
   const [a, b, ...r] = s.emVez; if (r.length || !a) return false;
   if (a.op === 'exilar' && a.em === 'doEvento' && Object.keys(a).length === 2) return !b || (b.op === 'marcador' && b.em === 'doEvento' && typeof b.tipoMarc === 'string' && Number.isInteger(b.qtd) && Object.keys(b).length === 4);
@@ -772,7 +773,7 @@ const H = {
         por.push([j, escolherN(ask, j, 'descartar', mao, Math.min(ate ? qtdDe(e, f.qtd, ctx) : qtdDe(e, f.qtd, ctx), mao.length), { podeMenos: ate, ctx: { op: 'descartar' } })]);
       }
       const feitas: any[] = [];
-      for (const [j, ids] of por) feitas.push(...M.descartar(e, j, ids));
+      for (const [j, ids] of por) feitas.push(...M.descartar(e, j, ids, { ask, efeito: true }));
       ctx.lembrados = feitas; ctx.pagou = feitas.length > 0;
     },
   },

@@ -1709,6 +1709,23 @@ caso('614.1a', 'subst morre/vaiCemiterio: Ravenloft exila a do oponente com marc
   M.descartar(l, 0, [bs]);
   igual([l.objs[bs].zona, l.jogs[0].zonas.grimorio.length - n0], ['grimorio', 1], 'Blightsteel descartado volta ao grimório');
 });
+caso('614.1a', 'subst vaiCemiterio com talvez: Library of Leng — descarte por efeito pode ir ao topo do grimório (escolha carta a carta); custo e limpeza não', () => {
+  ok(M.substOk(M.carta('Library of Leng').subst[0]), 'subst da Leng aceita');
+  for (const quer of [true, false]) {
+    const e = cena({ campo: [[0, 'Library of Leng']], mao: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+    const g0 = e.jogs[0].zonas.grimorio.length, vistos: any[] = [];
+    M.executar(e, { op: 'descartar', quem: 'voce', qtd: 2 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, tipo, ops, c) => {
+      if (tipo === 'talvez') { vistos.push(c && c.op); return quer && e.objs[c.id].n === 'Grizzly Bears' ? { a: 'sim' } : { a: 'nao' }; }
+      return ops[0];
+    });
+    igual(vistos, ['subst', 'subst'], 'pergunta uma vez por carta');
+    igual([naZona(e, 0, 'cemiterio').sort(), e.jogs[0].zonas.grimorio.length - g0], quer ? [['Llanowar Elves'], 1] : [['Grizzly Bears', 'Llanowar Elves'], 0], quer ? 'Ursos no topo, Elfo no cemitério' : 'sem usar: os dois no cemitério');
+    if (quer) igual(e.objs[e.jogs[0].zonas.grimorio.at(-1)].n, 'Grizzly Bears', 'no topo');
+  }
+  const c = cena({ campo: [[0, 'Library of Leng']], mao: [[0, 'Grizzly Bears']] });
+  M.descartar(c, 0, c.jogs[0].zonas.mao.slice());                  // custo/limpeza: sem ask, sem efeito
+  igual(naZona(c, 0, 'cemiterio'), ['Grizzly Bears'], 'descarte como custo vai ao cemitério');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
