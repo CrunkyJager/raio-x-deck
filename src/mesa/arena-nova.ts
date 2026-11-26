@@ -123,7 +123,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       return {
         vida: J.vida, vivo: !J.saiu, terr: terras.length, tes: 0, mao: J.zonas.mao.map((id: number) => iDe(e.objs[id])), lib: J.zonas.grimorio.length,
         zona: J.cmd.some((id: number) => e.objs[id] && e.objs[id].zona === 'comando'), tax: J.cmd.reduce((s: number, id: number) => s + 2 * (J.imposto[id] || 0), 0), cmdD,
-        perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
+        perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, ex: J.zonas.exilio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
       };
     });
     quadros.push({ t: rodada, k, log: log.length, j: ps });
@@ -343,8 +343,20 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         const passar = opIdx(o => o.a === 'passar');
         const minha = e.turno.ativo === HK && (e.turno.passo === 'principal1' || e.turno.passo === 'principal2') && !e.pilha.length;
         const responde = e.pilha.some((id: number) => e.objs[id].ctrl !== HK);
-        if (!minha && !responde) return passar;                                 // sem nada a responder: passa sozinho
+        // Felipe 26/11: a Mesa indica, não limita. Fora da fase principal ela para sempre que você tem algo para usar
+        // (instantânea, habilidade, lampejo: CR 117.1a) ou para responder; só passa sozinha quando o único lance é mana.
+        const temLance = p.ops.some((o: any) => o.a !== 'passar' && o.a !== 'mana');
+        if (!minha && !responde && !temLance && !M.somaMana(J.reserva)) return passar;
         const ops: any[] = [];
+        // gerar mana a qualquer momento em que você tem prioridade (CR 605.3a), mesmo sem nada para pagar: vira o
+        // terreno/artefato e a mana fica na reserva até o fim da etapa (106.4)
+        const fontes = M.fontesDeMana(e, HK);
+        p.ops.forEach((o: any, k: number) => {
+          if (o.a !== 'mana') return;
+          const ob = e.objs[o.id], f = fontes.find((x: any) => x.id === o.id && x.k === o.k), pac = f && f.pacotes[o.escolha];
+          const sac = f && f.sac ? ' (sacrifica)' : '';
+          ops.push({ v: 'mn' + k, n: `${ob.n}${sac} → ${pac ? M.fmtMana(pac).replace(/[WUBRGC]/g, '{$&}') : 'mana'}`, k, a: 'mana' });
+        });
         p.ops.forEach((o: any, k: number) => {
           if (o.a === 'passar' || o.a === 'mana') return;
           const ob = e.objs[o.id], i = iDe(ob);
@@ -356,7 +368,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
           else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'terreno' ? `Baixar ${ob.n} (outra face)` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + ob.zona + ')' : ''}`, k });
         });
         const mana = M.somaMana(J.reserva) + M.fontesDeMana(e, HK).length;
-        const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha });
+        const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha, reserva: M.somaMana(J.reserva) ? M.fmtMana(J.reserva) : '', passo: e.turno.passo });
         if (r === -1) return passar;
         const x = ops.find(o => o.v === r);
         return x ? x.k : passar;

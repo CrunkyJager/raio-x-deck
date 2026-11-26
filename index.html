@@ -725,6 +725,32 @@ dl.sw-why dd.cmp { border-left-color: var(--accent); }
 .ja-lug.eu { background: rgba(0, 0, 0, .2); border-color: rgba(95, 211, 141, .25); }
 .ja-lug.vez { border-color: #e8c35a; box-shadow: 0 0 18px rgba(232, 195, 90, .25); }
 .ja-lug.alvo { border-color: #e0594f; box-shadow: 0 0 16px rgba(224, 89, 79, .5); }
+/* tapete (playmat, Felipe 26/11): campo + terrenos + coluna de zonas; zona de comando no canto mais perto do meio */
+.ja-lug { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr) 138px; }
+.ja-lug.zesq { grid-template-columns: 138px minmax(0, 1fr); }
+.ja-lug.baixo.zdir { grid-template-areas: "campo zonas" "terras zonas"; grid-template-rows: minmax(0, 1fr) auto; }
+.ja-lug.cima.zdir { grid-template-areas: "terras zonas" "campo zonas"; grid-template-rows: auto minmax(0, 1fr); }
+.ja-lug.baixo.zesq { grid-template-areas: "zonas campo" "zonas terras"; grid-template-rows: minmax(0, 1fr) auto; }
+.ja-lug.cima.zesq { grid-template-areas: "zonas terras" "zonas campo"; grid-template-rows: auto minmax(0, 1fr); }
+.ja-lug.comfundo { background: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), var(--fundo) center / cover; }
+.ja-campo { grid-area: campo; position: relative; min-height: 0; overflow: hidden auto; scrollbar-width: thin; border: 1px solid rgba(255, 255, 255, .28); border-radius: 8px; padding: 4px 6px 16px; }
+.ja-lug .ja-terras { grid-area: terras; position: relative; margin: 0; border: 1px solid rgba(255, 255, 255, .28); border-radius: 8px; padding: 4px 6px 16px; min-height: 40px; }
+.ja-campo::after, .ja-lug .ja-terras::after { position: absolute; left: 7px; bottom: 2px; font: italic .66rem/1 Georgia, serif; opacity: .7; pointer-events: none; }
+.ja-campo::after { content: "Campo de batalha"; } .ja-lug .ja-terras::after { content: "Terrenos"; }
+.ja-zonas { grid-area: zonas; display: grid; gap: 5px; grid-template-columns: 1fr 1fr; min-height: 0; }
+.ja-lug.baixo.zdir .ja-zonas { grid-template-areas: "exi cmd" "cem gri" "vid vid"; grid-template-rows: 1fr 1fr auto; }
+.ja-lug.cima.zdir .ja-zonas { grid-template-areas: "vid vid" "cem gri" "exi cmd"; grid-template-rows: auto 1fr 1fr; }
+.ja-lug.cima.zesq .ja-zonas { grid-template-areas: "vid vid" "gri cem" "cmd exi"; grid-template-rows: auto 1fr 1fr; }
+.ja-lug.baixo.zesq .ja-zonas { grid-template-areas: "cmd exi" "gri cem" "vid vid"; grid-template-rows: 1fr 1fr auto; }
+.ja-z { position: relative; display: grid; place-items: center; align-content: center; gap: 2px; min-height: 0; border: 1px solid rgba(255, 255, 255, .35); border-radius: 7px; background: rgba(0, 0, 0, .25) center / cover; padding: 3px 3px 14px; text-align: center; }
+.ja-z b { font: 800 1.1rem/1 var(--mono); } .ja-z small { font-size: .62rem; opacity: .8; }
+.ja-zr { position: absolute; left: 4px; bottom: 2px; font: italic .62rem/1 Georgia, serif; opacity: .8; }
+.ja-z.cmd { grid-area: cmd; border-color: rgba(232, 195, 90, .7); } .ja-z.exi { grid-area: exi; } .ja-z.gri { grid-area: gri; background-image: repeating-linear-gradient(45deg, rgba(120, 80, 40, .35) 0 6px, rgba(60, 40, 20, .35) 6px 12px); } .ja-z.cem { grid-area: cem; }
+.ja-z.cmd .ja-av { width: 44px; height: 60px; border-radius: 6px; } .ja-z.cmd.fora .ja-av { opacity: .35; filter: grayscale(1); }
+.ja-z.vid { grid-area: vid; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; padding: 4px 6px; place-items: unset; }
+.ja-z.vid .ja-nm { flex: 1 0 100%; max-width: 100%; overflow: hidden; font-size: .8rem; text-align: left; justify-items: start; } .ja-z.vid .ja-nm b { max-width: 100%; }
+.ja-z.vid .ja-vida { margin-left: 0; } .ja-fb .ic { font-size: 1rem; vertical-align: middle; } .ja-z.vid .mau { color: #ff8a7e; }
+.ja-fb { flex: none; margin-left: auto; border: 0; color: inherit; background: rgba(255, 255, 255, .1); border-radius: 6px; cursor: pointer; padding: 3px 6px; font: .66rem/1 var(--mono); opacity: .8; }
 .ja-lug.escolhe { cursor: crosshair; } .ja-lug.escolhe:hover { border-color: #e0594f88; } .ja-lug.morto { opacity: .45; }
 .ja-oh { display: flex; align-items: center; gap: 8px; }
 .ja-nm { display: grid; min-width: 0; line-height: 1.15; } .ja-nm b, .ja-nm small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ja-nm small { opacity: .65; font-size: .72rem; }
@@ -939,15 +965,15 @@ a.fonte{color:inherit;text-decoration:underline;text-underline-offset:2px;font-w
 </head>
 <body>
 <!-- a página (cabeçalho, abas, aba Lista, caixas e rodapé) vem do src/App.svelte, montado pelo src/main.ts aqui no começo do body -->
-<script src="cards-db.js?v=202611260828"></script>
-<script src="precos-myp.js?v=202611260828"></script>
-<script src="exemplos.js?v=202611260828"></script>
-<script src="papeis-ia.js?v=202611260828"></script>
-<script src="sinergia-db.js?v=202611260828"></script>
-<script>window.RAIOX_V = "202611260828";</script>
-<script src="forge-motor.js?v=202611260828"></script>
-<script src="motor/engine.js?v=202611260828"></script>
+<script src="cards-db.js?v=202611260839"></script>
+<script src="precos-myp.js?v=202611260839"></script>
+<script src="exemplos.js?v=202611260839"></script>
+<script src="papeis-ia.js?v=202611260839"></script>
+<script src="sinergia-db.js?v=202611260839"></script>
+<script>window.RAIOX_V = "202611260839";</script>
+<script src="forge-motor.js?v=202611260839"></script>
+<script src="motor/engine.js?v=202611260839"></script>
 
-<script src="oponentes-edhrec.js?v=202611260828"></script>
+<script src="oponentes-edhrec.js?v=202611260839"></script>
 <script type="module" src="/src/main.ts"></script>
 </body></html>

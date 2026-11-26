@@ -2,6 +2,13 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.41.0 — 26/11/2026 · Mesa ao vivo: mana quando quiser e lugar em forma de tapete
+Testes: check 0 erros · Vitest 257/257 · Chrome headless sem erro na página.
+- **Mana livre (Felipe 26/11: a Mesa indica, não limita):** com prioridade, botões "⚡ Mountain → {R}" viram a fonte e a mana fica na reserva até o fim da etapa (o texto mostra "Na reserva"). Fora da sua fase principal, a Mesa para sempre que você tem instantânea ou habilidade para usar, e diz em que etapa está. Prova no node: `ferramentas/mesa-mana.mjs`.
+- **Tapete:** cada lugar tem campo de batalha, terrenos e uma coluna com vida, comando, exílio, grimório e cemitério (a última carta do cemitério aparece no fundo). Os lugares são espelhados para a zona de comando ficar no canto mais perto do meio da mesa, e os de cima têm o campo virado para o centro.
+- **Fundo de cada lugar:** botão "fundo" escolhe uma imagem do computador (fica só neste navegador; clique direito tira).
+- Conserto: erro de tipo da v0.40.0 que derrubou o CI.
+
 ## v0.40.0 — 26/11/2026 · substituições de verdade (entra com marcadores, fichas e marcadores dobrados, dano dobrado/prevenido)
 Testes: check 0 erros · Vitest 257/257. Motor joga inteiras 1299/1753.
 - **Contagem honesta:** a cobertura dava como "lida" qualquer substituição cujo nome aparecia no código; o motor só aplicava `entra` virada e `ganhaVida`. Agora o motor diz o que aplica (`M.substOk`): 50 cartas que contavam como inteiras sem funcionar (1313 → 1263).
