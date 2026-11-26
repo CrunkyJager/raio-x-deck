@@ -227,7 +227,15 @@ M.temPermissaoCemiterio = (e, j) => permissoes(e, j).length > 0;
 // permissão dada por efeito (op jogar com dura): o mesmo objeto (id e ts, CR 400.7) em qualquer zona fora do campo
 M.permJogar = (e, j, o) => { const l = e.permJogar; if (!l || !l.length) return null; for (const p of l) if (p.j === j && p.id === o.id && p.ts === o.ts && o.zona !== 'campo' && o.zona !== 'pilha') return p; return null; };
 // recapitular (CR 702.34): conjurar do cemitério pelo custo de recapitular; ao sair da pilha vai para o exílio (702.34a)
-const flashDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'flashback' && x.custo); return k ? k.custo : null; };
+// flashback dado a cartas do cemitério por efeito "neste turno" (Past in Flames, 702.34a): custo = o custo de mana da carta
+const flashDado = (e, o) => {
+  for (const t of e.efTemp || []) for (const s of t.est) if (s.modo === 'continuo' && s.afeta && s.afeta.zona === 'cemiterio') {
+    const k = (s.kw || []).find(x => x.k === 'flashback');
+    if (k && M.bate(e, o, s.afeta, { voce: t.ctrl, este: -1 })) return k.custo || M.dadoDe(e, o).custo || null;
+  }
+  return null;
+};
+const flashDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'flashback' && x.custo); return k ? k.custo : o.zona === 'cemiterio' && e.efTemp && e.efTemp.length ? flashDado(e, o) : null; };
 const porFlash = (e, j, o) => o.zona === 'cemiterio' && o.dono === j && !!flashDe(e, o) && !M.podeJogarDe(e, j, o);
 M.porFlash = porFlash;
 // fuga (CR 702.138): conjurar do cemitério pagando o custo de fuga + exilar N OUTRAS cartas do seu cemitério. Da própria
