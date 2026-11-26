@@ -2926,6 +2926,19 @@ caso('614.12', 'escolher modo ao entrar (Mirrodin Besieged): as opções são os
     igual(e.campo.filter(id => e.objs[id].n === 'Myr' || (e.objs[id].ficha && (e.objs[id].ficha.sub || []).includes('Myr'))).length, modo === 'Mirran' ? 1 : 0, modo);
   }
 });
+caso('615.1', 'prevenir dano até o fim do turno (efeitoTemporario): Selfless Squire protege só você; Spore Frog só o de combate e vale com ela já no cemitério; some na limpeza', () => {
+  const fxDe = n => { const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; }; return ach(M.carta(n)); };
+  const e = cena({ campo: [[0, 'Spore Frog']] }); e.pend = [];
+  const sapo = objN(e, 0, 'Spore Frog');
+  const ctx = id => ({ voce: 0, este: id, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  M.executar(e, fxDe('Selfless Squire'), ctx(-1), null);
+  igual([M.substDano(e, 5, { jog: 0 }), M.substDano(e, 5, { jog: 1 })], [0, 5], 'Squire: só você');
+  e.efTemp = [];
+  M.mover(e, sapo.id, 'cemiterio'); M.executar(e, fxDe('Spore Frog'), ctx(sapo.id), null);
+  igual([M.substDano(e, 3, { jog: 1, combate: true }), M.substDano(e, 3, { jog: 1 })], [0, 3], 'Frog: só combate, fonte já saiu');
+  passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
+  igual(M.substDano(e, 3, { jog: 1, combate: true }), 3, 'acabou no fim do turno');
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
