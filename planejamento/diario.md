@@ -58,3 +58,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 26/11 ~12h v0.44.0: fuga, gatilhos cicla/desvira/jogaTerreno/prolifera, "outro", descartadas no turno. Ivora inteiras 65/75.
 - 26/11 ~13h30 v0.45.0: custo "ou", reflexo, milagre, Role, reconfigurar, descer, exilada com este, preparar, ferida por esta, Ashiok, terço da vida, ninjutsu, prever, rondar, buscar no grimório do oponente. Ivora 75/75 e masmorras 83/83 inteiras. Edgar's Coffin consertado.
 - 26/11 v0.46.0: mana com escolha no custo (manaEsc): altares, Krark-Clan, Skirk, Phyrexian Tower, Gilded Goose, Steam-Kin, Simian. Inteiras 1371/1753.
+- 26/11 v0.46.1: Mesa ao vivo, 9 perguntas que saíam com nome interno ganharam texto em português.

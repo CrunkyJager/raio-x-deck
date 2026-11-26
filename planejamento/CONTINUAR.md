@@ -65,7 +65,7 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 ## Próximo passo (nesta ordem)
 1. ~~Habilidades de mana com escolha~~ FEITO na v0.46.0. Era: Habilidades de mana com escolha que o motor ainda não paga (10, aparecem como `custoMana.*` na cobertura): sacrificar outra (altares, Krark-Clan, Gilded Goose), tirar marcador (Steam-Kin, Ramos), exilar da mão (Simian Spirit Guide). Não pôr no solver automático (sacrificaria sem querer): virar ação com pergunta.
 2. ~~`falta` da Ivora e masmorras~~ FEITO na v0.45.0 (sobra o verso Tecutlan).
-3. Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
+3. ~~Revisão de textos da Mesa~~ FEITO na v0.46.1 (9 perguntas sem título/rótulo). Era: Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
 4. T44 medida em lotes → T46 depois da autorização.
 
 ## Próximo passo (antigo, 25/11)

@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.46.1 — 26/11/2026 · Mesa ao vivo: perguntas que apareciam com o nome interno
+Testes: check 0 erros · Vitest 297/297 · build ok.
+- Ganharam título e botões em português: quem a criatura que entra atacando ataca, custo adicional com "ou" (ex.: "Sacrificar 1 artefato" / "Descartar 1 carta"), conjurar com chute/presente, para qual oponente vai o presente, conjurar agora (de graça), dividir o dano, ordem do dano ("X recebe o dano primeiro"), devolver à mão como custo, exilar do cemitério (fuga).
+- Custo de sacrificar/descartar: "Sacrificar Grizzly Bears" no lugar de "sacrificar: Grizzly Bears".
+
 ## v0.46.0 — 26/11/2026 · Mana com escolha no custo: altares, Krark-Clan, Steam-Kin, Simian Spirit Guide
 Testes: check 0 erros · Vitest 297/297 · raiox-testes igual à linha de base. Motor joga inteiras 1371/1753 (eram 1363). Partidas: deck de altares 40, Ivora 40, masmorras 40, 0 erros.
 - **Nova ação de mana com pergunta** (CR 605.3a, sem pilha): sacrificar outra (Ashnod's Altar, Phyrexian Altar, Krark-Clan Ironworks, Skirk Prospector, Phyrexian Tower, Gilded Goose com Food), tirar marcadores (Runaway Steam-Kin) e exilar da mão (Simian Spirit Guide). Fica fora do pagamento automático, para nunca sacrificar sem querer; na Mesa ao vivo aparece junto dos botões de mana e pergunta o que sacrificar.
