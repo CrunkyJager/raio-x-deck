@@ -269,7 +269,7 @@ function aplicarGolpes(e, golpes) {
     if (g.alvo.jog !== undefined) {
       if (M.protegeJog(e, g.alvo.jog)) continue;                                           // 702.16j: prevenido
       const J = e.jogs[g.alvo.jog];
-      if (!M.vidaFixa(e, g.alvo.jog)) J.vida -= g.q;                                       // 120.3a; 119.7 vida que não muda
+      M.danoJogador(e, g.alvo.jog, g.q, M.kwDe(e, g.fonte));                               // 120.3a (infectar: veneno, 702.90b); 119.7
       if (g.fonte.cmd) J.danoCmd[g.fonte.id] = (J.danoCmd[g.fonte.id] || 0) + g.q;          // 903.10a
     } else {
       const o = e.objs[g.alvo.o];

@@ -65,6 +65,7 @@ try {
         }
       }
       for (const a of d.atv || []) {
+        if (a.se && !M.seOk(a.se)) anota('atv.se', n);              // "ative só se …" que o motor não lê: não ativa
         if (a.deMana) continue;
         if (a.custo && !M.custoSuportado(a.custo)) for (const k of Object.keys(a.custo)) if (!M.custoSuportado({ [k]: a.custo[k] })) anota(`custoAtv.${k}`, n);
         if (!M.fxSuportado(a.fx, { topo: false })) fxMotivos(a.fx, false, n, 'atv');

@@ -18,7 +18,9 @@ M.carta = n => {
 // ficha leva o próprio dado; carta de mais de uma face devolve a face que está para cima (o.face)
 // palavras-chave que só valem na montagem do deck/zona de comando (CR 702.124 parceiro, 'parceiroCom' = parceiro com
 // <nome>, 702.124c): na partida não mudam nada. O carregamento do deck aceita os dois comandantes.
-M.KW_SO_DECK = new Set(['parceiro', 'parceiroCom']);
+// Escolha um Antecedente (702.124k): o comandante e o antecedente (Background lendário) começam os dois no comando
+// (702.124b) e cada um tem o próprio imposto (903.8, 702.124d: j.imposto por id) — o novoJogo já faz isso.
+M.KW_SO_DECK = new Set(['parceiro', 'parceiroCom', 'escolhaAntecedente']);
 M.dadoBase = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
 // camada 4 (tipo) e 7b (P/R fixado), só no campo: o.anim (op animar, preso ao objeto: mesmo ts) e a estática
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
@@ -677,7 +679,7 @@ M.objetosQue = (e, f, ctx) => {
   const z = f.zona || 'campo';
   let ids;
   if (z === 'campo') ids = e.campo;
-  else if (z === 'pilha') ids = e.pilha;
+  else if (z === 'pilha') ids = e.pilha.filter(id => !e.objs[id].hab);   // filtro de objeto na pilha = mágica: habilidade não tem tipo (113.1) nem carta
   else ids = e.jogs.flatMap(j => z === 'qualquer' ? ZONAS_JOG.flatMap(k => j.zonas[k]) : j.zonas[z]);
   const ff = z === 'campo' && !f.zona ? { ...f, zona: 'campo' } : f;
   return ids.map(id => e.objs[id]).filter(o => M.bate(e, o, ff, ctx));
@@ -724,16 +726,18 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
-// permanentes uma vez = para sempre). Fora daqui (solved, morbid…) a condição é recusada.
+// permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
+// temIniciativa/completouMasmorra: valores conferidos em masmorras.ts (CR 727, 309.7)
 const PALAVRA: Record<string, (e, ctx) => boolean> = {
   metalcraft: (e, ctx) => M.objetosQue(e, { tipo: ['Artifact'], ctrl: 'voce', zona: 'campo' }, ctx).length >= 3,
   coven: (e, ctx) => new Set(M.objetosQue(e, { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' }, ctx).map(o => M.poder(e, o))).size >= 3,
   blessing: (e, ctx) => { const J = e.jogs[ctx.voce]; if (!J.bencao && e.campo.filter(id => e.objs[id].ctrl === ctx.voce).length >= 10) J.bencao = true; return !!J.bencao; },
+  morbid: e => M.morbido(e),
 };
-M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]);
+M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
 M.condicao = (e, se, ctx) => {
   if (!se) return true;
   for (const k in se) if (!COND_OK.has(k)) throw new Error('condição sem suporte no motor2: ' + k);
@@ -752,6 +756,7 @@ M.condicao = (e, se, ctx) => {
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
     if (se.palavra && PALAVRA[se.palavra] && !PALAVRA[se.palavra](e, ctx)) return false;
   }
+  if ((se.temIniciativa !== undefined || se.completouMasmorra !== undefined) && !M.condMasmorra(e, se, ctx)) return false;
   if (se.pagou !== undefined && !!ctx.pagou !== !!se.pagou) return false;
   if (se.esteEm) { const E = e.objs[ctx.este]; if (!E || !se.esteEm.includes(E.zona)) return false; }   // "as long as this is in your graveyard" (Anger, Wonder)
   if (se.objBate) {                                                 // o objeto (este, doEvento, equipada, criadas, alvo) bate no filtro? nao: o contrário
