@@ -28,6 +28,7 @@ const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['q
   && (QUEM_OK.has(a.quem) || quemAlvo(a.quem)) && !!a.custo && typeof a.custo === 'object' && Object.keys(a.custo).length === 1
   && (a.custo.mana ? Object.keys(a.custo.mana).every(k => k === 'g' || k === 'x' || /^[WUBRGC]$/.test(k) || k === 'p') && (!a.custo.mana.x || (a.qtd !== undefined && qtdOk(a.qtd)))
     : a.custo.vida ? Number.isInteger(a.custo.vida)
+    : a.custo.sacrificar === 'este' ? true                                         // "unless you sacrifice this" (Withercrown dá à encantada)
     : a.custo.sacrificar ? typeof a.custo.sacrificar === 'object' && M.filtroOk(a.custo.sacrificar.f || {}) && Object.keys(a.custo.sacrificar).every(k => k === 'f' || k === 'qtd') && (a.custo.sacrificar.qtd === undefined || Number.isInteger(a.custo.sacrificar.qtd))
     : false)
   && (a.qtd === undefined || !!a.custo.mana);
@@ -44,6 +45,99 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   if (f.pagando !== undefined && !amqOk({ quem: 'voce', custo: f.pagando })) return false;   // "você pode pagar…; se pagar"
   return h.ok ? h.ok(f) : true;
 });
+
+// substituições (CR 614) que o motor aplica de verdade; o resto é recusado (a cobertura conta como trava). Lidas em:
+// entra (decidirEntrada/aplicarEntrada), ganhaVida (estado.ts), ficha (criarFichas), marcador (porMarcadores),
+// dano (substDano), anulada (pilha.ts), morre/vaiCemiterio (estado.ts, M.destinoSaida).
+const SUBST: Record<string, (s) => boolean> = {
+  entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
+    || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura'))),
+  ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
+  // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
+  entraMarc: s => !!s.muda && Object.keys(s.muda).length === 1 && !!s.muda.marcadores && typeof s.muda.marcadores === 'object'
+    && Object.values(s.muda.marcadores).every(q => qtdOk(q === 'X' ? q : q && typeof q === 'object' && q.conta === 'X' ? 'X' : q)),
+  ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')),
+  marcador: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || Number.isInteger(s.muda.soma) || s.muda.impedir === true)
+    && Object.keys(s).every(k => ['ev', 'quem', 'marc', 'muda', 'se'].includes(k)),
+  dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
+    && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente'),
+};
+const tipoSubst = s => s.ev === 'entra' && s.muda && s.muda.marcadores ? 'entraMarc' : s.ev;
+M.substOk = s => !!s && !!SUBST[tipoSubst(s)] && SUBST[tipoSubst(s)](s) && (!s.se || seOk(s.se)) && (!s.quem || typeof s.quem !== 'object' || M.filtroOk(s.quem));
+M.SUBST = SUBST;
+// as substituições de um tipo que estão no campo, com a permanente que as tem (F)
+function substsDe(e, tipo) {
+  const r: any[] = [];
+  for (const id of e.campo) { const F = e.objs[id]; if (!F) continue; for (const s of M.dadoDe(e, F).subst || []) if (tipoSubst(s) === tipo && M.substOk(s)) r.push({ F, s }); }
+  return r;
+}
+const substSe = (e, F, s) => { if (!s.se) return true; try { return M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { return false; } };
+const substQuem = (e, F, s, o) => !s.quem || (s.quem.este ? !!o && o.id === F.id : !!o && M.bate(e, o, s.quem, { voce: F.ctrl, este: F.id }));
+// pôr marcadores num objeto (CR 122.6) com as substituições 'marcador' (614.1, 616.1: o controlador escolhe a ordem —
+// aqui a melhor para ele: impedir, depois somas, depois multiplicações). Devolve quantos pôs.
+M.porMarcadores = (e, o, t, q) => {
+  if (!(q > 0)) return 0;
+  let soma = 0, mult = 1;
+  for (const { F, s } of substsDe(e, 'marcador')) {
+    if (s.marc && s.marc !== t) continue;
+    if (!substQuem(e, F, s, o) || !substSe(e, F, s)) continue;
+    if (s.muda.impedir) return 0;
+    if (s.muda.soma) soma += s.muda.soma; if (s.muda.mult) mult *= s.muda.mult;
+  }
+  q = (q + soma) * mult;
+  if (t === 'lore') M.porHistoria(e, o, q); else o.marc[t] = (o.marc[t] || 0) + q;
+  return q;
+};
+// "entra com marcadores" (614.1c, 614.12): os da própria carta e os dados por outras permanentes (Arwen, Bramblewood)
+function entraComMarcadores(e, o, x) {
+  const d = M.dadoDe(e, o), lista: any[] = (d.subst || []).filter(s => tipoSubst(s) === 'entraMarc' && s.quem && s.quem.este && M.substOk(s)).map(s => ({ F: o, s }));
+  for (const r of substsDe(e, 'entraMarc')) if (r.F.id !== o.id && !(r.s.quem && r.s.quem.este)) lista.push(r);
+  for (const { F, s } of lista) {
+    if (!substQuem(e, F, s, o) || !substSe(e, F, s)) continue;
+    for (const t in s.muda.marcadores) {
+      let v = s.muda.marcadores[t];
+      const cx = { voce: F.ctrl, este: F.id, x: F.id === o.id ? x || 0 : 0, lki: {}, alvos: [], ilegal: {} };
+      if (v && typeof v === 'object' && v.conta === 'X') v = (cx.x) * (v.mult || 1) + (v.soma || 0);
+      const q = qtdDe(e, v, cx);
+      if (q > 0) M.porMarcadores(e, o, t, q);
+    }
+  }
+}
+// criar fichas (CR 111) com as substituições 'ficha' (Parallel Lives, Doubling Season, Queen Allenal, Bilbo): a 1ª ficha
+// serve de amostra para o filtro; "mais uma" antes de multiplicar (a ordem boa para o controlador, 616.1).
+M.criarFichas = (e, j, tok, q, opc: any = {}) => {
+  const out: any[] = [];
+  if (!(q > 0)) return out;
+  out.push(criarFicha(e, j, tok, opc));
+  let mult = 1; const extras: any[] = [];
+  for (const { F, s } of substsDe(e, 'ficha')) {
+    if (!substQuem(e, F, s, out[0]) || !substSe(e, F, s)) continue;
+    if (s.muda.mult) mult *= s.muda.mult; else extras.push(s.muda.maisFicha);
+  }
+  for (let i = 1; i < q * mult; i++) out.push(criarFicha(e, j, tok, opc));
+  for (const x of extras) for (let i = 0; i < mult; i++) out.push(criarFicha(e, j, x, {}));
+  return out;
+};
+// dano (CR 615, 614.1a): dobrar (mult), metade arredondada para cima, prevenir, "todo menos N" (teto). jog = o jogador
+// que recebe (relativo a quem tem a substituição); quem = a permanente que recebe; por = a fonte. Prevenir antes de dobrar.
+M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
+  if (!(q > 0)) return 0;
+  const lista = substsDe(e, 'dano').filter(({ F, s }) => {
+    if (s.combate !== undefined && !!s.combate !== !!combate) return false;
+    if (s.jog !== undefined || s.quem !== undefined) {
+      const okJ = s.jog !== undefined && jog !== undefined && (s.jog === 'voce' ? jog === F.ctrl : jog !== F.ctrl);
+      const okO = s.quem !== undefined && o !== undefined && substQuem(e, F, s, o);
+      if (!okJ && !okO) return false;
+    }
+    if (s.por && !(fonte && M.bate(e, fonte, s.por, { voce: F.ctrl, este: F.id }))) return false;
+    return substSe(e, F, s);
+  });
+  if (lista.some(r => r.s.muda.prevenir)) return 0;
+  for (const r of lista) if (r.s.muda.teto !== undefined) q = Math.min(q, r.s.muda.teto);
+  for (const r of lista) if (r.s.muda.mult) q *= r.s.muda.mult;
+  for (const r of lista) if (r.s.muda.metade) q = Math.ceil(q / 2);
+  return q;
+};
 
 // ---------- leitura no meio da resolução ----------
 const objsDeQualquer = (e, f, ctx) => objsDe(e, f, ctx);
@@ -155,7 +249,7 @@ function fonteOutra(e, fo, ctx) {
     o = e.objs[a.o]; l = ctx.lki.alvos && (ctx.lki.alvos[fo.alvo] || [])[0];
     if (o && l && o.ts !== l.ts) o = null;                           // mudou de zona: virou outro objeto (400.7)
   }
-  if (o && o.zona === 'campo') return { kw: M.kwDe(e, o), ctrl: o.ctrl };
+  if (o && o.zona === 'campo') return { kw: M.kwDe(e, o), ctrl: o.ctrl, o };
   if (o) return { kw: M.dadoDe(e, o).kw || [], ctrl: o.ctrl };
   if (l) return { kw: M.dadoFace(M.carta(l.n), l.face).kw || [], ctrl: l.ctrl };
   return null;
@@ -186,12 +280,14 @@ function pagouParaImpedir(e, f, ctx, ask) {
     let mana: any = null, x = 0;
     if (c.mana) { mana = { ...c.mana }; if (mana.x) { x = qtdDe(e, a.qtd, ctx); } if (M.planoMana(e, j, mana, { x })) ops.push({ a: 'pagar' }); }
     else if (c.vida) { if (J.vida >= c.vida && !M.vidaFixa(e, j)) ops.push({ a: 'pagar' }); }   // CR 119.4, 119.8
+    else if (c.sacrificar === 'este') { const o = e.objs[ctx.este]; if (o && o.zona === 'campo' && o.ctrl === j) ops.push({ a: 'pagar' }); }
     else if (c.sacrificar) { if (M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }, c.sacrificar.qtd || 1)) ops.push({ a: 'pagar' }); }
     const fo = e.objs[ctx.item] || e.objs[ctx.este];
     const r = ask(j, 'aMenosQuePagar', ops, { op: f.op, fonte: fo ? fo.n : '?', de: ctx.voce, custo: c, x });
     if (r.a !== 'pagar') continue;
     if (mana) M.pagarComPlano(e, j, mana, { x });
     else if (c.vida) J.vida -= c.vida;                                                        // CR 119.4
+    else if (c.sacrificar === 'este') M.mover(e, ctx.este, 'cemiterio');
     else {
       const sac: any[] = [];
       for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
@@ -264,10 +360,11 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
   }
   return { id, ctrl, vir, pagaVida, escolha, face };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null }) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0 }) => {
   if (pagaVida) e.jogs[ctrl].vida -= pagaVida;
   const o = M.mover(e, id, 'campo', { virada: vir, face, conj });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
+  entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
 };
@@ -348,14 +445,15 @@ const H = {
       const ia = f.em && typeof f.em.alvo === 'number' ? f.em.alvo : -1, def = ia >= 0 && (ctx.defAlvos || [])[ia];
       if (def && def.dividir === 'igual') q = Math.floor(q / Math.max(1, (ctx.alvos[ia] || []).length));
       if (q <= 0) return;
-      const fonte = f.fonte === undefined ? { kw: fonteDado(e, ctx).kw, ctrl: ctx.voce } : fonteOutra(e, f.fonte, ctx);
+      const it = e.objs[ctx.item];
+      const fonte = f.fonte === undefined ? { kw: fonteDado(e, ctx).kw, ctrl: ctx.voce, o: it && !it.hab ? it : e.objs[ctx.este] } : fonteOutra(e, f.fonte, ctx);
       if (!fonte) return;
       let total = 0;
       const parte = (o, jg?) => { const v = M.parteDividida(ctx, f, o, jg); return v === null ? q : v; };   // dividir à escolha (601.2d)
-      for (const o of objsDe(e, f, ctx)) { const v = parte(o); if (v > 0) { danoEm(e, o, v, fonte); total += v; } }
+      for (const o of objsDe(e, f, ctx)) { const v = M.substDano(e, parte(o), { fonte: fonte.o, o }); if (v > 0) { danoEm(e, o, v, fonte); total += v; } }   // 615, 614.1a
       const js = f.em && typeof f.em.alvo === 'number' ? jogsAlvo(e, f.em.alvo, ctx) : [];
       const jq = f.quem ? jogsDe(e, f, ctx) : [];
-      for (const j of [...new Set([...js, ...jq])]) { const v = js.includes(j) ? parte(null, j) : q; if (v <= 0 || M.protegeJog(e, j)) continue; M.danoJogador(e, j, v, fonte.kw); total += v; }   // CR 120.3a (infectar: veneno, 702.90b); 702.16j; 119.7
+      for (const j of [...new Set([...js, ...jq])]) { const v = M.substDano(e, js.includes(j) ? parte(null, j) : q, { fonte: fonte.o, jog: j }); if (v <= 0 || M.protegeJog(e, j)) continue; M.danoJogador(e, j, v, fonte.kw); total += v; }   // CR 120.3a (infectar: veneno, 702.90b); 702.16j; 119.7
       if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, fonte.ctrl, total);   // CR 702.15b: quem controla a fonte
     },
   },
@@ -560,7 +658,7 @@ const H = {
       const q = qtdDe(e, f.qtd, ctx); ctx.criadas = [];
       const tok = f.token && f.token.copiaDe !== undefined ? copiaDe(e, f.token, ctx) : f.token;
       if (!tok) return;
-      for (const j of jogsDe(e, f, ctx)) for (let i = 0; i < q; i++) { const o = criarFicha(e, j, tok, { virada: !!f.virada }); ctx.criadas.push({ id: o.id, ts: o.ts }); }
+      for (const j of jogsDe(e, f, ctx)) for (const o of M.criarFichas(e, j, tok, q, { virada: !!f.virada })) ctx.criadas.push({ id: o.id, ts: o.ts });
     },
   },
   marcador: {                                                       // CR 122
@@ -568,7 +666,7 @@ const H = {
     fx(e, f, ctx) {
       const q = qtdDe(e, f.qtd, ctx);
       if (f.em === undefined && f.quem !== undefined) { for (const j of jogsDe(e, f, ctx)) M.marcadorJogador(e, j, f.tipoMarc, q, !!f.tirar); return; }   // no jogador (122.1: poison, rad, experience)
-      for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (t === 'lore' && !f.tirar && q1 > 0) { M.porHistoria(e, o, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) + (f.tirar ? -q1 : q1)); }
+      for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) - q1); }
     },
   },
   virar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) o.virada = true; } },
@@ -776,8 +874,8 @@ const H = {
       const q = qtdDe(e, f.qtd, ctx), o = e.objs[ctx.este];
       const nela = o && o.zona === 'campo' && (!ctx.lki.este || o.ts === ctx.lki.este.ts);   // saiu: só as fichas
       const r = nela ? ask(ctx.voce, 'fabricar', [{ a: 'marcadores', q }, { a: 'fichas', q }], {}) : { a: 'fichas' };
-      if (r.a === 'marcadores') { o.marc['+1/+1'] = (o.marc['+1/+1'] || 0) + q; return; }
-      for (let i = 0; i < q; i++) criarFicha(e, ctx.voce, SERVO);
+      if (r.a === 'marcadores') { M.porMarcadores(e, o, '+1/+1', q); return; }
+      M.criarFichas(e, ctx.voce, SERVO, q);
     },
   },
 };

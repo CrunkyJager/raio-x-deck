@@ -264,7 +264,9 @@ M.PROC.dano = (e, P, ask) => {
 // 510.2: todo o dano da etapa ao mesmo tempo
 function aplicarGolpes(e, golpes) {
   const vida: any = {};
-  for (const g of golpes) {
+  for (let g of golpes) {
+    g = { ...g, q: M.substDano(e, g.q, { fonte: g.fonte, combate: true, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: e.objs[g.alvo.o] }) }) };   // 615, 614.1a
+    if (!(g.q > 0)) continue;
     const fd = M.dadoDe(e, g.fonte);
     if (g.alvo.jog !== undefined) {
       if (M.protegeJog(e, g.alvo.jog)) continue;                                           // 702.16j: prevenido

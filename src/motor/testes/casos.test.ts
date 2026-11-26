@@ -1570,6 +1570,49 @@ caso('118.12', 'aMenosQue: Smothering Tithe (o oponente que comprou paga {2} e n
   igual(g.jogs[0].zonas.mao.length, 1, 'sem criatura não pode pagar: comprou');
 });
 
+caso('118.12', 'aMenosQue sacrificar "este": Withercrown (perde 1 a menos que sacrifique a encantada; IA só sacrifica com vida baixa)', () => {
+  ok(M.fxSuportado([{ op: 'perderVida', quem: 'voce', qtd: 1, aMenosQue: { quem: 'voce', custo: { sacrificar: 'este' } } }]), 'sacrificar este: aceito');
+  const f = { op: 'perderVida', quem: 'voce', qtd: 1, aMenosQue: { quem: 'voce', custo: { sacrificar: 'este' } } };
+  for (const vida of [40, 2]) {
+    const g = cena({ campo: [[0, 'Grizzly Bears']] }); g.jogs[0].vida = vida;
+    const urso = g.campo.find(id => g.objs[id].n === 'Grizzly Bears');
+    const ia = M.agenteBasico();
+    M.executar(g, f, { voce: 0, este: urso, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops, ctx) => ops[ia(g, { j, tipo: t, ops, ctx })]);
+    igual([g.jogs[0].vida, naZona(g, 0, 'cemiterio')], vida === 40 ? [39, []] : [2, ['Grizzly Bears']], 'vida ' + vida);
+  }
+});
+
+// substituições (CR 614): entra com marcadores, marcadores a mais, fichas dobradas, dano dobrado/prevenido
+caso('614.1c', 'entra com marcadores: Kalonian Hydra entra com 4 (+1 com Hardened Scales) e não morre como 0/0', () => {
+  for (const escamas of [false, true]) {
+    const campo: any[] = escamas ? [[0, 'Hardened Scales']] : [];
+    const e = cena({ campo, mao: [[0, 'Kalonian Hydra']] });
+    const h = e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Kalonian Hydra');
+    M.entrarPermanente(e, h, 0, {}, null);
+    igual(e.objs[h].marc['+1/+1'], escamas ? 5 : 4, escamas ? 'com Hardened Scales' : 'sozinha');
+  }
+});
+caso('614.1a', 'fichas: Parallel Lives dobra; Doubling Season + Parallel Lives = ×4; marcador com Doubling Season dobra', () => {
+  const e = cena({ campo: [[0, 'Parallel Lives'], [1, 'Grizzly Bears']] });
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 2, token: { nome: 'Treasure' } }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.campo.filter(id => e.objs[id].n === 'Treasure').length, 4, '2 × 2');
+  M.executar(e, { op: 'ficha', quem: 'cadaOponente', qtd: 1, token: { nome: 'Treasure' } }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.campo.filter(id => e.objs[id].n === 'Treasure' && e.objs[id].ctrl === 1).length, 1, 'do oponente não dobra');
+  const g = cena({ campo: [[0, 'Parallel Lives'], [0, 'Doubling Season'], [0, 'Grizzly Bears']] });
+  M.executar(g, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Food' } }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(g.campo.filter(id => g.objs[id].n === 'Food').length, 4, '1 × 2 × 2');
+  const urso = g.campo.find(id => g.objs[id].n === 'Grizzly Bears');
+  M.executar(g, { op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 1 }, { voce: 0, este: urso, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(g.objs[urso].marc['+1/+1'], 2, 'Doubling Season nos marcadores');
+});
+caso('615', 'dano: Gisela dobra o dano no oponente e corta pela metade (arredonda para cima) o dano em você', () => {
+  const e = cena({ campo: [[0, 'Gisela, Blade of Goldnight']] });
+  const v0 = e.jogs[0].vida, v1 = e.jogs[1].vida;
+  M.executar(e, { op: 'dano', quem: 'cadaOponente', qtd: 3 }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  M.executar(e, { op: 'dano', quem: 'cadaOponente', qtd: 3 }, { voce: 1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([v1 - e.jogs[1].vida, v0 - e.jogs[0].vida], [6, 2], 'oponente 3→6; você 3→2');
+});
+
 // efeitoTemporario (611.2b) e fases (702.26): Teferi's Protection, Rogue's Passage
 const ateTurno = (e, n, passo = 'principal1') => {
   const fim = x => x.turno.n === n && x.turno.passo === passo;

@@ -86,7 +86,7 @@ try {
         } else if (!citado.has(s.modo)) anota(`est ${s.modo}`, n);
       }
       for (const x of d.kw || []) if (!citado.has(x.k)) anota(`kw ${x.k}`, n);
-      for (const s of d.subst || []) { const t = s.modo || s.tipo || s.ev || Object.keys(s).join('+'); if (!citado.has(t)) anota(`subst ${t}`, n); }
+      for (const s of d.subst || []) { if (!M.substOk(s)) anota(`subst ${s.ev} ${[...Object.keys(s.muda || {}), ...(s.emVez || []).map(f => f.op + (f.o ? '/' + f.o : ''))].join('+')}`, n); }   // o motor diz o que aplica (efeitos.ts SUBST)
       for (const f of d.faces || []) ve(f);
       for (const l of d.niveis || []) ve(l);   // Classe: cada nível (n, custo, gat/est/atv)
     };

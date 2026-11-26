@@ -93,6 +93,7 @@ const basico = (e, p) => {
       if (p.ctx.op === 'pagando') return c.mana ? k : c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : 0;   // "pode pagar; se pagar": mana sim; vida com folga
       if (c.mana) return e.turno.ativo !== p.j || (c.mana.g || 0) + (p.ctx.x || 0) <= 1 ? k : 0;
       if (c.vida) return J.vida - c.vida > 10 ? k : 0;
+      if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura
       return meu ? k : 0;
     }
     case 'atacar': return atacarBasico(e, p);

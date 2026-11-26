@@ -609,9 +609,9 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
   if (o.hab) { const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); delete e.objs[o.id]; return; }
   if (resolveu && M.ehPermanente(e, o)) {
     const plano = M.decidirEntrada(e, o.id, o.pil.ctrl, {}, ask);   // pergunta antes de mexer
-    const conj = o.pil.opc;
+    const conj = o.pil.opc, x = o.pil.x || 0;
     o.pil = null;
-    M.aplicarEntrada(e, { ...plano, conj });                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
+    M.aplicarEntrada(e, { ...plano, conj, x });                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
     return;
   }
   const ctrl = o.pil && o.pil.ctrl;
