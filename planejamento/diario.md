@@ -53,3 +53,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 26/11 08:18 v0.39.0: integração casa-ivora + casa-masmorras-motor (casa-masmorras-banco já dentro); conflito COND_OK/PALAVRA resolvido
 - 26/11 08:28 v0.40.0: substituições aplicadas pelo motor + cobertura honesta (M.substOk); 1299/1753
 - 26/11 08:39 v0.41.0: Mesa ao vivo mana livre + tapete (comando no centro) + fundo por lugar; conserto do tipo (CI)
+- 26/11 tarde: v0.42.0 — masmorras 83/83 no motor (repetirCada, virarOutros, subst morre/vaiCemiterio, atrasado com alvo, danoUmaVez, filtros kw/comMarcador). Inteiras 1345/1753.
