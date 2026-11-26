@@ -94,7 +94,7 @@ function acaoDoTurno(e) {
     case 'desvirar':                                                // CR 502.1 (fases antes), 502.2–502.3
       J.terrenos = 0;
       if (e.faseados && e.faseados.length) M.fasearDentro(e, a);
-      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { o.virada = false; o.doente = false; } }
+      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { if (o.naoDesv === o.ts) delete o.naoDesv; else o.virada = false; o.doente = false; } }   // naoDesv: "não desvira no próximo desvirar" (o mesmo objeto, 400.7)
       // "desvire [filtro] que você controla durante a etapa de desvirar de cada outro jogador" (Unwinding Clock, Seedborn Muse)
       for (const id of M.indiceCampo(e).est) {
         const F = e.objs[id]; if (F.ctrl === a) continue;

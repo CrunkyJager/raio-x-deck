@@ -1645,6 +1645,38 @@ caso('122.1b', 'marcador de palavra-chave: Luminous Broodmoth devolve a que não
     if (volta === 0) ok(M.temKw(e, e.objs[u], 'voar') && e.objs[u].marc.flying === 1, 'voa pelo marcador');
   }
 });
+caso('602.2b', 'custo virarOutros: Dungeon Descent — {4},{T}, virar uma criatura lendária sua desvirada (mesmo enjoada, 302.6): aventura', () => {
+  const d = M.carta('Dungeon Descent'), a = d.atv[1];
+  ok(M.custoSuportado(a.custo), 'custo aceito');
+  for (const lenda of [false, true]) {
+    const campo: any[] = [[0, 'Dungeon Descent'], [0, 'Wastes'], [0, 'Wastes'], [0, 'Wastes'], [0, 'Wastes'], [0, 'Grizzly Bears']];
+    if (lenda) campo.push([0, 'Acererak the Archlich', { doente: true }]);
+    const e = cena({ campo });
+    const dd = e.campo.find(id => e.objs[id].n === 'Dungeon Descent');
+    M.avancar(e);
+    const at = opsDe(e, 'ativar').find(o => o.id === dd && o.k === 1);
+    igual(!!at, lenda, lenda ? 'com lendária: pode ativar' : 'sem lendária: não oferece');
+    if (!lenda) continue;
+    resp(e, o => o === at);
+    while (e.perg && e.perg.tipo !== 'acao') M.responder(e, 0);
+    const ac = e.campo.find(id => e.objs[id].n === 'Acererak the Archlich');
+    ok(e.objs[ac].virada && e.objs[dd].virada, 'virou a lendária e o terreno');
+    igual(e.campo.filter(id => e.objs[id].n === 'Wastes' && e.objs[id].virada).length, 4, 'pagou {4}');
+    ok(!e.objs[e.campo.find(id => e.objs[id].n === 'Grizzly Bears')].virada, 'o urso (não lendário) fica');
+  }
+});
+caso('502.3', 'naoDesvira: Junk Winder vira e ela não desvira no próximo desvirar; Fifty Feet of Rope (soNaoDesvira) não vira, só segura a virada', () => {
+  ok(M.fxSuportado([{ op: 'virar', em: { alvo: 0 }, naoDesvira: true, soNaoDesvira: true }]) && !M.fxSuportado([{ op: 'virar', em: { alvo: 0 }, soNaoDesvira: true }]), 'campos');
+  for (const so of [false, true]) {
+    const e = cena({ campo: [[1, 'Grizzly Bears']], passo: 'final' });
+    const u = e.campo[0];
+    M.executar(e, { op: 'virar', em: { alvo: 0 }, naoDesvira: true, ...(so ? { soNaoDesvira: true } : {}) }, { voce: 0, alvos: [[{ o: u, ts: e.objs[u].ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+    igual(e.objs[u].virada, !so, so ? 'Rope não vira' : 'Winder vira');
+    e.objs[u].virada = true;                                       // virou atacando, por exemplo
+    passarAte(e, 'manutencao');                                    // desvirar do jogador 1
+    ok(e.turno.ativo === 1 && e.objs[u].virada, 'não desvirou no desvirar dele');
+  }
+});
 // substituições (CR 614): entra com marcadores, marcadores a mais, fichas dobradas, dano dobrado/prevenido
 caso('614.1c', 'entra com marcadores: Kalonian Hydra entra com 4 (+1 com Hardened Scales) e não morre como 0/0', () => {
   for (const escamas of [false, true]) {

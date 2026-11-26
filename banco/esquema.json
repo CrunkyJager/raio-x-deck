@@ -1419,6 +1419,10 @@
     "transformada": {
      "type": "boolean",
      "description": "op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)"
+    },
+    "soNaoDesvira": {
+     "type": "boolean",
+     "description": "op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)"
     }
    },
    "additionalProperties": false,
