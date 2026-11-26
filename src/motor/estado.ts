@@ -25,6 +25,9 @@ M.dadoBase = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dad
 // que muda é guardado por dado base + mudança (WeakMap), então ler continua sem alocar.
 const TIPO_ESTE = new WeakMap<object, any[]>();
 const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if (!l) TIPO_ESTE.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub) && !s.p && !s.r && !s.kw && !s.habil))); return l as any[]; };
+// a parte de tipo das estáticas que dão tipo/sub à 'equipada' (só {tipo, sub, se}: a kw vai pelas camadas)
+const TIPO_EQUIP = new WeakMap<object, any[]>();
+const tipoEquip = (d): any[] => { let l: any[] | undefined = TIPO_EQUIP.get(d); if (!l) TIPO_EQUIP.set(d, (l = (d.est || []).filter(s => M.estTipoEquipOk(s)).map(s => ({ tipo: s.tipo, sub: s.sub, se: s.se })))); return l as any[]; };
 const MISTO = new WeakMap<object, Map<any, any>>();
 const misto = (d, m) => {
   let c = MISTO.get(d); if (!c) MISTO.set(d, (c = new Map()));
@@ -38,9 +41,22 @@ const misto = (d, m) => {
   return r;
 };
 let lendoTipo = 0;
+// Classe (CR 716): no campo, o dado soma as habilidades dos níveis atingidos (716.2b/c; niveis[] do banco, n ≥ 2).
+// Guardado por dado + nível: ler continua sem alocar.
+const NIVEL = new WeakMap<object, Map<number, any>>();
+const comNivel = (d, nv) => {
+  let m = NIVEL.get(d); if (!m) NIVEL.set(d, (m = new Map()));
+  let r = m.get(nv); if (r) return r;
+  r = { ...d };
+  for (const l of d.niveis) if (l.n <= nv) for (const k of ['gat', 'est', 'atv']) if (l[k] && l[k].length) r[k] = [...(r[k] || []), ...l[k]];
+  m.set(nv, r);
+  return r;
+};
+M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
   if (o.zona !== 'campo') return d;
+  if (o.nivel > 1 && d.niveis) d = comNivel(d, o.nivel);
   const A = o.anim;
   if (A && A.length) for (const a of A) if (a.ts === o.ts) d = misto(d, a);
   const st = tipoEste(d);
@@ -48,6 +64,16 @@ M.dadoDe = (e, o) => {
     lendoTipo++;
     try { for (const s of st) { let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, { voce: o.ctrl, este: o.id }); } catch (_) { ok = false; } } if (ok) d = misto(d, s); } }
     finally { lendoTipo--; }
+  }
+  if (!lendoTipo) {
+    lendoTipo++;
+    try {
+      const tp = indice(e).tp;
+      for (const id of tp) {
+        const F = e.objs[id]; if (!F || !presoA(e, F, o)) continue;
+        for (const s of tipoEquip(M.dadoDe(e, F))) { let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { ok = false; } } if (ok) d = misto(d, s); }
+      }
+    } finally { lendoTipo--; }
   }
   return d;
 };
@@ -214,9 +240,10 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null, nivel: null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
+  if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
   if (zona === 'campo') M.campoEntra(e, id);
@@ -299,6 +326,17 @@ M.anexadoA = (e, o) => {
 };
 const presoA = (e, x, o) => { const a = x.anexo; return !!a && a.id === o.id && a.ts === o.ts && x.zona === 'campo'; };
 M.anexosDe = (e, o) => e.campo.map(id => e.objs[id]).filter(x => presoA(e, x, o));
+// estáticas de regra de quem está preso a o ("equipped creature can't be blocked", Brotherhood Regalia; "enchanted
+// creature can't block"): [fonte, est] com afeta 'equipada' e o modo pedido. Pelo índice das estáticas (I.est), não
+// pelo campo inteiro: o combate pergunta isto por par bloqueador × atacante.
+M.estDaEquipada = (e, o, modo) => {
+  const r: [any, any][] = [];
+  for (const id of indice(e).est) {
+    const F = e.objs[id]; if (!F || !F.anexo || !presoA(e, F, o)) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === modo && s.afeta === 'equipada') r.push([F, s]);
+  }
+  return r;
+};
 // equipar N (CR 702.6a): "{N}: anexe a uma criatura alvo que você controla; só como feitiço". A palavra-chave vira
 // uma habilidade ativada como as do banco (atv), depois das da carta: o índice k delas não muda.
 const EQUIPAR = new WeakMap<object, any>();
@@ -334,7 +372,19 @@ M.kwListaOk = kw => (kw || []).every(x => x && typeof x.k === 'string');   // pa
 // habil (CR 613.1f): habilidades dadas, no formato da carta (gat/atv); quem lê cada uma decide se joga (gatOk, podeAtivar)
 const habilOk = h => h === undefined || (!!h && typeof h === 'object' && Object.keys(h).length > 0
   && Object.keys(h).every(k => (k === 'gat' || k === 'atv') && Array.isArray(h[k])));
-M.estContOk = s => M.estTipoOk(s) || !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
+// tipo/sub dado à 'equipada' (Brotherhood Regalia: "equipped creature has ward {2} and is an Assassin"): a parte de
+// tipo é lida no M.dadoDe (camada 4, pelo índice I.tp); a de kw/P/R/habil, nas camadas como as outras. Subtipo de
+// terreno básico fica de fora (dá mana, CR 305.6/305.7: precisaria tirar as habilidades de mana de antes).
+const TERRA_BASICA = new Set(['Plains', 'Island', 'Swamp', 'Mountain', 'Forest']);
+M.estTipoEquipOk = s => !!s && s.modo === 'continuo' && s.afeta === 'equipada' && !!(s.tipo || s.sub)
+  && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).some(x => x === 'escolhido' || TERRA_BASICA.has(x))
+  && Object.keys(s).every(k => CONT_OK.has(k) || k === 'tipo' || k === 'sub' || k.startsWith('_')) && (!s.se || M.seOk(s.se));
+const SEM_TIPO = new WeakMap<object, any>();
+const semTipo = s => { let r = SEM_TIPO.get(s); if (!r) { const { tipo, sub, ...x } = s; SEM_TIPO.set(s, (r = x)); } return r; };
+M.estContOk = s => M.estTipoOk(s) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
+  ? M.estTipoEquipOk(s) && (!(s.p !== undefined || s.r !== undefined || (s.kw || []).length || s.habil) || contOk(semTipo(s)))
+  : contOk(s));
+const contOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
   && (s.afeta === 'este' || s.afeta === 'equipada' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
   && qtdEstOk(s.p) && qtdEstOk(s.r) && M.kwListaOk(s.kw) && habilOk(s.habil)
   && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || s.habil !== undefined)
@@ -345,13 +395,15 @@ let lendoCamada = 0;
 // O mover e o criarFicha avisam quem entra e sai (M.campoEntra/M.campoSai); e.vCamada (transformar, trocar de
 // controle, anexar) ou o tamanho do campo fora do esperado refazem tudo. Antes a chave era e.ts: cada ficha nova
 // refazia a varredura, e com milhares de Goblins do Krenko cada evento era O(campo) — O(n²) na partida.
-type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; l: [any, any][] | null; hab: boolean };
+type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; tp: number[]; l: [any, any][] | null; hab: boolean };
 const IDX = new WeakMap<any, Idx>();
 function indice(e): Idx {
   let I = IDX.get(e);
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
-  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], l: null, hab: false };
-  for (const id of e.campo) { const d = M.dadoDe(e, e.objs[id]); if (d.gat) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); }
+  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], l: null, hab: false };
+  lendoTipo++;   // o dadoDe daqui não lê o tipo dado pela equipada (é o próprio índice que ele usa)
+  try { for (const id of e.campo) { const d = M.dadoDe(e, e.objs[id]); if (d.gat) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
+  finally { lendoTipo--; }
   IDX.set(e, I);
   return I;
 }
@@ -360,7 +412,9 @@ M.indiceCampo = indice;
 M.campoEntra = (e, id) => {
   const I = IDX.get(e); if (!I) return;
   if (I.v !== (e.vCamada || 0) || I.n + 1 !== e.campo.length) { IDX.delete(e); return; }
-  const d = M.dadoDe(e, e.objs[id]); I.n++;
+  let d; lendoTipo++; try { d = M.dadoDe(e, e.objs[id]); } finally { lendoTipo--; }
+  if (tipoEquip(d).length) { IDX.delete(e); return; }   // raro (Equipamento que dá tipo): refaz tudo, a equipada pode mudar de tipo
+  I.n++;
   if (d.gat) I.gat.push(id);
   if (d.est) { I.est.push(id); I.l = null; }
   if (d.subst) I.sb.push(id);
@@ -372,6 +426,7 @@ M.campoSai = (e, id) => {
   let k = I.gat.indexOf(id); if (k >= 0) I.gat.splice(k, 1);
   k = I.est.indexOf(id); if (k >= 0) { I.est.splice(k, 1); I.l = null; }
   k = I.sb.indexOf(id); if (k >= 0) I.sb.splice(k, 1);
+  k = I.tp.indexOf(id); if (k >= 0) I.tp.splice(k, 1);
 };
 // ganho de vida (CR 119.3) com as substituições 'ganhaVida' do campo (CR 614.1a): Angel of Vitality/Bilbo (soma),
 // The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
@@ -518,11 +573,19 @@ const ciclarDe = kw => {
   if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }));
   return a;
 };
+// subir de nível (CR 716.2a): "[custo]: Nível N" — ativada como feitiço, só com a Classe no nível N−1 (pilha.ts podeAtivar)
+const SUBIR = new WeakMap<object, any>();
+const subirDe = l => {
+  let a = SUBIR.get(l);
+  if (!a) SUBIR.set(l, (a = { custo: { mana: l.custo || {} }, vel: 'feitico', _nivel: l.n, fx: [{ op: 'subirNivel', n: l.n }] }));
+  return a;
+};
 const atvCarta = d => {
   let l = ATV_CARTA.get(d);
   if (!l) {
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
-    ATV_CARTA.set(d, (l = eq.length || ci.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe)] : d.atv || NADA.atv));
+    const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe)] : d.atv || NADA.atv));
   }
   return l as any[];
 };

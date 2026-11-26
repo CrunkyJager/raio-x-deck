@@ -15,6 +15,10 @@ function estEste(e, o, modo, seNaoLe) {
     if (!s.se) return true;
     try { if (M.condicao(e, s.se, { voce: o.ctrl, este: o.id })) return true; } catch (_) { if (seNaoLe) return true; }
   }
+  for (const [F, s] of M.estDaEquipada(e, o, modo)) {                                       // dada por Equipamento/Aura presa a ela
+    if (!s.se) return true;
+    try { if (M.condicao(e, s.se, { voce: F.ctrl, este: F.id })) return true; } catch (_) { if (seNaoLe) return true; }
+  }
   return M.tempNoObj(e, o, modo);                                                           // efeitoTemporario (Taunt from the Rampart, Bident)
 }
 // continua em combate? (CR 506.4: sai do campo ou muda de controle → sai do combate)
@@ -119,6 +123,11 @@ function bloqueiaEste(e, b, at) {                                               
     if (s.modo !== 'naoPodeSerBloqueada' || s.afeta !== 'este') continue;
     let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id }); } catch (_) { vale = false; }
     if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, { voce: at.ctrl, este: at.id })))) return false;
+  }
+  for (const [F, s] of M.estDaEquipada(e, at, 'naoPodeSerBloqueada')) {                   // Equipamento/Aura (Brotherhood Regalia)
+    const c = { voce: F.ctrl, este: F.id };
+    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, c); } catch (_) { vale = false; }
+    if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, c)))) return false;
   }
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b

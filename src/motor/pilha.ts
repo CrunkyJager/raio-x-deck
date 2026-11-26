@@ -256,6 +256,7 @@ M.podeAtivar = (e, j, o, k) => {
     if (a.lealdade < 0 && (o.marc.lealdade || 0) < -a.lealdade) return false;
   } else if (a.vel === 'feitico' && !M.velFeitico(e, j)) return false;
   if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
+  if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
   if (!custoFisicoOk(e, j, o, a.custo, { daMao: a.custo.descartarEste ? o.id : undefined })) return false;
   const ctx = { voce: j, este: o.id };
   for (const i of alvosUsados(a.fx)) {

@@ -450,6 +450,18 @@ const H = {
     },
     talvezDentro: true,
   },
+  // CR 716.2a: a Classe sobe para o nível n (a habilidade de nível resolveu). O dado passa a ter as habilidades do
+  // nível (estado.ts comNivel); vCamada refaz os índices de gatilho/estática; ev 'nivel' = "quando vira nível N".
+  subirNivel: {
+    campos: ['n'],
+    ok: f => Number.isInteger(f.n) && f.n >= 2 && f.em === undefined,
+    fx(e, f, ctx) {
+      const E = e.objs[ctx.este]; if (!E || E.zona !== 'campo' || (E.nivel || 1) >= f.n) return;
+      E.nivel = f.n; e.vCamada = (e.vCamada || 0) + 1;
+      M.log(e, E.n, 'sobe para o nível', f.n);
+      M.evento(e, { ev: 'nivel', id: E.id, ts: E.ts, n: f.n });
+    },
+  },
   // CR 701.14: lutar. Cada uma causa dano igual ao seu poder na outra, ao mesmo tempo; se uma não está no campo
   // ou não é criatura, ninguém causa dano (701.14b). Toque mortífero e vínculo vêm de cada uma (702.2b, 702.15b).
   lutar: {
@@ -597,12 +609,17 @@ const H = {
   // CR 701.9: quem descarta escolhe; {ate:N|'qualquer'} = "descarte quantas quiser". As descartadas ficam lembradas
   // (conta 'lembrados': "draw that many", Neheb, Path of the Pyromancer) e "se descartar" (se.pagou) = ao menos uma.
   descartar: {
+    campos: ['aleatorio'],
+    ok: f => f.aleatorio === undefined || (f.aleatorio === true && !ateOk(f.qtd)),
     qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira' || (ateOk(q) && q.ate !== 'X'),
     fx(e, f, ctx, ask) {
       const por: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
         const mao = e.jogs[j].zonas.mao;
         if (f.qtd === 'maoInteira') { por.push([j, mao.slice()]); continue; }
+        if (f.aleatorio) {                                          // CR 701.9b: ao acaso, com o RNG da partida
+          const l = mao.slice(); M.embaralhar(e, l); por.push([j, l.slice(0, Math.min(qtdDe(e, f.qtd, ctx), l.length))]); continue;
+        }
         const ate = ateOk(f.qtd);
         por.push([j, escolherN(ask, j, 'descartar', mao, Math.min(ate ? qtdDe(e, f.qtd, ctx) : qtdDe(e, f.qtd, ctx), mao.length), { podeMenos: ate, ctx: { op: 'descartar' } })]);
       }
