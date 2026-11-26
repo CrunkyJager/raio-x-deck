@@ -849,11 +849,11 @@ caso('716.3d', 'aventura: Heart’s Desire cria a ficha, a carta vai ao exílio 
   ok(c.zona === 'campo' && c.face === null && c.aventura === null, 'a criatura entrou');
   igual(M.poder(e, c), 5);
 });
-caso('716.3a', 'aventura: só a face anunciada é avaliada (Stomp sem efeito lido não aparece; o gigante sim)', () => {
+caso('716.3a', 'aventura: cada face é uma opção à parte (o gigante e Stomp, que agora tem efeito lido)', () => {
   const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Bonecrusher Giant']] });
   const c = naMao(e, 0, 'Bonecrusher Giant');
   M.avancar(e);
-  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), [null]);
+  igual(opsDe(e, 'conjurar').filter(o => o.id === c.id).map(o => o.face ?? null), [null, 0]);
 });
 caso('709.3', 'split: escolhe uma metade (Ice); na pilha só ela existe (709.3b); no cemitério, a carta inteira', () => {
   const e = cena({ campo: [[0, 'Island'], [0, 'Mountain'], [1, 'Forest']], mao: [[0, 'Fire']] });
@@ -2989,6 +2989,15 @@ caso('702.92a', 'arma viva (Mortarpod): ao entrar cria Germe 0/0 preto e se anex
   M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === germe.id && o.k === k);
   resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
   igual([germe.zona, e.jogs[1].vida, mp.anexo], ['cemiterio', 39, null], 'Germe sacrificado, 1 de dano, Mortarpod solto');
+});
+caso('615.12', 'dano não pode ser prevenido neste turno (Bonecrusher Giant): o Spore Frog não previne mais', () => {
+  const e = cena(); e.pend = [];
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  const ctx = { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  M.executar(e, ach(M.carta('Spore Frog')), ctx, null);
+  igual(M.substDano(e, 3, { jog: 1, combate: true }), 0, 'prevenido');
+  M.executar(e, ach(M.carta('Bonecrusher Giant')), { ...ctx, voce: 1 }, null);
+  igual(M.substDano(e, 3, { jog: 1, combate: true }), 3, 'não prevenível');
 });
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);

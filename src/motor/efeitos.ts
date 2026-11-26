@@ -146,6 +146,7 @@ M.criarFichas = (e, j, tok, q, opc: any = {}) => {
 };
 // dano (CR 615, 614.1a): dobrar (mult), metade arredondada para cima, prevenir, "todo menos N" (teto). jog = o jogador
 // que recebe (relativo a quem tem a substituição); quem = a permanente que recebe; por = a fonte. Prevenir antes de dobrar.
+M.danoNaoPrevenivel = e => !!(e.efTemp && e.efTemp.length) && e.efTemp.some(t => t.est.some(s => s.modo === 'danoNaoPrevenivel'));
 M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
   if (!(q > 0)) return 0;
   const lista = substsDe(e, 'dano').filter(({ F, s }) => {
@@ -158,7 +159,7 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
     if (s.por && !(fonte && M.bate(e, fonte, s.por, { voce: F.ctrl, este: F.id }))) return false;
     return substSe(e, F, s);
   });
-  if (lista.some(r => r.s.muda.prevenir)) return 0;
+  if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) return 0;   // Bonecrusher Giant: prevenir não vale (615.12)
   for (const r of lista) if (r.s.muda.teto !== undefined) q = Math.min(q, r.s.muda.teto);
   for (const r of lista) if (r.s.muda.mult) q *= r.s.muda.mult;
   for (const r of lista) if (r.s.muda.metade) q = Math.ceil(q / 2);
@@ -309,6 +310,7 @@ function tempEstOk(s, f) {
     case 'naoPodeSerBloqueada': case 'naoPodeBloquear': case 'deveAtacar': return objOk && so();
     case 'terraExtra': return s.afeta === 'voce' && so('qtd') && Number.isInteger(s.qtd) && s.qtd > 0;               // lido em turno.ts
     case 'maoMax': return s.afeta === 'voce' && so('qtd') && (s.qtd === 'tudo' || Number.isInteger(s.qtd));
+    case 'danoNaoPrevenivel': return s.afeta === 'cadaJogador' && so();                                             // efeitos.ts M.substDano
     case 'naoPodeConjurar': return s.afeta === 'voce' && so();                                                         // lido em pilha.ts (M.naoConjura)
     case 'conjurarComLampejo': return s.afeta === 'voce' && so('f') && (!s.f || M.filtroOk(s.f));                   // lido em pilha.ts (M.lampejoDado)
   }
