@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.47.0 — 26/11/2026 · T44: a análise lê o banco próprio
+Testes: check 0 erros · Vitest 337/337 · testa 161/161 · partida Stangg igual à linha de base (erros 0) · build ok. Banco de 30 decks (200 partidas por troca): T44 −0,04 ±0,20 contra a main de hoje −0,39 ±0,19; deck a deck +0,40 ±0,32 a favor da T44 (melhor em 15, pior em 8, de 27).
+- **O que cada carta faz vem de `banco/cartas`** (`src/analise/banco.ts`): ramp, compra, remoção, limpa-mesa, proteção, contramágica, recursão, tutor, fichas, e os detalhes que pesam no efetiv (repete, na hora, quantas cartas, só um lado da mesa, o oponente pode pagar). A regex no inglês e as etiquetas do Scryfall ficam só para carta sem dado.
+- Medida em lotes de 10 e com dois ramos lado a lado (`banco_mesa.py` com LOTE e PORTA). Resultados em `ferramentas/calibra/banco_t44.json` e `banco_hoje46.json`.
+- Achado para depois: tirar o Mindcrank do Wise Mothman custa −3,6 nas duas versões; o motor nem jogava o Mindcrank (o conserto está no ramo `perde-vida`).
+
 ## v0.46.1 — 26/11/2026 · Mesa ao vivo: perguntas que apareciam com o nome interno
 Testes: check 0 erros · Vitest 297/297 · build ok.
 - Ganharam título e botões em português: quem a criatura que entra atacando ataca, custo adicional com "ou" (ex.: "Sacrificar 1 artefato" / "Descartar 1 carta"), conjurar com chute/presente, para qual oponente vai o presente, conjurar agora (de graça), dividir o dano, ordem do dano ("X recebe o dano primeiro"), devolver à mão como custo, exilar do cemitério (fuga).
