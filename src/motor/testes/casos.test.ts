@@ -1704,28 +1704,60 @@ caso('716.2', 'Classe (Cool but Rude): entra no nível 1; subir só do nível an
   igual(g.jogs[1].vida, vida1 - 2, 'o descarte disparou o nível 2: 2 de dano em cada oponente');
 });
 
+caso('700.5', 'devoção (Clive): símbolos da cor nos custos dos seus permanentes, híbrido conta; descartar a mão e comprar a devoção; marcadores de um tipo (lore) na condição', () => {
+  const e = cena({ campo: [...terras(4, 'Mountain'), [0, 'Goblin Guide'], [1, 'Goblin Guide']], mao: [[0, 'Grizzly Bears'], [0, 'Hill Giant'], [0, 'Forest']] });
+  const cl = e.por(0, "Clive, Ifrit's Dominant");
+  igual(M.devocao(e, 0, 'R'), 3, '{4}{R}{R} + {R}; o do oponente e os terrenos não contam');
+  igual([M.devocao(e, 0, 'G'), M.devocao(e, 1, 'R')], [0, 1]);
+  const gm = M.carta("Clive, Ifrit's Dominant").gat[0];
+  ok(M.gatOk(gm), 'o gatilho de entrar é lido');
+  const ctx: any = { voce: 0, este: cl.id, alvos: [], ilegal: {}, lki: {} };
+  const mao0 = e.jogs[0].zonas.mao.length;
+  const sim = (j, t, ops) => ops.find(o => o.a === 'sim') || ops[0];
+  for (const f of gm.fx) M.executar(e, f, ctx, sim);
+  igual([e.jogs[0].zonas.cemiterio.length, e.jogs[0].zonas.mao.length], [mao0, 3], 'descartou a mão (3) e comprou a devoção (3)');
+  // Ifrit (verso, saga): "se tiver 3 ou mais marcadores de lore" lê o tipo do marcador
+  const se = M.carta("Clive, Ifrit's Dominant").faces[0].gat[1].fx[1].se;
+  cl.marc.lore = 2; igual(M.condicao(e, se, { voce: 0, este: cl.id }), false);
+  cl.marc.lore = 3; cl.marc['+1/+1'] = 5; igual(M.condicao(e, se, { voce: 0, este: cl.id }), true, 'conta só lore');
+  igual(M.qtd(e, { conta: 'marcadoresNoEste', de: '+1/+1' }, { voce: 0, este: cl.id }), 5);
+  ok(M.fxSuportado([{ op: 'comprar', qtd: { conta: 'devocao', de: 'WB' } }]) && !M.fxSuportado([{ op: 'comprar', qtd: { conta: 'devocao', de: 'X' } }]), 'de: só cores');
+});
+
+caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you do, draw'): pergunta antes de pagar; a repetição do processo não perde a opção", () => {
+  const e = cena({ campo: [...terras(4, 'Forest'), [0, 'Leaf-Crowned Visionary']], mao: [[0, 'Llanowar Elves']] });
+  M.avancar(e);
+  resp(e, o => o.a === 'conjurar');
+  const mao0 = e.jogs[0].zonas.mao.length;
+  const perguntas: string[] = [];
+  resolveCom(e, p => { perguntas.push(p.tipo); return p.tipo === 'aMenosQuePagar' ? p.ops.findIndex(o => o.a === 'pagar') : -1; });
+  igual(perguntas.filter(t => t === 'talvez').length, 0, 'com pagando, o pagar já é o "pode"');
+  igual(e.jogs[0].zonas.mao.length, mao0 + 1, 'pagou {G} e comprou');
+  igual(e.objs[e.campo.find(id => e.objs[id].n === 'Llanowar Elves')].zona, 'campo');
+});
+
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
   const e = cena({ campo: terras(2, 'Wastes') });
   const sr = e.por(0, 'Sol Ring', { zona: 'grimorio' }), gr = e.jogs[0].zonas.grimorio; gr.unshift(gr.pop());   // no fundo: não é comprado
   const us = e.por(0, "Urza's Saga");
-  igual(us.marc.historia, 1, 'entra com 1 (714.3a)');
+  igual(us.marc.lore, 1, 'entra com 1 (714.3a)');
   M.avancar(e); resolveCom(e);
   igual(M.atvDe(e, us).map(a => !!a.deMana), [true], 'capítulo I: {T}: {C}');
   ok(M.fontesDeMana(e, 0).some(f => f.id === us.id), 'vira fonte de mana');
-  ateTurno(e, 3); igual(us.marc.historia, 1, 'no turno do oponente não sobe');
+  ateTurno(e, 3); igual(us.marc.lore, 1, 'no turno do oponente não sobe');
   ateTurno(e, 4, 'inicioCombate');
-  igual([us.marc.historia, M.atvDe(e, us).length], [2, 2], 'capítulo II');
+  igual([us.marc.lore, M.atvDe(e, us).length], [2, 2], 'capítulo II');
   ok(M.fxSuportado(M.atvDe(e, us)[1].fx, { topo: false }) && !M.atvDe(e, us)[1].deMana, 'a do Construct');
   ateTurno(e, 6, 'inicioCombate');
   igual([sr.zona, us.zona], ['campo', 'cemiterio'], 'capítulo III buscou e a saga foi sacrificada');
   // capítulo na pilha segura o sacrifício (714.4); proliferar sobe e dispara
   const g = cena({});
-  const s2 = g.por(0, "Urza's Saga"); s2.marc.historia = 3; g.pend = [];
+  const s2 = g.por(0, "Urza's Saga"); s2.marc.lore = 3; g.pend = [];
   g.pilha.push((() => { const id = g.prox++; g.objs[id] = { id, n: "Urza's Saga", dono: 0, ctrl: 0, zona: 'pilha', ts: ++g.ts, marc: {}, hab: { fonte: s2.id, fonteTs: s2.ts, gat: 2, fx: [] }, pil: { x: 0, alvos: [], ctrl: 0, lki: {} } }; return id; })());
   M.abe(g); igual(s2.zona, 'campo', 'com o capítulo na pilha fica');
   const h = cena({}); const s3 = h.por(0, "Urza's Saga"); h.pend = [];
   M.porHistoria(h, s3, 1);
-  igual([s3.marc.historia, h.pend.length], [2, 1], 'II desencadeia uma vez');
+  igual([s3.marc.lore, h.pend.length], [2, 1], 'II desencadeia uma vez');
 });
 
 caso('105.2c', 'filtro cor C = incolor (Mystic Forge, Ugin)', () => {
