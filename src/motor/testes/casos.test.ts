@@ -1996,6 +1996,21 @@ caso('preparar', 'Pompous Battlemage entra preparada: cópia de Improvised Act n
   const p2 = s.jogs[0].zonas.mao[0]; M.mover(s, p2, 'campo'); M.mover(s, p2, 'cemiterio'); M.avancar(s);
   igual([s.jogs[0].zonas.exilio.length, s.jogs[0].zonas.cemiterio.length], [0, 1], 'saiu do campo: a cópia some (o cemitério só tem a carta)');
 });
+caso('Ashiok', 'Ashiok, Dream Render: a mágica do oponente não o faz procurar no grimório; a do controlador do Ashiok, sim', () => {
+  for (const quem of [1, 0]) {
+    const e = cena({ campo: [[0, 'Ashiok, Dream Render']] }); e.pend = [];
+    const g = e.jogs[quem].zonas.grimorio; M.mover(e, g[0], 'grimorio'); e.objs[g[g.length - 1]].n = 'Forest';
+    const antes = e.campo.length;
+    M.executar(e, M.carta('Rampant Growth').fx[0], { voce: quem, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.a !== 'nenhum') || ops[0]);
+    igual(e.campo.length - antes, quem === 1 ? 0 : 1, quem === 1 ? 'oponente não procura' : 'o dono do Ashiok procura');
+  }
+});
+caso('Ravager', 'Dire Fleet Ravager: ao entrar, cada jogador perde um terço da própria vida, arredondado para cima', () => {
+  const e = cena({ jogs: 3, mao: [[0, 'Dire Fleet Ravager']] }); e.pend = [];
+  e.jogs[0].vida = 40; e.jogs[1].vida = 10; e.jogs[2].vida = 1;
+  M.mover(e, e.jogs[0].zonas.mao[0], 'campo'); M.avancar(e); resolveCom(e);
+  igual(e.jogs.map(j => j.vida), [26, 6, 0], '40→26, 10→6, 1→0');
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

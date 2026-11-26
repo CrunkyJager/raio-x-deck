@@ -192,10 +192,15 @@ export type RxQtd =
             | 'maiorDescarte'
             | 'resolucoesDestaHabNoTurno'
             | 'atacantesEmVoce'
+            | 'vidaDoAtual'
           );
       mult?: number;
       soma?: number;
       alvo?: number;
+      /**
+       * divide por N arredondando para cima (Dire Fleet Ravager: um terço da vida = 3)
+       */
+      divCima?: number;
       /**
        * divide por 2 (arredonda p/ baixo)
        */
@@ -1170,7 +1175,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
    */
   modo:
     | 'continuo'
@@ -1198,7 +1203,8 @@ export interface RxEst {
     | 'naoPodeAtivar'
     | 'deveBloquear'
     | 'darFuga'
-    | 'darLoucura';
+    | 'darLoucura'
+    | 'oponentesNaoProcuram';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;

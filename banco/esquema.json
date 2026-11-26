@@ -345,7 +345,8 @@
           "vidaPerdidaNoTurno",
           "maiorDescarte",
           "resolucoesDestaHabNoTurno",
-          "atacantesEmVoce"
+          "atacantesEmVoce",
+          "vidaDoAtual"
          ]
         }
        ],
@@ -359,6 +360,11 @@
       },
       "alvo": {
        "type": "integer"
+      },
+      "divCima": {
+       "type": "integer",
+       "minimum": 2,
+       "description": "divide por N arredondando para cima (Dire Fleet Ravager: um terço da vida = 3)"
       },
       "metade": {
        "type": "boolean",
@@ -2100,9 +2106,10 @@
       "naoPodeAtivar",
       "deveBloquear",
       "darFuga",
-      "darLoucura"
+      "darLoucura",
+      "oponentesNaoProcuram"
      ],
-     "description": "darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
+     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
     },
     "afeta": {
      "oneOf": [
