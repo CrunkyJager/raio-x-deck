@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.40.0 — 26/11/2026 · substituições de verdade (entra com marcadores, fichas e marcadores dobrados, dano dobrado/prevenido)
+Testes: check 0 erros · Vitest 257/257. Motor joga inteiras 1299/1753.
+- **Contagem honesta:** a cobertura dava como "lida" qualquer substituição cujo nome aparecia no código; o motor só aplicava `entra` virada e `ganhaVida`. Agora o motor diz o que aplica (`M.substOk`): 50 cartas que contavam como inteiras sem funcionar (1313 → 1263).
+- **Motor:** entra com N marcadores (Kalonian Hydra não morre mais como 0/0; X pago; os dados por outras: Arwen, Bramblewood), marcadores a mais/dobrados/impedidos (Hardened Scales, Doubling Season, Darksteel Angel), fichas dobradas e "mais uma" (Parallel Lives, Doubling Season, Queen Allenal, Bilbo), dano dobrado, pela metade, prevenido e "todo menos 1" (Gisela, Fiery Emancipation, Dolmen Gate, Temple Altisaur), e Withercrown (perde 1 de vida a menos que sacrifique a criatura; IA só sacrifica com vida baixa). 1263 → 1299.
+- Decks: Ivora no banco 75/75 · motor joga 74/75 (Library of Leng: a substituição de descarte nunca funcionou) · inteiras 50/75. Masmorras 81/81 · motor joga 73/81 · inteiras 68/81. Partidas 40+40, 0 erros.
+
 ## v0.39.0 — 26/11/2026 · sessão de casa: Ivora e Ultron sem trava, masmorras no motor
 Testes: check 0 erros · Vitest 253/253 · raiox-testes verde. Motor joga inteiras 1313/1753. Partidas no node: Ivora 50 e masmorras 50, 0 erros.
 - **Ivora:** no banco 75/75 · motor joga 75/75 (inteiras 50/75; 25 com frase que o motor ainda pula). Anger, Brotherhood Regalia, Cool but Rude (Classe) e Clive (devoção). Corrigido "pode" + pagar que quebrava a repetição (Leaf-Crowned Visionary).
