@@ -23,9 +23,16 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 - Ramos dos adeptos (status em `planejamento/adeptos/A.md` e `B.md`): `t43-estrutura` (motor, A), `t20-banco` (cartas, B). T44 (pesos lidos do banco) tem patch fora da main; falta a medida dos 30 decks em lotes de 10 (a última caiu por falta de memória).
 - T46 (fila automática pelo PC): ramo `t46-fila-auto`; o Apps Script ainda responde "Acesso negado" → o Felipe precisa abrir o editor, rodar `doGet` e Permitir.
 
+## Estado em 25/11 ~21h30 (sessão de CASA, ramos `casa-*`, nada na main)
+- **`casa-ivora`** (coordenador de casa): passo 1 FEITO. Ivora **75/75 sem trava**, **50/75 inteiras** (25 com `falta`: frases que o esquema ainda não escreve — milagre, fuga, reconfigurar, "descartadas no turno"…). Anger (estática do cemitério, cond `esteEm`), Brotherhood Regalia (tipo dado à equipada + estáticas de regra de Equipamento), Cool but Rude (Classe 716 + gat ev `nivel` + descartar `aleatorio`), Clive (devoção 700.5; `marcadoresNoEste` lê `de`). Marcador de saga no motor agora é `lore` (nome do banco). Bug achado e corrigido: `talvez` + `pagando` quebrava a repetição do processo (Leaf-Crowned Visionary). IA sobe nível de Classe. Ferramenta nova `ferramentas/partida-deck.mjs`: 100 partidas da Ivora, 0 erros; registro com recapitular 16, ciclar 16, Blood 77. Vitest 224 verde. Esquema: masmorras (pedidos 1–4 e 6 do B) e gat ev `nivel` aceitos.
+- **`casa-masmorras-banco`** (adepto B): 32 cartas reescritas com os campos novos; sobram 8 com `falta` no deck (Acererak "não completou Tomb" — esquema já aceito, falta escrever; Fifty Feet of Rope; as 6 do item 5). 47 casos em `banco/testes/correcao-masmorras.json`.
+- **`casa-masmorras-motor`** (adepto A2): masmorras/iniciativa/infectar/antecedente no motor — ver `planejamento/adeptos/A.md` no ramo.
+- Marcador de veneno do jogador = `poison` (decisão): normalizar as cartas do banco que escrevem `veneno`.
+- Para integrar: `casa-ivora` + `casa-masmorras-banco` + `casa-masmorras-motor` → `integracao` → main + tag + CHANGELOG (coordenador).
+
 ## Próximo passo (nesta ordem)
 0. [FEITO 18:15] v0.38.0 na main = os dois ramos juntos (sem o patch T44). ATENÇÃO: "motor joga" conta só o que trava. Há cartas com pedaço em `falta` (frase que o motor ainda pula): Ivora 26 de 75, masmorras pelo menos as 11 de iniciativa/masmorra/completou/infect. O número honesto para o Felipe é "inteira = sem trava E sem falta".
-1. Ivora 75/75 jogando: as 4 que faltam (motor, `src/motor/`), uma por commit, com teste. Pronto = motor-cobertura sem nenhuma carta do `ivora.txt` + uma partida no node com flashback, ciclar e Sangue no registro.
+1. [FEITO em casa 25/11, ramo casa-ivora] Ivora 75/75 jogando: as 4 que faltam (motor, `src/motor/`), uma por commit, com teste. Pronto = motor-cobertura sem nenhuma carta do `ivora.txt` + uma partida no node com flashback, ciclar e Sangue no registro.
 2. Mecânica de masmorras: venture (4 masmorras: Lost Mine of Phandelver, Dungeon of the Mad Mage, Tomb of Annihilation, Undercity), completar masmorra, iniciativa (CR 725) e antecedente (Background, CR 702.124). IA escolhe o caminho com critério. Teste em que a ordem dos gatilhos (`ordemGatilho`) muda o resultado.
 3. Cartas de masmorras no banco (B) → **motor joga 81/81**.
 4. Revisão de textos da Mesa (Felipe 25/11: "revise o UI para ser entendível"): ler as strings em `src/mesa/mesa-ui.js` (PERG, botões) e `src/mesa/arena-nova.ts` (rotulo, TITULO) direto no código, sem print. Toda opção tem que dizer PARA ONDE vai ou O QUE acontece.
