@@ -524,14 +524,14 @@ const H = {
   modificar: {
     campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat'],
     qtd: q => q === undefined,
-    ok: f => f.dura === 'enquantoNoCampo' ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (f.dura === 'sempre' && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
+    ok: f => f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
       && (f.gat === undefined || (Array.isArray(f.gat) && f.gat.every(g => M.gatOk(g))))   // "ganha 'quando morrer, …'" até o fim do turno (Demonic Gifts)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
       && (f.est || []).every(s => s.afeta === 'este' && (s.modo === 'deveBloquear' ? Object.keys(s).every(k => ['modo', 'afeta', 'atacante'].includes(k)) && (s.atacante === undefined || s.atacante === 'doEvento')
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k)))),
     fx(e, f, ctx) {
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
-      if (f.dura === 'enquantoNoCampo') {                            // habilidade ganha enquanto no campo (o mover zera o.ganhos)
+      if (f.dura === 'enquantoNoCampo' && f.habil) {                            // habilidade ganha enquanto no campo (o mover zera o.ganhos)
         for (const o of os) o.ganhos = { atv: [...((o.ganhos && o.ganhos.atv) || []), ...f.habil.atv] };
         return;
       }
@@ -543,7 +543,7 @@ const H = {
       if (regra.length) (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: regra.map(s => ({ modo: s.modo })), este: null, ids: os.map(o => ({ id: o.id, ts: o.ts })), fim: 'turno', ts: ++e.ts });
       const est = (f.est || []).filter(s => s.modo === 'deveBloquear').map(s => ({ modo: s.modo, atk: s.atacante === 'doEvento' ? (at && at.zona === 'campo' ? { id: at.id, ts: at.ts } : { id: -1, ts: -1 }) : null }));
       if (f.p === undefined && f.r === undefined && !(f.kw || []).length && !est.length) return;
-      (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: f.kw || [], ...(est.length ? { est } : {}), ...(f.dura === 'sempre' ? { sempre: true } : {}), ts: ++e.ts });
+      (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: f.kw || [], ...(est.length ? { est } : {}), ...(f.dura !== 'fimDoTurno' ? { sempre: true } : {}), ...(f.dura === 'proximoTurnoSeu' ? { ate: ctx.voce } : {}), ts: ++e.ts });   // sempre/enquantoNoCampo: preso ao objeto (ts); até o seu próximo turno: sai no desvirar (masmorras.ts)
     },
   },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
