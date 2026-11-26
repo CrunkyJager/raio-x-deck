@@ -97,7 +97,7 @@
   {
    "carta": "Shortcut Seeker",
    "situacao": "causa dano num jogador",
-   "espera": "venture (falta)"
+   "espera": "você aventura"
   },
   {
    "carta": "Skull Raid",
@@ -172,7 +172,7 @@
   {
    "carta": "Zombie Ogre",
    "situacao": "etapa final depois de uma morte",
-   "espera": "venture (falta)"
+   "espera": "você aventura"
   }
  ]
 }

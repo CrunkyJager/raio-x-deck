@@ -73,6 +73,76 @@
    "carta": "Ravenloft Adventurer",
    "situacao": "entra",
    "espera": "você toma a iniciativa"
+  },
+  {
+   "carta": "Bar the Gate",
+   "situacao": "mira uma mágica de criatura",
+   "espera": "anula e você aventura (fx aventurar)"
+  },
+  {
+   "carta": "Fates' Reversal",
+   "situacao": "sem criatura no seu cemitério (0 alvos)",
+   "espera": "resolve e você aventura (o alvo é \"up to one\")"
+  },
+  {
+   "carta": "Clattering Skeletons",
+   "situacao": "morre; você não tem masmorra no jogo",
+   "espera": "você escolhe uma masmorra (fora da Undercity) e entra na primeira sala"
+  },
+  {
+   "carta": "Shortcut Seeker",
+   "situacao": "causa dano de combate num jogador",
+   "espera": "você aventura"
+  },
+  {
+   "carta": "Yuan-Ti Fang-Blade",
+   "situacao": "causa dano de combate numa criatura bloqueadora",
+   "espera": "não aventura (só dano a jogador)"
+  },
+  {
+   "carta": "Zombie Ogre",
+   "situacao": "sua etapa final; uma criatura (de qualquer jogador, ficha também) morreu neste turno",
+   "espera": "você aventura (se palavra morbid)"
+  },
+  {
+   "carta": "Zombie Ogre",
+   "situacao": "sua etapa final; nenhuma criatura morreu neste turno",
+   "espera": "nada"
+  },
+  {
+   "carta": "Dungeon Descent",
+   "situacao": "{4}, {T} e vira uma criatura lendária desvirada sua, na sua fase principal com a pilha vazia",
+   "espera": "você aventura; sem lendária desvirada não dá para ativar"
+  },
+  {
+   "carta": "Fifty Feet of Rope",
+   "situacao": "Rappel Down: {4}, {T} como feitiço",
+   "espera": "você aventura"
+  },
+  {
+   "carta": "Secret Door",
+   "situacao": "{4}{U} como feitiço (não precisa virar)",
+   "espera": "você aventura; dá para ativar de novo no mesmo turno com mais {4}{U}"
+  },
+  {
+   "carta": "Dungeon Delver",
+   "situacao": "seu comandante criatura no campo; você entra numa sala que compra 1",
+   "espera": "a sala dispara 2 vezes: compra 2"
+  },
+  {
+   "carta": "Dungeon Delver",
+   "situacao": "seu comandante na zona de comando; você entra numa sala",
+   "espera": "a sala dispara 1 vez (a habilidade é do comandante no campo)"
+  },
+  {
+   "carta": "Acererak the Archlich",
+   "situacao": "entra; nunca completou Tomb of Annihilation",
+   "espera": "volta à mão do dono e você aventura"
+  },
+  {
+   "carta": "Precipitous Drop",
+   "situacao": "entra encantando uma criatura",
+   "espera": "você aventura"
   }
  ]
 }

@@ -17,7 +17,7 @@
   {
    "carta": "Acererak the Archlich",
    "situacao": "ataca com 3 oponentes e nenhum sacrifica",
-   "espera": "cria 3 Zumbis 2/2; ao entrar volta à mão (o venture fica falta)"
+   "espera": "cria 3 Zumbis 2/2; ao entrar volta à mão e aventura"
   },
   {
    "carta": "Alora, Merry Thief",
@@ -32,7 +32,7 @@
   {
    "carta": "Bar the Gate",
    "situacao": "mira uma mágica de criatura",
-   "espera": "anula (o venture fica falta)"
+   "espera": "anula e você aventura"
   },
   {
    "carta": "Blackcleave Goblin",
@@ -57,7 +57,7 @@
   {
    "carta": "Clattering Skeletons",
    "situacao": "morre",
-   "espera": "venture (falta)"
+   "espera": "você aventura"
   },
   {
    "carta": "Contagious Nim",
@@ -117,7 +117,7 @@
   {
    "carta": "Dungeon Delver",
    "situacao": "antecedente com o comandante",
-   "espera": "as salas disparam 2 vezes (falta)"
+   "espera": "as salas disparam 2 vezes"
   },
   {
    "carta": "Dungeon Descent",
@@ -137,7 +137,7 @@
   {
    "carta": "Fates' Reversal",
    "situacao": "mira uma criatura do seu cemitério",
-   "espera": "volta à mão (venture falta)"
+   "espera": "volta à mão e você aventura"
   },
   {
    "carta": "Feed the Serpent",
