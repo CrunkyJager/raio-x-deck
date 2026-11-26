@@ -1582,6 +1582,36 @@ caso('118.12', 'aMenosQue sacrificar "este": Withercrown (perde 1 a menos que sa
   }
 });
 
+caso('101.4', 'repetirCada: Acererak ataca — para cada oponente, Zumbi 2/2 a menos que ele sacrifique uma criatura (ordem do turno)', () => {
+  const d = M.carta('Acererak the Archlich'), f = d.gat.find(g => g.ev === 'ataca').fx;
+  ok(M.fxSuportado(f), 'repetirCada aceito');
+  ok(!M.fxSuportado([{ op: 'perderVida', quem: 'cadaAtual', qtd: 1 }]), 'cadaAtual fora do repetirCada: recusado');
+  const g = cena({ jogs: 3, campo: [[0, 'Acererak the Archlich'], [1, 'Grizzly Bears']] });
+  const ac = g.campo.find(id => g.objs[id].n === 'Acererak the Archlich');
+  const perg: any[] = [];
+  M.executar(g, f[0], { voce: 0, este: ac, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => { perg.push([j, t, ops.map(o => o.a)]); return ops.find(o => o.a === 'pagar') || ops[0]; });
+  igual(perg.filter(p => p[1] === 'aMenosQuePagar').map(p => [p[0], p[2]]), [[1, ['naoPagar', 'pagar']], [2, ['naoPagar']]], 'pergunta a cada oponente, na ordem');
+  igual(naZona(g, 1, 'cemiterio'), ['Grizzly Bears'], 'oponente 1 sacrificou');
+  igual(g.campo.filter(id => g.objs[id].n !== 'Acererak the Archlich' && g.objs[id].ctrl === 0).length, 1, 'só 1 Zumbi (o do oponente 2)');
+});
+caso('101.4', 'repetirCada com pausas (o processo roda de novo a cada resposta): Braids — quem não sacrifica perde 2 e você compra', () => {
+  const d = M.carta('Braids, Arisen Nightmare'), fx = d.gat[0].fx;
+  ok(M.fxSuportado(fx), 'Braids aceita');
+  const g = cena({ jogs: 3, campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [2, 'Grizzly Bears']] });
+  const mao0 = g.jogs[0].zonas.mao.length, PAUSA = {};
+  const quer = { 0: 'sim', 1: 'sim', 2: 'nao' }, resp: any[] = [], quem: number[] = [];
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  let i = 0, ip = 0, voltas = 0;
+  const ask: any = (j, t, ops) => { if (ip < resp.length) return ops[resp[ip++]]; if (ops.length === 1) { resp.push(0); ip++; return ops[0]; }
+    quem.push(j); resp.push(ops.findIndex(o => o.a === quer[j] || o.a === 'sacrificar')); throw PAUSA; };
+  ask.etapa = () => { resp.length = 0; ip = 0; };
+  while (i < fx.length) { try { ip = 0; M.executar(g, fx[i], ctx, ask); i++; ask.etapa(); } catch (err) { if (err !== PAUSA) throw err; if (++voltas > 50) throw new Error('não termina'); } }
+  igual(quem.filter(j => j !== 0), [1, 2], 'cada oponente perguntado uma vez, na ordem');
+  igual([g.jogs[1].vida, g.jogs[2].vida], [40, 38], 'só o que não sacrificou perde 2');
+  igual([naZona(g, 1, 'cemiterio'), naZona(g, 2, 'cemiterio')], [['Grizzly Bears'], []]);
+  igual(g.jogs[0].zonas.mao.length - mao0, 1, 'compra 1 (um oponente não sacrificou)');
+  ok(!ctx.rep && ctx.cadaAtual === undefined, 'limpa o progresso');
+});
 // substituições (CR 614): entra com marcadores, marcadores a mais, fichas dobradas, dano dobrado/prevenido
 caso('614.1c', 'entra com marcadores: Kalonian Hydra entra com 4 (+1 com Hardened Scales) e não morre como 0/0', () => {
   for (const escamas of [false, true]) {

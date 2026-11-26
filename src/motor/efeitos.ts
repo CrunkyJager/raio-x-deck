@@ -4,7 +4,10 @@
 import { M } from './nucleo';
 
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando']);
-const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado']);
+const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual']);
+// cadaAtual (o jogador da vez) só vale dentro de um repetirCada: fora dele seria um jogador que não existe
+let dentroCada = 0;
+const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada--; } };
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
   'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'poderDoSacrificado', 'vmDoSacrificado']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra']);
@@ -25,7 +28,7 @@ const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
 M.seOk = seOk;
 // aMenosQue (CR 118.12): "X unless [quem] pays [custo]". Custo: mana fixa, {x:1} com qtd (Esper Sentinel), vida, sacrificar {f, qtd}
 const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['quem', 'custo', 'qtd'].includes(k))
-  && (QUEM_OK.has(a.quem) || quemAlvo(a.quem)) && !!a.custo && typeof a.custo === 'object' && Object.keys(a.custo).length === 1
+  && (QUEM_OK.has(a.quem) || quemAlvo(a.quem)) && (a.quem !== 'cadaAtual' || dentroCada > 0) && !!a.custo && typeof a.custo === 'object' && Object.keys(a.custo).length === 1
   && (a.custo.mana ? Object.keys(a.custo.mana).every(k => k === 'g' || k === 'x' || /^[WUBRGC]$/.test(k) || k === 'p') && (!a.custo.mana.x || (a.qtd !== undefined && qtdOk(a.qtd)))
     : a.custo.vida ? Number.isInteger(a.custo.vida)
     : a.custo.sacrificar === 'este' ? true                                         // "unless you sacrifice this" (Withercrown dá à encantada)
@@ -38,6 +41,7 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   if (!h) return false;
   for (const k in f) if (!BASE.has(k) && !(h.campos || []).includes(k)) return false;
   if (f.quem !== undefined && !QUEM_OK.has(f.quem) && !quemAlvo(f.quem)) return false;
+  if (f.quem === 'cadaAtual' && !dentroCada) return false;
   if (!emOk(f.em) || !seOk(f.se)) return false;
   if (!(h.qtd ? h.qtd(f.qtd) : qtdOk(f.qtd))) return false;
   if (f.f && !M.filtroOk(f.f)) return false;
@@ -188,6 +192,7 @@ function jogsDe(e, f, ctx) {
     case 'alvoJogador': { for (let i = 0; i < ctx.alvos.length; i++) { const js = jogsAlvo(e, i, ctx); if (js.length) return js; } return []; }
     case 'controlador': return [...new Set(lkisDe(e, f, ctx).map(l => l.ctrl))].filter(j => vivos.includes(j));
     case 'dono': return [...new Set(lkisDe(e, f, ctx).map(l => l.dono))].filter(j => vivos.includes(j));
+    case 'cadaAtual': return ctx.cadaAtual !== undefined && vivos.includes(ctx.cadaAtual) ? [ctx.cadaAtual] : [];
     case 'doEvento': { const jj = ctx.ev ? (ctx.ev.ev === 'dano' ? ctx.ev.jog : ctx.ev.j) : undefined; return jj !== undefined && vivos.includes(jj) ? [jj] : []; }   // quem descartou (Megrim); no dano, o jogador que recebeu (Blightbelly Rat)
   }
   throw new Error('quem sem suporte: ' + f.quem);
@@ -304,12 +309,13 @@ function pagouParaImpedir(e, f, ctx, ask) {
 
 // ---------- executar um efeito ----------
 M.executar = (e, f, ctx, ask) => {
+  if (ctx.rep && ctx.rep.f === f) { H.repetirCada.fx(e, f, ctx, ask); return; }   // repetirCada no meio (voltou de uma pergunta): condição já lida
   if (f.se && !M.condicao(e, f.se, ctx)) return;                     // CR 608.2c: condição lida na hora
   // "pode" ANTES de qualquer pagamento: o processo repete o passo a cada resposta, e uma pergunta depois de pagar via
   // o estado já pago (a opção 'pagar' sumia na repetição e a resposta gravada apontava para nada — Leaf-Crowned
   // Visionary). Com 'pagando', o próprio pagar é o "pode": não pergunta duas vezes.
   const h0 = H[f.op];
-  if (f.talvez && !f.pagando && !(h0 && h0.talvezDentro) && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') { ctx.pagou = false; return; }   // "pode"
+  if (f.talvez && !f.pagando && !(h0 && h0.talvezDentro) && ask(f.quem === 'cadaAtual' ? ctx.cadaAtual : ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') { ctx.pagou = false; return; }   // "pode"
   if (f.aMenosQue && pagouParaImpedir(e, f, ctx, ask)) { ctx.pagou = false; return; }   // CR 118.12: alguém pagou, o efeito não acontece
   if (f.pagando) {                                                   // "você pode pagar X. Se pagar, …" (pergunta e paga antes do efeito)
     const pagou = pagouParaImpedir(e, { op: 'pagando', aMenosQue: { quem: 'voce', custo: f.pagando } }, ctx, ask);
@@ -590,6 +596,28 @@ const H = {
     fx(e, f, ctx) {
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
         lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [] }, ts: ++e.ts });
+    },
+  },
+  // "para cada oponente/jogador, …" (Acererak, Tempt with…): os efeitos de dentro valem para o jogador da vez (quem/ctrl/dono
+  // 'cadaAtual'), na ordem do turno (101.4). Cada efeito de dentro é uma etapa: o progresso fica no ctx (ctx.rep) porque o
+  // processo roda de novo a cada pergunta. Forma com filtro de objetos (Kalonian Hydra) e repetirCada dentro de outro: ainda não.
+  repetirCada: {
+    campos: ['cada', 'fx'],
+    ok: f => (f.cada === 'cadaOponente' || f.cada === 'cadaJogador') && !dentroCada && Array.isArray(f.fx) && f.fx.length > 0
+      && f.fx.every(x => x.op !== 'modal') && comCada(() => M.fxSuportado(f.fx, { topo: false })),
+    fx(e, f, ctx, ask) {
+      const R = ctx.rep || (ctx.rep = { f, js: jogsDe(e, { quem: f.cada }, ctx), k: 0, i: 0 });
+      while (R.k < R.js.length) {
+        ctx.cadaAtual = R.js[R.k];
+        while (R.i < f.fx.length) {
+          if (!e.jogs[ctx.cadaAtual].saiu) M.executar(e, f.fx[R.i], ctx, ask);
+          R.i++; if (ask && ask.etapa) ask.etapa();
+          if (e.fim) break;
+        }
+        R.i = 0; R.k++;
+        if (e.fim) break;
+      }
+      delete ctx.rep; delete ctx.cadaAtual;
     },
   },
   // resguardo (702.21a): o gatilho anula a mágica/habilidade que mirou, a menos que quem a controla pague

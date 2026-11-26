@@ -630,8 +630,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
   if (f.tipoTodos && !f.tipoTodos.every(t => (d.tipos || []).includes(t))) return false;            // criatura artefato (Mycosynth Golem)
   if (f.historico && !((d.tipos || []).includes('Artifact') || (d.super || []).includes('Legendary') || (d.sub || []).includes('Saga'))) return false;   // CR 700.6
-  if (f.ctrl && !quemBate(e, o.ctrl, f.ctrl, voce)) return false;
-  if (f.dono && !quemBate(e, o.dono, f.dono, voce)) return false;
+  if (f.ctrl && !quemBate(e, o.ctrl, f.ctrl, voce, ctx)) return false;
+  if (f.dono && !quemBate(e, o.dono, f.dono, voce, ctx)) return false;
   // 'C'/'Colorless' = incolor (CR 105.2c: sem cor nenhuma; Mystic Forge, Ugin): includes('C') nunca casava
   if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => c === 'C' || c === 'Colorless' ? !(d.cores || '') : (d.cores || '').includes(COR_NOME[c] || c))) return false;
   if (f.virada !== undefined && !!o.virada !== !!f.virada) return false;
@@ -669,7 +669,7 @@ function tipoEmComum(e, o, ref, ctx) {
 }
 const escolhidoDe = (e, ctx) => { const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));
-const quemBate = (e, j, q, voce) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : true;
+const quemBate = (e, j, q, voce, ctx: any = {}) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : q === 'cadaAtual' ? j === ctx.cadaAtual : true;   // cadaAtual: o jogador da vez no repetirCada
 const compara = (v, c) => typeof c === 'number' ? v === c
   : (c.min === undefined || v >= c.min) && (c.max === undefined || v <= c.max) && (c.igual === undefined || v === c.igual);
 M.compara = compara;
