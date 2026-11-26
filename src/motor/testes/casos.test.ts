@@ -1748,6 +1748,27 @@ caso('605.3', 'mana com custo de virar outras (Baylen): vira 2 fichas sem mana p
   igual(e.campo.filter(id => e.objs[id].n === 'Food').map(id => e.objs[id].virada), [true, true], 'as duas Food viram');
   igual([e.objs[baylen].virada, e.campo.some(id => e.objs[id].n === 'Treasure' && e.objs[id].virada), M.somaMana(e.jogs[0].reserva)], [false, false, 1], 'Baylen e a Treasure ficam; 1 de mana');
 });
+caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
+  const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  const e = cena({ campo: [[0, 'Kalonian Hydra'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
+  const de = (j, n) => e.campo.find(id => e.objs[id].ctrl === j && e.objs[id].n === n);
+  const hid = de(0, 'Kalonian Hydra'), urso = de(0, 'Grizzly Bears'), elfo = de(0, 'Llanowar Elves'), dele = de(1, 'Grizzly Bears');
+  e.objs[hid].marc['+1/+1'] = 4; e.objs[urso].marc['+1/+1'] = 1; e.objs[dele].marc['+1/+1'] = 2;
+  const g = M.carta('Kalonian Hydra').gat.find(x => x.ev === 'ataca');
+  ok(M.gatOk(g), 'gatilho da Kalonian aceito');
+  M.executar(e, g.fx[0], cx(e, hid), null);
+  igual([hid, urso, elfo, dele].map(id => e.objs[id].marc['+1/+1'] || 0), [8, 2, 0, 2], 'dobra só nas minhas com marcador');
+  const s = cena({ campo: [[0, 'Grizzly Bears']] });
+  M.executar(s, { op: 'ficha', quem: 'voce', qtd: 2, token: { nome: 'Food' } }, cx(s), null);
+  M.executar(s, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(s), null);
+  const sh = M.carta('Second Harvest').fx[0];
+  ok(M.fxSuportado([sh]), 'Second Harvest aceito');
+  M.executar(s, sh, cx(s), null);
+  igual(['Food', 'Treasure'].map(n => s.campo.filter(id => s.objs[id].n === n && s.objs[id].ficha).length), [4, 2], 'cada ficha ganha 1 cópia (as cópias não entram na conta)');
+  const f = M.objetosQue(s, { ficha: true, ctrl: 'voce', zona: 'campo', entrouNoTurno: true }, { voce: 0 }).length;
+  s.turno.n++;
+  igual([f, M.objetosQue(s, { ficha: true, ctrl: 'voce', zona: 'campo', entrouNoTurno: true }, { voce: 0 }).length], [6, 0], 'entrouNoTurno: só no turno em que entrou');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');

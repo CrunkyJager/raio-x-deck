@@ -6,10 +6,12 @@ import { M } from './nucleo';
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando']);
 const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual']);
 // cadaAtual (o jogador da vez) só vale dentro de um repetirCada: fora dele seria um jogador que não existe
-let dentroCada = 0;
+let dentroCada = 0, dentroObj = 0;
 const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada--; } };
+// dentro de um repetirCada com filtro de objetos (Kalonian Hydra): em/copiaDe 'cadaAtual' = o objeto da vez
+const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'poderDoSacrificado', 'vmDoSacrificado']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
@@ -20,8 +22,8 @@ const dadoOk = q => !!q && typeof q === 'object' && Number.isInteger(q.dado) && 
 const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && (Number.isInteger(q.ate) || q.ate === 'X' || q.ate === 'qualquer');
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
-    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop', 'de'].includes(k)) && (q.de === undefined || ((q.conta === 'marcadoresNoEste' || q.conta === 'devocao') && typeof q.de === 'string')) && (q.conta !== 'devocao' || /^[WUBRG]+$/.test(q.de || '')) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
-const emOk = v => v === undefined || v === 'este' || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
+    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop', 'de'].includes(k)) && (q.de === undefined || ((q.conta === 'marcadoresNoEste' || q.conta === 'marcadoresNoCada' || q.conta === 'devocao') && typeof q.de === 'string')) && (q.conta !== 'marcadoresNoCada' || dentroObj > 0) && (q.conta !== 'devocao' || /^[WUBRG]+$/.test(q.de || '')) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
+const emOk = v => v === undefined || v === 'este' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
   && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q))
   && (!se.esteEm || (Array.isArray(se.esteEm) && se.esteEm.length > 0 && se.esteEm.every(z => ['campo', 'cemiterio', 'exilio', 'mao', 'comando', 'grimorio'].includes(z)))));
@@ -166,6 +168,7 @@ const c0ts = (ctx, id) => (ctx.criadas.find(c => c.id === id) || {}).ts;
 function objsDe(e, f, ctx) {
   const v = f.em;
   if (v === undefined) return [];
+  if (v === 'cadaAtual') { const c = ctx.cadaObj, o = c && e.objs[c.id]; return o && o.ts === c.ts && o.zona === 'campo' ? [o] : []; }   // repetirCada de objetos
   if (v === 'este') { const o = e.objs[ctx.este]; return o && o.zona === 'campo' && (!ctx.lki.este || o.ts === ctx.lki.este.ts) ? [o] : []; }
   if (typeof v.alvo === 'number') {
     return (ctx.alvos[v.alvo] || []).map((a, k) => ctx.ilegal[v.alvo + ':' + k] || a.o === undefined ? null : e.objs[a.o])
@@ -225,6 +228,7 @@ function qtdDe(e, q, ctx) {
       case 'vmDoAlvo': v = a ? a.vm : 0; break;
       case 'poderDoEste': v = este ? este.poder : 0; break;
       case 'resistDoEste': v = este ? este.resist : 0; break;
+      case 'marcadoresNoCada': { const c = ctx.cadaObj, o = c && e.objs[c.id]; v = !o || o.ts !== c.ts ? 0 : o.marc[q.de] || 0; break; }   // o objeto da vez do repetirCada
       case 'marcadoresNoEste': v = !este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0); break;   // de: um tipo de marcador ('lore')
       case 'devocao': v = M.devocao(e, ctx.voce, q.de); break;
       case 'cartasNaMao': v = e.jogs[ctx.voce].zonas.mao.length; break;
@@ -428,7 +432,7 @@ M.fichaDe = tok => {
 function criarFicha(e, j, tok0, { virada = false }: any = {}) {
   const id = e.prox++, tok = M.fichaDe(tok0);
   const n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim();
-  const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, virada, dano: 0, marc: {} as any, doente: true, cmd: false, ficha: { ...tok, n } };
+  const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, tEntrou: e.turno.n, virada, dano: 0, marc: {} as any, doente: true, cmd: false, ficha: { ...tok, n } };
   e.objs[id] = o; e.campo.push(id);
   M.campoEntra(e, id);
   if (tok.leal) o.marc.lealdade = tok.leal;
@@ -616,24 +620,28 @@ const H = {
   },
   // "para cada oponente/jogador, …" (Acererak, Tempt with…): os efeitos de dentro valem para o jogador da vez (quem/ctrl/dono
   // 'cadaAtual'), na ordem do turno (101.4). Cada efeito de dentro é uma etapa: o progresso fica no ctx (ctx.rep) porque o
-  // processo roda de novo a cada pergunta. Forma com filtro de objetos (Kalonian Hydra) e repetirCada dentro de outro: ainda não.
+  // processo roda de novo a cada pergunta. Com filtro de objetos ("para cada criatura sua com marcador +1/+1", Kalonian Hydra,
+  // Second Harvest): a lista é tirada ao começar a resolver (608.2h) e em/copiaDe 'cadaAtual' é o objeto da vez; o que saiu
+  // do campo no meio fica de fora (400.7). repetirCada dentro de outro: ainda não.
   repetirCada: {
     campos: ['cada', 'fx'],
-    ok: f => (f.cada === 'cadaOponente' || f.cada === 'cadaJogador') && !dentroCada && Array.isArray(f.fx) && f.fx.length > 0
-      && f.fx.every(x => x.op !== 'modal') && comCada(() => M.fxSuportado(f.fx, { topo: false })),
+    ok: f => !dentroCada && !dentroObj && Array.isArray(f.fx) && f.fx.length > 0 && f.fx.every(x => x.op !== 'modal')
+      && ((f.cada === 'cadaOponente' || f.cada === 'cadaJogador') ? comCada(() => M.fxSuportado(f.fx, { topo: false }))
+        : !!f.cada && typeof f.cada === 'object' && M.filtroOk(f.cada) && comObj(() => M.fxSuportado(f.fx, { topo: false }))),
     fx(e, f, ctx, ask) {
-      const R = ctx.rep || (ctx.rep = { f, js: jogsDe(e, { quem: f.cada }, ctx), k: 0, i: 0 });
+      const obj = typeof f.cada === 'object';
+      const R = ctx.rep || (ctx.rep = { f, js: obj ? M.objetosQue(e, f.cada.zona ? f.cada : { ...f.cada, zona: 'campo' }, ctx).map(o => ({ id: o.id, ts: o.ts })) : jogsDe(e, { quem: f.cada }, ctx), k: 0, i: 0 });
       while (R.k < R.js.length) {
-        ctx.cadaAtual = R.js[R.k];
+        if (obj) ctx.cadaObj = R.js[R.k]; else ctx.cadaAtual = R.js[R.k];
         while (R.i < f.fx.length) {
-          if (!e.jogs[ctx.cadaAtual].saiu) M.executar(e, f.fx[R.i], ctx, ask);
+          if (obj || !e.jogs[ctx.cadaAtual].saiu) M.executar(e, f.fx[R.i], ctx, ask);
           R.i++; if (ask && ask.etapa) ask.etapa();
           if (e.fim) break;
         }
         R.i = 0; R.k++;
         if (e.fim) break;
       }
-      delete ctx.rep; delete ctx.cadaAtual;
+      delete ctx.rep; delete ctx.cadaAtual; delete ctx.cadaObj;
     },
   },
   // resguardo (702.21a): o gatilho anula a mágica/habilidade que mirou, a menos que quem a controla pague
@@ -697,7 +705,7 @@ const H = {
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
     campos: ['token', 'virada'],
-    ok: f => !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'),
+    ok: f => !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'),
     fx(e, f, ctx) {
       const q = qtdDe(e, f.qtd, ctx); ctx.criadas = [];
       const tok = f.token && f.token.copiaDe !== undefined ? copiaDe(e, f.token, ctx) : f.token;
