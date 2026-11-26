@@ -1846,6 +1846,49 @@ caso('603.2h', 'Losheel: "uma ou mais criaturas artefato entram" dispara uma vez
   igual(e.jogs[0].zonas.mao.length, m0 + 1, 'comprou 1');
 });
 
+// ---------- masmorras (deck da Safana): infectar e veneno (702.90, 704.5c) ----------
+// cartas da cena escritas como o banco vai escrever (o B ainda tem o infectar em 'falta'; quando reescrever, valem as do banco)
+const criat = (n, pt, kw: any[] = [], o: any = {}) => ({ n, custo: { g: 1, p: ['B'] }, cores: 'B', tipos: ['Creature'], sub: ['Horror'], pt, vm: 2, ci: 'B', kw, ...o });
+db['Cena Infecta Voa'] = criat('Cena Infecta Voa', [1, 1], [{ k: 'voar' }, { k: 'infectar' }]);                       // Plague Stinger
+db['Cena Infecta Livre'] = criat('Cena Infecta Livre', [1, 1], [{ k: 'infectar' }], { est: [{ modo: 'naoPodeSerBloqueada', afeta: 'este' }] });   // Blighted Agent
+db['Cena Infecta 2/2'] = criat('Cena Infecta 2/2', [2, 2], [{ k: 'infectar' }]);                                     // Contagious Nim
+db['Cena Infecta Vínculo'] = criat('Cena Infecta Vínculo', [2, 2], [{ k: 'infectar' }, { k: 'vinculoVida' }]);
+db['Cena Indestrutível'] = criat('Cena Indestrutível', [2, 2], [{ k: 'indestrutivel' }]);
+db['Cena Raio Infecto'] = { n: 'Cena Raio Infecto', custo: { p: ['B'] }, cores: 'B', tipos: ['Instant'], vm: 1, ci: 'B', alvos: [{ f: 'qualquerAlvo' }], kw: [{ k: 'infectar' }],
+  fx: [{ op: 'dano', em: { alvo: 0 }, qtd: 3 }] };
+caso('702.90b', 'infectar: dano de combate em jogador vira veneno e não tira vida (Plague Stinger)', () => {
+  const e = combate([[0, 'Cena Infecta Voa']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta Voa')); fecha(e, 'atacar'); ateFimCombate(e);
+  igual([e.jogs[1].vida, e.jogs[1].veneno], [40, 1]);
+});
+caso('704.5c', 'infectar: o 10º veneno (Blighted Agent num jogador com 9) faz perder o jogo', () => {
+  const e = combate([[0, 'Cena Infecta Livre'], [1, 'Grizzly Bears']], { jogs: 3 });
+  e.jogs[1].veneno = 9;
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta Livre')); fecha(e, 'atacar'); ateFimCombate(e);
+  ok(e.jogs[1].saiu, 'perdeu com ' + e.jogs[1].veneno + ' venenos');
+});
+caso('702.90c', 'infectar em criatura: marcadores −1/−1 em vez de dano (Contagious Nim × 2/2); a infectada sofre dano normal', () => {
+  const e = combate([[0, 'Cena Infecta 2/2'], [1, 'Grizzly Bears']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Grizzly Bears'), objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'bloquear'); ateFimCombate(e);
+  igual(naZona(e, 1, 'cemiterio'), ['Grizzly Bears']); igual(naZona(e, 0, 'cemiterio'), ['Cena Infecta 2/2'], 'a Nim levou 2 de dano');
+  igual(e.jogs[1].vida, 40);
+});
+caso('702.90c', 'infectar: −1/−1 mata o indestrutível quando a resistência chega a 0 (704.5f); dano de mágica com infectar idem', () => {
+  const e = combate([[0, 'Cena Infecta 2/2'], [1, 'Cena Indestrutível'], [1, 'Cena Indestrutível']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Cena Indestrutível'), objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'bloquear'); ateFimCombate(e);
+  igual(naZona(e, 1, 'cemiterio'), ['Cena Indestrutível'], 'o indestrutível 0/0 morreu');
+  const f = cena({ campo: [[0, 'Swamp'], [1, 'Cena Indestrutível']], mao: [[0, 'Cena Raio Infecto']] });
+  M.avancar(f); conj(f, 'Cena Raio Infecto'); alvoObj(f, 'Cena Indestrutível'); resolveCom(f);
+  igual(naZona(f, 1, 'cemiterio'), ['Cena Indestrutível'], 'dano de mágica com infectar: ' + JSON.stringify(f.log.slice(-4)));
+});
+caso('702.90b', 'infectar + vínculo: 2 venenos no jogador e o controlador ganha 2 (702.15b); Blightbelly Rat dá veneno ao jogador do dano (marcador doEvento)', () => {
+  const e = combate([[0, 'Cena Infecta Vínculo'], [0, 'Blightbelly Rat']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta Vínculo')); atacaCom(e, objN(e, 0, 'Blightbelly Rat')); fecha(e, 'atacar'); ateFimCombate(e);
+  igual([e.jogs[1].vida, e.jogs[1].veneno, e.jogs[0].vida], [38, 3, 42], JSON.stringify(e.log.slice(-5)));
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
