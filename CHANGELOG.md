@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.49.1 — 26/11/2026 · Conserto: tutor para o topo; "se você a conjurou"
+Testes: check 0 erros · Vitest 348/348 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1400/1755 (eram 1390). Ivora e Masmorras: 0 erros.
+- **Conserto (entrou na v0.49.0):** buscar para o grimório (Mystical Tutor, Enlightened Tutor…) perdia o "pôr no topo"; o pulo era do cavar (Thassa's Oracle). Caso novo pega o erro.
+- **Filtros conjurada e atacouNoTurno:** The One Ring, Tiamat, Zacama, Cyclone Summoner, Wedding Ring, Cacophony Unleashed, Wakening Sun's Avatar, Riders of the Mark jogam inteiras.
+- **magiasNoTurno** (de quem conjurou): Aetherflux Reservoir inteira.
+
 ## v0.49.0 — 26/11/2026 · T46: fila automática (planilha → PC → claude -p) e vitória por efeito
 Testes: check 0 erros · Vitest 345 (0 falhas) · valida 1755 cartas, 0 erros · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1390/1755 (eram 1385).
 - **Fila automática** (T46): o web app da planilha liberado; o trabalhador pega o pedido, escreve as cartas e grava a resposta. 1º pedido real: Aetherflux Reservoir e Thassa's Oracle.

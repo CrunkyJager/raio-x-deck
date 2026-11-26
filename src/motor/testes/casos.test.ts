@@ -2361,7 +2361,7 @@ caso('700.5', 'devoção (Clive): símbolos da cor nos custos dos seus permanent
 caso('104.2b', "Thassa's Oracle: vence se a devoção a azul (X) ≥ cartas no grimório; comparação entre duas contagens", () => {
   for (const [n, vence] of [[1, true], [2, true], [10, false]] as const) {
     const e = cena({ campo: [[0, "Thassa's Oracle"]], grimorio: n });
-    const th = e.por(0, "Thassa's Oracle");
+    const th = e.objs[e.campo.find(id => e.objs[id].n === "Thassa's Oracle")];
     const g = M.carta("Thassa's Oracle").gat[0];
     ok(M.gatOk(g), 'o gatilho é lido inteiro (cavar + vitória)');
     const ctx: any = { voce: 0, este: th.id, alvos: [], ilegal: {}, lki: {} };
@@ -2380,6 +2380,25 @@ caso('601.2i', "Aetherflux Reservoir: ganha 1 de vida por mágica que você conj
   for (let i = 0; i < 3; i++) { M.avancar(e); conj(e, 'Lightning Bolt'); if (e.perg && e.perg.tipo === 'alvo') alvoJog(e, 1); resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1); }
   igual(e.jogs[0].vida - v0, 0 + 1 + 2, '1ª: 0, 2ª: 1, 3ª: 2');
   igual(M.qtd(e, { conta: 'magiasNoTurno' }, { voce: 1 }), 0, 'o oponente não conjurou');
+});
+
+caso('601.2', "filtro conjurada (The One Ring: 'if you cast it'): conjurada entra marcada; posta por efeito não", () => {
+  const e = cena({ campo: terras(4, 'Wastes'), mao: [[0, 'The One Ring']] });
+  M.avancar(e); conj(e, 'The One Ring'); resolveCom(e);
+  const r = e.objs[e.campo.find(id => e.objs[id].n === 'The One Ring')];
+  ok(r && M.bate(e, r, { conjurada: true }, { voce: 0 }), 'conjurada');
+  const e2 = cena({ campo: [[0, 'The One Ring']] });
+  ok(!M.bate(e2, e2.por(0, 'The One Ring'), { conjurada: true }, { voce: 0 }), 'posta no campo pela cena: não conjurada');
+  ok(M.gatOk(M.carta('The One Ring').gat[0]), 'o gatilho é lido');
+});
+
+caso('701.23', "buscar para o grimório (Mystical Tutor): a carta achada fica no topo", () => {
+  const e = cena({ grimorio: 3 });
+  const b = e.por(0, 'Lightning Bolt', { zona: 'grimorio' });
+  const g = e.jogs[0].zonas.grimorio;
+  g.splice(g.indexOf(b.id), 1); g.unshift(b.id);   // no fundo
+  for (const f of M.carta('Mystical Tutor').fx) M.executar(e, f, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => ops.find(o => o.id !== undefined && e.objs[o.id] && e.objs[o.id].n === 'Lightning Bolt') || ops[0]);
+  igual([e.objs[g[g.length - 1]].n, g.length], ['Lightning Bolt', 4], 'no topo, nada some');
 });
 
 caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you do, draw'): pergunta antes de pagar; a repetição do processo não perde a opção", () => {

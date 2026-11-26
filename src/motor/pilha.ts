@@ -753,6 +753,7 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
     const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga;
     o.pil = null;
     const ent = M.aplicarEntrada(e, { ...plano, conj, x });
+    if (ent) ent.conjurada = true;     // filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
     if (fuga && typeof fuga === 'object') for (const m in fuga) ent.marc[m] = (ent.marc[m] || 0) + fuga[m];   // 702.138c: "foge com"                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
     return;
   }
