@@ -874,7 +874,7 @@ const H = {
       for (const j of jogsDe(e, f, ctx)) {
         if (j === ctx.voce && M.procuraBloqueada(e, j)) { M.log(e, e.jogs[j].nome, 'não pode procurar no grimório'); continue; }   // Ashiok, Dream Render
         // noDe {alvo:N}: procura no grimório do jogador alvo (Knowledge Exploitation); quem escolhe é j
-        const dono = f.noDe ? ((ctx.alvos[f.noDe.alvo] || [])[0] || {}).jog : j; if (dono === undefined || ctx.ilegal[f.noDe.alvo + ':0']) continue;
+        const dono = f.noDe ? ((ctx.alvos[f.noDe.alvo] || [])[0] || {}).jog : j; if (dono === undefined || (f.noDe && ctx.ilegal && ctx.ilegal[f.noDe.alvo + ':0'])) continue;
         const cand = M.objetosQue(e, { ...f.f, zona: 'grimorio', dono: 'voce' }, { ...ctx, voce: dono }).map(o => o.id);
         const pegou = escolherN(ask, j, 'buscar', cand, qtdDe(e, f.qtd, ctx), { podeMenos: true });
         if (f.destinos) {                                           // Cultivate: separa entre os destinos
