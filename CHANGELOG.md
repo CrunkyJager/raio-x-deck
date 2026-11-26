@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.46.0 — 26/11/2026 · Mana com escolha no custo: altares, Krark-Clan, Steam-Kin, Simian Spirit Guide
+Testes: check 0 erros · Vitest 297/297 · raiox-testes igual à linha de base. Motor joga inteiras 1371/1753 (eram 1363). Partidas: deck de altares 40, Ivora 40, masmorras 40, 0 erros.
+- **Nova ação de mana com pergunta** (CR 605.3a, sem pilha): sacrificar outra (Ashnod's Altar, Phyrexian Altar, Krark-Clan Ironworks, Skirk Prospector, Phyrexian Tower, Gilded Goose com Food), tirar marcadores (Runaway Steam-Kin) e exilar da mão (Simian Spirit Guide). Fica fora do pagamento automático, para nunca sacrificar sem querer; na Mesa ao vivo aparece junto dos botões de mana e pergunta o que sacrificar.
+- Seguem de fora: Master of Dark Rites (mana só para Vampire/Cleric/Demon: a reserva ainda não guarda restrição) e Ramos (falta "marcador.qtd").
+- A IA ainda não usa essa ação (T21); só o jogador.
+
 ## v0.45.0 — 26/11/2026 · Ivora 75/75 e masmorras 83/83 inteiras: 15 mecânicas novas
 Testes: check 0 erros · Vitest 294/294 · raiox-testes igual à linha de base. Motor joga inteiras 1363/1753 (eram 1361). Partidas: Ivora 40 e masmorras 40, 0 erros (registro mostra milagre, cópia preparada, "não pode procurar").
 - **Custos:** custo adicional com "ou" (Demand Answers: sacrificar artefato ou descartar); rondar (Knowledge Exploitation); prever, ação especial com {2} e conjurar do exílio num turno seguinte (Skull Raid); ninjutsu da mão (Prosperous Thief).
