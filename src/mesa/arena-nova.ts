@@ -346,7 +346,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
   }
   const TIPO_PT: Record<string, string> = { Creature: 'criatura', Artifact: 'artefato', Land: 'terreno', Enchantment: 'encantamento', Planeswalker: 'planeswalker', permanente: 'permanente' };
   const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
-    ordemGatilho: 'Qual gatilho vai para a pilha primeiro?', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
+    ordemGatilho: 'Estes gatilhos dispararam juntos, pelo mesmo evento (CR 603.3b). Escolha qual vai para a pilha primeiro: ele resolve por ÚLTIMO.', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
     buscar: 'Busca no grimório', escolherCarta: 'Escolha a carta', destino: 'Para onde vai?', sacrificar: 'Escolha o que sacrificar', lenda: 'Regra da lenda: qual fica?',
     cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha',
     masmorra: 'Aventurar: em qual masmorra entrar?', sala: 'Aventurar: para qual sala seguir?', evitarPerda: 'Perder vida ou pagar para não perder?',
