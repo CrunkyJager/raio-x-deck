@@ -254,6 +254,7 @@ M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || o.zona === 'cemiterio' &&
 // split, uma metade ou as duas fundidas (fusão só da mão, 702.102a); dupla face que transforma, só a frente (712.8).
 const temFusao = c => (c.kw || []).some(k => k.k === 'fusao');
 M.facesParaConjurar = (e, j, o) => {
+  if (o.copiaPrep) return [0];                                      // a cópia preparada é só a mágica
   const c = o.ficha ? null : M.carta(o.n);
   switch (c && c.faces && c.forma) {
     case 'modal': return [undefined, 0];
@@ -264,6 +265,8 @@ M.facesParaConjurar = (e, j, o) => {
 };
 // carta exilada pela própria aventura: o dono pode conjurá-la enquanto ela ficar lá (716.3d)
 const daAventura = (e, j, o) => o.zona === 'exilio' && o.aventura === j;
+// cópia da mágica de preparo no exílio: só o controlador da criatura preparada (regras do preparar)
+const porPreparo = (e, j, o) => !!o.copiaPrep && o.zona === 'exilio' && M.prepValida(e, o) && e.objs[o.copiaPrep.id].ctrl === j;
 // só a face que vai ficar para cima é avaliada (712.8c, 709.3a, 716.3a): avalia com o.face trocada e devolve
 // opts.loucura: a carta exilada pela loucura, conjurada na resolução do gatilho (CR 702.35b), sem olhar a velocidade
 M.podeConjurar = (e, j, o, face?, opts?) => {
@@ -290,7 +293,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const d = M.dadoDe(e, o);
   if (o.dono !== j && !agora && !M.permJogar(e, j, o)) return false;
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
-  if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
+  if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
   if (!inst && !louc && !milag && !agora && !M.velFeitico(e, j)) return false;
@@ -366,7 +369,7 @@ function opcoes(e, j) {
   const doCem = M.temPermissaoCemiterio(e, j) ? J.zonas.cemiterio : [];
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
     for (const id of doCem) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
-  const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]));
+  const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]) || porPreparo(e, j, e.objs[id]));
   const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]) || porFuga(e, j, e.objs[id]));   // recapitular (702.34), fuga (702.138)
   // permissões de efeito (op jogar): o que não está na mão/comando/cemitério já listados; terreno com permissão de jogar
   const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio, ...doFlash]), doPerm: number[] = [];
@@ -583,6 +586,7 @@ const PROC = {
     if (!pl) { o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(custo não fecha)'); return; }   // CR 727: volta atrás
     const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
+    if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
     M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true;                    // CR 601.2a (o mover zera a face)
     o.pil = { x, alvos, modos, ctrl: j, opc, ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}) };
     M.evento(e, { ev: 'conjura', id: o.id, j, de });                                      // 601.2i: "quando conjura"

@@ -140,9 +140,10 @@
     "split",
     "modal",
     "flip",
-    "fundir"
+    "fundir",
+    "preparar"
    ],
-   "description": "fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela"
+   "description": "fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela; preparar: faces[0] é a mágica de preparo (layout prepare); a criatura preparada deixa conjurar uma cópia dela do exílio"
   },
   "falta": {
    "type": "array",
@@ -1774,6 +1775,7 @@
       "loucura",
       "milagre",
       "reconfigurar",
+      "entraPreparada",
       "chute",
       "ofertaPresente",
       "esconderijo",

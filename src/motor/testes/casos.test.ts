@@ -1979,6 +1979,23 @@ caso('120', 'ferida por esta no turno (Markov Enforcer): a criatura que levou da
     igual([b.zona, e.campo.filter(id => e.objs[id].n === 'Blood').length], ['cemiterio', lutou ? 1 : 0], lutou ? 'lutou' : 'morreu por outra coisa');
   }
 });
+caso('preparar', 'Pompous Battlemage entra preparada: cópia de Improvised Act no exílio; conjurar a cópia dispara proeza, desprepara e a cópia some ao resolver; criatura saiu → a cópia some', () => {
+  const e = cena({ campo: terras(2), mao: [[0, 'Pompous Battlemage'], [0, 'Forest']] }); e.pend = []; e.jogs[0].terrenos = 1;
+  const pb = e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Pompous Battlemage');
+  M.mover(e, pb, 'campo'); e.objs[pb].doente = false;
+  const cop = e.jogs[0].zonas.exilio.find(id => e.objs[id].copiaPrep);
+  ok(e.objs[pb].preparada && cop !== undefined, 'preparada com a cópia no exílio');
+  igual(M.facesParaConjurar(e, 0, e.objs[cop]), [0], 'só a mágica');
+  ok(M.podeConjurar(e, 0, e.objs[cop], 0), 'pode conjurar a cópia');
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === cop);
+  ok(!e.objs[pb].preparada, 'conjurar desprepara');
+  resolveCom(e, p => p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'sim') : -1);
+  igual([M.poder(e, e.objs[pb]), naZona(e, 0, 'cemiterio'), e.jogs[0].zonas.exilio.length, e.objs[cop].zona, e.jogs[0].zonas.mao.length], [2, ['Forest'], 0, 'fora', 1], 'proeza, descartou e comprou, a cópia sumiu');
+  ok(!M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === cop), 'não conjura de novo');
+  const s = cena({ mao: [[0, 'Pompous Battlemage']] }); s.pend = [];
+  const p2 = s.jogs[0].zonas.mao[0]; M.mover(s, p2, 'campo'); M.mover(s, p2, 'cemiterio'); M.avancar(s);
+  igual([s.jogs[0].zonas.exilio.length, s.jogs[0].zonas.cemiterio.length], [0, 1], 'saiu do campo: a cópia some (o cemitério só tem a carta)');
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

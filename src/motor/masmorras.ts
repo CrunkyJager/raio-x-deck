@@ -201,7 +201,7 @@ M.masmorrasEvento = (e, ev) => {
   // morbid ("se uma criatura morreu neste turno"): o turno da última morte
   if (ev.ev === 'zona' && ev.de === 'campo' && ev.para === 'cemiterio' && ev.snap && M.temTipo(e, ev.snap, 'Creature')) e.morreuT = e.turno.n;
   // descer (LCI, 701.?): carta de permanente (não ficha) posta no cemitério do dono, de qualquer zona: o turno da última
-  if (ev.ev === 'zona' && ev.para === 'cemiterio') { const o = e.objs[ev.id]; if (o && !o.ficha && o.zona === 'cemiterio' && ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle'].some(t => (M.dadoBase(e, o).tipos || []).includes(t))) e.jogs[o.dono].desceuT = e.turno.n; }
+  if (ev.ev === 'zona' && ev.para === 'cemiterio') { const o = e.objs[ev.id]; if (o && !o.ficha && !o.copiaPrep && o.zona === 'cemiterio' && ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle'].some(t => (M.dadoBase(e, o).tipos || []).includes(t))) e.jogs[o.dono].desceuT = e.turno.n; }
 };
 M.morbido = e => e.morreuT === e.turno.n;
 

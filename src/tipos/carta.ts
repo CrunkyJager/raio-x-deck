@@ -55,9 +55,9 @@ export interface Carta {
    */
   faces?: RxFace[];
   /**
-   * fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela
+   * fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela; preparar: faces[0] é a mágica de preparo (layout prepare); a criatura preparada deixa conjurar uma cópia dela do exílio
    */
-  forma?: 'normal' | 'duplaFace' | 'aventura' | 'split' | 'modal' | 'flip' | 'fundir';
+  forma?: 'normal' | 'duplaFace' | 'aventura' | 'split' | 'modal' | 'flip' | 'fundir' | 'preparar';
   /**
    * frases do Oracle (texto original, em inglês) que o motor ainda não sabe fazer; o motor joga o resto e a tela avisa
    */
@@ -961,6 +961,7 @@ export interface RxKw {
     | 'loucura'
     | 'milagre'
     | 'reconfigurar'
+    | 'entraPreparada'
     | 'chute'
     | 'ofertaPresente'
     | 'esconderijo'

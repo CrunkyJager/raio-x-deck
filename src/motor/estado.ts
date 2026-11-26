@@ -270,6 +270,10 @@ function substCemiterio(e, o, opc: any = {}) {
 }
 M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, ask = null, efeito = false }: any = {}) => {
   const o = e.objs[id];
+  if (o.copiaPrep && zona !== 'pilha' && zona !== 'exilio') {        // cópia da mágica preparada: fora da pilha e do exílio deixa de existir (707.10a)
+    const l = M.listaDe(e, o), k = l.lastIndexOf(id); if (k >= 0) l.splice(k, 1);
+    o.zona = 'fora'; return o;
+  }
   const sub = zona === 'cemiterio' ? substCemiterio(e, o, { ask, efeito }) : null;
   if (sub) { zona = sub.zona; M.log(e, o.n, 'vai para', zona, 'em vez do cemitério (' + sub.n + ')'); }
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
@@ -278,7 +282,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
@@ -287,6 +291,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (sub && sub.marc) for (const m in sub.marc) o.marc[m] = (o.marc[m] || 0) + sub.marc[m];   // "exile-a com um marcador hit" (fica no exílio)
   if (sub && sub.embaralhar) M.embaralhar(e, para);
   if (zona === 'campo') M.campoEntra(e, id);
+  if (zona === 'campo' && (M.dadoBase(e, o).kw || []).some(x => x.k === 'entraPreparada')) M.preparar(e, o);   // "enters prepared"
   if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap });   // gatilhos.js
   if (zona === 'campo' && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1);   // CR 714.3a: a saga entra com 1 marcador de história
@@ -316,6 +321,18 @@ M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte p
   return feitas;
 };
 const GAT_LOUCURA = { ev: 'descarta', fx: [{ op: 'loucura' }] };
+// preparar (Secrets of Strixhaven): ficar preparada cria no exílio uma cópia da mágica de preparo (faces[0]) que o controlador
+// pode conjurar enquanto a criatura estiver no campo e preparada; conjurar a desprepara. Já preparada: nada (não dobra).
+M.preparar = (e, o) => {
+  const c = o.ficha ? null : M.carta(o.n);
+  if (o.preparada || o.zona !== 'campo' || !c || c.forma !== 'preparar' || !c.faces) return;
+  o.preparada = true;
+  const id = e.prox++;
+  e.objs[id] = { id, n: o.n, dono: o.ctrl, ctrl: o.ctrl, zona: 'exilio', ts: ++e.ts, virada: false, dano: 0, marc: {}, doente: false, cmd: false, face: null, copiaPrep: { id: o.id, ts: o.ts } };
+  e.jogs[o.ctrl].zonas.exilio.push(id);
+  M.log(e, o.n, 'fica preparada');
+};
+M.prepValida = (e, c) => { const o = c && c.copiaPrep && e.objs[c.copiaPrep.id]; return !!o && o.zona === 'campo' && o.ts === c.copiaPrep.ts && !!o.preparada; };
 const GAT_MILAGRE = { ev: 'compra', fx: [{ op: 'milagre' }] };
 M.milagreDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'milagre' && x.custo); return k ? k.custo : null; };
 
