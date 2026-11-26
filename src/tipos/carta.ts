@@ -879,6 +879,10 @@ export interface RxCond {
     | boolean
     | {
         nome: string;
+        /**
+         * true = NÃO completou aquela masmorra (Acererak)
+         */
+        nao?: boolean;
       };
 }
 
@@ -1012,7 +1016,8 @@ export interface RxGat {
     | 'explora'
     | 'completaMasmorra'
     | 'sala'
-    | 'tomaIniciativa';
+    | 'tomaIniciativa'
+    | 'nivel';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */

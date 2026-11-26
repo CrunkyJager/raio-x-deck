@@ -1680,6 +1680,10 @@
        "properties": {
         "nome": {
          "type": "string"
+        },
+        "nao": {
+         "type": "boolean",
+         "description": "true = NÃO completou aquela masmorra (Acererak)"
         }
        }
       }
