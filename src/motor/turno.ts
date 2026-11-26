@@ -234,7 +234,7 @@ M.abe = e => {
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
     for (const id of e.campo) {
       const o = e.objs[id], n = M.capitulos(M.dadoDe(e, o));
-      if (!n || (o.marc.historia || 0) < n) continue;
+      if (!n || (o.marc.lore || 0) < n) continue;
       if ((e.pend || []).some(p => p.fonte === id && p.ts === o.ts) || e.pilha.some(h => { const x = e.objs[h].hab; return x && x.fonte === id && x.fonteTs === o.ts; })) continue;
       morrem.push(id);
     }

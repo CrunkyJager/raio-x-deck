@@ -168,12 +168,12 @@ function novoObj(e, n, dono, zona) {
 M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilha : o.zona === 'faseado' ? (e.faseados || (e.faseados = [])) : e.jogs[o.dono].zonas[o.zona];
 
 // ---------- sagas (CR 714) ----------
-// capítulo final = kw capitulo n; marcadores de história em marc.historia. Pôr marcador dispara 'capitulo' {de, para}:
+// capítulo final = kw capitulo n; marcadores de história (lore) em marc.lore. Pôr marcador dispara 'capitulo' {de, para}:
 // o capítulo N desencadeia quando a contagem passa de < N para ≥ N (714.2b). Entrar (714.3a), a 1ª principal do
-// controlador (714.3b, turno.ts) e marcador/proliferar com 'historia' passam por aqui. Sacrifício nas ABE (714.4).
+// controlador (714.3b, turno.ts) e marcador/proliferar com 'lore' passam por aqui. Sacrifício nas ABE (714.4).
 M.capitulos = d => { const k = (d.kw || []).find(x => x.k === 'capitulo'); return k ? k.n || 0 : 0; };
 M.porHistoria = (e, o, n) => {
-  const de = o.marc.historia || 0; o.marc.historia = de + n;
+  const de = o.marc.lore || 0; o.marc.lore = de + n;
   M.evento(e, { ev: 'capitulo', id: o.id, ts: o.ts, de, para: de + n });
 };
 
@@ -359,12 +359,12 @@ const TIPOS_CARTA = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Pla
 // tipo/sub dado a 'este' (camada 4): lido no M.dadoDe; com filtro (Ashaya, Bello, Dryad, Leyline) ainda não
 M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'se'].includes(k))
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
-const CONTA_EST = new Set(['cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste']);
+const CONTA_EST = new Set(['cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste', 'devocao']);
 // prop: em vez de quantos, soma/maior de uma característica dos que batem (Ghalta, The Great Henge, Metalwork Colossus, Excalibur)
 const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm']);
 M.PROP_EST = PROP_EST;
 const qtdEstOk = q => q === undefined || typeof q === 'number'
-  || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de', 'prop'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste')
+  || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de', 'prop'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste' || (q.conta === 'devocao' && /^[WUBRG]+$/.test(q.de)))
     && (q.prop === undefined || (PROP_EST.has(q.prop) && typeof q.conta === 'object'))
     && (typeof q.conta === 'string' ? CONTA_EST.has(q.conta) : !!q.conta && typeof q.conta === 'object' && M.filtroOk(q.conta)));
 M.qtdEstOk = qtdEstOk;
@@ -559,6 +559,7 @@ M.qtdEst = (e, q, ctx) => {
   const J = e.jogs[ctx.voce], este = e.objs[ctx.este];
   const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'suaVida' ? J.vida
     : q.conta === 'oponentes' ? M.vivos(e).filter(j => j !== ctx.voce).length : q.conta === 'jogadores' ? M.vivos(e).length
+    : q.conta === 'devocao' ? M.devocao(e, ctx.voce, q.de)
     : q.conta === 'marcadoresNoEste' ? (!este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0)) : 0;   // de: um tipo de marcador
   return v * (q.mult || 1) + (q.soma || 0);
 };
@@ -707,9 +708,21 @@ M.qtd = (e, q, ctx: any = {}) => {
   if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
   if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
   if (q && CONTA_ATK.has(q.conta)) return M.contaAtaque(e, q.conta, ctx.voce) * (q.mult || 1) + (q.soma || 0);
+  if (q && CONTA_EST.has(q.conta) && qtdEstOk(q)) return M.qtdEst(e, q, ctx);   // marcadoresNoEste (de), mão, vida, devoção…
   return null;      // contagem que o núcleo ainda não sabe → quem chama não oferece a habilidade
 };
 
+// devoção (CR 700.5): símbolos de mana das cores pedidas nos custos dos permanentes que j controla; símbolo híbrido
+// conta uma vez se tiver qualquer uma delas (700.5a); genérico e {C} não contam
+M.devocao = (e, j, cores) => {
+  let n = 0;
+  for (const id of e.campo) {
+    const o = e.objs[id]; if (o.ctrl !== j) continue;
+    const c = M.dadoDe(e, o).custo; if (!c || !c.p) continue;
+    for (const s of c.p) if (typeof s === 'string' && [...cores].some(x => s.includes(x))) n++;
+  }
+  return n;
+};
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); as outras palavras (metalcraft, coven…) ainda não
