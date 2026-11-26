@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.48.0 — 26/11/2026 · Motor: perda de vida, alvo de jogador, descobrir e mana restrita
+Testes: check 0 erros · Vitest 344/344 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1385/1753 (eram 1371). Partidas: deck de drenar vida (Vito, Sanguine Bond, Exquisite Blood, Mindcrank, Vilis, Blood Artist) 20, 0 erros.
+- **Perder vida vira evento** (CR 119.3): dano em jogador, "perde N de vida" e pagar vida (119.4) disparam Mindcrank, Exquisite Blood, Vilis, The Master of Lake-town. "That much" lê quanto ganhou ou perdeu (Sanguine Bond, Vito, Prize Pig, Wedding Ring, Treebeard, Well of Lost Dreams). Sanguine Bond + Exquisite Blood mata o oponente e o laço para.
+- **"Jogador alvo" escolhe o alvo**: antes o alvo não era escolhido e o efeito sumia, em 17 cartas (Blood Artist, Hedron Crab, Diregraf Captain, Liliana of the Veil, Jace Beleren, Priest of Forgotten Gods…).
+- **Descobrir N** (CR 701.57) e Tecutlan; **mana restrita** na reserva (CR 106.6): Master of Dark Rites e Unclaimed Territory só pagam a mágica que bate. Ramos ganha um +1/+1 por cor.
+
 ## v0.47.0 — 26/11/2026 · T44: a análise lê o banco próprio
 Testes: check 0 erros · Vitest 337/337 · testa 161/161 · partida Stangg igual à linha de base (erros 0) · build ok. Banco de 30 decks (200 partidas por troca): T44 −0,04 ±0,20 contra a main de hoje −0,39 ±0,19; deck a deck +0,40 ±0,32 a favor da T44 (melhor em 15, pior em 8, de 27).
 - **O que cada carta faz vem de `banco/cartas`** (`src/analise/banco.ts`): ramp, compra, remoção, limpa-mesa, proteção, contramágica, recursão, tutor, fichas, e os detalhes que pesam no efetiv (repete, na hora, quantas cartas, só um lado da mesa, o oponente pode pagar). A regex no inglês e as etiquetas do Scryfall ficam só para carta sem dado.
