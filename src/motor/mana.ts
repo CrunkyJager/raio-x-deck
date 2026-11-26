@@ -32,7 +32,7 @@ M.coresDeProd = (e, o, prod) => {
 // 'escolhido' = o tipo escolhido ao entrar (Cavern of Souls, Unclaimed Territory); 'Legendary' veio como sub
 M.filtroSo = (o, so) => {
   const k = Object.keys(so);
-  if (!k.length || k.some(x => x !== 'tipo' && x !== 'sub')) return null;
+  if (!k.length || k.some(x => x !== 'tipo' && x !== 'sub' && !(x === 'zona' && so.zona === 'pilha'))) return null;   // zona pilha: "só para conjurar" (o 'para' é sempre a mágica)
   const f: any = {};
   if (so.tipo) { if (so.tipo.includes('Card')) return null; f.tipo = so.tipo; }
   if (so.sub) {
@@ -51,7 +51,7 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
     if (f.so) {                                    // mana restrita (CR 106.6): só no plano de quem paga 'para', e se bater
       const fs = M.filtroSo(o, f.so);
       if (!fs) return null;
-      if (!ctx.para || !M.bate(e, ctx.para, fs, { voce: o.ctrl })) continue;
+      if (!ctx.comSo && (!ctx.para || !M.bate(e, ctx.para, fs, { voce: o.ctrl }))) continue;   // comSo: a ativação com escolha guarda a restrita à parte
     }
     if (f.se && !M.condicao(e, f.se, { voce: o.ctrl, este: o.id })) continue;
     const cs = M.coresDeProd(e, o, f.prod);
@@ -65,20 +65,26 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
   return pac;
 };
 
-// ---- custo de ativação simples (o que a T14 sabe pagar): virar, mana, sacrificar este, vida ----
-const CUSTO_OK = new Set(['virar', 'mana', 'sacrificar', 'vida']);
+// ---- custo de ativação simples (o que a T14 sabe pagar): virar, mana, sacrificar este, vida, virar outros ----
+// virarOutros na mana (Baylen: "vire duas fichas desviradas"): sem pergunta (605.3, mana não usa a pilha); só conta quem
+// não tem habilidade de mana própria (senão o solver usaria a mesma ficha duas vezes) e vira primeiro o que não ataca.
+const CUSTO_OK = new Set(['virar', 'mana', 'sacrificar', 'vida', 'virarOutros']);
+M.custoManaOk = c => Object.keys(c || {}).every(k => CUSTO_OK.has(k)) && (!c.sacrificar || c.sacrificar === 'este') && (!c.virarOutros || M.custoSuportado({ virarOutros: c.virarOutros }));
+const virMana = (e, o, c) => M.candVir(e, o.ctrl, c, o.id).filter(x => !M.atvDe(e, x).some(a => a.deMana))
+  .sort((a, b) => (M.temTipo(e, a, 'Creature') && !a.doente ? 1 : 0) - (M.temTipo(e, b, 'Creature') && !b.doente ? 1 : 0));
 M.podeCustoAtv = (e, o, c) => {
-  for (const k in c) if (!CUSTO_OK.has(k)) return false;
-  if (c.sacrificar && c.sacrificar !== 'este') return false;
+  if (!M.custoManaOk(c)) return false;
   if (c.virar && (o.virada || (o.doente && M.temTipo(e, o, 'Creature') && !M.temKw(e, o, 'pressa')))) return false;   // CR 302.6, 702.10
-  if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida)) return false; // CR 119.4
+  if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida || M.vidaFixa(e, o.ctrl))) return false; // CR 119.4, 119.8
   if (c.mana && !M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana)) return false;
+  if (c.virarOutros && virMana(e, o, c).length < (c.virarOutros.qtd || 1)) return false;   // 302.6 não vale: não é o {T} delas
   return true;
 };
 const pagarCustoAtv = (e, o, c) => {
+  if (c.virarOutros) for (const x of virMana(e, o, c).slice(0, c.virarOutros.qtd || 1)) x.virada = true;
   if (c.virar) o.virada = true;
   if (c.mana) e.jogs[o.ctrl].reserva = M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana).resto;
-  if (c.vida) e.jogs[o.ctrl].vida -= c.vida;
+  if (c.vida) M.perderVida(e, o.ctrl, c.vida);
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
 };
 
@@ -92,7 +98,7 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
     const o = e.objs[id];
     if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => {
-      if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo)) return;
+      if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo) || !M.atvSeOk(e, a, o)) return;
       // soVirar: sem pagar mana nem vida ({T} e/ou sacrificar este: terreno, Lotus Petal, Treasure, Gold)
       if (soVirar && Object.keys(a.custo).some(x => x !== 'virar' && !(x === 'sacrificar' && a.custo.sacrificar === 'este'))) return;
       const p = M.pacotesDe(e, o, a, { para });
@@ -119,8 +125,30 @@ M.esvaziarReservas = e => {
   for (const J of e.jogs) {
     const F = J.fica && J.fica.t === e.turno.n && e.turno.passo !== 'limpeza' ? J.fica : null, r = M.zeroMana();
     if (F) for (const c of TIPOS) { r[c] = Math.min(J.reserva[c], F.m[c]); F.m[c] = r[c]; }
-    J.reserva = r;
+    J.reserva = r; J.restrita = [];
   }
+};
+
+// mana restrita na reserva (CR 106.6): J.restrita = [{m, f}] (m = mana, f = filtro RX da mágica que pode pagar).
+// Esvazia junto com a reserva. Só a mágica que bate o filtro (o 'para' do plano) enxerga essa mana; ela é gasta primeiro.
+M.restritaPara = (e, j, para) => para ? (e.jogs[j].restrita || []).filter(r => M.bate(e, para, r.f, { voce: j })) : [];
+M.reservaCom = (e, j, para) => {
+  const R = { ...e.jogs[j].reserva };
+  for (const r of M.restritaPara(e, j, para)) for (const c of TIPOS) R[c] += r.m[c];
+  return R;
+};
+// depois de pagar com reservaCom: resto = o que sobrou de tudo; a restrita sai primeiro, o resto volta à reserva comum
+M.acertarRestrita = (e, j, para, resto) => {
+  const rs = M.restritaPara(e, j, para), J = e.jogs[j];
+  if (!rs.length) { J.reserva = resto; return; }
+  const R = { ...resto }, comum = J.reserva;
+  for (const c of TIPOS) {
+    let sobraRes = Math.max(0, R[c] - comum[c]);                      // o que sobrou além da comum é restrita
+    for (const r of rs) { const k = Math.min(r.m[c], sobraRes); sobraRes -= k; r.m[c] = k; }
+    R[c] = Math.min(R[c], comum[c]);
+  }
+  J.restrita = J.restrita.filter(r => soma(r.m) > 0);
+  J.reserva = R;
 };
 
 const soma = p => TIPOS.reduce((s, c) => s + p[c], 0);
@@ -205,6 +233,8 @@ function reducoes(e, j, o, deHabil) {
   const r = { g: 0, p: [] as string[] };
   const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
   if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
+  if (!deHabil) for (const k of M.dadoDe(e, o).kw || []) if (k.k === 'afinidade' && k.tipo)   // CR 702.41: {1} a menos por [tipo] seu
+    r.g += M.objetosQue(e, { tipo: [k.tipo], ctrl: 'voce', zona: 'campo' }, { voce: j, este: o.id }).length;
   for (const F of fontes) for (const s of M.dadoDe(e, F).est || []) {
     if (s.modo !== 'reduzCusto' || !!s.deHabil !== deHabil || !M.estReduzOk(s)) continue;
     const ctx = { voce: F.ctrl, este: F.id };
@@ -231,7 +261,7 @@ function reduz(c, r) {
 // Busca em profundidade: fontes menos flexíveis primeiro (Floresta antes de Command Tower), poda por quantidade.
 // Retorna {passos:[{id,k,escolha}], resto, vida} ou null.
 M.planoMana = (e, j, custo, { x = 0, vidaDisp = 0, limite = 4000, excluir = null, para = null }: any = {}) => {
-  const R = e.jogs[j].reserva;
+  const R = M.reservaCom(e, j, para);                               // + a restrita que esta mágica pode gastar
   const direto = M.pagarDaReserva(R, custo, { x, vidaDisp });
   if (direto) return { passos: [] as any[], ...direto };
   const s = simbolos(custo, x);
@@ -271,6 +301,6 @@ M.pagarComPlano = (e, j, custo, opc: any = {}) => {
   if (!pl) return false;
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(e.jogs[j].reserva, custo, opc);
-  e.jogs[j].reserva = pg.resto; e.jogs[j].vida -= pg.vida;
+  e.jogs[j].reserva = pg.resto; M.perderVida(e, j, pg.vida);
   return true;
 };

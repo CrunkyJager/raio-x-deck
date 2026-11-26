@@ -91,9 +91,21 @@ function acaoDoTurno(e) {
   if (J.saiu) return;                                               // CR 800.4j: turno segue sem jogador ativo
   switch (T.passo) {
     case 'atacantes': case 'bloqueadores': case 'dano': M.acaoCombate(e); break;   // combate.js (CR 508–510)
-    case 'desvirar':                                                // CR 502.2–502.3
+    case 'desvirar':                                                // CR 502.1 (fases antes), 502.2–502.3
       J.terrenos = 0;
-      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { o.virada = false; o.doente = false; } }
+      if (e.faseados && e.faseados.length) M.fasearDentro(e, a);
+      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { if (o.naoDesv === o.ts) delete o.naoDesv; else M.desvirarObj(e, o); o.doente = false; } }   // naoDesv: "não desvira no próximo desvirar" (o mesmo objeto, 400.7)
+      // "desvire [filtro] que você controla durante a etapa de desvirar de cada outro jogador" (Unwinding Clock, Seedborn Muse)
+      for (const id of M.indiceCampo(e).est) {
+        const F = e.objs[id]; if (F.ctrl === a) continue;
+        for (const s of M.dadoDe(e, F).est || []) {
+          if (s.modo !== 'desviraNoTurnoDeOutro' || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
+          for (const o of M.objetosQue(e, { ...s.afeta, ctrl: 'voce', zona: 'campo' }, { voce: F.ctrl, este: F.id })) M.desvirarObj(e, o);
+        }
+      }
+      break;
+    case 'principal1':                                              // CR 714.3b: marcador de história nas sagas de quem joga
+      for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
       if (!(T.n === 1 && e.jogs.length === 2)) M.comprar(e, a, 1);
@@ -107,8 +119,12 @@ function acaoDoTurno(e) {
   }
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
-  for (const id of e.campo) { e.objs[id].dano = 0; e.objs[id].mortal = false; }
-  e.temp = [];                                                      // 'modificar' até o fim do turno (efeitos.ts)
+  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
+  // 'modificar' até o fim do turno (efeitos.ts) sai; o de dura 'sempre' (Witch's Mark: +1/+1 sem prazo, 611.2a) fica
+  // enquanto o objeto (mesmo ts) estiver no campo. Array novo: o índice do somaTemp refaz.
+  e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
+  if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== 'turno' && e.objs[p.id] && e.objs[p.id].ts === p.ts);   // jogar até o fim do turno
+  if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');   // efeitoTemporario até o fim do turno
 }
 // tamanho máximo de mão (CR 402.2: 7) — Reliquary Tower e cia. (est maoMax) lidos aqui até as camadas da T18
 function maoMax(e, j) {
@@ -121,18 +137,26 @@ function maoMax(e, j) {
 }
 M.maoMax = maoMax;
 
+const p0 = (p, ativo) => p.fim === ativo ? ativo : undefined;
 function proximoPasso(e) {
   const T = e.turno;
   M.esvaziarReservas(e);                                            // CR 106.4
   const pula = M.depoisDoPasso(e, T.passo);                         // 508.8 sem atacantes → fim do combate; 510.4 2ª etapa
   let i = pula ? PASSOS.indexOf(pula) : PASSOS.indexOf(T.passo) + 1;
   T.feito = false; T.prio = null;
-  if (i < PASSOS.length) { T.passo = PASSOS[i]; M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return; }
+  if (i < PASSOS.length) {
+    T.passo = PASSOS[i];
+    if (T.passo === 'final' && e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => !(p.fim && p.fim.final === T.ativo));   // "até o seu próximo passo final" (Inti): acaba quando ele começa
+    M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return;
+  }
   // próximo turno: próximo jogador na ordem que ainda está no jogo (CR 800.4k)
   const n = e.jogs.length;
   let p = T.ativo;
   do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null; T.lim = null; T.disp = null;
+  if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
+  M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
+  if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
   M.evento(e, { ev: 'fase', passo: 'desvirar', ativo: p });
   if (T.n > e.cfg.maxTurnos) e.fim = { vencedor: null, motivo: 'limite de turnos' };
 }
@@ -156,11 +180,14 @@ M.terrenosPorTurno = terrenosPorTurno;
 M.PROC.terreno = (e, P, ask) => {
   const j = P.j, o = e.objs[P.id];
   const terra = P.face === undefined ? M.temTipo(e, o, 'Land') : M.faceTerreno(e, o);
-  if (!(o.zona === 'mao' || M.podeJogarDe(e, j, o)) || o.dono !== j || !terra) throw new Error('terreno ilegal');
+  const pj = M.permJogar(e, j, o);
+  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj) || !terra) throw new Error('terreno ilegal');
   const plano = M.decidirEntrada(e, P.id, j, P.face === undefined ? {} : { face: P.face }, ask);
   e.proc = null;
   e.jogs[j].terrenos++;
+  const de = o.zona;
   M.aplicarEntrada(e, plano);
+  M.evento(e, { ev: 'jogaTerreno', id: o.id, j, de });            // CR 305.1: "jogar um terreno" (de: de onde; Shadow of the Goblin)
   M.agiu(e, j);                                                     // CR 117.3c
 };
 const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });
@@ -174,8 +201,10 @@ const RESP = {
     if (op.a === 'passar') M.passar(e);
     else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id, op.face);
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
+    else if (op.a === 'manaEsc') M.manaEsc(e, p.j, op.id, op.k, op.escolha);          // CR 605.3a com escolha no custo
     else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
+    else if (op.a === 'prever') M.prever(e, p.j, op.id);
   },
   descartar(e, p, op) {
     M.descartar(e, p.j, [op.id]);                                   // CR 514.1 (dispara 'descarta'; loucura vale)
@@ -200,7 +229,7 @@ M.abe = e => {
     }
     // permanentes (CR 704.5f, g, i) e fichas fora do campo (704.5d)
     const morrem: any[] = [];
-    for (const id of e.campo) {
+    M.lote(() => { for (const id of e.campo) {
       const o = e.objs[id];
       if (M.temTipo(e, o, 'Creature')) {
         const r = M.resistencia(e, o);
@@ -208,7 +237,7 @@ M.abe = e => {
         else if ((o.dano >= r || (o.mortal && o.dano > 0)) && !M.temKw(e, o, 'indestrutivel')) morrem.push(id);   // 704.5g–h; regenerar = T19
       }
       if (M.temTipo(e, o, 'Planeswalker') && (o.marc.lealdade || 0) <= 0) morrem.push(id);
-    }
+    } });
     // CR 704.5m/n: Aura presa a nada (ou a objeto ilegal) vai ao cemitério; Equipamento preso a nada ou a não-criatura
     // (ou que virou criatura, 301.5c) se solta e fica no campo
     for (const id of e.campo) {
@@ -218,7 +247,25 @@ M.abe = e => {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }
     }
+    // CR 303.7a / 704.5y: mais de um Role do mesmo controlador no mesmo permanente → só o mais novo fica
+    const roles = new Map<string, any>();
+    for (const id of e.campo) {
+      const o = e.objs[id]; if (!o.anexo || !(M.dadoDe(e, o).sub || []).includes('Role')) continue;
+      const k = o.anexo.id + ':' + o.ctrl, v = roles.get(k);
+      if (!v) { roles.set(k, o); continue; }
+      if (v.ts < o.ts) { morrem.push(v.id); roles.set(k, o); } else morrem.push(id);
+    }
+    // preparar: a cópia no exílio deixa de existir se a criatura saiu do campo ou não está mais preparada
+    for (const J of e.jogs) for (const id of [...J.zonas.exilio]) { const c = e.objs[id]; if (c.copiaPrep && !M.prepValida(e, c)) { M.mover(e, id, 'cemiterio'); mudou = true; } }
+    // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
+    for (const id of e.campo) {
+      const o = e.objs[id], n = M.capitulos(M.dadoDe(e, o));
+      if (!n || (o.marc.lore || 0) < n) continue;
+      if ((e.pend || []).some(p => p.fonte === id && p.ts === o.ts) || e.pilha.some(h => { const x = e.objs[h].hab; return x && x.fonte === id && x.fonteTs === o.ts; })) continue;
+      morrem.push(id);
+    }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
+    if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
     while (e.fichasFora && e.fichasFora.length) {
@@ -255,8 +302,8 @@ M.sair = (e, j, motivo) => {
   J.saiu = motivo || true; J.reserva = M.zeroMana();
   for (const id in e.objs) {
     const o = e.objs[id];
-    if (o.dono === j) { const l = M.listaDe(e, o), k = l.indexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[id]; }
-    else if (o.ctrl === j && o.zona === 'campo') M.mover(e, o.id, 'exilio');
+    if (o.dono === j) { const l = M.listaDe(e, o), k = l ? l.indexOf(o.id) : -1; if (k >= 0) l.splice(k, 1); delete e.objs[id]; }
+    else if (o.ctrl === j && (o.zona === 'campo' || o.zona === 'faseado')) M.mover(e, o.id, 'exilio');
   }
   if (e.perg && e.perg.j === j) e.perg = null;
   M.log(e, J.nome, 'sai do jogo:', motivo);

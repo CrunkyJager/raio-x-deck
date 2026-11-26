@@ -472,7 +472,7 @@ const PERG = {
   mulligan: (q) => `Sua mão inicial${q.nm ? ` (depois de ${q.nm} mulligan${q.nm > 1 ? 's' : ''})` : ''}. Fica com ela?`,
   fundo: (q) => `Clique na carta que vai para o fundo do grimório (falta${q.falta > 1 ? 'm' : ''} ${q.falta}).`,
   terreno: () => 'Clique no terreno que quer baixar.',
-  lanca: (q) => q.resp ? `Você pode responder · ${q.mana} de mana. Clique no que quer lançar, ou passe.` : `Sua fase principal · ${q.mana} de mana. Clique no que quer lançar.`,
+  lanca: (q) => (q.resp ? `Você tem prioridade${q.passo ? ' (' + (PASSO_NOME[q.passo] || q.passo) + ')' : ''} · ${q.mana} de mana. Use uma instantânea ou habilidade, gere mana, ou passe.` : `Sua fase principal · ${q.mana} de mana. Clique no que quer lançar.`) + (q.reserva ? ` Na reserva: ${q.reserva}.` : ''),
   ataque: () => 'Combate: escolha o oponente e clique nas criaturas que atacam.',
   equipar: (q) => `Clique na criatura que vai receber ${q.x.n}.`,
   escolha: (q) => q.x.n,
@@ -481,6 +481,7 @@ const PERG = {
   bloqueio: (q) => `${q.x.de} ataca você com ${q.x.n} (${q.x.p}/${q.x.t}). Clique na criatura que bloqueia.`,
   descarte: (q) => `Fim do turno: clique na carta para descartar (falta${q.falta > 1 ? 'm' : ''} ${q.falta}).`,
 };
+const PASSO_NOME = { manutencao: 'manutenção', compra: 'compra', principal1: '1ª fase principal', inicioCombate: 'início do combate', atacantes: 'declarar atacantes', bloqueadores: 'declarar bloqueadores', dano: 'dano de combate', fimCombate: 'fim do combate', principal2: '2ª fase principal', final: 'etapa final', limpeza: 'limpeza' };
 const FASES = [['mulligan', 'Mão'], ['terreno', 'Terreno'], ['lanca', 'Principal'], ['ataque', 'Combate'], ['bloqueio', 'Bloqueio'], ['descarte', 'Fim']];
 // carta da mesa jogável: botão próprio (data-h = o que o clique faz); botão direito ou a lupa ampliam
 function jc(nome, o = {}) {
@@ -503,6 +504,26 @@ function terrasHTML(p, M, pp) {
     return `<span class="ja-tc ${x.tap === x.q ? 'tap' : ''} ${nv ? 'entra' : ''}" ${im ? `data-zoom="${esc(im[1])}"` : ''} data-n="${esc(x.n)}" title="${esc(x.n)}: ${x.q} em campo, ${x.q - x.tap} livre${x.q - x.tap === 1 ? '' : 's'}">${esc(x.n)} <b>×${x.q}</b>${x.tap ? `<i>${x.tap} virado${x.tap > 1 ? 's' : ''}</i>` : ''}</span>`; }).join('') || '<span class="vazio">sem terrenos</span>';
 }
 // lugares na mesa: você embaixo à esquerda e a vez segue no sentido horário
+// fundo de cada lugar (Felipe 26/11): o jogador escolhe a imagem; fica só neste navegador (localStorage)
+const FUNDO_K = k => 'raiox_fundo_' + k;
+const redesenha = () => { if (JG && JG.q) desenhaEu(); };   // fora de uma pergunta o fundo novo aparece no próximo quadro
+function fundoDe(k) { try { return localStorage.getItem(FUNDO_K(k)) || ''; } catch (_) { return ''; } }
+function escolheFundo(k) {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => { const f = inp.files && inp.files[0]; if (!f) return;
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => { const L = 1400, r = Math.min(1, L / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * r); cv.height = Math.round(img.height * r); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      try { localStorage.setItem(FUNDO_K(k), cv.toDataURL('image/jpeg', .8)); } catch (_) { alert('Não coube no navegador: tente uma imagem menor.'); }
+      redesenha(); };
+    img.src = url; };
+  inp.click();
+}
+// tapete (playmat): campo de batalha + terrenos + coluna de zonas. Cada lugar é espelhado para a coluna de zonas ficar
+// do lado do centro da mesa e a zona de comando no canto mais perto do meio; os de cima têm o campo virado para o meio.
+// orient[n][k] = [em cima?, zonas à direita?]
+const ORIENT = { 2: [[0, 1], [1, 1]], 3: [[0, 1], [1, 1], [1, 0]], 4: [[0, 1], [1, 1], [1, 0], [0, 0]] };
 const LUGAR = { 2: ['s0', 's1'], 3: ['s0', 's1', 's2'], 4: ['s0', 's1', 's2', 's3'] };
 function jaLugarHTML(k, p, c) {
   const G = JG, M = G.Ms[k], eu = k === 0, cmd = G.cmdNome[k], ci = cmd ? imgDe(cmd) : null, q = c.q, ev = c.ev;
@@ -521,14 +542,28 @@ function jaLugarHTML(k, p, c) {
   const av = eu ? `<button class="ja-av ${c.cmdOk ? 'ok' : ''}" ${c.cmdOk ? 'data-h="cmd"' : ''} style="${ci ? `background-image:url('${esc(ci[2])}')` : ''}" title="${esc(cmd)}${c.cmdOk ? ' — clique para lançar da zona de comando' : ''}"></button>`
     : `<span class="ja-av" style="${ci ? `background-image:url('${esc(ci[2])}')` : ''}" title="${esc(cmd)}"></span>`;
   const cmdD = Math.max(0, ...p.cmdD);
-  return `<div class="ja-lug ${LUGAR[G.Ms.length][k]} ${eu ? 'eu' : ''} ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${escolhe ? 'escolhe' : ''} ${p.vivo ? '' : 'morto'}" ${eu ? '' : `data-alvo="${k}"`}>
-    <div class="ja-oh">${av}<span class="ja-nm"><b>${esc(eu ? 'Você' : NOMES[k])}</b>${cmd && (eu || cmd !== NOMES[k]) ? `<small>${esc(cmd)}</small>` : ''}</span>
-      <span class="ja-vida ${d ? 'bate' : ''}">${p.vida}${d ? `<i class="ja-flut ${d < 0 ? 'neg' : 'pos'}">${d > 0 ? '+' : ''}${d}</i>` : ''}</span></div>
-    ${placar(p)}
-    <div class="ja-os"><span>grimório ${p.lib}</span><span>cemitério ${p.gy}</span>${p.zona && cmd ? '<span>comandante na zona</span>' : ''}${cmdD ? `<span class="mau">dano de comandante ${cmdD}/21</span>` : ''}</div>
+  const [cima, dir] = (ORIENT[G.Ms.length] || ORIENT[4])[k] || [0, 1];
+  const fundo = fundoDe(k);
+  const gyTop = p.gyL && p.gyL.length ? (G.Ms[k][p.gyL[p.gyL.length - 1]] || {}) : null, gyN = gyTop ? (gyTop.frente || gyTop.nome) : null, gyIm = gyN ? imgDe(gyN) : null;
+  const zona = (cl, rot, n, extra = '', st = '') => `<div class="ja-z ${cl}" style="${st}"><span class="ja-zr">${rot}</span>${n !== null ? `<b>${n}</b>` : ''}${extra}</div>`;
+  const cmdZ = `<div class="ja-z cmd ${p.zona && cmd ? '' : 'fora'}"><span class="ja-zr">Comando</span>${av}${p.tax ? `<small>imposto +${p.tax}</small>` : ''}${p.zona || !cmd ? '' : '<small>em campo</small>'}</div>`;
+  return `<div class="ja-lug ${LUGAR[G.Ms.length][k]} ${cima ? 'cima' : 'baixo'} ${dir ? 'zdir' : 'zesq'} ${fundo ? 'comfundo' : ''} ${eu ? 'eu' : ''} ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${escolhe ? 'escolhe' : ''} ${p.vivo ? '' : 'morto'}" ${eu ? '' : `data-alvo="${k}"`} ${fundo ? `style="--fundo:url('${fundo}')"` : ''}>
+    <div class="ja-campo">
+      ${placar(p)}
+      <div class="ja-row cri">${criH}</div>
+      ${outH ? `<div class="ja-row">${outH}</div>` : ''}
+    </div>
     <div class="ja-terras">${terrasHTML(p, M, pp)}</div>
-    <div class="ja-row cri">${criH}</div>
-    ${outH ? `<div class="ja-row">${outH}</div>` : ''}
+    <div class="ja-zonas">
+      <div class="ja-z vid"><span class="ja-nm"><b>${esc(eu ? 'Você' : NOMES[k])}</b>${cmd && (eu || cmd !== NOMES[k]) ? `<small>${esc(cmd)}</small>` : ''}</span>
+        <span class="ja-vida ${d ? 'bate' : ''}">${p.vida}${d ? `<i class="ja-flut ${d < 0 ? 'neg' : 'pos'}">${d > 0 ? '+' : ''}${d}</i>` : ''}</span>
+        ${cmdD ? `<small class="mau" title="Maior dano de um comandante">cmd ${cmdD}/21</small>` : ''}
+        <button class="ja-fb" data-fundo="${k}" title="Escolher a imagem de fundo deste lugar${fundo ? ' (clique direito: tirar)' : ''}">fundo</button></div>
+      ${cmdZ}
+      ${zona('exi', 'Exílio', p.ex ?? 0)}
+      ${zona('gri', 'Grimório', p.lib)}
+      ${zona('cem', 'Cemitério', p.gy, '', gyIm ? `background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),url('${esc(gyIm[2] || gyIm[0])}')` : '')}
+    </div>
     ${p.vivo ? '' : '<div class="s-x">fora</div>'}
   </div>`;
 }
@@ -558,19 +593,21 @@ function mesaEuHTML(Q, o) {
     if (q.tipo === 'mulligan') bt.push(`<button class="btn primary" data-b="0">Ficar com a mão</button><button class="btn" data-b="1">Mulligan</button>`);
     if (q.tipo === 'terreno') bt.push(`<button class="btn" data-b="-1">Não baixar terreno</button>`);
     if (q.tipo === 'lanca') { q.ops.filter(x => typeof x.v === 'string' && x.v.slice(0, 2) === 'eq').forEach(x => bt.push(`<button class="btn small" data-b="${esc(x.v)}">🗡 ${esc(x.n)}</button>`));
+      const mn = q.ops.filter(x => typeof x.v === 'string' && x.v.slice(0, 2) === 'mn');   // gerar mana quando quiser (indica, não limita)
+      if (mn.length) bt.push(`<div class="ja-alvos"><span class="c-k">Gerar mana (fica na reserva até o fim da etapa):</span>${mn.map(x => `<button class="btn small" data-b="${esc(x.v)}" title="Vira a carta e põe a mana na sua reserva">⚡ ${esc(x.n)}</button>`).join('')}</div>`);
       bt.push(`<button class="btn primary" data-b="-1">Passar ▶</button>`); }
     if (q.tipo === 'equipar' || q.tipo === 'sacrificar') bt.push(`<button class="btn" data-b="-1">Cancelar</button>`);
     if (q.tipo === 'ataque') { const an = (q.alvos.find(a => a.v === G.alvo) || q.alvos[0] || {}).n || '';
       bt.push(`<div class="ja-alvos"><span class="c-k">Atacar quem?</span>${q.alvos.map(a => `<button class="btn small ${a.v === G.alvo ? 'primary' : ''}" data-alvo="${a.v}">${esc(a.n)} ♥${a.vida}</button>`).join('')}</div>`);
       bt.push(`<button class="btn small" data-b="todos">Todas as criaturas</button><button class="btn primary" data-b="atk" ${G.sel.size ? '' : 'disabled'}>⚔ Atacar ${esc(an)} com ${G.sel.size}</button><button class="btn" data-b="nao">Não atacar</button>`); }
     if (q.tipo === 'bloqueio') bt.push(`<button class="btn" data-b="-1">Não bloquear</button>`);
-    if (q.tipo === 'escolha') q.ops.forEach(x => bt.push(`<button class="btn${x.v === -1 ? '' : ' primary'}" data-b="${x.v}">${esc(x.n)}</button>`));
+    if (q.tipo === 'escolha') q.ops.forEach(x => bt.push(`<button class="btn${x.v === -1 || x.sec ? '' : ' primary'}" data-b="${x.v}">${esc(x.n)}</button>`));
     if (q.tipo === 'alvo') q.ops.forEach(x => bt.push(`<button class="btn" data-b="${x.v}">🎯 ${esc(x.n)}</button>`));
     const atkIm = q.tipo === 'bloqueio' ? imgDe(q.x.n) : null;
     meio = `<div class="ja-meio perg"><span class="c-k">Sua vez de decidir · turno ${q.t}</span>
       ${atkIm ? `<img class="ja-evim" src="${esc(atkIm[1] || atkIm[0])}" alt="${esc(q.x.n)}" data-zoom="${esc(atkIm[1])}">` : ''}<p><b>${esc(PERG[q.tipo] ? PERG[q.tipo](q) : q.tipo)}</b></p>
       <div class="j-ops">${bt.join('')}</div>
-      <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length ? '' : 'disabled'}>↶ Desfazer</button><button class="btn small" data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
+      <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length ? '' : 'disabled'}>↶ Desfazer</button><button class="btn small" ${/[?&]dev=1/.test(location.search) ? "" : "hidden"} data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
   } else if (ev) {
     const Mk = G.Ms[ev.k] || [], nc = ev.c >= 0 && Mk[ev.c] ? (Mk[ev.c].frente || Mk[ev.c].nome) : null, im = nc ? imgDe(nc) : null;
     const quem = ev.k === 0 ? 'Você' : NOMES[ev.k] || '';
@@ -592,9 +629,10 @@ function mesaEuHTML(Q, o) {
 }
 function ligaMesaEu() {
   const q = JG && JG.q; const box = $('.ja'); if (!box) return;
-  box.oncontextmenu = (e) => { const im = e.target.closest('[data-zoom]'); if (!im) return; e.preventDefault(); zoomCarta(im.dataset.zoom, im.alt || im.dataset.n); };
+  box.oncontextmenu = (e) => { const fb = e.target.closest('[data-fundo]'); if (fb) { e.preventDefault(); try { localStorage.removeItem(FUNDO_K(+fb.dataset.fundo)); } catch (_) {} redesenha(); return; } const im = e.target.closest('[data-zoom]'); if (!im) return; e.preventDefault(); zoomCarta(im.dataset.zoom, im.alt || im.dataset.n); };
   box.onclick = (e) => {
     if (!JG) return;
+    const fb = e.target.closest('[data-fundo]'); if (fb) { e.stopPropagation(); escolheFundo(+fb.dataset.fundo); return; }
     const b = e.target.closest('[data-b]'), h = e.target.closest('[data-h]'), al = e.target.closest('[data-alvo]');
     if (b) {
       const v = b.dataset.b;

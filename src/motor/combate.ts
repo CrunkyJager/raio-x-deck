@@ -15,7 +15,11 @@ function estEste(e, o, modo, seNaoLe) {
     if (!s.se) return true;
     try { if (M.condicao(e, s.se, { voce: o.ctrl, este: o.id })) return true; } catch (_) { if (seNaoLe) return true; }
   }
-  return false;
+  for (const [F, s] of M.estDaEquipada(e, o, modo)) {                                       // dada por Equipamento/Aura presa a ela
+    if (!s.se) return true;
+    try { if (M.condicao(e, s.se, { voce: F.ctrl, este: F.id })) return true; } catch (_) { if (seNaoLe) return true; }
+  }
+  return M.tempNoObj(e, o, modo);                                                           // efeitoTemporario (Taunt from the Rampart, Bident)
 }
 // continua em combate? (CR 506.4: sai do campo ou muda de controle → sai do combate)
 const emCombate = (e, r, ctrl?) => { const o = e.objs[r.id]; return o && o.zona === 'campo' && o.ts === r.ts && (ctrl === undefined || o.ctrl === ctrl); };
@@ -57,10 +61,28 @@ function alvosAtaque(e, a) {
   return r;
 }
 const defDe = (e, alvo) => alvo.jog !== undefined ? alvo.jog : e.objs[alvo.o].ctrl;
+// CR 508.4: permanente que entra atacando. Quem a controla escolhe um jogador ou planeswalker que ela poderia atacar
+// (508.4a); primeiro o mais atacado agora (o agente básico pega o primeiro). Não foi declarada: não dispara "ataca".
+// soDe: só aquele jogador ou um planeswalker/batalha dele ("attacking that player", Adeline e Ainok no repetirCada)
+M.escolherAtacado = (e, j, ask, soDe = undefined) => {
+  const C = e.turno.combate, alvos = alvosAtaque(e, j).filter(t => soDe === undefined || defDe(e, t) === soDe);
+  if (!C || !alvos.length) return null;
+  const n = t => C.atk.filter(r => t.jog !== undefined ? r.alvo.jog === t.jog : r.alvo.o === t.o).length;
+  alvos.sort((a, b) => n(b) - n(a));
+  const op = ask(j, 'atacado', alvos.map(t => ({ a: 'atacado', ...t })), {});
+  return op.jog !== undefined ? { jog: op.jog } : { o: op.o };
+};
+M.porAtacando = (e, o, alvo) => {
+  const C = e.turno.combate; if (!C || !o || o.zona !== 'campo' || !M.temTipo(e, o, 'Creature')) return;   // 506.3: só criatura ataca
+  if (alvo.o !== undefined && (!e.objs[alvo.o] || e.objs[alvo.o].zona !== 'campo')) return;
+  C.atk.push({ id: o.id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
+  e.turno.ataques = (e.turno.ataques || []).concat([{ id: o.id, ts: o.ts, j: o.ctrl, def: defDe(e, alvo), entrou: true }]);
+  M.log(e, o.n, 'entra atacando', alvo.jog !== undefined ? e.jogs[alvo.jog].nome : e.objs[alvo.o].n);
+};
 
 M.PROC.atacar = (e, P, ask) => {
   const a = P.j, alvos = alvosAtaque(e, a);
-  const aptos = alvos.length ? e.campo.filter(id => podeAtacar(e, e.objs[id], a)) : [];
+  const aptos = alvos.length ? M.lote(() => e.campo.filter(id => podeAtacar(e, e.objs[id], a))) : [];
   // declarações ficam no próprio processo (P.decl) e cada resposta fecha uma etapa: com centenas de fichas, refazer
   // tudo a cada resposta ficaria cúbico. Nada muda no estado até o "pronto".
   const decl = P.decl = P.decl || {};                                                     // id → alvo
@@ -103,6 +125,12 @@ function bloqueiaEste(e, b, at) {                                               
     let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id }); } catch (_) { vale = false; }
     if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, { voce: at.ctrl, este: at.id })))) return false;
   }
+  for (const [F, s] of M.estDaEquipada(e, at, 'naoPodeSerBloqueada')) {                   // Equipamento/Aura (Brotherhood Regalia)
+    const c = { voce: F.ctrl, este: F.id };
+    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, c); } catch (_) { vale = false; }
+    if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, c)))) return false;
+  }
+  if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
   if (protegeDe(e, at, M.dadoDe(e, b))) return false;                                     // 702.16b
   return true;
@@ -117,7 +145,7 @@ function requisitoBloqueio(e, b, meus, C) {
   let geral = estEste(e, b, 'deveBloquear', false);
   const atks: any[] = [];
   for (const t of e.temp || []) {
-    if (!t.est || !t.ids.some(x => x.id === b.id && x.ts === b.ts)) continue;
+    if (!t.est || !M.tempTem(t, b)) continue;
     for (const s of t.est) if (s.modo === 'deveBloquear') { if (s.atk) atks.push(s.atk); else geral = true; }
   }
   if (!geral && !atks.length) return null;
@@ -131,19 +159,19 @@ M.requisitoBloqueio = requisitoBloqueio;
 M.PROC.bloquear = (e, P, ask) => {
   const d = P.j, C = e.turno.combate;
   const meus = C.atk.map((r, i) => i).filter(i => C.atk[i].def === d && emCombate(e, C.atk[i]));
-  const cands = e.campo.filter(id => podeBloquear(e, e.objs[id], d));
+  const cands = M.lote(() => e.campo.filter(id => podeBloquear(e, e.objs[id], d)));
   const bl = P.bl = P.bl || {};                                                           // bloqueador → índice do atacante
   for (;;) {
     const conta: any = {}; for (const k in bl) conta[bl[k]] = (conta[bl[k]] || 0) + 1;
     // 702.110b: ameaça precisa de dois ou mais; fechar só quando nenhuma está com um só
     const presa = meus.filter(i => conta[i] === 1 && kw(e, e.objs[C.atk[i].id], 'ameaca'));
     const devem: any[] = [], ops: any[] = [];
-    for (const id of cands) {
+    M.lote(() => { for (const id of cands) {
       if (bl[id] !== undefined) continue;
       const rq = requisitoBloqueio(e, e.objs[id], meus, C);
       if (rq) devem.push(id);
       for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
-    }
+    } });
     if (!presa.length && !devem.length) ops.unshift({ a: 'pronto' });
     if (presa.length) for (const k in bl) if (presa.includes(bl[k])) ops.push({ a: 'desfazer', id: +k });
     const op = ask(d, 'bloquear', ops, { atacantes: meus.map(i => C.atk[i].id), bl: Object.keys(bl).map(k => [+k, C.atk[bl[k]].id]), devem });
@@ -237,17 +265,20 @@ M.PROC.dano = (e, P, ask) => {
 // 510.2: todo o dano da etapa ao mesmo tempo
 function aplicarGolpes(e, golpes) {
   const vida: any = {};
-  for (const g of golpes) {
+  for (let g of golpes) {
+    g = { ...g, q: M.substDano(e, g.q, { fonte: g.fonte, combate: true, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: e.objs[g.alvo.o] }) }) };   // 615, 614.1a
+    if (!(g.q > 0)) continue;
     const fd = M.dadoDe(e, g.fonte);
     if (g.alvo.jog !== undefined) {
-      if (protegeJog(e, g.alvo.jog)) continue;
+      if (M.protegeJog(e, g.alvo.jog)) continue;                                           // 702.16j: prevenido
       const J = e.jogs[g.alvo.jog];
-      J.vida -= g.q;                                                                       // 120.3a
+      M.danoJogador(e, g.alvo.jog, g.q, M.kwDe(e, g.fonte));                               // 120.3a (infectar: veneno, 702.90b); 119.7
       if (g.fonte.cmd) J.danoCmd[g.fonte.id] = (J.danoCmd[g.fonte.id] || 0) + g.q;          // 903.10a
+      { const C = e.jogs[g.fonte.ctrl], s = M.dadoDe(e, g.fonte).sub || []; C.danoCombT = { t: e.turno.n, sub: [...new Set([...(C.danoCombT && C.danoCombT.t === e.turno.n ? C.danoCombT.sub : []), ...s])] }; }   // rondar (702.76): tipos de quem causou dano de combate a um jogador
     } else {
       const o = e.objs[g.alvo.o];
       if (protegeDe(e, o, fd)) continue;                                                   // 702.16e
-      M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte) });   // toque mortífero dado por camada conta
+      M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte), o: g.fonte });   // toque mortífero dado por camada conta
     }
     M.evento(e, { ev: 'dano', fonte: g.fonte.id, combate: true, q: g.q, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: g.alvo.o }) });   // 510.3a
     if (kw(e, g.fonte, 'vinculoVida')) vida[g.fonte.ctrl] = (vida[g.fonte.ctrl] || 0) + g.q;   // 702.15b
@@ -255,15 +286,6 @@ function aplicarGolpes(e, golpes) {
   for (const j in vida) M.ganharVida(e, +j, vida[j]);
   if (golpes.length) M.log(e, 'dano de combate:', golpes.map(g => g.fonte.n + '→' + (g.alvo.jog !== undefined ? e.jogs[g.alvo.jog].nome : e.objs[g.alvo.o].n) + ' ' + g.q).join(', '));
 }
-// "você tem proteção" (protecaoJogador) só do tipo tudo: o resto ainda não é lido
-function protegeJog(e, j) {
-  for (const id of e.campo) {
-    const o = e.objs[id]; if (o.ctrl !== j) continue;
-    for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'protecaoJogador' && s.afeta === 'voce' && (s.de === 'tudo' || s.de === 'everything')) return true;
-  }
-  return false;
-}
-
 // ---------- ligação com o turno (turno.js chama) ----------
 M.acaoCombate = e => {
   const T = e.turno, a = T.ativo;

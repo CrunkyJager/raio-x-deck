@@ -44,3 +44,18 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 · FARSEER · v0.31.0: A fichas predefinidas + correção 17 no motor (7b765c3), depois do teste do Felipe com o deck da Ivora; cobertura 861.
 - 25/11 · FARSEER · v0.32.0: B blocos 32/33 (e437a7e, deck da Ivora inteiro, 1645 cartas) + A descarte/loucura/ciclar (b5d4a2c); lote 32/33 → correção 18; cobertura 958/1645 (Ivora 37/60).
 - 25/11 · FARSEER · v0.33.0: A (6c) (328a6c9): contas de ataque, deveBloquear, tipoEmComum, mover transformada; cobertura 965/1645. A segue nas travas do Ultron; B nos blocos 34/35 (Ultron).
+- 25/11 · FARSEER · v0.34.0: B blocos 34/35 (295fafb, deck do Ultron 80/80 no banco, 1684 cartas); cobertura 987/1684. Patch T44 (a42e2eb) ainda fora, B refaz a medida.
+- 25/11 · FARSEER · v0.35.0: A travas do Ultron parte 1 (57aaa6e): aMenosQue, efeito temporário, fasear, sagas; cobertura 1004/1684. Vitest: 2 falhas numa rodada, verde na seguinte (instável → A).
+- 25/11 · FARSEER · v0.36.0: A (2631abb) desempenho com muitas fichas (Krenko 34 s → 2,6 s), filtro incolor, qtd.prop/historico/tipoTodos, fuzz sem instabilidade; cobertura 1022/1684.
+- 25/11 · FARSEER · v0.37.0: A (e01d81c) Ultra Magnus, Ultron e Arcee inteiros; cobertura 1098/1684.
+- 25/11 17:50 v0.37.1: textos da Mesa (comandante/lenda/modo) + CONTINUAR.md; decks do Edigar em planejamento/decks
+- 25/11 18:15 v0.38.0: integração t43-estrutura 2401c3f + t20-banco c5d5c1b (sem o patch T44)
+- 26/11 08:18 v0.39.0: integração casa-ivora + casa-masmorras-motor (casa-masmorras-banco já dentro); conflito COND_OK/PALAVRA resolvido
+- 26/11 08:28 v0.40.0: substituições aplicadas pelo motor + cobertura honesta (M.substOk); 1299/1753
+- 26/11 08:39 v0.41.0: Mesa ao vivo mana livre + tapete (comando no centro) + fundo por lugar; conserto do tipo (CI)
+- 26/11 tarde: v0.42.0 — masmorras 83/83 no motor (repetirCada, virarOutros, subst morre/vaiCemiterio, atrasado com alvo, danoUmaVez, filtros kw/comMarcador). Inteiras 1345/1753.
+- 26/11 ~11h v0.43.0: Library of Leng (Ivora 75/75), não pode ser anulada, Baylen + cobertura de mana, repetirCada de objetos, fichas atacando. Inteiras 1361/1753.
+- 26/11 ~12h v0.44.0: fuga, gatilhos cicla/desvira/jogaTerreno/prolifera, "outro", descartadas no turno. Ivora inteiras 65/75.
+- 26/11 ~13h30 v0.45.0: custo "ou", reflexo, milagre, Role, reconfigurar, descer, exilada com este, preparar, ferida por esta, Ashiok, terço da vida, ninjutsu, prever, rondar, buscar no grimório do oponente. Ivora 75/75 e masmorras 83/83 inteiras. Edgar's Coffin consertado.
+- 26/11 v0.46.0: mana com escolha no custo (manaEsc): altares, Krark-Clan, Skirk, Phyrexian Tower, Gilded Goose, Steam-Kin, Simian. Inteiras 1371/1753.
+- 26/11 v0.46.1: Mesa ao vivo, 9 perguntas que saíam com nome interno ganharam texto em português.

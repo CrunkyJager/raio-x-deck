@@ -123,7 +123,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       return {
         vida: J.vida, vivo: !J.saiu, terr: terras.length, tes: 0, mao: J.zonas.mao.map((id: number) => iDe(e.objs[id])), lib: J.zonas.grimorio.length,
         zona: J.cmd.some((id: number) => e.objs[id] && e.objs[id].zona === 'comando'), tax: J.cmd.reduce((s: number, id: number) => s + 2 * (J.imposto[id] || 0), 0), cmdD,
-        perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
+        perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, ex: J.zonas.exilio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
       };
     });
     quadros.push({ t: rodada, k, log: log.length, j: ps });
@@ -301,29 +301,56 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'alvo': return op.jog !== undefined ? nomeJ(op.jog) : `${nomeOp(e.objs[op.o])} (${nomeJ(e.objs[op.o].ctrl)})`;
       case 'pronto': return 'Pronto';
       case 'sim': return 'Sim'; case 'nao': return 'Não';
-      case 'modo': return 'Modo ' + (op.m + 1);
+      case 'modo': { const fx = p.ctx && p.ctx.modos ? p.ctx.modos[op.m] : null, oq = fx ? [...new Set((Array.isArray(fx) ? fx : fx.fx || [fx]).map((x: any) => x && x.op).filter(Boolean))].join(', ') : ''; return 'Modo ' + (op.m + 1) + (oq ? ' — ' + oq : ''); }
       case 'x': return 'X = ' + op.v;
       case 'nenhum': return 'Nenhum';
       case 'cor': return { W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde' }[op.v as string] || op.v;
       case 'tipo': return op.v;
       case 'topo': return `${nomeOp(ob)}: fica no topo`; case 'fundo': return `${nomeOp(ob)}: vai para o fundo`;
-      case 'gatilho': return 'Gatilho de ' + nomeOp(ob);
+      case 'gatilho': return 'Gatilho de ' + (ob ? ob.n : ((e.pend || [])[op.i] || {}).n || '?');   // sala de masmorra/iniciativa: sem objeto, o nome está no pendente
       case 'bloquear': return `Bloquear ${nomeOp(e.objs[op.atk])} com ${nomeOp(ob)}`;
       case 'desfazer': return 'Desfazer bloqueios';
-      case 'fica': return 'Fica: ' + nomeOp(ob);
-      case 'comando': return 'Volta para a zona de comando'; case 'ficar': return 'Fica onde está';
+      case 'fica': return `Manter esta ${nomeOp(ob)} (a outra vai para o cemitério)`;
+      case 'comando': return 'Mandar de volta para a zona de comando (pode lançar de novo)';
+      case 'ficar': { const z = p.ctx && e.objs[p.ctx.id] ? e.objs[p.ctx.id].zona : ''; return z === 'exilio' ? 'Deixar no exílio' : 'Deixar no cemitério'; }
       case 'marcadores': return `${op.q} marcadores nela`; case 'fichas': return `${op.q} Servos 1/1`;
       case 'pagar': return 'Pagar a vida'; case 'naoPagar': return 'Não pagar (entra virado)'; case 'revelar': return 'Revelar ' + nomeOp(e.objs[op.rid]);
       case 'proliferar': return op.jog !== undefined ? nomeJ(op.jog) : nomeOp(ob);
       case 'todos': return 'Todas as criaturas → ' + (op.jog !== undefined ? nomeJ(op.jog) : nomeOp(e.objs[op.o]));
       case 'atacar': return `${nomeOp(ob)} → ${op.jog !== undefined ? nomeJ(op.jog) : nomeOp(e.objs[op.o])}`;
+      case 'masmorra': return `Entrar em ${op.nome} (o marcador vai para a 1ª sala e ela acontece)`;
+      case 'sala': return `Ir para a sala ${op.n} (o efeito dela acontece)`;
+      case 'perder': return `Perder ${op.q} de vida`;
+      case 'virar': return `Virar ${nomeOp(ob)} (custo)`;
+      case 'descartar': case 'sacrificar': if (p.tipo === 'evitarPerda') return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)} (e não perde vida)`; return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)}`;
+      case 'devolver': return `Devolver ${nomeOp(ob)} para a mão (custo)`;
+      case 'custo': return p.ctx && p.ctx.o === 'exilar' ? `Exilar ${nomeOp(ob)} do cemitério` : nomeOp(ob);
+      case 'atacado': return op.jog !== undefined ? nomeJ(op.jog) : `${nomeOp(e.objs[op.o])} (${nomeJ(e.objs[op.o].ctrl)})`;
+      case 'jogador': return nomeJ(op.jog);
+      case 'jogar': return `Conjurar ${nomeOp(ob)}${p.ctx && p.ctx.gratis ? ' de graça' : ''}`;
+      case 'mao': return `Pôr ${nomeOp(ob)} na mão`;
+      case 'primeiro': return `${nomeOp(ob)} recebe o dano primeiro`;
+      case 'dividir': return String(op.v);
+      case 'opcao': { const v = op.v || {}; const l = [v.chute ? 'com chute (paga o custo extra)' : '', v.presente ? 'com presente para um oponente' : ''].filter(Boolean); return l.length ? 'Conjurar ' + l.join(' e ') : 'Conjurar normal'; }
+      case 'custoOu': { const c = op.v || {}, l: string[] = [];
+        if (c.sacrificar) l.push(c.sacrificar === 'este' ? 'sacrificar esta' : `sacrificar ${c.sacrificar.qtd || 1} ${((c.sacrificar.f || {}).tipo || ['permanente']).map((t: string) => TIPO_PT[t] || t).join(' ou ')}`);
+        if (c.descartar) l.push(`descartar ${c.descartar} carta${c.descartar > 1 ? 's' : ''}`);
+        if (c.vida) l.push(`pagar ${c.vida} de vida`);
+        if (c.mana) l.push('pagar ' + ((c.mana.g ? `{${c.mana.g}}` : '') + (c.mana.p || []).map((x: string) => `{${x}}`).join('') || 'mana'));
+        if (c.devolver) l.push('devolver um permanente para a mão');
+        if (c.exilarEste) l.push('exilar esta');
+        return l.length ? l.join(' e ').replace(/^./, (x: string) => x.toUpperCase()) : 'Outro custo'; }
       default: return ob ? `${op.a}: ${ob.n}` : op.a;
     }
   }
+  const TIPO_PT: Record<string, string> = { Creature: 'criatura', Artifact: 'artefato', Land: 'terreno', Enchantment: 'encantamento', Planeswalker: 'planeswalker', permanente: 'permanente' };
   const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
     ordemGatilho: 'Qual gatilho vai para a pilha primeiro?', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
     buscar: 'Busca no grimório', escolherCarta: 'Escolha a carta', destino: 'Para onde vai?', sacrificar: 'Escolha o que sacrificar', lenda: 'Regra da lenda: qual fica?',
-    cmdZona: 'Seu comandante saiu do campo', aMenosQue: 'Como entra?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha' };
+    cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha',
+    masmorra: 'Aventurar: em qual masmorra entrar?', sala: 'Aventurar: para qual sala seguir?', evitarPerda: 'Perder vida ou pagar para não perder?',
+    atacado: 'Ela entra atacando: quem ela ataca?', custoOu: 'Qual custo adicional você paga?', dividir: 'Dividir: quanto vai para este alvo?', presente: 'Presente: para qual oponente?',
+    jogar: 'Pode conjurar uma destas agora', opcao: 'Como vai conjurar?', cavar: 'Escolha a carta' };
   function humano(p: any) {
     const J = e.jogs[HK], opIdx = (pred: (o: any) => boolean) => p.ops.findIndex(pred);
     const mao = () => J.zonas.mao.map((id: number) => ({ v: iDe(e.objs[id]), n: e.objs[id].n }));
@@ -337,10 +364,29 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         const passar = opIdx(o => o.a === 'passar');
         const minha = e.turno.ativo === HK && (e.turno.passo === 'principal1' || e.turno.passo === 'principal2') && !e.pilha.length;
         const responde = e.pilha.some((id: number) => e.objs[id].ctrl !== HK);
-        if (!minha && !responde) return passar;                                 // sem nada a responder: passa sozinho
+        // Felipe 26/11: a Mesa indica, não limita. Fora da fase principal ela para sempre que você tem algo para usar
+        // (instantânea, habilidade, lampejo: CR 117.1a) ou para responder; só passa sozinha quando o único lance é mana.
+        const temLance = p.ops.some((o: any) => o.a !== 'passar' && o.a !== 'mana' && o.a !== 'manaEsc');
+        if (!minha && !responde && !temLance && !M.somaMana(J.reserva)) return passar;
         const ops: any[] = [];
+        // gerar mana a qualquer momento em que você tem prioridade (CR 605.3a), mesmo sem nada para pagar: vira o
+        // terreno/artefato e a mana fica na reserva até o fim da etapa (106.4)
+        const fontes = M.fontesDeMana(e, HK);
         p.ops.forEach((o: any, k: number) => {
-          if (o.a === 'passar' || o.a === 'mana') return;
+          if (o.a !== 'mana') return;
+          const ob = e.objs[o.id], f = fontes.find((x: any) => x.id === o.id && x.k === o.k), pac = f && f.pacotes[o.escolha];
+          const sac = f && f.sac ? ' (sacrifica)' : '';
+          ops.push({ v: 'mn' + k, n: `${ob.n}${sac} → ${pac ? M.fmtMana(pac).replace(/[WUBRGC]/g, '{$&}') : 'mana'}`, k, a: 'mana' });
+        });
+        // mana com escolha no custo (altar, Krark-Clan, Steam-Kin, Simian Spirit Guide): o custo é perguntado depois
+        p.ops.forEach((o: any, k: number) => {
+          if (o.a !== 'manaEsc') return;
+          const ob = e.objs[o.id], a = M.atvDe(e, ob)[o.k], c = a.custo, pac = (M.pacotesDe(e, ob, a) || []).filter((x: any) => M.somaMana(x) > 0)[o.escolha];
+          const cu = c.sacrificar && c.sacrificar !== 'este' ? ' (sacrifica uma)' : c.tirarMarcador ? ` (tira ${c.tirarMarcador.qtd || 1} marcadores)` : c.exilarEste ? ' (exila da mão)' : '';
+          ops.push({ v: 'me' + k, n: `${ob.n}${cu} → ${pac ? M.fmtMana(pac).replace(/[WUBRGC]/g, '{$&}') : 'mana'}`, k, a: 'mana' });
+        });
+        p.ops.forEach((o: any, k: number) => {
+          if (o.a === 'passar' || o.a === 'mana' || o.a === 'manaEsc') return;
           const ob = e.objs[o.id], i = iDe(ob);
           if (ob.zona === 'mao' && o.face === undefined && i >= 0 && ops.some(x => x.v === i && x.a === o.a)) return;   // outra cópia da mesma carta
 
@@ -350,7 +396,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
           else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'terreno' ? `Baixar ${ob.n} (outra face)` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + ob.zona + ')' : ''}`, k });
         });
         const mana = M.somaMana(J.reserva) + M.fontesDeMana(e, HK).length;
-        const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha });
+        const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha, reserva: M.somaMana(J.reserva) ? M.fmtMana(J.reserva) : '', passo: e.turno.passo });
         if (r === -1) return passar;
         const x = ops.find(o => o.v === r);
         return x ? x.k : passar;
@@ -369,8 +415,11 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         const f = opIdx(o => o.a === 'atacar' && o.jog === planoAtk.alvo); return f >= 0 ? f : 0;   // 508.1d: tem que atacar
       }
       default: {
-        const de = p.ctx && p.ctx.de !== undefined && e.objs[p.ctx.de] ? ' · ' + e.objs[p.ctx.de].n : '';
-        const r = pede('escolha', { x: { n: (TITULO[p.tipo] || p.tipo) + de }, ops: p.ops.map((o: any, k: number) => ({ v: k, n: rotulo(p, o) })) });
+        const idDe = p.ctx ? (p.ctx.de !== undefined ? p.ctx.de : p.tipo === 'cmdZona' ? p.ctx.id : undefined) : undefined;
+        const de = idDe !== undefined && e.objs[idDe] ? ' · ' + e.objs[idDe].n : '';
+        const sub = p.tipo === 'talvez' && p.ctx && p.ctx.op === 'subst' && e.objs[p.ctx.id] && e.objs[p.ctx.fonte]
+          ? `${e.objs[p.ctx.fonte].n}: pôr ${e.objs[p.ctx.id].n} ${({ grimorio: "no topo do grimório", exilio: "no exílio", mao: "na mão" } as any)[p.ctx.para] || p.ctx.para} em vez do cemitério?` : '';   // substituição opcional (Library of Leng)
+        const r = pede('escolha', { x: { n: sub || (TITULO[p.tipo] || p.tipo) + de }, ops: p.ops.map((o: any, k: number) => ({ v: k, n: rotulo(p, o), sec: o.a === 'ficar' || o.a === 'nao' })) });
         return typeof r === 'number' && r >= 0 && r < p.ops.length ? r : 0;
       }
     }

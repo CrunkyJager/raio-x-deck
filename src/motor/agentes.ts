@@ -3,10 +3,9 @@ import { M } from './nucleo';
 
 // aleatório (fuzz): sorteia com a semente do próprio estado
 M.agenteAleatorio = () => (e, p) => Math.floor(M.aleat(e) * p.ops.length);
-
 // básico: mantém mão com 2–5 terrenos, joga terreno (desvirado primeiro), não gasta mana à toa,
 // descarta/põe no fundo a carta de maior valor de mana, comandante sempre volta ao comando
-M.agenteBasico = () => (e, p) => {
+const basico = (e, p) => {
   const J = e.jogs[p.j], o = id => e.objs[id];
   const terra = id => M.temTipo(e, o(id), 'Land');
   switch (p.tipo) {
@@ -23,6 +22,7 @@ M.agenteBasico = () => (e, p) => {
     }
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
+      if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || !!M.loucuraDe(e, o(p.ctx.id)) ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
       return 0;
     }
     case 'fundo': {
@@ -50,6 +50,10 @@ M.agenteBasico = () => (e, p) => {
         const ke = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._equipar && !M.anexadoA(e, o(op.id))
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));   // já na pilha: espera resolver
         if (ke >= 0) return ke;
+        // Classe (716.2a): sobe de nível com a mana que sobrou depois das mágicas (o nível só soma habilidade)
+        const kn = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._nivel
+          && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));
+        if (kn >= 0) return kn;
       }
       if (meu) {
         const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());
@@ -65,6 +69,7 @@ M.agenteBasico = () => (e, p) => {
       return 0;
     }
     case 'alvo': {                    // jogador: o oponente com menos vida; objeto: o mais caro de um oponente
+      if (p.ctx && p.ctx.de < 0) { const k = alvoSala(e, p); if (k >= 0) return k; }   // sala de masmorra (fonte = a masmorra)
       let b = 0, bv = -Infinity;
       p.ops.forEach((op, i) => {
         let v;
@@ -81,7 +86,30 @@ M.agenteBasico = () => (e, p) => {
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
     }
+    case 'custoOu': {                 // custo adicional com "ou": a opção que perde menos (ficha < descartar o que sobra < o resto)
+      const perda = c => {
+        let v = 0;
+        if (c.sacrificar && c.sacrificar !== 'este') {
+          const l = e.campo.map(o).filter(x => x.ctrl === p.j && x.id !== p.ctx.id && M.bate(e, x, { ...(c.sacrificar.f || {}), zona: 'campo' }, { voce: p.j }));
+          v += Math.min(...l.map(x => x.ficha ? -1 : (M.dadoDe(e, x).vm || 0) + 1));
+        }
+        if (c.descartar) v += Math.min(...J.zonas.mao.filter(id => id !== p.ctx.id).map(id => valorDescarte(e, p.j, id))) + 0.5;
+        if (c.vida) v += c.vida / 3;
+        return v;
+      };
+      return melhorOp(p.ops, op => -perda(op.v));
+    }
     case 'aMenosQue': return p.ops.length > 1 && J.vida > 10 ? 1 : 0;
+    case 'aMenosQuePagar': {          // pagar para impedir: anular a minha mágica, sempre; mana no turno dos outros (sobraria);
+      const k = p.ops.findIndex(op => op.a === 'pagar'); if (k < 0) return 0;   // vida com folga; sacrifício só quando o efeito é contra mim
+      const c = p.ctx.custo, meu = p.ctx.de === p.j;
+      if (p.ctx.op === 'anular' || p.ctx.op === 'resguardo') return k;   // a minha mágica/habilidade seria anulada
+      if (p.ctx.op === 'pagando') return c.mana ? k : c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : 0;   // "pode pagar; se pagar": mana sim; vida com folga
+      if (c.mana) return e.turno.ativo !== p.j || (c.mana.g || 0) + (p.ctx.x || 0) <= 1 ? k : 0;
+      if (c.vida) return J.vida - c.vida > 10 ? k : 0;
+      if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura
+      return meu ? k : 0;
+    }
     case 'atacar': return atacarBasico(e, p);
     case 'bloquear': return bloquearBasico(e, p);
     case 'ordemDano': {               // o mais caro leva o letal primeiro
@@ -90,6 +118,9 @@ M.agenteBasico = () => (e, p) => {
       return b;
     }
     case 'cmdZona': return 0;
+    case 'masmorra': return melhorOp(p.ops, op => taxaCaminho(e, p.j, op.nome, 0));             // 701.49a
+    case 'sala': return melhorOp(p.ops, op => taxaCaminho(e, p.j, p.ctx.nome, op.i));           // 701.49b
+    case 'evitarPerda': return evitarPerda(e, p);
     case 'proliferar': {              // o que é meu e não tem −1/−1; do oponente, veneno ou −1/−1
       const k = p.ops.findIndex(op => op.a === 'proliferar' && (op.jog !== undefined ? op.jog !== p.j
         : (o(op.id).ctrl === p.j) === !((o(op.id).marc['-1/-1'] || 0) > 0)));
@@ -99,13 +130,15 @@ M.agenteBasico = () => (e, p) => {
     default: return 0;
   }
 };
+// a decisão só lê o estado: lê em lote (contagens das estáticas valem para a pergunta inteira)
+M.agenteBasico = () => (e, p) => M.lote(() => basico(e, p));
 
 // ---- descarte (filtrar a mão) ----
 // valor de descartar a carta (menor = melhor descartar): loucura que dá para pagar depois (−3), terreno que sobra (−2),
 // o resto pelo valor de mana. Terreno sobra quando a mão já tem o da jogada deste turno e o campo tem 5 ou mais.
 function valorDescarte(e, j, id) {
   const o = e.objs[id], d = M.dadoDe(e, o);
-  if ((d.kw || []).some(x => x.k === 'loucura' && x.custo)) return -3;
+  if (M.loucuraDe(e, o)) return -3;
   if (M.temTipo(e, o, 'Land')) {
     const J = e.jogs[j], naMao = J.zonas.mao.filter(x => M.temTipo(e, e.objs[x], 'Land')).length;
     const noCampo = e.campo.filter(x => e.objs[x].ctrl === j && M.temTipo(e, e.objs[x], 'Land')).length;
@@ -149,6 +182,14 @@ function atacarBasico(e, p) {
   const bons = meus.filter(op => seguro(op.id));
   const todos = p.ops.findIndex(op => op.a === 'todos' && op.jog === vit);
   if (todos >= 0 && bons.length && bons.length === meus.length) return todos;
+  // ataque em massa: cada bloqueador para um atacante (o mais forte); se o que passa mata, vão todos. Sem isso, mesa
+  // empatada em P/R (Coat of Arms dos dois lados) travava e o Krenko dobrava as fichas até a partida não acabar
+  // (fuzz semente 1022: 67 mil Goblins no turno 48).
+  if (todos >= 0 && meus.length > bloqs.length) {
+    const pw = meus.map(op => Math.max(0, M.poder(e, e.objs[op.id]))).sort((x, y) => x - y);
+    let passa = 0; for (let i = 0; i < pw.length - bloqs.length; i++) passa += pw[i];
+    if (passa >= e.jogs[vit].vida) return todos;
+  }
   if (bons.length) return p.ops.indexOf(bons[0]);
   if (pronto >= 0) return pronto;
   return Math.max(0, p.ops.findIndex(op => op.a === 'atacar'));                  // tem que atacar (508.1d)
@@ -185,6 +226,85 @@ function bloquearBasico(e, p) {
     if (k >= 0) return k;
   }
   return pronto;
+}
+
+// ---- masmorras (CR 309, 701.49): qual masmorra e qual seta ----
+// Critério: valor por aventura. Cada sala vale o que o efeito dela rende agora para quem aventura (compra 1,5 por carta;
+// ficha de criatura (P+R)/2 e Tesouro 1; vidência 0,25 por carta; perda de vida dos oponentes 0,35 por ponto e por
+// oponente; a própria, 0,2 por ponto, 1 se a vida está baixa; +1/+1 só vale com criatura sua no campo; −4/−0,
+// "não ataca" e incitar só com criatura de oponente; descarte −0,7; sacrifício −0,3 de ficha, −1,5 do resto). Um
+// caminho = da sala até a última; a taxa dele = (soma das salas + bônus de completar) ÷ número de salas, porque cada
+// sala custa uma aventura. A sala escolhida é a que começa o caminho de maior taxa; a masmorra, a de maior taxa desde
+// a 1ª sala. Bônus de completar: 2 + 1 por carta sua (qualquer zona) que lê completouMasmorra/completaMasmorra (até 6),
+// +3 para a masmorra que uma delas nomeia (Acererak: Tomb of Annihilation). Sem bônus a Dungeon of the Mad Mage ganha
+// (mais compra); com bônus o caminho curto da Tomb (Oubliette) sobe — ela completa em 3 aventuras.
+const melhorOp = (ops, v) => { let b = 0, bv = -Infinity; ops.forEach((op, i) => { const x = v(op); if (x > bv) { bv = x; b = i; } }); return b; };
+const temCriatura = (e, j, dele) => e.campo.some(id => { const o = e.objs[id]; return (dele ? o.ctrl === j : o.ctrl !== j) && M.temTipo(e, o, 'Creature') && (dele || M.poder(e, o) > 0); });
+function valorFx(e, j, f) {
+  const J = e.jogs[j], q = typeof f.qtd === 'number' ? f.qtd : 1, nOp = M.vivos(e).filter(x => x !== j).length;
+  const meuPonto = J.vida <= 10 ? 1 : 0.2;
+  switch (f.op) {
+    case 'comprar': return 1.5 * q;
+    case '_comprarLembra': return 1.5 * q + 2;                       // e conjura uma de graça
+    case 'ficha': { const t = f.token || {}; return q * (t.nome === 'Treasure' ? 1 : t.pt ? (t.pt[0] + t.pt[1]) / 2 + 0.5 * (t.kw || []).length : 0.5); }
+    case 'videncia': return 0.25 * q;
+    case 'ganharVida': return (J.vida <= 15 ? 0.3 : 0.15) * q;
+    case 'perderVida': return f.quem === 'cadaOponente' ? 0.35 * q * nOp : f.quem === 'cadaJogador' ? 0.35 * q * nOp - meuPonto * q : 0.5 * q;
+    case 'marcador': return f.em && f.em.alvo !== undefined ? (temCriatura(e, j, true) ? 0.8 * q : 0) : 0;
+    case '_ateSeuTurno': return (f.p || 0) < 0 ? (temCriatura(e, j, false) ? 0.7 : 0) : 0;
+    case 'efeitoTemporario': return temCriatura(e, j, false) ? 0.6 : 0;
+    case 'buscar': return 0.8;
+    case 'cavar': return f.para === 'campo' ? 4 : 0.8 * (f.olha || 1);
+    case 'descartar': return J.zonas.mao.length ? -0.7 : 0;
+    case 'sacrificar': { const l = e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && M.bate(e, o, { ...(f.f || {}), zona: 'campo' }, { voce: j })); return !l.length ? 0 : l.some(o => o.ficha) ? -0.3 : -1.5; }
+    case '_perdeAMenosQue': return 0.4 * nOp - 0.5;
+  }
+  return 0;
+}
+const valorSala = (e, j, nome, i) => M.MASMORRAS[nome].salas[i].fx.reduce((s, f) => s + valorFx(e, j, f), 0);
+// bônus de completar: cartas de j (qualquer zona) que leem completouMasmorra/completaMasmorra; o nome que elas citam
+const PAGA = new Map<string, { sim: boolean; nomes: string[] }>();
+function pagaCompletar(e, j) {
+  let n = 0; const nomes = new Set<string>();
+  for (const id in e.objs) {
+    const o = e.objs[id]; if (o.dono !== j || o.hab || o.ficha) continue;
+    let p = PAGA.get(o.n);
+    if (!p) { const t = JSON.stringify(M.carta(o.n)); p = { sim: /completouMasmorra|completaMasmorra/.test(t), nomes: [...t.matchAll(/"completouMasmorra":\{"nome":"([^"]+)"/g)].map(m => m[1]) }; PAGA.set(o.n, p); }
+    if (p.sim) { n++; p.nomes.forEach(x => nomes.add(x)); }
+  }
+  return { geral: n ? Math.min(6, 2 + n) : 0, nomes };
+}
+function taxaCaminho(e, j, nome, i) {
+  const P = pagaCompletar(e, j), bonus = P.geral + (P.nomes.has(nome) ? 3 : 0), S = M.MASMORRAS[nome].salas;
+  let melhor = -Infinity;
+  const anda = (k, soma, n) => { const s = soma + valorSala(e, j, nome, k); if (!S[k].vai.length) { melhor = Math.max(melhor, (s + bonus) / (n + 1)); return; } for (const x of S[k].vai) anda(x, s, n + 1); };
+  anda(i, 0, 0);
+  return melhor;
+}
+// alvo de sala: +1/+1 na sua criatura de maior poder; −4/−0, "não ataca" e incitar na do oponente de maior poder
+function alvoSala(e, p) {
+  const A = e.jogs[p.j].masm; if (!A) return -1;
+  const fx = M.MASMORRAS[A.nome].salas[A.sala].fx, bom = fx.some(f => f.op === 'marcador');
+  let b = -1, bv = -Infinity;
+  p.ops.forEach((op, i) => {
+    if (op.o === undefined) return;
+    const o = e.objs[op.o], meu = o.ctrl === p.j, v = (bom === meu ? 100 : 0) + M.poder(e, o);
+    if (v > bv) { bv = v; b = i; }
+  });
+  return b;
+}
+// "perde N a menos que descarte/sacrifique" (Veils of Fear, Sandfall Cell): paga com o que sobra (terreno de sobra,
+// ficha); com a vida baixa paga com o mais barato; senão perde a vida
+function evitarPerda(e, p) {
+  const J = e.jogs[p.j], baixa = J.vida - p.ctx.q <= 6;
+  let b = 0, bv = baixa ? Infinity : 0.5;
+  p.ops.forEach((op, i) => {
+    if (op.a === 'perder') return;
+    const o = e.objs[op.id];
+    const v = op.a === 'descartar' ? valorDescarte(e, p.j, op.id) : o.ficha ? 0 : M.temTipo(e, o, 'Land') ? 2 : 3 + (M.dadoDe(e, o).vm || 0);
+    if (v < bv) { bv = v; b = i; }
+  });
+  return b;
 }
 
 // lista no formato Moxfield/Arena: "Commander\n1 X\n\nDeck\n1 Y..."

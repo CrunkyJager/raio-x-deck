@@ -402,3 +402,45 @@ Regra ≥3 ocorrências (somando os lotes anteriores). Correção 18 do esquema:
 - alvo `diferenteDe` + jogador `outrosOponentes`: Chandra's Ignition, Markov Retribution, Kediss.
 - Ficam em `falta`: ev `desvira` (2), `cicla` (1), `jogaTerreno` (1), `kw.custo: "proprio"` (2), fuga/reconfigurar/preparada/descer/descobrir por mana, o resto 1/0.
 - Motor (adepto A): `ev descarta` + loucura em andamento; depois ler a correção 18.
+
+## Blocos 34/35 — deck do Ultra Magnus/Ultron do Edigar (39 cartas fora do banco, 25/11)
+39 cartas escritas (Ultra Magnus primeiro), 39 casos em banco/testes/bloco34.json e bloco35.json; o deck inteiro (80 sem básicos) agora está no banco. Mesa: 200 partidas do deck contra os 3 exemplos, 0 erros.
+**Motor (adepto A / coordenador):** filtro `cor: "C"` não casa com incolor (estado.ts:366 procura 'C' em `cores`, que é '' na carta incolor). Pega a Mystic Forge (já no banco), o Ugin, Eye of the Storms (gatilho de mágica incolor e o −11) e serve à Liberator. Proposta: `cor: "C"` = `cores` vazio.
+**Living metal** (Ultra Magnus, Arcee, Ratchet) foi escrito sem falta: est `continuo` em `este` com `tipo: ["Creature"]` e `se: {turno: "seu"}`.
+
+| # | falta | cartas | proposta | decisão |
+|---|---|---|---|---|
+| 1 | More Than Meets the Eye (conjurar já convertida) | Ultra Magnus, Arcee, Ratchet | kw `maisQueOlhos` com `custo`: conjura e entra com a face de trás (como `transformada` no mover) | **sim** (3) |
+| 2 | "não pode perder o jogo / oponentes não podem ganhar" | Platinum Angel, Darksteel Angel (+ 1 que já estava como falta) | est `naoPerde` (afeta voce) | **sim** (3) |
+| 3 | desenterrar | Salvation Colossus (pagar 8 energia) + Unearth {R} que já estava | kw `desenterrar` com `custo`/`pagar` | falta (2) |
+| 4 | tipo de CARTA escolhido / em comum com a exilada | Cloud Key (escrito: artefato), Semblance Anvil (redução toda falta); junto da linha 9 (Braids, Cemetery Prowler) | filtro `tipo: ["escolhido"]` e `tipoEmComum: "lembrada"` | **sim** (4) |
+| 5 | o resto 1 cada | infect (Blightsteel), protótipo (Cradle Clearcutter: só a 3/6), tirar N marcadores à escolha como custo (Arcee: escrito 1), mágica que mira o que é seu (Arcee Coupe), gatilho reflexo "when you do" (Ratchet: alvo junto do gatilho) | deixar falta | falta |
+
+## Decisões do lote dos blocos 34/35 (FARSEER 25/11)
+Regra ≥3 ocorrências (somando os lotes anteriores). Correção 19 do esquema:
+- kw `maisQueOlhos` com `custo` (conjura já convertida): Ultra Magnus, Arcee, Ratchet.
+- est `naoPerde` (afeta voce): Platinum Angel, Darksteel Angel + a que já estava.
+- filtro `tipo: ["escolhido"]` (tipo de carta) e `tipoEmComum: "lembrada"`: Cloud Key, Semblance Anvil, Braids, Cemetery Prowler.
+- Ficam em `falta`: desenterrar (2), infect (1; candidato forte, peso alto no Blightsteel), protótipo, tirar N marcadores como custo, mágica que mira o que é seu, gatilho reflexo "when you do".
+
+## Blocos 36/37 — deck de masmorras da Safana do Edigar (69 cartas fora do banco, 25/11)
+69 cartas escritas, 69 casos em banco/testes/bloco36.json e bloco37.json. Deck: no banco 81/81; motor joga 70/81 (travadas: Safana, Acererak, Alora, Demonic Gifts, Escape Tunnel, Fifty Feet of Rope, Imoen, Prosperous Thief, Replicating Ring, Slip Through Space, Withercrown). Atenção: "motor joga" conta só o que está escrito; o que está em `falta` (abaixo) não joga em nenhuma carta.
+**Formato das faltas novas:** string em `falta` começando com etiqueta fixa (dá para achar com `grep '\[iniciativa\]' banco/cartas/*.json`), o texto da carta e uma `(proposta: ...)`:
+- `[iniciativa]` tomar a iniciativa (proposta fx `{op: tomarIniciativa, quem: voce}`) e "if you have the initiative" (proposta cond `se: {temIniciativa: true}`): Safana, Aarakocra Sneak, Feywild Caretaker (2), Imoen, Passageway Seer (2), Ravenloft Adventurer, Rilsa Rael, Sarevok's Tome (2), Underdark Explorer.
+- `[masmorra]` venture into the dungeon (proposta fx `{op: aventurar, quem: voce}`): Acererak, Bar the Gate, Clattering Skeletons, Dungeon Descent, Fates' Reversal, Fifty Feet of Rope, Precipitous Drop, Secret Door, Shortcut Seeker, Yuan-Ti Fang-Blade, Zombie Ogre; Dungeon Delver (salas disparam 2×: proposta est `dobraGatilho` com ev `sala`).
+- `[completou]` "if you've completed a dungeon" (proposta cond `se: {completouMasmorra: true}`, com `nome` para Tomb of Annihilation) e gat `completaMasmorra`: Safana, Acererak, Imoen, Precipitous Drop, Ravenloft Adventurer, Rilsa Rael, Sarevok's Tome, Dungeon Crawler (gatilho).
+- `[infect]` (proposta kw `infectar`): Blackcleave Goblin, Blighted Agent, Contagious Nim, Core Prowler, Corpse Cur (+ filtro "com infect"), Necropede, Phyrexian Digester, Plague Myr, Plague Stinger — com o Blightsteel são 10.
+- Antecedente: `kw escolhaAntecedente` já existia (Safana, Alora, Imoen); os antecedentes (Candlekeep Sage, Dungeon Delver) são `est continuo` em `{tipo Creature, comandante, dono voce}` com `habil`.
+**Casos para o A dos pedidos 1–4:** `banco/testes/pedidos-masmorras.json` (28).
+**Escrito sem falta:** veneno/toxic/poisonous como `marcador` no jogador `tipoMarc: "veneno"` (toxic = gat dano de combate em jogador → marcador em `doEvento`). Motor: precisa da regra dos 10 venenos (704.5c).
+
+| # | falta | cartas | proposta | decisão |
+|---|---|---|---|---|
+| 1 | iniciativa | 10 cartas (acima) | fx `tomarIniciativa` + cond `temIniciativa` | ACEITO (coord. casa 25/11): + gat ev `tomaIniciativa` |
+| 2 | venture / masmorra | 12 cartas | fx `aventurar`; est `dobraGatilho` ev `sala` | ACEITO: gat ev `sala` (evs do dobraGatilho é livre) |
+| 3 | completou masmorra | 8 cartas | cond `completouMasmorra` (+nome), gat `completaMasmorra` | ACEITO: `completouMasmorra: true` ou `{nome}`; gat ev `completaMasmorra` |
+| 4 | infect | 9 + Blightsteel | kw `infectar` | ACEITO |
+| 5 | o resto 1 cada | Dire Fleet Ravager (um terço da vida), Ashiok (oponentes não procuram), Knowledge Exploitation (prowl; buscar no grimório do oponente), Prosperous Thief (ninjutsu, 2ª ocorrência), Skull Raid (foretell; "fewer discarded"), Voidwing Hybrid (ev prolifera), Fifty Feet of Rope (não desvira sem virar) | deixar falta | ACEITO (fica em falta) |
+| 6 | negação do `completouMasmorra {nome}` (reescrita 25/11, casa) | Acererak the Archlich: "When Acererak enters, if you **haven't** completed Tomb of Annihilation, return Acererak to its owner's hand and venture into the dungeon." | `completouMasmorra: {nome: "Tomb of Annihilation", nao: true}` (o `false` já nega o booleano, como `monarca: false` do Court of Grace; o `{nome}` não tem como negar). Hoje: volta e aventura sempre + falta `[completou]` | (pendente) |
+
+**Reescrita das cartas (adepto B, casa 25/11, ramo `casa-masmorras-banco`):** as 31 cartas com etiqueta + Blightsteel usam os campos aceitos; casos em `banco/testes/correcao-masmorras.json`. Convenção usada: `temIniciativa: false` / `completouMasmorra: false` = "não tem"/"não completou" (para o "instead": Safana, Sarevok's Tome, Precipitous Drop). Zombie Ogre "if a creature died this turn" = `se: {palavra: "morbid"}` (a palavra já existia no vocabulário do `conta se`). Corpse Cur: filtro `kw: ["infectar"]` (já existia; sem pedido). Fica falta: só o Acererak (pedido 6) e o Tie Up do Fifty Feet of Rope (item 5).

@@ -1,0 +1,1 @@
+{"v":2,"n":"Clattering Skeletons","id":"9e107382-f683-44ed-ada1-775d3ac79dd0","oracleHash":"01a417eb","custo":{"g":3,"p":["B"]},"vm":4,"ci":"B","cores":"B","tipos":["Creature"],"sub":["Skeleton"],"pt":[4,3],"gat":[{"ev":"morre","quem":{"este":true},"fx":[{"op":"aventurar","quem":"voce"}]}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"correcao-masmorras.json"}}

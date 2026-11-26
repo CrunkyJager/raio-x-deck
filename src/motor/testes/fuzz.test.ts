@@ -14,7 +14,7 @@ const N = +(process.env.FUZZ || 30);
 function invariantes(e) {
   const visto = new Map();
   const marca = (id, onde) => { if (visto.has(id)) throw new Error(`objeto ${id} em duas zonas: ${visto.get(id)} e ${onde}`); visto.set(id, onde); };
-  e.campo.forEach(id => marca(id, 'campo')); e.pilha.forEach(id => marca(id, 'pilha'));
+  e.campo.forEach(id => marca(id, 'campo')); e.pilha.forEach(id => marca(id, 'pilha')); (e.faseados || []).forEach(id => marca(id, 'faseado'));
   for (const Jg of e.jogs) for (const z of M.ZONAS_JOG) Jg.zonas[z].forEach(id => marca(id, Jg.nome + ':' + z));
   for (const id in e.objs) {
     const o = e.objs[id], onde = visto.get(+id);
@@ -48,5 +48,5 @@ for (let i = 0; i < N; i++) test.skipIf(!TEM)(`fuzz semente ${1000 + i}`, () => 
   const { e } = partida(M, i, true);
   turnos += e.turno.n;
   expect(e.fim).toBeTruthy();
-});
+}, 60_000);   // sementes fixas (1000 + i); com a máquina carregada (outros adeptos) o padrão de 5 s derrubava à toa
 test.skipIf(!TEM)('fuzz: resumo', () => { console.log(`fuzz: ${N} partidas de 4 · erros 0 · ${(turnos / N).toFixed(0)} turnos/partida`); });

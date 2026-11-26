@@ -1,0 +1,178 @@
+{
+ "bloco": "bloco37",
+ "por": "adepto-b",
+ "em": "2026-11-25",
+ "nota": "deck de masmorras da Safana do Edigar (pedido do Felipe pelo FARSEER), parte 2: March of the Drowned … Zombie Ogre",
+ "casos": [
+  {
+   "carta": "March of the Drowned",
+   "situacao": "modo 1 mirando uma criatura do seu cemitério",
+   "espera": "volta à mão"
+  },
+  {
+   "carta": "Necropede",
+   "situacao": "morre mirando uma 1/1 do oponente",
+   "espera": "põe −1/−1 e ela morre"
+  },
+  {
+   "carta": "Nimraiser Paladin",
+   "situacao": "entra com uma criatura de vm 3 no cemitério; depois causa dano",
+   "espera": "ela volta à mão; o jogador ganha 2 venenos"
+  },
+  {
+   "carta": "Omen of the Dead",
+   "situacao": "entra mirando criatura do seu cemitério; depois {2}{B} e sacrifica",
+   "espera": "volta à mão; vidência 2"
+  },
+  {
+   "carta": "Passageway Seer",
+   "situacao": "entra",
+   "espera": "você toma a iniciativa"
+  },
+  {
+   "carta": "Phyrexian Digester",
+   "situacao": "causa dano",
+   "espera": "dano como veneno em jogador e −1/−1 em criatura (infectar)"
+  },
+  {
+   "carta": "Plague Myr",
+   "situacao": "vira",
+   "espera": "dá {C}"
+  },
+  {
+   "carta": "Plague Stinger",
+   "situacao": "ataca",
+   "espera": "voa; o dano vira veneno (infectar)"
+  },
+  {
+   "carta": "Precipitous Drop",
+   "situacao": "encanta uma 2/2",
+   "espera": "ela morre (−2/−2)"
+  },
+  {
+   "carta": "Professor's Warning",
+   "situacao": "modo 2 em resposta a destruir",
+   "espera": "a criatura fica indestrutível"
+  },
+  {
+   "carta": "Prologue to Phyresis",
+   "situacao": "conjurada",
+   "espera": "cada oponente 1 veneno; compra 1"
+  },
+  {
+   "carta": "Prosperous Thief",
+   "situacao": "dois Rogues seus causam dano num jogador",
+   "espera": "cria 1 Tesouro"
+  },
+  {
+   "carta": "Ravenloft Adventurer",
+   "situacao": "uma criatura do oponente morre",
+   "espera": "vai ao exílio com marcador hit"
+  },
+  {
+   "carta": "Razaketh's Rite",
+   "situacao": "conjurada",
+   "espera": "busca qualquer carta para a mão"
+  },
+  {
+   "carta": "Replicating Ring",
+   "situacao": "oitava manutenção com o anel",
+   "espera": "tira os 8 marcadores e cria 8 Replicated Ring de mana"
+  },
+  {
+   "carta": "Rilsa Rael, Kingpin",
+   "situacao": "você ataca mirando uma atacante",
+   "espera": "ela ganha toque mortífero"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "vira",
+   "espera": "dá {C}"
+  },
+  {
+   "carta": "Secret Door",
+   "situacao": "bloqueia",
+   "espera": "parede 0/4"
+  },
+  {
+   "carta": "Shortcut Seeker",
+   "situacao": "causa dano num jogador",
+   "espera": "você aventura"
+  },
+  {
+   "carta": "Skull Raid",
+   "situacao": "mira um oponente com mão",
+   "espera": "ele descarta 2"
+  },
+  {
+   "carta": "Slip Through Space",
+   "situacao": "mira uma atacante",
+   "espera": "imbloqueável e compra 1"
+  },
+  {
+   "carta": "Snake Cult Initiation",
+   "situacao": "a criatura encantada causa dano de combate num jogador",
+   "espera": "ele ganha 3 venenos"
+  },
+  {
+   "carta": "Soulknife Spy",
+   "situacao": "causa dano de combate num jogador",
+   "espera": "compra 1"
+  },
+  {
+   "carta": "Steady Progress",
+   "situacao": "conjurada",
+   "espera": "prolifera e compra 1"
+  },
+  {
+   "carta": "Tezzeret's Gambit",
+   "situacao": "conjurada pagando 2 de vida",
+   "espera": "compra 2 e prolifera"
+  },
+  {
+   "carta": "Thriving Isle",
+   "situacao": "entra escolhendo preto",
+   "espera": "virada; dá {U} ou {B}"
+  },
+  {
+   "carta": "Underdark Explorer",
+   "situacao": "entra",
+   "espera": "você toma a iniciativa"
+  },
+  {
+   "carta": "Vat Emergence",
+   "situacao": "mira uma criatura no cemitério do oponente",
+   "espera": "entra sob seu controle; prolifera"
+  },
+  {
+   "carta": "Vivisurgeon's Insight",
+   "situacao": "conjurada",
+   "espera": "compra 3 e prolifera"
+  },
+  {
+   "carta": "Voidwing Hybrid",
+   "situacao": "causa dano de combate num jogador",
+   "espera": "1 veneno"
+  },
+  {
+   "carta": "Withercrown",
+   "situacao": "encanta uma 4/4 do oponente",
+   "espera": "ela fica 0/4; na manutenção dele, perde 1 ou sacrifica"
+  },
+  {
+   "carta": "Yuan-Ti Fang-Blade",
+   "situacao": "bloqueia",
+   "espera": "toque mortífero"
+  },
+  {
+   "carta": "Zhentarim Bandit",
+   "situacao": "ataca e paga 1 de vida",
+   "espera": "cria 1 Tesouro"
+  },
+  {
+   "carta": "Zombie Ogre",
+   "situacao": "etapa final depois de uma morte",
+   "espera": "você aventura"
+  }
+ ]
+}

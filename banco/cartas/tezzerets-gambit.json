@@ -1,0 +1,1 @@
+{"v":2,"n":"Tezzeret's Gambit","id":"b33d2b77-f068-4fdc-a1a8-0353a35e3973","oracleHash":"f33ffb8a","custo":{"g":3,"p":["U/P"]},"vm":4,"ci":"U","cores":"U","tipos":["Sorcery"],"fx":[{"op":"comprar","quem":"voce","qtd":2},{"op":"proliferar","quem":"voce"}],"rev":{"por":"adepto-b","em":"2026-11-25","teste":"bloco37.json"}}

@@ -2,6 +2,112 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.48.0 — 26/11/2026 · Motor: perda de vida, alvo de jogador, descobrir e mana restrita
+Testes: check 0 erros · Vitest 344/344 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1385/1753 (eram 1371). Partidas: deck de drenar vida (Vito, Sanguine Bond, Exquisite Blood, Mindcrank, Vilis, Blood Artist) 20, 0 erros.
+- **Perder vida vira evento** (CR 119.3): dano em jogador, "perde N de vida" e pagar vida (119.4) disparam Mindcrank, Exquisite Blood, Vilis, The Master of Lake-town. "That much" lê quanto ganhou ou perdeu (Sanguine Bond, Vito, Prize Pig, Wedding Ring, Treebeard, Well of Lost Dreams). Sanguine Bond + Exquisite Blood mata o oponente e o laço para.
+- **"Jogador alvo" escolhe o alvo**: antes o alvo não era escolhido e o efeito sumia, em 17 cartas (Blood Artist, Hedron Crab, Diregraf Captain, Liliana of the Veil, Jace Beleren, Priest of Forgotten Gods…).
+- **Descobrir N** (CR 701.57) e Tecutlan; **mana restrita** na reserva (CR 106.6): Master of Dark Rites e Unclaimed Territory só pagam a mágica que bate. Ramos ganha um +1/+1 por cor.
+
+## v0.47.0 — 26/11/2026 · T44: a análise lê o banco próprio
+Testes: check 0 erros · Vitest 337/337 · testa 161/161 · partida Stangg igual à linha de base (erros 0) · build ok. Banco de 30 decks (200 partidas por troca): T44 −0,04 ±0,20 contra a main de hoje −0,39 ±0,19; deck a deck +0,40 ±0,32 a favor da T44 (melhor em 15, pior em 8, de 27).
+- **O que cada carta faz vem de `banco/cartas`** (`src/analise/banco.ts`): ramp, compra, remoção, limpa-mesa, proteção, contramágica, recursão, tutor, fichas, e os detalhes que pesam no efetiv (repete, na hora, quantas cartas, só um lado da mesa, o oponente pode pagar). A regex no inglês e as etiquetas do Scryfall ficam só para carta sem dado.
+- Medida em lotes de 10 e com dois ramos lado a lado (`banco_mesa.py` com LOTE e PORTA). Resultados em `ferramentas/calibra/banco_t44.json` e `banco_hoje46.json`.
+- Achado para depois: tirar o Mindcrank do Wise Mothman custa −3,6 nas duas versões; o motor nem jogava o Mindcrank (o conserto está no ramo `perde-vida`).
+
+## v0.46.1 — 26/11/2026 · Mesa ao vivo: perguntas que apareciam com o nome interno
+Testes: check 0 erros · Vitest 297/297 · build ok.
+- Ganharam título e botões em português: quem a criatura que entra atacando ataca, custo adicional com "ou" (ex.: "Sacrificar 1 artefato" / "Descartar 1 carta"), conjurar com chute/presente, para qual oponente vai o presente, conjurar agora (de graça), dividir o dano, ordem do dano ("X recebe o dano primeiro"), devolver à mão como custo, exilar do cemitério (fuga).
+- Custo de sacrificar/descartar: "Sacrificar Grizzly Bears" no lugar de "sacrificar: Grizzly Bears".
+
+## v0.46.0 — 26/11/2026 · Mana com escolha no custo: altares, Krark-Clan, Steam-Kin, Simian Spirit Guide
+Testes: check 0 erros · Vitest 297/297 · raiox-testes igual à linha de base. Motor joga inteiras 1371/1753 (eram 1363). Partidas: deck de altares 40, Ivora 40, masmorras 40, 0 erros.
+- **Nova ação de mana com pergunta** (CR 605.3a, sem pilha): sacrificar outra (Ashnod's Altar, Phyrexian Altar, Krark-Clan Ironworks, Skirk Prospector, Phyrexian Tower, Gilded Goose com Food), tirar marcadores (Runaway Steam-Kin) e exilar da mão (Simian Spirit Guide). Fica fora do pagamento automático, para nunca sacrificar sem querer; na Mesa ao vivo aparece junto dos botões de mana e pergunta o que sacrificar.
+- Seguem de fora: Master of Dark Rites (mana só para Vampire/Cleric/Demon: a reserva ainda não guarda restrição) e Ramos (falta "marcador.qtd").
+- A IA ainda não usa essa ação (T21); só o jogador.
+
+## v0.45.0 — 26/11/2026 · Ivora 75/75 e masmorras 83/83 inteiras: 15 mecânicas novas
+Testes: check 0 erros · Vitest 294/294 · raiox-testes igual à linha de base. Motor joga inteiras 1363/1753 (eram 1361). Partidas: Ivora 40 e masmorras 40, 0 erros (registro mostra milagre, cópia preparada, "não pode procurar").
+- **Custos:** custo adicional com "ou" (Demand Answers: sacrificar artefato ou descartar); rondar (Knowledge Exploitation); prever, ação especial com {2} e conjurar do exílio num turno seguinte (Skull Raid); ninjutsu da mão (Prosperous Thief).
+- **Gatilhos e durações:** gatilho reflexo "quando você fizer isso", com alvo escolhido depois (Inti); "até o seu próximo passo final"; milagre (Reforge the Soul); "você desceu neste turno" (Brass's Tunnel-Grinder); "criatura ferida por esta neste turno morre" (Markov Enforcer).
+- **Permanentes:** Role, ficha Aura com estática e gatilho, só o Role mais novo fica (Witch's Mark, Monstrous Rage); reconfigurar (Lizard Blades); "exilada com este" (Bag of Holding); preparar, com cópia da mágica no exílio (Pompous Battlemage); loucura dada às cartas fora do campo (Falkenrath Gorger); oponentes não procuram no grimório (Ashiok); um terço da vida arredondado para cima (Dire Fleet Ravager); buscar no grimório do oponente e conjurar de graça.
+- **Conserto:** Edgar Markov's Coffin nunca transformava (tirava os marcadores antes de conferir os 3). Corrigido, com caso.
+- Decks: **Ivora no banco 75/75 · motor joga 75/75 · inteiras 75/75.** **Masmorras 83/83 · 83/83 · 83/83.** Ainda fica `falta` no verso de Brass's Tunnel-Grinder (Tecutlan: descobrir ao gastar a mana dele).
+- A IA ainda não usa prever, ninjutsu nem reconfigurar (fica para a T21); o motor aceita as jogadas e os testes cobrem.
+
+## v0.44.0 — 26/11/2026 · Ivora 65/75 inteiras: fuga, gatilhos novos, "outro", descartadas no turno
+Testes: check 0 erros · Vitest 278/278 · raiox-testes igual à linha de base. Partidas: Ivora 40, 0 erros (o registro mostra "fuga: exila 8 do cemitério").
+- **Fuga** (Ox of Agonas foge com +1/+1; Underworld Breach dá fuga a toda mágica do seu cemitério pelo custo dela + exilar 3).
+- **Gatilhos novos:** quando você cicla (Magmakin Artillerist), quando desvira (Key to the City paga {2} e compra), quando joga terreno de fora da mão (Shadow of the Goblin), quando prolifera (Voidwing Hybrid volta do cemitério).
+- **"Outro":** cada OUTRO oponente (Kediss), OUTRA criatura alvo (Markov Retribution), dano a jogador ou planeswalker (Neheb, The Reaver Cleaver).
+- **Contas:** cartas descartadas neste turno (Change of Fortune, Misty Knight); Skull Raid compra a diferença; Grab the Prize só dá dano se a descartada não era terreno; Monument to Endurance não repete modo no turno.
+- Decks: **Ivora no banco 75/75 · motor joga 75/75 · inteiras 65/75** (eram 51). Masmorras 83/83 · 83/83 · 78/83.
+
+## v0.43.0 — 26/11/2026 · Ivora 75/75 no motor; "não pode ser anulada", Baylen, "para cada criatura", fichas atacando
+Testes: check 0 erros · Vitest 272/272 · raiox-testes igual à linha de base. Motor joga inteiras 1361/1753 (eram 1345). Partidas: Ivora 40 e masmorras 40, 0 erros.
+- **Library of Leng:** descarte por efeito pode ir ao topo do grimório, escolhido carta a carta; descarte como custo e na limpeza vai ao cemitério (ruling).
+- **"Não pode ser anulada"** (12 cartas): a própria mágica (Dovin's Veto, Supreme Verdict, Void Rend…) ou as que um permanente protege (Rhythm of the Wild, Root Sliver, Destiny Spinner, Chimil).
+- **Baylen:** mana virando duas fichas (só fichas sem mana própria, para não usar a mesma duas vezes). A cobertura agora confere o custo das habilidades de mana e mostra 10 que o motor ainda não paga: Ashnod's Altar, Phyrexian Altar, Krark-Clan Ironworks, Gilded Goose, Simian Spirit Guide, Runaway Steam-Kin…
+- **"Para cada criatura/ficha…"** (Kalonian Hydra dobra os marcadores, Second Harvest copia cada ficha) e filtro "entrou neste turno" (Ocelot Pride).
+- **Fichas viradas e atacando** (Hero of Bladehold, Brimaz, Hanweir Garrison, Mardu Ascendancy…); em "para cada oponente" cada uma ataca aquele jogador (Adeline, Ainok).
+- Caso do banco da Undercity corrigido (CR 701.49b).
+- Decks: **Ivora no banco 75/75 · motor joga 75/75 · inteiras 51/75.** Masmorras 83/83 · 83/83 · 77/83.
+
+## v0.42.0 — 26/11/2026 · masmorras 83/83 no motor (as 8 travas)
+Testes: check 0 erros · Vitest 267/267 · raiox-testes igual à linha de base. Motor joga inteiras 1345/1753 (eram 1299). Partidas de masmorras 40, 0 erros.
+- **"Para cada oponente…" (`repetirCada`, jogador da vez `cadaAtual`):** Acererak, Braids, Tempt with Bunnies/Discovery, Echo of Eons, Field of Ruin, Dark Deal, Winds of Change, Kwain, Lobelia. O progresso por jogador sobrevive às perguntas. Braids: só quem não sacrificou perde 2 e você compra (o banco escrevia "sempre").
+- **Corpse Cur** (filtro "com infectar"), **Demonic Gifts** (ganha "quando morrer, volta" até o fim do turno), **Dungeon Descent** e mais 7 (custo "vire uma criatura sua": Lathril, Kumena, Inalla, Galecaster, Azami, Cryptbreaker, The Shire), **Fifty Feet of Rope** e Junk Winder ("não desvira no próximo desvirar"), **Prosperous Thief** ("uma ou mais causam dano" = uma vez), **Ravenloft Adventurer** (morre → exílio com marcador hit; perda de vida pelas cartas com hit), Liesa e Blightsteel (substituição de morrer/ir ao cemitério), **Alora** (o gatilho do fim do turno lembra a criatura; se ela mudou de zona, não volta).
+- Consertos de regra achados no caminho: marcador de palavra-chave dá a palavra-chave (122.1b: flying, indestructible…); "criatura sem voar morre" olha como ela estava ao morrer (Luminous Broodmoth não devolve mais a que voa).
+- Decks: Ivora no banco 75/75 · motor joga 74/75 (Library of Leng) · inteiras 50/75. Masmorras no banco 83/83 · motor joga 83/83 · inteiras 77/83.
+- Pendente: habilidade de mana com custo "vire outra" (Baylen) ainda não é usada pelo motor, e a cobertura não confere habilidades de mana.
+
+## v0.41.0 — 26/11/2026 · Mesa ao vivo: mana quando quiser e lugar em forma de tapete
+Testes: check 0 erros · Vitest 257/257 · Chrome headless sem erro na página.
+- **Mana livre (Felipe 26/11: a Mesa indica, não limita):** com prioridade, botões "⚡ Mountain → {R}" viram a fonte e a mana fica na reserva até o fim da etapa (o texto mostra "Na reserva"). Fora da sua fase principal, a Mesa para sempre que você tem instantânea ou habilidade para usar, e diz em que etapa está. Prova no node: `ferramentas/mesa-mana.mjs`.
+- **Tapete:** cada lugar tem campo de batalha, terrenos e uma coluna com vida, comando, exílio, grimório e cemitério (a última carta do cemitério aparece no fundo). Os lugares são espelhados para a zona de comando ficar no canto mais perto do meio da mesa, e os de cima têm o campo virado para o centro.
+- **Fundo de cada lugar:** botão "fundo" escolhe uma imagem do computador (fica só neste navegador; clique direito tira).
+- Conserto: erro de tipo da v0.40.0 que derrubou o CI.
+
+## v0.40.0 — 26/11/2026 · substituições de verdade (entra com marcadores, fichas e marcadores dobrados, dano dobrado/prevenido)
+Testes: check 0 erros · Vitest 257/257. Motor joga inteiras 1299/1753.
+- **Contagem honesta:** a cobertura dava como "lida" qualquer substituição cujo nome aparecia no código; o motor só aplicava `entra` virada e `ganhaVida`. Agora o motor diz o que aplica (`M.substOk`): 50 cartas que contavam como inteiras sem funcionar (1313 → 1263).
+- **Motor:** entra com N marcadores (Kalonian Hydra não morre mais como 0/0; X pago; os dados por outras: Arwen, Bramblewood), marcadores a mais/dobrados/impedidos (Hardened Scales, Doubling Season, Darksteel Angel), fichas dobradas e "mais uma" (Parallel Lives, Doubling Season, Queen Allenal, Bilbo), dano dobrado, pela metade, prevenido e "todo menos 1" (Gisela, Fiery Emancipation, Dolmen Gate, Temple Altisaur), e Withercrown (perde 1 de vida a menos que sacrifique a criatura; IA só sacrifica com vida baixa). 1263 → 1299.
+- Decks: Ivora no banco 75/75 · motor joga 74/75 (Library of Leng: a substituição de descarte nunca funcionou) · inteiras 50/75. Masmorras 81/81 · motor joga 73/81 · inteiras 68/81. Partidas 40+40, 0 erros.
+
+## v0.39.0 — 26/11/2026 · sessão de casa: Ivora e Ultron sem trava, masmorras no motor
+Testes: check 0 erros · Vitest 253/253 · raiox-testes verde. Motor joga inteiras 1313/1753. Partidas no node: Ivora 50 e masmorras 50, 0 erros.
+- **Ivora:** no banco 75/75 · motor joga 75/75 (inteiras 50/75; 25 com frase que o motor ainda pula). Anger, Brotherhood Regalia, Cool but Rude (Classe) e Clive (devoção). Corrigido "pode" + pagar que quebrava a repetição (Leaf-Crowned Visionary).
+- **Ultron:** 0 travas (grupo na saída, metalcraft/coven/blessing, buscar "quantas quiser", afinidade, improvisar, custo alternativo).
+- **Masmorras:** iniciativa (CR 727), aventurar nas 4 masmorras, completar, infectar + 10 venenos, Escolha um Antecedente; IA escolhe masmorra e sala por valor. Deck: no banco 81/81 · motor joga 72/81 (inteiras 67/81). Travam 9: Acererak, Corpse Cur, Demonic Gifts, Dungeon Descent, Fifty Feet of Rope, Prosperous Thief, Ravenloft Adventurer, Withercrown, Alora.
+- Ferramenta `ferramentas/partida-deck.mjs` (partidas de um deck de lista, conta mecânicas no registro).
+
+## v0.38.0 — 25/11/2026 · decks do Edigar: Ivora 71/75 no motor, masmorras no banco
+Testes: valida 1753/0 · check 0 erros · Vitest 219/219 · testa 161/161 · verifica verde · build ok.
+- **Motor (A):** jogar carta de outro lugar, lutar, modal em gatilho, recapitular, proeza, parceiro, gatilhos de/não de/a oponente, modificar até o fim do turno (Key to the City, Wedding Invitation, Witch's Mark), laço obrigatório (104.4b). Ivora: faltam Anger, Brotherhood Regalia, Cool but Rude e Clive.
+- **Banco (B):** 69 cartas do deck de masmorras (81/81 no banco) e 28 casos de teste para o motor (iniciativa, masmorra, completou, infectar). O motor ainda não faz masmorra, iniciativa nem antecedente.
+- Patch T44 (analise lê o banco) continua fora da main até a medida dos 30 decks.
+
+## v0.37.1 — 25/11/2026 · textos da Mesa mais claros
+Testes: check (motor) ok · Vitest 210/210.
+- **Mesa:** a pergunta do comandante diz qual é a carta, e as opções dizem para onde ela vai ("Deixar no cemitério/exílio" × "Mandar de volta para a zona de comando"). Só a opção segura fica destacada. A regra da lenda diz qual fica e que a outra vai para o cemitério. A escolha de modo mostra o efeito de cada modo, e o botão "Recarregar motor" só aparece com `?dev=1`.
+- **Planejamento:** `planejamento/CONTINUAR.md` (como retomar de casa ou amanhã) e as listas dos decks do Edigar em `planejamento/decks/`.
+
+## v0.37.0 — 25/11/2026 · comandantes do Ultron funcionam (Ultra Magnus, Ultron, Arcee)
+Testes: valida 1684/0 · check 0 erros · Vitest verde · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1098/1684.
+- **Motor (A):** gatilho atrasado (603.7), entrar atacando, resguardo, animar, tipo dado a esta, pagar genérico, ficha cópia e gatilho opcional.
+
+## v0.36.0 — 25/11/2026 · Mesa rápida com muitas fichas; incolor, poder somado e histórico
+Testes: valida 1684/0 · check 0 erros · Vitest 205/205 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1022/1684.
+- **Motor (A):** partida com centenas de fichas deixou de travar (Krenko: 34 s → 2,6 s); filtro incolor (Mystic Forge, Ugin); soma/maior poder (Ghalta, The Great Henge, Metalwork Colossus, Jhoira's Familiar, Mycosynth Golem); teste aleatório sem instabilidade.
+
+## v0.35.0 — 25/11/2026 · motor joga sagas, fases e efeitos temporários (deck do Ultron)
+Testes: valida 1684/0 · check 0 erros · Vitest 202/202 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 1004/1684.
+- **Motor (A):** "a menos que" genérico (Smothering Tithe), efeito até o fim do turno (Teferi's Protection, Rogue's Passage), fasear, sagas com capítulos (Urza's Saga) e leitura do banco em lote.
+
+## v0.34.0 — 25/11/2026 · deck do Ultra Magnus/Ultron inteiro no banco
+Testes: valida 1684/0 · check 0 erros · Vitest 198/198 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 987/1684.
+- **Banco (B, T20 blocos 34/35):** as 39 cartas do deck do Ultron que faltavam (Ultra Magnus, Ultron, Krang, Memnarch, Blightsteel Colossus, Darksteel Forge, Ishgard, Ugin, Cloud Key…), 39 casos; o deck inteiro (80) está no banco. Em 200 partidas, 199 sem erro; a outra foi lenta por causa das 1484 fichas do Krenko (desempenho do motor).
+- Ainda não funcionam na Mesa: Urza's Saga, Teferi's Protection, Smothering Tithe, Unwinding Clock, Organic Extinction e outras (com o adepto A).
+
 ## v0.33.0 — 25/11/2026 · motor conta ataques e obriga bloqueio
 Testes: valida 1645/0 · check 0 erros · Vitest 198/198 · testa 161/161 · verifica verde · build ok. Motor joga inteiras 965/1645.
 - **Motor (A, item 6c):** contas de atacantes, atacantes em você e ataques no turno (Mangara, Firemane, Alesha, Windbrisk, Faramir); bloqueio obrigatório (509.1c), que a IA cumpre; filtro "tipo em comum" (metamorfo conta como todos); mover a carta transformada (712.14a) e mover esta do cemitério/exílio (Ojer Taq, Ajani). Fundir (meld) ainda fica de fora.
