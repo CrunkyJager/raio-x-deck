@@ -243,7 +243,7 @@ const altDe = (e, j, o) => {
   return melhor && M.vmDe(melhor) < M.vmDe(M.dadoDe(e, o).custo || {}) ? melhor : undefined;
 };
 M.altDe = (e, j, o) => altDe(e, j, o);
-const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
+const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
 M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || o.zona === 'cemiterio' && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
 });
@@ -265,6 +265,17 @@ M.facesParaConjurar = (e, j, o) => {
 };
 // carta exilada pela própria aventura: o dono pode conjurá-la enquanto ela ficar lá (716.3d)
 const daAventura = (e, j, o) => o.zona === 'exilio' && o.aventura === j;
+// prever (702.143): no seu turno, pague {2} e exile da mão (ação especial, 116.2h); num turno seguinte, conjure do exílio pelo custo de prever
+M.previsaoDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'prever' && x.custo); return k ? k.custo : null; };
+const porPrevisao = (e, j, o) => o.zona === 'exilio' && o.previsto != null && o.previsto < e.turno.n && o.dono === j && !!M.previsaoDe(e, o);
+M.podePrever = (e, j, o) => o.zona === 'mao' && o.dono === j && e.turno.ativo === j && !!M.previsaoDe(e, o) && !!plano(e, j, { g: 2 }, 0, null, o);
+M.prever = (e, j, id) => {
+  const o = e.objs[id], pl = M.podePrever(e, j, o) && plano(e, j, { g: 2 }, 0, null, o); if (!pl) return;
+  pagarMana(e, j, pl, { g: 2 }, 0);
+  M.mover(e, id, 'exilio'); o.previsto = e.turno.n;
+  M.log(e, e.jogs[j].nome, 'prevê uma carta (exila virada)');
+  M.agiu(e, j);
+};
 // cópia da mágica de preparo no exílio: só o controlador da criatura preparada (regras do preparar)
 const porPreparo = (e, j, o) => !!o.copiaPrep && o.zona === 'exilio' && M.prepValida(e, o) && e.objs[o.copiaPrep.id].ctrl === j;
 // só a face que vai ficar para cima é avaliada (712.8c, 709.3a, 716.3a): avalia com o.face trocada e devolve
@@ -293,7 +304,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const d = M.dadoDe(e, o);
   if (o.dono !== j && !agora && !M.permJogar(e, j, o)) return false;
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
-  if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
+  if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o) || porPrevisao(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
   if (!inst && !louc && !milag && !agora && !M.velFeitico(e, j)) return false;
@@ -367,9 +378,10 @@ function opcoes(e, j) {
       if (M.faceTerreno(e, e.objs[id])) ops.push({ a: 'terreno', id, face: 0 });   // modal: joga a face de terreno (712.9)
     }
   const doCem = M.temPermissaoCemiterio(e, j) ? J.zonas.cemiterio : [];
+  for (const id of J.zonas.mao) if (M.podePrever(e, j, e.objs[id])) ops.push({ a: 'prever', id });   // 702.143a: no seu turno, com prioridade
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
     for (const id of doCem) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
-  const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]) || porPreparo(e, j, e.objs[id]));
+  const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]) || porPreparo(e, j, e.objs[id]) || porPrevisao(e, j, e.objs[id]));
   const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]) || porFuga(e, j, e.objs[id]));   // recapitular (702.34), fuga (702.138)
   // permissões de efeito (op jogar): o que não está na mão/comando/cemitério já listados; terreno com permissão de jogar
   const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio, ...doFlash]), doPerm: number[] = [];

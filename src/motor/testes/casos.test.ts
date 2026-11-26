@@ -2031,6 +2031,18 @@ caso('702.49', 'ninjutsu (Prosperous Thief): depois dos bloqueadores, devolve o 
   ateFimCombate(e);
   igual([e.jogs[1].vida, e.campo.filter(id => e.objs[id].n === 'Treasure').length], [37, 1], '3 de dano e o Tesouro do gatilho');
 });
+caso('702.143', 'prever (Skull Raid): no seu turno paga {2} e exila; no mesmo turno não conjura; num turno seguinte conjura do exílio por {1}{B}', () => {
+  const e = cena({ campo: terras(4, 'Swamp'), mao: [[0, 'Skull Raid']] }); e.pend = [];
+  const sr = e.jogs[0].zonas.mao[0];
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'prever' && o.id === sr), 'pode prever');
+  M.avancar(e); respE(e, o => o.a === 'prever' && o.id === sr);
+  igual([e.objs[sr].zona, e.campo.filter(id => e.objs[id].virada).length, M.podeConjurar(e, 0, e.objs[sr])], ['exilio', 2, false], 'exilou pagando {2}; não neste turno');
+  for (const id of e.campo) e.objs[id].virada = false;
+  e.turno.n++; e.turno.passo = 'principal1'; e.turno.prio = null; e.perg = null;
+  ok(M.podeConjurar(e, 0, e.objs[sr]), 'turno seguinte: pode');
+  M.avancar(e); conj(e, 'Skull Raid'); resolveCom(e);
+  igual([e.objs[sr].zona, e.campo.filter(id => e.objs[id].virada).length], ['cemiterio', 2], 'conjurou do exílio por {1}{B}');
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;
