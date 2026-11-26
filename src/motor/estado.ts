@@ -711,9 +711,10 @@ M.qtd = (e, q, ctx: any = {}) => {
 };
 
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm']);
-// conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); as outras palavras (metalcraft, coven…) ainda não
-M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift');
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra']);
+// conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos) e 'morbid' (masmorras.ts); as outras palavras (metalcraft, coven…) ainda não.
+// temIniciativa/completouMasmorra: valores conferidos em masmorras.ts (CR 727, 309.7)
+M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift' || se.palavra === 'morbid') && M.condMasmorraOk(se);
 M.condicao = (e, se, ctx) => {
   if (!se) return true;
   for (const k in se) if (!COND_OK.has(k)) throw new Error('condição sem suporte no motor2: ' + k);
@@ -730,7 +731,9 @@ M.condicao = (e, se, ctx) => {
     const E = e.objs[ctx.este], cc = E && E.zona === 'campo' ? E.conjCom : null, op = ctx.opc;
     if (se.conjuradaCom === 'kicker' && !((op && op.chute) || (cc && cc.kicker))) return false;
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
+    if (se.palavra === 'morbid' && !M.morbido(e)) return false;     // "se uma criatura morreu neste turno" (masmorras.ts)
   }
+  if ((se.temIniciativa !== undefined || se.completouMasmorra !== undefined) && !M.condMasmorra(e, se, ctx)) return false;
   if (se.pagou !== undefined && !!ctx.pagou !== !!se.pagou) return false;
   if (se.esteEm) { const E = e.objs[ctx.este]; if (!E || !se.esteEm.includes(E.zona)) return false; }   // "as long as this is in your graveyard" (Anger, Wonder)
   if (se.objBate) {                                                 // o objeto (este, doEvento, equipada, criadas, alvo) bate no filtro? nao: o contrário

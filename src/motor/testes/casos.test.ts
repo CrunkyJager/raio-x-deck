@@ -1940,6 +1940,77 @@ caso('702.90b', 'infectar + vínculo: 2 venenos no jogador e o controlador ganha
   igual([e.jogs[1].vida, e.jogs[1].veneno, e.jogs[0].vida], [38, 3, 42], JSON.stringify(e.log.slice(-5)));
 });
 
+// ---------- masmorras (309, 701.49) e iniciativa (727) ----------
+// escolhe a masmorra / a sala pelo nome; o resto, o agente básico
+const escolheM = (masm?, sala?) => (p: any) => p.tipo === 'masmorra' && masm ? p.ops.findIndex(o => o.nome === masm) : p.tipo === 'sala' && sala ? p.ops.findIndex(o => o.n === sala) : -1;
+const morreEsqueleto = e => { const o = e.por(0, 'Clattering Skeletons'); M.mover(e, o.id, 'cemiterio'); };   // "quando morre, aventure"
+const seguir = e => { e.perg = null; M.avancar(e); };   // a cena mexeu no estado com uma pergunta aberta: o laço segue (ABE, gatilhos)
+const masm = (e, j = 0) => e.jogs[j].masm ? e.jogs[j].masm.nome + ':' + M.MASMORRAS[e.jogs[j].masm.nome].salas[e.jogs[j].masm.sala].n : null;
+const fichasN = (e, j, n) => e.campo.filter(id => e.objs[id].ctrl === j && e.objs[id].n === n).length;
+caso('701.49a', 'Clattering Skeletons morre sem masmorra: escolhe uma das três (a Undercity não), entra na 1ª sala e a sala dispara (309.4c); depois avança pela seta escolhida (701.49b)', () => {
+  const e = cena({ grimorio: 10 });
+  morreEsqueleto(e); seguir(e);
+  let vistas: any[] = [];
+  resolveCom(e, p => { if (p.tipo === 'masmorra') vistas = p.ops.map(o => o.nome); return escolheM('Lost Mine of Phandelver')(p); });
+  igual(vistas.sort(), ['Dungeon of the Mad Mage', 'Lost Mine of Phandelver', 'Tomb of Annihilation']);
+  igual(masm(e), 'Lost Mine of Phandelver:Cave Entrance');
+  morreEsqueleto(e); seguir(e);
+  let salas: any[] = [];
+  resolveCom(e, p => { if (p.tipo === 'sala') salas = p.ops.map(o => o.n); return escolheM(null, 'Mine Tunnels')(p); });
+  igual(salas, ['Goblin Lair', 'Mine Tunnels']);
+  igual([masm(e), fichasN(e, 0, 'Treasure')], ['Lost Mine of Phandelver:Mine Tunnels', 1]);
+});
+caso('309.7', 'última sala: quando a habilidade dela sai da pilha a masmorra sai do jogo (704.5t) e fica completada; Dungeon Crawler volta do cemitério (gat completaMasmorra)', () => {
+  const e = cena({ campo: [[0, 'Dungeon Crawler', { zona: 'cemiterio' }]] });
+  e.jogs[0].masm = { nome: 'Lost Mine of Phandelver', sala: 4, ts: ++e.ts };    // Dark Pool
+  const m0 = e.jogs[0].zonas.mao.length;
+  morreEsqueleto(e); seguir(e); resolveCom(e);
+  igual(e.jogs[0].masm, null, 'saiu do comando');
+  igual(e.jogs[0].completas, ['Lost Mine of Phandelver']);
+  ok(naZona(e, 0, 'mao').includes('Dungeon Crawler'), 'Crawler voltou: ' + JSON.stringify(e.log.slice(-6)));
+  igual(e.jogs[0].zonas.mao.length, m0 + 2, 'Temple of Dumathoin comprou 1 + o Crawler');
+});
+caso('701.49c', 'aventurar na última sala (a habilidade dela ainda na pilha): completa a masmorra e começa outra na 1ª sala', () => {
+  const e = cena();
+  const ts = ++e.ts; e.jogs[0].masm = { nome: 'Tomb of Annihilation', sala: 4, ts };
+  e.pend.push({ fonte: -1, ts, ctrl: 0, k: 'sala:4', g: { ev: 'sala', fx: [] }, n: 'x', face: null, ficha: null, lki: null, ev: {} });   // o Cradle esperando
+  ok(!M.abeMasmorras(e), 'não sai com a sala esperando (704.5t)');
+  M.aventurar(e, 0, (j, t, ops) => t === 'masmorra' ? ops.find(o => o.nome === 'Dungeon of the Mad Mage') : ops[0]);
+  igual([e.jogs[0].completas, masm(e)], [['Tomb of Annihilation'], 'Dungeon of the Mad Mage:Yawning Portal']);
+});
+caso('702.124k', 'Dungeon Delver (antecedente) com o comandante criatura no campo: a sala dispara 2 vezes (603.2d); sem o comandante, 1', () => {
+  for (const comCmd of [true, false]) {
+    const e = cena({ campo: [[0, 'Dungeon Delver'], ...(comCmd ? [[0, 'Safana, Calimport Cutthroat', { obj: { cmd: true } }]] : [])] });
+    e.jogs[0].masm = { nome: 'Lost Mine of Phandelver', sala: 0, ts: ++e.ts };
+    morreEsqueleto(e); seguir(e); resolveCom(e, escolheM(null, 'Mine Tunnels'));
+    igual(fichasN(e, 0, 'Treasure'), comCmd ? 2 : 1, (comCmd ? 'com' : 'sem') + ' o comandante');
+  }
+});
+caso('309.7', 'completouMasmorra {nome, nao}: Acererak fica se você completou a Tomb of Annihilation; completou só a Lost Mine, volta à mão e aventura', () => {
+  db['Cena Acererak'] = { n: 'Cena Acererak', custo: { g: 2, p: ['B'] }, cores: 'B', tipos: ['Creature'], super: ['Legendary'], sub: ['Zombie', 'Wizard'], pt: [5, 5], vm: 3, ci: 'B',
+    gat: [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'mover', em: 'este', para: 'mao', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }, { op: 'aventurar', quem: 'voce', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }] }] };
+  for (const feita of ['Tomb of Annihilation', 'Lost Mine of Phandelver']) {
+    const e = cena(); e.jogs[0].completas = [feita];
+    e.por(0, 'Cena Acererak'); seguir(e); resolveCom(e, escolheM('Dungeon of the Mad Mage'));
+    const fica = feita === 'Tomb of Annihilation';
+    igual([noCampo(e).includes('Cena Acererak'), !!e.jogs[0].masm], [fica, !fica], feita);
+  }
+});
+caso('701.49b', 'na Undercity (iniciativa) um aventurar comum avança nela: a regra olha a masmorra que você tem, não como entrou (309.5a)', () => {
+  const e = cena();
+  e.jogs[0].masm = { nome: 'Undercity', sala: 0, ts: ++e.ts };
+  morreEsqueleto(e); seguir(e); resolveCom(e, escolheM(null, 'Lost Well'));
+  igual(masm(e), 'Undercity:Lost Well');
+});
+caso('702.124k', 'Zombie Ogre (morbid): na etapa final aventura só se uma criatura morreu neste turno', () => {
+  for (const morreu of [true, false]) {
+    const e = cena({ campo: [[0, 'Zombie Ogre'], [0, 'Grizzly Bears']] });
+    e.turno.passo = 'principal2';
+    if (morreu) M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio');
+    andaAte(e, 'limpeza', escolheM('Lost Mine of Phandelver'));
+    igual(!!e.jogs[0].masm, morreu, morreu ? 'morreu: aventura' : 'ninguém morreu');
+  }
+});
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
