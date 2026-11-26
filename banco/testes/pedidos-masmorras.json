@@ -16,7 +16,7 @@
   {"pedido": 2, "carta": "Shortcut Seeker", "situacao": "causa dano de combate num jogador; você está na sala 1 de Lost Mine of Phandelver", "espera": "avança para uma das salas seguintes e ela dispara"},
   {"pedido": 2, "carta": "Bar the Gate", "situacao": "anula uma mágica de criatura", "espera": "anula e você avança uma sala"},
   {"pedido": 2, "carta": "(regra)", "situacao": "venture estando na última sala de uma masmorra", "espera": "a masmorra é completada e sai do jogo; esse venture começa uma masmorra nova"},
-  {"pedido": 2, "carta": "(regra)", "situacao": "você tem a iniciativa e está na Undercity; Zombie Ogre manda venture", "espera": "o venture comum não pode avançar na Undercity: escolhe outra masmorra (ou avança na outra que já tem)"},
+  {"pedido": 2, "carta": "(regra)", "situacao": "você tem a iniciativa e está na Undercity; Zombie Ogre manda venture", "espera": "o venture comum avança na Undercity (CR 701.49b: só se escolhe masmorra quando não há uma no comando, 701.49a)"},
   {"pedido": 2, "carta": "Acererak the Archlich", "situacao": "entra; nunca completou Tomb of Annihilation", "espera": "volta à mão do dono e você avança uma sala"},
   {"pedido": 2, "carta": "Dungeon Delver", "situacao": "antecedente com o comandante no campo; você entra numa sala que compra 1", "espera": "a sala dispara 2 vezes: compra 2"},
   {"pedido": 2, "carta": "Dungeon Delver", "situacao": "antecedente, mas o comandante não está no campo", "espera": "a sala dispara 1 vez"},

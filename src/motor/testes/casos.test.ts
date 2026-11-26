@@ -1709,6 +1709,84 @@ caso('614.1a', 'subst morre/vaiCemiterio: Ravenloft exila a do oponente com marc
   M.descartar(l, 0, [bs]);
   igual([l.objs[bs].zona, l.jogs[0].zonas.grimorio.length - n0], ['grimorio', 1], 'Blightsteel descartado volta ao grimório');
 });
+caso('614.1a', 'subst vaiCemiterio com talvez: Library of Leng — descarte por efeito pode ir ao topo do grimório (escolha carta a carta); custo e limpeza não', () => {
+  ok(M.substOk(M.carta('Library of Leng').subst[0]), 'subst da Leng aceita');
+  for (const quer of [true, false]) {
+    const e = cena({ campo: [[0, 'Library of Leng']], mao: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+    const g0 = e.jogs[0].zonas.grimorio.length, vistos: any[] = [];
+    M.executar(e, { op: 'descartar', quem: 'voce', qtd: 2 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, tipo, ops, c) => {
+      if (tipo === 'talvez') { vistos.push(c && c.op); return quer && e.objs[c.id].n === 'Grizzly Bears' ? { a: 'sim' } : { a: 'nao' }; }
+      return ops[0];
+    });
+    igual(vistos, ['subst', 'subst'], 'pergunta uma vez por carta');
+    igual([naZona(e, 0, 'cemiterio').sort(), e.jogs[0].zonas.grimorio.length - g0], quer ? [['Llanowar Elves'], 1] : [['Grizzly Bears', 'Llanowar Elves'], 0], quer ? 'Ursos no topo, Elfo no cemitério' : 'sem usar: os dois no cemitério');
+    if (quer) igual(e.objs[e.jogs[0].zonas.grimorio.at(-1)].n, 'Grizzly Bears', 'no topo');
+  }
+  const c = cena({ campo: [[0, 'Library of Leng']], mao: [[0, 'Grizzly Bears']] });
+  M.descartar(c, 0, c.jogs[0].zonas.mao.slice());                  // custo/limpeza: sem ask, sem efeito
+  igual(naZona(c, 0, 'cemiterio'), ['Grizzly Bears'], 'descarte como custo vai ao cemitério');
+});
+caso('101.2', 'não pode ser anulada: Rhythm of the Wild protege as minhas criaturas (a do oponente é anulada); Dovin\'s Veto protege a si mesma', () => {
+  for (const n of ['Rhythm of the Wild', "Dovin's Veto", 'Root Sliver', 'Destiny Spinner', 'Chimil, the Inner Sun']) for (const sb of M.carta(n).subst.filter(x => x.ev === 'anulada')) ok(M.substOk(sb), n + ': subst aceita');
+  const e = cena({ campo: [[0, 'Rhythm of the Wild']], mao: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [0, "Dovin's Veto"], [0, 'Lightning Bolt']] });
+  const daMao = (j, n) => e.jogs[j].zonas.mao.find(id => e.objs[id].n === n);
+  const meu = daMao(0, 'Grizzly Bears'), dele = daMao(1, 'Grizzly Bears'), veto = daMao(0, "Dovin's Veto"), raio = daMao(0, 'Lightning Bolt');
+  for (const id of [meu, dele, veto, raio]) { M.mover(e, id, 'pilha'); e.pilha.push(id); }
+  igual([M.anular(e, meu), M.anular(e, dele), M.anular(e, veto), M.anular(e, raio)], [false, true, false, true], 'Ursos meus e o Veto ficam; Ursos dele e o Raio são anulados');
+  igual([e.objs[meu].zona, e.objs[dele].zona, e.objs[veto].zona, e.objs[raio].zona], ['pilha', 'cemiterio', 'pilha', 'cemiterio']);
+});
+caso('605.3', 'mana com custo de virar outras (Baylen): vira 2 fichas sem mana própria; com Treasure no lugar não conta como fonte', () => {
+  const cx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  const e = cena({ campo: [[0, 'Baylen, the Haymaker']] });
+  const baylen = e.campo[0], fonte = () => M.fontesDeMana(e, 0).filter(f => f.id === baylen);
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Food' } }, cx, null);
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx, null);
+  igual(fonte().length, 0, 'Food + Treasure: a Treasure tem mana própria, Baylen não conta');
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Food' } }, cx, null);
+  const f = fonte(); igual(f.length, 1, 'duas Food: Baylen é fonte');
+  M.ativarMana(e, 0, baylen, f[0].k, 0);
+  igual(e.campo.filter(id => e.objs[id].n === 'Food').map(id => e.objs[id].virada), [true, true], 'as duas Food viram');
+  igual([e.objs[baylen].virada, e.campo.some(id => e.objs[id].n === 'Treasure' && e.objs[id].virada), M.somaMana(e.jogs[0].reserva)], [false, false, 1], 'Baylen e a Treasure ficam; 1 de mana');
+});
+caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
+  const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  const e = cena({ campo: [[0, 'Kalonian Hydra'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
+  const de = (j, n) => e.campo.find(id => e.objs[id].ctrl === j && e.objs[id].n === n);
+  const hid = de(0, 'Kalonian Hydra'), urso = de(0, 'Grizzly Bears'), elfo = de(0, 'Llanowar Elves'), dele = de(1, 'Grizzly Bears');
+  e.objs[hid].marc['+1/+1'] = 4; e.objs[urso].marc['+1/+1'] = 1; e.objs[dele].marc['+1/+1'] = 2;
+  const g = M.carta('Kalonian Hydra').gat.find(x => x.ev === 'ataca');
+  ok(M.gatOk(g), 'gatilho da Kalonian aceito');
+  M.executar(e, g.fx[0], cx(e, hid), null);
+  igual([hid, urso, elfo, dele].map(id => e.objs[id].marc['+1/+1'] || 0), [8, 2, 0, 2], 'dobra só nas minhas com marcador');
+  const s = cena({ campo: [[0, 'Grizzly Bears']] });
+  M.executar(s, { op: 'ficha', quem: 'voce', qtd: 2, token: { nome: 'Food' } }, cx(s), null);
+  M.executar(s, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(s), null);
+  const sh = M.carta('Second Harvest').fx[0];
+  ok(M.fxSuportado([sh]), 'Second Harvest aceito');
+  M.executar(s, sh, cx(s), null);
+  igual(['Food', 'Treasure'].map(n => s.campo.filter(id => s.objs[id].n === n && s.objs[id].ficha).length), [4, 2], 'cada ficha ganha 1 cópia (as cópias não entram na conta)');
+  const f = M.objetosQue(s, { ficha: true, ctrl: 'voce', zona: 'campo', entrouNoTurno: true }, { voce: 0 }).length;
+  s.turno.n++;
+  igual([f, M.objetosQue(s, { ficha: true, ctrl: 'voce', zona: 'campo', entrouNoTurno: true }, { voce: 0 }).length], [6, 0], 'entrouNoTurno: só no turno em que entrou');
+});
+caso('508.4', 'ficha virada e atacando: Hero of Bladehold escolhe quem ataca; Adeline cria 1 por oponente, cada uma atacando aquele jogador; fora do combate só virada', () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Adeline, Resplendent Cathar']] });
+  e.turno.combate = { atk: [], etapa: 0, duas: false, deu1: {} };
+  const g = M.carta('Adeline, Resplendent Cathar').gat.find(x => x.ev === 'atacantesDeclarados');
+  ok(M.gatOk(g), 'gatilho da Adeline aceito');
+  M.executar(e, g.fx[0], { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, tipo, ops) => ops[ops.length - 1]);
+  igual(e.turno.combate.atk.map(r => [e.objs[r.id].n, r.def]).sort(), [['Human Token', 1], ['Human Token', 2]], 'uma ficha atacando cada oponente');
+  ok(e.turno.combate.atk.every(r => e.objs[r.id].virada), 'viradas');
+  const h = M.carta('Hero of Bladehold').gat.find(x => x.ev === 'ataca' && x.fx.some(y => y.op === 'ficha')), fx = h.fx.find(x => x.op === 'ficha');
+  ok(M.gatOk(h), 'gatilho do Hero aceito');
+  const vistos: any[] = [];
+  M.executar(e, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, tipo, ops) => { vistos.push(tipo); return ops.find(o => o.jog === 2) || ops[0]; });
+  igual([vistos, e.turno.combate.atk.filter(r => r.def === 2).length], [['atacado', 'atacado'], 3], 'Hero: cada ficha escolhe; as duas no jogador 2');
+  e.turno.combate = null;
+  const n0 = e.campo.length;
+  M.executar(e, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.campo.length - n0, 2, 'fora do combate: cria viradas, sem atacar');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');

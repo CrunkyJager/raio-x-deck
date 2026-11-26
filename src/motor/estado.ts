@@ -236,7 +236,9 @@ M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protT
 // com a frente (712.11). Em qualquer outra zona volta à frente (712.6a, 716.4) e perde a permissão da aventura.
 // CR 614.1a: "se iria morrer / ir ao cemitério, em vez disso…" — a fonte no campo (ou a própria carta, de qualquer zona:
 // Blightsteel). Várias: a primeira (616.1, a escolha do afetado fica para depois). Retorna {zona, marc?, embaralhar?}.
-function substCemiterio(e, o) {
+// talvez ("you may put it on top… instead", Library of Leng): só com quem decide (opc.ask) e só em descarte por EFEITO
+// (custo e limpeza não são efeito; ruling de Leng). Quem escolhe é o controlador da fonte, carta a carta.
+function substCemiterio(e, o, opc: any = {}) {
   const fontes = M.indiceCampo(e).sb.map(i => e.objs[i]);
   if (o.zona !== 'campo' && (M.dadoDe(e, o).subst || []).length) fontes.push(o);
   for (const F of fontes) for (const sb of M.dadoDe(e, F).subst || []) {
@@ -245,6 +247,10 @@ function substCemiterio(e, o) {
     const ctx = { voce: F.ctrl ?? F.dono, este: F.id };
     if (sb.quem && (sb.quem.este ? o.id !== F.id : !M.bate(e, o, sb.quem, ctx))) continue;
     if (sb.se) { let ok = false; try { ok = M.condicao(e, sb.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
+    if (sb.talvez) {
+      if (!opc.ask || !opc.efeito) continue;
+      if (opc.ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'subst', fonte: F.id, id: o.id, para: sb.muda && sb.muda.para }).a === 'nao') continue;
+    }
     if (sb.muda) return { zona: sb.muda.para, n: F.n };
     const [a, b] = sb.emVez;
     if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n };
@@ -252,9 +258,9 @@ function substCemiterio(e, o) {
   }
   return null;
 }
-M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null }: any = {}) => {
+M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, ask = null, efeito = false }: any = {}) => {
   const o = e.objs[id];
-  const sub = zona === 'cemiterio' ? substCemiterio(e, o) : null;
+  const sub = zona === 'cemiterio' ? substCemiterio(e, o, { ask, efeito }) : null;
   if (sub) { zona = sub.zona; M.log(e, o.n, 'vai para', zona, 'em vez do cemitério (' + sub.n + ')'); }
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
   const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
@@ -262,7 +268,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null, nivel: null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
@@ -282,7 +288,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
 // e o lote todo 'descartaGrupo' {j, n, ids} (gatilho com grupo: "uma ou mais cartas", Marauding Mako).
 // Loucura (702.35a): a carta vai para o exílio em vez do cemitério e o gatilho da loucura vai para a pilha.
 // Simplificação: o exílio da loucura é sempre escolhido; quem não quer conjurar recusa no gatilho e ela vai ao cemitério.
-M.descartar = (e, j, ids) => {
+M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte por efeito (substituição com talvez)
   const feitas: any[] = [];
   for (const id of ids) {
     const o = e.objs[id]; if (!o || o.zona !== 'mao') continue;
@@ -290,7 +296,7 @@ M.descartar = (e, j, ids) => {
     if (lk) {
       M.mover(e, id, 'exilio'); o.loucura = true;
       if (e.pend && e.turno.passo !== 'mulligan') e.pend.push({ fonte: id, ts: o.ts, ctrl: o.dono, k: 'loucura', g: GAT_LOUCURA, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'descarta', id, j, ts: o.ts } });
-    } else M.mover(e, id, 'cemiterio');
+    } else M.mover(e, id, 'cemiterio', { ask: opc.ask, efeito: opc.efeito });
     feitas.push(id);
     M.evento(e, { ev: 'descarta', id, j, ts: o.ts });
   }
@@ -644,7 +650,7 @@ M.gatDe = (e, o, lote?) => {
 };
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
-const FILTRO_OK = new Set(['este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
+const FILTRO_OK = new Set(['entrouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
   'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
@@ -669,6 +675,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.kw && !f.kw.every(k => M.temKw(e, o, k))) return false;
   if (f.comMarcador && !((o.marc || {})[f.comMarcador] > 0)) return false;   // "com um marcador hit" (Ravenloft Adventurer)   // "com infectar" (Corpse Cur): palavras-chave dela, com as camadas
   if (f.virada !== undefined && !!o.virada !== !!f.virada) return false;
+  if (f.entrouNoTurno !== undefined && (o.zona === 'campo' && o.tEntrou === e.turno.n) !== !!f.entrouNoTurno) return false;   // "que entrou neste turno" (Ocelot Pride)
   if (f.comandante !== undefined && !!o.cmd !== !!f.comandante) return false;
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
   if (f.vm && !compara(d.vm || 0, f.vm)) return false;

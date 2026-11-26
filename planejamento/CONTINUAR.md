@@ -47,8 +47,12 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 - **Masmorras: no banco 83/83 · motor joga 83/83 · inteiras 77/83.** Ivora: 75/75 · 74/75 (Library of Leng) · 50/75. Motor joga inteiras 1345/1753. Vitest 267.
 - Novos no motor: `repetirCada` por jogador (`cadaAtual`), custo `virarOutros`, `virar.naoDesvira/soNaoDesvira` (esquema), subst `morre`/`vaiCemiterio` no `M.mover` (muda.para, exilar+marcador, embaralhar no grimório), gat `danoUmaVez`, filtros `kw`/`comMarcador`, dono `atacado`, atrasado que herda o alvo, `modificar.gat`, marcador de palavra-chave (122.1b), objBate doEvento com LKI no gatilho.
 
+## Estado em 26/11 ~11h — v0.43.0 na main
+- **Ivora: no banco 75/75 · motor joga 75/75 · inteiras 51/75.** Masmorras: 83/83 · 83/83 · 77/83. Motor joga inteiras 1361/1753. Vitest 272.
+- Passo 1 antigo feito (Leng, anulada, Baylen, repetirCada de objetos, fichas atacando, caso da Undercity).
+
 ## Próximo passo (nesta ordem)
-1. Substituições que faltam: Library of Leng (vaiCemiterio com `talvez`: precisa de pergunta dentro do mover → Ivora 75/75), anulada `impedir` (12 cartas). Habilidade de mana com `virarOutros` (Baylen) no `mana.ts`, e a cobertura passar a conferir habilidade de mana. `repetirCada` com filtro de objetos (Kalonian Hydra, Second Harvest, Ocelot Pride) e as fichas `atacando` (Adeline, Ainok). Uma por commit, com caso. Corrigir o caso do B da Undercity.
+1. Habilidades de mana com escolha que o motor ainda não paga (10, aparecem como `custoMana.*` na cobertura): sacrificar outra (altares, Krark-Clan, Gilded Goose), tirar marcador (Steam-Kin, Ramos), exilar da mão (Simian Spirit Guide). Não pôr no solver automático (sacrificaria sem querer): virar ação com pergunta.
 2. `falta` da Ivora (25) e das masmorras (6): milagre, fuga, reconfigurar, "descartadas no turno"… → inteiras.
 3. Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
 4. T44 medida em lotes → T46 depois da autorização.

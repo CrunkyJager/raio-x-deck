@@ -65,17 +65,23 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
   return pac;
 };
 
-// ---- custo de ativação simples (o que a T14 sabe pagar): virar, mana, sacrificar este, vida ----
-const CUSTO_OK = new Set(['virar', 'mana', 'sacrificar', 'vida']);
+// ---- custo de ativação simples (o que a T14 sabe pagar): virar, mana, sacrificar este, vida, virar outros ----
+// virarOutros na mana (Baylen: "vire duas fichas desviradas"): sem pergunta (605.3, mana não usa a pilha); só conta quem
+// não tem habilidade de mana própria (senão o solver usaria a mesma ficha duas vezes) e vira primeiro o que não ataca.
+const CUSTO_OK = new Set(['virar', 'mana', 'sacrificar', 'vida', 'virarOutros']);
+M.custoManaOk = c => Object.keys(c || {}).every(k => CUSTO_OK.has(k)) && (!c.sacrificar || c.sacrificar === 'este') && (!c.virarOutros || M.custoSuportado({ virarOutros: c.virarOutros }));
+const virMana = (e, o, c) => M.candVir(e, o.ctrl, c, o.id).filter(x => !M.atvDe(e, x).some(a => a.deMana))
+  .sort((a, b) => (M.temTipo(e, a, 'Creature') && !a.doente ? 1 : 0) - (M.temTipo(e, b, 'Creature') && !b.doente ? 1 : 0));
 M.podeCustoAtv = (e, o, c) => {
-  for (const k in c) if (!CUSTO_OK.has(k)) return false;
-  if (c.sacrificar && c.sacrificar !== 'este') return false;
+  if (!M.custoManaOk(c)) return false;
   if (c.virar && (o.virada || (o.doente && M.temTipo(e, o, 'Creature') && !M.temKw(e, o, 'pressa')))) return false;   // CR 302.6, 702.10
   if (c.vida && (typeof c.vida !== 'number' || e.jogs[o.ctrl].vida < c.vida || M.vidaFixa(e, o.ctrl))) return false; // CR 119.4, 119.8
   if (c.mana && !M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana)) return false;
+  if (c.virarOutros && virMana(e, o, c).length < (c.virarOutros.qtd || 1)) return false;   // 302.6 não vale: não é o {T} delas
   return true;
 };
 const pagarCustoAtv = (e, o, c) => {
+  if (c.virarOutros) for (const x of virMana(e, o, c).slice(0, c.virarOutros.qtd || 1)) x.virada = true;
   if (c.virar) o.virada = true;
   if (c.mana) e.jogs[o.ctrl].reserva = M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana).resto;
   if (c.vida) e.jogs[o.ctrl].vida -= c.vida;

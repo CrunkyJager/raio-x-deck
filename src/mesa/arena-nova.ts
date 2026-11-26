@@ -390,7 +390,9 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       default: {
         const idDe = p.ctx ? (p.ctx.de !== undefined ? p.ctx.de : p.tipo === 'cmdZona' ? p.ctx.id : undefined) : undefined;
         const de = idDe !== undefined && e.objs[idDe] ? ' · ' + e.objs[idDe].n : '';
-        const r = pede('escolha', { x: { n: (TITULO[p.tipo] || p.tipo) + de }, ops: p.ops.map((o: any, k: number) => ({ v: k, n: rotulo(p, o), sec: o.a === 'ficar' || o.a === 'nao' })) });
+        const sub = p.tipo === 'talvez' && p.ctx && p.ctx.op === 'subst' && e.objs[p.ctx.id] && e.objs[p.ctx.fonte]
+          ? `${e.objs[p.ctx.fonte].n}: pôr ${e.objs[p.ctx.id].n} ${({ grimorio: "no topo do grimório", exilio: "no exílio", mao: "na mão" } as any)[p.ctx.para] || p.ctx.para} em vez do cemitério?` : '';   // substituição opcional (Library of Leng)
+        const r = pede('escolha', { x: { n: sub || (TITULO[p.tipo] || p.tipo) + de }, ops: p.ops.map((o: any, k: number) => ({ v: k, n: rotulo(p, o), sec: o.a === 'ficar' || o.a === 'nao' })) });
         return typeof r === 'number' && r >= 0 && r < p.ops.length ? r : 0;
       }
     }

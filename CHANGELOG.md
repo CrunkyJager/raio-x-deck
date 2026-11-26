@@ -2,6 +2,16 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.43.0 — 26/11/2026 · Ivora 75/75 no motor; "não pode ser anulada", Baylen, "para cada criatura", fichas atacando
+Testes: check 0 erros · Vitest 272/272 · raiox-testes igual à linha de base. Motor joga inteiras 1361/1753 (eram 1345). Partidas: Ivora 40 e masmorras 40, 0 erros.
+- **Library of Leng:** descarte por efeito pode ir ao topo do grimório, escolhido carta a carta; descarte como custo e na limpeza vai ao cemitério (ruling).
+- **"Não pode ser anulada"** (12 cartas): a própria mágica (Dovin's Veto, Supreme Verdict, Void Rend…) ou as que um permanente protege (Rhythm of the Wild, Root Sliver, Destiny Spinner, Chimil).
+- **Baylen:** mana virando duas fichas (só fichas sem mana própria, para não usar a mesma duas vezes). A cobertura agora confere o custo das habilidades de mana e mostra 10 que o motor ainda não paga: Ashnod's Altar, Phyrexian Altar, Krark-Clan Ironworks, Gilded Goose, Simian Spirit Guide, Runaway Steam-Kin…
+- **"Para cada criatura/ficha…"** (Kalonian Hydra dobra os marcadores, Second Harvest copia cada ficha) e filtro "entrou neste turno" (Ocelot Pride).
+- **Fichas viradas e atacando** (Hero of Bladehold, Brimaz, Hanweir Garrison, Mardu Ascendancy…); em "para cada oponente" cada uma ataca aquele jogador (Adeline, Ainok).
+- Caso do banco da Undercity corrigido (CR 701.49b).
+- Decks: **Ivora no banco 75/75 · motor joga 75/75 · inteiras 51/75.** Masmorras 83/83 · 83/83 · 77/83.
+
 ## v0.42.0 — 26/11/2026 · masmorras 83/83 no motor (as 8 travas)
 Testes: check 0 erros · Vitest 267/267 · raiox-testes igual à linha de base. Motor joga inteiras 1345/1753 (eram 1299). Partidas de masmorras 40, 0 erros.
 - **"Para cada oponente…" (`repetirCada`, jogador da vez `cadaAtual`):** Acererak, Braids, Tempt with Bunnies/Discovery, Echo of Eons, Field of Ruin, Dark Deal, Winds of Change, Kwain, Lobelia. O progresso por jogador sobrevive às perguntas. Braids: só quem não sacrificou perde 2 e você compra (o banco escrevia "sempre").
