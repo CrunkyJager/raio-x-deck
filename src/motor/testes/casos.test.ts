@@ -2169,6 +2169,18 @@ caso('702.34', 'Past in Flames: instantâneas e feitiços do seu cemitério ganh
   igual([e.jogs[1].vida, e.objs[bolt].zona], [37, 'exilio'], 'Raio do cemitério: 3 de dano e exílio (702.34a)');
   igual(e.objs[pif].zona, 'cemiterio');
 });
+caso('611.2b', "modificar até o seu próximo turno (For the Common Good, Savage Order) e enquanto no campo (Hellkite Courser: 'ganha ímpeto')", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears']], passo: 'final' }); e.pend = [];
+  const [u, v] = e.campo;
+  const ctx: any = { voce: 0, este: u, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  ok(M.fxSuportado([{ op: 'modificar', em: 'este', kw: [{ k: 'indestrutivel' }], dura: 'proximoTurnoSeu' }], {}) && M.fxSuportado([{ op: 'modificar', em: 'este', kw: [{ k: 'pressa' }], dura: 'enquantoNoCampo' }], {}), 'aceitos');
+  M.executar(e, { op: 'modificar', em: 'este', kw: [{ k: 'indestrutivel' }], dura: 'proximoTurnoSeu' }, ctx, null);
+  M.executar(e, { op: 'modificar', em: 'este', kw: [{ k: 'pressa' }], dura: 'enquantoNoCampo' }, { ...ctx, este: v }, null);
+  const tem = (id, k) => M.temKw(e, e.objs[id], k);
+  passarAte(e, 'principal1'); igual([e.turno.ativo, tem(u, 'indestrutivel'), tem(v, 'pressa')], [1, true, true], 'no turno do outro: ainda indestrutível; ímpeto fica');
+  passarAte(e, 'final'); passarAte(e, 'principal1'); igual([e.turno.ativo, tem(u, 'indestrutivel'), tem(v, 'pressa')], [0, false, true], 'no seu próximo turno: acabou; ímpeto fica');
+  M.mover(e, v, 'mao'); M.mover(e, v, 'campo'); ok(!tem(v, 'pressa'), 'mudou de zona: objeto novo (400.7)');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
