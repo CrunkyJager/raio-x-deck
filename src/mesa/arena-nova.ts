@@ -110,7 +110,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
           tap: o.virada ? 1 : 0, atk: M.atacando(e, o) ? 1 : 0, i: o.dono === j ? iDe(o) : -1 };
         if (cri && d.pt) {
           const b = M.camadas(e, o); x.bp = b.p; x.bt = b.r;
-          if (o.marc['+1/+1']) { x.ct = o.marc['+1/+1']; x.bp += x.ct; x.bt += x.ct; }
+          if (o.marc['+1/+1']) x.ct = o.marc['+1/+1'];   // marcador fica à parte do bônus (Edigar 26/11: lorde +1/+1 ≠ marcador +1/+1)
+          if (o.marc['-1/-1']) x.cm = o.marc['-1/-1'];
           if (b.kw.length) x.kw = [...new Set(b.kw.map((y: any) => kwNome(y.k)))];
         }
         const an = M.anexosDe(e, o);
