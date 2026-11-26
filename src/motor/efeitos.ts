@@ -4,7 +4,7 @@
 import { M } from './nucleo';
 
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando']);
-const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual']);
+const QUEM_OK = new Set(['cadaOutroOponente', 'voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual']);
 // cadaAtual (o jogador da vez) só vale dentro de um repetirCada: fora dele seria um jogador que não existe
 let dentroCada = 0, dentroObj = 0;
 const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada--; } };
@@ -204,6 +204,7 @@ function jogsDe(e, f, ctx) {
   switch (f.quem) {
     case undefined: case 'voce': return vivos.includes(ctx.voce) ? [ctx.voce] : [];
     case 'cadaOponente': return vivos.filter(j => j !== ctx.voce);
+    case 'cadaOutroOponente': { const d = ctx.ev && ctx.ev.jog; return vivos.filter(j => j !== ctx.voce && j !== d); }   // "each other opponent": menos o que levou o dano (Kediss)
     case 'atacado': return ctx.ev && ctx.ev.def !== undefined && vivos.includes(ctx.ev.def) ? [ctx.ev.def] : [];   // o jogador defensor do ataque (Kozilek, Ulamog: 508.5)
     case 'cadaJogador': return vivos;
     case 'alvoJogador': { for (let i = 0; i < ctx.alvos.length; i++) { const js = jogsAlvo(e, i, ctx); if (js.length) return js; } return []; }

@@ -442,6 +442,7 @@
       "voce",
       "oponente",
       "cadaOponente",
+      "cadaOutroOponente",
       "cadaJogador",
       "alvoJogador",
       "dono",
@@ -760,6 +761,10 @@
     "porOponente": {
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
+    },
+    "diferenteDe": {
+     "type": "integer",
+     "description": "\"another target\": não pode ser o escolhido no alvo N"
     },
     "opcao": {
      "enum": [
@@ -1921,6 +1926,10 @@
     },
     "aJogador": {
      "type": "boolean"
+    },
+    "aJogadorOuPw": {
+     "type": "boolean",
+     "description": "o dano é a um jogador ou planeswalker (Neheb)"
     },
     "aOponente": {
      "type": "boolean",

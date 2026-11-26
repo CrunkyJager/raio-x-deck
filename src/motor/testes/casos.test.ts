@@ -1802,6 +1802,20 @@ caso('701.9', 'conta de descartadas no turno: Change of Fortune compra pelas des
   for (const f of sr) M.executar(e, f, c2, (j, t, ops) => ops[0]);
   igual([e.jogs[1].zonas.mao.length, e.jogs[0].zonas.mao.length - m0], [0, 1], 'oponente só tinha 1: você compra 1');
 });
+caso('115.3', '"outro": Kediss acerta cada OUTRO oponente; Markov Retribution não deixa o 2º alvo ser o 1º; Neheb dispara em jogador ou planeswalker, não em criatura', () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Kediss, Emberclaw Familiar']] });
+  const k = M.carta('Kediss, Emberclaw Familiar').gat[0];
+  ok(M.gatOk(k), 'gatilho da Kediss aceito');
+  const v = e.jogs.map(J => J.vida);
+  M.executar(e, k.fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'dano', jog: 1, q: 3, combate: true, fonte: e.campo[0] } }, null);
+  igual(e.jogs.map((J, i) => v[i] - J.vida), [0, 0, 3], 'só o jogador 2 leva (o 1 já levou o de combate)');
+  const m = cena({ campo: [[0, 'Vampire Nighthawk'], [1, 'Grizzly Bears']] });
+  const d = M.carta('Markov Retribution'), vamp = m.campo[0], vistos: any[] = [];
+  M.escolherAlvos(m, 0, d, d.fx[0].modos[1], { voce: 0 }, (j, t, ops, c) => { vistos.push([c.i, ops.filter(o => o.a === 'alvo').map(o => o.o)]); return ops.find(o => o.a === 'alvo') || ops[0]; });
+  igual(vistos, [[0, [vamp]], [1, [m.campo[1]]]], 'o 2º alvo não oferece o Vampiro já escolhido');
+  const n = M.carta('Neheb, Dreadhorde Champion').gat[0];
+  ok(M.gatOk(n), 'gatilho do Neheb aceito');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
