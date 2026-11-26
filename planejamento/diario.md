@@ -55,3 +55,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 26/11 08:39 v0.41.0: Mesa ao vivo mana livre + tapete (comando no centro) + fundo por lugar; conserto do tipo (CI)
 - 26/11 tarde: v0.42.0 — masmorras 83/83 no motor (repetirCada, virarOutros, subst morre/vaiCemiterio, atrasado com alvo, danoUmaVez, filtros kw/comMarcador). Inteiras 1345/1753.
 - 26/11 ~11h v0.43.0: Library of Leng (Ivora 75/75), não pode ser anulada, Baylen + cobertura de mana, repetirCada de objetos, fichas atacando. Inteiras 1361/1753.
+- 26/11 ~12h v0.44.0: fuga, gatilhos cicla/desvira/jogaTerreno/prolifera, "outro", descartadas no turno. Ivora inteiras 65/75.

@@ -301,6 +301,7 @@
           "oponentes",
           "marcadoresNoEste",
           "marcadoresNoCada",
+          "descartadasNoTurno",
           "evento",
           "X",
           "jogadores",
@@ -441,6 +442,7 @@
       "voce",
       "oponente",
       "cadaOponente",
+      "cadaOutroOponente",
       "cadaJogador",
       "alvoJogador",
       "dono",
@@ -760,6 +762,10 @@
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
     },
+    "diferenteDe": {
+     "type": "integer",
+     "description": "\"another target\": não pode ser o escolhido no alvo N"
+    },
     "opcao": {
      "enum": [
       "chute",
@@ -806,7 +812,8 @@
       "criadas",
       "escolhida",
       "anterior",
-      "cadaAtual"
+      "cadaAtual",
+      "descartadaCusto"
      ]
     }
    ]
@@ -1210,6 +1217,10 @@
       },
       "max": {
        "type": "integer"
+      },
+      "naoRepeteNoTurno": {
+       "type": "boolean",
+       "description": "só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)"
       },
       "maxSe": {
        "type": "object",
@@ -1768,7 +1779,8 @@
       "fusao",
       "intimidar",
       "decaida",
-      "infectar"
+      "infectar",
+      "fuga"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1791,6 +1803,17 @@
     "pagar": {
      "$ref": "#/$defs/custoAtv",
      "description": "resguardo com custo que não é mana (pagar vida)"
+    },
+    "exilar": {
+     "type": "integer",
+     "description": "fuga: quantas OUTRAS cartas do seu cemitério exilar"
+    },
+    "comMarc": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "integer"
+     },
+     "description": "fuga: 'foge com' esses marcadores (702.138c)"
     }
    }
   },
@@ -1851,6 +1874,10 @@
    "properties": {
     "ev": {
      "enum": [
+      "cicla",
+      "desvira",
+      "jogaTerreno",
+      "prolifera",
       "entra",
       "morre",
       "vaiCemiterio",
@@ -1920,6 +1947,10 @@
     },
     "aJogador": {
      "type": "boolean"
+    },
+    "aJogadorOuPw": {
+     "type": "boolean",
+     "description": "o dano é a um jogador ou planeswalker (Neheb)"
     },
     "aOponente": {
      "type": "boolean",
@@ -2036,7 +2067,8 @@
       "dobraGatilho",
       "ataqueCusta",
       "naoPodeAtivar",
-      "deveBloquear"
+      "deveBloquear",
+      "darFuga"
      ],
      "description": "naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
     },
@@ -2187,6 +2219,10 @@
     "atacante": {
      "$ref": "#/$defs/objeto",
      "description": "deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)"
+    },
+    "exilar": {
+     "type": "integer",
+     "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
     }
    }
   },

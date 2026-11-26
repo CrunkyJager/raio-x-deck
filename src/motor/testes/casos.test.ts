@@ -1523,6 +1523,7 @@ caso('702.29a', 'ciclar: da mão, paga e descarta esta, compra 1; o descarte dis
   igual(naZona(e, 0, 'cemiterio'), ['Magmakin Artillerist']);
   igual([o('Ivora, Insatiable Heir').marc['+1/+1'], o('Marauding Mako').marc['+1/+1']], [1, 1]);
   igual(e.jogs[0].zonas.mao.length, 1, 'comprou 1');
+  igual(e.jogs[1].vida, 39, 'quando cicla: 1 de dano em cada oponente (do cemitério)');
 });
 caso('701.9c', 'agente: filtra com gatilho de descarte (Ivora + Blood com o último terreno da mão); sem gatilho, não', () => {
   for (const ivora of [true, false]) {
@@ -1786,6 +1787,91 @@ caso('508.4', 'ficha virada e atacando: Hero of Bladehold escolhe quem ataca; Ad
   const n0 = e.campo.length;
   M.executar(e, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
   igual(e.campo.length - n0, 2, 'fora do combate: cria viradas, sem atacar');
+});
+caso('701.9', 'conta de descartadas no turno: Change of Fortune compra pelas descartadas no turno todo; Skull Raid compra a diferença', () => {
+  const e = cena({ mao: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Forest'], [1, 'Forest']] });
+  const cx = (al: any = []) => ({ voce: 0, alvos: al, ilegal: {}, lki: { alvos: [] } });
+  M.descartar(e, 0, [e.jogs[0].zonas.mao[0]]);                      // 1 antes (custo, outro efeito…)
+  const cof = M.carta('Change of Fortune').fx;
+  ok(M.fxSuportado(cof), 'Change of Fortune aceito');
+  for (const f of cof) M.executar(e, f, cx(), null);
+  igual([e.jogs[0].zonas.mao.length, e.jogs[0].zonas.cemiterio.length], [3, 3], 'descartou 2 da mão + 1 antes = compra 3');
+  e.turno.n++;
+  const sr = M.carta('Skull Raid').fx, c2 = cx([[{ jog: 1 }]]);
+  ok(M.fxSuportado(sr), 'Skull Raid aceito');
+  const m0 = e.jogs[0].zonas.mao.length;
+  for (const f of sr) M.executar(e, f, c2, (j, t, ops) => ops[0]);
+  igual([e.jogs[1].zonas.mao.length, e.jogs[0].zonas.mao.length - m0], [0, 1], 'oponente só tinha 1: você compra 1');
+});
+caso('115.3', '"outro": Kediss acerta cada OUTRO oponente; Markov Retribution não deixa o 2º alvo ser o 1º; Neheb dispara em jogador ou planeswalker, não em criatura', () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Kediss, Emberclaw Familiar']] });
+  const k = M.carta('Kediss, Emberclaw Familiar').gat[0];
+  ok(M.gatOk(k), 'gatilho da Kediss aceito');
+  const v = e.jogs.map(J => J.vida);
+  M.executar(e, k.fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'dano', jog: 1, q: 3, combate: true, fonte: e.campo[0] } }, null);
+  igual(e.jogs.map((J, i) => v[i] - J.vida), [0, 0, 3], 'só o jogador 2 leva (o 1 já levou o de combate)');
+  const m = cena({ campo: [[0, 'Vampire Nighthawk'], [1, 'Grizzly Bears']] });
+  const d = M.carta('Markov Retribution'), vamp = m.campo[0], vistos: any[] = [];
+  M.escolherAlvos(m, 0, d, d.fx[0].modos[1], { voce: 0 }, (j, t, ops, c) => { vistos.push([c.i, ops.filter(o => o.a === 'alvo').map(o => o.o)]); return ops.find(o => o.a === 'alvo') || ops[0]; });
+  igual(vistos, [[0, [vamp]], [1, [m.campo[1]]]], 'o 2º alvo não oferece o Vampiro já escolhido');
+  const n = M.carta('Neheb, Dreadhorde Champion').gat[0];
+  ok(M.gatOk(n), 'gatilho do Neheb aceito');
+});
+caso('701.26b', 'gatilhos novos: desvirar (Key to the City paga {2} e compra), jogar terreno de fora da mão (Shadow of the Goblin), proliferar (Voidwing Hybrid volta do cemitério)', () => {
+  for (const [n, g] of [['Key to the City', 'desvira'], ['Shadow of the Goblin', 'jogaTerreno'], ['Voidwing Hybrid', 'prolifera']]) ok(M.gatOk(M.carta(n).gat.find(x => x.ev === g)), n + ': gatilho aceito');
+  const e = cena({ campo: [...terras(3, 'Wastes'), [0, 'Key to the City'], [0, 'Shadow of the Goblin']], mao: [[0, 'Forest']] });
+  e.pend = [];
+  const key = e.objs[e.campo.find(id => e.objs[id].n === 'Key to the City')];
+  key.virada = true; M.desvirarObj(e, key);
+  M.avancar(e); resolveCom(e, p => p.tipo === 'talvez' || p.tipo === 'pagar' ? p.ops.findIndex(o => o.a === 'sim' || o.a === 'pagar') : -1);
+  igual([e.jogs[0].zonas.mao.length, e.campo.filter(id => e.objs[id].virada).length], [2, 2], 'pagou {2} (2 Wastes viradas) e comprou 1');
+  const v = e.jogs[1].vida, forest = e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Forest');
+  e.perg = null; M.avancar(e); respE(e, o => o.a === 'terreno' && o.id === forest); resolveCom(e);
+  igual(e.jogs[1].vida, v, 'terreno da mão: sem dano');
+  const g = e.jogs[0].zonas.grimorio, wa = g[g.length - 1];
+  M.mover(e, wa, 'exilio'); (e.permJogar = e.permJogar || []).push({ id: wa, ts: e.objs[wa].ts, j: 0 }); e.jogs[0].terrenos = 0;
+  e.perg = null; M.avancar(e); respE(e, o => o.a === 'terreno' && o.id === wa); resolveCom(e);
+  igual(v - e.jogs[1].vida, 1, 'terreno do exílio: 1 de dano em cada oponente');
+  const p = cena({ mao: [[0, 'Voidwing Hybrid']] }); p.pend = [];
+  M.descartar(p, 0, p.jogs[0].zonas.mao.slice());
+  M.executar(p, { op: 'proliferar', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  M.avancar(p); resolveCom(p);
+  igual(naZona(p, 0, 'mao'), ['Voidwing Hybrid'], 'proliferou (mesmo sem escolher nada): volta à mão');
+});
+caso('700.2', 'modal sem repetir no turno (Monument to Endurance): cada descarte oferece só os modos ainda não escolhidos; no turno seguinte volta tudo', () => {
+  const e = cena({ campo: [[0, 'Monument to Endurance']] });
+  const mon = e.campo[0], d = M.carta('Monument to Endurance').gat[0], dg = { alvos: [], fx: d.fx };
+  const ofer: any[] = [];
+  const pega = () => M.escolherModos(e, 0, dg, d.fx[0], (j, t, ops) => { ofer.push(ops.filter(o => o.a === 'modo').map(o => o.m)); return ops.find(o => o.a === 'modo') || ops[0]; }, mon);
+  igual([pega(), pega(), pega(), pega()], [[0], [1], [2], []], 'um de cada; o 4º fica sem modo (603.3c: sai)');
+  igual(ofer, [[0, 1, 2], [1, 2], [2]]);
+  e.turno.n++;
+  igual(pega(), [0], 'turno novo: o 1º volta');
+});
+caso('601.2f', 'condição sobre a carta descartada no custo (Grab the Prize): descartou mágica → 2 em cada oponente; descartou terreno → só compra', () => {
+  for (const desc of ['Grizzly Bears', 'Forest']) {
+    const e = cena({ campo: terras(2), mao: [[0, 'Grab the Prize'], [0, desc]] }); e.pend = []; e.jogs[0].terrenos = 1;
+    const v = e.jogs[1].vida;
+    M.avancar(e); conj(e, 'Grab the Prize');
+    resolveCom(e, p => p.tipo === 'custo' || p.tipo === 'descartar' ? p.ops.findIndex(o => o.id !== undefined && e.objs[o.id].n === desc) : -1);
+    igual([naZona(e, 0, 'cemiterio').sort(), e.jogs[0].zonas.mao.length, v - e.jogs[1].vida], [[desc, 'Grab the Prize'].sort(), 2, desc === 'Forest' ? 0 : 2], desc);
+  }
+});
+caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
+  for (const n of [8, 7]) {
+    const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;
+    const ox = e.jogs[0].zonas.grimorio.pop(); e.objs[ox].n = 'Ox of Agonas'; M.mover(e, ox, 'cemiterio');
+    for (let i = 0; i < n; i++) M.mover(e, e.jogs[0].zonas.grimorio[0], 'cemiterio');
+    igual(M.podeConjurar(e, 0, e.objs[ox]), n === 8, n + ' outras no cemitério');
+    if (n !== 8) continue;
+    M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === ox); resolveCom(e);
+    igual([e.objs[ox].zona, e.objs[ox].marc['+1/+1'], e.jogs[0].zonas.exilio.length, e.jogs[0].zonas.cemiterio.length], ['campo', 1, 8, 0], 'fugiu: no campo com +1/+1, as 8 no exílio');
+  }
+  const b = cena({ campo: [...terras(1), [0, 'Underworld Breach']], mao: [[0, 'Lightning Bolt']] }); b.pend = [];
+  const bolt = b.jogs[0].zonas.mao[0]; M.mover(b, bolt, 'cemiterio');
+  for (let i = 0; i < 3; i++) M.mover(b, b.jogs[0].zonas.grimorio[0], 'cemiterio');
+  ok(M.porFuga(b, 0, b.objs[bolt]) && M.podeConjurar(b, 0, b.objs[bolt]), 'Breach: o Raio tem fuga com {R} + 3');
+  igual(M.fugaDe(b, 0, b.objs[bolt]).mana, M.carta('Lightning Bolt').custo, 'custo = o custo de mana dele');
 });
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];

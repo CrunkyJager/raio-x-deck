@@ -223,6 +223,8 @@ function estJog(e, j, ok) {
   }
   return false;
 }
+// desvirar um permanente (CR 701.26b): dispara 'desvira' ("whenever this becomes untapped", Key to the City)
+M.desvirarObj = (e, o) => { if (!o || !o.virada) return; o.virada = false; if (M.evento) M.evento(e, { ev: 'desvira', id: o.id, ts: o.ts }); };
 // "sua vida não pode mudar" (Teferi's Protection, Flare of Fortitude, Platinum Emperion): sem ganho, perda nem pagar vida (119.8)
 M.vidaFixa = (e, j) => estJog(e, j, s => s.modo === 'vidaNaoMuda');
 // "você tem proteção contra tudo" (702.16j, 702.16b): não é alvo, dano a você é prevenido. Só 'tudo' por ora.
@@ -300,6 +302,7 @@ M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte p
     feitas.push(id);
     M.evento(e, { ev: 'descarta', id, j, ts: o.ts });
   }
+  if (feitas.length) { const J = e.jogs[j]; J.descT = { t: e.turno.n, n: (J.descT && J.descT.t === e.turno.n ? J.descT.n : 0) + feitas.length }; }   // conta descartadasNoTurno
   if (feitas.length) M.evento(e, { ev: 'descartaGrupo', j, n: feitas.length, ids: feitas });
   if (feitas.length) M.log(e, e.jogs[j].nome, 'descarta', feitas.map(id => e.objs[id].n).join(', '));
   return feitas;
