@@ -42,7 +42,7 @@ try {
       for (const m of ms) anota(m, n);
     }
   };
-  const BASE_CARTA = new Set(['v', 'n', 'id', 'oracleHash', 'vm', 'ci', 'cores', 'tipos', 'rev', 'custo', 'sub', 'pt', 'super', 'fx', 'alvos', 'gat', 'atv', 'kw', 'est', 'subst', 'falta', 'faces', 'forma', 'custoAd', 'leal']);
+  const BASE_CARTA = new Set(['v', 'n', 'id', 'oracleHash', 'vm', 'ci', 'cores', 'tipos', 'rev', 'custo', 'sub', 'pt', 'super', 'fx', 'alvos', 'gat', 'atv', 'kw', 'est', 'subst', 'falta', 'faces', 'forma', 'custoAd', 'leal', 'niveis']);
   const cartas = Object.values(bancoProprio());
   const travadas = new Set();
   for (const c of cartas) {
@@ -85,6 +85,7 @@ try {
       for (const x of d.kw || []) if (!citado.has(x.k)) anota(`kw ${x.k}`, n);
       for (const s of d.subst || []) { const t = s.modo || s.tipo || s.ev || Object.keys(s).join('+'); if (!citado.has(t)) anota(`subst ${t}`, n); }
       for (const f of d.faces || []) ve(f);
+      for (const l of d.niveis || []) ve(l);   // Classe: cada nível (n, custo, gat/est/atv)
     };
     ve(c);
     const depois = [...motivos.values()].reduce((s, v) => s + (v.has(n) ? 1 : 0), 0);

@@ -1672,6 +1672,38 @@ caso('613.1d', 'Brotherhood Regalia: a equipada vira Assassin (camada 4), ganha 
   igual(sub(le).includes('Assassin'), false, 'fora do campo, só o impresso');
 });
 
+caso('716.2', 'Classe (Cool but Rude): entra no nível 1; subir só do nível anterior, como feitiço; o nível 2 soma o gatilho de descarte', () => {
+  const e = cena({ campo: terras(6, 'Mountain') });
+  const cr = e.por(0, 'Cool but Rude');
+  igual(cr.nivel, 1, 'entra no nível 1 (716.2c)');
+  const sobe = M.atvDe(e, cr).map((a, k) => [a._nivel, k]).filter(([n]) => n);
+  igual(sobe.map(([n]) => n), [2, 3]);
+  const k2 = sobe[0][1], k3 = sobe[1][1];
+  igual([M.podeAtivar(e, 0, cr, k2), M.podeAtivar(e, 0, cr, k3)], [true, false], 'nível 3 só depois do 2 (716.2a)');
+  igual((M.gatDe(e, cr) || []).map(g => g.ev), ['atacantesDeclarados']);
+  M.executar(e, M.atvDe(e, cr)[k2].fx[0], { voce: 0, este: cr.id, alvos: [], ilegal: {}, lki: {} }, null);
+  igual([cr.nivel, (M.gatDe(e, cr) || []).map(g => g.ev)], [2, ['atacantesDeclarados', 'descarta']], 'o nível 2 soma o gatilho');
+  igual([M.podeAtivar(e, 0, cr, k2), M.podeAtivar(e, 0, cr, k3)], [false, true]);
+  e.turno.passo = 'combate'; igual(M.podeAtivar(e, 0, cr, k3), false, 'só como feitiço'); e.turno.passo = 'principal1';
+  M.mover(e, cr.id, 'mao'); M.mover(e, cr.id, 'campo');
+  igual([cr.nivel, (M.gatDe(e, cr) || []).length], [1, 1], 'saiu e voltou: objeto novo, nível 1 (400.7)');
+  ok(M.gatOk({ ev: 'nivel', n: 3, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }) && !M.gatOk({ ev: 'nivel', fx: [] }), "gat ev 'nivel' pede n");
+  // nível 3 (716.2b): "quando vira nível 3" busca uma carta e descarta uma ao acaso (701.9b); o descarte dispara o do nível 2
+  const g = cena({ campo: terras(6, 'Mountain'), mao: [[0, 'Grizzly Bears'], [0, 'Hill Giant']] });
+  const c2 = g.por(0, 'Cool but Rude'); g.pend = [];
+  const kk = M.atvDe(g, c2).map((a, k) => [a._nivel, k]).filter(([n]) => n).map(([, k]) => k);
+  M.executar(g, M.atvDe(g, c2)[kk[0]].fx[0], { voce: 0, este: c2.id, alvos: [], ilegal: {}, lki: {} }, null);
+  M.executar(g, M.atvDe(g, c2)[kk[1]].fx[0], { voce: 0, este: c2.id, alvos: [], ilegal: {}, lki: {} }, null);
+  igual([c2.nivel, g.pend.length], [3, 1], 'o gatilho do nível 3 disparou');
+  ok(M.fxSuportado(M.gatDe(g, c2).find(x => x.ev === 'nivel').fx), 'busca e descarte ao acaso lidos');
+  const mao0 = g.jogs[0].zonas.mao.length, vida1 = g.jogs[1].vida;
+  M.avancar(g); resolveCom(g);
+  igual(g.jogs[0].zonas.mao.length, mao0, '+1 da busca, −1 ao acaso');
+  igual(g.jogs[0].zonas.cemiterio.length, 1);
+  M.avancar(g); resolveCom(g);
+  igual(g.jogs[1].vida, vida1 - 2, 'o descarte disparou o nível 2: 2 de dano em cada oponente');
+});
+
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
   const e = cena({ campo: terras(2, 'Wastes') });
   const sr = e.por(0, 'Sol Ring', { zona: 'grimorio' }), gr = e.jogs[0].zonas.grimorio; gr.unshift(gr.pop());   // no fundo: não é comprado

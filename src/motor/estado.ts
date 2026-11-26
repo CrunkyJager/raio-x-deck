@@ -41,9 +41,22 @@ const misto = (d, m) => {
   return r;
 };
 let lendoTipo = 0;
+// Classe (CR 716): no campo, o dado soma as habilidades dos níveis atingidos (716.2b/c; niveis[] do banco, n ≥ 2).
+// Guardado por dado + nível: ler continua sem alocar.
+const NIVEL = new WeakMap<object, Map<number, any>>();
+const comNivel = (d, nv) => {
+  let m = NIVEL.get(d); if (!m) NIVEL.set(d, (m = new Map()));
+  let r = m.get(nv); if (r) return r;
+  r = { ...d };
+  for (const l of d.niveis) if (l.n <= nv) for (const k of ['gat', 'est', 'atv']) if (l[k] && l[k].length) r[k] = [...(r[k] || []), ...l[k]];
+  m.set(nv, r);
+  return r;
+};
+M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
   if (o.zona !== 'campo') return d;
+  if (o.nivel > 1 && d.niveis) d = comNivel(d, o.nivel);
   const A = o.anim;
   if (A && A.length) for (const a of A) if (a.ts === o.ts) d = misto(d, a);
   const st = tipoEste(d);
@@ -227,9 +240,10 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null, nivel: null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
+  if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
   if (zona === 'campo') M.campoEntra(e, id);
@@ -559,11 +573,19 @@ const ciclarDe = kw => {
   if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }));
   return a;
 };
+// subir de nível (CR 716.2a): "[custo]: Nível N" — ativada como feitiço, só com a Classe no nível N−1 (pilha.ts podeAtivar)
+const SUBIR = new WeakMap<object, any>();
+const subirDe = l => {
+  let a = SUBIR.get(l);
+  if (!a) SUBIR.set(l, (a = { custo: { mana: l.custo || {} }, vel: 'feitico', _nivel: l.n, fx: [{ op: 'subirNivel', n: l.n }] }));
+  return a;
+};
 const atvCarta = d => {
   let l = ATV_CARTA.get(d);
   if (!l) {
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
-    ATV_CARTA.set(d, (l = eq.length || ci.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe)] : d.atv || NADA.atv));
+    const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe)] : d.atv || NADA.atv));
   }
   return l as any[];
 };
