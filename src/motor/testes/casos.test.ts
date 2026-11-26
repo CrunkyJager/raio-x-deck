@@ -697,8 +697,9 @@ caso('603.2', 'Phyrexian Rager entra: gatilho na pilha, resolve: compra 1 e perd
 caso('603.10a', 'Blood Artist morre junto com outra criatura: olha para trás e dispara as duas vezes', () => {
   const e = cena({ campo: [[0, 'Blood Artist'], [1, 'Grizzly Bears']] }); e.cfg.log = true;
   for (const id of e.campo) e.objs[id].dano = 5;
-  M.avancar(e);
+  M.avancar(e); resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
   igual(contaLog(e, 'gatilho de Blood Artist'), 2);
+  igual([e.jogs[1].vida, e.jogs[0].vida], [38, 42], 'alvo jogador (alvoJogador): cada um tira 1 e ganha 1');
 });
 caso('603.2', 'Young Pyromancer: conjurar instantânea cria a ficha antes da mágica resolver', () => {
   const e = cena({ campo: [[0, 'Mountain'], [0, 'Young Pyromancer']], mao: [[0, 'Lightning Bolt']] });
@@ -2843,6 +2844,35 @@ caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no co
   igual([e.jogs[0].imposto[sf.id], e.jogs[0].imposto[dv.id]], [1, 1]);
   M.mover(e, sf.id, 'mao');                                         // volta ao comando (903.9b): o imposto dela é 2, o do Delver não muda
   igual([sf.zona, M.vmDe(M.custoComImposto(e, sf)), e.jogs[0].imposto[dv.id]], ['comando', 5, 1]);
+});
+
+// perda de vida como evento (CR 119.3, 120.3a): Mindcrank mói o que o oponente perdeu, Exquisite Blood ganha isso,
+// Vilis (do oponente) compra isso; pagar vida é perder vida (119.4). Sanguine Bond + Exquisite Blood: o laço termina com
+// o oponente morto (704.5a), sem travar.
+caso('119.3', 'perdeVida: Bolt no oponente → Mindcrank mói 3, Exquisite Blood ganha 3, Vilis do oponente compra 3', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mindcrank'], [0, 'Exquisite Blood'], [1, 'Vilis, Broker of Blood']], mao: [[0, 'Lightning Bolt']] });
+  e.pend = [];
+  M.avancar(e); conj(e, 'Lightning Bolt');
+  if (e.perg && e.perg.tipo === 'alvo') alvoJog(e, 1);
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  igual([e.jogs[1].vida, e.jogs[0].vida], [37, 43], 'vidas ' + JSON.stringify(e.log.slice(-10)));
+  igual(e.jogs[1].zonas.cemiterio.length, 3, 'Mindcrank: mói 3');
+  igual(e.jogs[1].zonas.mao.length, 3, 'Vilis: compra 3');
+});
+caso('119.4', 'pagar vida é perder vida: Vilis dispara com o pagamento; ganhar vida não dispara perdeVida', () => {
+  const e = cena({ campo: [[0, 'Vilis, Broker of Blood']] });
+  e.pend = [];
+  M.perderVida(e, 0, 2); M.ganharVida(e, 0, 5);
+  igual(e.pend.map(p => [p.n, p.ev.ev, p.ev.q]), [['Vilis, Broker of Blood', 'perdeVida', 2]], 'só a perda dispara o Vilis');
+});
+caso('704.5a', 'Sanguine Bond + Exquisite Blood: um Bolt no oponente vira laço, o oponente morre e o laço para', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Sanguine Bond'], [0, 'Exquisite Blood']], mao: [[0, 'Lightning Bolt']] });
+  e.pend = [];
+  M.avancar(e); conj(e, 'Lightning Bolt');
+  if (e.perg && e.perg.tipo === 'alvo') alvoJog(e, 1);
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  ok(e.jogs[1].vida <= 0 || e.jogs[1].saiu || (e.fim && e.fim.vencedor === 0), 'oponente com ' + e.jogs[1].vida + ' fim ' + JSON.stringify(e.fim));
+  ok(e.jogs[0].vida >= 77, 'eu com ' + e.jogs[0].vida);
 });
 
 // ---------- rodar ----------

@@ -5,7 +5,7 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera']);
 const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio']);
 const LACO = 500;
@@ -52,7 +52,7 @@ function bateEv(e, g, ev, F) {
     case 'descarta': return g.grupo                    // CR 701.9: uma vez por carta, ou uma vez pelo lote ("one or more")
       ? ev.ev === 'descartaGrupo' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && (!g.quem || ev.ids.some(id => bate(e, e.objs[id], g.quem, ctx)))
       : ev.ev === 'descarta' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && q(e.objs[ev.id]);
-    case 'ganhaVida': return ev.ev === 'ganhaVida' && relJog(g.jog || 'voce', ev.j, F.ctrl);
+    case 'ganhaVida': case 'perdeVida': return ev.ev === g.ev && relJog(g.jog || 'voce', ev.j, F.ctrl);   // 119.9/119.10: um disparo por evento
     case 'alvoDe': {                                   // CR 115.1, 603.2: "becomes the target of" (ao conjurar/ativar/pôr na pilha)
       if (ev.ev !== 'alvoDe' || !q(e.objs[ev.id])) return false;
       if (!g.por) return true;

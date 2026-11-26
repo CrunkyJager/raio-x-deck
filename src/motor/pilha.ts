@@ -108,6 +108,13 @@ const alvosUsados = fx => {
   anda(fx);
   return [...s].sort((a, b) => a - b);
 };
+// quem: 'alvoJogador' ("target player loses 1 life": Blood Artist, Sanguine Bond, Hedron Crab, Liliana) não diz o
+// índice; usa o alvo de jogador declarado (f 'jogador'/'oponente'). Sem isso o alvo nunca era escolhido e o efeito sumia.
+const alvosUsadosDe = (d, fx) => {
+  const s = new Set<number>(alvosUsados(fx));
+  if (JSON.stringify(fx || []).includes('"alvoJogador"')) (d.alvos || []).forEach((a, i) => { if (a && (a.f === 'jogador' || a.f === 'oponente')) s.add(i); });
+  return [...s].sort((a, b) => a - b);
+};
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros']);
@@ -465,7 +472,7 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc?: any) {
   const esc: any[] = [];
   let total = 0;
-  for (const i of alvosUsados(fx)) {
+  for (const i of alvosUsadosDe(d, fx)) {
     if (!alvoAtivo(d.alvos[i], opc)) { esc[i] = []; continue; }     // alvo de outra opção (chute/presente)
     const a = d.alvos[i], min = a.min ?? 1, max = a.max === 'qualquer' ? Infinity : a.max ?? 1, lista: any[] = [];
     while (lista.length < max) {
@@ -584,7 +591,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.virar) o.virada = true;
   if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
-  if (c.vida) J.vida -= c.vida;
+  if (c.vida) M.perderVida(e, j, c.vida);
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   for (const id of esc.sac) M.mover(e, id, 'cemiterio');            // CR 701.21
   if (esc.desc.length) M.descartar(e, j, esc.desc);
@@ -599,7 +606,7 @@ function pagarMana(e, j, pl, custo, x, para?) {
   if (pl.improv) { for (const id of pl.improv) e.objs[id].virada = true; custo = pl.custo; }   // improvisar (702.126a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(M.reservaCom(e, j, para), custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
-  M.acertarRestrita(e, j, para, pg.resto); e.jogs[j].vida -= pg.vida;
+  M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
 }
 
 const PROC = {

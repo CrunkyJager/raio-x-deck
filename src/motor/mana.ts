@@ -84,7 +84,7 @@ const pagarCustoAtv = (e, o, c) => {
   if (c.virarOutros) for (const x of virMana(e, o, c).slice(0, c.virarOutros.qtd || 1)) x.virada = true;
   if (c.virar) o.virada = true;
   if (c.mana) e.jogs[o.ctrl].reserva = M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana).resto;
-  if (c.vida) e.jogs[o.ctrl].vida -= c.vida;
+  if (c.vida) M.perderVida(e, o.ctrl, c.vida);
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
 };
 
@@ -301,6 +301,6 @@ M.pagarComPlano = (e, j, custo, opc: any = {}) => {
   if (!pl) return false;
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(e.jogs[j].reserva, custo, opc);
-  e.jogs[j].reserva = pg.resto; e.jogs[j].vida -= pg.vida;
+  e.jogs[j].reserva = pg.resto; M.perderVida(e, j, pg.vida);
   return true;
 };
