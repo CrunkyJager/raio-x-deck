@@ -423,7 +423,7 @@ const TIPOS_CARTA = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Pla
 // tipo/sub dado a 'este' (camada 4): lido no M.dadoDe; com filtro (Ashaya, Bello, Dryad, Leyline) ainda não
 M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'se'].includes(k))
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
-const CONTA_EST = new Set(['cartasNaMao', 'cartasNoGrimorio', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste', 'devocao']);
+const CONTA_EST = new Set(['cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste', 'devocao']);
 // prop: em vez de quantos, soma/maior de uma característica dos que batem (Ghalta, The Great Henge, Metalwork Colossus, Excalibur)
 const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm']);
 M.PROP_EST = PROP_EST;
@@ -618,6 +618,8 @@ function camadas(e, o, lote?: any[]) {
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
+const magiasT = (e, ctx) => { const j = ctx.ev && ctx.ev.ev === 'conjura' ? ctx.ev.j : ctx.voce, C = e.jogs[j] && e.jogs[j].conjT; return C && C.t === e.turno.n ? C.n : 0; };   // de quem conjurou (gatilho de conjura) ou de você
+M.magiasT = magiasT;
 M.qtdEst = (e, q, ctx) => {
   if (typeof q === 'number') return q;
   if (typeof q.conta === 'object' && q.prop) {
@@ -629,7 +631,7 @@ M.qtdEst = (e, q, ctx) => {
   }
   if (typeof q.conta === 'object') return M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
   const J = e.jogs[ctx.voce], este = e.objs[ctx.este];
-  const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'cartasNoGrimorio' ? J.zonas.grimorio.length : q.conta === 'suaVida' ? J.vida
+  const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'cartasNoGrimorio' ? J.zonas.grimorio.length : q.conta === 'magiasNoTurno' ? magiasT(e, ctx) : q.conta === 'suaVida' ? J.vida
     : q.conta === 'oponentes' ? M.vivos(e).filter(j => j !== ctx.voce).length : q.conta === 'jogadores' ? M.vivos(e).length
     : q.conta === 'devocao' ? M.devocao(e, ctx.voce, q.de)
     : q.conta === 'marcadoresNoEste' ? (!este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0)) : 0;   // de: um tipo de marcador

@@ -2373,6 +2373,15 @@ caso('104.2b', "Thassa's Oracle: vence se a devoção a azul (X) ≥ cartas no g
   igual(M.condicao(cena({ grimorio: 0 }), { conta: { q: { conta: 'cartasNoGrimorio' }, max: { conta: 'cartasNaMao' } } }, { voce: 0 }), true, 'max também aceita contagem');
 });
 
+caso('601.2i', "Aetherflux Reservoir: ganha 1 de vida por mágica que você conjurou antes desta no turno (magiasNoTurno do conjurador)", () => {
+  const e = cena({ campo: [...terras(6, 'Mountain'), [0, 'Aetherflux Reservoir']], mao: [[0, 'Lightning Bolt'], [0, 'Lightning Bolt'], [0, 'Lightning Bolt']] });
+  ok(M.gatOk(M.carta('Aetherflux Reservoir').gat[0]), 'o gatilho é lido');
+  const v0 = e.jogs[0].vida;
+  for (let i = 0; i < 3; i++) { M.avancar(e); conj(e, 'Lightning Bolt'); if (e.perg && e.perg.tipo === 'alvo') alvoJog(e, 1); resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1); }
+  igual(e.jogs[0].vida - v0, 0 + 1 + 2, '1ª: 0, 2ª: 1, 3ª: 2');
+  igual(M.qtd(e, { conta: 'magiasNoTurno' }, { voce: 1 }), 0, 'o oponente não conjurou');
+});
+
 caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you do, draw'): pergunta antes de pagar; a repetição do processo não perde a opção", () => {
   const e = cena({ campo: [...terras(4, 'Forest'), [0, 'Leaf-Crowned Visionary']], mao: [[0, 'Llanowar Elves']] });
   M.avancar(e);
