@@ -436,8 +436,8 @@ Regra ≥3 ocorrências (somando os lotes anteriores). Correção 19 do esquema:
 
 | # | falta | cartas | proposta | decisão |
 |---|---|---|---|---|
-| 1 | iniciativa | 10 cartas (acima) | fx `tomarIniciativa` + cond `temIniciativa` | |
-| 2 | venture / masmorra | 12 cartas | fx `aventurar`; est `dobraGatilho` ev `sala` | |
-| 3 | completou masmorra | 8 cartas | cond `completouMasmorra` (+nome), gat `completaMasmorra` | |
-| 4 | infect | 9 + Blightsteel | kw `infectar` | |
-| 5 | o resto 1 cada | Dire Fleet Ravager (um terço da vida), Ashiok (oponentes não procuram), Knowledge Exploitation (prowl; buscar no grimório do oponente), Prosperous Thief (ninjutsu, 2ª ocorrência), Skull Raid (foretell; "fewer discarded"), Voidwing Hybrid (ev prolifera), Fifty Feet of Rope (não desvira sem virar) | deixar falta | |
+| 1 | iniciativa | 10 cartas (acima) | fx `tomarIniciativa` + cond `temIniciativa` | ACEITO (coord. casa 25/11): + gat ev `tomaIniciativa` |
+| 2 | venture / masmorra | 12 cartas | fx `aventurar`; est `dobraGatilho` ev `sala` | ACEITO: gat ev `sala` (evs do dobraGatilho é livre) |
+| 3 | completou masmorra | 8 cartas | cond `completouMasmorra` (+nome), gat `completaMasmorra` | ACEITO: `completouMasmorra: true` ou `{nome}`; gat ev `completaMasmorra` |
+| 4 | infect | 9 + Blightsteel | kw `infectar` | ACEITO |
+| 5 | o resto 1 cada | Dire Fleet Ravager (um terço da vida), Ashiok (oponentes não procuram), Knowledge Exploitation (prowl; buscar no grimório do oponente), Prosperous Thief (ninjutsu, 2ª ocorrência), Skull Raid (foretell; "fewer discarded"), Voidwing Hybrid (ev prolifera), Fifty Feet of Rope (não desvira sem virar) | deixar falta | ACEITO (fica em falta) |
