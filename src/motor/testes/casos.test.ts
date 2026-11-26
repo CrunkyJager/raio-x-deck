@@ -1940,6 +1940,24 @@ caso('702.151', 'reconfigurar (Lizard Blades): anexa a outra criatura sua e deix
   M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === lb.id && o.k === k('_soltar')); resolveCom(e);
   igual([lb.anexo, M.temTipo(e, lb, 'Creature'), M.temKw(e, bears, 'golpeDuplo')], [null, true, false], 'solta de novo');
 });
+caso('descer', 'Brass\'s Tunnel-Grinder: no seu passo final, se desceu (carta de permanente ao seu cemitério), põe marcador de broca; com 3, tira e transforma; sem descer, nada; mágica no cemitério não conta', () => {
+  for (const vai of ['Forest', 'Lightning Bolt', null]) {
+    const e = cena({ campo: [[0, "Brass's Tunnel-Grinder"]], mao: vai ? [[0, vai]] : [], passo: 'principal2' }); e.pend = [];
+    const g = objN(e, 0, "Brass's Tunnel-Grinder"); g.marc.bore = 2;
+    if (vai) M.descartar(e, 0, [e.jogs[0].zonas.mao[0]]);
+    passarAte(e, 'final'); M.avancar(e); resolveCom(e);
+    const desceu = vai === 'Forest';
+    igual([g.face === 0, g.marc.bore || 0], desceu ? [true, 0] : [false, 2], String(vai));
+  }
+});
+caso('712', 'Edgar Markov\'s Coffin (verso do Edgar, Charmed Groom): na manutenção cria a ficha e põe linhagem; com 3, tira e transforma de volta', () => {
+  for (const n of [2, 1]) {
+    const e = cena({ campo: [[0, 'Edgar, Charmed Groom']], passo: 'desvirar' }); e.pend = [];
+    const g = objN(e, 0, 'Edgar, Charmed Groom'); g.face = 0; g.marc.bloodline = n;
+    passarAte(e, 'manutencao'); M.avancar(e); resolveCom(e);
+    igual([g.face ?? null, g.marc.bloodline || 0], n === 2 ? [null, 0] : [0, 2], n + ' marcadores antes');
+  }
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

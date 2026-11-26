@@ -896,6 +896,10 @@ export interface RxCond {
    */
   temIniciativa?: boolean;
   /**
+   * você desceu neste turno: uma carta de permanente foi para o seu cemitério, de qualquer zona (Brass's Tunnel-Grinder)
+   */
+  desceu?: boolean;
+  /**
    * você completou uma masmorra (309.7) nesta partida; {nome} = aquela masmorra (Tomb of Annihilation)
    */
   completouMasmorra?:

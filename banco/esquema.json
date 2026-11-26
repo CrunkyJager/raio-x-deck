@@ -1692,6 +1692,10 @@
      "type": "boolean",
      "description": "você tem a iniciativa (CR 725)"
     },
+    "desceu": {
+     "type": "boolean",
+     "description": "você desceu neste turno: uma carta de permanente foi para o seu cemitério, de qualquer zona (Brass's Tunnel-Grinder)"
+    },
     "completouMasmorra": {
      "oneOf": [
       {

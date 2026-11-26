@@ -200,17 +200,20 @@ M.masmorrasEvento = (e, ev) => {
   }
   // morbid ("se uma criatura morreu neste turno"): o turno da última morte
   if (ev.ev === 'zona' && ev.de === 'campo' && ev.para === 'cemiterio' && ev.snap && M.temTipo(e, ev.snap, 'Creature')) e.morreuT = e.turno.n;
+  // descer (LCI, 701.?): carta de permanente (não ficha) posta no cemitério do dono, de qualquer zona: o turno da última
+  if (ev.ev === 'zona' && ev.para === 'cemiterio') { const o = e.objs[ev.id]; if (o && !o.ficha && o.zona === 'cemiterio' && ['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle'].some(t => (M.dadoBase(e, o).tipos || []).includes(t))) e.jogs[o.dono].desceuT = e.turno.n; }
 };
 M.morbido = e => e.morreuT === e.turno.n;
 
 // ---------- condições (temIniciativa, completouMasmorra) ----------
 // completouMasmorra: true = completou alguma; false = nenhuma; {nome} = aquela; {nome, nao: true} = não aquela (Acererak)
-M.condMasmorraOk = se => (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean')
+M.condMasmorraOk = se => (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean') && (se.desceu === undefined || typeof se.desceu === 'boolean')
   && (se.completouMasmorra === undefined || typeof se.completouMasmorra === 'boolean'
     || (!!se.completouMasmorra && typeof se.completouMasmorra === 'object' && typeof se.completouMasmorra.nome === 'string'
       && Object.keys(se.completouMasmorra).every(k => k === 'nome' || k === 'nao')));
 M.condMasmorra = (e, se, ctx) => {
   if (se.temIniciativa !== undefined && (e.iniciativa === ctx.voce) !== se.temIniciativa) return false;
+  if (se.desceu !== undefined && (e.jogs[ctx.voce].desceuT === e.turno.n) !== se.desceu) return false;   // "if you descended this turn"
   const c = se.completouMasmorra;
   if (c !== undefined) {
     const l = e.jogs[ctx.voce].completas || [];
