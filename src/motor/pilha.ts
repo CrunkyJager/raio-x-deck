@@ -646,7 +646,26 @@ M.faceTerreno = (e, o) => M.formaDe(e, o) === 'modal' && ((M.carta(o.n).faces[0]
 M.ativar = (e, j, id, k) => M.iniciarProc(e, { tp: 'ativar', j, id, k });
 
 // anular (CR 701.6): a mágica sai da pilha para o cemitério do dono; habilidade some
-M.anular = (e, id) => { const o = e.objs[id]; if (!o || o.zona !== 'pilha') return; o.pil = null; tirarDaPilha(e, o, false); };
+// CR 101.2 / 701.6: "não pode ser anulada" — a própria mágica (quem.este, Dovin's Veto) ou as que um permanente protege
+// (Rhythm of the Wild, Root Sliver, Chimil). Só mágica (habilidade na pilha não é "spell"). O "não pode" vence o "anule".
+function naoAnulavel(e, o) {
+  if (o.hab) return null;
+  const fontes = [o, ...M.indiceCampo(e).sb.map(i => e.objs[i])];
+  for (const F of fontes) for (const sb of M.dadoDe(e, F).subst || []) {
+    if (sb.ev !== 'anulada' || !M.substOk(sb)) continue;
+    if (sb.quem && sb.quem.este ? F.id !== o.id : F.zona !== 'campo' || (sb.quem && !M.bate(e, o, sb.quem, { voce: F.ctrl, este: F.id }))) continue;
+    if (sb.se) { let ok = false; try { ok = M.condicao(e, sb.se, { voce: F.ctrl ?? F.dono, este: F.id }); } catch (_) { ok = false; } if (!ok) continue; }
+    return F;
+  }
+  return null;
+}
+M.naoAnulavel = naoAnulavel;
+M.anular = (e, id) => {
+  const o = e.objs[id]; if (!o || o.zona !== 'pilha') return false;
+  const F = naoAnulavel(e, o);
+  if (F) { M.log(e, o.n, 'não pode ser anulada' + (F.id !== o.id ? ' (' + F.n + ')' : '')); return false; }
+  o.pil = null; tirarDaPilha(e, o, false); return true;
+};
 
 function lkiDe(e, o) {
   return { id: o.id, ts: o.ts, n: o.n, ctrl: o.ctrl, dono: o.dono, poder: M.poder(e, o), resist: M.resistencia(e, o), vm: M.dadoDe(e, o).vm || 0, marc: { ...o.marc }, transf: o.transf || 0, face: o.face ?? null };

@@ -1726,6 +1726,15 @@ caso('614.1a', 'subst vaiCemiterio com talvez: Library of Leng — descarte por 
   M.descartar(c, 0, c.jogs[0].zonas.mao.slice());                  // custo/limpeza: sem ask, sem efeito
   igual(naZona(c, 0, 'cemiterio'), ['Grizzly Bears'], 'descarte como custo vai ao cemitério');
 });
+caso('101.2', 'não pode ser anulada: Rhythm of the Wild protege as minhas criaturas (a do oponente é anulada); Dovin\'s Veto protege a si mesma', () => {
+  for (const n of ['Rhythm of the Wild', "Dovin's Veto", 'Root Sliver', 'Destiny Spinner', 'Chimil, the Inner Sun']) for (const sb of M.carta(n).subst.filter(x => x.ev === 'anulada')) ok(M.substOk(sb), n + ': subst aceita');
+  const e = cena({ campo: [[0, 'Rhythm of the Wild']], mao: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [0, "Dovin's Veto"], [0, 'Lightning Bolt']] });
+  const daMao = (j, n) => e.jogs[j].zonas.mao.find(id => e.objs[id].n === n);
+  const meu = daMao(0, 'Grizzly Bears'), dele = daMao(1, 'Grizzly Bears'), veto = daMao(0, "Dovin's Veto"), raio = daMao(0, 'Lightning Bolt');
+  for (const id of [meu, dele, veto, raio]) { M.mover(e, id, 'pilha'); e.pilha.push(id); }
+  igual([M.anular(e, meu), M.anular(e, dele), M.anular(e, veto), M.anular(e, raio)], [false, true, false, true], 'Ursos meus e o Veto ficam; Ursos dele e o Raio são anulados');
+  igual([e.objs[meu].zona, e.objs[dele].zona, e.objs[veto].zona, e.objs[raio].zona], ['pilha', 'cemiterio', 'pilha', 'cemiterio']);
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
