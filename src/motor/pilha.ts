@@ -364,6 +364,29 @@ M.podeAtivar = (e, j, o, k) => {
   return true;
 };
 
+// ---------- mana com escolha no custo (CR 605.3: não usa a pilha) ----------
+// Altares, Krark-Clan, Gilded Goose (sacrificar outra), Steam-Kin/Ramos (tirar marcador), Simian Spirit Guide (exilar
+// da mão). Fica fora do solver automático (sacrificaria sem querer): é uma ação de prioridade que pergunta o custo.
+// mana restrita (so: Master of Dark Rites) fica de fora: a reserva não guarda restrição (CR 106.6), só o solver com 'para'.
+M.manaEscSuportada = a => !!(a && a.deMana && a.custo && !M.custoManaOk(a.custo) && M.custoSuportado(a.custo) && !a.custo.descartar && !a.custo.devolver && (a.fx || []).every(f => f.op === 'mana' && !f.so));
+M.podeManaEsc = (e, j, o, k) => {
+  const a = M.atvDe(e, o)[k];
+  if (!M.manaEscSuportada(a) || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
+  if (!M.atvSeOk(e, a, o)) return false;
+  if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
+  if (a.custo.mana && !M.pagarDaReserva(e.jogs[j].reserva, a.custo.mana)) return false;   // a mana do custo sai da reserva
+  return custoFisicoOk(e, j, o, a.custo);
+};
+const pacotesEsc = (e, o, a) => (M.pacotesDe(e, o, a) || []).filter(p => M.somaMana(p) > 0);
+M.manaEscOps = (e, j) => {
+  const ops: any[] = [];
+  const ve = id => { const o = e.objs[id]; M.atvDe(e, o).forEach((a, k) => { if (M.podeManaEsc(e, j, o, k)) pacotesEsc(e, o, a).forEach((_, i) => ops.push({ a: 'manaEsc', id, k, escolha: i })); }); };
+  for (const id of e.campo) if (e.objs[id].ctrl === j) ve(id);
+  for (const id of e.jogs[j].zonas.mao) ve(id);
+  return ops;
+};
+M.manaEsc = (e, j, id, k, escolha = 0) => M.iniciarProc(e, { tp: 'manaEsc', j, id, k, escolha });
+
 // ---------- prioridade (CR 117) ----------
 M.temPrioridadeNoPasso = passo => passo !== 'desvirar' && passo !== 'limpeza';   // CR 502.4, 514.3
 M.proxVivo = (e, j) => { const n = e.jogs.length; let p = j; do p = (p + 1) % n; while (e.jogs[p].saiu && p !== j); return p; };
@@ -405,6 +428,7 @@ function opcoes(e, j) {
     for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste || l[k]._ninjutsu) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
+  ops.push(...M.manaEscOps(e, j));
   return ops;
 }
 
@@ -644,6 +668,21 @@ const PROC = {
     if (a.lealdade !== undefined) { o.marc.lealdade = (o.marc.lealdade || 0) + a.lealdade; o.lealTurno = e.turno.n; }   // CR 606.4
     if (a.limite === 'umaPorTurno') (o.usos = o.usos || {})[P.k] = e.turno.n;
     M.log(e, e.jogs[j].nome, 'ativa', o.n, descAlvos(e, alvos));
+    M.agiu(e, j);
+  },
+
+  manaEsc(e, P, ask) {                                              // CR 605.3a: paga o custo (com escolha) e a mana vai direto à reserva
+    const j = P.j, o = e.objs[P.id], a = M.atvDe(e, o)[P.k], c = a.custo;
+    if (!M.podeManaEsc(e, j, o, P.k)) throw new Error('mana ilegal: ' + o.n);
+    const pac = pacotesEsc(e, o, a)[P.escolha || 0];                 // antes de pagar: o custo pode mudar o que ela produz
+    const fis = escolherCustoFisico(e, j, c, o.id, null, ask);
+    e.proc = null;
+    const J = e.jogs[j], sac = fis.sac.map(id => e.objs[id].n);
+    if (c.mana) J.reserva = M.pagarDaReserva(J.reserva, c.mana).resto;
+    pagarFisico(e, j, o, c, fis);
+    if (a.limite === 'umaPorTurno') (o.usos = o.usos || {})[P.k] = e.turno.n;
+    for (const cor in pac) J.reserva[cor] += pac[cor];
+    M.log(e, J.nome, 'mana de', o.n, M.fmtMana(pac), sac.length ? '(sacrifica ' + sac.join(', ') + ')' : c.tirarMarcador ? `(tira ${c.tirarMarcador.qtd || 1} ${c.tirarMarcador.tipo})` : c.exilarEste ? '(exila da mão)' : '');
     M.agiu(e, j);
   },
 

@@ -346,7 +346,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         const responde = e.pilha.some((id: number) => e.objs[id].ctrl !== HK);
         // Felipe 26/11: a Mesa indica, não limita. Fora da fase principal ela para sempre que você tem algo para usar
         // (instantânea, habilidade, lampejo: CR 117.1a) ou para responder; só passa sozinha quando o único lance é mana.
-        const temLance = p.ops.some((o: any) => o.a !== 'passar' && o.a !== 'mana');
+        const temLance = p.ops.some((o: any) => o.a !== 'passar' && o.a !== 'mana' && o.a !== 'manaEsc');
         if (!minha && !responde && !temLance && !M.somaMana(J.reserva)) return passar;
         const ops: any[] = [];
         // gerar mana a qualquer momento em que você tem prioridade (CR 605.3a), mesmo sem nada para pagar: vira o
@@ -358,8 +358,15 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
           const sac = f && f.sac ? ' (sacrifica)' : '';
           ops.push({ v: 'mn' + k, n: `${ob.n}${sac} → ${pac ? M.fmtMana(pac).replace(/[WUBRGC]/g, '{$&}') : 'mana'}`, k, a: 'mana' });
         });
+        // mana com escolha no custo (altar, Krark-Clan, Steam-Kin, Simian Spirit Guide): o custo é perguntado depois
         p.ops.forEach((o: any, k: number) => {
-          if (o.a === 'passar' || o.a === 'mana') return;
+          if (o.a !== 'manaEsc') return;
+          const ob = e.objs[o.id], a = M.atvDe(e, ob)[o.k], c = a.custo, pac = (M.pacotesDe(e, ob, a) || []).filter((x: any) => M.somaMana(x) > 0)[o.escolha];
+          const cu = c.sacrificar && c.sacrificar !== 'este' ? ' (sacrifica uma)' : c.tirarMarcador ? ` (tira ${c.tirarMarcador.qtd || 1} marcadores)` : c.exilarEste ? ' (exila da mão)' : '';
+          ops.push({ v: 'me' + k, n: `${ob.n}${cu} → ${pac ? M.fmtMana(pac).replace(/[WUBRGC]/g, '{$&}') : 'mana'}`, k, a: 'mana' });
+        });
+        p.ops.forEach((o: any, k: number) => {
+          if (o.a === 'passar' || o.a === 'mana' || o.a === 'manaEsc') return;
           const ob = e.objs[o.id], i = iDe(ob);
           if (ob.zona === 'mao' && o.face === undefined && i >= 0 && ops.some(x => x.v === i && x.a === o.a)) return;   // outra cópia da mesma carta
 

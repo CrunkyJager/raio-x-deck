@@ -59,8 +59,11 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 - **Ivora: no banco 75/75 · motor joga 75/75 · inteiras 75/75. Masmorras: 83/83 · 83/83 · 83/83.** Vitest 294. Motor joga inteiras 1363/1753.
 - Sobra: verso de Brass's Tunnel-Grinder (Tecutlan: "descobrir X ao gastar a mana dele"). A IA não usa prever/ninjutsu/reconfigurar (T21).
 
+## Estado em 26/11 ~11h30 — v0.46.0 na main
+- Mana com escolha no custo virou ação com pergunta (`manaEsc`, src/motor/pilha.ts): 9 cartas jogam; inteiras 1371/1753. Faltam Master of Dark Rites (mana restrita na reserva) e Ramos (marcador.qtd). A IA não usa (T21).
+
 ## Próximo passo (nesta ordem)
-1. Habilidades de mana com escolha que o motor ainda não paga (10, aparecem como `custoMana.*` na cobertura): sacrificar outra (altares, Krark-Clan, Gilded Goose), tirar marcador (Steam-Kin, Ramos), exilar da mão (Simian Spirit Guide). Não pôr no solver automático (sacrificaria sem querer): virar ação com pergunta.
+1. ~~Habilidades de mana com escolha~~ FEITO na v0.46.0. Era: Habilidades de mana com escolha que o motor ainda não paga (10, aparecem como `custoMana.*` na cobertura): sacrificar outra (altares, Krark-Clan, Gilded Goose), tirar marcador (Steam-Kin, Ramos), exilar da mão (Simian Spirit Guide). Não pôr no solver automático (sacrificaria sem querer): virar ação com pergunta.
 2. ~~`falta` da Ivora e masmorras~~ FEITO na v0.45.0 (sobra o verso Tecutlan).
 3. Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
 4. T44 medida em lotes → T46 depois da autorização.

@@ -1749,6 +1749,45 @@ caso('605.3', 'mana com custo de virar outras (Baylen): vira 2 fichas sem mana p
   igual(e.campo.filter(id => e.objs[id].n === 'Food').map(id => e.objs[id].virada), [true, true], 'as duas Food viram');
   igual([e.objs[baylen].virada, e.campo.some(id => e.objs[id].n === 'Treasure' && e.objs[id].virada), M.somaMana(e.jogs[0].reserva)], [false, false, 1], 'Baylen e a Treasure ficam; 1 de mana');
 });
+caso('605.3a', 'mana com escolha no custo: Ashnod\'s Altar pergunta qual criatura sacrificar; não entra no solver (nem como fonte)', () => {
+  const e = cena({ campo: [[0, "Ashnod's Altar"], [0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  const altar = e.campo[0];
+  igual(M.fontesDeMana(e, 0).filter(f => f.id === altar).length, 0, 'o solver não usa o altar');
+  const me = M.opcoesPrioridade(e, 0).filter(o => o.a === 'manaEsc');
+  igual(me.map(o => o.id), [altar], 'uma ação de mana com escolha');
+  M.avancar(e); respE(e, o => o.a === 'manaEsc');
+  igual(e.perg.tipo, 'custo'); igual(e.perg.ops.map(o => e.objs[o.id].n).sort(), ['Grizzly Bears', 'Llanowar Elves'], 'pergunta qual criatura');
+  respE(e, o => e.objs[o.id].n === 'Grizzly Bears');
+  igual([naZona(e, 0, 'cemiterio'), e.jogs[0].reserva.C, e.pilha.length], [['Grizzly Bears'], 2, 0], 'sacrificou o urso, {C}{C}, sem pilha');
+  igual(e.perg && e.perg.tipo, 'acao', 'volta a prioridade para o mesmo jogador');
+});
+caso('605.3a', 'mana com escolha: Krark-Clan só com artefato; Gilded Goose vira e sacrifica Food; Phyrexian Tower tem as duas', () => {
+  const cx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  const e = cena({ campo: [[0, 'Krark-Clan Ironworks'], [0, 'Gilded Goose'], [0, 'Phyrexian Tower'], [0, 'Grizzly Bears']] });
+  const [kci, goose, torre] = e.campo, de = id => M.opcoesPrioridade(e, 0).filter(o => o.a === 'manaEsc' && o.id === id);
+  igual(de(kci).length, 1, 'Krark-Clan pode sacrificar a si mesma (é artefato)');
+  igual(de(goose).length, 0, 'Goose sem Food: não');
+  igual(M.fontesDeMana(e, 0).filter(f => f.id === torre).length, 1, 'Tower: {T} → {C} segue no solver');
+  igual(de(torre).length, 1, 'Tower: sacrificar criatura → {B}{B} é ação');
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Food' } }, cx, null);
+  igual(de(goose).length, 5, 'Goose com Food: uma por cor');
+  M.avancar(e); respE(e, o => o.a === 'manaEsc' && o.id === goose && o.escolha === 2);
+  if (e.perg && e.perg.tipo === 'custo') respE(e, () => true);
+  igual([e.objs[goose].virada, e.campo.some(id => e.objs[id].n === 'Food'), M.somaMana(e.jogs[0].reserva)], [true, false, 1], 'virou, a Food foi, 1 de mana');
+  igual(de(goose).length, 0, 'virada: não ativa de novo');
+});
+caso('605.3a', 'mana com escolha: Runaway Steam-Kin tira 3 marcadores; Simian Spirit Guide se exila da mão', () => {
+  const e = cena({ campo: [[0, 'Runaway Steam-Kin']], mao: [[0, 'Simian Spirit Guide'], [0, 'Simian Spirit Guide']] });
+  const sk = e.campo[0], de = id => M.opcoesPrioridade(e, 0).filter(o => o.a === 'manaEsc' && o.id === id);
+  e.objs[sk].marc['+1/+1'] = 2;
+  igual(de(sk).length, 0, 'com 2 marcadores: não');
+  e.objs[sk].marc['+1/+1'] = 4;
+  M.avancar(e); respE(e, o => o.a === 'manaEsc' && o.id === sk);
+  igual([e.objs[sk].marc['+1/+1'], e.jogs[0].reserva.R], [1, 3], 'sobrou 1 marcador; {R}{R}{R}');
+  const ssg = e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Simian Spirit Guide');
+  respE(e, o => o.a === 'manaEsc' && o.id === ssg);
+  igual([naZona(e, 0, 'exilio'), naZona(e, 0, 'mao'), e.jogs[0].reserva.R], [['Simian Spirit Guide'], ['Simian Spirit Guide'], 4], 'uma exilada, a outra na mão; mais {R}');
+});
 caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
   const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
   const e = cena({ campo: [[0, 'Kalonian Hydra'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Grizzly Bears']] });

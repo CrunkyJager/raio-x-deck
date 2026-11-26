@@ -201,6 +201,7 @@ const RESP = {
     if (op.a === 'passar') M.passar(e);
     else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id, op.face);
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
+    else if (op.a === 'manaEsc') M.manaEsc(e, p.j, op.id, op.k, op.escolha);          // CR 605.3a com escolha no custo
     else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
     else if (op.a === 'prever') M.prever(e, p.j, op.id);
