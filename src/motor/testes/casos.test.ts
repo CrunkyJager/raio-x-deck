@@ -1761,6 +1761,18 @@ caso('605.3a', 'mana com escolha no custo: Ashnod\'s Altar pergunta qual criatur
   igual([naZona(e, 0, 'cemiterio'), e.jogs[0].reserva.C, e.pilha.length], [['Grizzly Bears'], 2, 0], 'sacrificou o urso, {C}{C}, sem pilha');
   igual(e.perg && e.perg.tipo, 'acao', 'volta a prioridade para o mesmo jogador');
 });
+caso('106.6', 'mana restrita na reserva: Master of Dark Rites dá {B}{B}{B} só para Vampiro/Clérigo/Demônio; Duress não gasta, Vampire Nighthawk gasta', () => {
+  const e = cena({ campo: [[0, 'Master of Dark Rites'], [0, 'Grizzly Bears']], mao: [[0, 'Duress'], [0, 'Vampire Nighthawk']] });
+  const ms = e.campo[0];
+  igual(M.fontesDeMana(e, 0).filter(f => f.id === ms).length, 0, 'fora do solver (sacrifica)');
+  M.avancar(e); respE(e, o => o.a === 'manaEsc' && o.id === ms);
+  const J = e.jogs[0];
+  igual([naZona(e, 0, 'cemiterio'), M.somaMana(J.reserva), J.restrita.map(r => r.m.B)], [['Grizzly Bears'], 0, [3]], 'BBB restrita, reserva comum vazia');
+  const conj = () => M.opcoesPrioridade(e, 0).filter(o => o.a === 'conjurar').map(o => e.objs[o.id].n);
+  igual(conj(), ['Vampire Nighthawk'], 'Duress não pode gastar a restrita');
+  respE(e, o => o.a === 'conjurar');
+  igual([e.pilha.map(id => e.objs[id].n), J.restrita.length, M.somaMana(J.reserva)], [['Vampire Nighthawk'], 0, 0], 'pagou o Nighthawk com a restrita');
+});
 caso('605.3a', 'mana com escolha: Krark-Clan só com artefato; Gilded Goose vira e sacrifica Food; Phyrexian Tower tem as duas', () => {
   const cx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
   const e = cena({ campo: [[0, 'Krark-Clan Ironworks'], [0, 'Gilded Goose'], [0, 'Phyrexian Tower'], [0, 'Grizzly Bears']] });
