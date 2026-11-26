@@ -55,9 +55,13 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 - **Ivora: no banco 75/75 · motor joga 75/75 · inteiras 65/75.** Masmorras: 83/83 · 83/83 · 78/83. Vitest 278.
 - Faltam na Ivora (10): Demand Answers (custo "ou"), Inti (reflexo; até o próximo final), Falkenrath Gorger (loucura dada fora do campo), Reforge the Soul (milagre), Witch's Mark (Role), Lizard Blades (reconfigurar), Brass's Tunnel-Grinder (descer), Bag of Holding ("exilado com este"), Pompous Battlemage (preparada), Markov Enforcer ("recebeu dano deste"). Masmorras (5): Ashiok, Dire Fleet Ravager, Knowledge Exploitation, Prosperous Thief (ninjutsu), Skull Raid (prever).
 
+## Estado em 26/11 ~13h30 — v0.45.0 na main
+- **Ivora: no banco 75/75 · motor joga 75/75 · inteiras 75/75. Masmorras: 83/83 · 83/83 · 83/83.** Vitest 294. Motor joga inteiras 1363/1753.
+- Sobra: verso de Brass's Tunnel-Grinder (Tecutlan: "descobrir X ao gastar a mana dele"). A IA não usa prever/ninjutsu/reconfigurar (T21).
+
 ## Próximo passo (nesta ordem)
 1. Habilidades de mana com escolha que o motor ainda não paga (10, aparecem como `custoMana.*` na cobertura): sacrificar outra (altares, Krark-Clan, Gilded Goose), tirar marcador (Steam-Kin, Ramos), exilar da mão (Simian Spirit Guide). Não pôr no solver automático (sacrificaria sem querer): virar ação com pergunta.
-2. `falta` que sobrou da Ivora (10) e masmorras (5), lista no Estado acima → inteiras.
+2. ~~`falta` da Ivora e masmorras~~ FEITO na v0.45.0 (sobra o verso Tecutlan).
 3. Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
 4. T44 medida em lotes → T46 depois da autorização.
 

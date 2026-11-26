@@ -56,3 +56,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 26/11 tarde: v0.42.0 — masmorras 83/83 no motor (repetirCada, virarOutros, subst morre/vaiCemiterio, atrasado com alvo, danoUmaVez, filtros kw/comMarcador). Inteiras 1345/1753.
 - 26/11 ~11h v0.43.0: Library of Leng (Ivora 75/75), não pode ser anulada, Baylen + cobertura de mana, repetirCada de objetos, fichas atacando. Inteiras 1361/1753.
 - 26/11 ~12h v0.44.0: fuga, gatilhos cicla/desvira/jogaTerreno/prolifera, "outro", descartadas no turno. Ivora inteiras 65/75.
+- 26/11 ~13h30 v0.45.0: custo "ou", reflexo, milagre, Role, reconfigurar, descer, exilada com este, preparar, ferida por esta, Ashiok, terço da vida, ninjutsu, prever, rondar, buscar no grimório do oponente. Ivora 75/75 e masmorras 83/83 inteiras. Edgar's Coffin consertado.

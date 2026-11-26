@@ -2,6 +2,15 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.45.0 — 26/11/2026 · Ivora 75/75 e masmorras 83/83 inteiras: 15 mecânicas novas
+Testes: check 0 erros · Vitest 294/294 · raiox-testes igual à linha de base. Motor joga inteiras 1363/1753 (eram 1361). Partidas: Ivora 40 e masmorras 40, 0 erros (registro mostra milagre, cópia preparada, "não pode procurar").
+- **Custos:** custo adicional com "ou" (Demand Answers: sacrificar artefato ou descartar); rondar (Knowledge Exploitation); prever, ação especial com {2} e conjurar do exílio num turno seguinte (Skull Raid); ninjutsu da mão (Prosperous Thief).
+- **Gatilhos e durações:** gatilho reflexo "quando você fizer isso", com alvo escolhido depois (Inti); "até o seu próximo passo final"; milagre (Reforge the Soul); "você desceu neste turno" (Brass's Tunnel-Grinder); "criatura ferida por esta neste turno morre" (Markov Enforcer).
+- **Permanentes:** Role, ficha Aura com estática e gatilho, só o Role mais novo fica (Witch's Mark, Monstrous Rage); reconfigurar (Lizard Blades); "exilada com este" (Bag of Holding); preparar, com cópia da mágica no exílio (Pompous Battlemage); loucura dada às cartas fora do campo (Falkenrath Gorger); oponentes não procuram no grimório (Ashiok); um terço da vida arredondado para cima (Dire Fleet Ravager); buscar no grimório do oponente e conjurar de graça.
+- **Conserto:** Edgar Markov's Coffin nunca transformava (tirava os marcadores antes de conferir os 3). Corrigido, com caso.
+- Decks: **Ivora no banco 75/75 · motor joga 75/75 · inteiras 75/75.** **Masmorras 83/83 · 83/83 · 83/83.** Ainda fica `falta` no verso de Brass's Tunnel-Grinder (Tecutlan: descobrir ao gastar a mana dele).
+- A IA ainda não usa prever, ninjutsu nem reconfigurar (fica para a T21); o motor aceita as jogadas e os testes cobrem.
+
 ## v0.44.0 — 26/11/2026 · Ivora 65/75 inteiras: fuga, gatilhos novos, "outro", descartadas no turno
 Testes: check 0 erros · Vitest 278/278 · raiox-testes igual à linha de base. Partidas: Ivora 40, 0 erros (o registro mostra "fuga: exila 8 do cemitério").
 - **Fuga** (Ox of Agonas foge com +1/+1; Underworld Breach dá fuga a toda mágica do seu cemitério pelo custo dela + exilar 3).
