@@ -81,7 +81,7 @@ Construtor de decks em `montar.js` (tela `#montar`, `--h` 96, ícone `build`, pr
 - Archidekt: importa por link via `archidekt.com/api/decks/ID/`. **Não testado com internet** (o teste daqui foi sem rede): se o Archidekt bloquear o pedido (CORS), aparece a mensagem pedindo para colar o texto.
 
 ## Mesa ao vivo no motor novo, beta (T22 parte 1, 25/11/2026, pedido do usuário)
-- Chave **"Motor novo (beta)"** na Mesa ao vivo, desligada por padrão (`raiox:vivoMotor`). O motor velho segue padrão e cuida de torneio, estudo, trocas e variantes.
+- Chave **"Motor novo (beta)"** na Mesa ao vivo, LIGADA por padrão desde 26/11 (`raiox:vivoMotor`, desmarcar volta ao velho). O motor velho cuida de torneio, estudo, trocas e variantes.
 - `src/mesa/arena-nova.ts` devolve o mesmo formato da `arena()` velha (quadros + log); Worker em `src/mesa/worker-novo.ts` (Vite gera `worker-novo-*.js`).
 - Registro com ⚡ gatilho, ✧ efeito, ▲ camada (P/R, palavras-chave, anexo) e ⚙ habilidade, tirados do estado antes × depois de cada efeito.
 - Selo ⓘ: carta que o motor novo não joga inteira (`src/mesa/motor-novo-cobertura.json`, refazer com `node ferramentas/motor-cobertura.mjs --por-carta src/mesa/motor-novo-cobertura.json` a cada mudança de motor/banco) ou carta fora do banco (só o corpo).
