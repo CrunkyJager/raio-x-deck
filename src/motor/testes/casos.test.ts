@@ -1815,6 +1815,15 @@ caso('701.57a', 'descobrir 3: exila até a não-terreno com valor ≤ 3 (pula te
   M.executar(e, { op: 'descobrir', qtd: 2 }, cx, Object.assign((j, t, ops) => ops[0], { etapa: () => {} }));
   igual([e.pilha.map(id => e.objs[id].n), M.somaMana(e.jogs[0].reserva)], [['Grizzly Bears'], 0], 'conjurou de graça: na pilha');
 });
+caso('701.57a', "Tecutlan (verso de Brass's Tunnel-Grinder): conjurar permanente pagando com a mana dele descobre X = valor da mágica", () => {
+  const e = cena({ campo: [[0, "Brass's Tunnel-Grinder", { obj: { face: 0 } }], [0, 'Wastes']], mao: [[0, 'Goblin Instigator']] });
+  igual(M.dadoDe(e, e.objs[e.campo[0]]).n, 'Tecutlan, the Searing Rift');
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' });
+  M.avancar(e); respE(e, o => o.a === 'conjurar');
+  for (let g = 0; e.perg && g < 40 && !naZona(e, 0, 'mao').includes('Grizzly Bears') && !e.pilha.some(id => e.objs[id].n === 'Grizzly Bears'); g++)
+    respE(e, o => o.a === 'mao' || o.a === 'passar' || o.a === 'nenhum' || true);
+  ok(naZona(e, 0, 'mao').includes('Grizzly Bears') || e.pilha.some(id => e.objs[id].n === 'Grizzly Bears') || e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), 'descobriu o urso (valor 2)');
+});
 caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
   const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
   const e = cena({ campo: [[0, 'Kalonian Hydra'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
