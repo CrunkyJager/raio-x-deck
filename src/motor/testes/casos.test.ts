@@ -2783,6 +2783,21 @@ caso('114.4', 'emblema com estática (Sorin, Lord of Innistrad): suas criaturas 
   e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');       // a limpeza (514.2) tira só os 'até o fim do turno'
   igual(pr(0), [[3, 2]], 'emblema não some na limpeza');
 });
+caso('724', 'monarca: compra no começo da etapa final dele; dano de combate no monarca passa a coroa; condição se.monarca', () => {
+  const e = cena({ campo: [[1, 'Grizzly Bears']] }); e.pend = [];
+  M.EFEITOS.virarMonarca.fx(e, { op: 'virarMonarca', quem: 'voce' }, { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.monarca, 0);
+  ok(M.condicao(e, { monarca: true }, { voce: 0, este: -1 }) && M.condicao(e, { monarca: false }, { voce: 1, este: -1 }), 'condição');
+  e.pend = [];
+  M.evento(e, { ev: 'fase', passo: 'final', ativo: 0 });
+  igual(e.pend.map(p => p.k), ['monarca:final'], 'compra na etapa final');
+  e.pend = [];
+  const urso = e.objs[e.campo.find(id => e.objs[id].n === 'Grizzly Bears')];
+  M.evento(e, { ev: 'dano', id: urso.id, fonte: urso.id, jog: 0, qtd: 2, combate: true });
+  igual(e.pend.map(p => p.k), ['monarca:dano'], 'dano de combate no monarca');
+  M.EFEITOS.virarMonarca.fx(e, e.pend[0].g.fx[0], { voce: 0, este: -1, ev: e.pend[0].ev, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.monarca, 1, 'o dono do urso vira monarca');
+});
 caso('603.7a', 'gatilho só neste turno (Forth Eorlingas!): criatura sua dá dano de combate a jogador → você vira monarca; some na limpeza', () => {
   const e = cena({ campo: [[0, 'Grizzly Bears']] }); e.pend = [];
   const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
