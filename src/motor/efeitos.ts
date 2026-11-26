@@ -542,16 +542,19 @@ const H = {
   },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
   efeitoTemporario: {
-    campos: ['dura', 'est', 'subst', 'emblema'],
+    campos: ['dura', 'est', 'subst', 'emblema', 'gat'],
     qtd: q => q === undefined,
     ok: f => (f.quem === undefined || f.quem === 'voce') && (f.dura === 'fimDoTurno' || f.dura === 'proximoTurnoSeu' || f.dura === 'sempre')
-      && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length) > 0
-      && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este)),
+      && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length + (f.gat || []).length) > 0
+      && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este))
+      && (f.gat || []).every(g => f.em === undefined && M.gatOk(g) && !(g.quem && g.quem.este)),
     fx(e, f, ctx) {
       const F = e.objs[ctx.este], este = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? { id: F.id, ts: F.ts } : null;
       const ids = f.em === undefined ? null : objsDe(e, f, ctx).map(o => ({ id: o.id, ts: o.ts }));
       if (ids && !ids.length) return;                                // alvo ilegal: nada a afetar (608.2b)
-      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst: f.subst || [], este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
+      // gat: habilidade disparada do emblema (114.4) ou "neste turno, sempre que…" (603.7a, Forth Eorlingas): M.evento (gatilhos.ts) a dispara sem objeto
+      const D = F || e.objs[ctx.item], n = f.emblema ? 'Emblema (' + (D ? D.n : '?') + ')' : D ? D.n : '?';
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst: f.subst || [], gat: f.gat || [], n, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
     },
   },
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);

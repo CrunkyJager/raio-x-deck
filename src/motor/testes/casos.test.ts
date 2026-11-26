@@ -2761,6 +2761,30 @@ caso('701.49c', 'aventurar na última sala (a habilidade dela ainda na pilha): c
   M.aventurar(e, 0, (j, t, ops) => t === 'masmorra' ? ops.find(o => o.nome === 'Dungeon of the Mad Mage') : ops[0]);
   igual([e.jogs[0].completas, masm(e)], [['Tomb of Annihilation'], 'Dungeon of the Mad Mage:Yawning Portal']);
 });
+caso('114.4', 'emblema com gatilho (Chandra, Torch of Defiance): cada mágica que você conjura dá 5 de dano a um alvo, toda vez', () => {
+  const e = cena({ campo: terras(4, 'Forest'), mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears']] });
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  M.executar(e, ach(M.carta('Chandra, Torch of Defiance')), { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  M.avancar(e);
+  conj(e, 'Grizzly Bears');
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  igual(e.jogs[1].vida, 35, '5 de dano no oponente');
+  ok(noCampo(e).includes('Grizzly Bears'), 'a mágica resolve normal');
+  conj(e, 'Grizzly Bears');
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  igual(e.jogs[1].vida, 30, 'emblema dispara de novo (não é de uma vez só)');
+});
+caso('603.7a', 'gatilho só neste turno (Forth Eorlingas!): criatura sua dá dano de combate a jogador → você vira monarca; some na limpeza', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] }); e.pend = [];
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  M.executar(e, ach(M.carta('Forth Eorlingas!')), { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.efTemp.length, 1); igual(e.efTemp[0].gat.length, 1);
+  const urso = e.objs[e.campo.find(id => e.objs[id].n === 'Grizzly Bears')];
+  M.evento(e, { ev: 'dano', id: urso.id, fonte: urso.id, jog: 1, qtd: 2, combate: true });
+  igual(e.pend.length, 1, 'disparou'); igual(e.pend[0].g.fx[0].op, 'virarMonarca');
+  M.evento(e, { ev: 'dano', id: urso.id, fonte: urso.id, jog: 1, qtd: 2, combate: false });
+  igual(e.pend.length, 1, 'dano fora de combate não dispara');
+});
 caso('702.124k', 'Dungeon Delver (antecedente) com o comandante criatura no campo: a sala dispara 2 vezes (603.2d); sem o comandante, 1', () => {
   for (const comCmd of [true, false]) {
     const e = cena({ campo: [[0, 'Dungeon Delver'], ...(comCmd ? [[0, 'Safana, Calimport Cutthroat', { obj: { cmd: true } }]] : [])] });
