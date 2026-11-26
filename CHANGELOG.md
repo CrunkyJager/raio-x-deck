@@ -2,6 +2,13 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.50.0 — 26/11/2026 · Motor: efeitos temporários, monarca, emblemas e o pedido do Edigar
+Testes: check 0 erros · Vitest 367/367 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1444/1756 (eram 1400). Ivora e Masmorras: 30 partidas cada, 0 erros.
+- **Pedido do Edigar:** marcador +1/+1 separado do bônus de lorde na Mesa; a Mesa não pergunta a ordem dos gatilhos quando a ordem não muda nada (CR 701.9a, 603.3b); "vai ao cemitério de qualquer lugar" dispara vindo da mão/grimório (Kozilek, Ulamog).
+- **Aviso de versão nova:** aba aberta com site antigo mostra "Saiu uma versão nova… Recarregar".
+- **Efeito temporário:** substituição de dano, terra extra, mão máxima, conjurar com lampejo, não pode conjurar, antimagia de jogador, dano não prevenível (Bonecrusher), gatilho e estática contínua em emblema (Chandra, Daretti, Sorin), flashback dado no cemitério (Past in Flames).
+- **Monarca** (CR 724), modo escolhido ao entrar (Sieges), Lightning, Army of One, Mortarpod (arma viva), modificar até o seu próximo turno / enquanto no campo, Hellkite Courser (devolve o comandante à zona de comando).
+
 ## v0.49.1 — 26/11/2026 · Conserto: tutor para o topo; "se você a conjurou"
 Testes: check 0 erros · Vitest 348/348 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1400/1755 (eram 1390). Ivora e Masmorras: 0 erros.
 - **Conserto (entrou na v0.49.0):** buscar para o grimório (Mystical Tutor, Enlightened Tutor…) perdia o "pôr no topo"; o pulo era do cavar (Thassa's Oracle). Caso novo pega o erro.
