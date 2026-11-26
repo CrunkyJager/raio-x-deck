@@ -152,6 +152,7 @@ M.aventurar = (e, j, ask, undercity = false) => {
   porMasmorra(e, j, nome);
 };
 // 704.5t: marcador na última sala e nenhuma habilidade de sala dela esperando ou na pilha → sai do jogo (completa).
+// 727.4: quem tinha a iniciativa saiu do jogo → o ativo toma (ou o próximo na ordem).
 M.abeMasmorras = e => {
   let mudou = false;
   for (const J of e.jogs) {
@@ -160,13 +161,41 @@ M.abeMasmorras = e => {
     if (e.pend.some(p => p.fonte === f && p.ts === A.ts) || e.pilha.some(h => { const x = e.objs[h].hab; return x && x.fonte === f && x.fonteTs === A.ts; })) continue;
     completar(e, J.i); mudou = true;
   }
+  if (e.iniciativa != null && e.jogs[e.iniciativa].saiu && !e.fim) {
+    let p = e.turno.ativo; const n = e.jogs.length;
+    for (let k = 0; k < n && e.jogs[p].saiu; k++) p = (p + 1) % n;
+    if (!e.jogs[p].saiu) { M.tomarIniciativa(e, p); mudou = true; } else e.iniciativa = null;
+  }
   return mudou;
 };
 
+// ---------- iniciativa (CR 727) ----------
+// Três habilidades inerentes, sem fonte, controladas por quem tinha a iniciativa quando dispararam (727.2): tomar →
+// aventura na Undercity; manutenção de quem tem → aventura na Undercity; uma ou mais criaturas de um jogador causam
+// dano de combate em quem tem → o controlador delas toma (uma vez por jogador em cada etapa de dano). Tomar de novo
+// dispara de novo (727.5). Fonte dos pendentes: id negativo próprio (não é masmorra: a ABE 704.5t não espera por ela).
+const INI = { n: 'Iniciativa', tipos: [] as any[], cores: '', kw: [] as any[], vm: 0 };
+const G_AVENTURA = { ev: 'tomaIniciativa', fx: [{ op: 'aventurar', quem: 'voce', undercity: true }] };
+const G_TOMA = { ev: 'dano', fx: [{ op: 'tomarIniciativa', quem: 'doEvento' }] };
+const pendIni = (e, j, k, g, ev) => e.pend.push({ fonte: -1000 - j, ts: 0, ctrl: j, k, g, n: 'Iniciativa', face: null, ficha: INI, lki: null, ev });
+M.tomarIniciativa = (e, j) => {
+  if (e.jogs[j].saiu) return;
+  const de = e.iniciativa; e.iniciativa = j;                                     // 727.3: só um tem
+  M.log(e, e.jogs[j].nome, 'toma a iniciativa');
+  pendIni(e, j, 'iniciativa:toma', G_AVENTURA, { ev: 'tomaIniciativa', j });
+  M.evento(e, { ev: 'tomaIniciativa', j, de });
+};
 // eventos (chamado no fim do M.evento, gatilhos.ts)
 M.masmorrasEvento = (e, ev) => {
   if (ev.ev === 'fase') {
+    if (ev.passo === 'manutencao' && e.iniciativa === ev.ativo && !e.jogs[ev.ativo].saiu) pendIni(e, ev.ativo, 'iniciativa:manutencao', G_AVENTURA, { ev: 'fase', passo: 'manutencao', j: ev.ativo });
     if (ev.passo === 'desvirar' && e.temp && e.temp.some(t => t.ate === ev.ativo)) e.temp = e.temp.filter(t => t.ate !== ev.ativo);   // "até o seu próximo turno"
+    return;
+  }
+  if (ev.ev === 'dano' && ev.combate && ev.jog !== undefined && ev.jog === e.iniciativa) {
+    const F = e.objs[ev.fonte], c = F ? F.ctrl : undefined;
+    if (c === undefined || c === ev.jog || e.pend.some(p => p.k === 'iniciativa:dano' && p.ev.j === c)) return;
+    pendIni(e, ev.jog, 'iniciativa:dano', G_TOMA, { ev: 'iniciativaDano', j: c });
     return;
   }
   // morbid ("se uma criatura morreu neste turno"): o turno da última morte
@@ -176,11 +205,12 @@ M.morbido = e => e.morreuT === e.turno.n;
 
 // ---------- condições (temIniciativa, completouMasmorra) ----------
 // completouMasmorra: true = completou alguma; false = nenhuma; {nome} = aquela; {nome, nao: true} = não aquela (Acererak)
-M.condMasmorraOk = se => se.temIniciativa === undefined
+M.condMasmorraOk = se => (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean')
   && (se.completouMasmorra === undefined || typeof se.completouMasmorra === 'boolean'
     || (!!se.completouMasmorra && typeof se.completouMasmorra === 'object' && typeof se.completouMasmorra.nome === 'string'
       && Object.keys(se.completouMasmorra).every(k => k === 'nome' || k === 'nao')));
 M.condMasmorra = (e, se, ctx) => {
+  if (se.temIniciativa !== undefined && (e.iniciativa === ctx.voce) !== se.temIniciativa) return false;
   const c = se.completouMasmorra;
   if (c !== undefined) {
     const l = e.jogs[ctx.voce].completas || [];
@@ -198,6 +228,10 @@ H.aventurar = {
   campos: ['undercity'],
   ok: f => (f.quem === undefined || f.quem === 'voce') && (f.undercity === undefined || f.undercity === true),
   fx(e, f, ctx, ask) { for (const j of jogsDe(e, f, ctx)) M.aventurar(e, j, ask, !!f.undercity); },
+};
+H.tomarIniciativa = {
+  ok: f => f.quem === undefined || f.quem === 'voce',
+  fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.tomarIniciativa(e, j); },
 };
 // "até o seu próximo turno": e.temp com sempre (a limpeza não tira) e ate = quem fez; sai quando o turno dele começa
 H._ateSeuTurno = {

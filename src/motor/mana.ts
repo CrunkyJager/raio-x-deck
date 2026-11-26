@@ -92,7 +92,7 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
     const o = e.objs[id];
     if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => {
-      if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo)) return;
+      if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo) || !M.atvSeOk(e, a, o)) return;
       // soVirar: sem pagar mana nem vida ({T} e/ou sacrificar este: terreno, Lotus Petal, Treasure, Gold)
       if (soVirar && Object.keys(a.custo).some(x => x !== 'virar' && !(x === 'sacrificar' && a.custo.sacrificar === 'este'))) return;
       const p = M.pacotesDe(e, o, a, { para });

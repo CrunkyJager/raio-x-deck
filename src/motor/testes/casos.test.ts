@@ -2011,6 +2011,57 @@ caso('702.124k', 'Zombie Ogre (morbid): na etapa final aventura só se uma criat
     igual(!!e.jogs[0].masm, morreu, morreu ? 'morreu: aventura' : 'ninguém morreu');
   }
 });
+caso('727.2', 'Aarakocra Sneak: toma a iniciativa e aventura na Undercity (Secret Entrance busca terreno básico); outra entra com a iniciativa: avança', () => {
+  const e = cena({ grimorio: 10 });
+  const m0 = e.jogs[0].zonas.mao.length;
+  e.por(0, 'Aarakocra Sneak'); seguir(e); resolveCom(e);
+  igual([e.iniciativa, masm(e)], [0, 'Undercity:Secret Entrance']);
+  igual(e.jogs[0].zonas.mao.length, m0 + 1, 'buscou o básico');
+  e.por(0, 'Aarakocra Sneak'); seguir(e); resolveCom(e, escolheM(null, 'Forge'));
+  igual([e.iniciativa, masm(e)], [0, 'Undercity:Forge'], 'tomar de novo aventura de novo (727.5)');
+  ok(objN(e, 0, 'Aarakocra Sneak').marc['+1/+1'] === 2 || e.campo.some(id => e.objs[id].marc['+1/+1'] === 2), 'Forge: dois +1/+1');
+});
+caso('727.3', 'Underdark Explorer: o oponente tinha a iniciativa, ela passa para você (só um tem) e você entra na Undercity', () => {
+  const e = cena(); e.iniciativa = 1;
+  e.por(0, 'Underdark Explorer'); seguir(e); resolveCom(e);
+  igual([e.iniciativa, masm(e), masm(e, 1)], [0, 'Undercity:Secret Entrance', null]);
+});
+caso('727.2', 'manutenção de quem tem a iniciativa: aventura na Undercity de novo', () => {
+  const e = cena({ passo: 'limpeza' }); e.turno.ativo = 1; e.iniciativa = 0;
+  e.jogs[0].masm = { nome: 'Undercity', sala: 0, ts: ++e.ts };
+  andaAte(e, 'compra', escolheM(null, 'Lost Well'));
+  igual([e.turno.ativo, masm(e)], [0, 'Undercity:Lost Well']);
+});
+caso('727.2', 'dano de combate em quem tem a iniciativa: o controlador da criatura toma a iniciativa (e aventura na Undercity); dois atacantes, uma vez só', () => {
+  const e = combate([[0, 'Grizzly Bears'], [0, 'Hill Giant']]); e.iniciativa = 1;
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears')); atacaCom(e, objN(e, 0, 'Hill Giant')); fecha(e, 'atacar'); andaAte(e, 'principal2');
+  igual([e.iniciativa, masm(e)], [0, 'Undercity:Secret Entrance']);
+  igual(e.jogs[0].zonas.mao.length, 1, 'aventurou uma vez só (Secret Entrance: 1 básico)');
+});
+caso('727.1', 'Safana na etapa final: com a iniciativa 1 Tesouro; com a iniciativa e masmorra completada (a Undercity conta) 3; sem a iniciativa nada', () => {
+  for (const [ini, feita, quer] of [[true, false, 1], [true, true, 3], [false, true, 0]] as any[]) {
+    const e = cena({ campo: [[0, 'Safana, Calimport Cutthroat']] });
+    e.turno.passo = 'principal2'; if (ini) e.iniciativa = 0; if (feita) e.jogs[0].completas = ['Undercity'];
+    andaAte(e, 'limpeza');
+    igual(fichasN(e, 0, 'Treasure'), quer, JSON.stringify({ ini, feita }));
+  }
+});
+
+caso('727.4', 'quem tem a iniciativa sai do jogo: o jogador ativo toma (e aventura na Undercity)', () => {
+  const e = cena({ jogs: 3 }); e.iniciativa = 2;
+  e.jogs[2].vida = 0; seguir(e); resolveCom(e);
+  igual([!!e.jogs[2].saiu, e.iniciativa, masm(e)], [true, 0, 'Undercity:Secret Entrance']);
+});
+
+caso('602.5b', 'Sarevok\'s Tome: "ative só se" na habilidade de mana — {C} sem a iniciativa, {C}{C} com ela (atv.se)', () => {
+  for (const ini of [false, true]) {
+    const e = cena(); const t = e.por(0, "Sarevok's Tome"); e.pend = [];
+    if (ini) e.iniciativa = 0;
+    const f = M.fontesDeMana(e, 0).filter(x => x.id === t.id);
+    igual(f.map(x => x.pacotes.map(p => M.somaMana(p))), [[ini ? 2 : 1]], ini ? 'com' : 'sem');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
