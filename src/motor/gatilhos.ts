@@ -76,7 +76,7 @@ M.atrasadoOk = g => {
   const { nesteTurno, proximoTurno, ...resto } = g;
   // {alvo:N} dentro do atrasado = o alvo N de quem o criou (Alora: "devolva aquela criatura"), herdado no mem; o ts diz se ainda é o mesmo (400.7)
   const us = M.alvosUsados(g.fx), comAlvos = us.length ? { ...resto, alvos: Array.from({ length: Math.max(...us) + 1 }, () => ({ f: {} })) } : resto;
-  const ok = ['fase', 'conjura'].includes(g.ev) && !g.alvos && !g.zonaAtiva && M.gatOk(comAlvos) && !JSON.stringify(g.fx).includes('"anterior"');
+  const ok = ['fase', 'conjura'].includes(g.ev) && !g.alvos && !g.zonaAtiva && M.gatOk(comAlvos);   // "anterior" = o que o efeito antes dele moveu (Hellkite Courser), guardado no mem com o ts
   memoAtr.set(g, ok);
   return ok;
 };

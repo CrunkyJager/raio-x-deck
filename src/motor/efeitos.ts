@@ -685,7 +685,7 @@ const H = {
     ok: f => M.atrasadoOk(f.quando),
     fx(e, f, ctx) {
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
-        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}) }, ts: ++e.ts });
+        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
     },
   },
   // CR 603.12: gatilho reflexo ("when you do, …"): criado na resolução, dispara na hora; vai à pilha da próxima vez que
@@ -741,7 +741,7 @@ const H = {
   mover: {
     campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste'],
     qtd: q => qtdOk(q) || ateOk(q),
-    ok: f => ['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
+    ok: f => (['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) || (f.para === 'comando' && f.em !== undefined)) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
       let ids;
       // em 'este' com de: a carta que acabou de ir para lá (o gatilho de mudar de zona acha o objeto novo, CR 603.6/400.7)
@@ -753,6 +753,7 @@ const H = {
         const cand = M.objetosQue(e, { ...f.f, zona: z, dono: f.f.dono || 'voce' }, { ...ctx, voce: j }).map(o => o.id);
         ids = escolherN(ask, j, 'escolherCarta', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: ateOk(f.qtd), ctx: { op: 'mover', para: f.para } });
       }
+      if (f.para === 'comando') ids = ids.filter(id => e.objs[id].cmd);   // só comandante vai para a zona de comando (Hellkite Courser, 903)
       // transformada (CR 712.14a): entra com a face de trás; carta que não é de transformar fica onde está
       if (f.transformada) ids = ids.filter(id => { const c = e.objs[id].ficha ? null : M.carta(e.objs[id].n); return f.para === 'campo' && c && c.forma === 'duplaFace' && c.faces; });
       ctx.resultado = ids.length;                                   // "then draw that many" (Valakut Awakening)

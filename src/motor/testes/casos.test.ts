@@ -2181,6 +2181,16 @@ caso('611.2b', "modificar até o seu próximo turno (For the Common Good, Savage
   passarAte(e, 'final'); passarAte(e, 'principal1'); igual([e.turno.ativo, tem(u, 'indestrutivel'), tem(v, 'pressa')], [0, false, true], 'no seu próximo turno: acabou; ímpeto fica');
   M.mover(e, v, 'mao'); M.mover(e, v, 'campo'); ok(!tem(v, 'pressa'), 'mudou de zona: objeto novo (400.7)');
 });
+caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto e volta para lá no começo da próxima etapa final ('anterior' guardado no atrasado)", () => {
+  ok(M.gatOk(M.carta('Hellkite Courser').gat[0]), 'gatilho aceito');
+  const e = cena({ cmd: ['Grizzly Bears'], campo: [[0, 'Hellkite Courser']], passo: 'principal2' }); e.pend = [];
+  const hk = e.campo[0], bear = e.jogs[0].zonas.comando[0];
+  const ctx: any = { voce: 0, este: hk, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const f of M.carta('Hellkite Courser').gat[0].fx) M.executar(e, f, ctx, () => ({ a: 'sim' }));
+  igual([e.objs[bear].zona, M.temKw(e, e.objs[bear], 'pressa')], ['campo', true], 'no campo com ímpeto');
+  passarAte(e, 'final'); M.avancar(e); resolveCom(e);
+  igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
