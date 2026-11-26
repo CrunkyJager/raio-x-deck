@@ -2958,6 +2958,15 @@ caso('702.8', 'como se tivesse lampejo: Singer of Swift Rivers deixa conjurar Me
   ok(M.podeConjurar(e, 0, e.objs[id('Grizzly Bears')]), 'Refuge');
   igual(M.podeConjurar(e, 1, e.objs[id('Grizzly Bears')]), false, 'só para quem ativou');
 });
+caso('702.11c', 'jogador com antimagia até o fim do turno (Lazotep Plating): oponente não mira você, você mesmo pode; some na limpeza', () => {
+  const e = cena(); e.pend = [];
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  M.executar(e, ach(M.carta('Lazotep Plating')), { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  const mira = q => M.alvoLegal(e, { f: 'jogador' }, { jog: 0 }, { voce: q });
+  igual([mira(1), mira(0)], [false, true], 'neste turno');
+  passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
+  igual(mira(1), true, 'acabou');
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');

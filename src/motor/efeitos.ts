@@ -305,7 +305,7 @@ function tempEstOk(s, f) {
   const objOk = s.afeta === 'este' || (s.afeta === undefined && f.em !== undefined) || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta));
   switch (s.modo) {
     case 'vidaNaoMuda': return s.afeta === 'voce' && so();
-    case 'protecaoJogador': return s.afeta === 'voce' && so('kw', 'de') && (s.de === 'tudo' || (s.kw || []).length === 1 && s.kw[0].k === 'protecao' && s.kw[0].de === 'tudo' && Object.keys(s.kw[0]).length === 2);
+    case 'protecaoJogador': return s.afeta === 'voce' && so('kw', 'de') && (s.de === 'tudo' || (s.kw || []).length === 1 && ((s.kw[0].k === 'protecao' && s.kw[0].de === 'tudo' && Object.keys(s.kw[0]).length === 2) || (s.kw[0].k === 'antimagia' && Object.keys(s.kw[0]).length === 1)));
     case 'naoPodeSerBloqueada': case 'naoPodeBloquear': case 'deveAtacar': return objOk && so();
     case 'terraExtra': return s.afeta === 'voce' && so('qtd') && Number.isInteger(s.qtd) && s.qtd > 0;               // lido em turno.ts
     case 'maoMax': return s.afeta === 'voce' && so('qtd') && (s.qtd === 'tudo' || Number.isInteger(s.qtd));
