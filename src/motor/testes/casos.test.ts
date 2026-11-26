@@ -2798,6 +2798,13 @@ caso('724', 'monarca: compra no começo da etapa final dele; dano de combate no 
   M.EFEITOS.virarMonarca.fx(e, e.pend[0].g.fx[0], { voce: 0, este: -1, ev: e.pend[0].ev, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
   igual(e.monarca, 1, 'o dono do urso vira monarca');
 });
+caso('614.1a', 'dano em dobro até o seu próximo turno no jogador do evento e nas permanentes dele (Lightning, Army of One)', () => {
+  const e = cena({ campo: [[1, 'Grizzly Bears'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  M.executar(e, ach(M.carta('Lightning, Army of One')), { voce: 0, este: -1, ev: { ev: 'dano', jog: 1 }, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  const urso = j => e.objs[e.campo.find(id => e.objs[id].n === 'Grizzly Bears' && e.objs[id].ctrl === j)];
+  igual([M.substDano(e, 3, { jog: 1 }), M.substDano(e, 3, { o: urso(1) }), M.substDano(e, 3, { jog: 0 }), M.substDano(e, 3, { o: urso(0) })], [6, 6, 3, 3]);
+});
 caso('603.7a', 'gatilho só neste turno (Forth Eorlingas!): criatura sua dá dano de combate a jogador → você vira monarca; some na limpeza', () => {
   const e = cena({ campo: [[0, 'Grizzly Bears']] }); e.pend = [];
   const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };

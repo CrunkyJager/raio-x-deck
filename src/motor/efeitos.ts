@@ -74,7 +74,7 @@ const SUBST: Record<string, (s) => boolean> = {
   anulada: s => !!s.muda && Object.keys(s.muda).length === 1 && s.muda.impedir === true && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k))
     && !!s.quem && s.quem.zona === 'pilha',   // "não pode ser anulada" (M.anular, pilha.ts)
   dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
-    && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente'),
+    && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento'),
 };
 function saidaOk(s) {
   if (!Object.keys(s).every(k => ['ev', 'quem', 'muda', 'emVez', 'se', 'talvez'].includes(k)) || !!s.muda === !!s.emVez) return false;
@@ -151,7 +151,10 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
   if (!(q > 0)) return 0;
   const lista = substsDe(e, 'dano').filter(({ F, s }) => {
     if (s.combate !== undefined && !!s.combate !== !!combate) return false;
-    if (s.jog !== undefined || s.quem !== undefined) {
+    if (s._j !== undefined) {                                          // "esse jogador ou permanente que ele controla" (Lightning, Army of One)
+      if (jog !== undefined ? jog !== s._j : !(o && o.ctrl === s._j)) return false;
+    } else if (s.jog === 'doEvento') return false;                     // sem o jogador do evento fixado: não vale
+    else if (s.jog !== undefined || s.quem !== undefined) {
       const okJ = s.jog !== undefined && jog !== undefined && (s.jog === 'voce' ? jog === F.ctrl : jog !== F.ctrl);
       const okO = s.quem !== undefined && o !== undefined && substQuem(e, F, s, o);
       if (!okJ && !okO) return false;
@@ -556,7 +559,8 @@ const H = {
       if (ids && !ids.length) return;                                // alvo ilegal: nada a afetar (608.2b)
       // gat: habilidade disparada do emblema (114.4) ou "neste turno, sempre que…" (603.7a, Forth Eorlingas): M.evento (gatilhos.ts) a dispara sem objeto
       const D = F || e.objs[ctx.item], n = f.emblema ? 'Emblema (' + (D ? D.n : '?') + ')' : D ? D.n : '?';
-      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst: f.subst || [], gat: f.gat || [], n, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
+      const subst = (f.subst || []).map(x => x.jog === 'doEvento' ? { ...x, _j: ctx.ev && ctx.ev.jog } : x).filter(x => !(x.jog === 'doEvento' && x._j === undefined));
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst, gat: f.gat || [], n, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
     },
   },
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
