@@ -1986,9 +1986,10 @@ caso('702.124k', 'Dungeon Delver (antecedente) com o comandante criatura no camp
     igual(fichasN(e, 0, 'Treasure'), comCmd ? 2 : 1, (comCmd ? 'com' : 'sem') + ' o comandante');
   }
 });
+// Acererak como o B vai escrever com a negação (o do banco ainda tem o pedaço em 'falta')
+db['Cena Acererak'] = { n: 'Cena Acererak', custo: { g: 2, p: ['B'] }, cores: 'B', tipos: ['Creature'], super: ['Legendary'], sub: ['Zombie', 'Wizard'], pt: [5, 5], vm: 3, ci: 'B',
+  gat: [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'mover', em: 'este', para: 'mao', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }, { op: 'aventurar', quem: 'voce', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }] }] };
 caso('309.7', 'completouMasmorra {nome, nao}: Acererak fica se você completou a Tomb of Annihilation; completou só a Lost Mine, volta à mão e aventura', () => {
-  db['Cena Acererak'] = { n: 'Cena Acererak', custo: { g: 2, p: ['B'] }, cores: 'B', tipos: ['Creature'], super: ['Legendary'], sub: ['Zombie', 'Wizard'], pt: [5, 5], vm: 3, ci: 'B',
-    gat: [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'mover', em: 'este', para: 'mao', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }, { op: 'aventurar', quem: 'voce', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }] }] };
   for (const feita of ['Tomb of Annihilation', 'Lost Mine of Phandelver']) {
     const e = cena(); e.jogs[0].completas = [feita];
     e.por(0, 'Cena Acererak'); seguir(e); resolveCom(e, escolheM('Dungeon of the Mad Mage'));
@@ -2060,6 +2061,46 @@ caso('602.5b', 'Sarevok\'s Tome: "ative só se" na habilidade de mana — {C} se
     const f = M.fontesDeMana(e, 0).filter(x => x.id === t.id);
     igual(f.map(x => x.pacotes.map(p => M.somaMana(p))), [[ini ? 2 : 1]], ini ? 'com' : 'sem');
   }
+});
+
+caso('701.49a', 'IA escolhe a masmorra por valor: sem carta que pague completar, a Dungeon of the Mad Mage; com uma que nomeia a Tomb of Annihilation (Acererak), a Tomb', () => {
+  const ag = M.agenteBasico();
+  for (const [mao, quer] of [[[], 'Dungeon of the Mad Mage'], [[[0, 'Cena Acererak']], 'Tomb of Annihilation']] as any[]) {
+    const e = cena({ mao });
+    const p = { j: 0, tipo: 'masmorra', ops: ['Lost Mine of Phandelver', 'Dungeon of the Mad Mage', 'Tomb of Annihilation'].map(nome => ({ a: 'masmorra', nome })), ctx: {} };
+    igual(p.ops[ag(e, p)].nome, quer);
+  }
+});
+caso('701.49b', 'IA escolhe a sala por valor: Goblin Lair → Storeroom (+1/+1) se você tem criatura, senão Dark Pool; o +1/+1 vai na sua criatura', () => {
+  for (const tem of [true, false]) {
+    const e = cena({ campo: [[1, 'Hill Giant'], ...(tem ? [[0, 'Grizzly Bears']] : [])] });
+    e.jogs[0].masm = { nome: 'Lost Mine of Phandelver', sala: 1, ts: ++e.ts };
+    morreEsqueleto(e); seguir(e); resolveCom(e);
+    igual(masm(e), 'Lost Mine of Phandelver:' + (tem ? 'Storeroom' : 'Dark Pool'));
+    if (tem) igual([objN(e, 0, 'Grizzly Bears').marc['+1/+1'], objN(e, 1, 'Hill Giant').marc['+1/+1']], [1, undefined]);
+    else igual(e.jogs[1].vida, 39);
+  }
+});
+caso('701.49b', 'Sandfall Cell: cada jogador perde 2 a menos que sacrifique criatura, artefato ou terreno — a IA paga com o Tesouro; quem não tem perde', () => {
+  const e = cena();
+  e.jogs[0].masm = { nome: 'Tomb of Annihilation', sala: 1, ts: ++e.ts };   // Veils of Fear → Sandfall Cell
+  M.criarFicha(e, 0, { nome: 'Treasure' }); e.pend = [];
+  morreEsqueleto(e); seguir(e); resolveCom(e);
+  igual([masm(e), fichasN(e, 0, 'Treasure'), e.jogs[0].vida, e.jogs[1].vida], ['Tomb of Annihilation:Sandfall Cell', 0, 40, 38]);
+});
+caso('603.3b', 'a ordem dos gatilhos muda o resultado: tomar a iniciativa por cima entra na Undercity e o aventurar avança nela; o aventurar por cima escolhe outra masmorra e a iniciativa avança nela', () => {
+  db['Cena Dupla'] = { n: 'Cena Dupla', custo: { g: 1, p: ['B'] }, cores: 'B', tipos: ['Creature'], sub: ['Rogue'], pt: [2, 2], vm: 2, ci: 'B',
+    gat: [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'tomarIniciativa', quem: 'voce' }] }, { ev: 'entra', quem: { este: true }, fx: [{ op: 'aventurar', quem: 'voce' }] }] };
+  const fim: any = {};
+  for (const primeiro of [0, 1]) {                       // o primeiro posto na pilha resolve por último
+    const e = cena({ grimorio: 10 });
+    e.por(0, 'Cena Dupla'); seguir(e);
+    igual(e.perg && e.perg.tipo, 'ordemGatilho');
+    resolveCom(e, p => p.tipo === 'ordemGatilho' ? p.ops.findIndex(o => o.k === primeiro) : -1);
+    fim[primeiro] = [e.iniciativa, masm(e)];
+  }
+  igual(fim[1][1].split(':')[0], 'Undercity', 'iniciativa por cima: Undercity');
+  igual(fim[0], [0, 'Dungeon of the Mad Mage:Dungeon Level'], 'aventurar por cima: a IA pega a Mad Mage e a iniciativa avança nela');
 });
 
 // ---------- rodar ----------
