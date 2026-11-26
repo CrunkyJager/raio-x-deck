@@ -143,6 +143,51 @@
    "carta": "Precipitous Drop",
    "situacao": "entra encantando uma criatura",
    "espera": "você aventura"
+  },
+  {
+   "carta": "Dungeon Crawler",
+   "situacao": "no seu cemitério; você completa uma masmorra",
+   "espera": "pode voltar à sua mão (gat completaMasmorra do cemitério)"
+  },
+  {
+   "carta": "Dungeon Crawler",
+   "situacao": "no campo; você completa uma masmorra",
+   "espera": "nada (só dispara do cemitério)"
+  },
+  {
+   "carta": "Precipitous Drop",
+   "situacao": "encanta uma 4/4; depois você completa uma masmorra",
+   "espera": "−2/−2 (fica 2/2); ao completar passa a −5/−5 e ela morre"
+  },
+  {
+   "carta": "Ravenloft Adventurer",
+   "situacao": "completou uma masmorra; ataca um oponente que tem 3 cartas com hit no exílio",
+   "espera": "ele perde 3 de vida"
+  },
+  {
+   "carta": "Ravenloft Adventurer",
+   "situacao": "sem masmorra completa; ataca",
+   "espera": "nada"
+  },
+  {
+   "carta": "Rilsa Rael, Kingpin",
+   "situacao": "completou uma masmorra; você ataca mirando uma atacante 2/2",
+   "espera": "ela fica 7/2 com toque mortífero, primeiro ataque e ameaça até o fim do turno"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "completou uma masmorra; {3}, {T}; o topo é terreno, terreno, Cultivate",
+   "espera": "exila os três; pode conjurar Cultivate sem pagar; os terrenos ficam no exílio"
+  },
+  {
+   "carta": "Sarevok's Tome",
+   "situacao": "nunca completou masmorra",
+   "espera": "a habilidade de {3}, {T} não pode ser ativada"
+  },
+  {
+   "carta": "Acererak the Archlich",
+   "situacao": "entra depois de você completar Tomb of Annihilation",
+   "espera": "fica no campo e não aventura (FALTA: hoje o banco volta sempre; pedido de negação no completouMasmorra {nome})"
   }
  ]
 }
