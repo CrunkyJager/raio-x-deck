@@ -94,13 +94,13 @@ function acaoDoTurno(e) {
     case 'desvirar':                                                // CR 502.1 (fases antes), 502.2–502.3
       J.terrenos = 0;
       if (e.faseados && e.faseados.length) M.fasearDentro(e, a);
-      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { if (o.naoDesv === o.ts) delete o.naoDesv; else o.virada = false; o.doente = false; } }   // naoDesv: "não desvira no próximo desvirar" (o mesmo objeto, 400.7)
+      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { if (o.naoDesv === o.ts) delete o.naoDesv; else M.desvirarObj(e, o); o.doente = false; } }   // naoDesv: "não desvira no próximo desvirar" (o mesmo objeto, 400.7)
       // "desvire [filtro] que você controla durante a etapa de desvirar de cada outro jogador" (Unwinding Clock, Seedborn Muse)
       for (const id of M.indiceCampo(e).est) {
         const F = e.objs[id]; if (F.ctrl === a) continue;
         for (const s of M.dadoDe(e, F).est || []) {
           if (s.modo !== 'desviraNoTurnoDeOutro' || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
-          for (const o of M.objetosQue(e, { ...s.afeta, ctrl: 'voce', zona: 'campo' }, { voce: F.ctrl, este: F.id })) o.virada = false;
+          for (const o of M.objetosQue(e, { ...s.afeta, ctrl: 'voce', zona: 'campo' }, { voce: F.ctrl, este: F.id })) M.desvirarObj(e, o);
         }
       }
       break;
@@ -181,7 +181,9 @@ M.PROC.terreno = (e, P, ask) => {
   const plano = M.decidirEntrada(e, P.id, j, P.face === undefined ? {} : { face: P.face }, ask);
   e.proc = null;
   e.jogs[j].terrenos++;
+  const de = o.zona;
   M.aplicarEntrada(e, plano);
+  M.evento(e, { ev: 'jogaTerreno', id: o.id, j, de });            // CR 305.1: "jogar um terreno" (de: de onde; Shadow of the Goblin)
   M.agiu(e, j);                                                     // CR 117.3c
 };
 const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });

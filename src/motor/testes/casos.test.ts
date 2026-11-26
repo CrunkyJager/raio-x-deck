@@ -1523,6 +1523,7 @@ caso('702.29a', 'ciclar: da mão, paga e descarta esta, compra 1; o descarte dis
   igual(naZona(e, 0, 'cemiterio'), ['Magmakin Artillerist']);
   igual([o('Ivora, Insatiable Heir').marc['+1/+1'], o('Marauding Mako').marc['+1/+1']], [1, 1]);
   igual(e.jogs[0].zonas.mao.length, 1, 'comprou 1');
+  igual(e.jogs[1].vida, 39, 'quando cicla: 1 de dano em cada oponente (do cemitério)');
 });
 caso('701.9c', 'agente: filtra com gatilho de descarte (Ivora + Blood com o último terreno da mão); sem gatilho, não', () => {
   for (const ivora of [true, false]) {
@@ -1815,6 +1816,27 @@ caso('115.3', '"outro": Kediss acerta cada OUTRO oponente; Markov Retribution n�
   igual(vistos, [[0, [vamp]], [1, [m.campo[1]]]], 'o 2º alvo não oferece o Vampiro já escolhido');
   const n = M.carta('Neheb, Dreadhorde Champion').gat[0];
   ok(M.gatOk(n), 'gatilho do Neheb aceito');
+});
+caso('701.26b', 'gatilhos novos: desvirar (Key to the City paga {2} e compra), jogar terreno de fora da mão (Shadow of the Goblin), proliferar (Voidwing Hybrid volta do cemitério)', () => {
+  for (const [n, g] of [['Key to the City', 'desvira'], ['Shadow of the Goblin', 'jogaTerreno'], ['Voidwing Hybrid', 'prolifera']]) ok(M.gatOk(M.carta(n).gat.find(x => x.ev === g)), n + ': gatilho aceito');
+  const e = cena({ campo: [...terras(3, 'Wastes'), [0, 'Key to the City'], [0, 'Shadow of the Goblin']], mao: [[0, 'Forest']] });
+  e.pend = [];
+  const key = e.objs[e.campo.find(id => e.objs[id].n === 'Key to the City')];
+  key.virada = true; M.desvirarObj(e, key);
+  M.avancar(e); resolveCom(e, p => p.tipo === 'talvez' || p.tipo === 'pagar' ? p.ops.findIndex(o => o.a === 'sim' || o.a === 'pagar') : -1);
+  igual([e.jogs[0].zonas.mao.length, e.campo.filter(id => e.objs[id].virada).length], [2, 2], 'pagou {2} (2 Wastes viradas) e comprou 1');
+  const v = e.jogs[1].vida, forest = e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Forest');
+  e.perg = null; M.avancar(e); respE(e, o => o.a === 'terreno' && o.id === forest); resolveCom(e);
+  igual(e.jogs[1].vida, v, 'terreno da mão: sem dano');
+  const g = e.jogs[0].zonas.grimorio, wa = g[g.length - 1];
+  M.mover(e, wa, 'exilio'); (e.permJogar = e.permJogar || []).push({ id: wa, ts: e.objs[wa].ts, j: 0 }); e.jogs[0].terrenos = 0;
+  e.perg = null; M.avancar(e); respE(e, o => o.a === 'terreno' && o.id === wa); resolveCom(e);
+  igual(v - e.jogs[1].vida, 1, 'terreno do exílio: 1 de dano em cada oponente');
+  const p = cena({ mao: [[0, 'Voidwing Hybrid']] }); p.pend = [];
+  M.descartar(p, 0, p.jogs[0].zonas.mao.slice());
+  M.executar(p, { op: 'proliferar', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  M.avancar(p); resolveCom(p);
+  igual(naZona(p, 0, 'mao'), ['Voidwing Hybrid'], 'proliferou (mesmo sem escolher nada): volta à mão');
 });
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];

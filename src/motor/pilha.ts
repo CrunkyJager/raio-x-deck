@@ -489,7 +489,7 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
 function pagarFisico(e, j, o, c, esc) {
   const J = e.jogs[j];
   if (c.virar) o.virada = true;
-  if (c.desvirar) o.virada = false;
+  if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
   if (c.vida) J.vida -= c.vida;
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
@@ -571,6 +571,7 @@ const PROC = {
     M.eventosAlvo(e, alvos, id);
     if (mana) pagarMana(e, j, pl, mana, x);
     pagarFisico(e, j, o, c, fis);
+    if (a._ciclar) M.evento(e, { ev: 'cicla', id: o.id, j });       // CR 702.29: "quando você ciclar" (Magmakin Artillerist)
     if (a.lealdade !== undefined) { o.marc.lealdade = (o.marc.lealdade || 0) + a.lealdade; o.lealTurno = e.turno.n; }   // CR 606.4
     if (a.limite === 'umaPorTurno') (o.usos = o.usos || {})[P.k] = e.turno.n;
     M.log(e, e.jogs[j].nome, 'ativa', o.n, descAlvos(e, alvos));

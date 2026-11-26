@@ -751,7 +751,7 @@ const H = {
       }
     },
   },
-  desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) o.virada = false; } },
+  desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.desvirarObj(e, o); } },
   // CR 701.3: prende o Equipamento/Aura (em) ao objeto a. Equipamento só em criatura e nunca em si mesmo (301.5c);
   // Aura só no que o encantar permite (303.4a); preso ao mesmo objeto = nada acontece (701.3b).
   anexar: {
@@ -929,6 +929,7 @@ const H = {
           for (const t in o.marc) if (o.marc[t] > 0) { if (t === 'lore') M.porHistoria(e, o, 1); else o.marc[t]++; }
         }
         if (esc.length) M.log(e, e.jogs[j].nome, 'prolifera', esc.length);
+        M.evento(e, { ev: 'prolifera', j });                          // "quando você proliferar" (mesmo sem escolher nada, 701.34a)
       }
     },
   },
