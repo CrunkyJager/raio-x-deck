@@ -397,6 +397,7 @@ M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x 
 };
 
 // escolher n objetos de uma lista, um por pergunta (pode parar antes se 'podeMenos')
+M.escolherN = (...a) => (escolherN as any)(...a);
 function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {} }: any = {}) {
   const r: any[] = [];
   while (r.length < n) {

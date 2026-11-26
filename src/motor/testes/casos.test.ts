@@ -1857,6 +1857,22 @@ caso('601.2f', 'condição sobre a carta descartada no custo (Grab the Prize): d
     igual([naZona(e, 0, 'cemiterio').sort(), e.jogs[0].zonas.mao.length, v - e.jogs[1].vida], [[desc, 'Grab the Prize'].sort(), 2, desc === 'Forest' ? 0 : 2], desc);
   }
 });
+caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
+  for (const n of [8, 7]) {
+    const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;
+    const ox = e.jogs[0].zonas.grimorio.pop(); e.objs[ox].n = 'Ox of Agonas'; M.mover(e, ox, 'cemiterio');
+    for (let i = 0; i < n; i++) M.mover(e, e.jogs[0].zonas.grimorio[0], 'cemiterio');
+    igual(M.podeConjurar(e, 0, e.objs[ox]), n === 8, n + ' outras no cemitério');
+    if (n !== 8) continue;
+    M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === ox); resolveCom(e);
+    igual([e.objs[ox].zona, e.objs[ox].marc['+1/+1'], e.jogs[0].zonas.exilio.length, e.jogs[0].zonas.cemiterio.length], ['campo', 1, 8, 0], 'fugiu: no campo com +1/+1, as 8 no exílio');
+  }
+  const b = cena({ campo: [...terras(1), [0, 'Underworld Breach']], mao: [[0, 'Lightning Bolt']] }); b.pend = [];
+  const bolt = b.jogs[0].zonas.mao[0]; M.mover(b, bolt, 'cemiterio');
+  for (let i = 0; i < 3; i++) M.mover(b, b.jogs[0].zonas.grimorio[0], 'cemiterio');
+  ok(M.porFuga(b, 0, b.objs[bolt]) && M.podeConjurar(b, 0, b.objs[bolt]), 'Breach: o Raio tem fuga com {R} + 3');
+  igual(M.fugaDe(b, 0, b.objs[bolt]).mana, M.carta('Lightning Bolt').custo, 'custo = o custo de mana dele');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');

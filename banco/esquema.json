@@ -1779,7 +1779,8 @@
       "fusao",
       "intimidar",
       "decaida",
-      "infectar"
+      "infectar",
+      "fuga"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1802,6 +1803,17 @@
     "pagar": {
      "$ref": "#/$defs/custoAtv",
      "description": "resguardo com custo que não é mana (pagar vida)"
+    },
+    "exilar": {
+     "type": "integer",
+     "description": "fuga: quantas OUTRAS cartas do seu cemitério exilar"
+    },
+    "comMarc": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "integer"
+     },
+     "description": "fuga: 'foge com' esses marcadores (702.138c)"
     }
    }
   },
@@ -2055,7 +2067,8 @@
       "dobraGatilho",
       "ataqueCusta",
       "naoPodeAtivar",
-      "deveBloquear"
+      "deveBloquear",
+      "darFuga"
      ],
      "description": "naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
     },
@@ -2206,6 +2219,10 @@
     "atacante": {
      "$ref": "#/$defs/objeto",
      "description": "deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)"
+    },
+    "exilar": {
+     "type": "integer",
+     "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
     }
    }
   },

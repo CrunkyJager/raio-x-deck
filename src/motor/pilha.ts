@@ -211,6 +211,21 @@ M.permJogar = (e, j, o) => { const l = e.permJogar; if (!l || !l.length) return 
 const flashDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'flashback' && x.custo); return k ? k.custo : null; };
 const porFlash = (e, j, o) => o.zona === 'cemiterio' && o.dono === j && !!flashDe(e, o) && !M.podeJogarDe(e, j, o);
 M.porFlash = porFlash;
+// fuga (CR 702.138): conjurar do cemitério pagando o custo de fuga + exilar N OUTRAS cartas do seu cemitério. Da própria
+// carta (kw fuga {custo, exilar, comMarc}: Ox of Agonas) ou dada por um permanente seu (est darFuga {afeta, exilar}: Underworld
+// Breach, custo = o custo de mana dela). "Foge com N marcadores" (702.138c) só vale se fugiu.
+const fugaDe = (e, j, o) => {
+  if (o.zona !== 'cemiterio' || o.dono !== j) return null;
+  const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'fuga' && x.custo && Number.isInteger(x.exilar));
+  if (k) return { mana: k.custo, exilar: k.exilar, comMarc: k.comMarc || null };
+  for (const id of e.campo) {
+    const F = e.objs[id]; if (F.ctrl !== j) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darFuga' && Number.isInteger(s.exilar) && M.dadoDe(e, o).custo && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: j, este: F.id })) return { mana: M.dadoDe(e, o).custo, exilar: s.exilar, comMarc: null };
+  }
+  return null;
+};
+const porFuga = (e, j, o) => !porFlash(e, j, o) && !M.podeJogarDe(e, j, o) && (() => { const f = fugaDe(e, j, o); return !!f && e.jogs[j].zonas.cemiterio.length - 1 >= f.exilar; })();
+M.porFuga = porFuga; M.fugaDe = fugaDe;
 // custo alternativo da própria carta (CR 118.9): "você pode conjurar sem pagar o custo de mana se controla um
 // comandante" (Deflecting Swat, Fierce Guardianship) ou outro custo de mana. Lido: afeta 'este' com gratis ou
 // pagar.mana, e 'se'. Simplificação: usa o alternativo sempre que sai mais barato (ninguém pagaria mais). Pagar vida,
@@ -228,7 +243,7 @@ const altDe = (e, j, o) => {
   return melhor && M.vmDe(melhor) < M.vmDe(M.dadoDe(e, o).custo || {}) ? melhor : undefined;
 };
 M.altDe = (e, j, o) => altDe(e, j, o);
-const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
+const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
 M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || o.zona === 'cemiterio' && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
 });
@@ -263,7 +278,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const d = M.dadoDe(e, o);
   if (o.dono !== j && !agora && !M.permJogar(e, j, o)) return false;
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
-  if (!(louc || agora || porFlash(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
+  if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
   if (!inst && !louc && !agora && !M.velFeitico(e, j)) return false;
@@ -340,7 +355,7 @@ function opcoes(e, j) {
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
     for (const id of doCem) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
   const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]));
-  const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]));   // recapitular (702.34)
+  const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]) || porFuga(e, j, e.objs[id]));   // recapitular (702.34), fuga (702.138)
   // permissões de efeito (op jogar): o que não está na mão/comando/cemitério já listados; terreno com permissão de jogar
   const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio, ...doFlash]), doPerm: number[] = [];
   for (const p of e.permJogar || []) { const o = e.objs[p.id]; if (p.j === j && o && o.ts === p.ts && !ja.has(p.id) && o.zona !== 'campo' && o.zona !== 'pilha') { ja.add(p.id); doPerm.push(p.id); } }
@@ -537,20 +552,23 @@ const PROC = {
     const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask, cabe, opc);          // CR 601.2c
     custo = comAlvos(alvos.reduce((s, l) => s + (l ? l.length : 0), 0));
     const fis = d.custoAd ? escolherCustoFisico(e, j, d.custoAd, null, o.id, ask) : { sac: [] as any[], desc: [] as any[], dev: [] as any[] };
+    const fuga = !porFlash(e, j, o) && !P.gratis && porFuga(e, j, o) ? fugaDe(e, j, o) : null;   // 702.138: as N outras do cemitério (601.2f)
+    const exFuga = fuga ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), fuga.exilar, { ctx: { o: 'exilar' } }) : [];
     const pl = plano(e, j, custo, x, fis.sac, o);                                     // CR 601.2g: mana antes de pagar
     e.proc = null;
     if (!pl) { o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(custo não fecha)'); return; }   // CR 727: volta atrás
     const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
     M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true;                    // CR 601.2a (o mover zera a face)
-    o.pil = { x, alvos, modos, ctrl: j, opc, ...(sacLki.length ? { sac: sacLki } : {}) };
+    o.pil = { x, alvos, modos, ctrl: j, opc, ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}) };
     M.evento(e, { ev: 'conjura', id: o.id, j, de });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
     pagarMana(e, j, pl, custo, x);                                                    // CR 601.2h
     if (d.custoAd) pagarFisico(e, j, o, d.custoAd, fis);
+    for (const id of exFuga) M.mover(e, id, 'exilio');
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
     e.turno.magias = (e.turno.magias || 0) + 1;
-    M.log(e, e.jogs[j].nome, 'conjura', o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
+    M.log(e, e.jogs[j].nome, 'conjura', o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', fuga ? '(fuga: exila ' + exFuga.length + ' do cemitério)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
     if (!P.loucura && !P.agora) M.agiu(e, j);                                                     // CR 601.2i → 117.3c (loucura: no meio da resolução)
   },
 
@@ -630,9 +648,10 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
   if (o.hab) { const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); delete e.objs[o.id]; return; }
   if (resolveu && M.ehPermanente(e, o)) {
     const plano = M.decidirEntrada(e, o.id, o.pil.ctrl, {}, ask);   // pergunta antes de mexer
-    const conj = o.pil.opc, x = o.pil.x || 0;
+    const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga;
     o.pil = null;
-    M.aplicarEntrada(e, { ...plano, conj, x });                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
+    const ent = M.aplicarEntrada(e, { ...plano, conj, x });
+    if (fuga && typeof fuga === 'object') for (const m in fuga) ent.marc[m] = (ent.marc[m] || 0) + fuga[m];   // 702.138c: "foge com"                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
     return;
   }
   const ctrl = o.pil && o.pil.ctrl;
