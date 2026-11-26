@@ -601,6 +601,10 @@ function camadas(e, o, lote?: any[]) {
   let fontes: [any, any][] = FC.l;
   const fora = fontesFora(e);
   if (fora.length) fontes = fontes.concat(fora);
+  if (e.efTemp && e.efTemp.length) for (const t of e.efTemp) for (const s of t.est) if (s.modo === 'continuo') {   // emblema / "neste turno" (114.4, 611.2): a fonte é o efeito
+    if (fontes === FC.l) fontes = fontes.slice();
+    fontes.push([t._F || (t._F = { id: -1, ctrl: t.ctrl, ts: t.ts, n: t.n }), s]);
+  }
   if (lote && lote.length) { fontes = fontes.slice(); for (const S of lote) for (const s of M.dadoDe(e, S).est || []) if (s.modo === 'continuo' && M.estContOk(s)) fontes.push([S, s]); }
   if (!fontes.length && !temp.length) return NADA;
   lendoCamada++;

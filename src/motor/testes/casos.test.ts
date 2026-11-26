@@ -2774,6 +2774,15 @@ caso('114.4', 'emblema com gatilho (Chandra, Torch of Defiance): cada mágica qu
   resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
   igual(e.jogs[1].vida, 30, 'emblema dispara de novo (não é de uma vez só)');
 });
+caso('114.4', 'emblema com estática (Sorin, Lord of Innistrad): suas criaturas +1/+0, inclusive as que entram depois; as do oponente não', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears']] }); e.pend = [];
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  M.executar(e, ach(M.carta('Sorin, Lord of Innistrad')), { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  const pr = j => e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && o.n === 'Grizzly Bears').map(o => [M.poder(e, o), M.resistencia(e, o)]);
+  igual(pr(0), [[3, 2]], 'sua: 3/2'); igual(pr(1), [[2, 2]], 'do oponente: 2/2');
+  e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');       // a limpeza (514.2) tira só os 'até o fim do turno'
+  igual(pr(0), [[3, 2]], 'emblema não some na limpeza');
+});
 caso('603.7a', 'gatilho só neste turno (Forth Eorlingas!): criatura sua dá dano de combate a jogador → você vira monarca; some na limpeza', () => {
   const e = cena({ campo: [[0, 'Grizzly Bears']] }); e.pend = [];
   const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
