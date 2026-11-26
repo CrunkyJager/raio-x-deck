@@ -1769,6 +1769,24 @@ caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1
   s.turno.n++;
   igual([f, M.objetosQue(s, { ficha: true, ctrl: 'voce', zona: 'campo', entrouNoTurno: true }, { voce: 0 }).length], [6, 0], 'entrouNoTurno: só no turno em que entrou');
 });
+caso('508.4', 'ficha virada e atacando: Hero of Bladehold escolhe quem ataca; Adeline cria 1 por oponente, cada uma atacando aquele jogador; fora do combate só virada', () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Adeline, Resplendent Cathar']] });
+  e.turno.combate = { atk: [], etapa: 0, duas: false, deu1: {} };
+  const g = M.carta('Adeline, Resplendent Cathar').gat.find(x => x.ev === 'atacantesDeclarados');
+  ok(M.gatOk(g), 'gatilho da Adeline aceito');
+  M.executar(e, g.fx[0], { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, tipo, ops) => ops[ops.length - 1]);
+  igual(e.turno.combate.atk.map(r => [e.objs[r.id].n, r.def]).sort(), [['Human Token', 1], ['Human Token', 2]], 'uma ficha atacando cada oponente');
+  ok(e.turno.combate.atk.every(r => e.objs[r.id].virada), 'viradas');
+  const h = M.carta('Hero of Bladehold').gat.find(x => x.ev === 'ataca' && x.fx.some(y => y.op === 'ficha')), fx = h.fx.find(x => x.op === 'ficha');
+  ok(M.gatOk(h), 'gatilho do Hero aceito');
+  const vistos: any[] = [];
+  M.executar(e, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, tipo, ops) => { vistos.push(tipo); return ops.find(o => o.jog === 2) || ops[0]; });
+  igual([vistos, e.turno.combate.atk.filter(r => r.def === 2).length], [['atacado', 'atacado'], 3], 'Hero: cada ficha escolhe; as duas no jogador 2');
+  e.turno.combate = null;
+  const n0 = e.campo.length;
+  M.executar(e, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.campo.length - n0, 2, 'fora do combate: cria viradas, sem atacar');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');

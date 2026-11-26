@@ -63,8 +63,9 @@ function alvosAtaque(e, a) {
 const defDe = (e, alvo) => alvo.jog !== undefined ? alvo.jog : e.objs[alvo.o].ctrl;
 // CR 508.4: permanente que entra atacando. Quem a controla escolhe um jogador ou planeswalker que ela poderia atacar
 // (508.4a); primeiro o mais atacado agora (o agente básico pega o primeiro). Não foi declarada: não dispara "ataca".
-M.escolherAtacado = (e, j, ask) => {
-  const C = e.turno.combate, alvos = alvosAtaque(e, j);
+// soDe: só aquele jogador ou um planeswalker/batalha dele ("attacking that player", Adeline e Ainok no repetirCada)
+M.escolherAtacado = (e, j, ask, soDe = undefined) => {
+  const C = e.turno.combate, alvos = alvosAtaque(e, j).filter(t => soDe === undefined || defDe(e, t) === soDe);
   if (!C || !alvos.length) return null;
   const n = t => C.atk.filter(r => t.jog !== undefined ? r.alvo.jog === t.jog : r.alvo.o === t.o).length;
   alvos.sort((a, b) => n(b) - n(a));
