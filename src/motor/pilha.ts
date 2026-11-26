@@ -30,6 +30,17 @@ M.temKw = (e, o, k) => M.kwDe(e, o).some(x => x.k === k);   // com as palavras-c
 const ehMagica = o => o.zona === 'pilha' && !o.hab;
 const vivo = (e, j) => !e.jogs[j].saiu;
 
+// "você pode conjurar X como se tivesse lampejo" (CR 702.8, 601.3e): estática de permanente (Liberator, Singer of Swift
+// Rivers, Sigarda's Aid; Quick Sliver vale para todos) ou efeito temporário (Alchemist's Refuge, Progenitor's Icon)
+const lampejoOk = (e, j, o, s, ctx) => s.modo === 'conjurarComLampejo' && (!s.f || M.bate(e, o, s.f, ctx));
+M.lampejoDado = (e, j, o) => {
+  for (const id of e.campo) {
+    const F = e.objs[id];
+    for (const s of M.dadoDe(e, F).est || []) if ((s.afeta === 'cadaJogador' || (s.afeta === 'voce' && F.ctrl === j)) && lampejoOk(e, j, o, s, { voce: j, este: F.id })) return true;
+  }
+  for (const t of e.efTemp || []) if (t.ctrl === j) for (const s of t.est) if (lampejoOk(e, j, o, s, { voce: j, este: t.este ? t.este.id : -1 })) return true;
+  return false;
+};
 // velocidade (CR 307.1, 117.1a): mágica de feitiço só na principal do ativo com a pilha vazia
 M.velFeitico = (e, j) => j === e.turno.ativo && PRINCIPAL.has(e.turno.passo) && !e.pilha.length;
 
@@ -316,7 +327,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
   if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o) || porPrevisao(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
-  const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo');
+  const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo') || M.lampejoDado(e, j, o);
   if (!inst && !louc && !milag && !agora && !M.velFeitico(e, j)) return false;
   if (d.fx && !M.fxSuportado(d.fx)) return false;
   if (!M.ehPermanente(e, o) && !(d.fx && d.fx.length)) return false;   // mágica sem efeito lido: não conjura à toa

@@ -2948,6 +2948,16 @@ caso('611.2b', 'efeitoTemporario de regra do jogador: Explore dá terreno extra 
   passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
   igual([M.terrenosPorTurno(e, 0), M.maoMax(e, 0)], [1, Infinity], 'turno seguinte');
 });
+caso('702.8', 'como se tivesse lampejo: Singer of Swift Rivers deixa conjurar Merfolk no turno do oponente (Grizzly não); Alchemist\'s Refuge vale para tudo só neste turno', () => {
+  const e = cena({ campo: [...terras(3, 'Island'), ...terras(3, 'Forest'), [0, 'Singer of Swift Rivers']], mao: [[0, 'Lord of Atlantis'], [0, 'Grizzly Bears']] }); e.pend = [];
+  e.turno.ativo = 1;                                         // turno do oponente: velocidade de feitiço não vale
+  const id = n => e.jogs[0].zonas.mao.find(x => e.objs[x].n === n);
+  igual([M.podeConjurar(e, 0, e.objs[id('Lord of Atlantis')]), M.podeConjurar(e, 0, e.objs[id('Grizzly Bears')])], [true, false], 'Singer');
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  M.executar(e, ach(M.carta("Alchemist's Refuge")), { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  ok(M.podeConjurar(e, 0, e.objs[id('Grizzly Bears')]), 'Refuge');
+  igual(M.podeConjurar(e, 1, e.objs[id('Grizzly Bears')]), false, 'só para quem ativou');
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
