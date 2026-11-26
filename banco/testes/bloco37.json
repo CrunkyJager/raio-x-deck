@@ -27,12 +27,12 @@
   {
    "carta": "Passageway Seer",
    "situacao": "entra",
-   "espera": "iniciativa (falta)"
+   "espera": "você toma a iniciativa"
   },
   {
    "carta": "Phyrexian Digester",
    "situacao": "causa dano",
-   "espera": "dano normal (infect falta)"
+   "espera": "dano como veneno em jogador e −1/−1 em criatura (infectar)"
   },
   {
    "carta": "Plague Myr",
@@ -42,7 +42,7 @@
   {
    "carta": "Plague Stinger",
    "situacao": "ataca",
-   "espera": "voa (infect falta)"
+   "espera": "voa; o dano vira veneno (infectar)"
   },
   {
    "carta": "Precipitous Drop",
@@ -97,7 +97,7 @@
   {
    "carta": "Shortcut Seeker",
    "situacao": "causa dano num jogador",
-   "espera": "venture (falta)"
+   "espera": "você aventura"
   },
   {
    "carta": "Skull Raid",
@@ -137,7 +137,7 @@
   {
    "carta": "Underdark Explorer",
    "situacao": "entra",
-   "espera": "iniciativa (falta)"
+   "espera": "você toma a iniciativa"
   },
   {
    "carta": "Vat Emergence",
@@ -172,7 +172,7 @@
   {
    "carta": "Zombie Ogre",
    "situacao": "etapa final depois de uma morte",
-   "espera": "venture (falta)"
+   "espera": "você aventura"
   }
  ]
 }

@@ -1041,7 +1041,9 @@
       "amassar",
       "popular",
       "incitar",
-      "fundir"
+      "fundir",
+      "tomarIniciativa",
+      "aventurar"
      ],
      "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)"
     },
@@ -1659,6 +1661,34 @@
     "modoEscolhido": {
      "type": "string",
      "description": "o modo escolhido quando a permanente entrou (Mirrodin Besieged 'Mirran'/'Phyrexian', Windcrag Siege, Struggle); a escolha = op escolher o 'modo' ao entrar"
+    },
+    "temIniciativa": {
+     "type": "boolean",
+     "description": "você tem a iniciativa (CR 725)"
+    },
+    "completouMasmorra": {
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "nome"
+       ],
+       "properties": {
+        "nome": {
+         "type": "string"
+        },
+        "nao": {
+         "type": "boolean",
+         "description": "true = NÃO completou aquela masmorra (Acererak)"
+        }
+       }
+      }
+     ],
+     "description": "você completou uma masmorra (309.7) nesta partida; {nome} = aquela masmorra (Tomb of Annihilation)"
     }
    }
   },
@@ -1732,7 +1762,8 @@
       "tumulto",
       "fusao",
       "intimidar",
-      "decaida"
+      "decaida",
+      "infectar"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1840,7 +1871,11 @@
       "viraParaMana",
       "descarta",
       "moe",
-      "explora"
+      "explora",
+      "completaMasmorra",
+      "sala",
+      "tomaIniciativa",
+      "nivel"
      ]
     },
     "naoMorre": {

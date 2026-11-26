@@ -95,6 +95,14 @@ function acaoDoTurno(e) {
       J.terrenos = 0;
       if (e.faseados && e.faseados.length) M.fasearDentro(e, a);
       for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { o.virada = false; o.doente = false; } }
+      // "desvire [filtro] que você controla durante a etapa de desvirar de cada outro jogador" (Unwinding Clock, Seedborn Muse)
+      for (const id of M.indiceCampo(e).est) {
+        const F = e.objs[id]; if (F.ctrl === a) continue;
+        for (const s of M.dadoDe(e, F).est || []) {
+          if (s.modo !== 'desviraNoTurnoDeOutro' || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
+          for (const o of M.objetosQue(e, { ...s.afeta, ctrl: 'voce', zona: 'campo' }, { voce: F.ctrl, este: F.id })) o.virada = false;
+        }
+      }
       break;
     case 'principal1':                                              // CR 714.3b: marcador de história nas sagas de quem joga
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
@@ -234,11 +242,12 @@ M.abe = e => {
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
     for (const id of e.campo) {
       const o = e.objs[id], n = M.capitulos(M.dadoDe(e, o));
-      if (!n || (o.marc.historia || 0) < n) continue;
+      if (!n || (o.marc.lore || 0) < n) continue;
       if ((e.pend || []).some(p => p.fonte === id && p.ts === o.ts) || e.pilha.some(h => { const x = e.objs[h].hab; return x && x.fonte === id && x.fonteTs === o.ts; })) continue;
       morrem.push(id);
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
+    if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
     while (e.fichasFora && e.fichasFora.length) {

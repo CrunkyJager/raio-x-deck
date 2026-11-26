@@ -6,8 +6,8 @@ import { M } from './nucleo';
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando']);
 const QUEM_OK = new Set(['voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado']);
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'poderDoSacrificado', 'vmDoSacrificado']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate']);
+  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'poderDoSacrificado', 'vmDoSacrificado']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -17,10 +17,11 @@ const dadoOk = q => !!q && typeof q === 'object' && Number.isInteger(q.dado) && 
 const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && (Number.isInteger(q.ate) || q.ate === 'X' || q.ate === 'qualquer');
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
-    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop'].includes(k)) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
+    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop', 'de'].includes(k)) && (q.de === undefined || ((q.conta === 'marcadoresNoEste' || q.conta === 'devocao') && typeof q.de === 'string')) && (q.conta !== 'devocao' || /^[WUBRG]+$/.test(q.de || '')) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
 const emOk = v => v === undefined || v === 'este' || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
-  && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q)));
+  && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || qtdOk(se.conta.q))
+  && (!se.esteEm || (Array.isArray(se.esteEm) && se.esteEm.length > 0 && se.esteEm.every(z => ['campo', 'cemiterio', 'exilio', 'mao', 'comando', 'grimorio'].includes(z)))));
 M.seOk = seOk;
 // aMenosQue (CR 118.12): "X unless [quem] pays [custo]". Custo: mana fixa, {x:1} com qtd (Esper Sentinel), vida, sacrificar {f, qtd}
 const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['quem', 'custo', 'qtd'].includes(k))
@@ -93,7 +94,7 @@ function jogsDe(e, f, ctx) {
     case 'alvoJogador': { for (let i = 0; i < ctx.alvos.length; i++) { const js = jogsAlvo(e, i, ctx); if (js.length) return js; } return []; }
     case 'controlador': return [...new Set(lkisDe(e, f, ctx).map(l => l.ctrl))].filter(j => vivos.includes(j));
     case 'dono': return [...new Set(lkisDe(e, f, ctx).map(l => l.dono))].filter(j => vivos.includes(j));
-    case 'doEvento': return ctx.ev && ctx.ev.j !== undefined && vivos.includes(ctx.ev.j) ? [ctx.ev.j] : [];   // quem descartou (Megrim)
+    case 'doEvento': { const jj = ctx.ev ? (ctx.ev.ev === 'dano' ? ctx.ev.jog : ctx.ev.j) : undefined; return jj !== undefined && vivos.includes(jj) ? [jj] : []; }   // quem descartou (Megrim); no dano, o jogador que recebeu (Blightbelly Rat)
   }
   throw new Error('quem sem suporte: ' + f.quem);
 }
@@ -111,7 +112,8 @@ function qtdDe(e, q, ctx) {
       case 'vmDoAlvo': v = a ? a.vm : 0; break;
       case 'poderDoEste': v = este ? este.poder : 0; break;
       case 'resistDoEste': v = este ? este.resist : 0; break;
-      case 'marcadoresNoEste': v = este ? Object.values<any>(este.marc).reduce((s, n) => s + n, 0) : 0; break;
+      case 'marcadoresNoEste': v = !este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0); break;   // de: um tipo de marcador ('lore')
+      case 'devocao': v = M.devocao(e, ctx.voce, q.de); break;
       case 'cartasNaMao': v = e.jogs[ctx.voce].zonas.mao.length; break;
       case 'oponentes': v = M.vivos(e).filter(j => j !== ctx.voce).length; break;
       case 'jogadores': v = M.vivos(e).length; break;
@@ -207,13 +209,16 @@ function pagouParaImpedir(e, f, ctx, ask) {
 // ---------- executar um efeito ----------
 M.executar = (e, f, ctx, ask) => {
   if (f.se && !M.condicao(e, f.se, ctx)) return;                     // CR 608.2c: condição lida na hora
+  // "pode" ANTES de qualquer pagamento: o processo repete o passo a cada resposta, e uma pergunta depois de pagar via
+  // o estado já pago (a opção 'pagar' sumia na repetição e a resposta gravada apontava para nada — Leaf-Crowned
+  // Visionary). Com 'pagando', o próprio pagar é o "pode": não pergunta duas vezes.
+  const h0 = H[f.op];
+  if (f.talvez && !f.pagando && !(h0 && h0.talvezDentro) && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') { ctx.pagou = false; return; }   // "pode"
   if (f.aMenosQue && pagouParaImpedir(e, f, ctx, ask)) { ctx.pagou = false; return; }   // CR 118.12: alguém pagou, o efeito não acontece
   if (f.pagando) {                                                   // "você pode pagar X. Se pagar, …" (pergunta e paga antes do efeito)
     const pagou = pagouParaImpedir(e, { op: 'pagando', aMenosQue: { quem: 'voce', custo: f.pagando } }, ctx, ask);
     ctx.pagou = pagou; if (!pagou) return;
   }
-  const h0 = H[f.op];
-  if (f.talvez && !(h0 && h0.talvezDentro) && ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') { ctx.pagou = false; return; }   // "pode"
   const h = H[f.op];
   if (!h) throw new Error('efeito sem suporte no motor2: ' + f.op + ' (' + ((e.objs[ctx.item] || {}).n || '?') + ')');
   if (f.talvez) ctx.pagou = true;                                    // "se fizer" (se.pagou) do efeito seguinte
@@ -326,7 +331,7 @@ function copiaDe(e, token, ctx) {
 M.danoEm = (e, o, q, fd) => danoEm(e, o, q, fd);
 function danoEm(e, alvoObj, q, fonte) {
   if (M.temTipo(e, alvoObj, 'Planeswalker')) alvoObj.marc.lealdade = (alvoObj.marc.lealdade || 0) - q;   // CR 120.3c
-  if (M.temTipo(e, alvoObj, 'Creature')) { alvoObj.dano += q; if ((fonte.kw || []).some(k => k.k === 'toqueMortifero')) alvoObj.mortal = true; }   // 120.3e, 702.2b
+  if (M.temTipo(e, alvoObj, 'Creature')) { if (M.temInfectar(fonte.kw)) alvoObj.marc['-1/-1'] = (alvoObj.marc['-1/-1'] || 0) + q; else alvoObj.dano += q; if ((fonte.kw || []).some(k => k.k === 'toqueMortifero')) alvoObj.mortal = true; }   // 120.3e (infectar: −1/−1, 702.90c), 702.2b
   if (M.temTipo(e, alvoObj, 'Battle')) alvoObj.marc.defesa = (alvoObj.marc.defesa || 0) - q;                // CR 120.3h
 }
 
@@ -350,7 +355,7 @@ const H = {
       for (const o of objsDe(e, f, ctx)) { const v = parte(o); if (v > 0) { danoEm(e, o, v, fonte); total += v; } }
       const js = f.em && typeof f.em.alvo === 'number' ? jogsAlvo(e, f.em.alvo, ctx) : [];
       const jq = f.quem ? jogsDe(e, f, ctx) : [];
-      for (const j of [...new Set([...js, ...jq])]) { const v = js.includes(j) ? parte(null, j) : q; if (v <= 0 || M.protegeJog(e, j)) continue; if (!M.vidaFixa(e, j)) e.jogs[j].vida -= v; total += v; }   // CR 120.3a; 702.16j; 119.7
+      for (const j of [...new Set([...js, ...jq])]) { const v = js.includes(j) ? parte(null, j) : q; if (v <= 0 || M.protegeJog(e, j)) continue; M.danoJogador(e, j, v, fonte.kw); total += v; }   // CR 120.3a (infectar: veneno, 702.90b); 702.16j; 119.7
       if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, fonte.ctrl, total);   // CR 702.15b: quem controla a fonte
     },
   },
@@ -448,6 +453,18 @@ const H = {
       }
     },
     talvezDentro: true,
+  },
+  // CR 716.2a: a Classe sobe para o nível n (a habilidade de nível resolveu). O dado passa a ter as habilidades do
+  // nível (estado.ts comNivel); vCamada refaz os índices de gatilho/estática; ev 'nivel' = "quando vira nível N".
+  subirNivel: {
+    campos: ['n'],
+    ok: f => Number.isInteger(f.n) && f.n >= 2 && f.em === undefined,
+    fx(e, f, ctx) {
+      const E = e.objs[ctx.este]; if (!E || E.zona !== 'campo' || (E.nivel || 1) >= f.n) return;
+      E.nivel = f.n; e.vCamada = (e.vCamada || 0) + 1;
+      M.log(e, E.n, 'sobe para o nível', f.n);
+      M.evento(e, { ev: 'nivel', id: E.id, ts: E.ts, n: f.n });
+    },
   },
   // CR 701.14: lutar. Cada uma causa dano igual ao seu poder na outra, ao mesmo tempo; se uma não está no campo
   // ou não é criatura, ninguém causa dano (701.14b). Toque mortífero e vínculo vêm de cada uma (702.2b, 702.15b).
@@ -550,7 +567,8 @@ const H = {
     campos: ['tipoMarc', 'tirar'],
     fx(e, f, ctx) {
       const q = qtdDe(e, f.qtd, ctx);
-      for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (t === 'historia' && !f.tirar && q1 > 0) { M.porHistoria(e, o, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) + (f.tirar ? -q1 : q1)); }
+      if (f.em === undefined && f.quem !== undefined) { for (const j of jogsDe(e, f, ctx)) M.marcadorJogador(e, j, f.tipoMarc, q, !!f.tirar); return; }   // no jogador (122.1: poison, rad, experience)
+      for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (t === 'lore' && !f.tirar && q1 > 0) { M.porHistoria(e, o, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) + (f.tirar ? -q1 : q1)); }
     },
   },
   virar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) o.virada = true; } },
@@ -595,12 +613,17 @@ const H = {
   // CR 701.9: quem descarta escolhe; {ate:N|'qualquer'} = "descarte quantas quiser". As descartadas ficam lembradas
   // (conta 'lembrados': "draw that many", Neheb, Path of the Pyromancer) e "se descartar" (se.pagou) = ao menos uma.
   descartar: {
+    campos: ['aleatorio'],
+    ok: f => f.aleatorio === undefined || (f.aleatorio === true && !ateOk(f.qtd)),
     qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira' || (ateOk(q) && q.ate !== 'X'),
     fx(e, f, ctx, ask) {
       const por: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
         const mao = e.jogs[j].zonas.mao;
         if (f.qtd === 'maoInteira') { por.push([j, mao.slice()]); continue; }
+        if (f.aleatorio) {                                          // CR 701.9b: ao acaso, com o RNG da partida
+          const l = mao.slice(); M.embaralhar(e, l); por.push([j, l.slice(0, Math.min(qtdDe(e, f.qtd, ctx), l.length))]); continue;
+        }
         const ate = ateOk(f.qtd);
         por.push([j, escolherN(ask, j, 'descartar', mao, Math.min(ate ? qtdDe(e, f.qtd, ctx) : qtdDe(e, f.qtd, ctx), mao.length), { podeMenos: ate, ctx: { op: 'descartar' } })]);
       }
@@ -639,6 +662,7 @@ const H = {
   embaralhar: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.embaralhar(e, e.jogs[j].zonas.grimorio); } },
   buscar: {                                                         // CR 701.19 (pode não achar: 701.19b)
     campos: ['f', 'para', 'revelar', 'virada', 'destinos'],
+    qtd: q => qtdOk(q) || (ateOk(q) && q.ate !== 'X'),          // "any number of" (Ugin −11): {ate:'qualquer'}
     ok: f => ['mao', 'campo', 'cemiterio', 'grimorio', 'exilio', undefined].includes(f.para) && (!f.destinos || f.destinos.every(d => ['mao', 'campo', 'cemiterio', 'grimorio'].includes(d.para))),
     fx(e, f, ctx, ask) {
       const plano: any[] = [];
@@ -741,7 +765,7 @@ const H = {
         for (const x of esc) {
           if (x.jog !== undefined) { e.jogs[x.jog].veneno++; continue; }
           const o = e.objs[x.id];
-          for (const t in o.marc) if (o.marc[t] > 0) { if (t === 'historia') M.porHistoria(e, o, 1); else o.marc[t]++; }
+          for (const t in o.marc) if (o.marc[t] > 0) { if (t === 'lore') M.porHistoria(e, o, 1); else o.marc[t]++; }
         }
         if (esc.length) M.log(e, e.jogs[j].nome, 'prolifera', esc.length);
       }

@@ -15,6 +15,10 @@ function estEste(e, o, modo, seNaoLe) {
     if (!s.se) return true;
     try { if (M.condicao(e, s.se, { voce: o.ctrl, este: o.id })) return true; } catch (_) { if (seNaoLe) return true; }
   }
+  for (const [F, s] of M.estDaEquipada(e, o, modo)) {                                       // dada por Equipamento/Aura presa a ela
+    if (!s.se) return true;
+    try { if (M.condicao(e, s.se, { voce: F.ctrl, este: F.id })) return true; } catch (_) { if (seNaoLe) return true; }
+  }
   return M.tempNoObj(e, o, modo);                                                           // efeitoTemporario (Taunt from the Rampart, Bident)
 }
 // continua em combate? (CR 506.4: sai do campo ou muda de controle → sai do combate)
@@ -119,6 +123,11 @@ function bloqueiaEste(e, b, at) {                                               
     if (s.modo !== 'naoPodeSerBloqueada' || s.afeta !== 'este') continue;
     let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id }); } catch (_) { vale = false; }
     if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, { voce: at.ctrl, este: at.id })))) return false;
+  }
+  for (const [F, s] of M.estDaEquipada(e, at, 'naoPodeSerBloqueada')) {                   // Equipamento/Aura (Brotherhood Regalia)
+    const c = { voce: F.ctrl, este: F.id };
+    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, c); } catch (_) { vale = false; }
+    if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, c)))) return false;
   }
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
@@ -260,7 +269,7 @@ function aplicarGolpes(e, golpes) {
     if (g.alvo.jog !== undefined) {
       if (M.protegeJog(e, g.alvo.jog)) continue;                                           // 702.16j: prevenido
       const J = e.jogs[g.alvo.jog];
-      if (!M.vidaFixa(e, g.alvo.jog)) J.vida -= g.q;                                       // 120.3a; 119.7 vida que não muda
+      M.danoJogador(e, g.alvo.jog, g.q, M.kwDe(e, g.fonte));                               // 120.3a (infectar: veneno, 702.90b); 119.7
       if (g.fonte.cmd) J.danoCmd[g.fonte.id] = (J.danoCmd[g.fonte.id] || 0) + g.q;          // 903.10a
     } else {
       const o = e.objs[g.alvo.o];

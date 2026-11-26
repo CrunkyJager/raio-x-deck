@@ -42,7 +42,7 @@ try {
       for (const m of ms) anota(m, n);
     }
   };
-  const BASE_CARTA = new Set(['v', 'n', 'id', 'oracleHash', 'vm', 'ci', 'cores', 'tipos', 'rev', 'custo', 'sub', 'pt', 'super', 'fx', 'alvos', 'gat', 'atv', 'kw', 'est', 'subst', 'falta', 'faces', 'forma', 'custoAd', 'leal']);
+  const BASE_CARTA = new Set(['v', 'n', 'id', 'oracleHash', 'vm', 'ci', 'cores', 'tipos', 'rev', 'custo', 'sub', 'pt', 'super', 'fx', 'alvos', 'gat', 'atv', 'kw', 'est', 'subst', 'falta', 'faces', 'forma', 'custoAd', 'leal', 'niveis']);
   const cartas = Object.values(bancoProprio());
   const travadas = new Set();
   for (const c of cartas) {
@@ -65,6 +65,7 @@ try {
         }
       }
       for (const a of d.atv || []) {
+        if (a.se && !M.seOk(a.se)) anota('atv.se', n);              // "ative só se …" que o motor não lê: não ativa
         if (a.deMana) continue;
         if (a.custo && !M.custoSuportado(a.custo)) for (const k of Object.keys(a.custo)) if (!M.custoSuportado({ [k]: a.custo[k] })) anota(`custoAtv.${k}`, n);
         if (!M.fxSuportado(a.fx, { topo: false })) fxMotivos(a.fx, false, n, 'atv');
@@ -80,11 +81,14 @@ try {
           const q = s.qtd && typeof s.qtd === 'object' && !M.qtdEstOk(s.qtd) ? s.qtd : null;
           const det = q ? Object.keys(q).filter(k => !['conta', 'mult', 'soma'].includes(k)).concat(q.conta && typeof q.conta === 'object' ? Object.keys(q.conta).filter(k => !M.filtroOk({ [k]: 1 })) : []) : [];
           anota(`est reduzCusto${det.length ? ' qtd ' + det.join('+') : ''}`, n);
+        } else if (s.modo === 'custoAlternativo' && M.estAltOk) {   // pilha.ts: o motor diz o que lê
+          if (!M.estAltOk(s)) anota(`est custoAlternativo ${typeof s.afeta === 'object' ? 'afeta filtro' : Object.keys(s.pagar || {}).join('+') || '?'}`, n);
         } else if (!citado.has(s.modo)) anota(`est ${s.modo}`, n);
       }
       for (const x of d.kw || []) if (!citado.has(x.k)) anota(`kw ${x.k}`, n);
       for (const s of d.subst || []) { const t = s.modo || s.tipo || s.ev || Object.keys(s).join('+'); if (!citado.has(t)) anota(`subst ${t}`, n); }
       for (const f of d.faces || []) ve(f);
+      for (const l of d.niveis || []) ve(l);   // Classe: cada nível (n, custo, gat/est/atv)
     };
     ve(c);
     const depois = [...motivos.values()].reduce((s, v) => s + (v.has(n) ? 1 : 0), 0);

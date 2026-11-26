@@ -436,8 +436,11 @@ Regra ≥3 ocorrências (somando os lotes anteriores). Correção 19 do esquema:
 
 | # | falta | cartas | proposta | decisão |
 |---|---|---|---|---|
-| 1 | iniciativa | 10 cartas (acima) | fx `tomarIniciativa` + cond `temIniciativa` | |
-| 2 | venture / masmorra | 12 cartas | fx `aventurar`; est `dobraGatilho` ev `sala` | |
-| 3 | completou masmorra | 8 cartas | cond `completouMasmorra` (+nome), gat `completaMasmorra` | |
-| 4 | infect | 9 + Blightsteel | kw `infectar` | |
-| 5 | o resto 1 cada | Dire Fleet Ravager (um terço da vida), Ashiok (oponentes não procuram), Knowledge Exploitation (prowl; buscar no grimório do oponente), Prosperous Thief (ninjutsu, 2ª ocorrência), Skull Raid (foretell; "fewer discarded"), Voidwing Hybrid (ev prolifera), Fifty Feet of Rope (não desvira sem virar) | deixar falta | |
+| 1 | iniciativa | 10 cartas (acima) | fx `tomarIniciativa` + cond `temIniciativa` | ACEITO (coord. casa 25/11): + gat ev `tomaIniciativa` |
+| 2 | venture / masmorra | 12 cartas | fx `aventurar`; est `dobraGatilho` ev `sala` | ACEITO: gat ev `sala` (evs do dobraGatilho é livre) |
+| 3 | completou masmorra | 8 cartas | cond `completouMasmorra` (+nome), gat `completaMasmorra` | ACEITO: `completouMasmorra: true` ou `{nome}`; gat ev `completaMasmorra` |
+| 4 | infect | 9 + Blightsteel | kw `infectar` | ACEITO |
+| 5 | o resto 1 cada | Dire Fleet Ravager (um terço da vida), Ashiok (oponentes não procuram), Knowledge Exploitation (prowl; buscar no grimório do oponente), Prosperous Thief (ninjutsu, 2ª ocorrência), Skull Raid (foretell; "fewer discarded"), Voidwing Hybrid (ev prolifera), Fifty Feet of Rope (não desvira sem virar) | deixar falta | ACEITO (fica em falta) |
+| 6 | negação do `completouMasmorra {nome}` (reescrita 25/11, casa) | Acererak the Archlich: "When Acererak enters, if you **haven't** completed Tomb of Annihilation, return Acererak to its owner's hand and venture into the dungeon." | `completouMasmorra: {nome: "Tomb of Annihilation", nao: true}` (o `false` já nega o booleano, como `monarca: false` do Court of Grace; o `{nome}` não tem como negar). Hoje: volta e aventura sempre + falta `[completou]` | (pendente) |
+
+**Reescrita das cartas (adepto B, casa 25/11, ramo `casa-masmorras-banco`):** as 31 cartas com etiqueta + Blightsteel usam os campos aceitos; casos em `banco/testes/correcao-masmorras.json`. Convenção usada: `temIniciativa: false` / `completouMasmorra: false` = "não tem"/"não completou" (para o "instead": Safana, Sarevok's Tome, Precipitous Drop). Zombie Ogre "if a creature died this turn" = `se: {palavra: "morbid"}` (a palavra já existia no vocabulário do `conta se`). Corpse Cur: filtro `kw: ["infectar"]` (já existia; sem pedido). Fica falta: só o Acererak (pedido 6) e o Tie Up do Fifty Feet of Rope (item 5).

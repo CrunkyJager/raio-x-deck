@@ -552,7 +552,9 @@ export interface RxFx {
     | 'amassar'
     | 'popular'
     | 'incitar'
-    | 'fundir';
+    | 'fundir'
+    | 'tomarIniciativa'
+    | 'aventurar';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -866,6 +868,22 @@ export interface RxCond {
    * o modo escolhido quando a permanente entrou (Mirrodin Besieged 'Mirran'/'Phyrexian', Windcrag Siege, Struggle); a escolha = op escolher o 'modo' ao entrar
    */
   modoEscolhido?: string;
+  /**
+   * você tem a iniciativa (CR 725)
+   */
+  temIniciativa?: boolean;
+  /**
+   * você completou uma masmorra (309.7) nesta partida; {nome} = aquela masmorra (Tomb of Annihilation)
+   */
+  completouMasmorra?:
+    | boolean
+    | {
+        nome: string;
+        /**
+         * true = NÃO completou aquela masmorra (Acererak)
+         */
+        nao?: boolean;
+      };
 }
 
 export interface RxKw {
@@ -934,7 +952,8 @@ export interface RxKw {
     | 'tumulto'
     | 'fusao'
     | 'intimidar'
-    | 'decaida';
+    | 'decaida'
+    | 'infectar';
   custo?: RxMana;
   n?: number;
   /**
@@ -994,7 +1013,11 @@ export interface RxGat {
     | 'viraParaMana'
     | 'descarta'
     | 'moe'
-    | 'explora';
+    | 'explora'
+    | 'completaMasmorra'
+    | 'sala'
+    | 'tomaIniciativa'
+    | 'nivel';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */

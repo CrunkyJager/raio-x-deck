@@ -92,7 +92,7 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
     const o = e.objs[id];
     if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => {
-      if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo)) return;
+      if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo) || !M.atvSeOk(e, a, o)) return;
       // soVirar: sem pagar mana nem vida ({T} e/ou sacrificar este: terreno, Lotus Petal, Treasure, Gold)
       if (soVirar && Object.keys(a.custo).some(x => x !== 'virar' && !(x === 'sacrificar' && a.custo.sacrificar === 'este'))) return;
       const p = M.pacotesDe(e, o, a, { para });
@@ -205,6 +205,8 @@ function reducoes(e, j, o, deHabil) {
   const r = { g: 0, p: [] as string[] };
   const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
   if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
+  if (!deHabil) for (const k of M.dadoDe(e, o).kw || []) if (k.k === 'afinidade' && k.tipo)   // CR 702.41: {1} a menos por [tipo] seu
+    r.g += M.objetosQue(e, { tipo: [k.tipo], ctrl: 'voce', zona: 'campo' }, { voce: j, este: o.id }).length;
   for (const F of fontes) for (const s of M.dadoDe(e, F).est || []) {
     if (s.modo !== 'reduzCusto' || !!s.deHabil !== deHabil || !M.estReduzOk(s)) continue;
     const ctx = { voce: F.ctrl, este: F.id };

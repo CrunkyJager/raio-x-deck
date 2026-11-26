@@ -144,11 +144,33 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
 // mana possível de um jogador (limite de cima, rápido): reserva + o máximo de cada fonte de virar
 function manaMax(e, j, excluir, para) {
   let t = M.somaMana(e.jogs[j].reserva);
-  for (const f of M.fontesDeMana(e, j, { soVirar: true, para })) if (!excluir || !excluir.includes(f.id)) t += Math.max(...f.pacotes.map(M.somaMana));
+  const fs = M.fontesDeMana(e, j, { soVirar: true, para });
+  for (const f of fs) if (!excluir || !excluir.includes(f.id)) t += Math.max(...f.pacotes.map(M.somaMana));
+  if (para && M.temKw(e, para, 'improvisar')) {                     // os artefatos que não dão mana pagam {1} cada (702.126)
+    const ids = new Set(fs.map(f => f.id));
+    t += e.campo.filter(id => { const o = e.objs[id]; return o.ctrl === j && !o.virada && !ids.has(id) && (!excluir || !excluir.includes(id)) && M.temTipo(e, o, 'Artifact'); }).length;
+  }
   return t;
 }
 const vidaPhy = (e, j) => M.vidaFixa(e, j) ? 0 : Math.max(0, e.jogs[j].vida - 1);   // 119.8: vida fixa não paga        // phyrexiano: o plano pode gastar vida sem morrer
-const plano = (e, j, custo, x, excluir, para?) => M.planoMana(e, j, custo, { x, vidaDisp: vidaPhy(e, j), excluir, para });
+const plano0 = (e, j, custo, x, excluir, para?) => M.planoMana(e, j, custo, { x, vidaDisp: vidaPhy(e, j), excluir, para });
+// improvisar (CR 702.126): cada artefato seu desvirado que você vira paga {1} genérico da mágica. Primeiro os que não
+// dão mana (virar um Sol Ring para improvisar perde 1); só se não fechar, os que dão mana, um a um. O plano leva
+// improv (os ids a virar) e custo (o que sobra em mana); pagarMana vira e paga só o resto.
+const plano = (e, j, custo, x, excluir, para?) => {
+  if (!para || !custo.g || !M.temKw(e, para, 'improvisar')) return plano0(e, j, custo, x, excluir, para);
+  const fora = new Set(excluir || []);
+  const arts = e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && !o.virada && !fora.has(o.id) && M.temTipo(e, o, 'Artifact'));
+  const fontes = new Set(M.fontesDeMana(e, j, { soVirar: true, para }).map(f => f.id));
+  const ordem = [...arts.filter(o => !fontes.has(o.id)), ...arts.filter(o => fontes.has(o.id))].map(o => o.id);
+  const semFonte = arts.filter(o => !fontes.has(o.id)).length;
+  for (let n = Math.min(custo.g, semFonte); n <= Math.min(custo.g, ordem.length); n++) {
+    const ids = ordem.slice(0, n), c = { ...custo, g: custo.g - n };
+    const pl = plano0(e, j, c, x, [...(excluir || []), ...ids], para);
+    if (pl) return n ? { ...pl, improv: ids, custo: c } : pl;
+  }
+  return null;
+};
 // maior X pagável (CR 107.3): sobe enquanto o plano fecha
 function maxX(e, j, custo, excluir, para?, teto = 30) {
   let x = 0;
@@ -182,7 +204,24 @@ M.permJogar = (e, j, o) => { const l = e.permJogar; if (!l || !l.length) return 
 const flashDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'flashback' && x.custo); return k ? k.custo : null; };
 const porFlash = (e, j, o) => o.zona === 'cemiterio' && o.dono === j && !!flashDe(e, o) && !M.podeJogarDe(e, j, o);
 M.porFlash = porFlash;
-const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : undefined;
+// custo alternativo da própria carta (CR 118.9): "você pode conjurar sem pagar o custo de mana se controla um
+// comandante" (Deflecting Swat, Fierce Guardianship) ou outro custo de mana. Lido: afeta 'este' com gratis ou
+// pagar.mana, e 'se'. Simplificação: usa o alternativo sempre que sai mais barato (ninguém pagaria mais). Pagar vida,
+// exilar da mão ou sacrificar (Force of Will, Fling…) e o alternativo dado a outras cartas ainda não.
+M.estAltOk = s => !!s && s.modo === 'custoAlternativo' && s.afeta === 'este' && Object.keys(s).every(k => ['modo', 'afeta', 'gratis', 'pagar', 'se'].includes(k))
+  && (s.gratis === true ? !s.pagar : !!s.pagar && Object.keys(s.pagar).length === 1 && !!s.pagar.mana) && (!s.se || M.seOk(s.se));
+const altDe = (e, j, o) => {
+  let melhor: any = null;
+  for (const s of M.dadoDe(e, o).est || []) {
+    if (!M.estAltOk(s)) continue;
+    if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, { voce: j, este: o.id }); } catch (_) { ok = false; } if (!ok) continue; }
+    const c = s.gratis ? {} : s.pagar.mana;
+    if (!melhor || M.vmDe(c) < M.vmDe(melhor)) melhor = c;
+  }
+  return melhor && M.vmDe(melhor) < M.vmDe(M.dadoDe(e, o).custo || {}) ? melhor : undefined;
+};
+M.altDe = (e, j, o) => altDe(e, j, o);
+const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
 M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || o.zona === 'cemiterio' && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
 });
@@ -246,9 +285,12 @@ function opcOk(e, j, d, usados, custo0, opc, o) {
 const modalTopo = d => d.fx && d.fx.length === 1 && d.fx[0].op === 'modal';
 
 // ---------- o que pode ser ativado (CR 602.2; lealdade CR 606) ----------
+// atv.se = "ative só se …" (602.5b; também na de mana: Mox Opal, Sarevok's Tome). Condição que o motor não lê: não ativa.
+M.atvSeOk = (e, a, o) => { if (!a.se) return true; if (!M.seOk(a.se)) return false; try { return M.condicao(e, a.se, { voce: o.ctrl, este: o.id }); } catch (_) { return false; } };
 M.podeAtivar = (e, j, o, k) => {
   const d = M.dadoDe(e, o), a = M.atvDe(e, o)[k];
   if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
+  if (!M.atvSeOk(e, a, o)) return false;                             // "Activate only if …" (602.5b)
   if ((d.falta || []).some(s => s.startsWith('Cost'))) return false;   // custo que o conversor não leu: não ativa errado
   if (!M.custoSuportado(a.custo) || !(a.fx && a.fx.length) || !M.fxSuportado(a.fx, { topo: false })) return false;
   if (a.lealdade !== undefined) {                                     // CR 606.3: feitiço, uma por turno por permanente
@@ -256,6 +298,7 @@ M.podeAtivar = (e, j, o, k) => {
     if (a.lealdade < 0 && (o.marc.lealdade || 0) < -a.lealdade) return false;
   } else if (a.vel === 'feitico' && !M.velFeitico(e, j)) return false;
   if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
+  if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
   if (!custoFisicoOk(e, j, o, a.custo, { daMao: a.custo.descartarEste ? o.id : undefined })) return false;
   const ctx = { voce: j, este: o.id };
   for (const i of alvosUsados(a.fx)) {
@@ -445,6 +488,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.devolver === 'este') M.mover(e, o.id, 'mao');              // Shigeki
 }
 function pagarMana(e, j, pl, custo, x) {
+  if (pl.improv) { for (const id of pl.improv) e.objs[id].virada = true; custo = pl.custo; }   // improvisar (702.126a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(e.jogs[j].reserva, custo, { x, vidaDisp: pl.vida });
   e.jogs[j].reserva = pg.resto; e.jogs[j].vida -= pg.vida;

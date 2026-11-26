@@ -1323,7 +1323,7 @@ caso('702.33d', 'conjuradaCom kicker (Goblin Bushwhacker): o gatilho de entrar s
     for (let i = 0; i < 6 && e.perg && (e.pilha.length || e.pend.length); i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
     igual(M.poder(e, objN(e, 0, 'Grizzly Bears')), 2 + esp, `${terras} Montanha(s): ` + JSON.stringify(e.log.slice(-4)));
   }
-  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'metalcraft' } }));
+  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'solved' } }));
 });
 db['Cena Desgaste'] = { n: 'Cena Desgaste', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Sorcery'], vm: 2, ci: 'G', kw: [{ k: 'ofertaPresente', tipo: 'carta' }],
   alvos: [{ f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, opcao: 'semPresente' }, { f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, min: 2, max: 2, opcao: 'presente' }],
@@ -1634,28 +1634,192 @@ caso('611.2c', "modificar com estática de regra até o fim do turno (Key to the
   igual(M.bloqueiaEste(e, hg, gb), true, 'a limpeza tira (514.2)');
 });
 
+caso('113.6', 'Anger: estática que vale do cemitério (esteEm) — com Mountain, suas criaturas têm pressa; no campo ou no exílio, não', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears', { doente: true }], [1, 'Hill Giant', { doente: true }]] });
+  const [gb, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 1, 'Hill Giant')];
+  ok(M.estContOk(M.carta('Anger').est[0]), 'o motor lê a estática da Anger');
+  const an = e.por(0, 'Anger', { zona: 'cemiterio' });
+  igual(M.temKw(e, gb, 'pressa'), false, 'sem Mountain não vale');
+  e.por(0, 'Mountain');
+  igual([M.temKw(e, gb, 'pressa'), M.temKw(e, hg, 'pressa')], [true, false], 'só as suas');
+  const nova = e.por(0, 'Llanowar Elves', { doente: true });
+  igual(M.temKw(e, nova, 'pressa'), true, 'a que chegou depois também');
+  M.mover(e, an.id, 'campo');
+  igual([M.temKw(e, gb, 'pressa'), M.temKw(e, an, 'pressa')], [false, true], 'no campo: só a pressa dela');
+  M.mover(e, an.id, 'exilio');
+  igual(M.temKw(e, gb, 'pressa'), false, 'no exílio não vale');
+  M.mover(e, an.id, 'cemiterio');
+  igual(M.temKw(e, gb, 'pressa'), true, 'de volta ao cemitério vale de novo');
+  ok(!M.seOk({ esteEm: ['pilhaX'] }), 'zona desconhecida: recusa');
+});
+
+caso('613.1d', 'Brotherhood Regalia: a equipada vira Assassin (camada 4), ganha resguardo {2} e não pode ser bloqueada; desequipada, perde tudo', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant']] });
+  const [gb, le, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 0, 'Llanowar Elves'), objN(e, 1, 'Hill Giant')];
+  const rg = e.por(0, 'Brotherhood Regalia');
+  ok(M.carta('Brotherhood Regalia').est.every(x => x.modo !== 'continuo' || M.estContOk(x)), 'o motor lê a estática');
+  ok(!M.estTipoEquipOk({ modo: 'continuo', afeta: 'equipada', sub: ['Forest'] }), 'tipo de terreno básico: recusa (305.6)');
+  const sub = o => M.dadoDe(e, o).sub || [];
+  igual(sub(gb).includes('Assassin'), false);
+  rg.anexo = { id: gb.id, ts: gb.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  igual([sub(gb).includes('Assassin'), sub(gb).includes('Bear'), sub(le).includes('Assassin')], [true, true, false], 'soma o subtipo, só na equipada');
+  igual([M.temKw(e, gb, 'resguardo'), M.temKw(e, le, 'resguardo')], [true, false]);
+  igual([M.bloqueiaEste(e, hg, gb), M.bloqueiaEste(e, hg, le)], [false, true]);
+  ok(M.objetosQue(e, { sub: ['Assassin'], zona: 'campo' }, { voce: 0 }).some(o => o.id === gb.id), 'filtro por subtipo enxerga o Assassin');
+  rg.anexo = { id: le.id, ts: le.ts }; e.vCamada++;
+  igual([sub(gb).includes('Assassin'), sub(le).includes('Assassin'), M.temKw(e, gb, 'resguardo')], [false, true, false], 'trocou de criatura');
+  M.mover(e, le.id, 'cemiterio');
+  igual(sub(le).includes('Assassin'), false, 'fora do campo, só o impresso');
+});
+
+caso('716.2', 'Classe (Cool but Rude): entra no nível 1; subir só do nível anterior, como feitiço; o nível 2 soma o gatilho de descarte', () => {
+  const e = cena({ campo: terras(6, 'Mountain') });
+  const cr = e.por(0, 'Cool but Rude');
+  igual(cr.nivel, 1, 'entra no nível 1 (716.2c)');
+  const sobe = M.atvDe(e, cr).map((a, k) => [a._nivel, k]).filter(([n]) => n);
+  igual(sobe.map(([n]) => n), [2, 3]);
+  const k2 = sobe[0][1], k3 = sobe[1][1];
+  igual([M.podeAtivar(e, 0, cr, k2), M.podeAtivar(e, 0, cr, k3)], [true, false], 'nível 3 só depois do 2 (716.2a)');
+  igual((M.gatDe(e, cr) || []).map(g => g.ev), ['atacantesDeclarados']);
+  M.executar(e, M.atvDe(e, cr)[k2].fx[0], { voce: 0, este: cr.id, alvos: [], ilegal: {}, lki: {} }, null);
+  igual([cr.nivel, (M.gatDe(e, cr) || []).map(g => g.ev)], [2, ['atacantesDeclarados', 'descarta']], 'o nível 2 soma o gatilho');
+  igual([M.podeAtivar(e, 0, cr, k2), M.podeAtivar(e, 0, cr, k3)], [false, true]);
+  e.turno.passo = 'combate'; igual(M.podeAtivar(e, 0, cr, k3), false, 'só como feitiço'); e.turno.passo = 'principal1';
+  M.mover(e, cr.id, 'mao'); M.mover(e, cr.id, 'campo');
+  igual([cr.nivel, (M.gatDe(e, cr) || []).length], [1, 1], 'saiu e voltou: objeto novo, nível 1 (400.7)');
+  ok(M.gatOk({ ev: 'nivel', n: 3, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }) && !M.gatOk({ ev: 'nivel', fx: [] }), "gat ev 'nivel' pede n");
+  // nível 3 (716.2b): "quando vira nível 3" busca uma carta e descarta uma ao acaso (701.9b); o descarte dispara o do nível 2
+  const g = cena({ campo: terras(6, 'Mountain'), mao: [[0, 'Grizzly Bears'], [0, 'Hill Giant']] });
+  const c2 = g.por(0, 'Cool but Rude'); g.pend = [];
+  const kk = M.atvDe(g, c2).map((a, k) => [a._nivel, k]).filter(([n]) => n).map(([, k]) => k);
+  M.executar(g, M.atvDe(g, c2)[kk[0]].fx[0], { voce: 0, este: c2.id, alvos: [], ilegal: {}, lki: {} }, null);
+  M.executar(g, M.atvDe(g, c2)[kk[1]].fx[0], { voce: 0, este: c2.id, alvos: [], ilegal: {}, lki: {} }, null);
+  igual([c2.nivel, g.pend.length], [3, 1], 'o gatilho do nível 3 disparou');
+  ok(M.fxSuportado(M.gatDe(g, c2).find(x => x.ev === 'nivel').fx), 'busca e descarte ao acaso lidos');
+  const mao0 = g.jogs[0].zonas.mao.length, vida1 = g.jogs[1].vida;
+  M.avancar(g); resolveCom(g);
+  igual(g.jogs[0].zonas.mao.length, mao0, '+1 da busca, −1 ao acaso');
+  igual(g.jogs[0].zonas.cemiterio.length, 1);
+  M.avancar(g); resolveCom(g);
+  igual(g.jogs[1].vida, vida1 - 2, 'o descarte disparou o nível 2: 2 de dano em cada oponente');
+});
+
+caso('700.5', 'devoção (Clive): símbolos da cor nos custos dos seus permanentes, híbrido conta; descartar a mão e comprar a devoção; marcadores de um tipo (lore) na condição', () => {
+  const e = cena({ campo: [...terras(4, 'Mountain'), [0, 'Goblin Guide'], [1, 'Goblin Guide']], mao: [[0, 'Grizzly Bears'], [0, 'Hill Giant'], [0, 'Forest']] });
+  const cl = e.por(0, "Clive, Ifrit's Dominant");
+  igual(M.devocao(e, 0, 'R'), 3, '{4}{R}{R} + {R}; o do oponente e os terrenos não contam');
+  igual([M.devocao(e, 0, 'G'), M.devocao(e, 1, 'R')], [0, 1]);
+  const gm = M.carta("Clive, Ifrit's Dominant").gat[0];
+  ok(M.gatOk(gm), 'o gatilho de entrar é lido');
+  const ctx: any = { voce: 0, este: cl.id, alvos: [], ilegal: {}, lki: {} };
+  const mao0 = e.jogs[0].zonas.mao.length;
+  const sim = (j, t, ops) => ops.find(o => o.a === 'sim') || ops[0];
+  for (const f of gm.fx) M.executar(e, f, ctx, sim);
+  igual([e.jogs[0].zonas.cemiterio.length, e.jogs[0].zonas.mao.length], [mao0, 3], 'descartou a mão (3) e comprou a devoção (3)');
+  // Ifrit (verso, saga): "se tiver 3 ou mais marcadores de lore" lê o tipo do marcador
+  const se = M.carta("Clive, Ifrit's Dominant").faces[0].gat[1].fx[1].se;
+  cl.marc.lore = 2; igual(M.condicao(e, se, { voce: 0, este: cl.id }), false);
+  cl.marc.lore = 3; cl.marc['+1/+1'] = 5; igual(M.condicao(e, se, { voce: 0, este: cl.id }), true, 'conta só lore');
+  igual(M.qtd(e, { conta: 'marcadoresNoEste', de: '+1/+1' }, { voce: 0, este: cl.id }), 5);
+  ok(M.fxSuportado([{ op: 'comprar', qtd: { conta: 'devocao', de: 'WB' } }]) && !M.fxSuportado([{ op: 'comprar', qtd: { conta: 'devocao', de: 'X' } }]), 'de: só cores');
+});
+
+caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you do, draw'): pergunta antes de pagar; a repetição do processo não perde a opção", () => {
+  const e = cena({ campo: [...terras(4, 'Forest'), [0, 'Leaf-Crowned Visionary']], mao: [[0, 'Llanowar Elves']] });
+  M.avancar(e);
+  resp(e, o => o.a === 'conjurar');
+  const mao0 = e.jogs[0].zonas.mao.length;
+  const perguntas: string[] = [];
+  resolveCom(e, p => { perguntas.push(p.tipo); return p.tipo === 'aMenosQuePagar' ? p.ops.findIndex(o => o.a === 'pagar') : -1; });
+  igual(perguntas.filter(t => t === 'talvez').length, 0, 'com pagando, o pagar já é o "pode"');
+  igual(e.jogs[0].zonas.mao.length, mao0 + 1, 'pagou {G} e comprou');
+  igual(e.objs[e.campo.find(id => e.objs[id].n === 'Llanowar Elves')].zona, 'campo');
+});
+
+caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; solved continua recusada', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Grizzly Bears']] });
+  const ctx = { voce: 0, este: e.campo[0] };
+  ok(M.fxSuportado(M.carta('Dispatch').fx), 'Dispatch lido');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), false, '2 artefatos');
+  e.por(0, 'Arcane Signet');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), true, '3 artefatos');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, { voce: 1, este: e.campo[0] }), false, 'são do outro');
+  e.por(0, 'Llanowar Elves'); e.por(0, 'Grizzly Bears');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), false, 'poderes 1 e 2');
+  e.por(0, 'Hill Giant');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), true, '1, 2 e 3');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), false, '6 permanentes');
+  for (let i = 0; i < 4; i++) e.por(0, 'Wastes');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
+  for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
+  ok(!M.condValorOk({ palavra: 'solved' }));
+});
+caso('502.3', 'Unwinding Clock: seus artefatos desviram na etapa de desvirar dos outros; as criaturas não', () => {
+  const e = cena({ campo: [[0, 'Unwinding Clock'], [0, 'Sol Ring'], [0, 'Grizzly Bears']] });
+  const [sr, gb] = [objN(e, 0, 'Sol Ring'), objN(e, 0, 'Grizzly Bears')];
+  sr.virada = true; gb.virada = true;
+  ateTurno(e, 3, 'manutencao');
+  igual([e.turno.ativo, sr.virada, gb.virada], [1, false, true]);
+});
+caso('702.41', 'afinidade por artefatos (Mycosynth Golem): {1} a menos por artefato seu; buscar "quantas quiser" (Ugin −11) e grupo na saída (Ratchet) lidos', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [0, 'Arcane Signet'], [1, 'Mind Stone']], mao: [[0, 'Mycosynth Golem']] });
+  const mg = e.objs[e.jogs[0].zonas.mao[0]];
+  igual(M.custoComImposto(e, mg).g, 8, '11 − 3');
+  ok(M.fxSuportado(M.carta('Ugin, Eye of the Storms').atv[2].fx), 'buscar {ate: qualquer}');
+  ok(M.gatOk(M.carta('Ratchet, Field Medic').faces[0].gat[0]), 'gatilho "uma ou mais" na saída');
+  const r = e.por(0, 'Ratchet, Field Medic', { obj: { face: 0 } }); e.pend = [];
+  M.mover(e, objN(e, 0, 'Sol Ring').id, 'cemiterio'); M.mover(e, objN(e, 0, 'Mind Stone').id, 'cemiterio');
+  igual(e.pend.filter(p => p.fonte === r.id).length, 1, 'uma vez pelo lote');
+});
+
+caso('702.126', 'improvisar (Organic Extinction): artefatos virados pagam {1} genérico cada; primeiro os que não dão mana', () => {
+  const arts = ['Darksteel Forge', 'Panharmonicon', 'Dolmen Gate', 'Swiftfoot Boots', 'Basilisk Collar', 'Ruby Medallion'].map(n => [0, n]);
+  const e = cena({ campo: [...terras(2, 'Plains'), [0, 'Sol Ring'], [0, 'Mind Stone'], ...arts, [1, 'Grizzly Bears']], mao: [[0, 'Organic Extinction']] });
+  const oe = e.objs[e.jogs[0].zonas.mao[0]], ms = objN(e, 0, 'Mind Stone');
+  ok(M.podeConjurar(e, 0, oe), 'WW + 6 artefatos + Sol Ring = 10');
+  M.avancar(e); resp(e, op => op.a === 'conjurar' && op.id === oe.id);
+  igual(arts.map(([, n]) => objN(e, 0, n).virada), arts.map(() => true), 'os 6 sem mana foram virados');
+  igual(ms.virada, false, 'o Mind Stone sobrou');
+  resolveCom(e);
+  igual([objN(e, 1, 'Grizzly Bears'), oe.zona], [undefined, 'cemiterio']);
+  const g = cena({ campo: [...terras(2, 'Plains'), [0, 'Sol Ring'], ...arts.slice(0, 5)], mao: [[0, 'Organic Extinction']] });
+  igual(M.podeConjurar(g, 0, g.objs[g.jogs[0].zonas.mao[0]]), false, '2 + 2 + 5 = 9 de 10');
+});
+caso('118.9', 'custo alternativo: grátis com comandante no campo (Flawless Maneuver, Deflecting Swat); custo de mana alternativo mais barato (Baleful Mastery)', () => {
+  const e = cena({ cmd: ['Krenko, Mob Boss'], campo: [...terras(3, 'Plains'), [1, 'Grizzly Bears']], mao: [[0, 'Flawless Maneuver'], [0, 'Baleful Mastery']] });
+  const [fm, bm] = e.jogs[0].zonas.mao.map(id => e.objs[id]);
+  ok(M.carta('Deflecting Swat').est.every(s => M.estAltOk(s)) && M.carta('Flawless Maneuver').est.every(s => M.estAltOk(s)), 'lidos');
+  igual(M.altDe(e, 0, fm), undefined, 'comandante na zona de comando: paga o normal');
+  const kr = e.objs[e.jogs[0].zonas.comando[0]]; M.mover(e, kr.id, 'campo');
+  igual(M.altDe(e, 0, fm), {}, 'com o comandante no campo: grátis');
+  ok(M.podeConjurar(e, 0, fm), 'conjura sem mana de branco');
+  igual(M.vmDe(M.altDe(e, 0, bm) || M.carta('Baleful Mastery').custo), 2, 'Baleful Mastery: {1}{B} no lugar de {3}{B}');
+  ok(!M.estAltOk({ modo: 'custoAlternativo', afeta: 'este', pagar: { vida: 1 } }), 'pagar vida: ainda não');
+});
+
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
   const e = cena({ campo: terras(2, 'Wastes') });
   const sr = e.por(0, 'Sol Ring', { zona: 'grimorio' }), gr = e.jogs[0].zonas.grimorio; gr.unshift(gr.pop());   // no fundo: não é comprado
   const us = e.por(0, "Urza's Saga");
-  igual(us.marc.historia, 1, 'entra com 1 (714.3a)');
+  igual(us.marc.lore, 1, 'entra com 1 (714.3a)');
   M.avancar(e); resolveCom(e);
   igual(M.atvDe(e, us).map(a => !!a.deMana), [true], 'capítulo I: {T}: {C}');
   ok(M.fontesDeMana(e, 0).some(f => f.id === us.id), 'vira fonte de mana');
-  ateTurno(e, 3); igual(us.marc.historia, 1, 'no turno do oponente não sobe');
+  ateTurno(e, 3); igual(us.marc.lore, 1, 'no turno do oponente não sobe');
   ateTurno(e, 4, 'inicioCombate');
-  igual([us.marc.historia, M.atvDe(e, us).length], [2, 2], 'capítulo II');
+  igual([us.marc.lore, M.atvDe(e, us).length], [2, 2], 'capítulo II');
   ok(M.fxSuportado(M.atvDe(e, us)[1].fx, { topo: false }) && !M.atvDe(e, us)[1].deMana, 'a do Construct');
   ateTurno(e, 6, 'inicioCombate');
   igual([sr.zona, us.zona], ['campo', 'cemiterio'], 'capítulo III buscou e a saga foi sacrificada');
   // capítulo na pilha segura o sacrifício (714.4); proliferar sobe e dispara
   const g = cena({});
-  const s2 = g.por(0, "Urza's Saga"); s2.marc.historia = 3; g.pend = [];
+  const s2 = g.por(0, "Urza's Saga"); s2.marc.lore = 3; g.pend = [];
   g.pilha.push((() => { const id = g.prox++; g.objs[id] = { id, n: "Urza's Saga", dono: 0, ctrl: 0, zona: 'pilha', ts: ++g.ts, marc: {}, hab: { fonte: s2.id, fonteTs: s2.ts, gat: 2, fx: [] }, pil: { x: 0, alvos: [], ctrl: 0, lki: {} } }; return id; })());
   M.abe(g); igual(s2.zona, 'campo', 'com o capítulo na pilha fica');
   const h = cena({}); const s3 = h.por(0, "Urza's Saga"); h.pend = [];
   M.porHistoria(h, s3, 1);
-  igual([s3.marc.historia, h.pend.length], [2, 1], 'II desencadeia uma vez');
+  igual([s3.marc.lore, h.pend.length], [2, 1], 'II desencadeia uma vez');
 });
 
 caso('105.2c', 'filtro cor C = incolor (Mystic Forge, Ugin)', () => {
@@ -1825,6 +1989,227 @@ caso('603.2h', 'Losheel: "uma ou mais criaturas artefato entram" dispara uma vez
   igual(e.pend.filter(p => p.n === 'Losheel, Clockwork Scholar').length, 0, 'já disparou neste turno');
   M.avancar(e); resolveCom(e);
   igual(e.jogs[0].zonas.mao.length, m0 + 1, 'comprou 1');
+});
+
+// ---------- masmorras (deck da Safana): infectar e veneno (702.90, 704.5c) ----------
+// cartas da cena escritas como o banco vai escrever (o B ainda tem o infectar em 'falta'; quando reescrever, valem as do banco)
+const criat = (n, pt, kw: any[] = [], o: any = {}) => ({ n, custo: { g: 1, p: ['B'] }, cores: 'B', tipos: ['Creature'], sub: ['Horror'], pt, vm: 2, ci: 'B', kw, ...o });
+db['Cena Infecta Voa'] = criat('Cena Infecta Voa', [1, 1], [{ k: 'voar' }, { k: 'infectar' }]);                       // Plague Stinger
+db['Cena Infecta Livre'] = criat('Cena Infecta Livre', [1, 1], [{ k: 'infectar' }], { est: [{ modo: 'naoPodeSerBloqueada', afeta: 'este' }] });   // Blighted Agent
+db['Cena Infecta 2/2'] = criat('Cena Infecta 2/2', [2, 2], [{ k: 'infectar' }]);                                     // Contagious Nim
+db['Cena Infecta Vínculo'] = criat('Cena Infecta Vínculo', [2, 2], [{ k: 'infectar' }, { k: 'vinculoVida' }]);
+db['Cena Indestrutível'] = criat('Cena Indestrutível', [2, 2], [{ k: 'indestrutivel' }]);
+db['Cena Raio Infecto'] = { n: 'Cena Raio Infecto', custo: { p: ['B'] }, cores: 'B', tipos: ['Instant'], vm: 1, ci: 'B', alvos: [{ f: 'qualquerAlvo' }], kw: [{ k: 'infectar' }],
+  fx: [{ op: 'dano', em: { alvo: 0 }, qtd: 3 }] };
+caso('702.90b', 'infectar: dano de combate em jogador vira veneno e não tira vida (Plague Stinger)', () => {
+  const e = combate([[0, 'Cena Infecta Voa']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta Voa')); fecha(e, 'atacar'); ateFimCombate(e);
+  igual([e.jogs[1].vida, e.jogs[1].veneno], [40, 1]);
+});
+caso('704.5c', 'infectar: o 10º veneno (Blighted Agent num jogador com 9) faz perder o jogo', () => {
+  const e = combate([[0, 'Cena Infecta Livre'], [1, 'Grizzly Bears']], { jogs: 3 });
+  e.jogs[1].veneno = 9;
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta Livre')); fecha(e, 'atacar'); ateFimCombate(e);
+  ok(e.jogs[1].saiu, 'perdeu com ' + e.jogs[1].veneno + ' venenos');
+});
+caso('702.90c', 'infectar em criatura: marcadores −1/−1 em vez de dano (Contagious Nim × 2/2); a infectada sofre dano normal', () => {
+  const e = combate([[0, 'Cena Infecta 2/2'], [1, 'Grizzly Bears']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Grizzly Bears'), objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'bloquear'); ateFimCombate(e);
+  igual(naZona(e, 1, 'cemiterio'), ['Grizzly Bears']); igual(naZona(e, 0, 'cemiterio'), ['Cena Infecta 2/2'], 'a Nim levou 2 de dano');
+  igual(e.jogs[1].vida, 40);
+});
+caso('702.90c', 'infectar: −1/−1 mata o indestrutível quando a resistência chega a 0 (704.5f); dano de mágica com infectar idem', () => {
+  const e = combate([[0, 'Cena Infecta 2/2'], [1, 'Cena Indestrutível'], [1, 'Cena Indestrutível']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Cena Indestrutível'), objN(e, 0, 'Cena Infecta 2/2')); fecha(e, 'bloquear'); ateFimCombate(e);
+  igual(naZona(e, 1, 'cemiterio'), ['Cena Indestrutível'], 'o indestrutível 0/0 morreu');
+  const f = cena({ campo: [[0, 'Swamp'], [1, 'Cena Indestrutível']], mao: [[0, 'Cena Raio Infecto']] });
+  M.avancar(f); conj(f, 'Cena Raio Infecto'); alvoObj(f, 'Cena Indestrutível'); resolveCom(f);
+  igual(naZona(f, 1, 'cemiterio'), ['Cena Indestrutível'], 'dano de mágica com infectar: ' + JSON.stringify(f.log.slice(-4)));
+});
+caso('702.90b', 'infectar + vínculo: 2 venenos no jogador e o controlador ganha 2 (702.15b); Blightbelly Rat dá veneno ao jogador do dano (marcador doEvento)', () => {
+  const e = combate([[0, 'Cena Infecta Vínculo'], [0, 'Blightbelly Rat']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Cena Infecta Vínculo')); atacaCom(e, objN(e, 0, 'Blightbelly Rat')); fecha(e, 'atacar'); ateFimCombate(e);
+  igual([e.jogs[1].vida, e.jogs[1].veneno, e.jogs[0].vida], [38, 3, 42], JSON.stringify(e.log.slice(-5)));
+});
+
+// ---------- masmorras (309, 701.49) e iniciativa (727) ----------
+// escolhe a masmorra / a sala pelo nome; o resto, o agente básico
+const escolheM = (masm?, sala?) => (p: any) => p.tipo === 'masmorra' && masm ? p.ops.findIndex(o => o.nome === masm) : p.tipo === 'sala' && sala ? p.ops.findIndex(o => o.n === sala) : -1;
+const morreEsqueleto = e => { const o = e.por(0, 'Clattering Skeletons'); M.mover(e, o.id, 'cemiterio'); };   // "quando morre, aventure"
+const seguir = e => { e.perg = null; M.avancar(e); };   // a cena mexeu no estado com uma pergunta aberta: o laço segue (ABE, gatilhos)
+const masm = (e, j = 0) => e.jogs[j].masm ? e.jogs[j].masm.nome + ':' + M.MASMORRAS[e.jogs[j].masm.nome].salas[e.jogs[j].masm.sala].n : null;
+const fichasN = (e, j, n) => e.campo.filter(id => e.objs[id].ctrl === j && e.objs[id].n === n).length;
+caso('701.49a', 'Clattering Skeletons morre sem masmorra: escolhe uma das três (a Undercity não), entra na 1ª sala e a sala dispara (309.4c); depois avança pela seta escolhida (701.49b)', () => {
+  const e = cena({ grimorio: 10 });
+  morreEsqueleto(e); seguir(e);
+  let vistas: any[] = [];
+  resolveCom(e, p => { if (p.tipo === 'masmorra') vistas = p.ops.map(o => o.nome); return escolheM('Lost Mine of Phandelver')(p); });
+  igual(vistas.sort(), ['Dungeon of the Mad Mage', 'Lost Mine of Phandelver', 'Tomb of Annihilation']);
+  igual(masm(e), 'Lost Mine of Phandelver:Cave Entrance');
+  morreEsqueleto(e); seguir(e);
+  let salas: any[] = [];
+  resolveCom(e, p => { if (p.tipo === 'sala') salas = p.ops.map(o => o.n); return escolheM(null, 'Mine Tunnels')(p); });
+  igual(salas, ['Goblin Lair', 'Mine Tunnels']);
+  igual([masm(e), fichasN(e, 0, 'Treasure')], ['Lost Mine of Phandelver:Mine Tunnels', 1]);
+});
+caso('309.7', 'última sala: quando a habilidade dela sai da pilha a masmorra sai do jogo (704.5t) e fica completada; Dungeon Crawler volta do cemitério (gat completaMasmorra)', () => {
+  const e = cena({ campo: [[0, 'Dungeon Crawler', { zona: 'cemiterio' }]] });
+  e.jogs[0].masm = { nome: 'Lost Mine of Phandelver', sala: 4, ts: ++e.ts };    // Dark Pool
+  const m0 = e.jogs[0].zonas.mao.length;
+  morreEsqueleto(e); seguir(e); resolveCom(e);
+  igual(e.jogs[0].masm, null, 'saiu do comando');
+  igual(e.jogs[0].completas, ['Lost Mine of Phandelver']);
+  ok(naZona(e, 0, 'mao').includes('Dungeon Crawler'), 'Crawler voltou: ' + JSON.stringify(e.log.slice(-6)));
+  igual(e.jogs[0].zonas.mao.length, m0 + 2, 'Temple of Dumathoin comprou 1 + o Crawler');
+});
+caso('701.49c', 'aventurar na última sala (a habilidade dela ainda na pilha): completa a masmorra e começa outra na 1ª sala', () => {
+  const e = cena();
+  const ts = ++e.ts; e.jogs[0].masm = { nome: 'Tomb of Annihilation', sala: 4, ts };
+  e.pend.push({ fonte: -1, ts, ctrl: 0, k: 'sala:4', g: { ev: 'sala', fx: [] }, n: 'x', face: null, ficha: null, lki: null, ev: {} });   // o Cradle esperando
+  ok(!M.abeMasmorras(e), 'não sai com a sala esperando (704.5t)');
+  M.aventurar(e, 0, (j, t, ops) => t === 'masmorra' ? ops.find(o => o.nome === 'Dungeon of the Mad Mage') : ops[0]);
+  igual([e.jogs[0].completas, masm(e)], [['Tomb of Annihilation'], 'Dungeon of the Mad Mage:Yawning Portal']);
+});
+caso('702.124k', 'Dungeon Delver (antecedente) com o comandante criatura no campo: a sala dispara 2 vezes (603.2d); sem o comandante, 1', () => {
+  for (const comCmd of [true, false]) {
+    const e = cena({ campo: [[0, 'Dungeon Delver'], ...(comCmd ? [[0, 'Safana, Calimport Cutthroat', { obj: { cmd: true } }]] : [])] });
+    e.jogs[0].masm = { nome: 'Lost Mine of Phandelver', sala: 0, ts: ++e.ts };
+    morreEsqueleto(e); seguir(e); resolveCom(e, escolheM(null, 'Mine Tunnels'));
+    igual(fichasN(e, 0, 'Treasure'), comCmd ? 2 : 1, (comCmd ? 'com' : 'sem') + ' o comandante');
+  }
+});
+// Acererak como o B vai escrever com a negação (o do banco ainda tem o pedaço em 'falta')
+db['Cena Acererak'] = { n: 'Cena Acererak', custo: { g: 2, p: ['B'] }, cores: 'B', tipos: ['Creature'], super: ['Legendary'], sub: ['Zombie', 'Wizard'], pt: [5, 5], vm: 3, ci: 'B',
+  gat: [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'mover', em: 'este', para: 'mao', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }, { op: 'aventurar', quem: 'voce', se: { completouMasmorra: { nome: 'Tomb of Annihilation', nao: true } } }] }] };
+caso('309.7', 'completouMasmorra {nome, nao}: Acererak fica se você completou a Tomb of Annihilation; completou só a Lost Mine, volta à mão e aventura', () => {
+  for (const feita of ['Tomb of Annihilation', 'Lost Mine of Phandelver']) {
+    const e = cena(); e.jogs[0].completas = [feita];
+    e.por(0, 'Cena Acererak'); seguir(e); resolveCom(e, escolheM('Dungeon of the Mad Mage'));
+    const fica = feita === 'Tomb of Annihilation';
+    igual([noCampo(e).includes('Cena Acererak'), !!e.jogs[0].masm], [fica, !fica], feita);
+  }
+});
+caso('701.49b', 'na Undercity (iniciativa) um aventurar comum avança nela: a regra olha a masmorra que você tem, não como entrou (309.5a)', () => {
+  const e = cena();
+  e.jogs[0].masm = { nome: 'Undercity', sala: 0, ts: ++e.ts };
+  morreEsqueleto(e); seguir(e); resolveCom(e, escolheM(null, 'Lost Well'));
+  igual(masm(e), 'Undercity:Lost Well');
+});
+caso('702.124k', 'Zombie Ogre (morbid): na etapa final aventura só se uma criatura morreu neste turno', () => {
+  for (const morreu of [true, false]) {
+    const e = cena({ campo: [[0, 'Zombie Ogre'], [0, 'Grizzly Bears']] });
+    e.turno.passo = 'principal2';
+    if (morreu) M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio');
+    andaAte(e, 'limpeza', escolheM('Lost Mine of Phandelver'));
+    igual(!!e.jogs[0].masm, morreu, morreu ? 'morreu: aventura' : 'ninguém morreu');
+  }
+});
+caso('727.2', 'Aarakocra Sneak: toma a iniciativa e aventura na Undercity (Secret Entrance busca terreno básico); outra entra com a iniciativa: avança', () => {
+  const e = cena({ grimorio: 10 });
+  const m0 = e.jogs[0].zonas.mao.length;
+  e.por(0, 'Aarakocra Sneak'); seguir(e); resolveCom(e);
+  igual([e.iniciativa, masm(e)], [0, 'Undercity:Secret Entrance']);
+  igual(e.jogs[0].zonas.mao.length, m0 + 1, 'buscou o básico');
+  e.por(0, 'Aarakocra Sneak'); seguir(e); resolveCom(e, escolheM(null, 'Forge'));
+  igual([e.iniciativa, masm(e)], [0, 'Undercity:Forge'], 'tomar de novo aventura de novo (727.5)');
+  ok(objN(e, 0, 'Aarakocra Sneak').marc['+1/+1'] === 2 || e.campo.some(id => e.objs[id].marc['+1/+1'] === 2), 'Forge: dois +1/+1');
+});
+caso('727.3', 'Underdark Explorer: o oponente tinha a iniciativa, ela passa para você (só um tem) e você entra na Undercity', () => {
+  const e = cena(); e.iniciativa = 1;
+  e.por(0, 'Underdark Explorer'); seguir(e); resolveCom(e);
+  igual([e.iniciativa, masm(e), masm(e, 1)], [0, 'Undercity:Secret Entrance', null]);
+});
+caso('727.2', 'manutenção de quem tem a iniciativa: aventura na Undercity de novo', () => {
+  const e = cena({ passo: 'limpeza' }); e.turno.ativo = 1; e.iniciativa = 0;
+  e.jogs[0].masm = { nome: 'Undercity', sala: 0, ts: ++e.ts };
+  andaAte(e, 'compra', escolheM(null, 'Lost Well'));
+  igual([e.turno.ativo, masm(e)], [0, 'Undercity:Lost Well']);
+});
+caso('727.2', 'dano de combate em quem tem a iniciativa: o controlador da criatura toma a iniciativa (e aventura na Undercity); dois atacantes, uma vez só', () => {
+  const e = combate([[0, 'Grizzly Bears'], [0, 'Hill Giant']]); e.iniciativa = 1;
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears')); atacaCom(e, objN(e, 0, 'Hill Giant')); fecha(e, 'atacar'); andaAte(e, 'principal2');
+  igual([e.iniciativa, masm(e)], [0, 'Undercity:Secret Entrance']);
+  igual(e.jogs[0].zonas.mao.length, 1, 'aventurou uma vez só (Secret Entrance: 1 básico)');
+});
+caso('727.1', 'Safana na etapa final: com a iniciativa 1 Tesouro; com a iniciativa e masmorra completada (a Undercity conta) 3; sem a iniciativa nada', () => {
+  for (const [ini, feita, quer] of [[true, false, 1], [true, true, 3], [false, true, 0]] as any[]) {
+    const e = cena({ campo: [[0, 'Safana, Calimport Cutthroat']] });
+    e.turno.passo = 'principal2'; if (ini) e.iniciativa = 0; if (feita) e.jogs[0].completas = ['Undercity'];
+    andaAte(e, 'limpeza');
+    igual(fichasN(e, 0, 'Treasure'), quer, JSON.stringify({ ini, feita }));
+  }
+});
+
+caso('727.4', 'quem tem a iniciativa sai do jogo: o jogador ativo toma (e aventura na Undercity)', () => {
+  const e = cena({ jogs: 3 }); e.iniciativa = 2;
+  e.jogs[2].vida = 0; seguir(e); resolveCom(e);
+  igual([!!e.jogs[2].saiu, e.iniciativa, masm(e)], [true, 0, 'Undercity:Secret Entrance']);
+});
+
+caso('602.5b', 'Sarevok\'s Tome: "ative só se" na habilidade de mana — {C} sem a iniciativa, {C}{C} com ela (atv.se)', () => {
+  for (const ini of [false, true]) {
+    const e = cena(); const t = e.por(0, "Sarevok's Tome"); e.pend = [];
+    if (ini) e.iniciativa = 0;
+    const f = M.fontesDeMana(e, 0).filter(x => x.id === t.id);
+    igual(f.map(x => x.pacotes.map(p => M.somaMana(p))), [[ini ? 2 : 1]], ini ? 'com' : 'sem');
+  }
+});
+
+caso('701.49a', 'IA escolhe a masmorra por valor: sem carta que pague completar, a Dungeon of the Mad Mage; com uma que nomeia a Tomb of Annihilation (Acererak), a Tomb', () => {
+  const ag = M.agenteBasico();
+  for (const [mao, quer] of [[[], 'Dungeon of the Mad Mage'], [[[0, 'Cena Acererak']], 'Tomb of Annihilation']] as any[]) {
+    const e = cena({ mao });
+    const p = { j: 0, tipo: 'masmorra', ops: ['Lost Mine of Phandelver', 'Dungeon of the Mad Mage', 'Tomb of Annihilation'].map(nome => ({ a: 'masmorra', nome })), ctx: {} };
+    igual(p.ops[ag(e, p)].nome, quer);
+  }
+});
+caso('701.49b', 'IA escolhe a sala por valor: Goblin Lair → Storeroom (+1/+1) se você tem criatura, senão Dark Pool; o +1/+1 vai na sua criatura', () => {
+  for (const tem of [true, false]) {
+    const e = cena({ campo: [[1, 'Hill Giant'], ...(tem ? [[0, 'Grizzly Bears']] : [])] });
+    e.jogs[0].masm = { nome: 'Lost Mine of Phandelver', sala: 1, ts: ++e.ts };
+    morreEsqueleto(e); seguir(e); resolveCom(e);
+    igual(masm(e), 'Lost Mine of Phandelver:' + (tem ? 'Storeroom' : 'Dark Pool'));
+    if (tem) igual([objN(e, 0, 'Grizzly Bears').marc['+1/+1'], objN(e, 1, 'Hill Giant').marc['+1/+1']], [1, undefined]);
+    else igual(e.jogs[1].vida, 39);
+  }
+});
+caso('701.49b', 'Sandfall Cell: cada jogador perde 2 a menos que sacrifique criatura, artefato ou terreno — a IA paga com o Tesouro; quem não tem perde', () => {
+  const e = cena();
+  e.jogs[0].masm = { nome: 'Tomb of Annihilation', sala: 1, ts: ++e.ts };   // Veils of Fear → Sandfall Cell
+  M.criarFicha(e, 0, { nome: 'Treasure' }); e.pend = [];
+  morreEsqueleto(e); seguir(e); resolveCom(e);
+  igual([masm(e), fichasN(e, 0, 'Treasure'), e.jogs[0].vida, e.jogs[1].vida], ['Tomb of Annihilation:Sandfall Cell', 0, 40, 38]);
+});
+caso('603.3b', 'a ordem dos gatilhos muda o resultado: tomar a iniciativa por cima entra na Undercity e o aventurar avança nela; o aventurar por cima escolhe outra masmorra e a iniciativa avança nela', () => {
+  db['Cena Dupla'] = { n: 'Cena Dupla', custo: { g: 1, p: ['B'] }, cores: 'B', tipos: ['Creature'], sub: ['Rogue'], pt: [2, 2], vm: 2, ci: 'B',
+    gat: [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'tomarIniciativa', quem: 'voce' }] }, { ev: 'entra', quem: { este: true }, fx: [{ op: 'aventurar', quem: 'voce' }] }] };
+  const fim: any = {};
+  for (const primeiro of [0, 1]) {                       // o primeiro posto na pilha resolve por último
+    const e = cena({ grimorio: 10 });
+    e.por(0, 'Cena Dupla'); seguir(e);
+    igual(e.perg && e.perg.tipo, 'ordemGatilho');
+    resolveCom(e, p => p.tipo === 'ordemGatilho' ? p.ops.findIndex(o => o.k === primeiro) : -1);
+    fim[primeiro] = [e.iniciativa, masm(e)];
+  }
+  igual(fim[1][1].split(':')[0], 'Undercity', 'iniciativa por cima: Undercity');
+  igual(fim[0], [0, 'Dungeon of the Mad Mage:Dungeon Level'], 'aventurar por cima: a IA pega a Mad Mage e a iniciativa avança nela');
+});
+
+caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
+  const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
+  igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
+  const e = cena({ cmd: ['Safana, Calimport Cutthroat'], campo: [...terras(5, 'Swamp'), ...terras(2, 'Island')] });
+  const dv = e.por(0, 'Dungeon Delver', { zona: 'comando', obj: { cmd: true } }); e.jogs[0].cmd.push(dv.id); e.jogs[0].imposto[dv.id] = 0;
+  const sf = e.objs[e.jogs[0].cmd[0]];
+  M.avancar(e);
+  igual(opsDe(e, 'conjurar').map(o => e.objs[o.id].n).sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']);
+  conj(e, 'Safana, Calimport Cutthroat'); resolveCom(e); conj(e, 'Dungeon Delver'); resolveCom(e);
+  ok(noCampo(e).includes('Safana, Calimport Cutthroat') && noCampo(e).includes('Dungeon Delver'), JSON.stringify(noCampo(e)));
+  igual([e.jogs[0].imposto[sf.id], e.jogs[0].imposto[dv.id]], [1, 1]);
+  M.mover(e, sf.id, 'mao');                                         // volta ao comando (903.9b): o imposto dela é 2, o do Delver não muda
+  igual([sf.zona, M.vmDe(M.custoComImposto(e, sf)), e.jogs[0].imposto[dv.id]], ['comando', 5, 1]);
 });
 
 // ---------- rodar ----------

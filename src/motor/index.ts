@@ -7,6 +7,7 @@ import './turno';
 import './combate';
 import './gatilhos';
 import './agentes';
+import './masmorras';
 import { M } from './nucleo';
 
 export { M };
