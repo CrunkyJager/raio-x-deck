@@ -62,7 +62,10 @@ function bateEv(e, g, ev, F) {
   }
   return false;
 }
-const zonas = g => g.zonaAtiva || ['campo'];
+// "é posto num cemitério de qualquer lugar" (Kozilek, Blightsteel, Ulamog): vindo da mão ou do grimório a carta já
+// está no cemitério e o gatilho é dela lá; vindo do campo vale o olhar para trás (603.10a) e o cemitério não conta de novo
+const deQualquerLugar = g => g.ev === 'vaiCemiterio' && !!g.quem && g.quem.este === true && !g.de && !g.zonaAtiva;
+const zonas = g => g.zonaAtiva || (deQualquerLugar(g) ? ['campo', 'cemiterio'] : ['campo']);
 
 // ---------- gatilho atrasado (CR 603.7) ----------
 // e.atras = [{g, ctrl, fonte, n, t (turno em que nasceu), lki, mem, ts}]. g é um gatilho comum com nesteTurno/proximoTurno.
@@ -212,6 +215,7 @@ M.evento = (e, ev) => {
       const onde = lki ? 'campo' : F.zona;
       if (lki && !SAIDA.has(g.ev)) continue;
       if (!zonas(g).includes(onde) && !(onde === 'pilha' && g.ev === 'conjura' && g.quem && g.quem.este)) continue;
+      if (onde === 'cemiterio' && deQualquerLugar(g) && (ev.de === 'campo' || ev.id !== F.id)) continue;
       if (onde === 'pilha' && !(g.quem && g.quem.este)) continue;
       if (!bateEv(e, g, ev, F)) continue;
       if (!cond(e, g.se, { voce: F.ctrl, este: F.id, ev })) continue;                      // 603.4 (com o evento: objBate doEvento lê quem morreu)
@@ -242,6 +246,22 @@ M.evento = (e, ev) => {
   }
 };
 
+// Ordem que não muda nada (Edigar 26/11, Ivora + Bag of Holding no mesmo descarte): pela regra a ordem é do jogador
+// (603.3b), mas se cada gatilho só soma algo que nenhum outro lê, qualquer ordem dá o mesmo jogo e a Mesa não pergunta.
+// Conservador: só gatilhos sem alvo, sem condição (603.4), sem "pode" e não modais, com efeitos da lista abaixo; o
+// "mover a carta do evento" (Bag) entra se a carta não é fonte de outro gatilho do lote. Qualquer outro (ex.: Kozilek,
+// que embaralha o cemitério) faz perguntar.
+const ADITIVO = fx => (fx.op === 'marcador' && fx.em === 'este' && !fx.x) || (fx.op === 'ficha' && fx.quem === 'voce') || (fx.op === 'ganharVida' && fx.quem === 'voce' && Number.isInteger(fx.qtd));
+const MOVE_EV = fx => fx.op === 'mover' && fx.em === 'doEvento' && (fx.de === 'cemiterio' || fx.de === 'mao') && fx.para === 'exilio';
+function ordemIndiferente(e, ps) {
+  const fontes = new Set(ps.map(p => p.fonte));
+  return ps.every(p => {
+    const g = M.gatilhoDe(p);
+    if (!g || !Array.isArray(g.fx) || !g.fx.length || (g.alvos && g.alvos.length) || g.se || g.talvez) return false;
+    return g.fx.every(fx => ADITIVO(fx) || (MOVE_EV(fx) && p.ev && !fontes.has(p.ev.id)));
+  });
+}
+
 // ---------- pôr na pilha (603.3b): ativo primeiro, cada um na ordem que escolher ----------
 M.PROC.gatilhos = (e, P, ask) => {
   const ordem: any[] = []; const n = e.jogs.length;
@@ -253,7 +273,8 @@ M.PROC.gatilhos = (e, P, ask) => {
       if (e.jogs[j].saiu) { e.pend = e.pend.filter(p => p.ctrl !== j); break; }
       // ordem (603.3b): pergunta só quando há gatilhos diferentes (mesma fonte e mesmo texto = tanto faz)
       const tipos = new Map(); for (const i of meus) { const p = e.pend[i], c = p.n + '|' + p.k; if (!tipos.has(c)) tipos.set(c, i); }
-      const ops = [...tipos.values()].map(i => ({ a: 'gatilho', i, id: e.pend[i].fonte, k: e.pend[i].k }));
+      let ops = [...tipos.values()].map(i => ({ a: 'gatilho', i, id: e.pend[i].fonte, k: e.pend[i].k }));
+      if (ops.length > 1 && ordemIndiferente(e, ops.map(o => e.pend[o.i]))) ops = ops.slice(0, 1);   // ordem não muda o resultado: não pergunta
       const op = ask(j, 'ordemGatilho', ops);
       const p = e.pend[op.i], g = M.gatilhoDe(p);
       const ctx = { voce: j, este: p.fonte };
