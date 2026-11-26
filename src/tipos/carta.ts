@@ -863,13 +863,13 @@ export interface RxCond {
    */
   conjuradaNaPrincipal?: boolean;
   /**
-   * a contagem q compara (min/max/igual)
+   * a contagem q compara (min/max/igual: número ou outra contagem — Thassa's Oracle: devoção ≥ cartas no grimório)
    */
   conta?: {
     q: RxQtd;
-    min?: number;
-    max?: number;
-    igual?: number;
+    min?: RxQtd;
+    max?: RxQtd;
+    igual?: RxQtd;
   };
   /**
    * quantos objetos batem no filtro (padrão: ≥1)

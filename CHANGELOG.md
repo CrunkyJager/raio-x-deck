@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.49.0 — 26/11/2026 · T46: fila automática (planilha → PC → claude -p) e vitória por efeito
+Testes: check 0 erros · Vitest 345 (0 falhas) · valida 1755 cartas, 0 erros · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1390/1755 (eram 1385).
+- **Fila automática** (T46): o web app da planilha liberado; o trabalhador pega o pedido, escreve as cartas e grava a resposta. 1º pedido real: Aetherflux Reservoir e Thassa's Oracle.
+- **Vencer/perder o jogo por efeito** (CR 104.2b, 104.3e): ganharJogo e perderJogo estavam no esquema mas o motor não fazia; agora jogam Thassa's Oracle, Triskaidekaphile, Simic Ascendancy, Hellkite Tyrant, Halo Fountain, Twenty-Toed Toad.
+- **Comparar duas contagens** na condição (min/max/igual aceitam contagem) e contagem **cartasNoGrimorio**: devoção a azul ≥ cartas no grimório. Cavar aceita destino grimório (fica no topo).
+
 ## v0.48.0 — 26/11/2026 · Motor: perda de vida, alvo de jogador, descobrir e mana restrita
 Testes: check 0 erros · Vitest 344/344 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1385/1753 (eram 1371). Partidas: deck de drenar vida (Vito, Sanguine Bond, Exquisite Blood, Mindcrank, Vilis, Blood Artist) 20, 0 erros.
 - **Perder vida vira evento** (CR 119.3): dano em jogador, "perde N de vida" e pagar vida (119.4) disparam Mindcrank, Exquisite Blood, Vilis, The Master of Lake-town. "That much" lê quanto ganhou ou perdeu (Sanguine Bond, Vito, Prize Pig, Wedding Ring, Treebeard, Well of Lost Dreams). Sanguine Bond + Exquisite Blood mata o oponente e o laço para.

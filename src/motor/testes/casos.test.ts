@@ -2358,6 +2358,21 @@ caso('700.5', 'devoção (Clive): símbolos da cor nos custos dos seus permanent
   ok(M.fxSuportado([{ op: 'comprar', qtd: { conta: 'devocao', de: 'WB' } }]) && !M.fxSuportado([{ op: 'comprar', qtd: { conta: 'devocao', de: 'X' } }]), 'de: só cores');
 });
 
+caso('104.2b', "Thassa's Oracle: vence se a devoção a azul (X) ≥ cartas no grimório; comparação entre duas contagens", () => {
+  for (const [n, vence] of [[1, true], [2, true], [10, false]] as const) {
+    const e = cena({ campo: [[0, "Thassa's Oracle"]], grimorio: n });
+    const th = e.por(0, "Thassa's Oracle");
+    const g = M.carta("Thassa's Oracle").gat[0];
+    ok(M.gatOk(g), 'o gatilho é lido inteiro (cavar + vitória)');
+    const ctx: any = { voce: 0, este: th.id, alvos: [], ilegal: {}, lki: {} };
+    const sim = (j, t, ops) => ops.find(o => o.a === 'sim') || ops[0];
+    for (const f of g.fx) M.executar(e, f, ctx, sim);
+    M.avancar(e);
+    igual(!!(e.fim && e.fim.vencedor === 0), vence, `devoção 2, grimório ${n}`);
+  }
+  igual(M.condicao(cena({ grimorio: 0 }), { conta: { q: { conta: 'cartasNoGrimorio' }, max: { conta: 'cartasNaMao' } } }, { voce: 0 }), true, 'max também aceita contagem');
+});
+
 caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you do, draw'): pergunta antes de pagar; a repetição do processo não perde a opção", () => {
   const e = cena({ campo: [...terras(4, 'Forest'), [0, 'Leaf-Crowned Visionary']], mao: [[0, 'Llanowar Elves']] });
   M.avancar(e);
