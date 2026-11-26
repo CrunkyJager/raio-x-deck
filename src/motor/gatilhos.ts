@@ -259,7 +259,7 @@ M.PROC.gatilhos = (e, P, ask) => {
       const ctx = { voce: j, este: p.fonte };
       const dg = { alvos: g.alvos || [], fx: g.fx };
       const modal = g.fx.length === 1 && g.fx[0].op === 'modal';
-      const modos = modal ? M.escolherModos(e, j, dg, g.fx[0], ask) : null;              // 603.3c
+      const modos = modal ? M.escolherModos(e, j, dg, g.fx[0], ask, p.fonte) : null;              // 603.3c
       if (modal && !modos.length) { e.pend.splice(op.i, 1); M.log(e, p.n, 'gatilho modal sem modo possível: sai (603.3c)'); ask.etapa(); continue; }
       const fxE = M.fxEfetivo(dg, g.fx, modos);
       const herda = p.k === 'atrasado' && !!p.mem && !!p.mem.alvos;     // atrasado com alvo herdado: já escolhido por quem o criou

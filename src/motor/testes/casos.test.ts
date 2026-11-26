@@ -1838,6 +1838,25 @@ caso('701.26b', 'gatilhos novos: desvirar (Key to the City paga {2} e compra), j
   M.avancar(p); resolveCom(p);
   igual(naZona(p, 0, 'mao'), ['Voidwing Hybrid'], 'proliferou (mesmo sem escolher nada): volta à mão');
 });
+caso('700.2', 'modal sem repetir no turno (Monument to Endurance): cada descarte oferece só os modos ainda não escolhidos; no turno seguinte volta tudo', () => {
+  const e = cena({ campo: [[0, 'Monument to Endurance']] });
+  const mon = e.campo[0], d = M.carta('Monument to Endurance').gat[0], dg = { alvos: [], fx: d.fx };
+  const ofer: any[] = [];
+  const pega = () => M.escolherModos(e, 0, dg, d.fx[0], (j, t, ops) => { ofer.push(ops.filter(o => o.a === 'modo').map(o => o.m)); return ops.find(o => o.a === 'modo') || ops[0]; }, mon);
+  igual([pega(), pega(), pega(), pega()], [[0], [1], [2], []], 'um de cada; o 4º fica sem modo (603.3c: sai)');
+  igual(ofer, [[0, 1, 2], [1, 2], [2]]);
+  e.turno.n++;
+  igual(pega(), [0], 'turno novo: o 1º volta');
+});
+caso('601.2f', 'condição sobre a carta descartada no custo (Grab the Prize): descartou mágica → 2 em cada oponente; descartou terreno → só compra', () => {
+  for (const desc of ['Grizzly Bears', 'Forest']) {
+    const e = cena({ campo: terras(2), mao: [[0, 'Grab the Prize'], [0, desc]] }); e.pend = []; e.jogs[0].terrenos = 1;
+    const v = e.jogs[1].vida;
+    M.avancar(e); conj(e, 'Grab the Prize');
+    resolveCom(e, p => p.tipo === 'custo' || p.tipo === 'descartar' ? p.ops.findIndex(o => o.id !== undefined && e.objs[o.id].n === desc) : -1);
+    igual([naZona(e, 0, 'cemiterio').sort(), e.jogs[0].zonas.mao.length, v - e.jogs[1].vida], [[desc, 'Grab the Prize'].sort(), 2, desc === 'Forest' ? 0 : 2], desc);
+  }
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');

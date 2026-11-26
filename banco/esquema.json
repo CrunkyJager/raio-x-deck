@@ -812,7 +812,8 @@
       "criadas",
       "escolhida",
       "anterior",
-      "cadaAtual"
+      "cadaAtual",
+      "descartadaCusto"
      ]
     }
    ]
@@ -1216,6 +1217,10 @@
       },
       "max": {
        "type": "integer"
+      },
+      "naoRepeteNoTurno": {
+       "type": "boolean",
+       "description": "só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)"
       },
       "maxSe": {
        "type": "object",

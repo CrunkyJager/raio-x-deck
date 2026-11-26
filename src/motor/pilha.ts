@@ -441,21 +441,26 @@ function escolherModos(e, j, d, f, ask, de?) {
   let max = es.max ?? 1;
   if (es.maxSe && M.condicao(e, es.maxSe.se, { voce: j })) max = es.maxSe.max;
   const modos: any[] = [];
+  // "escolha um que não foi escolhido neste turno" (Monument to Endurance): memória por objeto (id+ts, 400.7) e turno
+  const F = es.naoRepeteNoTurno && de !== undefined ? e.objs[de] : null, chave = F ? de + ':' + F.ts : null;
+  const MT = chave ? (e.modosTurno && e.modosTurno.t === e.turno.n ? e.modosTurno : (e.modosTurno = { t: e.turno.n, usados: {} })) : null;
+  const jaUsados = MT ? MT.usados[chave as string] || [] : [];
   while (modos.length < Math.min(max, n)) {
     const ops: any[] = [];
     if (modos.length >= (es.min ?? 1)) ops.push({ a: 'pronto' });
-    for (let m = 0; m < n; m++) if (!modos.includes(m) && modoViavel(e, j, d, f.modos[m])) ops.push({ a: 'modo', m });   // CR 700.2d
+    for (let m = 0; m < n; m++) if (!modos.includes(m) && !jaUsados.includes(m) && modoViavel(e, j, d, f.modos[m])) ops.push({ a: 'modo', m });   // CR 700.2d
     if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto')) break;
     const r = ask(j, 'modo', ops, { de, modos: f.modos });
     if (r.a === 'pronto') break;
     modos.push(r.m);
   }
+  if (MT) MT.usados[chave as string] = jaUsados.concat(modos);
   return modos.sort((a, b) => a - b);
 }
 // fx efetivo: modal no topo → só os modos escolhidos, em ordem (CR 700.2)
 const fxEfetivo = (d, fx, modos) => modos && fx.length === 1 && fx[0].op === 'modal' ? modos.flatMap(m => fx[0].modos[m]) : fx;
 M.fxEfetivo = fxEfetivo;
-M.escolherModos = (e, j, d, f, ask) => escolherModos(e, j, d, f, ask);
+M.escolherModos = (e, j, d, f, ask, de?) => escolherModos(e, j, d, f, ask, de);
 
 // custo físico com escolha (sacrificar X, descartar)
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
@@ -495,6 +500,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   for (const id of esc.sac) M.mover(e, id, 'cemiterio');            // CR 701.21
   if (esc.desc.length) M.descartar(e, j, esc.desc);
+  if (esc.desc.length) o.descCusto = esc.desc.map(id => ({ id, ts: e.objs[id].ts })); else delete o.descCusto;   // em 'descartadaCusto' (Grab the Prize)
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
   if (c.exilarEste) M.mover(e, o.id, 'exilio');
   if (c.descartarEste) M.descartar(e, j, [o.id]);                  // CR 701.9 (Otawara, Trumpeting Carnosaur)
