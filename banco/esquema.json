@@ -618,6 +618,10 @@
      "type": "string",
      "description": "tem ao menos 1 marcador deste tipo"
     },
+    "exiladaPorEste": {
+     "type": "boolean",
+     "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"
+    },
     "semMarcador": {
      "type": "boolean",
      "description": "sem nenhum marcador (Damning Verdict)"
@@ -1437,6 +1441,10 @@
     "fonte": {
      "$ref": "#/$defs/objeto",
      "description": "op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
+    },
+    "comEste": {
+     "type": "boolean",
+     "description": "op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois"
     },
     "transformada": {
      "type": "boolean",

@@ -1958,6 +1958,17 @@ caso('712', 'Edgar Markov\'s Coffin (verso do Edgar, Charmed Groom): na manuten�
     igual([g.face ?? null, g.marc.bloodline || 0], n === 2 ? [null, 0] : [0, 2], n + ' marcadores antes');
   }
 });
+caso('607.2a', 'exilada com este (Bag of Holding): o descarte vai ao exílio marcado; {4},{T}, sacrificar devolve à mão só as exiladas por ela', () => {
+  const e = cena({ campo: [...terras(4), [0, 'Bag of Holding']], mao: [[0, 'Forest'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const bag = objN(e, 0, 'Bag of Holding');
+  M.descartar(e, 0, [...e.jogs[0].zonas.mao]); M.avancar(e); resolveCom(e);
+  const outra = e.jogs[0].zonas.grimorio[0]; M.mover(e, outra, 'exilio');          // exilada por outra coisa: fica
+  igual([e.jogs[0].zonas.exilio.length, e.jogs[0].zonas.exilio.filter(id => e.objs[id].exPor && e.objs[id].exPor.id === bag.id).length], [3, 2], 'duas pela Bag, uma por fora');
+  const k = M.atvDe(e, bag).findIndex(a => a.custo && a.custo.sacrificar === 'este');
+  ok(M.podeAtivar(e, 0, bag, k), 'pode ativar');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === bag.id && o.k === k); resolveCom(e);
+  igual([naZona(e, 0, 'mao').sort(), e.jogs[0].zonas.exilio, bag.zona], [['Forest', 'Grizzly Bears'], [outra], 'cemiterio'], 'voltaram as duas');
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

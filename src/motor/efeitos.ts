@@ -673,7 +673,7 @@ const H = {
   destruir: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel')) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
   exilar: { fx(e, f, ctx) { const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id)); } },
   mover: {
-    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando'],
+    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste'],
     qtd: q => qtdOk(q) || ateOk(q),
     ok: f => ['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
@@ -696,6 +696,7 @@ const H = {
       const atk = f.atacando && e.turno.combate ? ent.map(p => M.escolherAtacado(e, p.ctrl, ask)) : [];
       if (f.para === 'campo') ent.forEach((p, k) => { const o = M.aplicarEntrada(e, p); if (atk[k]) M.porAtacando(e, o, atk[k]); });
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
+      if (f.comEste && f.para === 'exilio') { const F = e.objs[ctx.este]; if (F) for (const id of ids) if (e.objs[id].zona === 'exilio') e.objs[id].exPor = { id: F.id, ts: (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? F.ts }; }   // "exiled with this" (607.2a)
       ctx.movidos = movidos(e, ids);
     },
   },

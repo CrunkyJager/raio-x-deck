@@ -342,6 +342,10 @@ export interface RxFiltro {
    */
   comMarcador?: string;
   /**
+   * no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)
+   */
+  exiladaPorEste?: boolean;
+  /**
    * sem nenhum marcador (Damning Verdict)
    */
   semMarcador?: boolean;
@@ -759,6 +763,10 @@ export interface RxFx {
    * op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
    */
   fonte?: RxObjeto;
+  /**
+   * op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois
+   */
+  comEste?: boolean;
   /**
    * op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)
    */
