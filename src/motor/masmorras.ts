@@ -166,6 +166,11 @@ M.abeMasmorras = e => {
     for (let k = 0; k < n && e.jogs[p].saiu; k++) p = (p + 1) % n;
     if (!e.jogs[p].saiu) { M.tomarIniciativa(e, p); mudou = true; } else e.iniciativa = null;
   }
+  if (e.monarca != null && e.jogs[e.monarca].saiu && !e.fim) {                 // 724.4: o monarca saiu: o ativo vira (ou o próximo)
+    let p = e.turno.ativo; const n = e.jogs.length;
+    for (let k = 0; k < n && e.jogs[p].saiu; k++) p = (p + 1) % n;
+    if (!e.jogs[p].saiu) { M.virarMonarca(e, p); mudou = true; } else e.monarca = null;
+  }
   return mudou;
 };
 
@@ -185,12 +190,30 @@ M.tomarIniciativa = (e, j) => {
   pendIni(e, j, 'iniciativa:toma', G_AVENTURA, { ev: 'tomaIniciativa', j });
   M.evento(e, { ev: 'tomaIniciativa', j, de });
 };
+// ---------- monarca (CR 724) ----------
+// Duas habilidades inerentes, sem fonte, de quem é o monarca (724.2): no começo da etapa final dele, compra 1; uma ou
+// mais criaturas de um jogador causam dano de combate no monarca: o controlador delas vira monarca. Só um (724.3).
+const MON = { n: 'Monarca', tipos: [] as any[], cores: '', kw: [] as any[], vm: 0 };
+const G_MON_COMPRA = { ev: 'fase', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] };
+const G_MON_TOMA = { ev: 'dano', fx: [{ op: 'virarMonarca', quem: 'doEvento' }] };
+const pendMon = (e, j, k, g, ev) => e.pend.push({ fonte: -2000 - j, ts: 0, ctrl: j, k, g, n: 'Monarca', face: null, ficha: MON, lki: null, ev });
+M.virarMonarca = (e, j) => {
+  if (e.jogs[j].saiu || e.monarca === j) return;
+  const de = e.monarca; e.monarca = j;
+  M.log(e, e.jogs[j].nome, 'vira o monarca');
+  M.evento(e, { ev: 'viraMonarca', j, de });
+};
 // eventos (chamado no fim do M.evento, gatilhos.ts)
 M.masmorrasEvento = (e, ev) => {
   if (ev.ev === 'fase') {
+    if (ev.passo === 'final' && e.monarca === ev.ativo && !e.jogs[ev.ativo].saiu) pendMon(e, ev.ativo, 'monarca:final', G_MON_COMPRA, { ev: 'fase', passo: 'final', j: ev.ativo });
     if (ev.passo === 'manutencao' && e.iniciativa === ev.ativo && !e.jogs[ev.ativo].saiu) pendIni(e, ev.ativo, 'iniciativa:manutencao', G_AVENTURA, { ev: 'fase', passo: 'manutencao', j: ev.ativo });
     if (ev.passo === 'desvirar' && e.temp && e.temp.some(t => t.ate === ev.ativo)) e.temp = e.temp.filter(t => t.ate !== ev.ativo);   // "até o seu próximo turno"
     return;
+  }
+  if (ev.ev === 'dano' && ev.combate && ev.jog !== undefined && ev.jog === e.monarca) {
+    const F = e.objs[ev.fonte], c = F ? F.ctrl : undefined;
+    if (c !== undefined && c !== ev.jog && !e.pend.some(p => p.k === 'monarca:dano' && p.ev.j === c)) pendMon(e, ev.jog, 'monarca:dano', G_MON_TOMA, { ev: 'monarcaDano', j: c });
   }
   if (ev.ev === 'dano' && ev.combate && ev.jog !== undefined && ev.jog === e.iniciativa) {
     const F = e.objs[ev.fonte], c = F ? F.ctrl : undefined;
@@ -207,12 +230,13 @@ M.morbido = e => e.morreuT === e.turno.n;
 
 // ---------- condições (temIniciativa, completouMasmorra) ----------
 // completouMasmorra: true = completou alguma; false = nenhuma; {nome} = aquela; {nome, nao: true} = não aquela (Acererak)
-M.condMasmorraOk = se => (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean') && (se.desceu === undefined || typeof se.desceu === 'boolean')
+M.condMasmorraOk = se => (se.monarca === undefined || typeof se.monarca === 'boolean') && (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean') && (se.desceu === undefined || typeof se.desceu === 'boolean')
   && (se.completouMasmorra === undefined || typeof se.completouMasmorra === 'boolean'
     || (!!se.completouMasmorra && typeof se.completouMasmorra === 'object' && typeof se.completouMasmorra.nome === 'string'
       && Object.keys(se.completouMasmorra).every(k => k === 'nome' || k === 'nao')));
 M.condMasmorra = (e, se, ctx) => {
   if (se.temIniciativa !== undefined && (e.iniciativa === ctx.voce) !== se.temIniciativa) return false;
+  if (se.monarca !== undefined && (e.monarca === ctx.voce) !== se.monarca) return false;          // se você é o monarca
   if (se.desceu !== undefined && (e.jogs[ctx.voce].desceuT === e.turno.n) !== se.desceu) return false;   // "if you descended this turn"
   const c = se.completouMasmorra;
   if (c !== undefined) {
@@ -231,6 +255,10 @@ H.aventurar = {
   campos: ['undercity'],
   ok: f => (f.quem === undefined || f.quem === 'voce') && (f.undercity === undefined || f.undercity === true),
   fx(e, f, ctx, ask) { for (const j of jogsDe(e, f, ctx)) M.aventurar(e, j, ask, !!f.undercity); },
+};
+H.virarMonarca = {
+  ok: f => f.quem === undefined || f.quem === 'voce',
+  fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.virarMonarca(e, j); },
 };
 H.tomarIniciativa = {
   ok: f => f.quem === undefined || f.quem === 'voce',
