@@ -1634,6 +1634,25 @@ caso('611.2c', "modificar com estática de regra até o fim do turno (Key to the
   igual(M.bloqueiaEste(e, hg, gb), true, 'a limpeza tira (514.2)');
 });
 
+caso('113.6', 'Anger: estática que vale do cemitério (esteEm) — com Mountain, suas criaturas têm pressa; no campo ou no exílio, não', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears', { doente: true }], [1, 'Hill Giant', { doente: true }]] });
+  const [gb, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 1, 'Hill Giant')];
+  ok(M.estContOk(M.carta('Anger').est[0]), 'o motor lê a estática da Anger');
+  const an = e.por(0, 'Anger', { zona: 'cemiterio' });
+  igual(M.temKw(e, gb, 'pressa'), false, 'sem Mountain não vale');
+  e.por(0, 'Mountain');
+  igual([M.temKw(e, gb, 'pressa'), M.temKw(e, hg, 'pressa')], [true, false], 'só as suas');
+  const nova = e.por(0, 'Llanowar Elves', { doente: true });
+  igual(M.temKw(e, nova, 'pressa'), true, 'a que chegou depois também');
+  M.mover(e, an.id, 'campo');
+  igual([M.temKw(e, gb, 'pressa'), M.temKw(e, an, 'pressa')], [false, true], 'no campo: só a pressa dela');
+  M.mover(e, an.id, 'exilio');
+  igual(M.temKw(e, gb, 'pressa'), false, 'no exílio não vale');
+  M.mover(e, an.id, 'cemiterio');
+  igual(M.temKw(e, gb, 'pressa'), true, 'de volta ao cemitério vale de novo');
+  ok(!M.seOk({ esteEm: ['pilhaX'] }), 'zona desconhecida: recusa');
+});
+
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
   const e = cena({ campo: terras(2, 'Wastes') });
   const sr = e.por(0, 'Sol Ring', { zona: 'grimorio' }), gr = e.jogs[0].zonas.grimorio; gr.unshift(gr.pop());   // no fundo: não é comprado

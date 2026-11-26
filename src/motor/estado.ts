@@ -403,6 +403,22 @@ function fontesCont(e): Idx & { l: [any, any][] } {
   I.l = l; I.hab = l.some(([, s]) => s.habil);
   return I as Idx & { l: [any, any][] };
 }
+// Estática que vale de fora do campo (se.esteEm: Anger, Wonder, Filth, Brawn no cemitério — CR 113.6, 604.1):
+// o dado de uma carta não muda na partida, então a lista de quem TEM essa estática é feita uma vez por partida e só
+// cresce pelos ids novos (e.prox); a cada leitura vale só quem está agora numa das zonas pedidas. Quem está no campo
+// já entra pelo fontesCont (e a condição esteEm o recusa lá).
+type Fora = { k: number; l: [number, any][] };
+const FORA = new WeakMap<any, Fora>();
+function fontesFora(e): [any, any][] {
+  let F = FORA.get(e); if (!F) FORA.set(e, F = { k: 0, l: [] });
+  for (; F.k < e.prox; F.k++) {
+    const o = e.objs[F.k]; if (!o || o.hab) continue;
+    for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'continuo' && s.se && Array.isArray(s.se.esteEm) && s.se.esteEm.some(z => z !== 'campo') && M.estContOk(s)) F.l.push([F.k, s]);
+  }
+  if (!F.l.length) return F.l;
+  return F.l.filter(([id, s]) => { const o = e.objs[id]; return o && o.zona !== 'campo' && s.se.esteEm.includes(o.zona); });
+}
+M.fontesFora = fontesFora;
 // a estática s da fonte F afeta o? 'equipada' = o objeto a que F está anexada (Equipamento ou Aura, CR 301.5a/303.4a)
 function afeta(e, F, s, o, ctx) {
   if (s.afeta === 'este') return o.id === F.id && o.ts === F.ts;
@@ -452,6 +468,8 @@ function camadas(e, o, lote?: any[]) {
   if (lendoCamada || o.zona !== 'campo') return NADA;
   const FC = fontesCont(e), temp = e.temp || [];
   let fontes: [any, any][] = FC.l;
+  const fora = fontesFora(e);
+  if (fora.length) fontes = fontes.concat(fora);
   if (lote && lote.length) { fontes = fontes.slice(); for (const S of lote) for (const s of M.dadoDe(e, S).est || []) if (s.modo === 'continuo' && M.estContOk(s)) fontes.push([S, s]); }
   if (!fontes.length && !temp.length) return NADA;
   lendoCamada++;
@@ -630,7 +648,7 @@ M.qtd = (e, q, ctx: any = {}) => {
 };
 
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); as outras palavras (metalcraft, coven…) ainda não
 M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift');
 M.condicao = (e, se, ctx) => {
@@ -651,6 +669,7 @@ M.condicao = (e, se, ctx) => {
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
   }
   if (se.pagou !== undefined && !!ctx.pagou !== !!se.pagou) return false;
+  if (se.esteEm) { const E = e.objs[ctx.este]; if (!E || !se.esteEm.includes(E.zona)) return false; }   // "as long as this is in your graveyard" (Anger, Wonder)
   if (se.objBate) {                                                 // o objeto (este, doEvento, equipada, criadas, alvo) bate no filtro? nao: o contrário
     const b = M.objsDe(e, { em: se.objBate.em }, ctx).some(o => M.bate(e, o, se.objBate.f || {}, ctx));
     if (b === !!se.objBate.nao) return false;
