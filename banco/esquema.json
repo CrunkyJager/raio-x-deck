@@ -140,9 +140,10 @@
     "split",
     "modal",
     "flip",
-    "fundir"
+    "fundir",
+    "preparar"
    ],
-   "description": "fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela"
+   "description": "fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela; preparar: faces[0] é a mágica de preparo (layout prepare); a criatura preparada deixa conjurar uma cópia dela do exílio"
   },
   "falta": {
    "type": "array",
@@ -344,7 +345,8 @@
           "vidaPerdidaNoTurno",
           "maiorDescarte",
           "resolucoesDestaHabNoTurno",
-          "atacantesEmVoce"
+          "atacantesEmVoce",
+          "vidaDoAtual"
          ]
         }
        ],
@@ -358,6 +360,11 @@
       },
       "alvo": {
        "type": "integer"
+      },
+      "divCima": {
+       "type": "integer",
+       "minimum": 2,
+       "description": "divide por N arredondando para cima (Dire Fleet Ravager: um terço da vida = 3)"
       },
       "metade": {
        "type": "boolean",
@@ -614,9 +621,21 @@
      "type": "boolean",
      "description": "a própria carta também conta (\"este ou outro X\")"
     },
+    "naoBloqueada": {
+     "type": "boolean",
+     "description": "atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)"
+    },
     "comMarcador": {
      "type": "string",
      "description": "tem ao menos 1 marcador deste tipo"
+    },
+    "feridaPorEsteNoTurno": {
+     "type": "boolean",
+     "description": "recebeu dano deste objeto neste turno (Markov Enforcer: 'a creature dealt damage by this creature this turn dies')"
+    },
+    "exiladaPorEste": {
+     "type": "boolean",
+     "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"
     },
     "semMarcador": {
      "type": "boolean",
@@ -823,6 +842,14 @@
    "additionalProperties": false,
    "description": "custo de habilidade ativada / custo adicional / 'a menos que pague'",
    "properties": {
+    "ou": {
+     "type": "array",
+     "minItems": 2,
+     "items": {
+      "$ref": "#/$defs/custoAtv"
+     },
+     "description": "escolha entre custos: paga UM destes (Demand Answers: sacrificar um artefato OU descartar uma carta); só em custoAd; o resto do objeto vale para todas"
+    },
     "mana": {
      "$ref": "#/$defs/mana"
     },
@@ -978,6 +1005,7 @@
    "enum": [
     "fimDoTurno",
     "proximoTurnoSeu",
+    "proximoFinalSeu",
     "enquantoAnexado",
     "enquantoNoCampo",
     "sempre"
@@ -1030,6 +1058,7 @@
       "transformar",
       "efeitoTemporario",
       "gatilhoAtrasado",
+      "reflexo",
       "escolher",
       "modal",
       "repetirCada",
@@ -1195,7 +1224,7 @@
     },
     "quando": {
      "$ref": "#/$defs/gat",
-     "description": "gatilhoAtrasado"
+     "description": "gatilhoAtrasado; reflexo (CR 603.12): o gatilho \"quando você fizer isso\" (ev reflexo, com alvos/fx), que vai à pilha logo depois"
     },
     "o": {
      "enum": [
@@ -1427,6 +1456,14 @@
     "fonte": {
      "$ref": "#/$defs/objeto",
      "description": "op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
+    },
+    "noDe": {
+     "$ref": "#/$defs/objeto",
+     "description": "op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)"
+    },
+    "comEste": {
+     "type": "boolean",
+     "description": "op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois"
     },
     "transformada": {
      "type": "boolean",
@@ -1682,6 +1719,10 @@
      "type": "boolean",
      "description": "você tem a iniciativa (CR 725)"
     },
+    "desceu": {
+     "type": "boolean",
+     "description": "você desceu neste turno: uma carta de permanente foi para o seu cemitério, de qualquer zona (Brass's Tunnel-Grinder)"
+    },
     "completouMasmorra": {
      "oneOf": [
       {
@@ -1746,6 +1787,12 @@
       "convocar",
       "improvisar",
       "loucura",
+      "milagre",
+      "reconfigurar",
+      "entraPreparada",
+      "ninjutsu",
+      "prever",
+      "rondar",
       "chute",
       "ofertaPresente",
       "esconderijo",
@@ -1763,6 +1810,7 @@
       "armaduraUmbra",
       "corpo-a-corpo",
       "prever",
+      "rondar",
       "evoluir",
       "persistir",
       "eternizar",
@@ -1885,6 +1933,7 @@
       "fase",
       "ataca",
       "atacantesDeclarados",
+      "reflexo",
       "bloqueia",
       "conjura",
       "dano",
@@ -2068,9 +2117,11 @@
       "ataqueCusta",
       "naoPodeAtivar",
       "deveBloquear",
-      "darFuga"
+      "darFuga",
+      "darLoucura",
+      "oponentesNaoProcuram"
      ],
-     "description": "naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
+     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
     },
     "afeta": {
      "oneOf": [

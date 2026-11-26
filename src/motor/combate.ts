@@ -274,10 +274,11 @@ function aplicarGolpes(e, golpes) {
       const J = e.jogs[g.alvo.jog];
       M.danoJogador(e, g.alvo.jog, g.q, M.kwDe(e, g.fonte));                               // 120.3a (infectar: veneno, 702.90b); 119.7
       if (g.fonte.cmd) J.danoCmd[g.fonte.id] = (J.danoCmd[g.fonte.id] || 0) + g.q;          // 903.10a
+      { const C = e.jogs[g.fonte.ctrl], s = M.dadoDe(e, g.fonte).sub || []; C.danoCombT = { t: e.turno.n, sub: [...new Set([...(C.danoCombT && C.danoCombT.t === e.turno.n ? C.danoCombT.sub : []), ...s])] }; }   // rondar (702.76): tipos de quem causou dano de combate a um jogador
     } else {
       const o = e.objs[g.alvo.o];
       if (protegeDe(e, o, fd)) continue;                                                   // 702.16e
-      M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte) });   // toque mortífero dado por camada conta
+      M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte), o: g.fonte });   // toque mortífero dado por camada conta
     }
     M.evento(e, { ev: 'dano', fonte: g.fonte.id, combate: true, q: g.q, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: g.alvo.o }) });   // 510.3a
     if (kw(e, g.fonte, 'vinculoVida')) vida[g.fonte.ctrl] = (vida[g.fonte.ctrl] || 0) + g.q;   // 702.15b

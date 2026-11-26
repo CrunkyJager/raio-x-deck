@@ -144,7 +144,11 @@ function proximoPasso(e) {
   const pula = M.depoisDoPasso(e, T.passo);                         // 508.8 sem atacantes → fim do combate; 510.4 2ª etapa
   let i = pula ? PASSOS.indexOf(pula) : PASSOS.indexOf(T.passo) + 1;
   T.feito = false; T.prio = null;
-  if (i < PASSOS.length) { T.passo = PASSOS[i]; M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return; }
+  if (i < PASSOS.length) {
+    T.passo = PASSOS[i];
+    if (T.passo === 'final' && e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => !(p.fim && p.fim.final === T.ativo));   // "até o seu próximo passo final" (Inti): acaba quando ele começa
+    M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return;
+  }
   // próximo turno: próximo jogador na ordem que ainda está no jogo (CR 800.4k)
   const n = e.jogs.length;
   let p = T.ativo;
@@ -199,6 +203,7 @@ const RESP = {
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
     else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
+    else if (op.a === 'prever') M.prever(e, p.j, op.id);
   },
   descartar(e, p, op) {
     M.descartar(e, p.j, [op.id]);                                   // CR 514.1 (dispara 'descarta'; loucura vale)
@@ -241,6 +246,16 @@ M.abe = e => {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }
     }
+    // CR 303.7a / 704.5y: mais de um Role do mesmo controlador no mesmo permanente → só o mais novo fica
+    const roles = new Map<string, any>();
+    for (const id of e.campo) {
+      const o = e.objs[id]; if (!o.anexo || !(M.dadoDe(e, o).sub || []).includes('Role')) continue;
+      const k = o.anexo.id + ':' + o.ctrl, v = roles.get(k);
+      if (!v) { roles.set(k, o); continue; }
+      if (v.ts < o.ts) { morrem.push(v.id); roles.set(k, o); } else morrem.push(id);
+    }
+    // preparar: a cópia no exílio deixa de existir se a criatura saiu do campo ou não está mais preparada
+    for (const J of e.jogs) for (const id of [...J.zonas.exilio]) { const c = e.objs[id]; if (c.copiaPrep && !M.prepValida(e, c)) { M.mover(e, id, 'cemiterio'); mudou = true; } }
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
     for (const id of e.campo) {
       const o = e.objs[id], n = M.capitulos(M.dadoDe(e, o));
@@ -286,7 +301,7 @@ M.sair = (e, j, motivo) => {
   J.saiu = motivo || true; J.reserva = M.zeroMana();
   for (const id in e.objs) {
     const o = e.objs[id];
-    if (o.dono === j) { const l = M.listaDe(e, o), k = l.indexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[id]; }
+    if (o.dono === j) { const l = M.listaDe(e, o), k = l ? l.indexOf(o.id) : -1; if (k >= 0) l.splice(k, 1); delete e.objs[id]; }
     else if (o.ctrl === j && (o.zona === 'campo' || o.zona === 'faseado')) M.mover(e, o.id, 'exilio');
   }
   if (e.perg && e.perg.j === j) e.perg = null;

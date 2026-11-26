@@ -77,7 +77,15 @@ M.dadoDe = (e, o) => {
       }
     } finally { lendoTipo--; }
   }
+  if (o.anexo && (d.kw || []).some(x => x.k === 'reconfigurar')) d = semCriatura(d);   // 702.151b: anexada, não é criatura
   return d;
+};
+// reconfigurar (702.151b): enquanto anexada, perde o tipo Criatura e os subtipos de criatura (fica o Equipamento)
+const SEM_CRIATURA = new WeakMap<object, any>();
+const semCriatura = d => {
+  let r = SEM_CRIATURA.get(d);
+  if (!r) SEM_CRIATURA.set(d, (r = { ...d, tipos: (d.tipos || []).filter(t => t !== 'Creature'), sub: (d.sub || []).filter(s => s === 'Equipment'), pt: undefined }));
+  return r;
 };
 
 // ---- faces (CR 709 split, 712 dupla face e modal, 716 aventura) ----
@@ -167,7 +175,7 @@ function novoObj(e, n, dono, zona) {
 }
 
 // ---- zonas ----
-M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilha : o.zona === 'faseado' ? (e.faseados || (e.faseados = [])) : e.jogs[o.dono].zonas[o.zona];
+M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilha : o.zona === 'faseado' ? (e.faseados || (e.faseados = [])) : o.zona === 'fora' ? [] : e.jogs[o.dono].zonas[o.zona];   // 'fora': deixou de existir (cópia preparada)
 
 // ---------- sagas (CR 714) ----------
 // capítulo final = kw capitulo n; marcadores de história (lore) em marc.lore. Pôr marcador dispara 'capitulo' {de, para}:
@@ -262,6 +270,10 @@ function substCemiterio(e, o, opc: any = {}) {
 }
 M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, ask = null, efeito = false }: any = {}) => {
   const o = e.objs[id];
+  if (o.copiaPrep && zona !== 'pilha' && zona !== 'exilio') {        // cópia da mágica preparada: fora da pilha e do exílio deixa de existir (707.10a)
+    const l = M.listaDe(e, o), k = l.lastIndexOf(id); if (k >= 0) l.splice(k, 1);
+    o.zona = 'fora'; return o;
+  }
   const sub = zona === 'cemiterio' ? substCemiterio(e, o, { ask, efeito }) : null;
   if (sub) { zona = sub.zona; M.log(e, o.n, 'vai para', zona, 'em vez do cemitério (' + sub.n + ')'); }
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
@@ -270,7 +282,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
@@ -279,6 +291,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (sub && sub.marc) for (const m in sub.marc) o.marc[m] = (o.marc[m] || 0) + sub.marc[m];   // "exile-a com um marcador hit" (fica no exílio)
   if (sub && sub.embaralhar) M.embaralhar(e, para);
   if (zona === 'campo') M.campoEntra(e, id);
+  if (zona === 'campo' && (M.dadoBase(e, o).kw || []).some(x => x.k === 'entraPreparada')) M.preparar(e, o);   // "enters prepared"
   if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap });   // gatilhos.js
   if (zona === 'campo' && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1);   // CR 714.3a: a saga entra com 1 marcador de história
@@ -294,7 +307,7 @@ M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte p
   const feitas: any[] = [];
   for (const id of ids) {
     const o = e.objs[id]; if (!o || o.zona !== 'mao') continue;
-    const lk = (M.dadoDe(e, o).kw || []).find(x => x.k === 'loucura' && x.custo);
+    const lk = M.loucuraDe(e, o);                                    // da carta ou dada (Falkenrath Gorger)
     if (lk) {
       M.mover(e, id, 'exilio'); o.loucura = true;
       if (e.pend && e.turno.passo !== 'mulligan') e.pend.push({ fonte: id, ts: o.ts, ctrl: o.dono, k: 'loucura', g: GAT_LOUCURA, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'descarta', id, j, ts: o.ts } });
@@ -308,6 +321,20 @@ M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte p
   return feitas;
 };
 const GAT_LOUCURA = { ev: 'descarta', fx: [{ op: 'loucura' }] };
+// preparar (Secrets of Strixhaven): ficar preparada cria no exílio uma cópia da mágica de preparo (faces[0]) que o controlador
+// pode conjurar enquanto a criatura estiver no campo e preparada; conjurar a desprepara. Já preparada: nada (não dobra).
+M.preparar = (e, o) => {
+  const c = o.ficha ? null : M.carta(o.n);
+  if (o.preparada || o.zona !== 'campo' || !c || c.forma !== 'preparar' || !c.faces) return;
+  o.preparada = true;
+  const id = e.prox++;
+  e.objs[id] = { id, n: o.n, dono: o.ctrl, ctrl: o.ctrl, zona: 'exilio', ts: ++e.ts, virada: false, dano: 0, marc: {}, doente: false, cmd: false, face: null, copiaPrep: { id: o.id, ts: o.ts } };
+  e.jogs[o.ctrl].zonas.exilio.push(id);
+  M.log(e, o.n, 'fica preparada');
+};
+M.prepValida = (e, c) => { const o = c && c.copiaPrep && e.objs[c.copiaPrep.id]; return !!o && o.zona === 'campo' && o.ts === c.copiaPrep.ts && !!o.preparada; };
+const GAT_MILAGRE = { ev: 'compra', fx: [{ op: 'milagre' }] };
+M.milagreDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'milagre' && x.custo); return k ? k.custo : null; };
 
 // comprar (CR 121; grimório vazio → perde nas ABE, CR 704.5b)
 M.comprar = (e, j, qtd = 1) => {
@@ -315,7 +342,11 @@ M.comprar = (e, j, qtd = 1) => {
   for (let i = 0; i < qtd; i++) {
     const g = J.zonas.grimorio;
     if (!g.length) { J.comprouVazio = true; continue; }
-    M.mover(e, g[g.length - 1], 'mao');
+    const id = g[g.length - 1];
+    M.mover(e, id, 'mao');
+    J.compT = { t: e.turno.n, n: (J.compT && J.compT.t === e.turno.n ? J.compT.n : 0) + 1 };
+    // milagre (702.94): a primeira compra do turno com milagre é revelada (simplificação: sempre) e o gatilho vai para a pilha
+    if (J.compT.n === 1 && e.pend && e.turno.passo !== 'mulligan' && M.milagreDe(e, e.objs[id])) { const o = e.objs[id]; e.pend.push({ fonte: id, ts: o.ts, ctrl: j, k: 'milagre', g: GAT_MILAGRE, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'compra', j } }); M.log(e, J.nome, 'revela', o.n, '(milagre)'); }
     if (M.evento) M.evento(e, { ev: 'compra', j });
   }
 };
@@ -623,12 +654,36 @@ const subirDe = l => {
   if (!a) SUBIR.set(l, (a = { custo: { mana: l.custo || {} }, vel: 'feitico', _nivel: l.n, fx: [{ op: 'subirNivel', n: l.n }] }));
   return a;
 };
+// reconfigurar (702.151a): "[custo]: anexe a uma criatura alvo sua (outra)" e "[custo]: solte; só se anexada" — como feitiço
+// atacante não bloqueado (509.1h): só existe depois da declaração de bloqueadores, até o fim do combate
+M.naoBloqueada = (e, o) => {
+  const C = e.turno.combate, p = e.turno.passo;
+  if (!C || (p !== 'bloqueadores' && p !== 'dano')) return false;
+  return C.atk.some(a => a.id === o.id && a.ts === o.ts && !a.bloqueado);
+};
+// ninjutsu (702.49a): "[custo], devolva à mão um atacante seu não bloqueado: ponha esta carta da mão no campo virada e atacando"
+const NINJA = new WeakMap<object, any>();
+const ninjutsuDe = kw => {
+  let a = NINJA.get(kw);
+  if (!a) NINJA.set(kw, (a = { zona: 'mao', custo: { mana: kw.custo || {}, devolver: { f: { tipo: ['Creature'], naoBloqueada: true } } }, _ninjutsu: true, fx: [{ op: 'ninjutsu' }] }));
+  return a;
+};
+const RECONF = new WeakMap<object, any>();
+const reconfDe = kw => {
+  let a = RECONF.get(kw);
+  if (!a) RECONF.set(kw, (a = [
+    { custo: { mana: kw.custo || {} }, vel: 'feitico', _equipar: true, alvos: [{ f: { tipo: ['Creature'], ctrl: 'voce', outro: true, zona: 'campo' } }], fx: [{ op: 'anexar', em: 'este', a: { alvo: 0 }, reconf: true }] },
+    { custo: { mana: kw.custo || {} }, vel: 'feitico', _soltar: true, fx: [{ op: 'soltar', em: 'este' }] }]));
+  return a;
+};
 const atvCarta = d => {
   let l = ATV_CARTA.get(d);
   if (!l) {
+    const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
+    const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
-    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe)] : d.atv || NADA.atv));
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
   }
   return l as any[];
 };
@@ -654,7 +709,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -663,7 +718,11 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.este && o.id !== ctx.este) return false;
   if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.outro && o.id === ctx.este) return false;
-  if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
+  if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;
+  // "a creature dealt damage by this creature this turn" (Markov Enforcer): o.feridaPor guarda {id, ts, t} da fonte; no 'morre' vale o lki (snap)
+  if (f.feridaPorEsteNoTurno && !(o.feridaPor || []).some(x => x.id === ctx.este && x.t === e.turno.n && (!e.objs[ctx.este] || x.ts === e.objs[ctx.este].ts || e.objs[ctx.este].zona !== 'campo'))) return false;
+  // "exiled with this" (406.6, 607.2a): o exílio guarda quem exilou (o.exPor {id, ts}); vale para este objeto (mesmo ts, ou o lki se já saiu)
+  if (f.exiladaPorEste && !(o.zona === 'exilio' && o.exPor && o.exPor.id === ctx.este && o.exPor.ts === ((ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (e.objs[ctx.este] || {}).ts))) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha))) return false;
@@ -683,7 +742,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
   if (f.vm && !compara(d.vm || 0, f.vm)) return false;
   if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
-  if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;   // CR 506.4: atacando até o fim do combate
+  if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;
+  if (f.naoBloqueada !== undefined && M.naoBloqueada(e, o) !== !!f.naoBloqueada) return false;   // 509.1h: depois de declarar bloqueadores (ninjutsu)   // CR 506.4: atacando até o fim do combate
   // anexos: equipada = o objeto a que a fonte (ctx.este) está presa; anexadoA 'este' = preso à fonte;
   // encantada / comEquipamento = com pelo menos uma Aura / um Equipamento preso a ele
   if (f.equipada !== undefined) { const F = e.objs[ctx.este], A = F && F.anexo; if ((!!A && A.id === o.id && A.ts === o.ts) !== !!f.equipada) return false; }
@@ -770,7 +830,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra', 'desceu']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -800,7 +860,7 @@ M.condicao = (e, se, ctx) => {
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
     if (se.palavra && PALAVRA[se.palavra] && !PALAVRA[se.palavra](e, ctx)) return false;
   }
-  if ((se.temIniciativa !== undefined || se.completouMasmorra !== undefined) && !M.condMasmorra(e, se, ctx)) return false;
+  if ((se.temIniciativa !== undefined || se.completouMasmorra !== undefined || se.desceu !== undefined) && !M.condMasmorra(e, se, ctx)) return false;
   if (se.pagou !== undefined && !!ctx.pagou !== !!se.pagou) return false;
   if (se.esteEm) { const E = e.objs[ctx.este]; if (!E || !se.esteEm.includes(E.zona)) return false; }   // "as long as this is in your graveyard" (Anger, Wonder)
   if (se.objBate) {                                                 // o objeto (este, doEvento, equipada, criadas, alvo) bate no filtro? nao: o contrário

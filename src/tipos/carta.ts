@@ -55,9 +55,9 @@ export interface Carta {
    */
   faces?: RxFace[];
   /**
-   * fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela
+   * fundir: faces[0] é a carta fundida (meld, 712.4): Gisela → Brisela; preparar: faces[0] é a mágica de preparo (layout prepare); a criatura preparada deixa conjurar uma cópia dela do exílio
    */
-  forma?: 'normal' | 'duplaFace' | 'aventura' | 'split' | 'modal' | 'flip' | 'fundir';
+  forma?: 'normal' | 'duplaFace' | 'aventura' | 'split' | 'modal' | 'flip' | 'fundir' | 'preparar';
   /**
    * frases do Oracle (texto original, em inglês) que o motor ainda não sabe fazer; o motor joga o resto e a tela avisa
    */
@@ -147,6 +147,8 @@ export type RxQtd =
             | 'cartasNaMao'
             | 'oponentes'
             | 'marcadoresNoEste'
+            | 'marcadoresNoCada'
+            | 'descartadasNoTurno'
             | 'evento'
             | 'X'
             | 'jogadores'
@@ -190,10 +192,15 @@ export type RxQtd =
             | 'maiorDescarte'
             | 'resolucoesDestaHabNoTurno'
             | 'atacantesEmVoce'
+            | 'vidaDoAtual'
           );
       mult?: number;
       soma?: number;
       alvo?: number;
+      /**
+       * divide por N arredondando para cima (Dire Fleet Ravager: um terço da vida = 3)
+       */
+      divCima?: number;
       /**
        * divide por 2 (arredonda p/ baixo)
        */
@@ -242,6 +249,7 @@ export type RxJogador =
       | 'voce'
       | 'oponente'
       | 'cadaOponente'
+      | 'cadaOutroOponente'
       | 'cadaJogador'
       | 'alvoJogador'
       | 'dono'
@@ -335,9 +343,21 @@ export interface RxFiltro {
    */
   ouEste?: boolean;
   /**
+   * atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)
+   */
+  naoBloqueada?: boolean;
+  /**
    * tem ao menos 1 marcador deste tipo
    */
   comMarcador?: string;
+  /**
+   * recebeu dano deste objeto neste turno (Markov Enforcer: 'a creature dealt damage by this creature this turn dies')
+   */
+  feridaPorEsteNoTurno?: boolean;
+  /**
+   * no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)
+   */
+  exiladaPorEste?: boolean;
   /**
    * sem nenhum marcador (Damning Verdict)
    */
@@ -409,6 +429,10 @@ export interface RxAlvo {
    */
   porOponente?: boolean;
   /**
+   * "another target": não pode ser o escolhido no alvo N
+   */
+  diferenteDe?: number;
+  /**
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
   opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
@@ -424,12 +448,18 @@ export type RxObjeto =
   | {
       todos: RxFiltro;
     }
-  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual');
+  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
 
 /**
  * custo de habilidade ativada / custo adicional / 'a menos que pague'
  */
 export interface RxCustoAtv {
+  /**
+   * escolha entre custos: paga UM destes (Demand Answers: sacrificar um artefato OU descartar uma carta); só em custoAd; o resto do objeto vale para todas
+   *
+   * @minItems 2
+   */
+  ou?: [RxCustoAtv, RxCustoAtv, ...RxCustoAtv[]];
   mana?: RxMana;
   virar?: boolean;
   desvirar?: boolean;
@@ -489,7 +519,8 @@ export interface RxCustoAtv {
       };
 }
 
-export type RxDura = 'fimDoTurno' | 'proximoTurnoSeu' | 'enquantoAnexado' | 'enquantoNoCampo' | 'sempre';
+export type RxDura =
+  'fimDoTurno' | 'proximoTurnoSeu' | 'proximoFinalSeu' | 'enquantoAnexado' | 'enquantoNoCampo' | 'sempre';
 
 export type RxFxs = RxFx[];
 
@@ -533,6 +564,7 @@ export interface RxFx {
     | 'transformar'
     | 'efeitoTemporario'
     | 'gatilhoAtrasado'
+    | 'reflexo'
     | 'escolher'
     | 'modal'
     | 'repetirCada'
@@ -608,7 +640,7 @@ export interface RxFx {
   est?: RxEst[];
   subst?: RxSubst[];
   /**
-   * gatilhoAtrasado
+   * gatilhoAtrasado; reflexo (CR 603.12): o gatilho "quando você fizer isso" (ev reflexo, com alvos/fx), que vai à pilha logo depois
    */
   quando?: RxGat;
   /**
@@ -618,6 +650,10 @@ export interface RxFx {
   escolhe?: {
     min?: number;
     max?: number;
+    /**
+     * só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)
+     */
+    naoRepeteNoTurno?: boolean;
     maxSe?: {
       se?: RxCond;
       max?: number;
@@ -741,9 +777,21 @@ export interface RxFx {
    */
   fonte?: RxObjeto;
   /**
+   * op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)
+   */
+  noDe?: RxObjeto;
+  /**
+   * op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois
+   */
+  comEste?: boolean;
+  /**
    * op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)
    */
   transformada?: boolean;
+  /**
+   * op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)
+   */
+  soNaoDesvira?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -873,6 +921,10 @@ export interface RxCond {
    */
   temIniciativa?: boolean;
   /**
+   * você desceu neste turno: uma carta de permanente foi para o seu cemitério, de qualquer zona (Brass's Tunnel-Grinder)
+   */
+  desceu?: boolean;
+  /**
    * você completou uma masmorra (309.7) nesta partida; {nome} = aquela masmorra (Tomb of Annihilation)
    */
   completouMasmorra?:
@@ -920,6 +972,12 @@ export interface RxKw {
     | 'convocar'
     | 'improvisar'
     | 'loucura'
+    | 'milagre'
+    | 'reconfigurar'
+    | 'entraPreparada'
+    | 'ninjutsu'
+    | 'prever'
+    | 'rondar'
     | 'chute'
     | 'ofertaPresente'
     | 'esconderijo'
@@ -936,7 +994,6 @@ export interface RxKw {
     | 'caminhadaTerreno'
     | 'armaduraUmbra'
     | 'corpo-a-corpo'
-    | 'prever'
     | 'evoluir'
     | 'persistir'
     | 'eternizar'
@@ -953,7 +1010,8 @@ export interface RxKw {
     | 'fusao'
     | 'intimidar'
     | 'decaida'
-    | 'infectar';
+    | 'infectar'
+    | 'fuga';
   custo?: RxMana;
   n?: number;
   /**
@@ -966,6 +1024,16 @@ export interface RxKw {
    * resguardo com custo que não é mana (pagar vida)
    */
   pagar?: RxCustoAtv;
+  /**
+   * fuga: quantas OUTRAS cartas do seu cemitério exilar
+   */
+  exilar?: number;
+  /**
+   * fuga: 'foge com' esses marcadores (702.138c)
+   */
+  comMarc?: {
+    [k: string]: number;
+  };
 }
 
 export interface RxAtv {
@@ -988,6 +1056,10 @@ export interface RxAtv {
 
 export interface RxGat {
   ev:
+    | 'cicla'
+    | 'desvira'
+    | 'jogaTerreno'
+    | 'prolifera'
     | 'entra'
     | 'morre'
     | 'vaiCemiterio'
@@ -995,6 +1067,7 @@ export interface RxGat {
     | 'fase'
     | 'ataca'
     | 'atacantesDeclarados'
+    | 'reflexo'
     | 'bloqueia'
     | 'conjura'
     | 'dano'
@@ -1040,6 +1113,10 @@ export interface RxGat {
   deQuem?: 'voce' | 'cadaJogador' | 'oponente';
   combate?: boolean;
   aJogador?: boolean;
+  /**
+   * o dano é a um jogador ou planeswalker (Neheb)
+   */
+  aJogadorOuPw?: boolean;
   /**
    * o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity)
    */
@@ -1108,7 +1185,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
    */
   modo:
     | 'continuo'
@@ -1134,7 +1211,10 @@ export interface RxEst {
     | 'dobraGatilho'
     | 'ataqueCusta'
     | 'naoPodeAtivar'
-    | 'deveBloquear';
+    | 'deveBloquear'
+    | 'darFuga'
+    | 'darLoucura'
+    | 'oponentesNaoProcuram';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1218,6 +1298,10 @@ export interface RxEst {
    * deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)
    */
   atacante?: RxObjeto;
+  /**
+   * darFuga: exilar N outras do cemitério (Underworld Breach)
+   */
+  exilar?: number;
 }
 
 /**
