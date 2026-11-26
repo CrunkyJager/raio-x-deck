@@ -175,7 +175,7 @@ function novoObj(e, n, dono, zona) {
 }
 
 // ---- zonas ----
-M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilha : o.zona === 'faseado' ? (e.faseados || (e.faseados = [])) : e.jogs[o.dono].zonas[o.zona];
+M.listaDe = (e, o) => o.zona === 'campo' ? e.campo : o.zona === 'pilha' ? e.pilha : o.zona === 'faseado' ? (e.faseados || (e.faseados = [])) : o.zona === 'fora' ? [] : e.jogs[o.dono].zonas[o.zona];   // 'fora': deixou de existir (cópia preparada)
 
 // ---------- sagas (CR 714) ----------
 // capítulo final = kw capitulo n; marcadores de história (lore) em marc.lore. Pôr marcador dispara 'capitulo' {de, para}:

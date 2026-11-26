@@ -300,7 +300,7 @@ M.sair = (e, j, motivo) => {
   J.saiu = motivo || true; J.reserva = M.zeroMana();
   for (const id in e.objs) {
     const o = e.objs[id];
-    if (o.dono === j) { const l = M.listaDe(e, o), k = l.indexOf(o.id); if (k >= 0) l.splice(k, 1); delete e.objs[id]; }
+    if (o.dono === j) { const l = M.listaDe(e, o), k = l ? l.indexOf(o.id) : -1; if (k >= 0) l.splice(k, 1); delete e.objs[id]; }
     else if (o.ctrl === j && (o.zona === 'campo' || o.zona === 'faseado')) M.mover(e, o.id, 'exilio');
   }
   if (e.perg && e.perg.j === j) e.perg = null;
