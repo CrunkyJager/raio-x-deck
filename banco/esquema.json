@@ -1870,7 +1870,8 @@
       "explora",
       "completaMasmorra",
       "sala",
-      "tomaIniciativa"
+      "tomaIniciativa",
+      "nivel"
      ]
     },
     "naoMorre": {
