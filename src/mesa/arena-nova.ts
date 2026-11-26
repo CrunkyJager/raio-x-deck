@@ -328,6 +328,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'atacado': return op.jog !== undefined ? nomeJ(op.jog) : `${nomeOp(e.objs[op.o])} (${nomeJ(e.objs[op.o].ctrl)})`;
       case 'jogador': return nomeJ(op.jog);
       case 'jogar': return `Conjurar ${nomeOp(ob)}${p.ctx && p.ctx.gratis ? ' de graça' : ''}`;
+      case 'mao': return `Pôr ${nomeOp(ob)} na mão`;
       case 'primeiro': return `${nomeOp(ob)} recebe o dano primeiro`;
       case 'dividir': return String(op.v);
       case 'opcao': { const v = op.v || {}; const l = [v.chute ? 'com chute (paga o custo extra)' : '', v.presente ? 'com presente para um oponente' : ''].filter(Boolean); return l.length ? 'Conjurar ' + l.join(' e ') : 'Conjurar normal'; }

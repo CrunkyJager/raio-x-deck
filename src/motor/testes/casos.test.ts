@@ -1801,6 +1801,20 @@ caso('105.2', 'conta coresDoEvento: Ramos ganha um +1/+1 por cor da mágica conj
   M.avancar(e); respE(e, x => x.a === 'manaEsc' && x.id === ra);
   igual([o.marc['+1/+1'], M.somaMana(e.jogs[0].reserva)], [0, 10], 'tirou 5, 10 de mana');
 });
+caso('701.57a', 'descobrir 3: exila até a não-terreno com valor ≤ 3 (pula terreno e Krenko de 4); conjura de graça ou põe na mão; o resto vai ao fundo', () => {
+  const e = cena({});
+  const g = e.jogs[0].zonas.grimorio, cx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' }); e.por(0, 'Krenko, Mob Boss', { zona: 'grimorio' }); e.por(0, 'Wastes', { zona: 'grimorio' });
+  const n0 = g.length, perg: any[] = [];
+  const ask: any = (j, tipo, ops) => { perg.push(tipo); return ops.find(o => o.a === 'mao'); }; ask.etapa = () => {};
+  M.executar(e, { op: 'descobrir', qtd: 3 }, cx, ask);
+  igual(perg, ['jogar'], 'pergunta conjurar ou pôr na mão');
+  igual(naZona(e, 0, 'mao'), ['Grizzly Bears'], 'escolheu a mão');
+  igual([g.length, e.objs[g[0]].n === 'Krenko, Mob Boss' || e.objs[g[1]].n === 'Krenko, Mob Boss', naZona(e, 0, 'exilio')], [n0 - 1, true, []], 'Krenko e Wastes no fundo, nada no exílio');
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' });
+  M.executar(e, { op: 'descobrir', qtd: 2 }, cx, Object.assign((j, t, ops) => ops[0], { etapa: () => {} }));
+  igual([e.pilha.map(id => e.objs[id].n), M.somaMana(e.jogs[0].reserva)], [['Grizzly Bears'], 0], 'conjurou de graça: na pilha');
+});
 caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
   const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
   const e = cena({ campo: [[0, 'Kalonian Hydra'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
