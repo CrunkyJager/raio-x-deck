@@ -123,7 +123,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       return {
         vida: J.vida, vivo: !J.saiu, terr: terras.length, tes: 0, mao: J.zonas.mao.map((id: number) => iDe(e.objs[id])), lib: J.zonas.grimorio.length,
         zona: J.cmd.some((id: number) => e.objs[id] && e.objs[id].zona === 'comando'), tax: J.cmd.reduce((s: number, id: number) => s + 2 * (J.imposto[id] || 0), 0), cmdD,
-        perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
+        perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, ex: J.zonas.exilio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
       };
     });
     quadros.push({ t: rodada, k, log: log.length, j: ps });

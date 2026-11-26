@@ -55,7 +55,7 @@ const SUBST: Record<string, (s) => boolean> = {
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
   entraMarc: s => !!s.muda && Object.keys(s.muda).length === 1 && !!s.muda.marcadores && typeof s.muda.marcadores === 'object'
-    && Object.values(s.muda.marcadores).every(q => qtdOk(q === 'X' ? q : q && typeof q === 'object' && q.conta === 'X' ? 'X' : q)),
+    && Object.values<any>(s.muda.marcadores).every((q: any) => qtdOk(q === 'X' ? q : q && typeof q === 'object' && q.conta === 'X' ? 'X' : q)),
   ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')),
   marcador: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || Number.isInteger(s.muda.soma) || s.muda.impedir === true)
     && Object.keys(s).every(k => ['ev', 'quem', 'marc', 'muda', 'se'].includes(k)),

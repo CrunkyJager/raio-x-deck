@@ -52,3 +52,4 @@ Formato: `DD/MM HH:MM · quem · o quê`. Coordenador = FARSEER (Opus Raio-X). A
 - 25/11 18:15 v0.38.0: integração t43-estrutura 2401c3f + t20-banco c5d5c1b (sem o patch T44)
 - 26/11 08:18 v0.39.0: integração casa-ivora + casa-masmorras-motor (casa-masmorras-banco já dentro); conflito COND_OK/PALAVRA resolvido
 - 26/11 08:28 v0.40.0: substituições aplicadas pelo motor + cobertura honesta (M.substOk); 1299/1753
+- 26/11 08:39 v0.41.0: Mesa ao vivo mana livre + tapete (comando no centro) + fundo por lugar; conserto do tipo (CI)

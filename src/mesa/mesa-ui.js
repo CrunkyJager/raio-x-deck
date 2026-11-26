@@ -504,6 +504,26 @@ function terrasHTML(p, M, pp) {
     return `<span class="ja-tc ${x.tap === x.q ? 'tap' : ''} ${nv ? 'entra' : ''}" ${im ? `data-zoom="${esc(im[1])}"` : ''} data-n="${esc(x.n)}" title="${esc(x.n)}: ${x.q} em campo, ${x.q - x.tap} livre${x.q - x.tap === 1 ? '' : 's'}">${esc(x.n)} <b>×${x.q}</b>${x.tap ? `<i>${x.tap} virado${x.tap > 1 ? 's' : ''}</i>` : ''}</span>`; }).join('') || '<span class="vazio">sem terrenos</span>';
 }
 // lugares na mesa: você embaixo à esquerda e a vez segue no sentido horário
+// fundo de cada lugar (Felipe 26/11): o jogador escolhe a imagem; fica só neste navegador (localStorage)
+const FUNDO_K = k => 'raiox_fundo_' + k;
+const redesenha = () => { if (JG && JG.q) desenhaEu(); };   // fora de uma pergunta o fundo novo aparece no próximo quadro
+function fundoDe(k) { try { return localStorage.getItem(FUNDO_K(k)) || ''; } catch (_) { return ''; } }
+function escolheFundo(k) {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = () => { const f = inp.files && inp.files[0]; if (!f) return;
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => { const L = 1400, r = Math.min(1, L / Math.max(img.width, img.height)), cv = document.createElement('canvas');
+      cv.width = Math.round(img.width * r); cv.height = Math.round(img.height * r); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      try { localStorage.setItem(FUNDO_K(k), cv.toDataURL('image/jpeg', .8)); } catch (_) { alert('Não coube no navegador: tente uma imagem menor.'); }
+      redesenha(); };
+    img.src = url; };
+  inp.click();
+}
+// tapete (playmat): campo de batalha + terrenos + coluna de zonas. Cada lugar é espelhado para a coluna de zonas ficar
+// do lado do centro da mesa e a zona de comando no canto mais perto do meio; os de cima têm o campo virado para o meio.
+// orient[n][k] = [em cima?, zonas à direita?]
+const ORIENT = { 2: [[0, 1], [1, 1]], 3: [[0, 1], [1, 1], [1, 0]], 4: [[0, 1], [1, 1], [1, 0], [0, 0]] };
 const LUGAR = { 2: ['s0', 's1'], 3: ['s0', 's1', 's2'], 4: ['s0', 's1', 's2', 's3'] };
 function jaLugarHTML(k, p, c) {
   const G = JG, M = G.Ms[k], eu = k === 0, cmd = G.cmdNome[k], ci = cmd ? imgDe(cmd) : null, q = c.q, ev = c.ev;
@@ -522,14 +542,28 @@ function jaLugarHTML(k, p, c) {
   const av = eu ? `<button class="ja-av ${c.cmdOk ? 'ok' : ''}" ${c.cmdOk ? 'data-h="cmd"' : ''} style="${ci ? `background-image:url('${esc(ci[2])}')` : ''}" title="${esc(cmd)}${c.cmdOk ? ' — clique para lançar da zona de comando' : ''}"></button>`
     : `<span class="ja-av" style="${ci ? `background-image:url('${esc(ci[2])}')` : ''}" title="${esc(cmd)}"></span>`;
   const cmdD = Math.max(0, ...p.cmdD);
-  return `<div class="ja-lug ${LUGAR[G.Ms.length][k]} ${eu ? 'eu' : ''} ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${escolhe ? 'escolhe' : ''} ${p.vivo ? '' : 'morto'}" ${eu ? '' : `data-alvo="${k}"`}>
-    <div class="ja-oh">${av}<span class="ja-nm"><b>${esc(eu ? 'Você' : NOMES[k])}</b>${cmd && (eu || cmd !== NOMES[k]) ? `<small>${esc(cmd)}</small>` : ''}</span>
-      <span class="ja-vida ${d ? 'bate' : ''}">${p.vida}${d ? `<i class="ja-flut ${d < 0 ? 'neg' : 'pos'}">${d > 0 ? '+' : ''}${d}</i>` : ''}</span></div>
-    ${placar(p)}
-    <div class="ja-os"><span>grimório ${p.lib}</span><span>cemitério ${p.gy}</span>${p.zona && cmd ? '<span>comandante na zona</span>' : ''}${cmdD ? `<span class="mau">dano de comandante ${cmdD}/21</span>` : ''}</div>
+  const [cima, dir] = (ORIENT[G.Ms.length] || ORIENT[4])[k] || [0, 1];
+  const fundo = fundoDe(k);
+  const gyTop = p.gyL && p.gyL.length ? (G.Ms[k][p.gyL[p.gyL.length - 1]] || {}) : null, gyN = gyTop ? (gyTop.frente || gyTop.nome) : null, gyIm = gyN ? imgDe(gyN) : null;
+  const zona = (cl, rot, n, extra = '', st = '') => `<div class="ja-z ${cl}" style="${st}"><span class="ja-zr">${rot}</span>${n !== null ? `<b>${n}</b>` : ''}${extra}</div>`;
+  const cmdZ = `<div class="ja-z cmd ${p.zona && cmd ? '' : 'fora'}"><span class="ja-zr">Comando</span>${av}${p.tax ? `<small>imposto +${p.tax}</small>` : ''}${p.zona || !cmd ? '' : '<small>em campo</small>'}</div>`;
+  return `<div class="ja-lug ${LUGAR[G.Ms.length][k]} ${cima ? 'cima' : 'baixo'} ${dir ? 'zdir' : 'zesq'} ${fundo ? 'comfundo' : ''} ${eu ? 'eu' : ''} ${vez ? 'vez' : ''} ${alvo ? 'alvo' : ''} ${escolhe ? 'escolhe' : ''} ${p.vivo ? '' : 'morto'}" ${eu ? '' : `data-alvo="${k}"`} ${fundo ? `style="--fundo:url('${fundo}')"` : ''}>
+    <div class="ja-campo">
+      ${placar(p)}
+      <div class="ja-row cri">${criH}</div>
+      ${outH ? `<div class="ja-row">${outH}</div>` : ''}
+    </div>
     <div class="ja-terras">${terrasHTML(p, M, pp)}</div>
-    <div class="ja-row cri">${criH}</div>
-    ${outH ? `<div class="ja-row">${outH}</div>` : ''}
+    <div class="ja-zonas">
+      <div class="ja-z vid"><span class="ja-nm"><b>${esc(eu ? 'Você' : NOMES[k])}</b>${cmd && (eu || cmd !== NOMES[k]) ? `<small>${esc(cmd)}</small>` : ''}</span>
+        <span class="ja-vida ${d ? 'bate' : ''}">${p.vida}${d ? `<i class="ja-flut ${d < 0 ? 'neg' : 'pos'}">${d > 0 ? '+' : ''}${d}</i>` : ''}</span>
+        ${cmdD ? `<small class="mau" title="Maior dano de um comandante">cmd ${cmdD}/21</small>` : ''}
+        <button class="ja-fb" data-fundo="${k}" title="Escolher a imagem de fundo deste lugar${fundo ? ' (clique direito: tirar)' : ''}">fundo</button></div>
+      ${cmdZ}
+      ${zona('exi', 'Exílio', p.ex ?? 0)}
+      ${zona('gri', 'Grimório', p.lib)}
+      ${zona('cem', 'Cemitério', p.gy, '', gyIm ? `background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),url('${esc(gyIm[2] || gyIm[0])}')` : '')}
+    </div>
     ${p.vivo ? '' : '<div class="s-x">fora</div>'}
   </div>`;
 }
@@ -595,9 +629,10 @@ function mesaEuHTML(Q, o) {
 }
 function ligaMesaEu() {
   const q = JG && JG.q; const box = $('.ja'); if (!box) return;
-  box.oncontextmenu = (e) => { const im = e.target.closest('[data-zoom]'); if (!im) return; e.preventDefault(); zoomCarta(im.dataset.zoom, im.alt || im.dataset.n); };
+  box.oncontextmenu = (e) => { const fb = e.target.closest('[data-fundo]'); if (fb) { e.preventDefault(); try { localStorage.removeItem(FUNDO_K(+fb.dataset.fundo)); } catch (_) {} redesenha(); return; } const im = e.target.closest('[data-zoom]'); if (!im) return; e.preventDefault(); zoomCarta(im.dataset.zoom, im.alt || im.dataset.n); };
   box.onclick = (e) => {
     if (!JG) return;
+    const fb = e.target.closest('[data-fundo]'); if (fb) { e.stopPropagation(); escolheFundo(+fb.dataset.fundo); return; }
     const b = e.target.closest('[data-b]'), h = e.target.closest('[data-h]'), al = e.target.closest('[data-alvo]');
     if (b) {
       const v = b.dataset.b;
