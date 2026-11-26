@@ -842,7 +842,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra', 'desceu', 'maisTerrenosOponente']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -878,6 +878,7 @@ M.condicao = (e, se, ctx) => {
     if (se.maisTerrenosOponente === 'algum') { if (!M.vivos(e).some(j => j !== ctx.voce && terr(j) > meus)) return false; }
     else { const ev = ctx.ev, ob = ev && ev.id !== undefined ? e.objs[ev.id] : null, j = ob ? ob.ctrl : ev ? ev.j : undefined; if (j === undefined || j === ctx.voce || terr(j) <= meus) return false; }
   }
+  if (se.modoEscolhido !== undefined) { const E = e.objs[ctx.este]; if (!E || !E.escolha || E.escolha.modo !== se.modoEscolhido) return false; }   // escolhido ao entrar (efeitos.ts decidirEntrada)
   if (se.pagou !== undefined && !!ctx.pagou !== !!se.pagou) return false;
   if (se.esteEm) { const E = e.objs[ctx.este]; if (!E || !se.esteEm.includes(E.zona)) return false; }   // "as long as this is in your graveyard" (Anger, Wonder)
   if (se.objBate) {                                                 // o objeto (este, doEvento, equipada, criadas, alvo) bate no filtro? nao: o contrário

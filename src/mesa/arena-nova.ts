@@ -307,6 +307,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'nenhum': return 'Nenhum';
       case 'cor': return { W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde' }[op.v as string] || op.v;
       case 'tipo': return op.v;
+      case 'modo': return op.v;
       case 'topo': return `${nomeOp(ob)}: fica no topo`; case 'fundo': return `${nomeOp(ob)}: vai para o fundo`;
       case 'gatilho': return 'Gatilho de ' + (ob ? ob.n : ((e.pend || [])[op.i] || {}).n || '?');   // sala de masmorra/iniciativa: sem objeto, o nome está no pendente
       case 'bloquear': return `Bloquear ${nomeOp(e.objs[op.atk])} com ${nomeOp(ob)}`;
