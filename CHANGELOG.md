@@ -2,6 +2,14 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.44.0 — 26/11/2026 · Ivora 65/75 inteiras: fuga, gatilhos novos, "outro", descartadas no turno
+Testes: check 0 erros · Vitest 278/278 · raiox-testes igual à linha de base. Partidas: Ivora 40, 0 erros (o registro mostra "fuga: exila 8 do cemitério").
+- **Fuga** (Ox of Agonas foge com +1/+1; Underworld Breach dá fuga a toda mágica do seu cemitério pelo custo dela + exilar 3).
+- **Gatilhos novos:** quando você cicla (Magmakin Artillerist), quando desvira (Key to the City paga {2} e compra), quando joga terreno de fora da mão (Shadow of the Goblin), quando prolifera (Voidwing Hybrid volta do cemitério).
+- **"Outro":** cada OUTRO oponente (Kediss), OUTRA criatura alvo (Markov Retribution), dano a jogador ou planeswalker (Neheb, The Reaver Cleaver).
+- **Contas:** cartas descartadas neste turno (Change of Fortune, Misty Knight); Skull Raid compra a diferença; Grab the Prize só dá dano se a descartada não era terreno; Monument to Endurance não repete modo no turno.
+- Decks: **Ivora no banco 75/75 · motor joga 75/75 · inteiras 65/75** (eram 51). Masmorras 83/83 · 83/83 · 78/83.
+
 ## v0.43.0 — 26/11/2026 · Ivora 75/75 no motor; "não pode ser anulada", Baylen, "para cada criatura", fichas atacando
 Testes: check 0 erros · Vitest 272/272 · raiox-testes igual à linha de base. Motor joga inteiras 1361/1753 (eram 1345). Partidas: Ivora 40 e masmorras 40, 0 erros.
 - **Library of Leng:** descarte por efeito pode ir ao topo do grimório, escolhido carta a carta; descarte como custo e na limpeza vai ao cemitério (ruling).
