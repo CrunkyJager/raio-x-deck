@@ -38,8 +38,13 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 - Partidas no node: Ivora 50 e masmorras 50, 0 erros; registro mostra aventura, iniciativa, completar masmorra, recapitular, Sangue.
 - Divergência Undercity: o A2 seguiu a CR (aventurar com a Undercity aberta avança nela) — está certo; o caso do B é que precisa mudar.
 
+## Estado em 26/11 tarde — v0.41.0 na main (CI verde)
+- v0.40.0: o motor aplica substituições (entra com marcadores, fichas/marcadores dobrados, dano dobrado/metade/prevenir) e a cobertura ficou honesta (`M.substOk`): 1299/1753 inteiras. Ainda recusadas: anulada impedir (12), morre/vaiCemiterio (Liesa, Ravenloft, Blightsteel, Library of Leng), trocaPor, compra mult.
+- Ivora: no banco 75/75 · motor joga 74/75 (Library of Leng) · inteiras 50/75. Masmorras: 81/81 · 73/81 · 68/81.
+- v0.41.0 (Felipe 26/11): a Mesa ao vivo **indica, não limita** — mana quando quiser (⚡) e para fora da principal quando há o que usar; lugar em forma de tapete (comando no canto do centro), fundo escolhido por lugar.
+
 ## Próximo passo (nesta ordem)
-1. Masmorras **motor joga 81/81**: as 9 travas (Acererak repetirCada, Corpse Cur gat entra vários campos, Demonic Gifts modificar.gat, Dungeon Descent virarOutros, Fifty Feet virar.naoDesvira, Prosperous Thief danoUmaVez, Ravenloft perderVida.qtd, Withercrown perderVida.aMenosQue, Alora gatilhoAtrasado com alvo). Uma por commit, com caso. Corrigir o caso do B da Undercity.
+1. Masmorras **motor joga 81/81**: faltam 8 (Acererak repetirCada, Corpse Cur gat entra vários campos, Demonic Gifts modificar.gat, Dungeon Descent virarOutros, Fifty Feet virar.naoDesvira, Prosperous Thief danoUmaVez, Ravenloft perderVida.qtd + subst morre, Alora gatilhoAtrasado com alvo). Withercrown FEITA (v0.40.0). Depois: subst anulada impedir (12 cartas) e morre/vaiCemiterio. Uma por commit, com caso. Corrigir o caso do B da Undercity.
 2. `falta` da Ivora (25) e das masmorras (5): milagre, fuga, reconfigurar, "descartadas no turno"… → inteiras.
 3. Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
 4. T44 medida em lotes → T46 depois da autorização.
