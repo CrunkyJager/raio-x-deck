@@ -1,5 +1,6 @@
 # Roda a Mesa (todas as trocas ligadas × lista original) nos decks do banco.json e grava banco_<tag>.json.
 # Uso: servidor na 8765 (T43: `npx vite --port 8765 --strictPort`); ~/.venv-pw/bin/python ferramentas/calibra/banco_mesa.py TAG [N=200] [paralelo=4]
+# LOTE=10 mede só os próximos 10 que faltam (retoma do json); PORTA=8766 usa outro servidor (medir dois ramos lado a lado).
 import json, os, sys, time, statistics as st
 from concurrent.futures import ThreadPoolExecutor
 from playwright.sync_api import sync_playwright
@@ -14,7 +15,7 @@ def um(path):
         b = p.chromium.launch(); pg = b.new_page(viewport={'width': 1400, 'height': 1000}); erros = []
         pg.on('pageerror', lambda e: erros.append(str(e)))
         try:
-            pg.goto('http://localhost:8765/?x=%d' % time.time()); pg.wait_for_function("window.RAIOX && window.RAIOX.C('Sol Ring')", timeout=60000)
+            pg.goto('http://localhost:%s/?x=%d' % (os.environ.get('PORTA', '8765'), time.time())); pg.wait_for_function("window.RAIOX && window.RAIOX.C('Sol Ring')", timeout=60000)
             pg.evaluate("localStorage.setItem('raiox:n','%s'); localStorage.setItem('raiox:refsMeta','0')" % N)
             pg.reload(); pg.wait_for_function("window.RAIOX && window.RAIOX.C('Sol Ring')", timeout=60000)
             pg.fill('#deck-in', lista); pg.evaluate("RAIOX.run()"); pg.wait_for_timeout(1500)
@@ -30,6 +31,7 @@ def um(path):
             return path, {'falha': str(e)[:300], 'erros': erros}
         finally: b.close()
 faltam = [k for k in banco if k not in res or 'falha' in res[k]]
+if os.environ.get('LOTE'): faltam = faltam[:int(os.environ['LOTE'])]
 with ThreadPoolExecutor(PAR) as ex:
     for path, r in ex.map(um, faltam):
         res[path] = r; json.dump(res, open(OUT, 'w'), ensure_ascii=False, indent=1)
