@@ -188,6 +188,56 @@
    "carta": "Acererak the Archlich",
    "situacao": "entra depois de você completar Tomb of Annihilation",
    "espera": "fica no campo e não aventura (FALTA: hoje o banco volta sempre; pedido de negação no completouMasmorra {nome})"
+  },
+  {
+   "carta": "Plague Stinger",
+   "situacao": "ataca sem bloqueio",
+   "espera": "o jogador ganha 1 marcador de veneno (não perde vida)"
+  },
+  {
+   "carta": "Contagious Nim",
+   "situacao": "bloqueia uma 3/3",
+   "espera": "a 3/3 ganha 2 marcadores −1/−1 (não leva dano marcado); o Nim leva 3 e morre"
+  },
+  {
+   "carta": "Blighted Agent",
+   "situacao": "ataca 10 vezes sem bloqueio no mesmo oponente",
+   "espera": "ele chega a 10 venenos e perde (704.5c)"
+  },
+  {
+   "carta": "Blackcleave Goblin",
+   "situacao": "entra e ataca no mesmo turno",
+   "espera": "ataca (pressa) e dá 2 venenos"
+  },
+  {
+   "carta": "Phyrexian Digester",
+   "situacao": "causa dano de combate num jogador",
+   "espera": "2 venenos, a vida não muda"
+  },
+  {
+   "carta": "Plague Myr",
+   "situacao": "vira para mana; outro turno ataca",
+   "espera": "dá {C}; o dano vira 1 veneno"
+  },
+  {
+   "carta": "Core Prowler",
+   "situacao": "deu 2 venenos num oponente; depois morre",
+   "espera": "prolifera: o oponente vai a 3 venenos"
+  },
+  {
+   "carta": "Necropede",
+   "situacao": "bloqueia uma 2/2 e morre",
+   "espera": "a 2/2 ganha 1 −1/−1 do dano e mais 1 do gatilho (pode mirar outra)"
+  },
+  {
+   "carta": "Corpse Cur",
+   "situacao": "entra com Plague Stinger e Grizzly Bears no cemitério",
+   "espera": "só a Plague Stinger pode ser o alvo (filtro kw infectar)"
+  },
+  {
+   "carta": "Blightsteel Colossus",
+   "situacao": "ataca sem bloqueio",
+   "espera": "11 venenos: o jogador perde; com atropelar sobre uma 2/2, ela ganha 2 −1/−1 e o jogador 9 venenos"
   }
  ]
 }

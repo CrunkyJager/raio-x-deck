@@ -32,7 +32,7 @@
   {
    "carta": "Phyrexian Digester",
    "situacao": "causa dano",
-   "espera": "dano normal (infect falta)"
+   "espera": "dano como veneno em jogador e −1/−1 em criatura (infectar)"
   },
   {
    "carta": "Plague Myr",
@@ -42,7 +42,7 @@
   {
    "carta": "Plague Stinger",
    "situacao": "ataca",
-   "espera": "voa (infect falta)"
+   "espera": "voa; o dano vira veneno (infectar)"
   },
   {
    "carta": "Precipitous Drop",

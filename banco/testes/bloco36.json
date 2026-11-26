@@ -37,7 +37,7 @@
   {
    "carta": "Blackcleave Goblin",
    "situacao": "entra e ataca",
-   "espera": "ataca no mesmo turno; dano normal (infect falta)"
+   "espera": "ataca no mesmo turno; o dano vira veneno (infectar)"
   },
   {
    "carta": "Blightbelly Rat",
@@ -62,7 +62,7 @@
   {
    "carta": "Contagious Nim",
    "situacao": "causa dano",
-   "espera": "dano normal (infect falta)"
+   "espera": "dano como veneno em jogador e −1/−1 em criatura (infectar)"
   },
   {
    "carta": "Contentious Plan",
