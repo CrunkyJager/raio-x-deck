@@ -1457,6 +1457,10 @@
      "$ref": "#/$defs/objeto",
      "description": "op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
     },
+    "noDe": {
+     "$ref": "#/$defs/objeto",
+     "description": "op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)"
+    },
     "comEste": {
      "type": "boolean",
      "description": "op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois"
@@ -1788,6 +1792,7 @@
       "entraPreparada",
       "ninjutsu",
       "prever",
+      "rondar",
       "chute",
       "ofertaPresente",
       "esconderijo",
@@ -1805,6 +1810,7 @@
       "armaduraUmbra",
       "corpo-a-corpo",
       "prever",
+      "rondar",
       "evoluir",
       "persistir",
       "eternizar",

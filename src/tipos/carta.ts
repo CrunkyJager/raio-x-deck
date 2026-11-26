@@ -777,6 +777,10 @@ export interface RxFx {
    */
   fonte?: RxObjeto;
   /**
+   * op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)
+   */
+  noDe?: RxObjeto;
+  /**
    * op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois
    */
   comEste?: boolean;
@@ -973,6 +977,7 @@ export interface RxKw {
     | 'entraPreparada'
     | 'ninjutsu'
     | 'prever'
+    | 'rondar'
     | 'chute'
     | 'ofertaPresente'
     | 'esconderijo'

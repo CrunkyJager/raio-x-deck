@@ -2043,6 +2043,18 @@ caso('702.143', 'prever (Skull Raid): no seu turno paga {2} e exila; no mesmo tu
   M.avancar(e); conj(e, 'Skull Raid'); resolveCom(e);
   igual([e.objs[sr].zona, e.campo.filter(id => e.objs[id].virada).length], ['cemiterio', 2], 'conjurou do exílio por {1}{B}');
 });
+caso('702.76', 'Knowledge Exploitation: rondar por {3}{U} depois de um Ladino causar dano de combate; procura no grimório do oponente uma instantânea e conjura de graça', () => {
+  for (const rondou of [false, true]) {
+    const e = cena({ campo: terras(rondou ? 4 : 7, 'Island'), mao: [[0, 'Knowledge Exploitation']] }); e.pend = []; e.jogs[0].terrenos = 1;
+    const g1 = e.jogs[1].zonas.grimorio; e.objs[g1[0]].n = 'Lightning Bolt';
+    if (rondou) e.jogs[0].danoCombT = { t: e.turno.n, sub: ['Rogue'] };
+    const ke = e.jogs[0].zonas.mao[0];
+    ok(M.podeConjurar(e, 0, e.objs[ke]), rondou ? 'com 4 terrenos, pelo rondar' : 'com 7, pelo custo normal');
+    M.avancar(e); conj(e, 'Knowledge Exploitation');
+    resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'sim') : -1);
+    igual([e.jogs[1].vida, naZona(e, 1, 'cemiterio'), e.campo.filter(id => e.objs[id].virada).length], [37, ['Lightning Bolt'], rondou ? 4 : 7], rondou ? 'rondar' : 'normal');
+  }
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;
