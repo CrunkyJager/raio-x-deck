@@ -1,0 +1,4775 @@
+[
+ {
+  "nome": "Cloud, Ex-SOLDIER",
+  "ci": "WRG",
+  "decks": 34431,
+  "pescado_por": [
+   1,
+   "equipment"
+  ],
+  "principal": 1,
+  "secundario": [],
+  "planos_tags": [
+   [
+    1,
+    "equipment",
+    3314
+   ],
+   [
+    15,
+    "artifacts",
+    692
+   ],
+   [
+    3,
+    "aggro",
+    611
+   ],
+   [
+    6,
+    "extra-combats",
+    422
+   ]
+  ],
+  "tags_top": [
+   "equipment",
+   "voltron",
+   "modified-creatures",
+   "artifacts",
+   "aggro",
+   "extra-combats"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Captain America, First Avenger",
+  "ci": "WUR",
+  "decks": 15228,
+  "pescado_por": [
+   1,
+   "equipment"
+  ],
+  "principal": 1,
+  "secundario": [],
+  "planos_tags": [
+   [
+    1,
+    "equipment",
+    2625
+   ],
+   [
+    15,
+    "artifacts",
+    422
+   ],
+   [
+    3,
+    "aggro",
+    164
+   ],
+   [
+    34,
+    "combo",
+    77
+   ]
+  ],
+  "tags_top": [
+   "equipment",
+   "voltron",
+   "artifacts",
+   "aggro",
+   "historic",
+   "modified-creatures"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Eriette of the Charmed Apple",
+  "ci": "WB",
+  "decks": 19359,
+  "pescado_por": [
+   1,
+   "auras"
+  ],
+  "principal": 1,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    1,
+    "auras",
+    2591
+   ],
+   [
+    15,
+    "enchantress",
+    1295
+   ],
+   [
+    11,
+    "lifegain",
+    571
+   ],
+   [
+    23,
+    "control",
+    391
+   ]
+  ],
+  "tags_top": [
+   "auras",
+   "enchantress",
+   "lifegain",
+   "control",
+   "lifedrain",
+   "pillow-fort"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Trostani, Selesnya's Voice",
+  "ci": "WG",
+  "decks": 12467,
+  "pescado_por": [
+   2,
+   "go-wide"
+  ],
+  "principal": 2,
+  "secundario": [
+   11
+  ],
+  "planos_tags": [
+   [
+    11,
+    "lifegain",
+    1095
+   ],
+   [
+    2,
+    "go-wide",
+    115
+   ],
+   [
+    34,
+    "combo",
+    39
+   ],
+   [
+    27,
+    "clones",
+    30
+   ]
+  ],
+  "tags_top": [
+   "tokens",
+   "lifegain",
+   "populate",
+   "plus-1-plus-1-counters",
+   "go-wide",
+   "midrange"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Bard, King of Dale",
+  "ci": "WU",
+  "decks": 5026,
+  "pescado_por": [
+   2,
+   "go-wide"
+  ],
+  "principal": 2,
+  "secundario": [
+   23
+  ],
+  "planos_tags": [
+   [
+    23,
+    "control",
+    62
+   ],
+   [
+    2,
+    "go-wide",
+    60
+   ],
+   [
+    25,
+    "stax",
+    21
+   ],
+   [
+    34,
+    "combo",
+    20
+   ]
+  ],
+  "tags_top": [
+   "tokens",
+   "card-draw",
+   "humans",
+   "control",
+   "go-wide",
+   "populate"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Isshin, Two Heavens as One",
+  "ci": "WBR",
+  "decks": 31666,
+  "pescado_por": [
+   3,
+   "aggro"
+  ],
+  "principal": 3,
+  "secundario": [
+   6
+  ],
+  "planos_tags": [
+   [
+    3,
+    "aggro",
+    1493
+   ],
+   [
+    6,
+    "extra-combats",
+    790
+   ],
+   [
+    1,
+    "equipment",
+    396
+   ],
+   [
+    10,
+    "burn",
+    140
+   ]
+  ],
+  "tags_top": [
+   "aggro",
+   "tokens",
+   "attack-triggers",
+   "extra-combats",
+   "equipment",
+   "samurai"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Bello, Bard of the Brambles",
+  "ci": "RG",
+  "decks": 26854,
+  "pescado_por": [
+   3,
+   "aggro"
+  ],
+  "principal": 3,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    15,
+    "enchantress",
+    2121
+   ],
+   [
+    3,
+    "aggro",
+    1004
+   ],
+   [
+    6,
+    "extra-combats",
+    135
+   ],
+   [
+    4,
+    "stompy",
+    106
+   ]
+  ],
+  "tags_top": [
+   "enchantress",
+   "artifacts",
+   "unnatural",
+   "aggro",
+   "ramp",
+   "vehicles"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Winota, Joiner of Forces",
+  "ci": "WR",
+  "decks": 14884,
+  "pescado_por": [
+   3,
+   "aggro"
+  ],
+  "principal": 3,
+  "secundario": [
+   25
+  ],
+  "planos_tags": [
+   [
+    3,
+    "aggro",
+    850
+   ],
+   [
+    25,
+    "stax",
+    635
+   ],
+   [
+    6,
+    "extra-combats",
+    185
+   ],
+   [
+    34,
+    "combo",
+    181
+   ]
+  ],
+  "tags_top": [
+   "aggro",
+   "stax",
+   "hatebears",
+   "humans",
+   "tokens",
+   "extra-combats"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "The Gitrog, Ravenous Ride",
+  "ci": "BG",
+  "decks": 7623,
+  "pescado_por": [
+   4,
+   "stompy"
+  ],
+  "principal": 4,
+  "secundario": [
+   13
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    434
+   ],
+   [
+    4,
+    "stompy",
+    325
+   ],
+   [
+    12,
+    "landfall",
+    160
+   ],
+   [
+    3,
+    "aggro",
+    152
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "stompy",
+   "ramp",
+   "landfall",
+   "aggro",
+   "sacrifice"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Ghalta, Primal Hunger",
+  "ci": "G",
+  "decks": 11358,
+  "pescado_por": [
+   4,
+   "stompy"
+  ],
+  "principal": 4,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    3,
+    "aggro",
+    288
+   ],
+   [
+    4,
+    "stompy",
+    278
+   ],
+   [
+    1,
+    "voltron",
+    109
+   ],
+   [
+    34,
+    "combo",
+    59
+   ]
+  ],
+  "tags_top": [
+   "ramp",
+   "aggro",
+   "stompy",
+   "dinosaurs",
+   "voltron",
+   "power-matters"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Gishath, Sun's Avatar",
+  "ci": "WRG",
+  "decks": 21541,
+  "pescado_por": [
+   4,
+   "stompy"
+  ],
+  "principal": 4,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    3,
+    "aggro",
+    486
+   ],
+   [
+    4,
+    "stompy",
+    247
+   ],
+   [
+    8,
+    "discover",
+    85
+   ],
+   [
+    34,
+    "combo",
+    48
+   ]
+  ],
+  "tags_top": [
+   "dinosaurs",
+   "ramp",
+   "aggro",
+   "kaheera-companion",
+   "stompy",
+   "midrange"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Atraxa, Praetors' Voice",
+  "ci": "WUBG",
+  "decks": 46442,
+  "pescado_por": [
+   5,
+   "infect"
+  ],
+  "principal": 5,
+  "secundario": [
+   33
+  ],
+  "planos_tags": [
+   [
+    5,
+    "infect",
+    3367
+   ],
+   [
+    33,
+    "planeswalkers",
+    1689
+   ],
+   [
+    23,
+    "control",
+    286
+   ],
+   [
+    34,
+    "combo",
+    214
+   ]
+  ],
+  "tags_top": [
+   "infect",
+   "plus-1-plus-1-counters",
+   "planeswalkers",
+   "proliferate",
+   "phyrexians",
+   "minus-1-minus-1-counters"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Fynn, the Fangbearer",
+  "ci": "G",
+  "decks": 16673,
+  "pescado_por": [
+   5,
+   "infect"
+  ],
+  "principal": 5,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    5,
+    "infect",
+    1502
+   ],
+   [
+    3,
+    "aggro",
+    511
+   ],
+   [
+    33,
+    "proliferate",
+    164
+   ],
+   [
+    1,
+    "equipment",
+    16
+   ]
+  ],
+  "tags_top": [
+   "infect",
+   "deathtouch",
+   "aggro",
+   "proliferate",
+   "plus-1-plus-1-counters",
+   "ramp"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Ixhel, Scion of Atraxa",
+  "ci": "WBG",
+  "decks": 7013,
+  "pescado_por": [
+   5,
+   "infect"
+  ],
+  "principal": 5,
+  "secundario": [],
+  "planos_tags": [
+   [
+    5,
+    "infect",
+    1035
+   ],
+   [
+    33,
+    "proliferate",
+    150
+   ],
+   [
+    27,
+    "theft",
+    78
+   ],
+   [
+    3,
+    "aggro",
+    52
+   ]
+  ],
+  "tags_top": [
+   "infect",
+   "phyrexians",
+   "proliferate",
+   "theft",
+   "plus-1-plus-1-counters",
+   "midrange"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Lightning, Army of One",
+  "ci": "WR",
+  "decks": 15927,
+  "pescado_por": [
+   6,
+   "extra-combats"
+  ],
+  "principal": 6,
+  "secundario": [
+   1
+  ],
+  "planos_tags": [
+   [
+    1,
+    "equipment",
+    991
+   ],
+   [
+    6,
+    "extra-combats",
+    678
+   ],
+   [
+    3,
+    "aggro",
+    606
+   ],
+   [
+    10,
+    "burn",
+    207
+   ]
+  ],
+  "tags_top": [
+   "equipment",
+   "voltron",
+   "extra-combats",
+   "aggro",
+   "burn",
+   "artifacts"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Tifa, Martial Artist",
+  "ci": "WRG",
+  "decks": 8345,
+  "pescado_por": [
+   6,
+   "extra-combats"
+  ],
+  "principal": 6,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    6,
+    "extra-combats",
+    650
+   ],
+   [
+    3,
+    "aggro",
+    334
+   ],
+   [
+    1,
+    "equipment",
+    174
+   ],
+   [
+    4,
+    "stompy",
+    49
+   ]
+  ],
+  "tags_top": [
+   "extra-combats",
+   "aggro",
+   "equipment",
+   "plus-1-plus-1-counters",
+   "voltron",
+   "legends"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Najeela, the Blade-Blossom",
+  "ci": "WUBRG",
+  "decks": 14119,
+  "pescado_por": [
+   6,
+   "extra-combats"
+  ],
+  "principal": 6,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    6,
+    "extra-combats",
+    606
+   ],
+   [
+    3,
+    "aggro",
+    503
+   ],
+   [
+    34,
+    "combo",
+    423
+   ],
+   [
+    36,
+    "birthing-pod",
+    89
+   ]
+  ],
+  "tags_top": [
+   "warriors",
+   "extra-combats",
+   "aggro",
+   "tokens",
+   "combo",
+   "midrange"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Yuriko, the Tiger's Shadow",
+  "ci": "UB",
+  "decks": 31761,
+  "pescado_por": [
+   7,
+   "ninjutsu"
+  ],
+  "principal": 7,
+  "secundario": [],
+  "planos_tags": [
+   [
+    7,
+    "ninjutsu",
+    2370
+   ],
+   [
+    3,
+    "aggro",
+    608
+   ],
+   [
+    34,
+    "combo",
+    435
+   ],
+   [
+    10,
+    "burn",
+    372
+   ]
+  ],
+  "tags_top": [
+   "ninjutsu",
+   "ninjas",
+   "aggro",
+   "tempo",
+   "combo",
+   "burn"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Goro-Goro and Satoru",
+  "ci": "UBR",
+  "decks": 8951,
+  "pescado_por": [
+   7,
+   "ninjutsu"
+  ],
+  "principal": 7,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    7,
+    "ninjutsu",
+    551
+   ],
+   [
+    3,
+    "aggro",
+    428
+   ],
+   [
+    6,
+    "extra-combats",
+    109
+   ],
+   [
+    34,
+    "combo",
+    38
+   ]
+  ],
+  "tags_top": [
+   "ninjutsu",
+   "aggro",
+   "tokens",
+   "ninjas",
+   "dragons",
+   "haste"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Clement, the Worrywort",
+  "ci": "UG",
+  "decks": 8369,
+  "pescado_por": [
+   7,
+   "bounce"
+  ],
+  "principal": 7,
+  "secundario": [
+   14
+  ],
+  "planos_tags": [
+   [
+    7,
+    "bounce",
+    299
+   ],
+   [
+    14,
+    "blink",
+    277
+   ],
+   [
+    34,
+    "combo",
+    145
+   ],
+   [
+    23,
+    "control",
+    39
+   ]
+  ],
+  "tags_top": [
+   "frogs",
+   "plus-1-plus-1-counters",
+   "bounce",
+   "blink",
+   "combo",
+   "etb"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Pantlaza, Sun-Favored",
+  "ci": "WRG",
+  "decks": 38315,
+  "pescado_por": [
+   8,
+   "discover"
+  ],
+  "principal": 8,
+  "secundario": [
+   14
+  ],
+  "planos_tags": [
+   [
+    8,
+    "discover",
+    2073
+   ],
+   [
+    14,
+    "blink",
+    813
+   ],
+   [
+    3,
+    "aggro",
+    647
+   ],
+   [
+    4,
+    "stompy",
+    341
+   ]
+  ],
+  "tags_top": [
+   "dinosaurs",
+   "discover",
+   "ramp",
+   "blink",
+   "aggro",
+   "stompy"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Zhulodok, Void Gorger",
+  "ci": "C",
+  "decks": 21898,
+  "pescado_por": [
+   8,
+   "cascade"
+  ],
+  "principal": 8,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    8,
+    "cascade",
+    1316
+   ],
+   [
+    15,
+    "artifacts",
+    648
+   ],
+   [
+    34,
+    "combo",
+    207
+   ],
+   [
+    3,
+    "aggro",
+    103
+   ]
+  ],
+  "tags_top": [
+   "eldrazi",
+   "cascade",
+   "big-mana",
+   "artifacts",
+   "ramp",
+   "annihilator"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Yidris, Maelstrom Wielder",
+  "ci": "UBRG",
+  "decks": 10515,
+  "pescado_por": [
+   8,
+   "cascade"
+  ],
+  "principal": 8,
+  "secundario": [],
+  "planos_tags": [
+   [
+    8,
+    "cascade",
+    1081
+   ],
+   [
+    32,
+    "chaos",
+    180
+   ],
+   [
+    34,
+    "combo",
+    134
+   ],
+   [
+    16,
+    "spellslinger",
+    134
+   ]
+  ],
+  "tags_top": [
+   "cascade",
+   "chaos",
+   "combo",
+   "spellslinger",
+   "storm",
+   "wheels"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Teysa Karlov",
+  "ci": "WB",
+  "decks": 22021,
+  "pescado_por": [
+   9,
+   "aristocrats"
+  ],
+  "principal": 9,
+  "secundario": [],
+  "planos_tags": [
+   [
+    9,
+    "aristocrats",
+    3110
+   ],
+   [
+    11,
+    "lifegain",
+    472
+   ],
+   [
+    34,
+    "combo",
+    404
+   ],
+   [
+    20,
+    "reanimator",
+    237
+   ]
+  ],
+  "tags_top": [
+   "aristocrats",
+   "tokens",
+   "sacrifice",
+   "lifegain",
+   "combo",
+   "lifedrain"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Sephiroth, Fabled SOLDIER",
+  "ci": "B",
+  "decks": 32994,
+  "pescado_por": [
+   9,
+   "aristocrats"
+  ],
+  "principal": 9,
+  "secundario": [],
+  "planos_tags": [
+   [
+    9,
+    "aristocrats",
+    2709
+   ],
+   [
+    34,
+    "combo",
+    708
+   ],
+   [
+    20,
+    "reanimator",
+    560
+   ],
+   [
+    11,
+    "lifegain",
+    490
+   ]
+  ],
+  "tags_top": [
+   "aristocrats",
+   "sacrifice",
+   "combo",
+   "reanimator",
+   "lifegain",
+   "tokens"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Meren of Clan Nel Toth",
+  "ci": "BG",
+  "decks": 22830,
+  "pescado_por": [
+   9,
+   "aristocrats"
+  ],
+  "principal": 9,
+  "secundario": [
+   20
+  ],
+  "planos_tags": [
+   [
+    20,
+    "reanimator",
+    1946
+   ],
+   [
+    9,
+    "aristocrats",
+    1545
+   ],
+   [
+    34,
+    "combo",
+    444
+   ],
+   [
+    36,
+    "birthing-pod",
+    362
+   ]
+  ],
+  "tags_top": [
+   "reanimator",
+   "aristocrats",
+   "graveyard",
+   "sacrifice",
+   "combo",
+   "birthing-pod"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Valgavoth, Harrower of Souls",
+  "ci": "BR",
+  "decks": 29201,
+  "pescado_por": [
+   10,
+   "group-slug"
+  ],
+  "principal": 10,
+  "secundario": [],
+  "planos_tags": [
+   [
+    10,
+    "group-slug",
+    2293
+   ],
+   [
+    3,
+    "aggro",
+    230
+   ],
+   [
+    11,
+    "lifedrain",
+    212
+   ],
+   [
+    28,
+    "wheels",
+    143
+   ]
+  ],
+  "tags_top": [
+   "group-slug",
+   "burn",
+   "plus-1-plus-1-counters",
+   "aggro",
+   "lifedrain",
+   "pingers"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Ghyrson Starn, Kelermorph",
+  "ci": "UR",
+  "decks": 19895,
+  "pescado_por": [
+   10,
+   "burn"
+  ],
+  "principal": 10,
+  "secundario": [
+   16
+  ],
+  "planos_tags": [
+   [
+    10,
+    "burn",
+    1761
+   ],
+   [
+    16,
+    "spellslinger",
+    1233
+   ],
+   [
+    17,
+    "storm",
+    262
+   ],
+   [
+    34,
+    "combo",
+    219
+   ]
+  ],
+  "tags_top": [
+   "burn",
+   "spellslinger",
+   "pingers",
+   "storm",
+   "combo",
+   "control"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Ojer Axonil, Deepest Might",
+  "ci": "R",
+  "decks": 10263,
+  "pescado_por": [
+   10,
+   "burn"
+  ],
+  "principal": 10,
+  "secundario": [],
+  "planos_tags": [
+   [
+    10,
+    "burn",
+    1474
+   ],
+   [
+    16,
+    "spellslinger",
+    345
+   ],
+   [
+    3,
+    "aggro",
+    231
+   ],
+   [
+    25,
+    "stax",
+    68
+   ]
+  ],
+  "tags_top": [
+   "burn",
+   "spellslinger",
+   "aggro",
+   "group-slug",
+   "pingers",
+   "stax"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Frodo, Adventurous Hobbit // Sam, Loyal Attendant",
+  "ci": "WBG",
+  "decks": 28090,
+  "pescado_por": [
+   11,
+   "lifegain"
+  ],
+  "principal": 11,
+  "secundario": [],
+  "planos_tags": [
+   [
+    11,
+    "lifegain",
+    3340
+   ],
+   [
+    34,
+    "combo",
+    442
+   ],
+   [
+    15,
+    "artifacts",
+    383
+   ],
+   [
+    9,
+    "aristocrats",
+    254
+   ]
+  ],
+  "tags_top": [
+   "lifegain",
+   "tokens",
+   "food",
+   "halflings",
+   "combo",
+   "artifacts"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Giada, Font of Hope",
+  "ci": "W",
+  "decks": 39897,
+  "pescado_por": [
+   11,
+   "lifegain"
+  ],
+  "principal": 11,
+  "secundario": [],
+  "planos_tags": [
+   [
+    11,
+    "lifegain",
+    2827
+   ],
+   [
+    3,
+    "aggro",
+    388
+   ],
+   [
+    25,
+    "stax",
+    117
+   ],
+   [
+    23,
+    "control",
+    82
+   ]
+  ],
+  "tags_top": [
+   "angels",
+   "lifegain",
+   "plus-1-plus-1-counters",
+   "flying",
+   "tokens",
+   "aggro"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Oloro, Ageless Ascetic",
+  "ci": "WUB",
+  "decks": 23259,
+  "pescado_por": [
+   11,
+   "lifegain"
+  ],
+  "principal": 11,
+  "secundario": [],
+  "planos_tags": [
+   [
+    11,
+    "lifegain",
+    2618
+   ],
+   [
+    23,
+    "control",
+    519
+   ],
+   [
+    34,
+    "combo",
+    420
+   ],
+   [
+    30,
+    "pillow-fort",
+    378
+   ]
+  ],
+  "tags_top": [
+   "lifegain",
+   "control",
+   "combo",
+   "pillow-fort",
+   "lifedrain",
+   "stax"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Omnath, Locus of Creation",
+  "ci": "WURG",
+  "decks": 18803,
+  "pescado_por": [
+   12,
+   "landfall"
+  ],
+  "principal": 12,
+  "secundario": [
+   13
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    1941
+   ],
+   [
+    12,
+    "landfall",
+    1302
+   ],
+   [
+    34,
+    "combo",
+    245
+   ],
+   [
+    27,
+    "clones",
+    132
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "landfall",
+   "ramp",
+   "tokens",
+   "combo",
+   "elementals"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Hearthhull, the Worldseed",
+  "ci": "BRG",
+  "decks": 34629,
+  "pescado_por": [
+   12,
+   "landfall"
+  ],
+  "principal": 12,
+  "secundario": [
+   13
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    3414
+   ],
+   [
+    12,
+    "landfall",
+    1100
+   ],
+   [
+    26,
+    "land-destruction",
+    989
+   ],
+   [
+    10,
+    "burn",
+    631
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "landfall",
+   "ramp",
+   "land-destruction",
+   "sacrifice",
+   "burn"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Aesi, Tyrant of Gyre Strait",
+  "ci": "UG",
+  "decks": 17589,
+  "pescado_por": [
+   12,
+   "landfall"
+  ],
+  "principal": 12,
+  "secundario": [
+   13
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    1604
+   ],
+   [
+    12,
+    "landfall",
+    963
+   ],
+   [
+    34,
+    "combo",
+    253
+   ],
+   [
+    18,
+    "extra-turns",
+    94
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "landfall",
+   "ramp",
+   "combo",
+   "card-draw",
+   "tokens"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "The Necrobloom",
+  "ci": "WBG",
+  "decks": 22849,
+  "pescado_por": [
+   13,
+   "lands-matter"
+  ],
+  "principal": 13,
+  "secundario": [
+   21
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    2820
+   ],
+   [
+    21,
+    "dredge",
+    1234
+   ],
+   [
+    12,
+    "landfall",
+    869
+   ],
+   [
+    20,
+    "reanimator",
+    545
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "tokens",
+   "dredge",
+   "landfall",
+   "reanimator",
+   "ramp"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Toph, the First Metalbender",
+  "ci": "WRG",
+  "decks": 35858,
+  "pescado_por": [
+   13,
+   "lands-matter"
+  ],
+  "principal": 13,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    2077
+   ],
+   [
+    15,
+    "artifacts",
+    1866
+   ],
+   [
+    12,
+    "landfall",
+    712
+   ],
+   [
+    34,
+    "combo",
+    344
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "artifacts",
+   "plus-1-plus-1-counters",
+   "earthbending",
+   "landfall",
+   "ramp"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Teval, the Balanced Scale",
+  "ci": "UBG",
+  "decks": 41835,
+  "pescado_por": [
+   13,
+   "lands-matter"
+  ],
+  "principal": 13,
+  "secundario": [
+   20
+  ],
+  "planos_tags": [
+   [
+    20,
+    "reanimator",
+    3083
+   ],
+   [
+    13,
+    "lands-matter",
+    1797
+   ],
+   [
+    22,
+    "mill",
+    1756
+   ],
+   [
+    21,
+    "self-mill",
+    1737
+   ]
+  ],
+  "tags_top": [
+   "reanimator",
+   "lands-matter",
+   "mill",
+   "self-mill",
+   "graveyard",
+   "tokens"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Brago, King Eternal",
+  "ci": "WU",
+  "decks": 15703,
+  "pescado_por": [
+   14,
+   "blink"
+  ],
+  "principal": 14,
+  "secundario": [],
+  "planos_tags": [
+   [
+    14,
+    "blink",
+    1785
+   ],
+   [
+    23,
+    "control",
+    519
+   ],
+   [
+    34,
+    "combo",
+    439
+   ],
+   [
+    25,
+    "stax",
+    153
+   ]
+  ],
+  "tags_top": [
+   "blink",
+   "control",
+   "combo",
+   "etb",
+   "tokens",
+   "stax"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Atraxa, Grand Unifier",
+  "ci": "WUBG",
+  "decks": 17777,
+  "pescado_por": [
+   14,
+   "blink"
+  ],
+  "principal": 14,
+  "secundario": [
+   34
+  ],
+  "planos_tags": [
+   [
+    14,
+    "blink",
+    1037
+   ],
+   [
+    34,
+    "combo",
+    557
+   ],
+   [
+    23,
+    "control",
+    326
+   ],
+   [
+    5,
+    "infect",
+    254
+   ]
+  ],
+  "tags_top": [
+   "blink",
+   "combo",
+   "midrange",
+   "control",
+   "infect",
+   "good-stuff"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Aminatou, the Fateshifter",
+  "ci": "WUB",
+  "decks": 7010,
+  "pescado_por": [
+   14,
+   "blink"
+  ],
+  "principal": 14,
+  "secundario": [
+   23
+  ],
+  "planos_tags": [
+   [
+    14,
+    "blink",
+    752
+   ],
+   [
+    23,
+    "control",
+    309
+   ],
+   [
+    34,
+    "combo",
+    262
+   ],
+   [
+    33,
+    "planeswalkers",
+    151
+   ]
+  ],
+  "tags_top": [
+   "blink",
+   "control",
+   "combo",
+   "planeswalkers",
+   "topdeck",
+   "etb"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Breya, Etherium Shaper",
+  "ci": "WUBR",
+  "decks": 23066,
+  "pescado_por": [
+   15,
+   "artifacts"
+  ],
+  "principal": 15,
+  "secundario": [
+   34
+  ],
+  "planos_tags": [
+   [
+    15,
+    "artifacts",
+    3132
+   ],
+   [
+    34,
+    "combo",
+    1009
+   ],
+   [
+    14,
+    "blink",
+    311
+   ],
+   [
+    9,
+    "aristocrats",
+    247
+   ]
+  ],
+  "tags_top": [
+   "artifacts",
+   "tokens",
+   "combo",
+   "blink",
+   "thopters",
+   "affinity"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Urza, Chief Artificer",
+  "ci": "WUB",
+  "decks": 17562,
+  "pescado_por": [
+   15,
+   "artifacts"
+  ],
+  "principal": 15,
+  "secundario": [],
+  "planos_tags": [
+   [
+    15,
+    "artifacts",
+    2685
+   ],
+   [
+    3,
+    "aggro",
+    190
+   ],
+   [
+    34,
+    "combo",
+    114
+   ],
+   [
+    23,
+    "control",
+    84
+   ]
+  ],
+  "tags_top": [
+   "artifacts",
+   "tokens",
+   "affinity",
+   "constructs",
+   "aggro",
+   "historic"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Go-Shintai of Life's Origin",
+  "ci": "WUBRG",
+  "decks": 20779,
+  "pescado_por": [
+   15,
+   "enchantress"
+  ],
+  "principal": 15,
+  "secundario": [],
+  "planos_tags": [
+   [
+    15,
+    "enchantress",
+    2477
+   ],
+   [
+    30,
+    "pillow-fort",
+    177
+   ],
+   [
+    34,
+    "combo",
+    96
+   ],
+   [
+    23,
+    "control",
+    78
+   ]
+  ],
+  "tags_top": [
+   "enchantress",
+   "shrines",
+   "tokens",
+   "pillow-fort",
+   "legends",
+   "umori-companion"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Vivi Ornitier",
+  "ci": "UR",
+  "decks": 44520,
+  "pescado_por": [
+   16,
+   "spellslinger"
+  ],
+  "principal": 16,
+  "secundario": [
+   17
+  ],
+  "planos_tags": [
+   [
+    16,
+    "spellslinger",
+    2901
+   ],
+   [
+    17,
+    "storm",
+    1298
+   ],
+   [
+    10,
+    "burn",
+    1256
+   ],
+   [
+    34,
+    "combo",
+    1078
+   ]
+  ],
+  "tags_top": [
+   "spellslinger",
+   "storm",
+   "burn",
+   "combo",
+   "plus-1-plus-1-counters",
+   "control"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Fire Lord Azula",
+  "ci": "UBR",
+  "decks": 40821,
+  "pescado_por": [
+   16,
+   "spellslinger"
+  ],
+  "principal": 16,
+  "secundario": [
+   34
+  ],
+  "planos_tags": [
+   [
+    16,
+    "spellslinger",
+    2439
+   ],
+   [
+    34,
+    "combo",
+    797
+   ],
+   [
+    3,
+    "aggro",
+    682
+   ],
+   [
+    17,
+    "storm",
+    469
+   ]
+  ],
+  "tags_top": [
+   "spellslinger",
+   "combo",
+   "spell-copy",
+   "aggro",
+   "storm",
+   "burn"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Y'shtola, Night's Blessed",
+  "ci": "WUB",
+  "decks": 60352,
+  "pescado_por": [
+   16,
+   "spellslinger"
+  ],
+  "principal": 16,
+  "secundario": [
+   23
+  ],
+  "planos_tags": [
+   [
+    23,
+    "control",
+    3453
+   ],
+   [
+    16,
+    "spellslinger",
+    2283
+   ],
+   [
+    11,
+    "lifegain",
+    1327
+   ],
+   [
+    10,
+    "burn",
+    989
+   ]
+  ],
+  "tags_top": [
+   "control",
+   "spellslinger",
+   "lifegain",
+   "burn",
+   "lifedrain",
+   "combo"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Storm, Force of Nature",
+  "ci": "URG",
+  "decks": 14333,
+  "pescado_por": [
+   17,
+   "storm"
+  ],
+  "principal": 17,
+  "secundario": [
+   16
+  ],
+  "planos_tags": [
+   [
+    16,
+    "spellslinger",
+    1799
+   ],
+   [
+    17,
+    "storm",
+    1143
+   ],
+   [
+    34,
+    "combo",
+    253
+   ],
+   [
+    6,
+    "extra-combats",
+    200
+   ]
+  ],
+  "tags_top": [
+   "spellslinger",
+   "storm",
+   "spell-copy",
+   "combo",
+   "extra-combats",
+   "cantrips"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Prismari, the Inspiration",
+  "ci": "UR",
+  "decks": 11679,
+  "pescado_por": [
+   17,
+   "storm"
+  ],
+  "principal": 17,
+  "secundario": [
+   16
+  ],
+  "planos_tags": [
+   [
+    17,
+    "storm",
+    895
+   ],
+   [
+    16,
+    "spellslinger",
+    856
+   ],
+   [
+    34,
+    "combo",
+    171
+   ],
+   [
+    10,
+    "burn",
+    167
+   ]
+  ],
+  "tags_top": [
+   "storm",
+   "spellslinger",
+   "combo",
+   "burn",
+   "spell-copy",
+   "control"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Zada, Hedron Grinder",
+  "ci": "R",
+  "decks": 16433,
+  "pescado_por": [
+   17,
+   "storm"
+  ],
+  "principal": 17,
+  "secundario": [
+   16
+  ],
+  "planos_tags": [
+   [
+    16,
+    "spellslinger",
+    913
+   ],
+   [
+    3,
+    "aggro",
+    671
+   ],
+   [
+    17,
+    "storm",
+    560
+   ],
+   [
+    34,
+    "combo",
+    279
+   ]
+  ],
+  "tags_top": [
+   "spellslinger",
+   "tokens",
+   "aggro",
+   "goblins",
+   "storm",
+   "combo"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Tivit, Seller of Secrets",
+  "ci": "WUB",
+  "decks": 13077,
+  "pescado_por": [
+   18,
+   "extra-turns"
+  ],
+  "principal": 18,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    15,
+    "artifacts",
+    522
+   ],
+   [
+    23,
+    "control",
+    500
+   ],
+   [
+    34,
+    "combo",
+    491
+   ],
+   [
+    18,
+    "extra-turns",
+    398
+   ]
+  ],
+  "tags_top": [
+   "artifacts",
+   "control",
+   "combo",
+   "extra-turns",
+   "blink",
+   "tokens"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Narset, Enlightened Master",
+  "ci": "WUR",
+  "decks": 6239,
+  "pescado_por": [
+   18,
+   "extra-turns"
+  ],
+  "principal": 18,
+  "secundario": [
+   6
+  ],
+  "planos_tags": [
+   [
+    18,
+    "extra-turns",
+    386
+   ],
+   [
+    6,
+    "extra-combats",
+    195
+   ],
+   [
+    16,
+    "spellslinger",
+    159
+   ],
+   [
+    1,
+    "voltron",
+    127
+   ]
+  ],
+  "tags_top": [
+   "extra-turns",
+   "extra-combats",
+   "spellslinger",
+   "voltron",
+   "planeswalkers",
+   "combo"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Obeka, Brute Chronologist",
+  "ci": "UBR",
+  "decks": 9013,
+  "pescado_por": [
+   18,
+   "extra-turns"
+  ],
+  "principal": 18,
+  "secundario": [
+   27
+  ],
+  "planos_tags": [
+   [
+    27,
+    "clones",
+    485
+   ],
+   [
+    18,
+    "extra-turns",
+    335
+   ],
+   [
+    20,
+    "reanimator",
+    233
+   ],
+   [
+    34,
+    "combo",
+    131
+   ]
+  ],
+  "tags_top": [
+   "clones",
+   "extra-turns",
+   "reanimator",
+   "tokens",
+   "combo",
+   "theft"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Zaxara, the Exemplary",
+  "ci": "UBG",
+  "decks": 20511,
+  "pescado_por": [
+   19,
+   "x-spells"
+  ],
+  "principal": 19,
+  "secundario": [],
+  "planos_tags": [
+   [
+    19,
+    "x-spells",
+    2431
+   ],
+   [
+    34,
+    "combo",
+    260
+   ],
+   [
+    16,
+    "spellslinger",
+    83
+   ],
+   [
+    3,
+    "aggro",
+    69
+   ]
+  ],
+  "tags_top": [
+   "x-spells",
+   "plus-1-plus-1-counters",
+   "hydras",
+   "tokens",
+   "ramp",
+   "combo"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Magus Lucea Kane",
+  "ci": "URG",
+  "decks": 15364,
+  "pescado_por": [
+   19,
+   "x-spells"
+  ],
+  "principal": 19,
+  "secundario": [],
+  "planos_tags": [
+   [
+    19,
+    "x-spells",
+    1913
+   ],
+   [
+    27,
+    "clones",
+    135
+   ],
+   [
+    3,
+    "aggro",
+    132
+   ],
+   [
+    34,
+    "combo",
+    122
+   ]
+  ],
+  "tags_top": [
+   "x-spells",
+   "plus-1-plus-1-counters",
+   "tyranids",
+   "ramp",
+   "spell-copy",
+   "hydras"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Zimone, Infinite Analyst",
+  "ci": "UG",
+  "decks": 12561,
+  "pescado_por": [
+   19,
+   "x-spells"
+  ],
+  "principal": 19,
+  "secundario": [],
+  "planos_tags": [
+   [
+    19,
+    "x-spells",
+    1101
+   ],
+   [
+    16,
+    "spellslinger",
+    263
+   ],
+   [
+    23,
+    "control",
+    62
+   ],
+   [
+    34,
+    "combo",
+    41
+   ]
+  ],
+  "tags_top": [
+   "plus-1-plus-1-counters",
+   "x-spells",
+   "spellslinger",
+   "ramp",
+   "big-mana",
+   "hydras"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Terra, Herald of Hope",
+  "ci": "WBR",
+  "decks": 21830,
+  "pescado_por": [
+   20,
+   "reanimator"
+  ],
+  "principal": 20,
+  "secundario": [
+   21
+  ],
+  "planos_tags": [
+   [
+    20,
+    "reanimator",
+    2420
+   ],
+   [
+    21,
+    "self-mill",
+    743
+   ],
+   [
+    3,
+    "aggro",
+    395
+   ],
+   [
+    22,
+    "mill",
+    395
+   ]
+  ],
+  "tags_top": [
+   "reanimator",
+   "graveyard",
+   "self-mill",
+   "aggro",
+   "mill",
+   "aristocrats"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Muldrotha, the Gravetide",
+  "ci": "UBG",
+  "decks": 25716,
+  "pescado_por": [
+   20,
+   "reanimator"
+  ],
+  "principal": 20,
+  "secundario": [
+   22
+  ],
+  "planos_tags": [
+   [
+    20,
+    "reanimator",
+    1545
+   ],
+   [
+    22,
+    "mill",
+    1026
+   ],
+   [
+    21,
+    "self-mill",
+    839
+   ],
+   [
+    34,
+    "combo",
+    485
+   ]
+  ],
+  "tags_top": [
+   "reanimator",
+   "graveyard",
+   "mill",
+   "self-mill",
+   "sacrifice",
+   "combo"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Hashaton, Scarab's Fist",
+  "ci": "WUB",
+  "decks": 29134,
+  "pescado_por": [
+   20,
+   "reanimator"
+  ],
+  "principal": 20,
+  "secundario": [
+   28
+  ],
+  "planos_tags": [
+   [
+    28,
+    "discard",
+    2005
+   ],
+   [
+    20,
+    "reanimator",
+    1520
+   ],
+   [
+    34,
+    "combo",
+    427
+   ],
+   [
+    23,
+    "control",
+    358
+   ]
+  ],
+  "tags_top": [
+   "discard",
+   "reanimator",
+   "tokens",
+   "zombies",
+   "combo",
+   "wheels"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "The Gitrog Monster",
+  "ci": "BG",
+  "decks": 10359,
+  "pescado_por": [
+   21,
+   "dredge"
+  ],
+  "principal": 21,
+  "secundario": [
+   13
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    950
+   ],
+   [
+    21,
+    "dredge",
+    489
+   ],
+   [
+    34,
+    "combo",
+    412
+   ],
+   [
+    12,
+    "landfall",
+    217
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "dredge",
+   "combo",
+   "graveyard",
+   "landfall",
+   "ramp"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Sidisi, Brood Tyrant",
+  "ci": "UBG",
+  "decks": 7872,
+  "pescado_por": [
+   21,
+   "self-mill"
+  ],
+  "principal": 21,
+  "secundario": [
+   22
+  ],
+  "planos_tags": [
+   [
+    22,
+    "mill",
+    696
+   ],
+   [
+    20,
+    "reanimator",
+    569
+   ],
+   [
+    21,
+    "self-mill",
+    460
+   ],
+   [
+    34,
+    "combo",
+    142
+   ]
+  ],
+  "tags_top": [
+   "mill",
+   "reanimator",
+   "self-mill",
+   "graveyard",
+   "dredge",
+   "tokens"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Quintorius, History Chaser",
+  "ci": "WR",
+  "decks": 11216,
+  "pescado_por": [
+   21,
+   "self-mill"
+  ],
+  "principal": 21,
+  "secundario": [
+   20
+  ],
+  "planos_tags": [
+   [
+    20,
+    "reanimator",
+    772
+   ],
+   [
+    21,
+    "self-mill",
+    409
+   ],
+   [
+    28,
+    "discard",
+    332
+   ],
+   [
+    22,
+    "mill",
+    127
+   ]
+  ],
+  "tags_top": [
+   "reanimator",
+   "tokens",
+   "graveyard",
+   "self-mill",
+   "discard",
+   "spirits"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "The Wise Mothman",
+  "ci": "UBG",
+  "decks": 34938,
+  "pescado_por": [
+   22,
+   "mill"
+  ],
+  "principal": 22,
+  "secundario": [],
+  "planos_tags": [
+   [
+    22,
+    "mill",
+    3710
+   ],
+   [
+    20,
+    "reanimator",
+    487
+   ],
+   [
+    21,
+    "self-mill",
+    478
+   ],
+   [
+    33,
+    "proliferate",
+    407
+   ]
+  ],
+  "tags_top": [
+   "mill",
+   "plus-1-plus-1-counters",
+   "rad-counters",
+   "mutants",
+   "reanimator",
+   "self-mill"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Captain N'ghathrod",
+  "ci": "UB",
+  "decks": 19023,
+  "pescado_por": [
+   22,
+   "mill"
+  ],
+  "principal": 22,
+  "secundario": [],
+  "planos_tags": [
+   [
+    22,
+    "mill",
+    2321
+   ],
+   [
+    27,
+    "theft",
+    574
+   ],
+   [
+    20,
+    "reanimator",
+    356
+   ],
+   [
+    23,
+    "control",
+    114
+   ]
+  ],
+  "tags_top": [
+   "mill",
+   "horrors",
+   "theft",
+   "reanimator",
+   "graveyard",
+   "control"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Hope Estheim",
+  "ci": "WU",
+  "decks": 19723,
+  "pescado_por": [
+   22,
+   "mill"
+  ],
+  "principal": 22,
+  "secundario": [
+   11
+  ],
+  "planos_tags": [
+   [
+    22,
+    "mill",
+    1804
+   ],
+   [
+    11,
+    "lifegain",
+    1785
+   ],
+   [
+    23,
+    "control",
+    160
+   ],
+   [
+    34,
+    "combo",
+    107
+   ]
+  ],
+  "tags_top": [
+   "mill",
+   "lifegain",
+   "control",
+   "combo",
+   "plus-1-plus-1-counters",
+   "pillow-fort"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Alela, Cunning Conqueror",
+  "ci": "UB",
+  "decks": 18276,
+  "pescado_por": [
+   23,
+   "control"
+  ],
+  "principal": 23,
+  "secundario": [
+   29
+  ],
+  "planos_tags": [
+   [
+    23,
+    "control",
+    1069
+   ],
+   [
+    29,
+    "forced-combat",
+    527
+   ],
+   [
+    16,
+    "spellslinger",
+    329
+   ],
+   [
+    7,
+    "tempo",
+    200
+   ]
+  ],
+  "tags_top": [
+   "faeries",
+   "control",
+   "flying",
+   "tokens",
+   "forced-combat",
+   "flash"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Hylda of the Icy Crown",
+  "ci": "WU",
+  "decks": 12759,
+  "pescado_por": [
+   23,
+   "control"
+  ],
+  "principal": 23,
+  "secundario": [],
+  "planos_tags": [
+   [
+    23,
+    "control",
+    879
+   ],
+   [
+    25,
+    "stax",
+    147
+   ],
+   [
+    30,
+    "pillow-fort",
+    62
+   ],
+   [
+    34,
+    "combo",
+    57
+   ]
+  ],
+  "tags_top": [
+   "control",
+   "tap-untap",
+   "tokens",
+   "snow",
+   "plus-1-plus-1-counters",
+   "stax"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Kefka, Court Mage",
+  "ci": "UBR",
+  "decks": 33702,
+  "pescado_por": [
+   23,
+   "control"
+  ],
+  "principal": 23,
+  "secundario": [
+   28
+  ],
+  "planos_tags": [
+   [
+    28,
+    "discard",
+    2094
+   ],
+   [
+    34,
+    "combo",
+    933
+   ],
+   [
+    23,
+    "control",
+    721
+   ],
+   [
+    20,
+    "reanimator",
+    584
+   ]
+  ],
+  "tags_top": [
+   "discard",
+   "combo",
+   "control",
+   "reanimator",
+   "blink",
+   "midrange"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Grand Arbiter Augustin IV",
+  "ci": "WU",
+  "decks": 14616,
+  "pescado_por": [
+   25,
+   "stax"
+  ],
+  "principal": 25,
+  "secundario": [
+   23
+  ],
+  "planos_tags": [
+   [
+    25,
+    "stax",
+    1107
+   ],
+   [
+    23,
+    "control",
+    532
+   ],
+   [
+    30,
+    "pillow-fort",
+    146
+   ],
+   [
+    34,
+    "combo",
+    112
+   ]
+  ],
+  "tags_top": [
+   "stax",
+   "control",
+   "hatebears",
+   "pillow-fort",
+   "combo",
+   "prison"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Zur the Enchanter",
+  "ci": "WUB",
+  "decks": 17718,
+  "pescado_por": [
+   25,
+   "stax"
+  ],
+  "principal": 25,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    15,
+    "enchantress",
+    1194
+   ],
+   [
+    23,
+    "control",
+    576
+   ],
+   [
+    25,
+    "stax",
+    558
+   ],
+   [
+    1,
+    "auras",
+    546
+   ]
+  ],
+  "tags_top": [
+   "enchantress",
+   "control",
+   "stax",
+   "auras",
+   "combo",
+   "voltron"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Urza, Lord High Artificer",
+  "ci": "U",
+  "decks": 21149,
+  "pescado_por": [
+   25,
+   "stax"
+  ],
+  "principal": 25,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    15,
+    "artifacts",
+    2229
+   ],
+   [
+    34,
+    "combo",
+    894
+   ],
+   [
+    23,
+    "control",
+    498
+   ],
+   [
+    25,
+    "stax",
+    432
+   ]
+  ],
+  "tags_top": [
+   "artifacts",
+   "combo",
+   "control",
+   "stax",
+   "tokens",
+   "midrange"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Lord Windgrace",
+  "ci": "BRG",
+  "decks": 10165,
+  "pescado_por": [
+   26,
+   "land-destruction"
+  ],
+  "principal": 26,
+  "secundario": [
+   13
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    1442
+   ],
+   [
+    12,
+    "landfall",
+    436
+   ],
+   [
+    26,
+    "land-destruction",
+    317
+   ],
+   [
+    34,
+    "combo",
+    124
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "landfall",
+   "ramp",
+   "land-destruction",
+   "graveyard",
+   "tokens"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Zo-Zu the Punisher",
+  "ci": "R",
+  "decks": 2828,
+  "pescado_por": [
+   26,
+   "land-destruction"
+  ],
+  "principal": 26,
+  "secundario": [
+   10
+  ],
+  "planos_tags": [
+   [
+    26,
+    "land-destruction",
+    235
+   ],
+   [
+    10,
+    "burn",
+    170
+   ],
+   [
+    25,
+    "stax",
+    61
+   ],
+   [
+    13,
+    "lands-matter",
+    21
+   ]
+  ],
+  "tags_top": [
+   "land-destruction",
+   "burn",
+   "group-slug",
+   "stax",
+   "lands-matter",
+   "control"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Numot, the Devastator",
+  "ci": "WUR",
+  "decks": 1776,
+  "pescado_por": [
+   26,
+   "land-destruction"
+  ],
+  "principal": 26,
+  "secundario": [],
+  "planos_tags": [
+   [
+    26,
+    "land-destruction",
+    217
+   ],
+   [
+    25,
+    "stax",
+    46
+   ],
+   [
+    23,
+    "control",
+    37
+   ],
+   [
+    16,
+    "spellslinger",
+    17
+   ]
+  ],
+  "tags_top": [
+   "land-destruction",
+   "stax",
+   "control",
+   "spellslinger",
+   "artifacts",
+   "dragons"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Miirym, Sentinel Wyrm",
+  "ci": "URG",
+  "decks": 28966,
+  "pescado_por": [
+   27,
+   "clones"
+  ],
+  "principal": 27,
+  "secundario": [],
+  "planos_tags": [
+   [
+    27,
+    "clones",
+    1234
+   ],
+   [
+    3,
+    "aggro",
+    315
+   ],
+   [
+    34,
+    "combo",
+    260
+   ],
+   [
+    14,
+    "blink",
+    177
+   ]
+  ],
+  "tags_top": [
+   "dragons",
+   "clones",
+   "tokens",
+   "flying",
+   "ramp",
+   "aggro"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Maralen, Fae Ascendant",
+  "ci": "UBG",
+  "decks": 24365,
+  "pescado_por": [
+   27,
+   "theft"
+  ],
+  "principal": 27,
+  "secundario": [
+   34
+  ],
+  "planos_tags": [
+   [
+    27,
+    "theft",
+    999
+   ],
+   [
+    34,
+    "combo",
+    312
+   ],
+   [
+    23,
+    "control",
+    226
+   ],
+   [
+    22,
+    "mill",
+    153
+   ]
+  ],
+  "tags_top": [
+   "elves",
+   "faeries",
+   "theft",
+   "tokens",
+   "combo",
+   "flying"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Orvar, the All-Form",
+  "ci": "U",
+  "decks": 11836,
+  "pescado_por": [
+   27,
+   "clones"
+  ],
+  "principal": 27,
+  "secundario": [
+   34
+  ],
+  "planos_tags": [
+   [
+    27,
+    "clones",
+    854
+   ],
+   [
+    34,
+    "combo",
+    423
+   ],
+   [
+    16,
+    "spellslinger",
+    365
+   ],
+   [
+    23,
+    "control",
+    250
+   ]
+  ],
+  "tags_top": [
+   "clones",
+   "combo",
+   "spellslinger",
+   "control",
+   "cantrips",
+   "tokens"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Nekusar, the Mindrazer",
+  "ci": "UBR",
+  "decks": 33005,
+  "pescado_por": [
+   28,
+   "wheels"
+  ],
+  "principal": 28,
+  "secundario": [
+   10
+  ],
+  "planos_tags": [
+   [
+    28,
+    "wheels",
+    3593
+   ],
+   [
+    10,
+    "group-slug",
+    1205
+   ],
+   [
+    31,
+    "group-hug",
+    383
+   ],
+   [
+    34,
+    "combo",
+    295
+   ]
+  ],
+  "tags_top": [
+   "wheels",
+   "group-slug",
+   "burn",
+   "card-draw",
+   "discard",
+   "group-hug"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Tinybones, Bauble Burglar",
+  "ci": "B",
+  "decks": 11718,
+  "pescado_por": [
+   28,
+   "discard"
+  ],
+  "principal": 28,
+  "secundario": [],
+  "planos_tags": [
+   [
+    28,
+    "discard",
+    1686
+   ],
+   [
+    27,
+    "theft",
+    453
+   ],
+   [
+    23,
+    "control",
+    135
+   ],
+   [
+    10,
+    "group-slug",
+    83
+   ]
+  ],
+  "tags_top": [
+   "discard",
+   "theft",
+   "control",
+   "group-slug",
+   "reanimator",
+   "stax"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Xyris, the Writhing Storm",
+  "ci": "URG",
+  "decks": 19991,
+  "pescado_por": [
+   28,
+   "wheels"
+  ],
+  "principal": 28,
+  "secundario": [
+   31
+  ],
+  "planos_tags": [
+   [
+    28,
+    "wheels",
+    1406
+   ],
+   [
+    31,
+    "group-hug",
+    655
+   ],
+   [
+    10,
+    "burn",
+    280
+   ],
+   [
+    1,
+    "voltron",
+    229
+   ]
+  ],
+  "tags_top": [
+   "wheels",
+   "tokens",
+   "group-hug",
+   "card-draw",
+   "snakes",
+   "burn"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Queen Marchesa",
+  "ci": "WBR",
+  "decks": 21451,
+  "pescado_por": [
+   29,
+   "monarch"
+  ],
+  "principal": 29,
+  "secundario": [
+   30
+  ],
+  "planos_tags": [
+   [
+    29,
+    "monarch",
+    1823
+   ],
+   [
+    30,
+    "pillow-fort",
+    683
+   ],
+   [
+    23,
+    "control",
+    544
+   ],
+   [
+    10,
+    "group-slug",
+    147
+   ]
+  ],
+  "tags_top": [
+   "monarch",
+   "aikido",
+   "forced-combat",
+   "pillow-fort",
+   "control",
+   "politics"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Killian, Decisive Mentor",
+  "ci": "WB",
+  "decks": 11773,
+  "pescado_por": [
+   29,
+   "forced-combat"
+  ],
+  "principal": 29,
+  "secundario": [
+   1
+  ],
+  "planos_tags": [
+   [
+    1,
+    "auras",
+    1323
+   ],
+   [
+    15,
+    "enchantress",
+    1122
+   ],
+   [
+    29,
+    "forced-combat",
+    837
+   ],
+   [
+    23,
+    "control",
+    212
+   ]
+  ],
+  "tags_top": [
+   "auras",
+   "enchantress",
+   "forced-combat",
+   "control",
+   "politics",
+   "voltron"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Nelly Borca, Impulsive Accuser",
+  "ci": "WR",
+  "decks": 6415,
+  "pescado_por": [
+   29,
+   "forced-combat"
+  ],
+  "principal": 29,
+  "secundario": [],
+  "planos_tags": [
+   [
+    29,
+    "forced-combat",
+    832
+   ],
+   [
+    30,
+    "pillow-fort",
+    160
+   ],
+   [
+    23,
+    "control",
+    115
+   ],
+   [
+    31,
+    "group-hug",
+    72
+   ]
+  ],
+  "tags_top": [
+   "forced-combat",
+   "pillow-fort",
+   "aikido",
+   "control",
+   "politics",
+   "group-hug"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Breena, the Demagogue",
+  "ci": "WB",
+  "decks": 8121,
+  "pescado_por": [
+   30,
+   "pillow-fort"
+  ],
+  "principal": 30,
+  "secundario": [
+   29
+  ],
+  "planos_tags": [
+   [
+    30,
+    "pillow-fort",
+    288
+   ],
+   [
+    29,
+    "politics",
+    260
+   ],
+   [
+    31,
+    "group-hug",
+    215
+   ],
+   [
+    3,
+    "aggro",
+    165
+   ]
+  ],
+  "tags_top": [
+   "plus-1-plus-1-counters",
+   "pillow-fort",
+   "politics",
+   "group-hug",
+   "aggro",
+   "flying"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Pramikon, Sky Rampart",
+  "ci": "WUR",
+  "decks": 7668,
+  "pescado_por": [
+   30,
+   "pillow-fort"
+  ],
+  "principal": 30,
+  "secundario": [
+   23
+  ],
+  "planos_tags": [
+   [
+    30,
+    "pillow-fort",
+    260
+   ],
+   [
+    23,
+    "control",
+    186
+   ],
+   [
+    33,
+    "planeswalkers",
+    153
+   ],
+   [
+    29,
+    "forced-combat",
+    138
+   ]
+  ],
+  "tags_top": [
+   "pillow-fort",
+   "defenders",
+   "control",
+   "toughness-matters",
+   "planeswalkers",
+   "forced-combat"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Kynaios and Tiro of Meletis",
+  "ci": "WURG",
+  "decks": 17485,
+  "pescado_por": [
+   30,
+   "pillow-fort"
+  ],
+  "principal": 30,
+  "secundario": [
+   31
+  ],
+  "planos_tags": [
+   [
+    31,
+    "group-hug",
+    1639
+   ],
+   [
+    13,
+    "lands-matter",
+    323
+   ],
+   [
+    30,
+    "pillow-fort",
+    239
+   ],
+   [
+    28,
+    "wheels",
+    227
+   ]
+  ],
+  "tags_top": [
+   "group-hug",
+   "lands-matter",
+   "card-draw",
+   "pillow-fort",
+   "wheels",
+   "ramp"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Ms. Bumbleflower",
+  "ci": "WUG",
+  "decks": 38186,
+  "pescado_por": [
+   31,
+   "group-hug"
+  ],
+  "principal": 31,
+  "secundario": [],
+  "planos_tags": [
+   [
+    31,
+    "group-hug",
+    2973
+   ],
+   [
+    23,
+    "control",
+    685
+   ],
+   [
+    28,
+    "wheels",
+    560
+   ],
+   [
+    34,
+    "combo",
+    338
+   ]
+  ],
+  "tags_top": [
+   "plus-1-plus-1-counters",
+   "group-hug",
+   "card-draw",
+   "control",
+   "wheels",
+   "combo"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Gluntch, the Bestower",
+  "ci": "WG",
+  "decks": 8070,
+  "pescado_por": [
+   31,
+   "group-hug"
+  ],
+  "principal": 31,
+  "secundario": [],
+  "planos_tags": [
+   [
+    31,
+    "group-hug",
+    800
+   ],
+   [
+    30,
+    "pillow-fort",
+    124
+   ],
+   [
+    11,
+    "lifegain",
+    82
+   ],
+   [
+    29,
+    "politics",
+    54
+   ]
+  ],
+  "tags_top": [
+   "group-hug",
+   "plus-1-plus-1-counters",
+   "tokens",
+   "pillow-fort",
+   "lifegain",
+   "ramp"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Kwain, Itinerant Meddler",
+  "ci": "WU",
+  "decks": 7275,
+  "pescado_por": [
+   31,
+   "group-hug"
+  ],
+  "principal": 31,
+  "secundario": [
+   28
+  ],
+  "planos_tags": [
+   [
+    31,
+    "group-hug",
+    648
+   ],
+   [
+    28,
+    "wheels",
+    307
+   ],
+   [
+    23,
+    "control",
+    229
+   ],
+   [
+    30,
+    "pillow-fort",
+    194
+   ]
+  ],
+  "tags_top": [
+   "group-hug",
+   "wheels",
+   "card-draw",
+   "control",
+   "pillow-fort",
+   "combo"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Mr. House, President and CEO",
+  "ci": "WBR",
+  "decks": 23456,
+  "pescado_por": [
+   32,
+   "die-roll"
+  ],
+  "principal": 32,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    15,
+    "artifacts",
+    946
+   ],
+   [
+    32,
+    "die-roll",
+    889
+   ],
+   [
+    10,
+    "burn",
+    79
+   ],
+   [
+    34,
+    "combo",
+    62
+   ]
+  ],
+  "tags_top": [
+   "treasure",
+   "tokens",
+   "artifacts",
+   "die-roll",
+   "attractions",
+   "chaos"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Okaun, Eye of Chaos // Zndrsplt, Eye of Wisdom",
+  "ci": "UR",
+  "decks": 10283,
+  "pescado_por": [
+   32,
+   "chaos"
+  ],
+  "principal": 32,
+  "secundario": [],
+  "planos_tags": [
+   [
+    32,
+    "chaos",
+    853
+   ],
+   [
+    1,
+    "voltron",
+    146
+   ],
+   [
+    34,
+    "combo",
+    109
+   ],
+   [
+    3,
+    "aggro",
+    63
+   ]
+  ],
+  "tags_top": [
+   "chaos",
+   "coin-flip",
+   "voltron",
+   "combo",
+   "card-draw",
+   "aggro"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Deadpool, Trading Card",
+  "ci": "BR",
+  "decks": 18052,
+  "pescado_por": [
+   32,
+   "chaos"
+  ],
+  "principal": 32,
+  "secundario": [
+   27
+  ],
+  "planos_tags": [
+   [
+    27,
+    "clones",
+    741
+   ],
+   [
+    32,
+    "chaos",
+    413
+   ],
+   [
+    10,
+    "group-slug",
+    222
+   ],
+   [
+    20,
+    "reanimator",
+    203
+   ]
+  ],
+  "tags_top": [
+   "clones",
+   "chaos",
+   "tokens",
+   "group-slug",
+   "reanimator",
+   "burn"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Commodore Guff",
+  "ci": "WUR",
+  "decks": 7816,
+  "pescado_por": [
+   33,
+   "planeswalkers"
+  ],
+  "principal": 33,
+  "secundario": [],
+  "planos_tags": [
+   [
+    33,
+    "planeswalkers",
+    1189
+   ],
+   [
+    23,
+    "control",
+    160
+   ],
+   [
+    10,
+    "burn",
+    77
+   ],
+   [
+    30,
+    "pillow-fort",
+    72
+   ]
+  ],
+  "tags_top": [
+   "planeswalkers",
+   "control",
+   "proliferate",
+   "burn",
+   "pillow-fort",
+   "tokens"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Esika, God of the Tree",
+  "ci": "WUBRG",
+  "decks": 26929,
+  "pescado_por": [
+   33,
+   "planeswalkers"
+  ],
+  "principal": 33,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    33,
+    "planeswalkers",
+    858
+   ],
+   [
+    15,
+    "enchantress",
+    279
+   ],
+   [
+    34,
+    "combo",
+    230
+   ],
+   [
+    23,
+    "control",
+    168
+   ]
+  ],
+  "tags_top": [
+   "planeswalkers",
+   "legends",
+   "gods",
+   "historic",
+   "enchantress",
+   "combo"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Nicol Bolas, the Ravager",
+  "ci": "UBR",
+  "decks": 10113,
+  "pescado_por": [
+   33,
+   "planeswalkers"
+  ],
+  "principal": 33,
+  "secundario": [
+   23
+  ],
+  "planos_tags": [
+   [
+    33,
+    "planeswalkers",
+    655
+   ],
+   [
+    23,
+    "control",
+    366
+   ],
+   [
+    28,
+    "discard",
+    318
+   ],
+   [
+    20,
+    "reanimator",
+    137
+   ]
+  ],
+  "tags_top": [
+   "planeswalkers",
+   "control",
+   "discard",
+   "reanimator",
+   "combo",
+   "theft"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "K'rrik, Son of Yawgmoth",
+  "ci": "B",
+  "decks": 20689,
+  "pescado_por": [
+   34,
+   "combo"
+  ],
+  "principal": 34,
+  "secundario": [
+   11
+  ],
+  "planos_tags": [
+   [
+    34,
+    "combo",
+    1210
+   ],
+   [
+    11,
+    "lifegain",
+    1099
+   ],
+   [
+    20,
+    "reanimator",
+    608
+   ],
+   [
+    17,
+    "storm",
+    231
+   ]
+  ],
+  "tags_top": [
+   "combo",
+   "lifegain",
+   "self-damage",
+   "reanimator",
+   "lifedrain",
+   "devotion"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Kinnan, Bonder Prodigy",
+  "ci": "UG",
+  "decks": 22906,
+  "pescado_por": [
+   34,
+   "combo"
+  ],
+  "principal": 34,
+  "secundario": [],
+  "planos_tags": [
+   [
+    34,
+    "combo",
+    962
+   ],
+   [
+    15,
+    "artifacts",
+    187
+   ],
+   [
+    23,
+    "control",
+    178
+   ],
+   [
+    27,
+    "clones",
+    155
+   ]
+  ],
+  "tags_top": [
+   "combo",
+   "ramp",
+   "midrange",
+   "artifacts",
+   "control",
+   "clones"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Chatterfang, Squirrel General",
+  "ci": "BG",
+  "decks": 28419,
+  "pescado_por": [
+   34,
+   "combo"
+  ],
+  "principal": 34,
+  "secundario": [
+   9
+  ],
+  "planos_tags": [
+   [
+    9,
+    "aristocrats",
+    1317
+   ],
+   [
+    34,
+    "combo",
+    867
+   ],
+   [
+    3,
+    "aggro",
+    171
+   ]
+  ],
+  "tags_top": [
+   "tokens",
+   "aristocrats",
+   "squirrels",
+   "combo",
+   "sacrifice",
+   "plus-1-plus-1-counters"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Sisay, Weatherlight Captain",
+  "ci": "WUBRG",
+  "decks": 20574,
+  "pescado_por": [
+   36,
+   "toolbox"
+  ],
+  "principal": 36,
+  "secundario": [
+   34
+  ],
+  "planos_tags": [
+   [
+    34,
+    "combo",
+    833
+   ],
+   [
+    36,
+    "toolbox",
+    488
+   ],
+   [
+    33,
+    "planeswalkers",
+    390
+   ],
+   [
+    15,
+    "enchantress",
+    148
+   ]
+  ],
+  "tags_top": [
+   "legends",
+   "combo",
+   "historic",
+   "toolbox",
+   "planeswalkers",
+   "midrange"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Thrasios, Triton Hero // Tymna the Weaver",
+  "ci": "WUBG",
+  "decks": 11552,
+  "pescado_por": [
+   36,
+   "birthing-pod"
+  ],
+  "principal": 36,
+  "secundario": [
+   34
+  ],
+  "planos_tags": [
+   [
+    34,
+    "combo",
+    637
+   ],
+   [
+    36,
+    "birthing-pod",
+    427
+   ],
+   [
+    23,
+    "control",
+    151
+   ],
+   [
+    20,
+    "reanimator",
+    48
+   ]
+  ],
+  "tags_top": [
+   "combo",
+   "midrange",
+   "birthing-pod",
+   "good-stuff",
+   "control",
+   "ad-nauseam"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Henzie \"Toolbox\" Torre",
+  "ci": "BRG",
+  "decks": 19005,
+  "pescado_por": [
+   36,
+   "toolbox"
+  ],
+  "principal": 36,
+  "secundario": [
+   20
+  ],
+  "planos_tags": [
+   [
+    20,
+    "reanimator",
+    1014
+   ],
+   [
+    3,
+    "aggro",
+    633
+   ],
+   [
+    36,
+    "toolbox",
+    414
+   ],
+   [
+    9,
+    "aristocrats",
+    381
+   ]
+  ],
+  "tags_top": [
+   "reanimator",
+   "aggro",
+   "umori-companion",
+   "toolbox",
+   "aristocrats",
+   "birthing-pod"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Child of Alara",
+  "ci": "WUBRG",
+  "decks": 11379,
+  "pescado_por": [
+   24,
+   "manual"
+  ],
+  "principal": 24,
+  "secundario": [
+   13
+  ],
+  "planos_tags": [
+   [
+    13,
+    "lands-matter",
+    461
+   ],
+   [
+    23,
+    "control",
+    109
+   ],
+   [
+    26,
+    "land-destruction",
+    60
+   ],
+   [
+    32,
+    "chaos",
+    45
+   ]
+  ],
+  "tags_top": [
+   "lands-matter",
+   "guildgates",
+   "ramp",
+   "control",
+   "gods",
+   "land-destruction"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Avacyn, Angel of Hope",
+  "ci": "W",
+  "decks": 4403,
+  "pescado_por": [
+   24,
+   "manual"
+  ],
+  "principal": 24,
+  "secundario": [
+   26
+  ],
+  "planos_tags": [
+   [
+    26,
+    "land-destruction",
+    113
+   ],
+   [
+    11,
+    "lifegain",
+    102
+   ],
+   [
+    25,
+    "stax",
+    69
+   ],
+   [
+    23,
+    "control",
+    60
+   ]
+  ],
+  "tags_top": [
+   "angels",
+   "land-destruction",
+   "flying",
+   "lifegain",
+   "stax",
+   "control"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Purphoros, God of the Forge",
+  "ci": "R",
+  "decks": 4903,
+  "pescado_por": [
+   10,
+   "manual"
+  ],
+  "principal": 10,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    10,
+    "burn",
+    418
+   ],
+   [
+    3,
+    "aggro",
+    168
+   ],
+   [
+    14,
+    "etb",
+    56
+   ],
+   [
+    34,
+    "combo",
+    52
+   ]
+  ],
+  "tags_top": [
+   "burn",
+   "tokens",
+   "goblins",
+   "aggro",
+   "group-slug",
+   "etb"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Talrand, Sky Summoner",
+  "ci": "U",
+  "decks": 7093,
+  "pescado_por": [
+   16,
+   "manual"
+  ],
+  "principal": 16,
+  "secundario": [
+   23
+  ],
+  "planos_tags": [
+   [
+    16,
+    "spellslinger",
+    589
+   ],
+   [
+    23,
+    "control",
+    278
+   ],
+   [
+    34,
+    "combo",
+    52
+   ],
+   [
+    7,
+    "tempo",
+    46
+   ]
+  ],
+  "tags_top": [
+   "spellslinger",
+   "tokens",
+   "control",
+   "flying",
+   "counterspells",
+   "cantrips"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Jodah, the Unifier",
+  "ci": "WUBRG",
+  "decks": 34783,
+  "pescado_por": [
+   8,
+   "manual"
+  ],
+  "principal": 8,
+  "secundario": [
+   3
+  ],
+  "planos_tags": [
+   [
+    8,
+    "cascade",
+    857
+   ],
+   [
+    3,
+    "aggro",
+    284
+   ],
+   [
+    33,
+    "planeswalkers",
+    149
+   ],
+   [
+    34,
+    "combo",
+    144
+   ]
+  ],
+  "tags_top": [
+   "legends",
+   "historic",
+   "cascade",
+   "aggro",
+   "plus-1-plus-1-counters",
+   "good-stuff"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Phenax, God of Deception",
+  "ci": "UB",
+  "decks": 9335,
+  "pescado_por": [
+   22,
+   "manual"
+  ],
+  "principal": 22,
+  "secundario": [],
+  "planos_tags": [
+   [
+    22,
+    "mill",
+    1200
+   ],
+   [
+    34,
+    "combo",
+    154
+   ],
+   [
+    23,
+    "control",
+    119
+   ],
+   [
+    20,
+    "reanimator",
+    75
+   ]
+  ],
+  "tags_top": [
+   "mill",
+   "toughness-matters",
+   "combo",
+   "control",
+   "graveyard",
+   "defenders"
+  ],
+  "duvidoso": false
+ },
+ {
+  "nome": "Knuckles the Echidna",
+  "ci": "R",
+  "decks": 4364,
+  "pescado_por": [
+   35,
+   "manual"
+  ],
+  "principal": 35,
+  "secundario": [
+   15
+  ],
+  "planos_tags": [
+   [
+    15,
+    "artifacts",
+    241
+   ],
+   [
+    3,
+    "aggro",
+    102
+   ],
+   [
+    1,
+    "equipment",
+    57
+   ],
+   [
+    6,
+    "extra-combats",
+    31
+   ]
+  ],
+  "tags_top": [
+   "artifacts",
+   "treasure",
+   "tokens",
+   "aggro",
+   "equipment",
+   "voltron"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Ramses, Assassin Lord",
+  "ci": "UB",
+  "decks": 2195,
+  "pescado_por": [
+   35,
+   "manual"
+  ],
+  "principal": 35,
+  "secundario": [
+   5
+  ],
+  "planos_tags": [
+   [
+    5,
+    "infect",
+    48
+   ],
+   [
+    1,
+    "equipment",
+    25
+   ],
+   [
+    3,
+    "aggro",
+    23
+   ],
+   [
+    34,
+    "combo",
+    17
+   ]
+  ],
+  "tags_top": [
+   "assassins",
+   "infect",
+   "equipment",
+   "aggro",
+   "voltron",
+   "freerunning"
+  ],
+  "duvidoso": true
+ },
+ {
+  "nome": "Zenos yae Galvus // Shinryu, Transcendent Rival",
+  "ci": "B",
+  "decks": 4747,
+  "pescado_por": [
+   35,
+   "manual"
+  ],
+  "principal": 35,
+  "secundario": [
+   1
+  ],
+  "planos_tags": [
+   [
+    1,
+    "voltron",
+    141
+   ],
+   [
+    5,
+    "infect",
+    83
+   ],
+   [
+    3,
+    "aggro",
+    65
+   ],
+   [
+    23,
+    "control",
+    54
+   ]
+  ],
+  "tags_top": [
+   "voltron",
+   "infect",
+   "aggro",
+   "equipment",
+   "control",
+   "combo"
+  ],
+  "duvidoso": true
+ }
+]

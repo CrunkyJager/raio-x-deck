@@ -1,0 +1,2752 @@
+{
+ "cloud-ex-soldier/voltron": {
+  "sw": [
+   "Excalibur, Sword of Eden → Chandra, Dressed to Kill",
+   "Clever Concealment → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Forge Anew → Shackles of Treachery",
+   "Hammer of Nazahn → Rune of Speed",
+   "Red XIII, Proud Warrior → Demonic Ruckus",
+   "Vincent, Vengeful Atoner → Audacity",
+   "The Reaver Cleaver → Veteran Explorer",
+   "Professor Hojo → King Solomon's Frogs",
+   "Puresteel Paladin → Tablet of Compleation",
+   "Sram, Senior Edificer → Frog Tongue"
+  ],
+  "d": 0.6,
+  "se": 1.2162565518836888,
+  "base": 0.06,
+  "pares": [
+   [
+    "Excalibur, Sword of Eden",
+    "Chandra, Dressed to Kill",
+    0,
+    0
+   ],
+   [
+    "Clever Concealment",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    1.2,
+    0.9365468488014894
+   ],
+   [
+    "Forge Anew",
+    "Shackles of Treachery",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Hammer of Nazahn",
+    "Rune of Speed",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Red XIII, Proud Warrior",
+    "Demonic Ruckus",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Vincent, Vengeful Atoner",
+    "Audacity",
+    0.8,
+    0.6918959459340689
+   ],
+   [
+    "The Reaver Cleaver",
+    "Veteran Explorer",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Professor Hojo",
+    "King Solomon's Frogs",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Puresteel Paladin",
+    "Tablet of Compleation",
+    0.6,
+    0.6627820154470095
+   ],
+   [
+    "Sram, Senior Edificer",
+    "Frog Tongue",
+    -0.8,
+    0.48858980750727904
+   ]
+  ],
+  "erros": []
+ },
+ "baylen-the-haymaker/tokens": {
+  "sw": [
+   "Smothering Tithe → Chandra, Dressed to Kill",
+   "Lightning Greaves → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Drumbellower → King Solomon's Frogs",
+   "Enduring Vitality → Sticky Fingers",
+   "Belladonna Took → Ragavan, Nimble Pilferer",
+   "Artifact Mutation → Kabira Takedown // Kabira Plateau",
+   "Aura Mutation → Spurnmage Advocate",
+   "Seedborn Muse → Balefire Dragon",
+   "Dazzling Theater // Prop Room → Veteran Explorer",
+   "Season of the Burrow → Woodvine Elemental",
+   "Cultivate → Opal Palace",
+   "Burrowguard Mentor → Forbidden Orchard"
+  ],
+  "d": 0.2,
+  "se": 0.999959999199968,
+  "base": 0.034,
+  "pares": [
+   [
+    "Smothering Tithe",
+    "Chandra, Dressed to Kill",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Lightning Greaves",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.4,
+    0.7481176378083865
+   ],
+   [
+    "Drumbellower",
+    "King Solomon's Frogs",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Enduring Vitality",
+    "Sticky Fingers",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Belladonna Took",
+    "Ragavan, Nimble Pilferer",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Artifact Mutation",
+    "Kabira Takedown // Kabira Plateau",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Aura Mutation",
+    "Spurnmage Advocate",
+    0,
+    0
+   ],
+   [
+    "Seedborn Muse",
+    "Balefire Dragon",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Dazzling Theater // Prop Room",
+    "Veteran Explorer",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Season of the Burrow",
+    "Woodvine Elemental",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Cultivate",
+    "Opal Palace",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Burrowguard Mentor",
+    "Forbidden Orchard",
+    -0.2,
+    0.4471241438347967
+   ]
+  ],
+  "erros": []
+ },
+ "the-wise-mothman/plus-1-plus-1-counters": {
+  "sw": [
+   "Evolution Sage → Honest Work",
+   "Winding Constrictor → Sink into Stupor // Soporific Springs",
+   "Inexorable Tide → Priest of Forgotten Gods",
+   "The Water Crystal → Tablet of Compleation",
+   "Casualties of War → Vraska, Golgari Queen",
+   "Guardian Project → Jace, the Living Guildpact",
+   "Rampaging Yao Guai → Moonsnare Prototype",
+   "Agent Frank Horrigan → Surrak, the Hunt Caller",
+   "Vault 12: The Necropolis → Pippin, Warden of Isengard",
+   "Radstorm → Instill Energy",
+   "Mirelurk Queen → Opal Palace",
+   "Muldrotha, the Gravetide → Haven of the Spirit Dragon",
+   "Altar of the Brood → City of Brass"
+  ],
+  "d": 1.2,
+  "se": 0.798197970430895,
+  "base": 0.05,
+  "pares": [
+   [
+    "Evolution Sage",
+    "Honest Work",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Winding Constrictor",
+    "Sink into Stupor // Soporific Springs",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Inexorable Tide",
+    "Priest of Forgotten Gods",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "The Water Crystal",
+    "Tablet of Compleation",
+    0,
+    0
+   ],
+   [
+    "Casualties of War",
+    "Vraska, Golgari Queen",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Guardian Project",
+    "Jace, the Living Guildpact",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Rampaging Yao Guai",
+    "Moonsnare Prototype",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Agent Frank Horrigan",
+    "Surrak, the Hunt Caller",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Vault 12: The Necropolis",
+    "Pippin, Warden of Isengard",
+    0,
+    0
+   ],
+   [
+    "Radstorm",
+    "Instill Energy",
+    0,
+    0
+   ],
+   [
+    "Mirelurk Queen",
+    "Opal Palace",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Muldrotha, the Gravetide",
+    "Haven of the Spirit Dragon",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Altar of the Brood",
+    "City of Brass",
+    0.4,
+    0.2822764602300376
+   ]
+  ],
+  "erros": []
+ },
+ "teval-the-balanced-scale/graveyard": {
+  "sw": [
+   "Afterlife from the Loam → Sink into Stupor // Soporific Springs",
+   "Will of the Sultai → Sword of Fire and Ice",
+   "Tatyova, Benthic Druid → Unsubstantiate",
+   "Kishla Skimmer → Vivien Reid",
+   "Colossal Grave-Reaver → Genesis of the Daleks",
+   "Cultivate → Renowned Weaponsmith",
+   "Ob Nixilis, the Fallen → Surrak, the Hunt Caller",
+   "Avenger of Zendikar → Shadow-Rite Priest",
+   "Grisly Salvage → Vraska, Golgari Queen",
+   "Living Death → Sunderflock"
+  ],
+  "d": 1,
+  "se": 0.8234075540095561,
+  "base": 0.028,
+  "pares": [
+   [
+    "Afterlife from the Loam",
+    "Sink into Stupor // Soporific Springs",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Will of the Sultai",
+    "Sword of Fire and Ice",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Tatyova, Benthic Druid",
+    "Unsubstantiate",
+    0,
+    0
+   ],
+   [
+    "Kishla Skimmer",
+    "Vivien Reid",
+    0.6,
+    0.44640788523501684
+   ],
+   [
+    "Colossal Grave-Reaver",
+    "Genesis of the Daleks",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Cultivate",
+    "Renowned Weaponsmith",
+    0,
+    0
+   ],
+   [
+    "Ob Nixilis, the Fallen",
+    "Surrak, the Hunt Caller",
+    0,
+    0
+   ],
+   [
+    "Avenger of Zendikar",
+    "Shadow-Rite Priest",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Grisly Salvage",
+    "Vraska, Golgari Queen",
+    0,
+    0
+   ],
+   [
+    "Living Death",
+    "Sunderflock",
+    0,
+    0.282842712474619
+   ]
+  ],
+  "erros": []
+ },
+ "breya-etherium-shaper/artifacts": {
+  "sw": [
+   "Enthusiastic Mechanaut → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Etherium Sculptor → Kabira Takedown // Kabira Plateau",
+   "Foundry Inspector → Sink into Stupor // Soporific Springs",
+   "Thoughtcast → Mindswipe",
+   "Smothering Tithe → Chandra, Dressed to Kill",
+   "Sai, Master Thopterist → Rankle and Torbran",
+   "Chromatic Lantern → Sheltered by Ghosts",
+   "Krark-Clan Ironworks → Renowned Weaponsmith",
+   "Jan Jansen, Chaos Crafter → Honest Work",
+   "Tezzeret, Master of the Bridge → The Royal Scions",
+   "Nim Deathmantle → Sulfur Falls"
+  ],
+  "d": -0.8,
+  "se": 1.2644049984083423,
+  "base": 0.05,
+  "pares": [
+   [
+    "Enthusiastic Mechanaut",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.8,
+    0.847773554671293
+   ],
+   [
+    "Etherium Sculptor",
+    "Kabira Takedown // Kabira Plateau",
+    -0.6,
+    0.5993996996996244
+   ],
+   [
+    "Foundry Inspector",
+    "Sink into Stupor // Soporific Springs",
+    -0.4,
+    0.6322024992041712
+   ],
+   [
+    "Thoughtcast",
+    "Mindswipe",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Smothering Tithe",
+    "Chandra, Dressed to Kill",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Sai, Master Thopterist",
+    "Rankle and Torbran",
+    -1.2,
+    0.5631340870520981
+   ],
+   [
+    "Chromatic Lantern",
+    "Sheltered by Ghosts",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Krark-Clan Ironworks",
+    "Renowned Weaponsmith",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Jan Jansen, Chaos Crafter",
+    "Honest Work",
+    0,
+    0.4
+   ],
+   [
+    "Tezzeret, Master of the Bridge",
+    "The Royal Scions",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Nim Deathmantle",
+    "Sulfur Falls",
+    -0.8,
+    0.48858980750727904
+   ]
+  ],
+  "erros": []
+ },
+ "go-shintai-of-lifes-origin/enchantress": {
+  "sw": [
+   "Kyoshi Island Plaza → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Destiny Spinner → Chandra, Dressed to Kill",
+   "Go-Shintai of Boundless Vigor → King Solomon's Frogs",
+   "Honden of Cleansing Fire → The Royal Scions",
+   "Honden of Night's Reach → Sink into Stupor // Soporific Springs",
+   "Leyline of the Guildpact → Kabira Takedown // Kabira Plateau",
+   "Sanctum of Calm Waters → Rankle and Torbran",
+   "Sanctum of Tranquil Light → Renowned Weaponsmith",
+   "Sphere of Safety → Chandra, Awakened Inferno",
+   "Aang's Journey → Doctor Doom, King of Latveria",
+   "Southern Air Temple → Watery Grave",
+   "Dryad of the Ilysian Grove → Steam Vents"
+  ],
+  "d": -1.4000000000000001,
+  "se": 1.0752116070802062,
+  "base": 0.062,
+  "pares": [
+   [
+    "Kyoshi Island Plaza",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.6,
+    0.7206108519860077
+   ],
+   [
+    "Destiny Spinner",
+    "Chandra, Dressed to Kill",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Go-Shintai of Boundless Vigor",
+    "King Solomon's Frogs",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Honden of Cleansing Fire",
+    "The Royal Scions",
+    0,
+    0
+   ],
+   [
+    "Honden of Night's Reach",
+    "Sink into Stupor // Soporific Springs",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Leyline of the Guildpact",
+    "Kabira Takedown // Kabira Plateau",
+    -0.4,
+    0.5654025114907079
+   ],
+   [
+    "Sanctum of Calm Waters",
+    "Rankle and Torbran",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Sanctum of Tranquil Light",
+    "Renowned Weaponsmith",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Sphere of Safety",
+    "Chandra, Awakened Inferno",
+    0,
+    0
+   ],
+   [
+    "Aang's Journey",
+    "Doctor Doom, King of Latveria",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Southern Air Temple",
+    "Watery Grave",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Dryad of the Ilysian Grove",
+    "Steam Vents",
+    0.8,
+    0.48858980750727904
+   ]
+  ],
+  "erros": []
+ },
+ "vivi-ornitier/spellslinger": {
+  "sw": [
+   "Flusterstorm → Honest Work",
+   "Windfall → Renowned Weaponsmith",
+   "Curiosity → Chandra, Dressed to Kill",
+   "Force of Will → Magda, Brazen Outlaw",
+   "Stormcatch Mentor → The Royal Scions",
+   "Hullbreaker Horror → Electric Seaweed",
+   "Simian Spirit Guide → Moonsnare Prototype",
+   "Underworld Breach → Eon Frolicker",
+   "Brain Freeze → Conduit of Ruin",
+   "Sigil of Sleep → Mindswipe"
+  ],
+  "d": -0.4,
+  "se": 0.7997999749937481,
+  "base": 0.03,
+  "pares": [
+   [
+    "Flusterstorm",
+    "Honest Work",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Windfall",
+    "Renowned Weaponsmith",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Curiosity",
+    "Chandra, Dressed to Kill",
+    -1.6,
+    0.5611416933360058
+   ],
+   [
+    "Force of Will",
+    "Magda, Brazen Outlaw",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Stormcatch Mentor",
+    "The Royal Scions",
+    0,
+    0.4
+   ],
+   [
+    "Hullbreaker Horror",
+    "Electric Seaweed",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Simian Spirit Guide",
+    "Moonsnare Prototype",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Underworld Breach",
+    "Eon Frolicker",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Brain Freeze",
+    "Conduit of Ruin",
+    0,
+    0
+   ],
+   [
+    "Sigil of Sleep",
+    "Mindswipe",
+    0.2,
+    0.19979989989987482
+   ]
+  ],
+  "erros": []
+ },
+ "teysa-karlov/aristocrats": {
+  "sw": [
+   "Bartolomé del Presidio → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Carrion Feeder → Sword of Fire and Ice",
+   "Reassembling Skeleton → The Sackville-Bagginses",
+   "Viscera Seer → Kabira Takedown // Kabira Plateau",
+   "Yahenni, Undying Partisan → Tablet of Compleation",
+   "Smothering Tithe → Unswerving Sloth",
+   "Solemn Simulacrum → Doctor Spectrum",
+   "Athreos, God of Passage → Malakir Rebirth // Malakir Mire",
+   "The Meathook Massacre → Mana Vault",
+   "Reanimate → Roshan, Hidden Magister",
+   "Midnight Reaper → Forbidden Orchard",
+   "Victimize → Lazotep Quarry"
+  ],
+  "d": -1.4000000000000001,
+  "se": 1.2790934289566185,
+  "base": 0.098,
+  "pares": [
+   [
+    "Bartolomé del Presidio",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.2,
+    0.599933329629218
+   ],
+   [
+    "Carrion Feeder",
+    "Sword of Fire and Ice",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Reassembling Skeleton",
+    "The Sackville-Bagginses",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Viscera Seer",
+    "Kabira Takedown // Kabira Plateau",
+    1.4000000000000001,
+    0.5967243919934897
+   ],
+   [
+    "Yahenni, Undying Partisan",
+    "Tablet of Compleation",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Smothering Tithe",
+    "Unswerving Sloth",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Solemn Simulacrum",
+    "Doctor Spectrum",
+    -1,
+    0.6618156843109719
+   ],
+   [
+    "Athreos, God of Passage",
+    "Malakir Rebirth // Malakir Mire",
+    -0.6,
+    0.5284694882393873
+   ],
+   [
+    "The Meathook Massacre",
+    "Mana Vault",
+    -1,
+    0.5983310120660636
+   ],
+   [
+    "Reanimate",
+    "Roshan, Hidden Magister",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Midnight Reaper",
+    "Forbidden Orchard",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Victimize",
+    "Lazotep Quarry",
+    0,
+    0.565685424949238
+   ]
+  ],
+  "erros": []
+ },
+ "frodo-adventurous-hobbit-sam-loyal-attendant/lifegain": {
+  "sw": [
+   "Bag End Banquet → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Academy Manufactor → King Solomon's Frogs",
+   "Essence Warden → Sword of Fire and Ice",
+   "Treebeard, Gracious Host → Kabira Takedown // Kabira Plateau",
+   "Sanguine Bond → Shadow-Rite Priest",
+   "Tireless Provisioner → Pyre of Heroes",
+   "Field-Tested Frying Pan → Cloud, Midgar Mercenary",
+   "Assemble the Entmoot → Tezzeret, Cruel Captain",
+   "Crypt Incursion → Swinging Ship",
+   "Many Partings → Sting, the Glinting Dagger"
+  ],
+  "d": 1.4000000000000001,
+  "se": 0.8695286079250066,
+  "base": 0.018,
+  "pares": [
+   [
+    "Bag End Banquet",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Academy Manufactor",
+    "King Solomon's Frogs",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Essence Warden",
+    "Sword of Fire and Ice",
+    0,
+    0.4
+   ],
+   [
+    "Treebeard, Gracious Host",
+    "Kabira Takedown // Kabira Plateau",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Sanguine Bond",
+    "Shadow-Rite Priest",
+    0,
+    0
+   ],
+   [
+    "Tireless Provisioner",
+    "Pyre of Heroes",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Field-Tested Frying Pan",
+    "Cloud, Midgar Mercenary",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Assemble the Entmoot",
+    "Tezzeret, Cruel Captain",
+    0,
+    0
+   ],
+   [
+    "Crypt Incursion",
+    "Swinging Ship",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Many Partings",
+    "Sting, the Glinting Dagger",
+    0,
+    0
+   ]
+  ],
+  "erros": []
+ },
+ "omnath-locus-of-creation/landfall": {
+  "sw": [
+   "Scapeshift → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Splendid Reclamation → Domri Rade",
+   "Lotus Cobra → Mindswipe",
+   "Explore → Chandra, Dressed to Kill",
+   "Spelunking → King Solomon's Frogs",
+   "Exploration → Chandra, Awakened Inferno",
+   "Cultivate → Realm-Cloaked Giant // Cast Off",
+   "Kodama's Reach → Wakening Sun's Avatar",
+   "Loot, Exuberant Explorer → The Royal Scions",
+   "Risen Reef → Magda, Brazen Outlaw"
+  ],
+  "d": 0,
+  "se": 0.4,
+  "base": 0.022,
+  "pares": [
+   [
+    "Scapeshift",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Splendid Reclamation",
+    "Domri Rade",
+    0,
+    0
+   ],
+   [
+    "Lotus Cobra",
+    "Mindswipe",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Explore",
+    "Chandra, Dressed to Kill",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Spelunking",
+    "King Solomon's Frogs",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Exploration",
+    "Chandra, Awakened Inferno",
+    0,
+    0
+   ],
+   [
+    "Cultivate",
+    "Realm-Cloaked Giant // Cast Off",
+    0,
+    0
+   ],
+   [
+    "Kodama's Reach",
+    "Wakening Sun's Avatar",
+    0,
+    0
+   ],
+   [
+    "Loot, Exuberant Explorer",
+    "The Royal Scions",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Risen Reef",
+    "Magda, Brazen Outlaw",
+    0,
+    0
+   ]
+  ],
+  "erros": []
+ },
+ "isshin-two-heavens-as-one/aggro": {
+  "sw": [
+   "Breena, the Demagogue → Chandra, Dressed to Kill",
+   "Krenko, Tin Street Kingpin → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Skyhunter Strike Force → King Solomon's Frogs",
+   "Mishra, Claimed by Gix → Kabira Takedown // Kabira Plateau",
+   "Iroas, God of Victory → Rankle and Torbran",
+   "Otharri, Suns' Glory → Sticky Fingers",
+   "Sun Titan → Ragavan, Nimble Pilferer",
+   "Dolmen Gate → Magda, Brazen Outlaw",
+   "Chivalric Alliance → Spurnmage Advocate",
+   "Fervent Charge → Doctor Spectrum",
+   "Firebender Ascension → City of Brass",
+   "Blasphemous Act → Cavern of Souls",
+   "Reconnaissance → Mana Confluence"
+  ],
+  "d": 1.4000000000000001,
+  "se": 1.1117913473309637,
+  "base": 0.042,
+  "pares": [
+   [
+    "Breena, the Demagogue",
+    "Chandra, Dressed to Kill",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Krenko, Tin Street Kingpin",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    1.6,
+    0.6891153749554569
+   ],
+   [
+    "Skyhunter Strike Force",
+    "King Solomon's Frogs",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Mishra, Claimed by Gix",
+    "Kabira Takedown // Kabira Plateau",
+    0.6,
+    0.44640788523501684
+   ],
+   [
+    "Iroas, God of Victory",
+    "Rankle and Torbran",
+    -1,
+    0.44497190922573976
+   ],
+   [
+    "Otharri, Suns' Glory",
+    "Sticky Fingers",
+    0,
+    0
+   ],
+   [
+    "Sun Titan",
+    "Ragavan, Nimble Pilferer",
+    0.6,
+    0.44640788523501684
+   ],
+   [
+    "Dolmen Gate",
+    "Magda, Brazen Outlaw",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Chivalric Alliance",
+    "Spurnmage Advocate",
+    -0.8,
+    0.3983967871356395
+   ],
+   [
+    "Fervent Charge",
+    "Doctor Spectrum",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Firebender Ascension",
+    "City of Brass",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Blasphemous Act",
+    "Cavern of Souls",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Reconnaissance",
+    "Mana Confluence",
+    -0.8,
+    0.5645529204600752
+   ]
+  ],
+  "erros": []
+ },
+ "nekusar-the-mindrazer/card-draw": {
+  "sw": [
+   "Whispering Madness → Honest Work",
+   "Echo of Eons → Moonsnare Prototype",
+   "Dark Deal → Rankle and Torbran",
+   "Molten Psyche → Rampaging Raptor",
+   "Windfall → Renowned Weaponsmith",
+   "Spiteful Visions → Mindswipe",
+   "Reforge the Soul → Chandra, Awakened Inferno",
+   "Seizan, Perverter of Truth → Fain, the Broker",
+   "Prosperity → Magda, Brazen Outlaw",
+   "Winds of Change → Sink into Stupor // Soporific Springs"
+  ],
+  "d": 0,
+  "se": 0.4,
+  "base": 0.02,
+  "pares": [
+   [
+    "Whispering Madness",
+    "Honest Work",
+    0,
+    0
+   ],
+   [
+    "Echo of Eons",
+    "Moonsnare Prototype",
+    0,
+    0
+   ],
+   [
+    "Dark Deal",
+    "Rankle and Torbran",
+    0,
+    0
+   ],
+   [
+    "Molten Psyche",
+    "Rampaging Raptor",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Windfall",
+    "Renowned Weaponsmith",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Spiteful Visions",
+    "Mindswipe",
+    0,
+    0
+   ],
+   [
+    "Reforge the Soul",
+    "Chandra, Awakened Inferno",
+    0,
+    0
+   ],
+   [
+    "Seizan, Perverter of Truth",
+    "Fain, the Broker",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Prosperity",
+    "Magda, Brazen Outlaw",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Winds of Change",
+    "Sink into Stupor // Soporific Springs",
+    0,
+    0
+   ]
+  ],
+  "erros": []
+ },
+ "giada-font-of-hope/flying": {
+  "sw": [
+   "Lightning Greaves → King Solomon's Frogs",
+   "Swiftfoot Boots → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Bishop of Wings → Kabira Takedown // Kabira Plateau",
+   "Cleansing Nova → Spurnmage Advocate",
+   "Metropolis Reformer → Tablet of Compleation",
+   "Serra the Benevolent → Urn of Godfire",
+   "Angelic Accord → Makindi Stampede // Makindi Mesas",
+   "Authority of the Consuls → Page, Loose Leaf",
+   "Land Tax → Winnow",
+   "Luminarch Ascension → Conversion Apparatus",
+   "Farewell → Command Tower",
+   "Smothering Tithe → Exotic Orchard",
+   "Teferi's Protection → Reliquary Tower"
+  ],
+  "d": 2.8000000000000003,
+  "se": 1.2900852684997222,
+  "base": 0.058,
+  "pares": [
+   [
+    "Lightning Greaves",
+    "King Solomon's Frogs",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Swiftfoot Boots",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.4,
+    0.5654025114907079
+   ],
+   [
+    "Bishop of Wings",
+    "Kabira Takedown // Kabira Plateau",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Cleansing Nova",
+    "Spurnmage Advocate",
+    1,
+    0.5983310120660636
+   ],
+   [
+    "Metropolis Reformer",
+    "Tablet of Compleation",
+    1.2,
+    0.5631340870520981
+   ],
+   [
+    "Serra the Benevolent",
+    "Urn of Godfire",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Angelic Accord",
+    "Makindi Stampede // Makindi Mesas",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Authority of the Consuls",
+    "Page, Loose Leaf",
+    0,
+    0.48989794855663565
+   ],
+   [
+    "Land Tax",
+    "Winnow",
+    1,
+    0.5272570530585627
+   ],
+   [
+    "Luminarch Ascension",
+    "Conversion Apparatus",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Farewell",
+    "Command Tower",
+    -1.2,
+    0.6301745789858554
+   ],
+   [
+    "Smothering Tithe",
+    "Exotic Orchard",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Teferi's Protection",
+    "Reliquary Tower",
+    0.2,
+    0.3462946722085109
+   ]
+  ],
+  "erros": []
+ },
+ "voja-jaws-of-the-conclave/elves": {
+  "sw": [
+   "Hollowhenge Overlord → Chandra, Dressed to Kill",
+   "Lightning Greaves → King Solomon's Frogs",
+   "Rishkar, Peema Renegade → Shackles of Treachery",
+   "Cemetery Prowler → Fear of Missing Out",
+   "Cultivate → Expedite",
+   "Bloom Tender → Kabira Takedown // Kabira Plateau",
+   "Tolsimir, Friend to Wolves → Valakut Awakening // Valakut Stoneforge",
+   "Devoted Druid → Infectious Bloodlust",
+   "All Will Be One → Scurry of Gremlins",
+   "Swiftfoot Boots → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Maskwood Nexus → Opal Palace",
+   "Reclamation Sage → Clifftop Retreat"
+  ],
+  "d": -0.2,
+  "se": 0.9164714943739386,
+  "base": 0.04,
+  "pares": [
+   [
+    "Hollowhenge Overlord",
+    "Chandra, Dressed to Kill",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Lightning Greaves",
+    "King Solomon's Frogs",
+    0,
+    0
+   ],
+   [
+    "Rishkar, Peema Renegade",
+    "Shackles of Treachery",
+    0,
+    0
+   ],
+   [
+    "Cemetery Prowler",
+    "Fear of Missing Out",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Cultivate",
+    "Expedite",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Bloom Tender",
+    "Kabira Takedown // Kabira Plateau",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Tolsimir, Friend to Wolves",
+    "Valakut Awakening // Valakut Stoneforge",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Devoted Druid",
+    "Infectious Bloodlust",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "All Will Be One",
+    "Scurry of Gremlins",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Swiftfoot Boots",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Maskwood Nexus",
+    "Opal Palace",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Reclamation Sage",
+    "Clifftop Retreat",
+    0.6,
+    0.44640788523501684
+   ]
+  ],
+  "erros": []
+ },
+ "zada-hedron-grinder/goblins": {
+  "sw": [
+   "Mana Geyser → Chandra, Dressed to Kill",
+   "Brute Force → Sarkhan, the Dragonspeaker",
+   "Monstrous Rage → Geistflame Reservoir",
+   "Run Amok → Sword of Fire and Ice",
+   "Temur Battle Rage → Electrickery",
+   "Titan's Strength → Goblin Firebomb",
+   "Dragon Fodder → Endrider Catalyzer",
+   "Electroduplicate → Null Elemental Blast",
+   "Empty the Warrens → Tablet of Compleation",
+   "Siege-Gang Lieutenant → Star Athlete"
+  ],
+  "d": -1.2,
+  "se": 1.0183908876261611,
+  "base": 0.08,
+  "pares": [
+   [
+    "Mana Geyser",
+    "Chandra, Dressed to Kill",
+    0,
+    0
+   ],
+   [
+    "Brute Force",
+    "Sarkhan, the Dragonspeaker",
+    0,
+    0
+   ],
+   [
+    "Monstrous Rage",
+    "Geistflame Reservoir",
+    0,
+    0
+   ],
+   [
+    "Run Amok",
+    "Sword of Fire and Ice",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Temur Battle Rage",
+    "Electrickery",
+    0.4,
+    0.6322024992041712
+   ],
+   [
+    "Titan's Strength",
+    "Goblin Firebomb",
+    0,
+    0
+   ],
+   [
+    "Dragon Fodder",
+    "Endrider Catalyzer",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Electroduplicate",
+    "Null Elemental Blast",
+    0,
+    0
+   ],
+   [
+    "Empty the Warrens",
+    "Tablet of Compleation",
+    -0.6,
+    0.5993996996996244
+   ],
+   [
+    "Siege-Gang Lieutenant",
+    "Star Athlete",
+    -1.4000000000000001,
+    0.5967243919934897
+   ]
+  ],
+  "erros": []
+ },
+ "wilhelt-the-rotcleaver/zombies": {
+  "sw": [
+   "Gisa and Geralf → Honest Work",
+   "Toxic Deluge → Priest of Forgotten Gods",
+   "Rooftop Storm → Sink into Stupor // Soporific Springs",
+   "Reanimate → Jace, the Living Guildpact",
+   "Noxious Ghoul → Tablet of Compleation",
+   "Crowded Crypt → Moonsnare Prototype",
+   "Poppet Stitcher // Poppet Factory → Kaito Shizuki",
+   "Undead Augur → The Sackville-Bagginses",
+   "Commander's Sphere → Page, Loose Leaf",
+   "Dreadhorde Invasion → Requiem Monolith",
+   "Zombie Apocalypse → Forbidden Orchard",
+   "Dark Ritual → Lazotep Quarry",
+   "Negate → Voldaren Estate"
+  ],
+  "d": 0.4,
+  "se": 0.8483395546595714,
+  "base": 0.026,
+  "pares": [
+   [
+    "Gisa and Geralf",
+    "Honest Work",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Toxic Deluge",
+    "Priest of Forgotten Gods",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Rooftop Storm",
+    "Sink into Stupor // Soporific Springs",
+    0,
+    0
+   ],
+   [
+    "Reanimate",
+    "Jace, the Living Guildpact",
+    0,
+    0
+   ],
+   [
+    "Noxious Ghoul",
+    "Tablet of Compleation",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Crowded Crypt",
+    "Moonsnare Prototype",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Poppet Stitcher // Poppet Factory",
+    "Kaito Shizuki",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Undead Augur",
+    "The Sackville-Bagginses",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Commander's Sphere",
+    "Page, Loose Leaf",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Dreadhorde Invasion",
+    "Requiem Monolith",
+    0,
+    0
+   ],
+   [
+    "Zombie Apocalypse",
+    "Forbidden Orchard",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Dark Ritual",
+    "Lazotep Quarry",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Negate",
+    "Voldaren Estate",
+    0.4,
+    0.39959979979974963
+   ]
+  ],
+  "erros": []
+ },
+ "the-ur-dragon/dragons": {
+  "sw": [
+   "Dragonspeaker Shaman → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Dragonlord's Servant → Chandra, Dressed to Kill",
+   "Sarkhan, Soul Aflame → King Solomon's Frogs",
+   "Chromatic Lantern → The Royal Scions",
+   "Dracogenesis → Smaug, Wicked Worm",
+   "Rhythm of the Wild → Rankle and Torbran",
+   "Scourge of Valkas → Sink into Stupor // Soporific Springs",
+   "Smothering Tithe → Dragonhawk, Fate's Tempest",
+   "Urza's Incubator → Shiko and Narset, Unified",
+   "Garruk's Uprising → Instrument of the Bards",
+   "Morophon, the Boundless → Watery Grave",
+   "Temur Ascendancy → Godless Shrine",
+   "Call the Spirit Dragons → Hallowed Fountain"
+  ],
+  "d": 0.4,
+  "se": 1.3563480379312678,
+  "base": 0.088,
+  "pares": [
+   [
+    "Dragonspeaker Shaman",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    -0.2,
+    0.5290746639180522
+   ],
+   [
+    "Dragonlord's Servant",
+    "Chandra, Dressed to Kill",
+    0,
+    0.4
+   ],
+   [
+    "Sarkhan, Soul Aflame",
+    "King Solomon's Frogs",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Chromatic Lantern",
+    "The Royal Scions",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Dracogenesis",
+    "Smaug, Wicked Worm",
+    -0.6,
+    0.7741317717288188
+   ],
+   [
+    "Rhythm of the Wild",
+    "Rankle and Torbran",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Scourge of Valkas",
+    "Sink into Stupor // Soporific Springs",
+    -0.2,
+    0.5290746639180522
+   ],
+   [
+    "Smothering Tithe",
+    "Dragonhawk, Fate's Tempest",
+    -0.4,
+    0.5654025114907079
+   ],
+   [
+    "Urza's Incubator",
+    "Shiko and Narset, Unified",
+    0.8,
+    0.3983967871356395
+   ],
+   [
+    "Garruk's Uprising",
+    "Instrument of the Bards",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Morophon, the Boundless",
+    "Watery Grave",
+    0,
+    0.4
+   ],
+   [
+    "Temur Ascendancy",
+    "Godless Shrine",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Call the Spirit Dragons",
+    "Hallowed Fountain",
+    0,
+    0.565685424949238
+   ]
+  ],
+  "erros": []
+ },
+ "clavileno-first-of-the-blessed/vampires": {
+  "sw": [
+   "Radiant Destiny → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Return to Dust → King Solomon's Frogs",
+   "Patron of the Vein → Sword of Forge and Frontier",
+   "Blade of the Bloodchief → Kabira Takedown // Kabira Plateau",
+   "Crossway Troublemakers → Tablet of Compleation",
+   "Damn → Winds of Abandon",
+   "New Blood → Spurnmage Advocate",
+   "Austere Command → Pyramid of the Pantheon",
+   "Legion's Landing // Adanto, the First Fort → Paradise Mantle",
+   "March of the Canonized → Mox Jasper",
+   "Pact of the Serpent → Forbidden Orchard",
+   "Utter End → Lazotep Quarry"
+  ],
+  "d": 1.7999999999999998,
+  "se": 1.7301791814722542,
+  "base": 0.14,
+  "pares": [
+   [
+    "Radiant Destiny",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.6,
+    0.7206108519860077
+   ],
+   [
+    "Return to Dust",
+    "King Solomon's Frogs",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Patron of the Vein",
+    "Sword of Forge and Frontier",
+    -1.7999999999999998,
+    0.8206826426822978
+   ],
+   [
+    "Blade of the Bloodchief",
+    "Kabira Takedown // Kabira Plateau",
+    0.4,
+    0.6322024992041712
+   ],
+   [
+    "Crossway Troublemakers",
+    "Tablet of Compleation",
+    -1,
+    0.7197221686178632
+   ],
+   [
+    "Damn",
+    "Winds of Abandon",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "New Blood",
+    "Spurnmage Advocate",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Austere Command",
+    "Pyramid of the Pantheon",
+    1.4000000000000001,
+    0.7720621736621993
+   ],
+   [
+    "Legion's Landing // Adanto, the First Fort",
+    "Paradise Mantle",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "March of the Canonized",
+    "Mox Jasper",
+    -0.6,
+    0.6627820154470095
+   ],
+   [
+    "Pact of the Serpent",
+    "Forbidden Orchard",
+    1.2,
+    0.746404715955091
+   ],
+   [
+    "Utter End",
+    "Lazotep Quarry",
+    0.8,
+    0.847773554671293
+   ]
+  ],
+  "erros": []
+ },
+ "hakbal-of-the-surging-soul/merfolk": {
+  "sw": [
+   "Evolution Sage → Honest Work",
+   "Wave Goodbye → Moonsnare Prototype",
+   "Deeproot Pilgrimage → Sink into Stupor // Soporific Springs",
+   "Deeproot Waters → Renowned Weaponsmith",
+   "Bygone Marvels → Veteran Explorer",
+   "Stonybrook Banneret → Joraga Treespeaker",
+   "Tishana's Tidebinder → Overgrown Battlement",
+   "Nicanzil, Current Conductor → Incubation Druid",
+   "Explore → Urn of Godfire",
+   "Aetherize → Surrak, the Hunt Caller",
+   "Reflections of Littjara → Opal Palace",
+   "Kindred Discovery → Exotic Orchard",
+   "Tishana, Voice of Thunder → City of Brass"
+  ],
+  "d": -0.2,
+  "se": 0.5290746639180522,
+  "base": 0.016,
+  "pares": [
+   [
+    "Evolution Sage",
+    "Honest Work",
+    0,
+    0
+   ],
+   [
+    "Wave Goodbye",
+    "Moonsnare Prototype",
+    0,
+    0
+   ],
+   [
+    "Deeproot Pilgrimage",
+    "Sink into Stupor // Soporific Springs",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Deeproot Waters",
+    "Renowned Weaponsmith",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Bygone Marvels",
+    "Veteran Explorer",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Stonybrook Banneret",
+    "Joraga Treespeaker",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Tishana's Tidebinder",
+    "Overgrown Battlement",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Nicanzil, Current Conductor",
+    "Incubation Druid",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Explore",
+    "Urn of Godfire",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Aetherize",
+    "Surrak, the Hunt Caller",
+    0,
+    0
+   ],
+   [
+    "Reflections of Littjara",
+    "Opal Palace",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Kindred Discovery",
+    "Exotic Orchard",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Tishana, Voice of Thunder",
+    "City of Brass",
+    0.4,
+    0.39959979979974963
+   ]
+  ],
+  "erros": []
+ },
+ "kaalia-of-the-vast/angels": {
+  "sw": [
+   "Valgavoth, Terror Eater → Chandra, Dressed to Kill",
+   "Deflecting Swat → Tablet of Compleation",
+   "Lightning Greaves → King Solomon's Frogs",
+   "Archfiend of Despair → Expedite",
+   "Reya Dawnbringer → Fear of Missing Out",
+   "Smothering Tithe → Sticky Fingers",
+   "Rune-Scarred Demon → Shackles of Treachery",
+   "Damn → Valakut Awakening // Valakut Stoneforge",
+   "Vilis, Broker of Blood → Infectious Bloodlust",
+   "Avacyn, Angel of Horror → Junkyard Genius",
+   "Lord of the Void → City of Brass",
+   "Teferi's Protection → Smoldering Marsh",
+   "Blasphemous Act → Cavern of Souls"
+  ],
+  "d": 0,
+  "se": 1.2328828005937953,
+  "base": 0.068,
+  "pares": [
+   [
+    "Valgavoth, Terror Eater",
+    "Chandra, Dressed to Kill",
+    0,
+    0
+   ],
+   [
+    "Deflecting Swat",
+    "Tablet of Compleation",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Lightning Greaves",
+    "King Solomon's Frogs",
+    0,
+    0.48989794855663565
+   ],
+   [
+    "Archfiend of Despair",
+    "Expedite",
+    0,
+    0
+   ],
+   [
+    "Reya Dawnbringer",
+    "Fear of Missing Out",
+    0,
+    0.48989794855663565
+   ],
+   [
+    "Smothering Tithe",
+    "Sticky Fingers",
+    0,
+    0.4
+   ],
+   [
+    "Rune-Scarred Demon",
+    "Shackles of Treachery",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Damn",
+    "Valakut Awakening // Valakut Stoneforge",
+    0.4,
+    0.5654025114907079
+   ],
+   [
+    "Vilis, Broker of Blood",
+    "Infectious Bloodlust",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Avacyn, Angel of Horror",
+    "Junkyard Genius",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Lord of the Void",
+    "City of Brass",
+    -0.8,
+    0.5645529204600752
+   ],
+   [
+    "Teferi's Protection",
+    "Smoldering Marsh",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Blasphemous Act",
+    "Cavern of Souls",
+    -0.8,
+    0.847773554671293
+   ]
+  ],
+  "erros": []
+ },
+ "pantlaza-sun-favored/dinosaurs": {
+  "sw": [
+   "Curious Altisaur → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Otepec Huntmaster → Rampaging Raptor",
+   "Apex Altisaur → Kabira Takedown // Kabira Plateau",
+   "Marauding Raptor → Bloodroot Apothecary",
+   "The Skullspore Nexus → Chandra, Dressed to Kill",
+   "From the Rubble → Garruk Wildspeaker",
+   "Trumpeting Carnosaur → Domri Rade",
+   "Rhythm of the Wild → Veteran Explorer",
+   "Savage Order → Valakut Awakening // Valakut Stoneforge",
+   "Monster Manual // Zoological Study → Unswerving Sloth",
+   "Elemental Bond → City of Brass",
+   "Garruk's Uprising → Mana Confluence",
+   "Rishkar's Expertise → Battlefield Forge"
+  ],
+  "d": -0.8,
+  "se": 1.1308050229814157,
+  "base": 0.064,
+  "pares": [
+   [
+    "Curious Altisaur",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Otepec Huntmaster",
+    "Rampaging Raptor",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Apex Altisaur",
+    "Kabira Takedown // Kabira Plateau",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Marauding Raptor",
+    "Bloodroot Apothecary",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "The Skullspore Nexus",
+    "Chandra, Dressed to Kill",
+    0,
+    0
+   ],
+   [
+    "From the Rubble",
+    "Garruk Wildspeaker",
+    0,
+    0
+   ],
+   [
+    "Trumpeting Carnosaur",
+    "Domri Rade",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Rhythm of the Wild",
+    "Veteran Explorer",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Savage Order",
+    "Valakut Awakening // Valakut Stoneforge",
+    0.2,
+    0.4471241438347967
+   ],
+   [
+    "Monster Manual // Zoological Study",
+    "Unswerving Sloth",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Elemental Bond",
+    "City of Brass",
+    -1,
+    0.44497190922573976
+   ],
+   [
+    "Garruk's Uprising",
+    "Mana Confluence",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Rishkar's Expertise",
+    "Battlefield Forge",
+    0,
+    0.565685424949238
+   ]
+  ],
+  "erros": []
+ },
+ "inalla-archmage-ritualist/wizards": {
+  "sw": [
+   "Cornered by Black Mages → Chandra, Dressed to Kill",
+   "Reanimate → Tablet of Compleation",
+   "Unearth → Rankle and Torbran",
+   "Vedalken Aethermage → The Royal Scions",
+   "Blasphemous Act → Renowned Weaponsmith",
+   "Watcher for Tomorrow → Kaito Shizuki",
+   "Kindred Discovery → Valakut Awakening // Valakut Stoneforge",
+   "An Offer You Can't Refuse → Magda, Brazen Outlaw",
+   "Galecaster Colossus → Sarkhan, the Dragonspeaker",
+   "Dour Port-Mage → Niv-Mizzet, Parun",
+   "Panharmonicon → Forbidden Orchard",
+   "Reflections of Littjara → City of Brass"
+  ],
+  "d": -0.2,
+  "se": 0.599933329629218,
+  "base": 0.02,
+  "pares": [
+   [
+    "Cornered by Black Mages",
+    "Chandra, Dressed to Kill",
+    0,
+    0
+   ],
+   [
+    "Reanimate",
+    "Tablet of Compleation",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Unearth",
+    "Rankle and Torbran",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Vedalken Aethermage",
+    "The Royal Scions",
+    0,
+    0
+   ],
+   [
+    "Blasphemous Act",
+    "Renowned Weaponsmith",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Watcher for Tomorrow",
+    "Kaito Shizuki",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Kindred Discovery",
+    "Valakut Awakening // Valakut Stoneforge",
+    0,
+    0
+   ],
+   [
+    "An Offer You Can't Refuse",
+    "Magda, Brazen Outlaw",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Galecaster Colossus",
+    "Sarkhan, the Dragonspeaker",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Dour Port-Mage",
+    "Niv-Mizzet, Parun",
+    0,
+    0
+   ],
+   [
+    "Panharmonicon",
+    "Forbidden Orchard",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Reflections of Littjara",
+    "City of Brass",
+    0,
+    0
+   ]
+  ],
+  "erros": []
+ },
+ "eowyn-shieldmaiden/humans": {
+  "sw": [
+   "Gilraen, Dúnedain Protector → Honest Work",
+   "Akroma's Will → Moonsnare Prototype",
+   "Vanquisher's Banner → Corsair Captain",
+   "Coppercoat Vanguard → Kabira Takedown // Kabira Plateau",
+   "Door of Destinies → Sink into Stupor // Soporific Springs",
+   "Taunt from the Rampart → Winds of Abandon",
+   "Flowering of the White Tree → Doctor Spectrum",
+   "Champions of Minas Tirith → Mine Raider",
+   "Frontline Medic → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Oath of Eorl → Burdened Aerialist",
+   "Mass Appeal → Forbidden Orchard",
+   "Counterspell → Steam Vents",
+   "Horn of Gondor → Sacred Foundry"
+  ],
+  "d": -0.4,
+  "se": 1.2960246911228197,
+  "base": 0.094,
+  "pares": [
+   [
+    "Gilraen, Dúnedain Protector",
+    "Honest Work",
+    0,
+    0.48989794855663565
+   ],
+   [
+    "Akroma's Will",
+    "Moonsnare Prototype",
+    0,
+    0
+   ],
+   [
+    "Vanquisher's Banner",
+    "Corsair Captain",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Coppercoat Vanguard",
+    "Kabira Takedown // Kabira Plateau",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Door of Destinies",
+    "Sink into Stupor // Soporific Springs",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Taunt from the Rampart",
+    "Winds of Abandon",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Flowering of the White Tree",
+    "Doctor Spectrum",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Champions of Minas Tirith",
+    "Mine Raider",
+    0.8,
+    0.48858980750727904
+   ],
+   [
+    "Frontline Medic",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0,
+    0.48989794855663565
+   ],
+   [
+    "Oath of Eorl",
+    "Burdened Aerialist",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Mass Appeal",
+    "Forbidden Orchard",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Counterspell",
+    "Steam Vents",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Horn of Gondor",
+    "Sacred Foundry",
+    -0.8,
+    0.6314427923414757
+   ]
+  ],
+  "erros": []
+ },
+ "the-first-sliver/slivers": {
+  "sw": [
+   "Thrumming Hivepool → Chandra, Dressed to Kill",
+   "Patriarch's Bidding → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Constricting Sliver → King Solomon's Frogs",
+   "Morophon, the Boundless → The Royal Scions",
+   "Crypt Sliver → Domri Rade",
+   "Reflections of Littjara → Sink into Stupor // Soporific Springs",
+   "Crystalline Sliver → Forging the Tyrite Sword",
+   "Chromatic Lantern → Tablet of Compleation",
+   "Vanquisher's Banner → Winds of Abandon",
+   "Sliver Overlord → Firemind's Research",
+   "Teferi's Protection → Sulfur Falls"
+  ],
+  "d": -1.4000000000000001,
+  "se": 1.1117913473309637,
+  "base": 0.064,
+  "pares": [
+   [
+    "Thrumming Hivepool",
+    "Chandra, Dressed to Kill",
+    -0.8,
+    0.5645529204600752
+   ],
+   [
+    "Patriarch's Bidding",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0,
+    0.7483314773547882
+   ],
+   [
+    "Constricting Sliver",
+    "King Solomon's Frogs",
+    0.6,
+    0.34536936748935915
+   ],
+   [
+    "Morophon, the Boundless",
+    "The Royal Scions",
+    -1,
+    0.44497190922573976
+   ],
+   [
+    "Crypt Sliver",
+    "Domri Rade",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Reflections of Littjara",
+    "Sink into Stupor // Soporific Springs",
+    0.6,
+    0.5284694882393873
+   ],
+   [
+    "Crystalline Sliver",
+    "Forging the Tyrite Sword",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Chromatic Lantern",
+    "Tablet of Compleation",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Vanquisher's Banner",
+    "Winds of Abandon",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Sliver Overlord",
+    "Firemind's Research",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Teferi's Protection",
+    "Sulfur Falls",
+    0,
+    0.48989794855663565
+   ]
+  ],
+  "erros": []
+ },
+ "rin-and-seri-inseparable/cats": {
+  "sw": [
+   "Enduring Courage → Chandra, Dressed to Kill",
+   "Phelia, Exuberant Shepherd → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Taurean Mauler → King Solomon's Frogs",
+   "Pack Leader → Kabira Takedown // Kabira Plateau",
+   "Spirited Companion → Tablet of Compleation",
+   "Selfless Savior → Domri Rade",
+   "Patchwork Banner → Winds of Abandon",
+   "Vanquisher's Banner → Spurnmage Advocate",
+   "Ajani, the Greathearted → Sticky Fingers",
+   "Cultivate → Veteran Explorer",
+   "Cathars' Crusade → Forbidden Orchard",
+   "Impact Tremors → City of Brass"
+  ],
+  "d": -3.5999999999999996,
+  "se": 1.9323767748552558,
+  "base": 0.216,
+  "pares": [
+   [
+    "Enduring Courage",
+    "Chandra, Dressed to Kill",
+    -0.4,
+    0.48957124098541566
+   ],
+   [
+    "Phelia, Exuberant Shepherd",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    -2.1999999999999997,
+    1.2451184682591452
+   ],
+   [
+    "Taurean Mauler",
+    "King Solomon's Frogs",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Pack Leader",
+    "Kabira Takedown // Kabira Plateau",
+    0.6,
+    0.6627820154470095
+   ],
+   [
+    "Spirited Companion",
+    "Tablet of Compleation",
+    0,
+    0.565685424949238
+   ],
+   [
+    "Selfless Savior",
+    "Domri Rade",
+    -1.6,
+    0.6891153749554569
+   ],
+   [
+    "Patchwork Banner",
+    "Winds of Abandon",
+    0.2,
+    0.7210547829395489
+   ],
+   [
+    "Vanquisher's Banner",
+    "Spurnmage Advocate",
+    -2,
+    0.8438009243891594
+   ],
+   [
+    "Ajani, the Greathearted",
+    "Sticky Fingers",
+    -0.6,
+    0.5993996996996244
+   ],
+   [
+    "Cultivate",
+    "Veteran Explorer",
+    0.4,
+    0.6925893444170218
+   ],
+   [
+    "Cathars' Crusade",
+    "Forbidden Orchard",
+    0.2,
+    0.7210547829395489
+   ],
+   [
+    "Impact Tremors",
+    "City of Brass",
+    -0.6,
+    0.7741317717288188
+   ]
+  ],
+  "erros": []
+ },
+ "urza-chief-artificer/artifacts": {
+  "sw": [
+   "Etherium Sculptor → Kabira Takedown // Kabira Plateau",
+   "Foundry Inspector → Sink into Stupor // Soporific Springs",
+   "Thoughtcast → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Solemn Simulacrum → Renowned Weaponsmith",
+   "Bronze Guardian → Genesis of the Daleks",
+   "Sai, Master Thopterist → Realm-Cloaked Giant // Cast Off",
+   "Noxious Gearhulk → King Solomon's Frogs",
+   "Bident of Thassa → Kaito Shizuki",
+   "One, Borg Evolved → Makindi Stampede // Makindi Mesas",
+   "Dovin's Veto → Fain, the Broker",
+   "Cranial Plating → Forbidden Orchard",
+   "Steel Overseer → Glacial Fortress",
+   "Simulacrum Synthesizer → Isolated Chapel"
+  ],
+  "d": -0.8,
+  "se": 1.1308050229814157,
+  "base": 0.042,
+  "pares": [
+   [
+    "Etherium Sculptor",
+    "Kabira Takedown // Kabira Plateau",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Foundry Inspector",
+    "Sink into Stupor // Soporific Springs",
+    -0.2,
+    0.4471241438347967
+   ],
+   [
+    "Thoughtcast",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    0.6,
+    0.5993996996996244
+   ],
+   [
+    "Solemn Simulacrum",
+    "Renowned Weaponsmith",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Bronze Guardian",
+    "Genesis of the Daleks",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Sai, Master Thopterist",
+    "Realm-Cloaked Giant // Cast Off",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Noxious Gearhulk",
+    "King Solomon's Frogs",
+    0.2,
+    0.5290746639180522
+   ],
+   [
+    "Bident of Thassa",
+    "Kaito Shizuki",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "One, Borg Evolved",
+    "Makindi Stampede // Makindi Mesas",
+    0.2,
+    0.663264653060903
+   ],
+   [
+    "Dovin's Veto",
+    "Fain, the Broker",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Cranial Plating",
+    "Forbidden Orchard",
+    0.4,
+    0.5654025114907079
+   ],
+   [
+    "Steel Overseer",
+    "Glacial Fortress",
+    0,
+    0.4
+   ],
+   [
+    "Simulacrum Synthesizer",
+    "Isolated Chapel",
+    0.2,
+    0.5290746639180522
+   ]
+  ],
+  "erros": []
+ },
+ "bello-bard-of-the-brambles/aggro": {
+  "sw": [
+   "Gilded Lotus → Domri Rade",
+   "Cultivate → Rune of Speed",
+   "Fanatic of Rhonas → Demonic Ruckus",
+   "Wandertale Mentor → Chandra, Awakened Inferno",
+   "Arcane Signet → Audacity",
+   "Explore → Shackles of Treachery",
+   "Fellwar Stone → Frog Tongue",
+   "Goblin Anarchomancer → Strong Back",
+   "Kodama of the East Tree → Instill Energy",
+   "Primeval Bounty → Swashbuckling",
+   "Sunbird's Invocation → City of Brass",
+   "Hedron Archive → Cavern of Souls"
+  ],
+  "d": -0.4,
+  "se": 0.7997999749937481,
+  "base": 0.028,
+  "pares": [
+   [
+    "Gilded Lotus",
+    "Domri Rade",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Cultivate",
+    "Rune of Speed",
+    0.2,
+    0.3462946722085109
+   ],
+   [
+    "Fanatic of Rhonas",
+    "Demonic Ruckus",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Wandertale Mentor",
+    "Chandra, Awakened Inferno",
+    -0.2,
+    0.5290746639180522
+   ],
+   [
+    "Arcane Signet",
+    "Audacity",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Explore",
+    "Shackles of Treachery",
+    0,
+    0.282842712474619
+   ],
+   [
+    "Fellwar Stone",
+    "Frog Tongue",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Goblin Anarchomancer",
+    "Strong Back",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Kodama of the East Tree",
+    "Instill Energy",
+    0.2,
+    0.19979989989987482
+   ],
+   [
+    "Primeval Bounty",
+    "Swashbuckling",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Sunbird's Invocation",
+    "City of Brass",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Hedron Archive",
+    "Cavern of Souls",
+    0.2,
+    0.19979989989987482
+   ]
+  ],
+  "erros": []
+ },
+ "ms-bumbleflower/plus-1-plus-1-counters": {
+  "sw": [
+   "Smothering Tithe → Kabira Takedown // Kabira Plateau",
+   "Tempt with Discovery → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Spore Frog → Realm-Cloaked Giant // Cast Off",
+   "Faeburrow Elder → Endless Detour",
+   "Scrawling Crawler → Wakening Sun's Avatar",
+   "Rishkar, Peema Renegade → Renowned Weaponsmith",
+   "Selvala, Explorer Returned → King Solomon's Frogs",
+   "Wizard Class → Sunderflock",
+   "On the Trail → Instrument of the Bards",
+   "Kwain, Itinerant Meddler → Woodvine Elemental"
+  ],
+  "d": -0.8,
+  "se": 0.6918959459340689,
+  "base": 0.022,
+  "pares": [
+   [
+    "Smothering Tithe",
+    "Kabira Takedown // Kabira Plateau",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "Tempt with Discovery",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    -0.6,
+    0.44640788523501684
+   ],
+   [
+    "Spore Frog",
+    "Realm-Cloaked Giant // Cast Off",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Faeburrow Elder",
+    "Endless Detour",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Scrawling Crawler",
+    "Wakening Sun's Avatar",
+    0,
+    0
+   ],
+   [
+    "Rishkar, Peema Renegade",
+    "Renowned Weaponsmith",
+    -0.6,
+    0.34536936748935915
+   ],
+   [
+    "Selvala, Explorer Returned",
+    "King Solomon's Frogs",
+    -0.4,
+    0.2822764602300376
+   ],
+   [
+    "Wizard Class",
+    "Sunderflock",
+    0.4,
+    0.2822764602300376
+   ],
+   [
+    "On the Trail",
+    "Instrument of the Bards",
+    0,
+    0
+   ],
+   [
+    "Kwain, Itinerant Meddler",
+    "Woodvine Elemental",
+    0.2,
+    0.19979989989987482
+   ]
+  ],
+  "erros": []
+ },
+ "xyris-the-writhing-storm/card-draw": {
+  "sw": [
+   "Molten Psyche → Shackles of Treachery",
+   "Windfall → Rampaging Raptor",
+   "Prosperity → Mindswipe",
+   "Winds of Change → Chandra, Dressed to Kill",
+   "Scrawling Crawler → The Royal Scions",
+   "Dictate of Kruphix → Chandra, Awakened Inferno",
+   "Fevered Visions → Frostcliff Siege",
+   "Font of Mythos → Gimli's Reckless Might",
+   "Giant Growth → Sunderflock",
+   "Enduring Vitality → Goblin War Party"
+  ],
+  "d": 0.4,
+  "se": 0.6322024992041712,
+  "base": 0.03,
+  "pares": [
+   [
+    "Molten Psyche",
+    "Shackles of Treachery",
+    0,
+    0
+   ],
+   [
+    "Windfall",
+    "Rampaging Raptor",
+    0.4,
+    0.48957124098541566
+   ],
+   [
+    "Prosperity",
+    "Mindswipe",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Winds of Change",
+    "Chandra, Dressed to Kill",
+    0,
+    0
+   ],
+   [
+    "Scrawling Crawler",
+    "The Royal Scions",
+    0.4,
+    0.39959979979974963
+   ],
+   [
+    "Dictate of Kruphix",
+    "Chandra, Awakened Inferno",
+    0,
+    0
+   ],
+   [
+    "Fevered Visions",
+    "Frostcliff Siege",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Font of Mythos",
+    "Gimli's Reckless Might",
+    0,
+    0
+   ],
+   [
+    "Giant Growth",
+    "Sunderflock",
+    -0.2,
+    0.19979989989987482
+   ],
+   [
+    "Enduring Vitality",
+    "Goblin War Party",
+    0.2,
+    0.19979989989987482
+   ]
+  ],
+  "erros": []
+ },
+ "anikthea-hand-of-erebos/enchantress": {
+  "sw": [
+   "Sphere of Safety → Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+   "Demon of Fate's Design → Lead Pipe",
+   "Composer of Spring → Audacity",
+   "Song of the Worldsoul → Unswerving Sloth",
+   "Dryad of the Ilysian Grove → Marwyn, the Preserver",
+   "Teleportation Circle → Consul's Shieldguard",
+   "Herald of the Pantheon → Veteran Explorer",
+   "Mirari's Wake → Frog Tongue",
+   "Jukai Naturalist → Joraga Treespeaker",
+   "Starfield Mystic → Strong Back",
+   "Extinguish All Hope → Forbidden Orchard",
+   "Grim Guardian → Haven of the Spirit Dragon"
+  ],
+  "d": -1.4000000000000001,
+  "se": 1.2149403277527666,
+  "base": 0.074,
+  "pares": [
+   [
+    "Sphere of Safety",
+    "Venat, Heart of Hydaelyn // Hydaelyn, the Mothercrystal",
+    1,
+    0.6618156843109719
+   ],
+   [
+    "Demon of Fate's Design",
+    "Lead Pipe",
+    0,
+    0.4
+   ],
+   [
+    "Composer of Spring",
+    "Audacity",
+    0.4,
+    0.5654025114907079
+   ],
+   [
+    "Song of the Worldsoul",
+    "Unswerving Sloth",
+    -0.4,
+    0.5654025114907079
+   ],
+   [
+    "Dryad of the Ilysian Grove",
+    "Marwyn, the Preserver",
+    -0.4,
+    0.39959979979974963
+   ],
+   [
+    "Teleportation Circle",
+    "Consul's Shieldguard",
+    -0.2,
+    0.3462946722085109
+   ],
+   [
+    "Herald of the Pantheon",
+    "Veteran Explorer",
+    -0.8,
+    0.5645529204600752
+   ],
+   [
+    "Mirari's Wake",
+    "Frog Tongue",
+    -0.2,
+    0.599933329629218
+   ],
+   [
+    "Jukai Naturalist",
+    "Joraga Treespeaker",
+    -0.2,
+    0.5290746639180522
+   ],
+   [
+    "Starfield Mystic",
+    "Strong Back",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Extinguish All Hope",
+    "Forbidden Orchard",
+    -0.8,
+    0.48858980750727904
+   ],
+   [
+    "Grim Guardian",
+    "Haven of the Spirit Dragon",
+    1,
+    0.7733045971672482
+   ]
+  ],
+  "erros": []
+ }
+}
