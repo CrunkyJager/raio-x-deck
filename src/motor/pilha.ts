@@ -285,8 +285,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   if (d.fx && !M.fxSuportado(d.fx)) return false;
   if (!M.ehPermanente(e, o) && !(d.fx && d.fx.length)) return false;   // mágica sem efeito lido: não conjura à toa
   if (modalTopo(d) && M.modosViaveis(e, j, d) < ((d.fx[0].escolhe || {}).min ?? 1)) return false;
-  if (d.custoAd && !M.custoSuportado(d.custoAd)) return false;
-  if (d.custoAd && !custoFisicoOk(e, j, null, d.custoAd, { daMao: o.id })) return false;
+  if (d.custoAd && !altsAd(e, j, o, d.custoAd).length) return false;   // custo adicional (com "ou": basta um pagável)
   const usados = alvosUsados(modalTopo(d) ? [] : d.fx || []);
   if (usados.some(i => !(d.alvos || [])[i] || !M.alvoSuportado(d.alvos[i]))) return false;
   const custo0 = M.custoComImposto(e, o, custoBase(e, j, o, opts));
@@ -478,6 +477,17 @@ M.fxEfetivo = fxEfetivo;
 M.escolherModos = (e, j, d, f, ask, de?) => escolherModos(e, j, d, f, ask, de);
 
 // custo físico com escolha (sacrificar X, descartar)
+// custo adicional com "ou" (Demand Answers): cada opção junta o resto do objeto; só as suportadas e pagáveis agora
+const opcoesAd = c => { const { ou, ...resto } = c; return ou ? ou.map(a => ({ ...resto, ...a })) : [c]; };
+M.custoAdSuportado = c => opcoesAd(c).some(M.custoSuportado);
+function altsAd(e, j, o, c) {
+  return opcoesAd(c).filter(a => M.custoSuportado(a) && custoFisicoOk(e, j, null, a, { daMao: o.id }));
+}
+function escolherAd(e, j, o, c, ask) {
+  const alts = altsAd(e, j, o, c);
+  if (alts.length <= 1) return alts[0] || c;
+  return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
+}
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
   const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[] };
   if (c.virarOutros) {
@@ -551,7 +561,8 @@ const PROC = {
     const cabe = d.impostoPorAlvo ? n => !!plano(e, j, comAlvos(n), x, null, o) : undefined;
     const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask, cabe, opc);          // CR 601.2c
     custo = comAlvos(alvos.reduce((s, l) => s + (l ? l.length : 0), 0));
-    const fis = d.custoAd ? escolherCustoFisico(e, j, d.custoAd, null, o.id, ask) : { sac: [] as any[], desc: [] as any[], dev: [] as any[] };
+    const cad = d.custoAd ? escolherAd(e, j, o, d.custoAd, ask) : null;             // CR 601.2b: anuncia qual custo do "ou"
+    const fis = cad ? escolherCustoFisico(e, j, cad, null, o.id, ask) : { sac: [] as any[], desc: [] as any[], dev: [] as any[] };
     const fuga = !porFlash(e, j, o) && !P.gratis && porFuga(e, j, o) ? fugaDe(e, j, o) : null;   // 702.138: as N outras do cemitério (601.2f)
     const exFuga = fuga ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), fuga.exilar, { ctx: { o: 'exilar' } }) : [];
     const pl = plano(e, j, custo, x, fis.sac, o);                                     // CR 601.2g: mana antes de pagar
@@ -564,7 +575,7 @@ const PROC = {
     M.evento(e, { ev: 'conjura', id: o.id, j, de });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
     pagarMana(e, j, pl, custo, x);                                                    // CR 601.2h
-    if (d.custoAd) pagarFisico(e, j, o, d.custoAd, fis);
+    if (cad) pagarFisico(e, j, o, cad, fis);
     for (const id of exFuga) M.mover(e, id, 'exilio');
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
     e.turno.magias = (e.turno.magias || 0) + 1;

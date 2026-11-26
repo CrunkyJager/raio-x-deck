@@ -147,6 +147,8 @@ export type RxQtd =
             | 'cartasNaMao'
             | 'oponentes'
             | 'marcadoresNoEste'
+            | 'marcadoresNoCada'
+            | 'descartadasNoTurno'
             | 'evento'
             | 'X'
             | 'jogadores'
@@ -242,6 +244,7 @@ export type RxJogador =
       | 'voce'
       | 'oponente'
       | 'cadaOponente'
+      | 'cadaOutroOponente'
       | 'cadaJogador'
       | 'alvoJogador'
       | 'dono'
@@ -409,6 +412,10 @@ export interface RxAlvo {
    */
   porOponente?: boolean;
   /**
+   * "another target": não pode ser o escolhido no alvo N
+   */
+  diferenteDe?: number;
+  /**
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
   opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
@@ -424,12 +431,18 @@ export type RxObjeto =
   | {
       todos: RxFiltro;
     }
-  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual');
+  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
 
 /**
  * custo de habilidade ativada / custo adicional / 'a menos que pague'
  */
 export interface RxCustoAtv {
+  /**
+   * escolha entre custos: paga UM destes (Demand Answers: sacrificar um artefato OU descartar uma carta); só em custoAd; o resto do objeto vale para todas
+   *
+   * @minItems 2
+   */
+  ou?: [RxCustoAtv, RxCustoAtv, ...RxCustoAtv[]];
   mana?: RxMana;
   virar?: boolean;
   desvirar?: boolean;
@@ -618,6 +631,10 @@ export interface RxFx {
   escolhe?: {
     min?: number;
     max?: number;
+    /**
+     * só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)
+     */
+    naoRepeteNoTurno?: boolean;
     maxSe?: {
       se?: RxCond;
       max?: number;
@@ -744,6 +761,10 @@ export interface RxFx {
    * op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)
    */
   transformada?: boolean;
+  /**
+   * op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)
+   */
+  soNaoDesvira?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -953,7 +974,8 @@ export interface RxKw {
     | 'fusao'
     | 'intimidar'
     | 'decaida'
-    | 'infectar';
+    | 'infectar'
+    | 'fuga';
   custo?: RxMana;
   n?: number;
   /**
@@ -966,6 +988,16 @@ export interface RxKw {
    * resguardo com custo que não é mana (pagar vida)
    */
   pagar?: RxCustoAtv;
+  /**
+   * fuga: quantas OUTRAS cartas do seu cemitério exilar
+   */
+  exilar?: number;
+  /**
+   * fuga: 'foge com' esses marcadores (702.138c)
+   */
+  comMarc?: {
+    [k: string]: number;
+  };
 }
 
 export interface RxAtv {
@@ -988,6 +1020,10 @@ export interface RxAtv {
 
 export interface RxGat {
   ev:
+    | 'cicla'
+    | 'desvira'
+    | 'jogaTerreno'
+    | 'prolifera'
     | 'entra'
     | 'morre'
     | 'vaiCemiterio'
@@ -1040,6 +1076,10 @@ export interface RxGat {
   deQuem?: 'voce' | 'cadaJogador' | 'oponente';
   combate?: boolean;
   aJogador?: boolean;
+  /**
+   * o dano é a um jogador ou planeswalker (Neheb)
+   */
+  aJogadorOuPw?: boolean;
   /**
    * o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity)
    */
@@ -1134,7 +1174,8 @@ export interface RxEst {
     | 'dobraGatilho'
     | 'ataqueCusta'
     | 'naoPodeAtivar'
-    | 'deveBloquear';
+    | 'deveBloquear'
+    | 'darFuga';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1218,6 +1259,10 @@ export interface RxEst {
    * deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)
    */
   atacante?: RxObjeto;
+  /**
+   * darFuga: exilar N outras do cemitério (Underworld Breach)
+   */
+  exilar?: number;
 }
 
 /**

@@ -1857,6 +1857,23 @@ caso('601.2f', 'condição sobre a carta descartada no custo (Grab the Prize): d
     igual([naZona(e, 0, 'cemiterio').sort(), e.jogs[0].zonas.mao.length, v - e.jogs[1].vida], [[desc, 'Grab the Prize'].sort(), 2, desc === 'Forest' ? 0 : 2], desc);
   }
 });
+caso('601.2f', 'custo adicional com "ou" (Demand Answers): só artefato → sacrifica; só carta na mão → descarta; nenhum → não conjura; os dois → pergunta', () => {
+  const da = M.carta('Demand Answers');
+  ok(M.custoSuportado(da.custoAd.ou[0]) && M.custoSuportado(da.custoAd.ou[1]), 'as duas opções são custos que o motor paga');
+  for (const [art, outra] of [[true, false], [false, true], [false, false], [true, true]]) {
+    const campo = [...terras(2), ...(art ? [[0, 'Mind Stone']] : [])], mao = [[0, 'Demand Answers'], ...(outra ? [[0, 'Grizzly Bears']] : [])];
+    const e = cena({ campo, mao }); e.pend = []; e.jogs[0].terrenos = 1;
+    const id = e.jogs[0].zonas.mao.find(x => e.objs[x].n === 'Demand Answers');
+    igual(M.podeConjurar(e, 0, e.objs[id]), art || outra, `artefato ${art}, outra carta ${outra}`);
+    if (!art && !outra) continue;
+    let perguntou = false;
+    M.avancar(e); conj(e, 'Demand Answers');
+    resolveCom(e, p => { if (p.tipo !== 'custoOu') return -1; perguntou = true; return p.ops.findIndex(o => !!o.v.sacrificar); });
+    const sacrificou = art;                     // com os dois, a resposta escolhe sacrificar
+    igual([perguntou, naZona(e, 0, 'cemiterio').sort(), noCampo(e).includes('Mind Stone'), e.jogs[0].zonas.mao.length],
+      [art && outra, (sacrificou ? ['Demand Answers', 'Mind Stone'] : ['Demand Answers', 'Grizzly Bears']).sort(), false, outra && sacrificou ? 3 : 2], `artefato ${art}, outra ${outra}`);
+  }
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

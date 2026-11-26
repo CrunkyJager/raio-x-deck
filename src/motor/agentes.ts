@@ -86,6 +86,19 @@ const basico = (e, p) => {
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
     }
+    case 'custoOu': {                 // custo adicional com "ou": a opção que perde menos (ficha < descartar o que sobra < o resto)
+      const perda = c => {
+        let v = 0;
+        if (c.sacrificar && c.sacrificar !== 'este') {
+          const l = e.campo.map(o).filter(x => x.ctrl === p.j && x.id !== p.ctx.id && M.bate(e, x, { ...(c.sacrificar.f || {}), zona: 'campo' }, { voce: p.j }));
+          v += Math.min(...l.map(x => x.ficha ? -1 : (M.dadoDe(e, x).vm || 0) + 1));
+        }
+        if (c.descartar) v += Math.min(...J.zonas.mao.filter(id => id !== p.ctx.id).map(id => valorDescarte(e, p.j, id))) + 0.5;
+        if (c.vida) v += c.vida / 3;
+        return v;
+      };
+      return melhorOp(p.ops, op => -perda(op.v));
+    }
     case 'aMenosQue': return p.ops.length > 1 && J.vida > 10 ? 1 : 0;
     case 'aMenosQuePagar': {          // pagar para impedir: anular a minha mágica, sempre; mana no turno dos outros (sobraria);
       const k = p.ops.findIndex(op => op.a === 'pagar'); if (k < 0) return 0;   // vida com folga; sacrifício só quando o efeito é contra mim

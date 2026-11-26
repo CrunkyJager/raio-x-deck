@@ -51,7 +51,7 @@ try {
       for (const k of Object.keys(d)) if (!BASE_CARTA.has(k)) anota(`carta.${k}`, n);
       fxMotivos(d.fx, true, n, 'fx');
       for (const a of d.alvos || []) if (!M.alvoSuportado(a)) anota(`alvo ${typeof a.f === 'string' ? a.f : Object.keys(a.f || {}).filter(k => !M.filtroOk({ [k]: 1 })).map(k => 'f.' + k).join(',') || Object.keys(a).filter(k => !['f', 'min', 'max'].includes(k)).join(',') || '?'}`, n);
-      if (d.custoAd && !M.custoSuportado(d.custoAd)) for (const k of Object.keys(d.custoAd)) if (!M.custoSuportado({ [k]: d.custoAd[k] })) anota(`custoAd.${k}`, n);
+      if (d.custoAd && !M.custoAdSuportado(d.custoAd)) for (const k of Object.keys(d.custoAd).filter(k => k !== 'ou')) if (!M.custoSuportado({ [k]: d.custoAd[k] })) anota(`custoAd.${k}`, n);
       for (const g of d.gat || []) {
         if (M.gatOk(g)) continue;
         const okSem = k => M.gatOk(sem(g, k));

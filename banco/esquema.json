@@ -823,6 +823,14 @@
    "additionalProperties": false,
    "description": "custo de habilidade ativada / custo adicional / 'a menos que pague'",
    "properties": {
+    "ou": {
+     "type": "array",
+     "minItems": 2,
+     "items": {
+      "$ref": "#/$defs/custoAtv"
+     },
+     "description": "escolha entre custos: paga UM destes (Demand Answers: sacrificar um artefato OU descartar uma carta); só em custoAd; o resto do objeto vale para todas"
+    },
     "mana": {
      "$ref": "#/$defs/mana"
     },
