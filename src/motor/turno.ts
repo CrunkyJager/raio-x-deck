@@ -95,6 +95,14 @@ function acaoDoTurno(e) {
       J.terrenos = 0;
       if (e.faseados && e.faseados.length) M.fasearDentro(e, a);
       for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { o.virada = false; o.doente = false; } }
+      // "desvire [filtro] que você controla durante a etapa de desvirar de cada outro jogador" (Unwinding Clock, Seedborn Muse)
+      for (const id of M.indiceCampo(e).est) {
+        const F = e.objs[id]; if (F.ctrl === a) continue;
+        for (const s of M.dadoDe(e, F).est || []) {
+          if (s.modo !== 'desviraNoTurnoDeOutro' || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
+          for (const o of M.objetosQue(e, { ...s.afeta, ctrl: 'voce', zona: 'campo' }, { voce: F.ctrl, este: F.id })) o.virada = false;
+        }
+      }
       break;
     case 'principal1':                                              // CR 714.3b: marcador de história nas sagas de quem joga
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }

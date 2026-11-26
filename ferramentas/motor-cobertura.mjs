@@ -80,6 +80,8 @@ try {
           const q = s.qtd && typeof s.qtd === 'object' && !M.qtdEstOk(s.qtd) ? s.qtd : null;
           const det = q ? Object.keys(q).filter(k => !['conta', 'mult', 'soma'].includes(k)).concat(q.conta && typeof q.conta === 'object' ? Object.keys(q.conta).filter(k => !M.filtroOk({ [k]: 1 })) : []) : [];
           anota(`est reduzCusto${det.length ? ' qtd ' + det.join('+') : ''}`, n);
+        } else if (s.modo === 'custoAlternativo' && M.estAltOk) {   // pilha.ts: o motor diz o que lê
+          if (!M.estAltOk(s)) anota(`est custoAlternativo ${typeof s.afeta === 'object' ? 'afeta filtro' : Object.keys(s.pagar || {}).join('+') || '?'}`, n);
         } else if (!citado.has(s.modo)) anota(`est ${s.modo}`, n);
       }
       for (const x of d.kw || []) if (!citado.has(x.k)) anota(`kw ${x.k}`, n);

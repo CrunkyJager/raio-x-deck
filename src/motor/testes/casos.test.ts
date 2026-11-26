@@ -1323,7 +1323,7 @@ caso('702.33d', 'conjuradaCom kicker (Goblin Bushwhacker): o gatilho de entrar s
     for (let i = 0; i < 6 && e.perg && (e.pilha.length || e.pend.length); i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
     igual(M.poder(e, objN(e, 0, 'Grizzly Bears')), 2 + esp, `${terras} Montanha(s): ` + JSON.stringify(e.log.slice(-4)));
   }
-  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'metalcraft' } }));
+  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'solved' } }));
 });
 db['Cena Desgaste'] = { n: 'Cena Desgaste', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Sorcery'], vm: 2, ci: 'G', kw: [{ k: 'ofertaPresente', tipo: 'carta' }],
   alvos: [{ f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, opcao: 'semPresente' }, { f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, min: 2, max: 2, opcao: 'presente' }],
@@ -1734,6 +1734,68 @@ caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you d
   igual(perguntas.filter(t => t === 'talvez').length, 0, 'com pagando, o pagar já é o "pode"');
   igual(e.jogs[0].zonas.mao.length, mao0 + 1, 'pagou {G} e comprou');
   igual(e.objs[e.campo.find(id => e.objs[id].n === 'Llanowar Elves')].zona, 'campo');
+});
+
+caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; solved continua recusada', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Grizzly Bears']] });
+  const ctx = { voce: 0, este: e.campo[0] };
+  ok(M.fxSuportado(M.carta('Dispatch').fx), 'Dispatch lido');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), false, '2 artefatos');
+  e.por(0, 'Arcane Signet');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), true, '3 artefatos');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, { voce: 1, este: e.campo[0] }), false, 'são do outro');
+  e.por(0, 'Llanowar Elves'); e.por(0, 'Grizzly Bears');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), false, 'poderes 1 e 2');
+  e.por(0, 'Hill Giant');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), true, '1, 2 e 3');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), false, '6 permanentes');
+  for (let i = 0; i < 4; i++) e.por(0, 'Wastes');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
+  for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
+  ok(!M.condValorOk({ palavra: 'solved' }));
+});
+caso('502.3', 'Unwinding Clock: seus artefatos desviram na etapa de desvirar dos outros; as criaturas não', () => {
+  const e = cena({ campo: [[0, 'Unwinding Clock'], [0, 'Sol Ring'], [0, 'Grizzly Bears']] });
+  const [sr, gb] = [objN(e, 0, 'Sol Ring'), objN(e, 0, 'Grizzly Bears')];
+  sr.virada = true; gb.virada = true;
+  ateTurno(e, 3, 'manutencao');
+  igual([e.turno.ativo, sr.virada, gb.virada], [1, false, true]);
+});
+caso('702.41', 'afinidade por artefatos (Mycosynth Golem): {1} a menos por artefato seu; buscar "quantas quiser" (Ugin −11) e grupo na saída (Ratchet) lidos', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [0, 'Arcane Signet'], [1, 'Mind Stone']], mao: [[0, 'Mycosynth Golem']] });
+  const mg = e.objs[e.jogs[0].zonas.mao[0]];
+  igual(M.custoComImposto(e, mg).g, 8, '11 − 3');
+  ok(M.fxSuportado(M.carta('Ugin, Eye of the Storms').atv[2].fx), 'buscar {ate: qualquer}');
+  ok(M.gatOk(M.carta('Ratchet, Field Medic').faces[0].gat[0]), 'gatilho "uma ou mais" na saída');
+  const r = e.por(0, 'Ratchet, Field Medic', { obj: { face: 0 } }); e.pend = [];
+  M.mover(e, objN(e, 0, 'Sol Ring').id, 'cemiterio'); M.mover(e, objN(e, 0, 'Mind Stone').id, 'cemiterio');
+  igual(e.pend.filter(p => p.fonte === r.id).length, 1, 'uma vez pelo lote');
+});
+
+caso('702.126', 'improvisar (Organic Extinction): artefatos virados pagam {1} genérico cada; primeiro os que não dão mana', () => {
+  const arts = ['Darksteel Forge', 'Panharmonicon', 'Dolmen Gate', 'Swiftfoot Boots', 'Basilisk Collar', 'Ruby Medallion'].map(n => [0, n]);
+  const e = cena({ campo: [...terras(2, 'Plains'), [0, 'Sol Ring'], [0, 'Mind Stone'], ...arts, [1, 'Grizzly Bears']], mao: [[0, 'Organic Extinction']] });
+  const oe = e.objs[e.jogs[0].zonas.mao[0]], ms = objN(e, 0, 'Mind Stone');
+  ok(M.podeConjurar(e, 0, oe), 'WW + 6 artefatos + Sol Ring = 10');
+  M.avancar(e); resp(e, op => op.a === 'conjurar' && op.id === oe.id);
+  igual(arts.map(([, n]) => objN(e, 0, n).virada), arts.map(() => true), 'os 6 sem mana foram virados');
+  igual(ms.virada, false, 'o Mind Stone sobrou');
+  resolveCom(e);
+  igual([objN(e, 1, 'Grizzly Bears'), oe.zona], [undefined, 'cemiterio']);
+  const g = cena({ campo: [...terras(2, 'Plains'), [0, 'Sol Ring'], ...arts.slice(0, 5)], mao: [[0, 'Organic Extinction']] });
+  igual(M.podeConjurar(g, 0, g.objs[g.jogs[0].zonas.mao[0]]), false, '2 + 2 + 5 = 9 de 10');
+});
+caso('118.9', 'custo alternativo: grátis com comandante no campo (Flawless Maneuver, Deflecting Swat); custo de mana alternativo mais barato (Baleful Mastery)', () => {
+  const e = cena({ cmd: ['Krenko, Mob Boss'], campo: [...terras(3, 'Plains'), [1, 'Grizzly Bears']], mao: [[0, 'Flawless Maneuver'], [0, 'Baleful Mastery']] });
+  const [fm, bm] = e.jogs[0].zonas.mao.map(id => e.objs[id]);
+  ok(M.carta('Deflecting Swat').est.every(s => M.estAltOk(s)) && M.carta('Flawless Maneuver').est.every(s => M.estAltOk(s)), 'lidos');
+  igual(M.altDe(e, 0, fm), undefined, 'comandante na zona de comando: paga o normal');
+  const kr = e.objs[e.jogs[0].zonas.comando[0]]; M.mover(e, kr.id, 'campo');
+  igual(M.altDe(e, 0, fm), {}, 'com o comandante no campo: grátis');
+  ok(M.podeConjurar(e, 0, fm), 'conjura sem mana de branco');
+  igual(M.vmDe(M.altDe(e, 0, bm) || M.carta('Baleful Mastery').custo), 2, 'Baleful Mastery: {1}{B} no lugar de {3}{B}');
+  ok(!M.estAltOk({ modo: 'custoAlternativo', afeta: 'este', pagar: { vida: 1 } }), 'pagar vida: ainda não');
 });
 
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
