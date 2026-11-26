@@ -1653,6 +1653,25 @@ caso('113.6', 'Anger: estática que vale do cemitério (esteEm) — com Mountain
   ok(!M.seOk({ esteEm: ['pilhaX'] }), 'zona desconhecida: recusa');
 });
 
+caso('613.1d', 'Brotherhood Regalia: a equipada vira Assassin (camada 4), ganha resguardo {2} e não pode ser bloqueada; desequipada, perde tudo', () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant']] });
+  const [gb, le, hg] = [objN(e, 0, 'Grizzly Bears'), objN(e, 0, 'Llanowar Elves'), objN(e, 1, 'Hill Giant')];
+  const rg = e.por(0, 'Brotherhood Regalia');
+  ok(M.carta('Brotherhood Regalia').est.every(x => x.modo !== 'continuo' || M.estContOk(x)), 'o motor lê a estática');
+  ok(!M.estTipoEquipOk({ modo: 'continuo', afeta: 'equipada', sub: ['Forest'] }), 'tipo de terreno básico: recusa (305.6)');
+  const sub = o => M.dadoDe(e, o).sub || [];
+  igual(sub(gb).includes('Assassin'), false);
+  rg.anexo = { id: gb.id, ts: gb.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  igual([sub(gb).includes('Assassin'), sub(gb).includes('Bear'), sub(le).includes('Assassin')], [true, true, false], 'soma o subtipo, só na equipada');
+  igual([M.temKw(e, gb, 'resguardo'), M.temKw(e, le, 'resguardo')], [true, false]);
+  igual([M.bloqueiaEste(e, hg, gb), M.bloqueiaEste(e, hg, le)], [false, true]);
+  ok(M.objetosQue(e, { sub: ['Assassin'], zona: 'campo' }, { voce: 0 }).some(o => o.id === gb.id), 'filtro por subtipo enxerga o Assassin');
+  rg.anexo = { id: le.id, ts: le.ts }; e.vCamada++;
+  igual([sub(gb).includes('Assassin'), sub(le).includes('Assassin'), M.temKw(e, gb, 'resguardo')], [false, true, false], 'trocou de criatura');
+  M.mover(e, le.id, 'cemiterio');
+  igual(sub(le).includes('Assassin'), false, 'fora do campo, só o impresso');
+});
+
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
   const e = cena({ campo: terras(2, 'Wastes') });
   const sr = e.por(0, 'Sol Ring', { zona: 'grimorio' }), gr = e.jogs[0].zonas.grimorio; gr.unshift(gr.pop());   // no fundo: não é comprado
