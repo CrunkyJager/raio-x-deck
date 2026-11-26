@@ -2401,6 +2401,18 @@ caso('701.23', "buscar para o grimório (Mystical Tutor): a carta achada fica no
   igual([e.objs[g[g.length - 1]].n, g.length], ['Lightning Bolt', 4], 'no topo, nada some');
 });
 
+caso('603.4', "maisTerrenosOponente (Land Tax 'algum'; Archaeomancer's Map 'doEvento'): conta os terrenos de cada um", () => {
+  const e = cena({ campo: [...terras(2, 'Plains'), [1, 'Plains'], [1, 'Plains'], [1, 'Plains'], [0, 'Land Tax']] });
+  const lt = e.objs[e.campo.find(id => e.objs[id].n === 'Land Tax')];
+  const g = M.carta('Land Tax').gat[0];
+  ok(M.gatOk(g), 'o gatilho é lido');
+  igual(M.condicao(e, g.se, { voce: 0, este: lt.id }), true, '3 contra 2');
+  igual(M.condicao(e, g.se, { voce: 1, este: lt.id }), false, 'quem tem mais não ganha');
+  const p1 = e.campo.find(id => e.objs[id].ctrl === 1);
+  igual(M.condicao(e, { maisTerrenosOponente: 'doEvento' }, { voce: 0, ev: { ev: 'entra', id: p1 } }), true, 'o terreno do oponente entrou e ele tem mais');
+  igual(M.condicao(e, { maisTerrenosOponente: 'doEvento' }, { voce: 0, ev: { ev: 'entra', id: lt.id } }), false, 'o que entrou é meu');
+});
+
 caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you do, draw'): pergunta antes de pagar; a repetição do processo não perde a opção", () => {
   const e = cena({ campo: [...terras(4, 'Forest'), [0, 'Leaf-Crowned Visionary']], mao: [[0, 'Llanowar Elves']] });
   M.avancar(e);
