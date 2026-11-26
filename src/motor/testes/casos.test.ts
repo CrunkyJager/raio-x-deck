@@ -1735,6 +1735,19 @@ caso('101.2', 'não pode ser anulada: Rhythm of the Wild protege as minhas criat
   igual([M.anular(e, meu), M.anular(e, dele), M.anular(e, veto), M.anular(e, raio)], [false, true, false, true], 'Ursos meus e o Veto ficam; Ursos dele e o Raio são anulados');
   igual([e.objs[meu].zona, e.objs[dele].zona, e.objs[veto].zona, e.objs[raio].zona], ['pilha', 'cemiterio', 'pilha', 'cemiterio']);
 });
+caso('605.3', 'mana com custo de virar outras (Baylen): vira 2 fichas sem mana própria; com Treasure no lugar não conta como fonte', () => {
+  const cx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  const e = cena({ campo: [[0, 'Baylen, the Haymaker']] });
+  const baylen = e.campo[0], fonte = () => M.fontesDeMana(e, 0).filter(f => f.id === baylen);
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Food' } }, cx, null);
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx, null);
+  igual(fonte().length, 0, 'Food + Treasure: a Treasure tem mana própria, Baylen não conta');
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Food' } }, cx, null);
+  const f = fonte(); igual(f.length, 1, 'duas Food: Baylen é fonte');
+  M.ativarMana(e, 0, baylen, f[0].k, 0);
+  igual(e.campo.filter(id => e.objs[id].n === 'Food').map(id => e.objs[id].virada), [true, true], 'as duas Food viram');
+  igual([e.objs[baylen].virada, e.campo.some(id => e.objs[id].n === 'Treasure' && e.objs[id].virada), M.somaMana(e.jogs[0].reserva)], [false, false, 1], 'Baylen e a Treasure ficam; 1 de mana');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
