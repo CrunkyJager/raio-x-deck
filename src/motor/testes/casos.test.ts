@@ -1917,6 +1917,19 @@ caso('702.94', 'milagre (Reforge the Soul): a primeira compra do turno revela e 
     igual([e.objs[top].zona, e.jogs[0].zonas.mao.length, e.jogs[1].zonas.mao.length, e.campo.filter(x => e.objs[x].virada).length], ['cemiterio', 7, 7, 2], 'conjurou pelo milagre');
   }
 });
+caso('303.7', 'Role (Witch\'s Mark): a ficha dá +1/+1 enquanto anexada; um segundo Role meu na criatura manda o mais velho ao cemitério e o Wicked Role faz cada oponente perder 1; sem alvo, nenhuma ficha', () => {
+  const e = cena({ campo: [...terras(4), [0, 'Grizzly Bears']], mao: [[0, "Witch's Mark"], [0, "Witch's Mark"]] }); e.pend = [];
+  const bears = objN(e, 0, 'Grizzly Bears'), v = e.jogs[1].vida;
+  const lanca = () => { M.avancar(e); conj(e, "Witch's Mark"); resolveCom(e, p => p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'nao') : p.tipo === 'alvo' ? p.ops.findIndex(o => o.o === bears.id) : -1); };
+  lanca();
+  const roles = () => e.campo.filter(id => e.objs[id].n === 'Wicked Role');
+  igual([roles().length, M.poder(e, bears), M.resistencia(e, bears)], [1, 3, 3], 'um Role: 3/3');
+  lanca();
+  igual([roles().length, M.poder(e, bears), e.jogs[1].vida], [1, 3, v - 1], 'dois Roles meus: o velho vai ao cemitério e o oponente perde 1');
+  const s = cena({ campo: terras(2), mao: [[0, "Witch's Mark"]] }); s.pend = [];
+  M.avancar(s); conj(s, "Witch's Mark"); resolveCom(s, p => p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'nao') : -1);
+  igual([s.campo.filter(id => s.objs[id].ficha).length, s.jogs[1].vida], [0, 40], 'sem criatura: nenhuma ficha, ninguém perde vida');
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

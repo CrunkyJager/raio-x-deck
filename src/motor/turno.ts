@@ -245,6 +245,14 @@ M.abe = e => {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }
     }
+    // CR 303.7a / 704.5y: mais de um Role do mesmo controlador no mesmo permanente → só o mais novo fica
+    const roles = new Map<string, any>();
+    for (const id of e.campo) {
+      const o = e.objs[id]; if (!o.anexo || !(M.dadoDe(e, o).sub || []).includes('Role')) continue;
+      const k = o.anexo.id + ':' + o.ctrl, v = roles.get(k);
+      if (!v) { roles.set(k, o); continue; }
+      if (v.ts < o.ts) { morrem.push(v.id); roles.set(k, o); } else morrem.push(id);
+    }
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
     for (const id of e.campo) {
       const o = e.objs[id], n = M.capitulos(M.dadoDe(e, o));
