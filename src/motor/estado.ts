@@ -278,7 +278,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, escolha: null, mortal: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
@@ -678,7 +678,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -688,6 +688,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.outro && o.id === ctx.este) return false;
   if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;
+  // "a creature dealt damage by this creature this turn" (Markov Enforcer): o.feridaPor guarda {id, ts, t} da fonte; no 'morre' vale o lki (snap)
+  if (f.feridaPorEsteNoTurno && !(o.feridaPor || []).some(x => x.id === ctx.este && x.t === e.turno.n && (!e.objs[ctx.este] || x.ts === e.objs[ctx.este].ts || e.objs[ctx.este].zona !== 'campo'))) return false;
   // "exiled with this" (406.6, 607.2a): o exílio guarda quem exilou (o.exPor {id, ts}); vale para este objeto (mesmo ts, ou o lki se já saiu)
   if (f.exiladaPorEste && !(o.zona === 'exilio' && o.exPor && o.exPor.id === ctx.este && o.exPor.ts === ((ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (e.objs[ctx.este] || {}).ts))) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;

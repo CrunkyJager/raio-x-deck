@@ -342,6 +342,10 @@ export interface RxFiltro {
    */
   comMarcador?: string;
   /**
+   * recebeu dano deste objeto neste turno (Markov Enforcer: 'a creature dealt damage by this creature this turn dies')
+   */
+  feridaPorEsteNoTurno?: boolean;
+  /**
    * no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)
    */
   exiladaPorEste?: boolean;

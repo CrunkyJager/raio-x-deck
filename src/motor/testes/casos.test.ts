@@ -1969,6 +1969,16 @@ caso('607.2a', 'exilada com este (Bag of Holding): o descarte vai ao exílio mar
   M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === bag.id && o.k === k); resolveCom(e);
   igual([naZona(e, 0, 'mao').sort(), e.jogs[0].zonas.exilio, bag.zona], [['Forest', 'Grizzly Bears'], [outra], 'cemiterio'], 'voltaram as duas');
 });
+caso('120', 'ferida por esta no turno (Markov Enforcer): a criatura que levou dano dela e morre dá um Blood; morrer sem dano dela, não', () => {
+  for (const lutou of [true, false]) {
+    const e = cena({ campo: [[0, 'Markov Enforcer'], [1, 'Grizzly Bears']] }); e.pend = [];
+    const enf = objN(e, 0, 'Markov Enforcer'), b = objN(e, 1, 'Grizzly Bears');
+    if (lutou) M.executar(e, { op: 'lutar', em: 'este', com: { alvo: 0 } }, { voce: 0, este: enf.id, alvos: [[{ o: b.id, ts: b.ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+    else M.mover(e, b.id, 'cemiterio');
+    M.avancar(e); resolveCom(e);
+    igual([b.zona, e.campo.filter(id => e.objs[id].n === 'Blood').length], ['cemiterio', lutou ? 1 : 0], lutou ? 'lutou' : 'morreu por outra coisa');
+  }
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

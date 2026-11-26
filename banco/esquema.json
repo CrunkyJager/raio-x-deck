@@ -618,6 +618,10 @@
      "type": "string",
      "description": "tem ao menos 1 marcador deste tipo"
     },
+    "feridaPorEsteNoTurno": {
+     "type": "boolean",
+     "description": "recebeu dano deste objeto neste turno (Markov Enforcer: 'a creature dealt damage by this creature this turn dies')"
+    },
     "exiladaPorEste": {
      "type": "boolean",
      "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"

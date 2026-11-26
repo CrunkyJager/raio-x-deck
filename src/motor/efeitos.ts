@@ -458,6 +458,7 @@ function danoEm(e, alvoObj, q, fonte) {
   if (M.temTipo(e, alvoObj, 'Planeswalker')) alvoObj.marc.lealdade = (alvoObj.marc.lealdade || 0) - q;   // CR 120.3c
   if (M.temTipo(e, alvoObj, 'Creature')) { if (M.temInfectar(fonte.kw)) alvoObj.marc['-1/-1'] = (alvoObj.marc['-1/-1'] || 0) + q; else alvoObj.dano += q; if ((fonte.kw || []).some(k => k.k === 'toqueMortifero')) alvoObj.mortal = true; }   // 120.3e (infectar: −1/−1, 702.90c), 702.2b
   if (M.temTipo(e, alvoObj, 'Battle')) alvoObj.marc.defesa = (alvoObj.marc.defesa || 0) - q;                // CR 120.3h
+  if (fonte.o && q > 0) (alvoObj.feridaPor || (alvoObj.feridaPor = [])).push({ id: fonte.o.id, ts: fonte.o.ts, t: e.turno.n });   // "dealt damage by this creature this turn" (Markov Enforcer)
 }
 
 // ---------- os efeitos ----------
@@ -603,7 +604,7 @@ const H = {
       const A = objsDe(e, f, ctx)[0], B = objsDe(e, { em: f.com }, ctx)[0];
       if (!A || !B || A.zona !== 'campo' || B.zona !== 'campo' || !M.temTipo(e, A, 'Creature') || !M.temTipo(e, B, 'Creature')) return;
       const pa = Math.max(0, M.poder(e, A)), pb = Math.max(0, M.poder(e, B));
-      const fa = { kw: M.kwDe(e, A), ctrl: A.ctrl }, fb = { kw: M.kwDe(e, B), ctrl: B.ctrl };
+      const fa = { kw: M.kwDe(e, A), ctrl: A.ctrl, o: A }, fb = { kw: M.kwDe(e, B), ctrl: B.ctrl, o: B };
       if (pa) danoEm(e, B, pa, fa);
       if (pb) danoEm(e, A, pb, fb);
       M.log(e, A.n, 'luta com', B.n, `(${pa} e ${pb})`);

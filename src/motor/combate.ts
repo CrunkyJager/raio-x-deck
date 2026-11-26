@@ -277,7 +277,7 @@ function aplicarGolpes(e, golpes) {
     } else {
       const o = e.objs[g.alvo.o];
       if (protegeDe(e, o, fd)) continue;                                                   // 702.16e
-      M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte) });   // toque mortífero dado por camada conta
+      M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte), o: g.fonte });   // toque mortífero dado por camada conta
     }
     M.evento(e, { ev: 'dano', fonte: g.fonte.id, combate: true, q: g.q, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: g.alvo.o }) });   // 510.3a
     if (kw(e, g.fonte, 'vinculoVida')) vida[g.fonte.ctrl] = (vida[g.fonte.ctrl] || 0) + g.q;   // 702.15b
