@@ -332,6 +332,7 @@ M.podeAtivar = (e, j, o, k) => {
   } else if (a.vel === 'feitico' && !M.velFeitico(e, j)) return false;
   if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
   if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
+  if (a._soltar && !o.anexo) return false;                            // reconfigurar: soltar só se anexada (702.151a)
   if (!custoFisicoOk(e, j, o, a.custo, { daMao: a.custo.descartarEste ? o.id : undefined })) return false;
   const ctx = { voce: j, este: o.id };
   for (const i of alvosUsados(a.fx)) {

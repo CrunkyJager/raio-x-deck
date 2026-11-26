@@ -1930,6 +1930,16 @@ caso('303.7', 'Role (Witch\'s Mark): a ficha dá +1/+1 enquanto anexada; um segu
   M.avancar(s); conj(s, "Witch's Mark"); resolveCom(s, p => p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'nao') : -1);
   igual([s.campo.filter(id => s.objs[id].ficha).length, s.jogs[1].vida], [0, 40], 'sem criatura: nenhuma ficha, ninguém perde vida');
 });
+caso('702.151', 'reconfigurar (Lizard Blades): anexa a outra criatura sua e deixa de ser criatura; a equipada ganha golpe duplo; soltar só se anexada e volta a ser criatura', () => {
+  const e = cena({ campo: [...terras(4), [0, 'Lizard Blades'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const lb = objN(e, 0, 'Lizard Blades'), bears = objN(e, 0, 'Grizzly Bears');
+  const k = (a: string) => M.atvDe(e, lb).findIndex(x => x[a]);
+  igual([M.podeAtivar(e, 0, lb, k('_equipar')), M.podeAtivar(e, 0, lb, k('_soltar'))], [true, false], 'solta: só anexar');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === lb.id && o.k === k('_equipar')); resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.o === bears.id) : -1);
+  igual([lb.anexo && lb.anexo.id, M.temTipo(e, lb, 'Creature'), M.temKw(e, bears, 'golpeDuplo'), noCampo(e).includes('Lizard Blades')], [bears.id, false, true, true], 'anexada');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === lb.id && o.k === k('_soltar')); resolveCom(e);
+  igual([lb.anexo, M.temTipo(e, lb, 'Creature'), M.temKw(e, bears, 'golpeDuplo')], [null, true, false], 'solta de novo');
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

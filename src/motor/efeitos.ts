@@ -767,15 +767,16 @@ const H = {
   desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.desvirarObj(e, o); } },
   // CR 701.3: prende o Equipamento/Aura (em) ao objeto a. Equipamento só em criatura e nunca em si mesmo (301.5c);
   // Aura só no que o encantar permite (303.4a); preso ao mesmo objeto = nada acontece (701.3b).
+  soltar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.anexo) { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'solta (volta a ser criatura)'); } } },   // reconfigurar (702.151a)
   anexar: {
-    campos: ['a'],
+    campos: ['a', 'reconf'],
     ok: f => f.em !== undefined && emOk(f.a) && f.a !== undefined && (f.a === 'este' || typeof f.a.alvo === 'number'),
     fx(e, f, ctx) {
       const t = objsDe(e, { em: f.a }, ctx).find(o => o.zona === 'campo'); if (!t) return;
       for (const o of objsDe(e, f, ctx)) {
         if (o.zona !== 'campo' || o.id === t.id) continue;
         const d = M.dadoDe(e, o), sub = d.sub || [];
-        if (sub.includes('Equipment')) { if (!M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) continue; }
+        if (sub.includes('Equipment')) { if (!M.temTipo(e, t, 'Creature') || (M.temTipo(e, o, 'Creature') && !f.reconf)) continue; }   // reconfigurar: anexa mesmo sendo criatura (702.151a)
         else if (sub.includes('Aura')) { const k = (d.kw || []).find(x => x.k === 'encantar'); if (!k || !k.f || !M.bate(e, t, { ...k.f, zona: 'campo' }, ctx)) continue; }
         else continue;
         if (o.anexo && o.anexo.id === t.id && o.anexo.ts === t.ts) continue;

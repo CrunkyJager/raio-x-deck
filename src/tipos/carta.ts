@@ -944,6 +944,7 @@ export interface RxKw {
     | 'improvisar'
     | 'loucura'
     | 'milagre'
+    | 'reconfigurar'
     | 'chute'
     | 'ofertaPresente'
     | 'esconderijo'

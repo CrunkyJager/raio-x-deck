@@ -77,7 +77,15 @@ M.dadoDe = (e, o) => {
       }
     } finally { lendoTipo--; }
   }
+  if (o.anexo && (d.kw || []).some(x => x.k === 'reconfigurar')) d = semCriatura(d);   // 702.151b: anexada, não é criatura
   return d;
+};
+// reconfigurar (702.151b): enquanto anexada, perde o tipo Criatura e os subtipos de criatura (fica o Equipamento)
+const SEM_CRIATURA = new WeakMap<object, any>();
+const semCriatura = d => {
+  let r = SEM_CRIATURA.get(d);
+  if (!r) SEM_CRIATURA.set(d, (r = { ...d, tipos: (d.tipos || []).filter(t => t !== 'Creature'), sub: (d.sub || []).filter(s => s === 'Equipment'), pt: undefined }));
+  return r;
 };
 
 // ---- faces (CR 709 split, 712 dupla face e modal, 716 aventura) ----
@@ -629,12 +637,22 @@ const subirDe = l => {
   if (!a) SUBIR.set(l, (a = { custo: { mana: l.custo || {} }, vel: 'feitico', _nivel: l.n, fx: [{ op: 'subirNivel', n: l.n }] }));
   return a;
 };
+// reconfigurar (702.151a): "[custo]: anexe a uma criatura alvo sua (outra)" e "[custo]: solte; só se anexada" — como feitiço
+const RECONF = new WeakMap<object, any>();
+const reconfDe = kw => {
+  let a = RECONF.get(kw);
+  if (!a) RECONF.set(kw, (a = [
+    { custo: { mana: kw.custo || {} }, vel: 'feitico', _equipar: true, alvos: [{ f: { tipo: ['Creature'], ctrl: 'voce', outro: true, zona: 'campo' } }], fx: [{ op: 'anexar', em: 'este', a: { alvo: 0 }, reconf: true }] },
+    { custo: { mana: kw.custo || {} }, vel: 'feitico', _soltar: true, fx: [{ op: 'soltar', em: 'este' }] }]));
+  return a;
+};
 const atvCarta = d => {
   let l = ATV_CARTA.get(d);
   if (!l) {
+    const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
-    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe)] : d.atv || NADA.atv));
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe), ...rc] : d.atv || NADA.atv));
   }
   return l as any[];
 };
