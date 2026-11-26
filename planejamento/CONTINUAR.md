@@ -43,9 +43,13 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 - Ivora: no banco 75/75 · motor joga 74/75 (Library of Leng) · inteiras 50/75. Masmorras: 81/81 · 73/81 · 68/81.
 - v0.41.0 (Felipe 26/11): a Mesa ao vivo **indica, não limita** — mana quando quiser (⚡) e para fora da principal quando há o que usar; lugar em forma de tapete (comando no canto do centro), fundo escolhido por lugar.
 
+## Estado em 26/11 ~10h — v0.42.0 na main
+- **Masmorras: no banco 83/83 · motor joga 83/83 · inteiras 77/83.** Ivora: 75/75 · 74/75 (Library of Leng) · 50/75. Motor joga inteiras 1345/1753. Vitest 267.
+- Novos no motor: `repetirCada` por jogador (`cadaAtual`), custo `virarOutros`, `virar.naoDesvira/soNaoDesvira` (esquema), subst `morre`/`vaiCemiterio` no `M.mover` (muda.para, exilar+marcador, embaralhar no grimório), gat `danoUmaVez`, filtros `kw`/`comMarcador`, dono `atacado`, atrasado que herda o alvo, `modificar.gat`, marcador de palavra-chave (122.1b), objBate doEvento com LKI no gatilho.
+
 ## Próximo passo (nesta ordem)
-1. Masmorras **motor joga 81/81**: faltam 8 (Acererak repetirCada, Corpse Cur gat entra vários campos, Demonic Gifts modificar.gat, Dungeon Descent virarOutros, Fifty Feet virar.naoDesvira, Prosperous Thief danoUmaVez, Ravenloft perderVida.qtd + subst morre, Alora gatilhoAtrasado com alvo). Withercrown FEITA (v0.40.0). Depois: subst anulada impedir (12 cartas) e morre/vaiCemiterio. Uma por commit, com caso. Corrigir o caso do B da Undercity.
-2. `falta` da Ivora (25) e das masmorras (5): milagre, fuga, reconfigurar, "descartadas no turno"… → inteiras.
+1. Substituições que faltam: Library of Leng (vaiCemiterio com `talvez`: precisa de pergunta dentro do mover → Ivora 75/75), anulada `impedir` (12 cartas). Habilidade de mana com `virarOutros` (Baylen) no `mana.ts`, e a cobertura passar a conferir habilidade de mana. `repetirCada` com filtro de objetos (Kalonian Hydra, Second Harvest, Ocelot Pride) e as fichas `atacando` (Adeline, Ainok). Uma por commit, com caso. Corrigir o caso do B da Undercity.
+2. `falta` da Ivora (25) e das masmorras (6): milagre, fuga, reconfigurar, "descartadas no turno"… → inteiras.
 3. Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
 4. T44 medida em lotes → T46 depois da autorização.
 

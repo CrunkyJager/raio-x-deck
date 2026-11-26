@@ -2,6 +2,14 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.42.0 — 26/11/2026 · masmorras 83/83 no motor (as 8 travas)
+Testes: check 0 erros · Vitest 267/267 · raiox-testes igual à linha de base. Motor joga inteiras 1345/1753 (eram 1299). Partidas de masmorras 40, 0 erros.
+- **"Para cada oponente…" (`repetirCada`, jogador da vez `cadaAtual`):** Acererak, Braids, Tempt with Bunnies/Discovery, Echo of Eons, Field of Ruin, Dark Deal, Winds of Change, Kwain, Lobelia. O progresso por jogador sobrevive às perguntas. Braids: só quem não sacrificou perde 2 e você compra (o banco escrevia "sempre").
+- **Corpse Cur** (filtro "com infectar"), **Demonic Gifts** (ganha "quando morrer, volta" até o fim do turno), **Dungeon Descent** e mais 7 (custo "vire uma criatura sua": Lathril, Kumena, Inalla, Galecaster, Azami, Cryptbreaker, The Shire), **Fifty Feet of Rope** e Junk Winder ("não desvira no próximo desvirar"), **Prosperous Thief** ("uma ou mais causam dano" = uma vez), **Ravenloft Adventurer** (morre → exílio com marcador hit; perda de vida pelas cartas com hit), Liesa e Blightsteel (substituição de morrer/ir ao cemitério), **Alora** (o gatilho do fim do turno lembra a criatura; se ela mudou de zona, não volta).
+- Consertos de regra achados no caminho: marcador de palavra-chave dá a palavra-chave (122.1b: flying, indestructible…); "criatura sem voar morre" olha como ela estava ao morrer (Luminous Broodmoth não devolve mais a que voa).
+- Decks: Ivora no banco 75/75 · motor joga 74/75 (Library of Leng) · inteiras 50/75. Masmorras no banco 83/83 · motor joga 83/83 · inteiras 77/83.
+- Pendente: habilidade de mana com custo "vire outra" (Baylen) ainda não é usada pelo motor, e a cobertura não confere habilidades de mana.
+
 ## v0.41.0 — 26/11/2026 · Mesa ao vivo: mana quando quiser e lugar em forma de tapete
 Testes: check 0 erros · Vitest 257/257 · Chrome headless sem erro na página.
 - **Mana livre (Felipe 26/11: a Mesa indica, não limita):** com prioridade, botões "⚡ Mountain → {R}" viram a fonte e a mana fica na reserva até o fim da etapa (o texto mostra "Na reserva"). Fora da sua fase principal, a Mesa para sempre que você tem instantânea ou habilidade para usar, e diz em que etapa está. Prova no node: `ferramentas/mesa-mana.mjs`.

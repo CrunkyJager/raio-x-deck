@@ -94,7 +94,7 @@ function acaoDoTurno(e) {
     case 'desvirar':                                                // CR 502.1 (fases antes), 502.2–502.3
       J.terrenos = 0;
       if (e.faseados && e.faseados.length) M.fasearDentro(e, a);
-      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { o.virada = false; o.doente = false; } }
+      for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === a) { if (o.naoDesv === o.ts) delete o.naoDesv; else o.virada = false; o.doente = false; } }   // naoDesv: "não desvira no próximo desvirar" (o mesmo objeto, 400.7)
       // "desvire [filtro] que você controla durante a etapa de desvirar de cada outro jogador" (Unwinding Clock, Seedborn Muse)
       for (const id of M.indiceCampo(e).est) {
         const F = e.objs[id]; if (F.ctrl === a) continue;
@@ -119,7 +119,7 @@ function acaoDoTurno(e) {
   }
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
-  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
+  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
   // 'modificar' até o fim do turno (efeitos.ts) sai; o de dura 'sempre' (Witch's Mark: +1/+1 sem prazo, 611.2a) fica
   // enquanto o objeto (mesmo ts) estiver no campo. Array novo: o índice do somaTemp refaz.
   e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
