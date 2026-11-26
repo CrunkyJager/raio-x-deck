@@ -133,6 +133,7 @@ function maoMax(e, j) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'maoMax' && s.afeta === 'voce') m = s.qtd === 'tudo' ? Infinity : Math.max(m, s.qtd);
   }
+  for (const t of e.efTemp || []) if (t.ctrl === j) for (const s of t.est) if (s.modo === 'maoMax') m = s.qtd === 'tudo' ? Infinity : Math.max(m, s.qtd);   // Ancient Silver Dragon, emblema da Wrenn
   return m;
 }
 M.maoMax = maoMax;
@@ -170,6 +171,7 @@ function terrenosPorTurno(e, j) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'terraExtra' && s.afeta === 'voce' && typeof s.qtd === 'number') n += s.qtd;
   }
+  for (const t of e.efTemp || []) if (t.ctrl === j) for (const s of t.est) if (s.modo === 'terraExtra') n += s.qtd;   // Explore: "neste turno"
   return n;
 }
 M.terrenosPorTurno = terrenosPorTurno;

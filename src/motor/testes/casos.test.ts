@@ -2939,6 +2939,15 @@ caso('615.1', 'prevenir dano até o fim do turno (efeitoTemporario): Selfless Sq
   passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
   igual(M.substDano(e, 3, { jog: 1, combate: true }), 3, 'acabou no fim do turno');
 });
+caso('611.2b', 'efeitoTemporario de regra do jogador: Explore dá terreno extra só neste turno; Ancient Silver Dragon tira o limite de mão pelo resto da partida', () => {
+  const fxDe = n => { const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; }; return ach(M.carta(n)); };
+  const e = cena(); e.pend = [];
+  const ctx = { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  M.executar(e, fxDe('Explore'), ctx, null); M.executar(e, fxDe('Ancient Silver Dragon'), ctx, null);
+  igual([M.terrenosPorTurno(e, 0), M.terrenosPorTurno(e, 1), M.maoMax(e, 0), M.maoMax(e, 1)], [2, 1, Infinity, 7], 'neste turno');
+  passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
+  igual([M.terrenosPorTurno(e, 0), M.maoMax(e, 0)], [1, Infinity], 'turno seguinte');
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
