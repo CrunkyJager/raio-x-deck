@@ -1,9 +1,13 @@
 {
  "copias": 2859,
- "inteiras": 2442,
- "pct": 85.4,
+ "inteiras": 2417,
+ "pct": 84.5,
  "sem_carta": {},
  "falta_top": [
+  [
+   "Effect sem estática conhecida",
+   19
+  ],
   [
    "qtd:X",
    16
@@ -13,11 +17,15 @@
    15
   ],
   [
-   "Effect sem estática conhecida",
-   7
+   "S:CantBlockBy:Card.IsRemembered",
+   12
   ],
   [
    "R:Moved",
+   7
+  ],
+  [
+   "Mana:RestrictValid:Activated.Creature+escolhido",
    7
   ],
   [
@@ -26,6 +34,10 @@
   ],
   [
    "API:ChooseCard",
+   5
+  ],
+  [
+   "Mana:RestrictValid:varios",
    5
   ],
   [
@@ -230,18 +242,6 @@
   ],
   [
    "Defined:TriggeredSourceLKICopy",
-   2
-  ],
-  [
-   "filtro:.counters_EQ0_P1P1",
-   2
-  ],
-  [
-   "Defined:You",
-   2
-  ],
-  [
-   "Cost:Return<1/CARDNAME>",
    2
   ]
  ]

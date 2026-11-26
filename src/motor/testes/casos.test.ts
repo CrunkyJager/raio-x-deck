@@ -2977,6 +2977,19 @@ caso('101.2', 'não pode conjurar neste turno (Conduit of Worlds, se conjurou pe
   passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
   igual(e.efTemp.length, 0, 'acabou');
 });
+caso('702.92a', 'arma viva (Mortarpod): ao entrar cria Germe 0/0 preto e se anexa a ele — o Germe fica 0/1 e vive; sacrificar o Germe dá 1 de dano', () => {
+  const e = cena({ campo: terras(2), mao: [[0, 'Mortarpod']] }); e.pend = [];
+  M.avancar(e); conj(e, 'Mortarpod'); resolveCom(e);
+  const mp = e.objs[e.campo.find(id => e.objs[id].n === 'Mortarpod')];
+  const germe = e.objs[e.campo.find(id => e.objs[id].n === 'Phyrexian Germ')];
+  ok(germe, 'Germe no campo (não morreu como 0/0)');
+  igual([mp.anexo && mp.anexo.id, M.poder(e, germe), M.resistencia(e, germe)], [germe.id, 0, 1], 'anexado, 0/1');
+  const k = M.atvDe(e, germe).findIndex(a => a.custo && a.custo.sacrificar === 'este');
+  ok(k >= 0, 'Germe ganhou a habilidade');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === germe.id && o.k === k);
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  igual([germe.zona, e.jogs[1].vida, mp.anexo], ['cemiterio', 39, null], 'Germe sacrificado, 1 de dano, Mortarpod solto');
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');

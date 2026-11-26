@@ -1615,7 +1615,7 @@ def face_rx(f, falta):
     global _SV
     _SV = f['SVar']
     out = {}
-    ESP = ('ETBReplacement:', 'etbCounter:', 'Chapter:')
+    ESP = ('ETBReplacement:', 'etbCounter:', 'Chapter:', 'Living Weapon')
     kws = [x for x in (palavra(k, falta) for k in f['K'] if not k.startswith(ESP)) if x]
     if kws: out['kw'] = kws
     atv, fx, alvos = [], [], []
@@ -1659,6 +1659,10 @@ def face_rx(f, falta):
         g = gatilho(t, f, falta)
         if g: gs.append((g, t))
     gs = [g for g, _ in gs]
+    if 'Living Weapon' in f['K']:          # arma viva (702.92a): ao entrar, Germe 0/0 preto e anexa este a ele
+        gs.append({'ev': 'entra', 'quem': {'este': True}, 'fx': [
+            {'op': 'ficha', 'quem': 'voce', 'qtd': 1, 'token': {'nome': 'Phyrexian Germ', 'pt': [0, 0], 'cores': 'B', 'tipos': ['Creature'], 'sub': ['Phyrexian', 'Germ']}},
+            {'op': 'anexar', 'em': 'este', 'a': 'criadas'}]})
     for k in f['K']:                     # saga: K:Chapter:N:SVar1,SVar2… → gatilho por capítulo (CR 714)
         if k.startswith('Chapter:'):
             _, n, nomes = k.split(':', 2)
