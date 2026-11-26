@@ -472,7 +472,7 @@ const PERG = {
   mulligan: (q) => `Sua mão inicial${q.nm ? ` (depois de ${q.nm} mulligan${q.nm > 1 ? 's' : ''})` : ''}. Fica com ela?`,
   fundo: (q) => `Clique na carta que vai para o fundo do grimório (falta${q.falta > 1 ? 'm' : ''} ${q.falta}).`,
   terreno: () => 'Clique no terreno que quer baixar.',
-  lanca: (q) => q.resp ? `Você pode responder · ${q.mana} de mana. Clique no que quer lançar, ou passe.` : `Sua fase principal · ${q.mana} de mana. Clique no que quer lançar.`,
+  lanca: (q) => (q.resp ? `Você tem prioridade${q.passo ? ' (' + (PASSO_NOME[q.passo] || q.passo) + ')' : ''} · ${q.mana} de mana. Use uma instantânea ou habilidade, gere mana, ou passe.` : `Sua fase principal · ${q.mana} de mana. Clique no que quer lançar.`) + (q.reserva ? ` Na reserva: ${q.reserva}.` : ''),
   ataque: () => 'Combate: escolha o oponente e clique nas criaturas que atacam.',
   equipar: (q) => `Clique na criatura que vai receber ${q.x.n}.`,
   escolha: (q) => q.x.n,
@@ -481,6 +481,7 @@ const PERG = {
   bloqueio: (q) => `${q.x.de} ataca você com ${q.x.n} (${q.x.p}/${q.x.t}). Clique na criatura que bloqueia.`,
   descarte: (q) => `Fim do turno: clique na carta para descartar (falta${q.falta > 1 ? 'm' : ''} ${q.falta}).`,
 };
+const PASSO_NOME = { manutencao: 'manutenção', compra: 'compra', principal1: '1ª fase principal', inicioCombate: 'início do combate', atacantes: 'declarar atacantes', bloqueadores: 'declarar bloqueadores', dano: 'dano de combate', fimCombate: 'fim do combate', principal2: '2ª fase principal', final: 'etapa final', limpeza: 'limpeza' };
 const FASES = [['mulligan', 'Mão'], ['terreno', 'Terreno'], ['lanca', 'Principal'], ['ataque', 'Combate'], ['bloqueio', 'Bloqueio'], ['descarte', 'Fim']];
 // carta da mesa jogável: botão próprio (data-h = o que o clique faz); botão direito ou a lupa ampliam
 function jc(nome, o = {}) {
@@ -558,6 +559,8 @@ function mesaEuHTML(Q, o) {
     if (q.tipo === 'mulligan') bt.push(`<button class="btn primary" data-b="0">Ficar com a mão</button><button class="btn" data-b="1">Mulligan</button>`);
     if (q.tipo === 'terreno') bt.push(`<button class="btn" data-b="-1">Não baixar terreno</button>`);
     if (q.tipo === 'lanca') { q.ops.filter(x => typeof x.v === 'string' && x.v.slice(0, 2) === 'eq').forEach(x => bt.push(`<button class="btn small" data-b="${esc(x.v)}">🗡 ${esc(x.n)}</button>`));
+      const mn = q.ops.filter(x => typeof x.v === 'string' && x.v.slice(0, 2) === 'mn');   // gerar mana quando quiser (indica, não limita)
+      if (mn.length) bt.push(`<div class="ja-alvos"><span class="c-k">Gerar mana (fica na reserva até o fim da etapa):</span>${mn.map(x => `<button class="btn small" data-b="${esc(x.v)}" title="Vira a carta e põe a mana na sua reserva">⚡ ${esc(x.n)}</button>`).join('')}</div>`);
       bt.push(`<button class="btn primary" data-b="-1">Passar ▶</button>`); }
     if (q.tipo === 'equipar' || q.tipo === 'sacrificar') bt.push(`<button class="btn" data-b="-1">Cancelar</button>`);
     if (q.tipo === 'ataque') { const an = (q.alvos.find(a => a.v === G.alvo) || q.alvos[0] || {}).n || '';
