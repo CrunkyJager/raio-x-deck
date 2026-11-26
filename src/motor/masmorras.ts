@@ -143,7 +143,7 @@ M.aventurar = (e, j, ask, undercity = false) => {
   const escolheNova = () => ask(j, 'masmorra', novaOps().map(nome => ({ a: 'masmorra', nome })), { undercity }).nome;
   if (A && !ultima(A.nome, A.sala)) {
     const vai = MASMORRAS[A.nome].salas[A.sala].vai;
-    const i = ask(j, 'sala', vai.map(k => ({ a: 'sala', i: k, n: MASMORRAS[A.nome].salas[k].n })), { nome: A.nome, de: A.sala }).i;
+    const i = ask(j, 'sala', vai.map(k => ({ a: 'sala', i: k, n: MASMORRAS[A.nome].salas[k].n })), { nome: A.nome, desde: A.sala }).i;
     entrarSala(e, j, i);
     return;
   }

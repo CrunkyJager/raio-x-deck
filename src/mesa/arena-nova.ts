@@ -307,7 +307,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'cor': return { W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde' }[op.v as string] || op.v;
       case 'tipo': return op.v;
       case 'topo': return `${nomeOp(ob)}: fica no topo`; case 'fundo': return `${nomeOp(ob)}: vai para o fundo`;
-      case 'gatilho': return 'Gatilho de ' + nomeOp(ob);
+      case 'gatilho': return 'Gatilho de ' + (ob ? ob.n : ((e.pend || [])[op.i] || {}).n || '?');   // sala de masmorra/iniciativa: sem objeto, o nome está no pendente
       case 'bloquear': return `Bloquear ${nomeOp(e.objs[op.atk])} com ${nomeOp(ob)}`;
       case 'desfazer': return 'Desfazer bloqueios';
       case 'fica': return `Manter esta ${nomeOp(ob)} (a outra vai para o cemitério)`;
@@ -318,13 +318,18 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'proliferar': return op.jog !== undefined ? nomeJ(op.jog) : nomeOp(ob);
       case 'todos': return 'Todas as criaturas → ' + (op.jog !== undefined ? nomeJ(op.jog) : nomeOp(e.objs[op.o]));
       case 'atacar': return `${nomeOp(ob)} → ${op.jog !== undefined ? nomeJ(op.jog) : nomeOp(e.objs[op.o])}`;
+      case 'masmorra': return `Entrar em ${op.nome} (o marcador vai para a 1ª sala e ela acontece)`;
+      case 'sala': return `Ir para a sala ${op.n} (o efeito dela acontece)`;
+      case 'perder': return `Perder ${op.q} de vida`;
+      case 'descartar': case 'sacrificar': if (p.tipo === 'evitarPerda') return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)} (e não perde vida)`; return `${op.a}: ${nomeOp(ob)}`;
       default: return ob ? `${op.a}: ${ob.n}` : op.a;
     }
   }
   const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
     ordemGatilho: 'Qual gatilho vai para a pilha primeiro?', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
     buscar: 'Busca no grimório', escolherCarta: 'Escolha a carta', destino: 'Para onde vai?', sacrificar: 'Escolha o que sacrificar', lenda: 'Regra da lenda: qual fica?',
-    cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha' };
+    cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha',
+    masmorra: 'Aventurar: em qual masmorra entrar?', sala: 'Aventurar: para qual sala seguir?', evitarPerda: 'Perder vida ou pagar para não perder?' };
   function humano(p: any) {
     const J = e.jogs[HK], opIdx = (pred: (o: any) => boolean) => p.ops.findIndex(pred);
     const mao = () => J.zonas.mao.map((id: number) => ({ v: iDe(e.objs[id]), n: e.objs[id].n }));
