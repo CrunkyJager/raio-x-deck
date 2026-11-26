@@ -92,6 +92,9 @@ M.SUBST = SUBST;
 function substsDe(e, tipo) {
   const r: any[] = [];
   for (const id of e.campo) { const F = e.objs[id]; if (!F) continue; for (const s of M.dadoDe(e, F).subst || []) if (tipoSubst(s) === tipo && M.substOk(s)) r.push({ F, s }); }
+  // efeitoTemporario com substituição (Spore Frog, Riot Control, Selfless Squire): vale mesmo que a fonte já tenha saído
+  // (611.2b); o "você" é quem resolveu o efeito
+  for (const t of e.efTemp || []) for (const s of t.subst || []) if (tipoSubst(s) === tipo) r.push({ F: { id: t.este ? t.este.id : -1, ctrl: t.ctrl }, s });
   return r;
 }
 const substSe = (e, F, s) => { if (!s.se) return true; try { return M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { return false; } };
@@ -533,15 +536,16 @@ const H = {
   },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
   efeitoTemporario: {
-    campos: ['dura', 'est'],
+    campos: ['dura', 'est', 'subst'],
     qtd: q => q === undefined,
     ok: f => (f.quem === undefined || f.quem === 'voce') && (f.dura === 'fimDoTurno' || f.dura === 'proximoTurnoSeu')
-      && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && (f.est || []).length > 0 && f.est.every(s => tempEstOk(s, f)),
+      && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length) > 0
+      && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este)),
     fx(e, f, ctx) {
       const F = e.objs[ctx.este], este = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? { id: F.id, ts: F.ts } : null;
       const ids = f.em === undefined ? null : objsDe(e, f, ctx).map(o => ({ id: o.id, ts: o.ts }));
       if (ids && !ids.length) return;                                // alvo ilegal: nada a afetar (608.2b)
-      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : ctx.voce, ts: ++e.ts });
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst: f.subst || [], este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : ctx.voce, ts: ++e.ts });
     },
   },
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
