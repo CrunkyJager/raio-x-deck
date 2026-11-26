@@ -11,7 +11,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 // dentro de um repetirCada com filtro de objetos (Kalonian Hydra): em/copiaDe 'cadaAtual' = o objeto da vez
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+  'cartasNaMao', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'completouMasmorra']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
@@ -228,6 +228,7 @@ function qtdDe(e, q, ctx) {
       case 'vmDoAlvo': v = a ? a.vm : 0; break;
       case 'poderDoEste': v = este ? este.poder : 0; break;
       case 'resistDoEste': v = este ? este.resist : 0; break;
+      case 'descartadasNoTurno': { const D = e.jogs[ctx.voce].descT; v = D && D.t === e.turno.n ? D.n : 0; break; }   // "for each card you've discarded this turn"
       case 'marcadoresNoCada': { const c = ctx.cadaObj, o = c && e.objs[c.id]; v = !o || o.ts !== c.ts ? 0 : o.marc[q.de] || 0; break; }   // o objeto da vez do repetirCada
       case 'marcadoresNoEste': v = !este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0); break;   // de: um tipo de marcador ('lore')
       case 'devocao': v = M.devocao(e, ctx.voce, q.de); break;

@@ -1787,6 +1787,21 @@ caso('508.4', 'ficha virada e atacando: Hero of Bladehold escolhe quem ataca; Ad
   M.executar(e, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
   igual(e.campo.length - n0, 2, 'fora do combate: cria viradas, sem atacar');
 });
+caso('701.9', 'conta de descartadas no turno: Change of Fortune compra pelas descartadas no turno todo; Skull Raid compra a diferença', () => {
+  const e = cena({ mao: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Forest'], [1, 'Forest']] });
+  const cx = (al: any = []) => ({ voce: 0, alvos: al, ilegal: {}, lki: { alvos: [] } });
+  M.descartar(e, 0, [e.jogs[0].zonas.mao[0]]);                      // 1 antes (custo, outro efeito…)
+  const cof = M.carta('Change of Fortune').fx;
+  ok(M.fxSuportado(cof), 'Change of Fortune aceito');
+  for (const f of cof) M.executar(e, f, cx(), null);
+  igual([e.jogs[0].zonas.mao.length, e.jogs[0].zonas.cemiterio.length], [3, 3], 'descartou 2 da mão + 1 antes = compra 3');
+  e.turno.n++;
+  const sr = M.carta('Skull Raid').fx, c2 = cx([[{ jog: 1 }]]);
+  ok(M.fxSuportado(sr), 'Skull Raid aceito');
+  const m0 = e.jogs[0].zonas.mao.length;
+  for (const f of sr) M.executar(e, f, c2, (j, t, ops) => ops[0]);
+  igual([e.jogs[1].zonas.mao.length, e.jogs[0].zonas.mao.length - m0], [0, 1], 'oponente só tinha 1: você compra 1');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
