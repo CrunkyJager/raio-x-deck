@@ -322,15 +322,34 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'sala': return `Ir para a sala ${op.n} (o efeito dela acontece)`;
       case 'perder': return `Perder ${op.q} de vida`;
       case 'virar': return `Virar ${nomeOp(ob)} (custo)`;
-      case 'descartar': case 'sacrificar': if (p.tipo === 'evitarPerda') return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)} (e não perde vida)`; return `${op.a}: ${nomeOp(ob)}`;
+      case 'descartar': case 'sacrificar': if (p.tipo === 'evitarPerda') return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)} (e não perde vida)`; return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)}`;
+      case 'devolver': return `Devolver ${nomeOp(ob)} para a mão (custo)`;
+      case 'custo': return p.ctx && p.ctx.o === 'exilar' ? `Exilar ${nomeOp(ob)} do cemitério` : nomeOp(ob);
+      case 'atacado': return op.jog !== undefined ? nomeJ(op.jog) : `${nomeOp(e.objs[op.o])} (${nomeJ(e.objs[op.o].ctrl)})`;
+      case 'jogador': return nomeJ(op.jog);
+      case 'jogar': return `Conjurar ${nomeOp(ob)}${p.ctx && p.ctx.gratis ? ' de graça' : ''}`;
+      case 'primeiro': return `${nomeOp(ob)} recebe o dano primeiro`;
+      case 'dividir': return String(op.v);
+      case 'opcao': { const v = op.v || {}; const l = [v.chute ? 'com chute (paga o custo extra)' : '', v.presente ? 'com presente para um oponente' : ''].filter(Boolean); return l.length ? 'Conjurar ' + l.join(' e ') : 'Conjurar normal'; }
+      case 'custoOu': { const c = op.v || {}, l: string[] = [];
+        if (c.sacrificar) l.push(c.sacrificar === 'este' ? 'sacrificar esta' : `sacrificar ${c.sacrificar.qtd || 1} ${((c.sacrificar.f || {}).tipo || ['permanente']).map((t: string) => TIPO_PT[t] || t).join(' ou ')}`);
+        if (c.descartar) l.push(`descartar ${c.descartar} carta${c.descartar > 1 ? 's' : ''}`);
+        if (c.vida) l.push(`pagar ${c.vida} de vida`);
+        if (c.mana) l.push('pagar ' + ((c.mana.g ? `{${c.mana.g}}` : '') + (c.mana.p || []).map((x: string) => `{${x}}`).join('') || 'mana'));
+        if (c.devolver) l.push('devolver um permanente para a mão');
+        if (c.exilarEste) l.push('exilar esta');
+        return l.length ? l.join(' e ').replace(/^./, (x: string) => x.toUpperCase()) : 'Outro custo'; }
       default: return ob ? `${op.a}: ${ob.n}` : op.a;
     }
   }
+  const TIPO_PT: Record<string, string> = { Creature: 'criatura', Artifact: 'artefato', Land: 'terreno', Enchantment: 'encantamento', Planeswalker: 'planeswalker', permanente: 'permanente' };
   const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
     ordemGatilho: 'Qual gatilho vai para a pilha primeiro?', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
     buscar: 'Busca no grimório', escolherCarta: 'Escolha a carta', destino: 'Para onde vai?', sacrificar: 'Escolha o que sacrificar', lenda: 'Regra da lenda: qual fica?',
     cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha',
-    masmorra: 'Aventurar: em qual masmorra entrar?', sala: 'Aventurar: para qual sala seguir?', evitarPerda: 'Perder vida ou pagar para não perder?' };
+    masmorra: 'Aventurar: em qual masmorra entrar?', sala: 'Aventurar: para qual sala seguir?', evitarPerda: 'Perder vida ou pagar para não perder?',
+    atacado: 'Ela entra atacando: quem ela ataca?', custoOu: 'Qual custo adicional você paga?', dividir: 'Dividir: quanto vai para este alvo?', presente: 'Presente: para qual oponente?',
+    jogar: 'Pode conjurar uma destas agora', opcao: 'Como vai conjurar?', cavar: 'Escolha a carta' };
   function humano(p: any) {
     const J = e.jogs[HK], opIdx = (pred: (o: any) => boolean) => p.ops.findIndex(pred);
     const mao = () => J.zonas.mao.map((id: number) => ({ v: iDe(e.objs[id]), n: e.objs[id].n }));
