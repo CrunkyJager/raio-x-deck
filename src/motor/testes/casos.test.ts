@@ -2886,6 +2886,35 @@ caso('603.3b', 'a ordem dos gatilhos muda o resultado: tomar a iniciativa por ci
   igual(fim[0], [0, 'Dungeon of the Mad Mage:Dungeon Level'], 'aventurar por cima: a IA pega a Mad Mage e a iniciativa avança nela');
 });
 
+caso('603.3b', 'ordem indiferente (Edigar): Ivora + Bag of Holding no mesmo descarte não perguntam — marcador na Ivora e a descartada no exílio; com Kozilek descartado a ordem muda tudo e pergunta', () => {
+  {
+    const e = cena({ campo: [[0, 'Ivora, Insatiable Heir'], [0, 'Bag of Holding']], mao: [[0, 'Forest']], grimorio: 5 }); e.pend = [];
+    const iv = objN(e, 0, 'Ivora, Insatiable Heir');
+    M.descartar(e, 0, [...e.jogs[0].zonas.mao]); M.avancar(e);
+    ok(!(e.perg && e.perg.tipo === 'ordemGatilho'), 'não pergunta a ordem');
+    resolveCom(e);
+    igual([iv.marc['+1/+1'] || 0, naZona(e, 0, 'exilio'), naZona(e, 0, 'cemiterio')], [1, ['Forest'], []], 'marcador e exílio');
+  }
+  const fim: any = {};
+  for (const primeiro of ['Kozilek, Butcher of Truth', 'Bag of Holding']) {     // o primeiro posto na pilha resolve por último
+    const e = cena({ campo: [[0, 'Bag of Holding']], mao: [[0, 'Kozilek, Butcher of Truth']], grimorio: 5 }); e.pend = [];
+    M.descartar(e, 0, [...e.jogs[0].zonas.mao]); M.avancar(e);
+    igual(e.perg && e.perg.tipo, 'ordemGatilho', 'pergunta');
+    resolveCom(e, p => p.tipo === 'ordemGatilho' ? p.ops.findIndex(o => e.objs[o.id].n === primeiro) : -1);
+    fim[primeiro] = [naZona(e, 0, 'exilio'), e.jogs[0].zonas.grimorio.length];
+  }
+  igual(fim['Kozilek, Butcher of Truth'], [['Kozilek, Butcher of Truth'], 5], 'Bag resolve antes: Kozilek exilado');
+  igual(fim['Bag of Holding'], [[], 6], 'Kozilek resolve antes: volta ao grimório, a Bag não acha a carta');
+});
+
+caso('603.10a', 'de qualquer lugar (Kozilek): morrer no campo dispara uma vez só (olhar para trás), não de novo pelo cemitério; moída do grimório também dispara', () => {
+  for (const de of ['campo', 'grimorio']) {
+    const e = cena({ campo: de === 'campo' ? [[0, 'Kozilek, Butcher of Truth']] : [], grimorio: 3 }); e.pend = [];
+    const id = de === 'campo' ? objN(e, 0, 'Kozilek, Butcher of Truth').id : e.por(0, 'Kozilek, Butcher of Truth', { zona: 'grimorio' }).id;
+    M.mover(e, id, 'cemiterio');
+    igual(e.pend.map(p => p.n), ['Kozilek, Butcher of Truth'], de);
+  }
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
