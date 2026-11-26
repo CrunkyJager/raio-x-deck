@@ -79,6 +79,7 @@ M.alvoLegal = (e, a, esc, ctx) => {
   if (esc.jog !== undefined) {
     if (!vivo(e, esc.jog)) return false;
     if (M.protegeJog(e, esc.jog)) return false;                    // 702.16b: proteção contra tudo, não é alvo
+    if (esc.jog !== voce && M.antimagiaJog(e, esc.jog)) return false;   // 702.11c: jogador com antimagia
     if (f === 'qualquerAlvo' || f === 'jogador' || a.jog === 'jogador') return true;
     if (f === 'oponente' || a.jog === 'oponente') return esc.jog !== voce;
     return false;
