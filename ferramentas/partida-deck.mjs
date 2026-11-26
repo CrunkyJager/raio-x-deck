@@ -2,7 +2,7 @@
 // contra 3 decks de exemplo, no node, e conta no registro as mecânicas pedidas. Serve para a regra "carta no banco ≠
 // carta funcionando": mostra a mecânica acontecendo numa partida de verdade, não só no caso de teste.
 // Cartas: banco próprio (banco/cartas) + cartas-rx.js como reserva para os oponentes (sem ele, só o banco).
-// Uso: node ferramentas/partida-deck.mjs planejamento/decks/ivora.txt [--comandante "Ivora, Insatiable Heir"]
+// Uso: node ferramentas/partida-deck.mjs planejamento/decks/ivora.txt [--comandante "Ivora, Insatiable Heir"] ("A|B" = dois)
 //        [--basico Mountain] [--partidas 20] [--semente 1] [--procura "recapitular,cicla,Blood"] [--log]
 import { createServer } from 'vite';
 import fs from 'node:fs';
@@ -24,7 +24,7 @@ try {
   M.usarCartas(reserva ? comReserva(reserva) : bancoProprio());
   const d = M.lerLista(fs.readFileSync(arquivo, 'utf8'));
   const cmd = opt('comandante', d.comandante[0] || d.cartas[0]);
-  d.comandante = [cmd]; d.cartas = d.cartas.filter(n => n !== cmd);
+  d.comandante = cmd.split('|'); d.cartas = d.cartas.filter(n => !d.comandante.includes(n));   // "A|B": dois comandantes (parceiro, antecedente)
   while (d.comandante.length + d.cartas.length < 100) d.cartas.push(basico);
   const ops = Object.values(ctx.EXEMPLOS).slice(0, 3).map(t => M.lerLista(t));
   const conta = Object.fromEntries(procura.map(p => [p, 0])), exemplo = {}, fins = {};

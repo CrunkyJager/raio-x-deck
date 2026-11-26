@@ -18,7 +18,9 @@ M.carta = n => {
 // ficha leva o próprio dado; carta de mais de uma face devolve a face que está para cima (o.face)
 // palavras-chave que só valem na montagem do deck/zona de comando (CR 702.124 parceiro, 'parceiroCom' = parceiro com
 // <nome>, 702.124c): na partida não mudam nada. O carregamento do deck aceita os dois comandantes.
-M.KW_SO_DECK = new Set(['parceiro', 'parceiroCom']);
+// Escolha um Antecedente (702.124k): o comandante e o antecedente (Background lendário) começam os dois no comando
+// (702.124b) e cada um tem o próprio imposto (903.8, 702.124d: j.imposto por id) — o novoJogo já faz isso.
+M.KW_SO_DECK = new Set(['parceiro', 'parceiroCom', 'escolhaAntecedente']);
 M.dadoBase = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
 // camada 4 (tipo) e 7b (P/R fixado), só no campo: o.anim (op animar, preso ao objeto: mesmo ts) e a estática
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
@@ -677,7 +679,7 @@ M.objetosQue = (e, f, ctx) => {
   const z = f.zona || 'campo';
   let ids;
   if (z === 'campo') ids = e.campo;
-  else if (z === 'pilha') ids = e.pilha;
+  else if (z === 'pilha') ids = e.pilha.filter(id => !e.objs[id].hab);   // filtro de objeto na pilha = mágica: habilidade não tem tipo (113.1) nem carta
   else ids = e.jogs.flatMap(j => z === 'qualquer' ? ZONAS_JOG.flatMap(k => j.zonas[k]) : j.zonas[z]);
   const ff = z === 'campo' && !f.zona ? { ...f, zona: 'campo' } : f;
   return ids.map(id => e.objs[id]).filter(o => M.bate(e, o, ff, ctx));

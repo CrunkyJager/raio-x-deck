@@ -2135,6 +2135,21 @@ caso('603.3b', 'a ordem dos gatilhos muda o resultado: tomar a iniciativa por ci
   igual(fim[0], [0, 'Dungeon of the Mad Mage:Dungeon Level'], 'aventurar por cima: a IA pega a Mad Mage e a iniciativa avança nela');
 });
 
+caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
+  const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
+  igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
+  const e = cena({ cmd: ['Safana, Calimport Cutthroat'], campo: [...terras(5, 'Swamp'), ...terras(2, 'Island')] });
+  const dv = e.por(0, 'Dungeon Delver', { zona: 'comando', obj: { cmd: true } }); e.jogs[0].cmd.push(dv.id); e.jogs[0].imposto[dv.id] = 0;
+  const sf = e.objs[e.jogs[0].cmd[0]];
+  M.avancar(e);
+  igual(opsDe(e, 'conjurar').map(o => e.objs[o.id].n).sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']);
+  conj(e, 'Safana, Calimport Cutthroat'); resolveCom(e); conj(e, 'Dungeon Delver'); resolveCom(e);
+  ok(noCampo(e).includes('Safana, Calimport Cutthroat') && noCampo(e).includes('Dungeon Delver'), JSON.stringify(noCampo(e)));
+  igual([e.jogs[0].imposto[sf.id], e.jogs[0].imposto[dv.id]], [1, 1]);
+  M.mover(e, sf.id, 'mao');                                         // volta ao comando (903.9b): o imposto dela é 2, o do Delver não muda
+  igual([sf.zona, M.vmDe(M.custoComImposto(e, sf)), e.jogs[0].imposto[dv.id]], ['comando', 5, 1]);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
