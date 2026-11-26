@@ -1151,7 +1151,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
+   * darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
    */
   modo:
     | 'continuo'
@@ -1178,7 +1178,8 @@ export interface RxEst {
     | 'ataqueCusta'
     | 'naoPodeAtivar'
     | 'deveBloquear'
-    | 'darFuga';
+    | 'darFuga'
+    | 'darLoucura';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;

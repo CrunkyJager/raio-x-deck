@@ -294,7 +294,7 @@ M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte p
   const feitas: any[] = [];
   for (const id of ids) {
     const o = e.objs[id]; if (!o || o.zona !== 'mao') continue;
-    const lk = (M.dadoDe(e, o).kw || []).find(x => x.k === 'loucura' && x.custo);
+    const lk = M.loucuraDe(e, o);                                    // da carta ou dada (Falkenrath Gorger)
     if (lk) {
       M.mover(e, id, 'exilio'); o.loucura = true;
       if (e.pend && e.turno.passo !== 'mulligan') e.pend.push({ fonte: id, ts: o.ts, ctrl: o.dono, k: 'loucura', g: GAT_LOUCURA, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'descarta', id, j, ts: o.ts } });

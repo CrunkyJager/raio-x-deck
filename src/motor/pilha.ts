@@ -271,7 +271,18 @@ M.podeConjurar = (e, j, o, face?, opts?) => {
   o.face = face ?? null;
   try { return podeConjurarFace(e, j, o, face, opts || {}); } finally { o.face = antes; }
 };
-const custoLoucura = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'loucura' && x.custo); return k ? k.custo : null; };
+// loucura (702.35): da carta ou dada por um permanente do dono (est darLoucura {afeta}: Falkenrath Gorger, custo = o custo de mana dela)
+M.loucuraDe = (e, o) => {
+  const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'loucura' && x.custo);
+  if (k) return k.custo;
+  if (o.zona === 'campo' || !M.dadoDe(e, o).custo) return null;
+  for (const id of e.campo) {
+    const F = e.objs[id]; if (F.ctrl !== o.dono) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darLoucura' && M.bate(e, o, { ...(s.afeta || {}), zona: o.zona }, { voce: o.dono, este: F.id })) return M.dadoDe(e, o).custo;
+  }
+  return null;
+};
+const custoLoucura = (e, o) => M.loucuraDe(e, o);
 function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const louc = !!opts.loucura && o.zona === 'exilio' && o.loucura && !!custoLoucura(e, o);
   const agora = !!opts.agora && o.zona !== 'campo' && o.zona !== 'pilha';   // op jogar sem dura: na resolução, de onde estiver

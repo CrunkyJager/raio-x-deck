@@ -22,7 +22,7 @@ const basico = (e, p) => {
     }
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
-      if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || M.dadoDe(e, o(p.ctx.id)).kw?.some(x => x.k === 'loucura') ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
+      if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || !!M.loucuraDe(e, o(p.ctx.id)) ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
       return 0;
     }
     case 'fundo': {
@@ -138,7 +138,7 @@ M.agenteBasico = () => (e, p) => M.lote(() => basico(e, p));
 // o resto pelo valor de mana. Terreno sobra quando a mão já tem o da jogada deste turno e o campo tem 5 ou mais.
 function valorDescarte(e, j, id) {
   const o = e.objs[id], d = M.dadoDe(e, o);
-  if ((d.kw || []).some(x => x.k === 'loucura' && x.custo)) return -3;
+  if (M.loucuraDe(e, o)) return -3;
   if (M.temTipo(e, o, 'Land')) {
     const J = e.jogs[j], naMao = J.zonas.mao.filter(x => M.temTipo(e, e.objs[x], 'Land')).length;
     const noCampo = e.campo.filter(x => e.objs[x].ctrl === j && M.temTipo(e, e.objs[x], 'Land')).length;

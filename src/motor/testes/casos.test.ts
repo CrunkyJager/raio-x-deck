@@ -1892,6 +1892,19 @@ caso('603.12', 'gatilho reflexo (Inti): ataca → pode descartar; só se descart
     ok(!(e.permJogar || []).some(p => p.id === ex), 'no passo final a permissão acabou');
   }
 });
+caso('702.35', 'loucura dada (Falkenrath Gorger): Vampiro descartado vai ao exílio e é conjurado pelo custo de mana dele; sem o Gorger, ou não Vampiro, vai ao cemitério', () => {
+  for (const [gorger, carta] of [[true, 'Furyblade Vampire'], [false, 'Furyblade Vampire'], [true, 'Grizzly Bears']]) {
+    const e = cena({ campo: [...terras(5), ...(gorger ? [[0, 'Falkenrath Gorger']] : [])], mao: [[0, "Brass's Tunnel-Grinder"], [0, carta]] });
+    const id = e.jogs[0].zonas.mao.find(x => e.objs[x].n === carta);
+    igual(!!M.loucuraDe(e, e.objs[id]), gorger && carta !== 'Grizzly Bears', 'tem loucura na mão');
+    M.avancar(e); conj(e, "Brass's Tunnel-Grinder");
+    let feitas = 0;
+    resolveCom(e, p => p.tipo === 'descartar' ? (feitas++ ? p.ops.findIndex(o => o.a === 'nenhum') : p.ops.findIndex(o => o.a === 'descartar' && o.id === id))
+      : p.tipo === 'talvez' && p.ctx && p.ctx.op === 'loucura' ? 0 : -1);
+    const louca = gorger && carta === 'Furyblade Vampire';
+    igual([e.objs[id].zona, e.campo.filter(x => e.objs[x].n === 'Mountain' && e.objs[x].virada).length], [louca ? 'campo' : 'cemiterio', louca ? 5 : 3], `${carta}, Gorger ${gorger}`);
+  }
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;
