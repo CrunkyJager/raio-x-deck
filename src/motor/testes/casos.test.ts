@@ -1788,6 +1788,19 @@ caso('605.3a', 'mana com escolha: Runaway Steam-Kin tira 3 marcadores; Simian Sp
   respE(e, o => o.a === 'manaEsc' && o.id === ssg);
   igual([naZona(e, 0, 'exilio'), naZona(e, 0, 'mao'), e.jogs[0].reserva.R], [['Simian Spirit Guide'], ['Simian Spirit Guide'], 4], 'uma exilada, a outra na mão; mais {R}');
 });
+caso('105.2', 'conta coresDoEvento: Ramos ganha um +1/+1 por cor da mágica conjurada (incolor: 0); com 5 tira 5 e dá 10 de mana', () => {
+  const e = cena({ campo: [[0, 'Ramos, Dragon Engine']] });
+  const ra = e.campo[0], o = e.objs[ra];
+  const fx = { op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: { conta: 'coresDoEvento' } }, cx = id => ({ voce: 0, este: ra, alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'conjura', id, j: 0 } });
+  M.executar(e, fx, cx(ra), null);
+  igual(o.marc['+1/+1'] || 0, 0, 'mágica incolor (o próprio Ramos, {6}): nenhum');
+  const lat = e.por(0, 'Lathril, Blade of the Elves', { zona: 'mao' }).id;
+  M.executar(e, fx, cx(lat), null); M.executar(e, fx, cx(lat), null);
+  M.executar(e, { op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 1 }, cx(lat), null);
+  igual(o.marc['+1/+1'], 5, 'duas mágicas BG (2+2) + 1: 5 marcadores');
+  M.avancar(e); respE(e, x => x.a === 'manaEsc' && x.id === ra);
+  igual([o.marc['+1/+1'], M.somaMana(e.jogs[0].reserva)], [0, 10], 'tirou 5, 10 de mana');
+});
 caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
   const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
   const e = cena({ campo: [[0, 'Kalonian Hydra'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
