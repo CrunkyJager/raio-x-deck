@@ -773,6 +773,16 @@ const H = {
   desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.desvirarObj(e, o); } },
   // CR 701.3: prende o Equipamento/Aura (em) ao objeto a. Equipamento só em criatura e nunca em si mesmo (301.5c);
   // Aura só no que o encantar permite (303.4a); preso ao mesmo objeto = nada acontece (701.3b).
+  // ninjutsu (702.49c): a carta, se ainda estiver na mão, entra virada e atacando quem o devolvido atacava (sem declarar: não dispara "ataca")
+  ninjutsu: {
+    fx(e, f, ctx, ask) {
+      const o = e.objs[ctx.este], it = e.objs[ctx.item], alvo = it && it.pil && it.pil.ninja;
+      if (!o || o.zona !== 'mao' || !alvo) return;
+      const p = M.decidirEntrada(e, o.id, ctx.voce, { virada: true }, ask);
+      const n = M.aplicarEntrada(e, p);
+      if (n && n.zona === 'campo') M.porAtacando(e, n, alvo);
+    },
+  },
   soltar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.anexo) { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'solta (volta a ser criatura)'); } } },   // reconfigurar (702.151a)
   anexar: {
     campos: ['a', 'reconf'],

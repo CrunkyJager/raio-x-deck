@@ -2011,6 +2011,26 @@ caso('Ravager', 'Dire Fleet Ravager: ao entrar, cada jogador perde um terço da 
   M.mover(e, e.jogs[0].zonas.mao[0], 'campo'); M.avancar(e); resolveCom(e);
   igual(e.jogs.map(j => j.vida), [26, 6, 0], '40→26, 10→6, 1→0');
 });
+caso('702.49', 'ninjutsu (Prosperous Thief): depois dos bloqueadores, devolve o atacante não bloqueado e entra virada atacando o mesmo jogador; antes disso, não', () => {
+  const e = cena({ campo: [[0, 'Island'], [0, 'Island'], [0, 'Grizzly Bears']], mao: [[0, 'Prosperous Thief']] }); e.pend = [];
+  const b = objN(e, 0, 'Grizzly Bears'), th = e.jogs[0].zonas.mao[0];
+  const k = M.atvDe(e, e.objs[th]).findIndex(a => a._ninjutsu);
+  ok(k >= 0 && !M.podeAtivar(e, 0, e.objs[th], k), 'fora do combate: não');
+  const BL = x => x.turno.passo === 'bloqueadores';
+  ate(e, 'atacar');
+  M.responder(e, e.perg.ops.findIndex(x => x.a === 'atacar' && x.id === b.id && x.jog === 1), BL);
+  if (e.perg && e.perg.tipo === 'atacar') M.responder(e, e.perg.ops.findIndex(x => x.a === 'pronto'), BL);
+  let g = 0; while (e.turno.passo !== 'bloqueadores' && g++ < 50) { M.avancar(e, BL); if (e.perg && e.turno.passo !== 'bloqueadores') M.responder(e, 0, BL); }
+  M.avancar(e);
+  ok(M.podeAtivar(e, 0, e.objs[th], k), 'atacante não bloqueado: pode ' + e.turno.passo + ' ' + (e.perg && e.perg.tipo));
+  respE(e, o => o.a === 'ativar' && o.id === th && o.k === k);
+  igual(b.zona, 'mao', 'o Bears voltou (custo)');
+  resolveCom(e);
+  const t2 = e.objs[th];
+  igual([t2.zona, t2.virada, M.atacando(e, t2)], ['campo', true, true], 'Thief atacando');
+  ateFimCombate(e);
+  igual([e.jogs[1].vida, e.campo.filter(id => e.objs[id].n === 'Treasure').length], [37, 1], '3 de dano e o Tesouro do gatilho');
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

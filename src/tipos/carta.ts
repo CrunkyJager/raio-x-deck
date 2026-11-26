@@ -343,6 +343,10 @@ export interface RxFiltro {
    */
   ouEste?: boolean;
   /**
+   * atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)
+   */
+  naoBloqueada?: boolean;
+  /**
    * tem ao menos 1 marcador deste tipo
    */
   comMarcador?: string;
@@ -967,6 +971,7 @@ export interface RxKw {
     | 'milagre'
     | 'reconfigurar'
     | 'entraPreparada'
+    | 'ninjutsu'
     | 'chute'
     | 'ofertaPresente'
     | 'esconderijo'

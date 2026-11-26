@@ -621,6 +621,10 @@
      "type": "boolean",
      "description": "a própria carta também conta (\"este ou outro X\")"
     },
+    "naoBloqueada": {
+     "type": "boolean",
+     "description": "atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)"
+    },
     "comMarcador": {
      "type": "string",
      "description": "tem ao menos 1 marcador deste tipo"
@@ -1782,6 +1786,7 @@
       "milagre",
       "reconfigurar",
       "entraPreparada",
+      "ninjutsu",
       "chute",
       "ofertaPresente",
       "esconderijo",

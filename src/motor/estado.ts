@@ -655,6 +655,19 @@ const subirDe = l => {
   return a;
 };
 // reconfigurar (702.151a): "[custo]: anexe a uma criatura alvo sua (outra)" e "[custo]: solte; só se anexada" — como feitiço
+// atacante não bloqueado (509.1h): só existe depois da declaração de bloqueadores, até o fim do combate
+M.naoBloqueada = (e, o) => {
+  const C = e.turno.combate, p = e.turno.passo;
+  if (!C || (p !== 'bloqueadores' && p !== 'dano')) return false;
+  return C.atk.some(a => a.id === o.id && a.ts === o.ts && !a.bloqueado);
+};
+// ninjutsu (702.49a): "[custo], devolva à mão um atacante seu não bloqueado: ponha esta carta da mão no campo virada e atacando"
+const NINJA = new WeakMap<object, any>();
+const ninjutsuDe = kw => {
+  let a = NINJA.get(kw);
+  if (!a) NINJA.set(kw, (a = { zona: 'mao', custo: { mana: kw.custo || {}, devolver: { f: { tipo: ['Creature'], naoBloqueada: true } } }, _ninjutsu: true, fx: [{ op: 'ninjutsu' }] }));
+  return a;
+};
 const RECONF = new WeakMap<object, any>();
 const reconfDe = kw => {
   let a = RECONF.get(kw);
@@ -667,9 +680,10 @@ const atvCarta = d => {
   let l = ATV_CARTA.get(d);
   if (!l) {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
+    const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
-    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe), ...rc] : d.atv || NADA.atv));
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
   }
   return l as any[];
 };
@@ -695,7 +709,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -728,7 +742,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
   if (f.vm && !compara(d.vm || 0, f.vm)) return false;
   if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
-  if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;   // CR 506.4: atacando até o fim do combate
+  if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;
+  if (f.naoBloqueada !== undefined && M.naoBloqueada(e, o) !== !!f.naoBloqueada) return false;   // 509.1h: depois de declarar bloqueadores (ninjutsu)   // CR 506.4: atacando até o fim do combate
   // anexos: equipada = o objeto a que a fonte (ctx.este) está presa; anexadoA 'este' = preso à fonte;
   // encantada / comEquipamento = com pelo menos uma Aura / um Equipamento preso a ele
   if (f.equipada !== undefined) { const F = e.objs[ctx.este], A = F && F.anexo; if ((!!A && A.id === o.id && A.ts === o.ts) !== !!f.equipada) return false; }
