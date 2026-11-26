@@ -2915,6 +2915,17 @@ caso('603.10a', 'de qualquer lugar (Kozilek): morrer no campo dispara uma vez s�
     igual(e.pend.map(p => p.n), ['Kozilek, Butcher of Truth'], de);
   }
 });
+caso('614.12', 'escolher modo ao entrar (Mirrodin Besieged): as opções são os modos que as habilidades leem; Mirran faz Myr ao conjurar artefato, Phyrexian não', () => {
+  for (const modo of ['Mirran', 'Phyrexian']) {
+    const e = cena({ campo: terras(5, 'Island'), mao: [[0, 'Mirrodin Besieged'], [0, 'Sol Ring']] }); e.pend = [];
+    M.avancar(e); conj(e, 'Mirrodin Besieged');
+    resolveCom(e, p => { if (p.tipo === 'escolha') { igual(p.ops.map(o => o.v), ['Mirran', 'Phyrexian'], 'opções'); return p.ops.findIndex(o => o.v === modo); } return -1; });
+    const mb = e.objs[e.campo.find(id => e.objs[id].n === 'Mirrodin Besieged')];
+    igual(mb.escolha && mb.escolha.modo, modo, 'modo guardado');
+    M.avancar(e); conj(e, 'Sol Ring'); resolveCom(e);
+    igual(e.campo.filter(id => e.objs[id].n === 'Myr' || (e.objs[id].ficha && (e.objs[id].ficha.sub || []).includes('Myr'))).length, modo === 'Mirran' ? 1 : 0, modo);
+  }
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
