@@ -307,6 +307,8 @@ function tempEstOk(s, f) {
     case 'vidaNaoMuda': return s.afeta === 'voce' && so();
     case 'protecaoJogador': return s.afeta === 'voce' && so('kw', 'de') && (s.de === 'tudo' || (s.kw || []).length === 1 && s.kw[0].k === 'protecao' && s.kw[0].de === 'tudo' && Object.keys(s.kw[0]).length === 2);
     case 'naoPodeSerBloqueada': case 'naoPodeBloquear': case 'deveAtacar': return objOk && so();
+    case 'terraExtra': return s.afeta === 'voce' && so('qtd') && Number.isInteger(s.qtd) && s.qtd > 0;               // lido em turno.ts
+    case 'maoMax': return s.afeta === 'voce' && so('qtd') && (s.qtd === 'tudo' || Number.isInteger(s.qtd));
   }
   return false;
 }
@@ -536,16 +538,16 @@ const H = {
   },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
   efeitoTemporario: {
-    campos: ['dura', 'est', 'subst'],
+    campos: ['dura', 'est', 'subst', 'emblema'],
     qtd: q => q === undefined,
-    ok: f => (f.quem === undefined || f.quem === 'voce') && (f.dura === 'fimDoTurno' || f.dura === 'proximoTurnoSeu')
+    ok: f => (f.quem === undefined || f.quem === 'voce') && (f.dura === 'fimDoTurno' || f.dura === 'proximoTurnoSeu' || f.dura === 'sempre')
       && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length) > 0
       && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este)),
     fx(e, f, ctx) {
       const F = e.objs[ctx.este], este = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? { id: F.id, ts: F.ts } : null;
       const ids = f.em === undefined ? null : objsDe(e, f, ctx).map(o => ({ id: o.id, ts: o.ts }));
       if (ids && !ids.length) return;                                // alvo ilegal: nada a afetar (608.2b)
-      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst: f.subst || [], este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : ctx.voce, ts: ++e.ts });
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst: f.subst || [], este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
     },
   },
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
