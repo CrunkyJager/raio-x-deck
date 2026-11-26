@@ -513,6 +513,14 @@ M.ganharVida = (e, j, q) => {
   M.evento(e, { ev: 'ganhaVida', j, q });
   return q;
 };
+// perda de vida (CR 119.3): dano em jogador (120.3a), perder vida (119.7) e pagar vida (119.4: quem paga perde) passam
+// por aqui e soltam o evento 'perdeVida' (Mindcrank, Exquisite Blood, Vilis). Quem chama já olhou a vida fixa (119.8).
+M.perderVida = (e, j, q) => {
+  if (!(q > 0)) return 0;
+  e.jogs[j].vida -= q;
+  M.evento(e, { ev: 'perdeVida', j, q });
+  return q;
+};
 // quem no campo tem estática 'continuo' lida (sem isso, cada leitura de P/R ou palavra-chave varria o campo inteiro)
 function fontesCont(e): Idx & { l: [any, any][] } {
   const I = indice(e);

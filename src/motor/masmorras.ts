@@ -13,7 +13,7 @@ M.temInfectar = kw => !!kw && kw.some(k => k.k === 'infectar');
 M.danoJogador = (e, j, q, kw) => {
   const J = e.jogs[j];
   if (M.temInfectar(kw)) { J.veneno = (J.veneno || 0) + q; M.log(e, J.nome, 'recebe', q, 'veneno (infectar)'); return; }
-  if (!M.vidaFixa(e, j)) J.vida -= q;
+  if (!M.vidaFixa(e, j)) M.perderVida(e, j, q);
 };
 // marcador num jogador (op marcador com quem e sem em): 'poison' (nome do vocabulário, decisão do coordenador 25/11;
 // 'veneno' fica aceito até a normalização do banco) em J.veneno; os outros (rad, experience…) em J.marc, que por ora só guarda.
@@ -260,7 +260,7 @@ H._perdeAMenosQue = {
     for (const [j, r] of plano) {
       if (r.a === 'descartar') M.descartar(e, j, [r.id]);
       else if (r.a === 'sacrificar') { if (e.objs[r.id] && e.objs[r.id].zona === 'campo') M.mover(e, r.id, 'cemiterio'); }
-      else if (!M.vidaFixa(e, j)) { e.jogs[j].vida -= q; M.log(e, e.jogs[j].nome, 'perde', q, 'de vida'); }
+      else if (!M.vidaFixa(e, j)) { M.perderVida(e, j, q); M.log(e, e.jogs[j].nome, 'perde', q, 'de vida'); }
     }
   },
 };

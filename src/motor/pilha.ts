@@ -108,6 +108,13 @@ const alvosUsados = fx => {
   anda(fx);
   return [...s].sort((a, b) => a - b);
 };
+// quem: 'alvoJogador' ("target player loses 1 life": Blood Artist, Sanguine Bond, Hedron Crab, Liliana) não diz o
+// índice; usa o alvo de jogador declarado (f 'jogador'/'oponente'). Sem isso o alvo nunca era escolhido e o efeito sumia.
+const alvosUsadosDe = (d, fx) => {
+  const s = new Set<number>(alvosUsados(fx));
+  if (JSON.stringify(fx || []).includes('"alvoJogador"')) (d.alvos || []).forEach((a, i) => { if (a && (a.f === 'jogador' || a.f === 'oponente')) s.add(i); });
+  return [...s].sort((a, b) => a - b);
+};
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros']);
@@ -367,8 +374,8 @@ M.podeAtivar = (e, j, o, k) => {
 // ---------- mana com escolha no custo (CR 605.3: não usa a pilha) ----------
 // Altares, Krark-Clan, Gilded Goose (sacrificar outra), Steam-Kin/Ramos (tirar marcador), Simian Spirit Guide (exilar
 // da mão). Fica fora do solver automático (sacrificaria sem querer): é uma ação de prioridade que pergunta o custo.
-// mana restrita (so: Master of Dark Rites) fica de fora: a reserva não guarda restrição (CR 106.6), só o solver com 'para'.
-M.manaEscSuportada = a => !!(a && a.deMana && a.custo && !M.custoManaOk(a.custo) && M.custoSuportado(a.custo) && !a.custo.descartar && !a.custo.devolver && (a.fx || []).every(f => f.op === 'mana' && !f.so));
+// mana restrita (so: Master of Dark Rites): a parte restrita vai para J.restrita (CR 106.6) e só a mágica que bate a gasta.
+M.manaEscSuportada = a => !!(a && a.deMana && a.custo && !M.custoManaOk(a.custo) && M.custoSuportado(a.custo) && !a.custo.descartar && !a.custo.devolver && (a.fx || []).every(f => f.op === 'mana' && (!f.so || M.filtroSo({}, f.so))));   // restrita: vai para J.restrita (106.6)
 M.podeManaEsc = (e, j, o, k) => {
   const a = M.atvDe(e, o)[k];
   if (!M.manaEscSuportada(a) || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
@@ -377,7 +384,15 @@ M.podeManaEsc = (e, j, o, k) => {
   if (a.custo.mana && !M.pagarDaReserva(e.jogs[j].reserva, a.custo.mana)) return false;   // a mana do custo sai da reserva
   return custoFisicoOk(e, j, o, a.custo);
 };
-const pacotesEsc = (e, o, a) => (M.pacotesDe(e, o, a) || []).filter(p => M.somaMana(p) > 0);
+const pacotesEsc = (e, o, a) => (M.pacotesDe(e, o, a, { comSo: true }) || []).filter(p => M.somaMana(p) > 0);
+// a parte restrita (so) de uma habilidade de mana com escolha: {m, f}; uma restrição só por habilidade (Master of Dark Rites)
+const restritaEsc = (e, o, a) => {
+  const fs = (a.fx || []).filter(f => f.so); if (!fs.length) return null;
+  const m = M.zeroMana();
+  for (const f of fs) { const cs = M.coresDeProd(e, o, f.prod) || []; if (cs.length === 1) m[cs[0]] += M.qtd(e, f.qtd, { voce: o.ctrl, este: o.id }) || 0; }
+  return { m, f: M.filtroSo(o, fs[0].so) };
+};
+M.fmtFiltroSo = f => [...(f.super || []), ...(f.sub || []), ...(f.tipo || [])].join('/');
 M.manaEscOps = (e, j) => {
   const ops: any[] = [];
   const ve = id => { const o = e.objs[id]; M.atvDe(e, o).forEach((a, k) => { if (M.podeManaEsc(e, j, o, k)) pacotesEsc(e, o, a).forEach((_, i) => ops.push({ a: 'manaEsc', id, k, escolha: i })); }); };
@@ -457,7 +472,7 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc?: any) {
   const esc: any[] = [];
   let total = 0;
-  for (const i of alvosUsados(fx)) {
+  for (const i of alvosUsadosDe(d, fx)) {
     if (!alvoAtivo(d.alvos[i], opc)) { esc[i] = []; continue; }     // alvo de outra opção (chute/presente)
     const a = d.alvos[i], min = a.min ?? 1, max = a.max === 'qualquer' ? Infinity : a.max ?? 1, lista: any[] = [];
     while (lista.length < max) {
@@ -576,7 +591,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.virar) o.virada = true;
   if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
-  if (c.vida) J.vida -= c.vida;
+  if (c.vida) M.perderVida(e, j, c.vida);
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   for (const id of esc.sac) M.mover(e, id, 'cemiterio');            // CR 701.21
   if (esc.desc.length) M.descartar(e, j, esc.desc);
@@ -587,11 +602,11 @@ function pagarFisico(e, j, o, c, esc) {
   for (const id of esc.dev || []) M.mover(e, id, 'mao');            // à mão do dono (Master Transmuter, Mina and Denn)
   if (c.devolver === 'este') M.mover(e, o.id, 'mao');              // Shigeki
 }
-function pagarMana(e, j, pl, custo, x) {
+function pagarMana(e, j, pl, custo, x, para?) {
   if (pl.improv) { for (const id of pl.improv) e.objs[id].virada = true; custo = pl.custo; }   // improvisar (702.126a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
-  const pg = M.pagarDaReserva(e.jogs[j].reserva, custo, { x, vidaDisp: pl.vida });
-  e.jogs[j].reserva = pg.resto; e.jogs[j].vida -= pg.vida;
+  const pg = M.pagarDaReserva(M.reservaCom(e, j, para), custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
+  M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
 }
 
 const PROC = {
@@ -628,9 +643,9 @@ const PROC = {
     if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
     M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true;                    // CR 601.2a (o mover zera a face)
     o.pil = { x, alvos, modos, ctrl: j, opc, ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}) };
-    M.evento(e, { ev: 'conjura', id: o.id, j, de });                                      // 601.2i: "quando conjura"
+    M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
-    pagarMana(e, j, pl, custo, x);                                                    // CR 601.2h
+    pagarMana(e, j, pl, custo, x, o);                                                 // CR 601.2h
     if (cad) pagarFisico(e, j, o, cad, fis);
     for (const id of exFuga) M.mover(e, id, 'exilio');
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
@@ -681,8 +696,10 @@ const PROC = {
     if (c.mana) J.reserva = M.pagarDaReserva(J.reserva, c.mana).resto;
     pagarFisico(e, j, o, c, fis);
     if (a.limite === 'umaPorTurno') (o.usos = o.usos || {})[P.k] = e.turno.n;
-    for (const cor in pac) J.reserva[cor] += pac[cor];
-    M.log(e, J.nome, 'mana de', o.n, M.fmtMana(pac), sac.length ? '(sacrifica ' + sac.join(', ') + ')' : c.tirarMarcador ? `(tira ${c.tirarMarcador.qtd || 1} ${c.tirarMarcador.tipo})` : c.exilarEste ? '(exila da mão)' : '');
+    const res = restritaEsc(e, o, a);                                // CR 106.6: a parte restrita fica marcada
+    for (const cor in pac) J.reserva[cor] += pac[cor] - (res ? res.m[cor] : 0);
+    if (res) (J.restrita || (J.restrita = [])).push(res);
+    M.log(e, J.nome, 'mana de', o.n, M.fmtMana(pac), res ? '(só para ' + M.fmtFiltroSo(res.f) + ')' : '', sac.length ? '(sacrifica ' + sac.join(', ') + ')' : c.tirarMarcador ? `(tira ${c.tirarMarcador.qtd || 1} ${c.tirarMarcador.tipo})` : c.exilarEste ? '(exila da mão)' : '');
     M.agiu(e, j);
   },
 

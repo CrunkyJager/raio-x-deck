@@ -697,8 +697,9 @@ caso('603.2', 'Phyrexian Rager entra: gatilho na pilha, resolve: compra 1 e perd
 caso('603.10a', 'Blood Artist morre junto com outra criatura: olha para trás e dispara as duas vezes', () => {
   const e = cena({ campo: [[0, 'Blood Artist'], [1, 'Grizzly Bears']] }); e.cfg.log = true;
   for (const id of e.campo) e.objs[id].dano = 5;
-  M.avancar(e);
+  M.avancar(e); resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
   igual(contaLog(e, 'gatilho de Blood Artist'), 2);
+  igual([e.jogs[1].vida, e.jogs[0].vida], [38, 42], 'alvo jogador (alvoJogador): cada um tira 1 e ganha 1');
 });
 caso('603.2', 'Young Pyromancer: conjurar instantânea cria a ficha antes da mágica resolver', () => {
   const e = cena({ campo: [[0, 'Mountain'], [0, 'Young Pyromancer']], mao: [[0, 'Lightning Bolt']] });
@@ -1761,6 +1762,18 @@ caso('605.3a', 'mana com escolha no custo: Ashnod\'s Altar pergunta qual criatur
   igual([naZona(e, 0, 'cemiterio'), e.jogs[0].reserva.C, e.pilha.length], [['Grizzly Bears'], 2, 0], 'sacrificou o urso, {C}{C}, sem pilha');
   igual(e.perg && e.perg.tipo, 'acao', 'volta a prioridade para o mesmo jogador');
 });
+caso('106.6', 'mana restrita na reserva: Master of Dark Rites dá {B}{B}{B} só para Vampiro/Clérigo/Demônio; Night\'s Whisper não gasta, Vampire Nighthawk gasta', () => {
+  const e = cena({ campo: [[0, 'Master of Dark Rites'], [0, 'Grizzly Bears']], mao: [[0, "Night's Whisper"], [0, 'Vampire Nighthawk']] });
+  const ms = e.campo[0];
+  igual(M.fontesDeMana(e, 0).filter(f => f.id === ms).length, 0, 'fora do solver (sacrifica)');
+  M.avancar(e); respE(e, o => o.a === 'manaEsc' && o.id === ms);
+  const J = e.jogs[0];
+  igual([naZona(e, 0, 'cemiterio'), M.somaMana(J.reserva), J.restrita.map(r => r.m.B)], [['Grizzly Bears'], 0, [3]], 'BBB restrita, reserva comum vazia');
+  const conj = () => M.opcoesPrioridade(e, 0).filter(o => o.a === 'conjurar').map(o => e.objs[o.id].n);
+  igual(conj(), ['Vampire Nighthawk'], "Night's Whisper não pode gastar a restrita");
+  respE(e, o => o.a === 'conjurar');
+  igual([e.pilha.concat(e.campo).some(id => e.objs[id].n === 'Vampire Nighthawk'), J.restrita.length, M.somaMana(J.reserva)], [true, 0, 0], 'pagou o Nighthawk com a restrita');
+});
 caso('605.3a', 'mana com escolha: Krark-Clan só com artefato; Gilded Goose vira e sacrifica Food; Phyrexian Tower tem as duas', () => {
   const cx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
   const e = cena({ campo: [[0, 'Krark-Clan Ironworks'], [0, 'Gilded Goose'], [0, 'Phyrexian Tower'], [0, 'Grizzly Bears']] });
@@ -1787,6 +1800,42 @@ caso('605.3a', 'mana com escolha: Runaway Steam-Kin tira 3 marcadores; Simian Sp
   const ssg = e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Simian Spirit Guide');
   respE(e, o => o.a === 'manaEsc' && o.id === ssg);
   igual([naZona(e, 0, 'exilio'), naZona(e, 0, 'mao'), e.jogs[0].reserva.R], [['Simian Spirit Guide'], ['Simian Spirit Guide'], 4], 'uma exilada, a outra na mão; mais {R}');
+});
+caso('105.2', 'conta coresDoEvento: Ramos ganha um +1/+1 por cor da mágica conjurada (incolor: 0); com 5 tira 5 e dá 10 de mana', () => {
+  const e = cena({ campo: [[0, 'Ramos, Dragon Engine']] });
+  const ra = e.campo[0], o = e.objs[ra];
+  const fx = { op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: { conta: 'coresDoEvento' } }, cx = id => ({ voce: 0, este: ra, alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'conjura', id, j: 0 } });
+  M.executar(e, fx, cx(ra), null);
+  igual(o.marc['+1/+1'] || 0, 0, 'mágica incolor (o próprio Ramos, {6}): nenhum');
+  const lat = e.por(0, 'Lathril, Blade of the Elves', { zona: 'mao' }).id;
+  M.executar(e, fx, cx(lat), null); M.executar(e, fx, cx(lat), null);
+  M.executar(e, { op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 1 }, cx(lat), null);
+  igual(o.marc['+1/+1'], 5, 'duas mágicas BG (2+2) + 1: 5 marcadores');
+  M.avancar(e); respE(e, x => x.a === 'manaEsc' && x.id === ra);
+  igual([o.marc['+1/+1'], M.somaMana(e.jogs[0].reserva)], [0, 10], 'tirou 5, 10 de mana');
+});
+caso('701.57a', 'descobrir 3: exila até a não-terreno com valor ≤ 3 (pula terreno e Krenko de 4); conjura de graça ou põe na mão; o resto vai ao fundo', () => {
+  const e = cena({});
+  const g = e.jogs[0].zonas.grimorio, cx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' }); e.por(0, 'Krenko, Mob Boss', { zona: 'grimorio' }); e.por(0, 'Wastes', { zona: 'grimorio' });
+  const n0 = g.length, perg: any[] = [];
+  const ask: any = (j, tipo, ops) => { perg.push(tipo); return ops.find(o => o.a === 'mao'); }; ask.etapa = () => {};
+  M.executar(e, { op: 'descobrir', qtd: 3 }, cx, ask);
+  igual(perg, ['jogar'], 'pergunta conjurar ou pôr na mão');
+  igual(naZona(e, 0, 'mao'), ['Grizzly Bears'], 'escolheu a mão');
+  igual([g.length, e.objs[g[0]].n === 'Krenko, Mob Boss' || e.objs[g[1]].n === 'Krenko, Mob Boss', naZona(e, 0, 'exilio')], [n0 - 1, true, []], 'Krenko e Wastes no fundo, nada no exílio');
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' });
+  M.executar(e, { op: 'descobrir', qtd: 2 }, cx, Object.assign((j, t, ops) => ops[0], { etapa: () => {} }));
+  igual([e.pilha.map(id => e.objs[id].n), M.somaMana(e.jogs[0].reserva)], [['Grizzly Bears'], 0], 'conjurou de graça: na pilha');
+});
+caso('701.57a', "Tecutlan (verso de Brass's Tunnel-Grinder): conjurar permanente pagando com a mana dele descobre X = valor da mágica", () => {
+  const e = cena({ campo: [[0, "Brass's Tunnel-Grinder", { obj: { face: 0 } }], [0, 'Wastes']], mao: [[0, 'Goblin Instigator']] });
+  igual(M.dadoDe(e, e.objs[e.campo[0]]).n, 'Tecutlan, the Searing Rift');
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' });
+  M.avancar(e); respE(e, o => o.a === 'conjurar');
+  ok(e.pilha.length === 2, 'gatilho na pilha sobre o Goblin Instigator');
+  for (let g = 0; e.perg && g < 40 && !e.campo.some(id => e.objs[id].n === 'Grizzly Bears'); g++) respE(e, o => o.a === 'jogar' || o.a === 'passar');
+  igual([e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), naZona(e, 0, 'exilio').length], [true, 0], 'descobriu o urso (valor 2) e conjurou de graça');
 });
 caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
   const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
@@ -2795,6 +2844,35 @@ caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no co
   igual([e.jogs[0].imposto[sf.id], e.jogs[0].imposto[dv.id]], [1, 1]);
   M.mover(e, sf.id, 'mao');                                         // volta ao comando (903.9b): o imposto dela é 2, o do Delver não muda
   igual([sf.zona, M.vmDe(M.custoComImposto(e, sf)), e.jogs[0].imposto[dv.id]], ['comando', 5, 1]);
+});
+
+// perda de vida como evento (CR 119.3, 120.3a): Mindcrank mói o que o oponente perdeu, Exquisite Blood ganha isso,
+// Vilis (do oponente) compra isso; pagar vida é perder vida (119.4). Sanguine Bond + Exquisite Blood: o laço termina com
+// o oponente morto (704.5a), sem travar.
+caso('119.3', 'perdeVida: Bolt no oponente → Mindcrank mói 3, Exquisite Blood ganha 3, Vilis do oponente compra 3', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mindcrank'], [0, 'Exquisite Blood'], [1, 'Vilis, Broker of Blood']], mao: [[0, 'Lightning Bolt']] });
+  e.pend = [];
+  M.avancar(e); conj(e, 'Lightning Bolt');
+  if (e.perg && e.perg.tipo === 'alvo') alvoJog(e, 1);
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  igual([e.jogs[1].vida, e.jogs[0].vida], [37, 43], 'vidas ' + JSON.stringify(e.log.slice(-10)));
+  igual(e.jogs[1].zonas.cemiterio.length, 3, 'Mindcrank: mói 3');
+  igual(e.jogs[1].zonas.mao.length, 3, 'Vilis: compra 3');
+});
+caso('119.4', 'pagar vida é perder vida: Vilis dispara com o pagamento; ganhar vida não dispara perdeVida', () => {
+  const e = cena({ campo: [[0, 'Vilis, Broker of Blood']] });
+  e.pend = [];
+  M.perderVida(e, 0, 2); M.ganharVida(e, 0, 5);
+  igual(e.pend.map(p => [p.n, p.ev.ev, p.ev.q]), [['Vilis, Broker of Blood', 'perdeVida', 2]], 'só a perda dispara o Vilis');
+});
+caso('704.5a', 'Sanguine Bond + Exquisite Blood: um Bolt no oponente vira laço, o oponente morre e o laço para', () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Sanguine Bond'], [0, 'Exquisite Blood']], mao: [[0, 'Lightning Bolt']] });
+  e.pend = [];
+  M.avancar(e); conj(e, 'Lightning Bolt');
+  if (e.perg && e.perg.tipo === 'alvo') alvoJog(e, 1);
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  ok(e.jogs[1].vida <= 0 || e.jogs[1].saiu || (e.fim && e.fim.vencedor === 0), 'oponente com ' + e.jogs[1].vida + ' fim ' + JSON.stringify(e.fim));
+  ok(e.jogs[0].vida >= 77, 'eu com ' + e.jogs[0].vida);
 });
 
 // ---------- rodar ----------
