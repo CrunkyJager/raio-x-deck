@@ -593,18 +593,25 @@ const H = {
   // (701.57b: se não conjurar); as outras exiladas vão para o fundo em ordem aleatória. qtd: número ou conta.
   descobrir: {
     fx(e, f, ctx, ask) {
-      const j = ctx.voce, J = e.jogs[j], n = qtdDe(e, f.qtd, ctx), ex: number[] = [];
-      let achou: any = null;
-      while (J.zonas.grimorio.length) {
-        const id = J.zonas.grimorio[J.zonas.grimorio.length - 1], o = e.objs[id];
-        M.mover(e, id, 'exilio'); 
-        if (!M.temTipo(e, o, 'Land') && (M.dadoDe(e, o).vm || 0) <= n) { achou = o; break; }
-        ex.push(id);
+      const j = ctx.voce, J = e.jogs[j];
+      // o exílio mexe no estado antes da pergunta: guarda o achado em ctx para a pergunta repetida não exilar de novo
+      const feitos = ctx.desc || (ctx.desc = new Map());
+      if (!feitos.has(f)) {
+        const n = qtdDe(e, f.qtd, ctx), ex: number[] = [];
+        let ach: any = null;
+        while (J.zonas.grimorio.length) {
+          const id = J.zonas.grimorio[J.zonas.grimorio.length - 1], o = e.objs[id];
+          M.mover(e, id, 'exilio');
+          if (!M.temTipo(e, o, 'Land') && (M.dadoDe(e, o).vm || 0) <= n) { ach = o; break; }
+          ex.push(id);
+        }
+        M.embaralhar(e, ex);
+        for (const id of ex) if (e.objs[id].zona === 'exilio') M.mover(e, id, 'grimorio', { topo: false });
+        M.log(e, J.nome, 'descobre', n, ach ? '→ ' + ach.n : '(nada)', ex.length ? `(${ex.length} para o fundo)` : '');
+        feitos.set(f, ach ? { id: ach.id, ts: ach.ts } : null);
       }
-      M.embaralhar(e, ex);
-      for (const id of ex) if (e.objs[id].zona === 'exilio') M.mover(e, id, 'grimorio', { topo: false });
-      M.log(e, J.nome, 'descobre', n, achou ? '→ ' + achou.n : '(nada)', ex.length ? `(${ex.length} para o fundo)` : '');
-      if (!achou) return;
+      const F0 = feitos.get(f), achou = F0 && e.objs[F0.id];
+      if (!achou || achou.ts !== F0.ts || achou.zona !== 'exilio') return;
       const pode = M.podeConjurar(e, j, achou, undefined, { agora: true, gratis: true });
       const r = pode ? ask(j, 'jogar', [{ a: 'jogar', id: achou.id }, { a: 'mao', id: achou.id }], { gratis: true }) : { a: 'mao' };
       if (r.a === 'jogar') { const P0 = e.proc; M.PROC.conjurar(e, { j, id: achou.id, agora: true, gratis: true, resp: [] }, ask); e.proc = P0; ask.etapa(); }

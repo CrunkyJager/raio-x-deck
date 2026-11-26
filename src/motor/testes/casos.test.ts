@@ -1820,9 +1820,9 @@ caso('701.57a', "Tecutlan (verso de Brass's Tunnel-Grinder): conjurar permanente
   igual(M.dadoDe(e, e.objs[e.campo[0]]).n, 'Tecutlan, the Searing Rift');
   e.por(0, 'Grizzly Bears', { zona: 'grimorio' });
   M.avancar(e); respE(e, o => o.a === 'conjurar');
-  for (let g = 0; e.perg && g < 40 && !naZona(e, 0, 'mao').includes('Grizzly Bears') && !e.pilha.some(id => e.objs[id].n === 'Grizzly Bears'); g++)
-    respE(e, o => o.a === 'mao' || o.a === 'passar' || o.a === 'nenhum' || true);
-  ok(naZona(e, 0, 'mao').includes('Grizzly Bears') || e.pilha.some(id => e.objs[id].n === 'Grizzly Bears') || e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), 'descobriu o urso (valor 2)');
+  ok(e.pilha.length === 2, 'gatilho na pilha sobre o Goblin Instigator');
+  for (let g = 0; e.perg && g < 40 && !e.campo.some(id => e.objs[id].n === 'Grizzly Bears'); g++) respE(e, o => o.a === 'jogar' || o.a === 'passar');
+  igual([e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), naZona(e, 0, 'exilio').length], [true, 0], 'descobriu o urso (valor 2) e conjurou de graça');
 });
 caso('608.2h', 'repetirCada com filtro de objetos: Kalonian Hydra dobra os +1/+1 de cada criatura; Second Harvest copia cada ficha (lista tirada ao resolver); entrouNoTurno', () => {
   const cx = (e, este?) => ({ voce: 0, este, alvos: [], ilegal: {}, lki: { alvos: [] } });
