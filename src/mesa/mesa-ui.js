@@ -45,9 +45,9 @@ function roda(tipo, msg, prog) {
   const id = ++WID; return new Promise((res, rej) => { WP.set(id, { res, rej, prog }); WK.postMessage(Object.assign({ id, tipo }, msg)); });
 }
 function para() { if (WK) { WK.terminate(); WK = null; } if (WK2) { WK2.terminate(); WK2 = null; } for (const [id, p] of WP) { p.rej(new Error('parado')); WP.delete(id); } }
-// T22 (beta): motor novo (src/motor, banco próprio) só na Mesa ao vivo, pela chave "motor novo (beta)"; o velho segue o padrão
+// T22 (beta): motor novo (src/motor, banco próprio) na Mesa ao vivo, pela chave "motor novo (beta)" — ligada por padrão desde 26/11
 let WK2 = null;
-const motorNovo = () => String(store.get('vivoMotor', '0')) === '1';
+const motorNovo = () => String(store.get('vivoMotor', '1')) === '1';   // 26/11: ligado por padrão (Felipe); desmarcar volta ao velho
 // link com ?beta=1 liga a chave (e grava), ?beta=0 desliga; sem o parâmetro fica o que estava (Felipe 25/11: link para amigo)
 try { const b = new URLSearchParams(location.search).get('beta'); if (b === '1' || b === '0') store.set('vivoMotor', b); } catch (e) {}
 function rodaNovo(tipo, msg) {
