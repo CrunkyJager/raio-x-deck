@@ -238,6 +238,8 @@ M.vidaFixa = (e, j) => estJog(e, j, s => s.modo === 'vidaNaoMuda');
 // "você tem proteção contra tudo" (702.16j, 702.16b): não é alvo, dano a você é prevenido. Só 'tudo' por ora.
 M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protTudo(s));
 // "você tem antimagia" (702.11c): oponente não mira você (Dawn's Truce, Lazotep Plating, Metropolis Reformer)
+// "você não pode conjurar mágicas neste turno" (Conduit of Worlds, 101.2: o "não pode" vence)
+M.naoConjura = (e, j) => estJog(e, j, s => s.modo === 'naoPodeConjurar' && !s.f);
 M.antimagiaJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && (s.kw || []).some(k => k.k === 'antimagia'));
 
 // Mover de zona. CR 400.7: vira objeto novo — o id fica (é a carta física, a designação de comandante vai junto,

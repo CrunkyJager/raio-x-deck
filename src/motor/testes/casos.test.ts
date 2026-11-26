@@ -2967,6 +2967,16 @@ caso('702.11c', 'jogador com antimagia até o fim do turno (Lazotep Plating): op
   passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
   igual(mira(1), true, 'acabou');
 });
+caso('101.2', 'não pode conjurar neste turno (Conduit of Worlds, se conjurou pela habilidade): o "não pode" vence; volta no turno seguinte', () => {
+  const e = cena({ campo: terras(4, 'Forest'), mao: [[0, 'Grizzly Bears']] }); e.pend = [];
+  const gb = e.objs[e.jogs[0].zonas.mao[0]];
+  const fx = M.carta('Conduit of Worlds').atv[0].fx[1];
+  ok(M.podeConjurar(e, 0, gb), 'antes');
+  M.executar(e, fx, { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] }, pagou: true }, null);
+  igual(M.podeConjurar(e, 0, gb), false, 'depois');
+  passarAte(e, 'limpeza'); passarAte(e, 'manutencao');
+  igual(e.efTemp.length, 0, 'acabou');
+});
 caso('702.124k', 'Escolha um Antecedente: Safana + Dungeon Delver começam no comando (identidade UB, 903.4); cada um é conjurado de lá com o próprio imposto (702.124d)', () => {
   const d = M.novoJogo([{ comandante: ['Safana, Calimport Cutthroat', 'Dungeon Delver'], cartas: enche(20) }, { cartas: enche(20) }]);
   igual(naZona(d, 0, 'comando').sort(), ['Dungeon Delver', 'Safana, Calimport Cutthroat']); igual(d.jogs[0].ci, 'UB');
