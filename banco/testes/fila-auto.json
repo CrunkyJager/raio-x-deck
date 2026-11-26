@@ -1,0 +1,18 @@
+{
+ "bloco": "fila-auto",
+ "por": "fila-auto",
+ "em": "2026-11-26",
+ "nota": "cartas provisórias da fila automática",
+ "casos": [
+  {
+   "carta": "Aetherflux Reservoir",
+   "situacao": "você conjura a 3ª mágica do turno; depois paga 50 de vida mirando um oponente",
+   "espera": "ganha 3 de vida; o oponente leva 50 de dano"
+  },
+  {
+   "carta": "Thassa's Oracle",
+   "situacao": "entra com devoção a azul 2 e 10 cartas no grimório",
+   "espera": "olha as 2 do topo, deixa até 1 no topo e o resto no fundo; não vence"
+  }
+ ]
+}

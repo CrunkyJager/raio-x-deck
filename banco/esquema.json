@@ -1635,16 +1635,16 @@
        "$ref": "#/$defs/qtd"
       },
       "min": {
-       "type": "integer"
+       "$ref": "#/$defs/qtd"
       },
       "max": {
-       "type": "integer"
+       "$ref": "#/$defs/qtd"
       },
       "igual": {
-       "type": "integer"
+       "$ref": "#/$defs/qtd"
       }
      },
-     "description": "a contagem q compara (min/max/igual)"
+     "description": "a contagem q compara (min/max/igual: número ou outra contagem — Thassa's Oracle: devoção ≥ cartas no grimório)"
     },
     "existe": {
      "type": "object",
