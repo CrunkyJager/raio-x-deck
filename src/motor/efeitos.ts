@@ -317,7 +317,8 @@ function tempEstOk(s, f) {
     case 'naoPodeConjurar': return s.afeta === 'voce' && so();                                                         // lido em pilha.ts (M.naoConjura)
     case 'conjurarComLampejo': return s.afeta === 'voce' && so('f') && (!s.f || M.filtroOk(s.f));                   // lido em pilha.ts (M.lampejoDado)
     case 'continuo': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)        // emblema do Sorin: lido nas camadas (estado.ts)
-      && (s.afeta.zona === undefined || s.afeta.zona === 'campo') && M.estContOk(s) && !s.habil;
+      && (((s.afeta.zona === undefined || s.afeta.zona === 'campo') && M.estContOk(s) && !s.habil)
+        || (s.afeta.zona === 'cemiterio' && so('kw') && (s.kw || []).length === 1 && s.kw[0].k === 'flashback'));   // Past in Flames: lido no flashDe (pilha.ts)
   }
   return false;
 }

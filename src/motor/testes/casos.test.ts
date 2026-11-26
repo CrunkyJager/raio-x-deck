@@ -2159,6 +2159,16 @@ caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e
   ok(M.porFuga(b, 0, b.objs[bolt]) && M.podeConjurar(b, 0, b.objs[bolt]), 'Breach: o Raio tem fuga com {R} + 3');
   igual(M.fugaDe(b, 0, b.objs[bolt]).mana, M.carta('Lightning Bolt').custo, 'custo = o custo de mana dele');
 });
+caso('702.34', 'Past in Flames: instantâneas e feitiços do seu cemitério ganham flashback (custo de mana) até o fim do turno; conjurado assim vai ao exílio', () => {
+  const e = cena({ campo: terras(5), mao: [[0, 'Past in Flames'], [0, 'Lightning Bolt']] }); e.pend = [];
+  const [pif, bolt] = e.jogs[0].zonas.mao; M.mover(e, bolt, 'cemiterio');
+  ok(!M.podeConjurar(e, 0, e.objs[bolt]), 'antes: o Raio não tem flashback');
+  M.avancar(e); conj(e, 'Past in Flames'); resolveCom(e);
+  ok(M.porFlash(e, 0, e.objs[bolt]) && M.podeConjurar(e, 0, e.objs[bolt]), 'depois: o Raio tem flashback');
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === bolt); alvoJog(e, 1); resolveCom(e);
+  igual([e.jogs[1].vida, e.objs[bolt].zona], [37, 'exilio'], 'Raio do cemitério: 3 de dano e exílio (702.34a)');
+  igual(e.objs[pif].zona, 'cemiterio');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
