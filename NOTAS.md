@@ -85,6 +85,7 @@ Construtor de decks em `montar.js` (tela `#montar`, `--h` 96, ícone `build`, pr
 - `src/mesa/arena-nova.ts` devolve o mesmo formato da `arena()` velha (quadros + log); Worker em `src/mesa/worker-novo.ts` (Vite gera `worker-novo-*.js`).
 - Registro com ⚡ gatilho, ✧ efeito, ▲ camada (P/R, palavras-chave, anexo) e ⚙ habilidade, tirados do estado antes × depois de cada efeito.
 - Selo ⓘ: carta que o motor novo não joga inteira (`src/mesa/motor-novo-cobertura.json`, refazer com `node ferramentas/motor-cobertura.mjs --por-carta src/mesa/motor-novo-cobertura.json` a cada mudança de motor/banco) ou carta fora do banco (só o corpo).
+- Carta na Mesa (26/11, Edigar): selo amarelo = marcadores +1/+1, roxo = −1/−1; P/R destacado só pelo bônus de outras cartas (lorde, anexo, efeito). Os dois somam no P/R, mas só o marcador conta para "com N marcadores".
 - Lado a lado: `ferramentas/mesa-nova.mjs` (velho ~0,1 s/partida, novo 0,3–1,1 s).
 
 ## Mesa ao vivo com as trocas (19/11/2026, pedido do usuário)
