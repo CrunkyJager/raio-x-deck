@@ -555,13 +555,13 @@ const H = {
   jogar: {
     campos: ['dura', 'soConjurar', 'gratis', 'f'],
     qtd: q => q === undefined || typeof q === 'number',
-    ok: f => (f.em !== undefined) !== (f.f !== undefined) && [undefined, 'fimDoTurno', 'proximoTurnoSeu', 'sempre'].includes(f.dura)
+    ok: f => (f.em !== undefined) !== (f.f !== undefined) && [undefined, 'fimDoTurno', 'proximoTurnoSeu', 'proximoFinalSeu', 'sempre'].includes(f.dura)
       && (f.em === undefined || f.em === 'anterior' || (f.em.todos && M.filtroOk(f.em.todos)) || typeof f.em.alvo === 'number') && !(f.f && f.dura),
     fx(e, f, ctx, ask) {
       const j = ctx.voce;
       const cand = () => f.f ? M.objetosQue(e, { ...f.f, zona: f.f.zona || 'mao' }, ctx) : objsDeQualquer(e, f, ctx);
       if (f.dura) {
-        const fim = f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'proximoTurnoSeu' ? j : null;
+        const fim = f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'proximoTurnoSeu' ? j : f.dura === 'proximoFinalSeu' ? { final: j } : null;   // Inti: "until your next end step"
         for (const o of cand()) (e.permJogar || (e.permJogar = [])).push({ j, id: o.id, ts: o.ts, gratis: !!f.gratis, soConjurar: !!f.soConjurar, fim });
         return;
       }
@@ -620,6 +620,17 @@ const H = {
     fx(e, f, ctx) {
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
         lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}) }, ts: ++e.ts });
+    },
+  },
+  // CR 603.12: gatilho reflexo ("when you do, …"): criado na resolução, dispara na hora; vai à pilha da próxima vez que
+  // alguém receberia prioridade, e os alvos dele são escolhidos só então (Inti: o alvo vem depois do descarte)
+  reflexo: {
+    campos: ['quando'],
+    ok: f => !!f.quando && f.quando.ev === 'reflexo' && M.gatOk(f.quando),
+    fx(e, f, ctx) {
+      const F = e.objs[ctx.este] || {};
+      e.pend.push({ fonte: ctx.este, ts: F.ts, ctrl: ctx.voce, k: 'reflexo', g: f.quando, n: F.n, face: F.face ?? null, ficha: F.ficha || null,
+        lki: (ctx.lki && ctx.lki.este) || (F.zona === 'campo' ? M.lkiDe(e, F) : null), ev: { ev: 'reflexo', j: ctx.voce } });
     },
   },
   // "para cada oponente/jogador, …" (Acererak, Tempt with…): os efeitos de dentro valem para o jogador da vez (quem/ctrl/dono

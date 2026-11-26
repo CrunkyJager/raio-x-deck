@@ -144,7 +144,11 @@ function proximoPasso(e) {
   const pula = M.depoisDoPasso(e, T.passo);                         // 508.8 sem atacantes → fim do combate; 510.4 2ª etapa
   let i = pula ? PASSOS.indexOf(pula) : PASSOS.indexOf(T.passo) + 1;
   T.feito = false; T.prio = null;
-  if (i < PASSOS.length) { T.passo = PASSOS[i]; M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return; }
+  if (i < PASSOS.length) {
+    T.passo = PASSOS[i];
+    if (T.passo === 'final' && e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => !(p.fim && p.fim.final === T.ativo));   // "até o seu próximo passo final" (Inti): acaba quando ele começa
+    M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return;
+  }
   // próximo turno: próximo jogador na ordem que ainda está no jogo (CR 800.4k)
   const n = e.jogs.length;
   let p = T.ativo;

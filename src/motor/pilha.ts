@@ -103,7 +103,7 @@ const alvosUsados = fx => {
     if (!v || typeof v !== 'object') return;
     if (Array.isArray(v)) { v.forEach(anda); return; }
     if (typeof v.alvo === 'number') s.add(v.alvo);
-    for (const k in v) if (k !== 'modos') anda(v[k]);
+    for (const k in v) if (k !== 'modos' && !(k === 'quando' && v.op === 'reflexo')) anda(v[k]);   // o reflexo tem os alvos dele (603.12)
   };
   anda(fx);
   return [...s].sort((a, b) => a - b);

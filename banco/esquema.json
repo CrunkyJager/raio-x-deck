@@ -986,6 +986,7 @@
    "enum": [
     "fimDoTurno",
     "proximoTurnoSeu",
+    "proximoFinalSeu",
     "enquantoAnexado",
     "enquantoNoCampo",
     "sempre"
@@ -1038,6 +1039,7 @@
       "transformar",
       "efeitoTemporario",
       "gatilhoAtrasado",
+      "reflexo",
       "escolher",
       "modal",
       "repetirCada",
@@ -1203,7 +1205,7 @@
     },
     "quando": {
      "$ref": "#/$defs/gat",
-     "description": "gatilhoAtrasado"
+     "description": "gatilhoAtrasado; reflexo (CR 603.12): o gatilho \"quando você fizer isso\" (ev reflexo, com alvos/fx), que vai à pilha logo depois"
     },
     "o": {
      "enum": [
@@ -1893,6 +1895,7 @@
       "fase",
       "ataca",
       "atacantesDeclarados",
+      "reflexo",
       "bloqueia",
       "conjura",
       "dano",

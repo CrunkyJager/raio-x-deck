@@ -1874,6 +1874,24 @@ caso('601.2f', 'custo adicional com "ou" (Demand Answers): só artefato → sacr
       [art && outra, (sacrificou ? ['Demand Answers', 'Mind Stone'] : ['Demand Answers', 'Grizzly Bears']).sort(), false, outra && sacrificou ? 3 : 2], `artefato ${art}, outra ${outra}`);
   }
 });
+caso('603.12', 'gatilho reflexo (Inti): ataca → pode descartar; só se descartou, o alvo é escolhido depois e ganha +1/+1 e atropelar; a exilada pelo descarte vale até o próximo passo final seu', () => {
+  for (const quer of [true, false]) {
+    const e = cena({ campo: [[0, 'Mountain'], [0, 'Inti, Seneschal of the Sun'], [0, 'Grizzly Bears']], mao: [[0, 'Forest']] }); e.pend = [];
+    const bears = objN(e, 0, 'Grizzly Bears'), inti = objN(e, 0, 'Inti, Seneschal of the Sun');
+    const vistos: string[] = [];
+    ate(e, 'atacar'); atacaCom(e, bears); atacaCom(e, inti); fecha(e, 'atacar');
+    resolveCom(e, p => { vistos.push(p.tipo);
+      if (p.tipo === 'talvez') return p.ctx && p.ctx.op === 'descartar' ? p.ops.findIndex(o => o.a === (quer ? 'sim' : 'nao')) : p.ops.findIndex(o => o.a === 'nao');
+      if (p.tipo === 'alvo') { ok(e.jogs[0].zonas.cemiterio.length === (quer ? 1 : 0), 'o alvo do reflexo vem depois do descarte'); return p.ops.findIndex(o => o.o === bears.id); }
+      return -1; });
+    igual([bears.marc['+1/+1'] || 0, M.temKw(e, bears, 'atropelar'), vistos.includes('alvo')], quer ? [1, true, true] : [0, false, false], quer ? 'descartou' : 'não descartou');
+    if (!quer) continue;
+    const ex = e.jogs[0].zonas.exilio[0], perm = (e.permJogar || []).find(p => p.id === ex);
+    igual(perm && perm.fim, { final: 0 }, 'exilada pelo outro gatilho: até o próximo passo final');
+    passarAte(e, 'final');
+    ok(!(e.permJogar || []).some(p => p.id === ex), 'no passo final a permissão acabou');
+  }
+});
 caso('702.138', 'fuga: Ox of Agonas do cemitério paga {R}{R} + exila 8 outras e entra com +1/+1; sem 8 outras não dá; Underworld Breach dá fuga (custo dela + 3)', () => {
   for (const n of [8, 7]) {
     const e = cena({ campo: terras(2) }); e.pend = []; e.jogs[0].terrenos = 1;

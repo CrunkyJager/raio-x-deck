@@ -502,7 +502,8 @@ export interface RxCustoAtv {
       };
 }
 
-export type RxDura = 'fimDoTurno' | 'proximoTurnoSeu' | 'enquantoAnexado' | 'enquantoNoCampo' | 'sempre';
+export type RxDura =
+  'fimDoTurno' | 'proximoTurnoSeu' | 'proximoFinalSeu' | 'enquantoAnexado' | 'enquantoNoCampo' | 'sempre';
 
 export type RxFxs = RxFx[];
 
@@ -546,6 +547,7 @@ export interface RxFx {
     | 'transformar'
     | 'efeitoTemporario'
     | 'gatilhoAtrasado'
+    | 'reflexo'
     | 'escolher'
     | 'modal'
     | 'repetirCada'
@@ -621,7 +623,7 @@ export interface RxFx {
   est?: RxEst[];
   subst?: RxSubst[];
   /**
-   * gatilhoAtrasado
+   * gatilhoAtrasado; reflexo (CR 603.12): o gatilho "quando você fizer isso" (ev reflexo, com alvos/fx), que vai à pilha logo depois
    */
   quando?: RxGat;
   /**
@@ -1031,6 +1033,7 @@ export interface RxGat {
     | 'fase'
     | 'ataca'
     | 'atacantesDeclarados'
+    | 'reflexo'
     | 'bloqueia'
     | 'conjura'
     | 'dano'
