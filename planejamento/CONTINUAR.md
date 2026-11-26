@@ -1,6 +1,6 @@
 # Continuar o Raio-X (de casa ou amanhã)
 
-Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê ESTE arquivo primeiro e, ao parar, ATUALIZA este arquivo (seção "Estado"), faz commit e push. Assim a próxima sessão, seja de casa ou do trabalho, começa daqui.
+Atualizado em 26/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê ESTE arquivo primeiro e, ao parar, ATUALIZA este arquivo (seção "Estado"), faz commit e push. Assim a próxima sessão, seja de casa ou do trabalho, começa daqui.
 
 ## Como começar (qualquer PC)
 1. `git clone https://github.com/CrunkyJager/raio-x-deck` (ou `git pull` se já tiver) → `npm ci`.
@@ -62,7 +62,19 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 ## Estado em 26/11 ~11h30 — v0.46.0 na main
 - Mana com escolha no custo virou ação com pergunta (`manaEsc`, src/motor/pilha.ts): 9 cartas jogam; inteiras 1371/1753. Faltam Master of Dark Rites (mana restrita na reserva) e Ramos (marcador.qtd). A IA não usa (T21).
 
-## Próximo passo (nesta ordem)
+## Estado em 26/11 18h — v0.50.0 na main (fim do expediente)
+- **Motor joga inteiras 1444/1756** (eram 1400 na v0.49.1). Vitest 367 verde, check 0 erros, Stangg igual à base (erros 0).
+- **Ivora: 75/75 no banco · 75/75 motor · 30 partidas 0 erros. Masmorras: 81/81 · 81/81 · 30 partidas 0 erros.** Taxa de vitória baixa (2/30, 1/30): IA fraca nesses planos (T21).
+- Hoje: pedido do Edigar feito (marcador +1/+1 separado do lorde; ordem de gatilhos indiferente não pergunta — CR 701.9a + 603.3b; falta mostrar a citação a ele); aviso "Saiu uma versão nova… Recarregar" (o ⚠ falso na mão era aba com o site de 25/11); motor: modo ao entrar, efeito temporário (substituição de dano, terra extra, mão máxima, lampejo, não conjurar, antimagia de jogador, gatilho e contínua em emblema), monarca (CR 724), dano não prevenível, Lightning, Past in Flames (flashback dado no cemitério), modificar até o seu próximo turno / enquanto no campo, Hellkite Courser (atrasado com 'anterior', mover para a zona de comando), Mortarpod (arma viva).
+- Fila automática: `~/.local/bin/raiox-fila` (worktree `~/raio-x-c`, ramo `fila-auto`); falta o Felipe pôr a linha no crontab (*/30).
+
+## Próximo passo (27/11, nesta ordem)
+1. T43 travas da cobertura (`node ferramentas/motor-cobertura.mjs --por-carta /tmp/cob.json`), uma por commit com caso no `casos.test.ts`:
+   Sephiroth (custoAtv.sacrificar com filtro `modificada` + est ptDefinido), Tamiyo (modificar com habil e dura proximoTurnoSeu; carta com `falta`: quem compra é VOCÊ), Éomer (virarMonarca.quem), Faramir (gat.se), Regal Behemoth (gat ev viraParaMana, 4 cartas). Depois as de mais cartas: est podeOlhar (9), op ganharControle (9), gat ev marcadorPosto (8), op escolher (7), op faseExtra (7).
+2. Pendências do Felipe: lista do Ultra Magnus com nomes reais (`planejamento/decks/ultron.txt`); linha do cron da fila; ok para remover worktrees `~/raio-x-base`/`~/raio-x-b`.
+3. T44: medida dos 30 decks em lotes de 10 (arquivos da medida no ramo `t44-medida`).
+
+## Próximo passo (antigo, manhã de 26/11)
 1. ~~Habilidades de mana com escolha~~ FEITO na v0.46.0. Era: Habilidades de mana com escolha que o motor ainda não paga (10, aparecem como `custoMana.*` na cobertura): sacrificar outra (altares, Krark-Clan, Gilded Goose), tirar marcador (Steam-Kin, Ramos), exilar da mão (Simian Spirit Guide). Não pôr no solver automático (sacrificaria sem querer): virar ação com pergunta.
 2. ~~`falta` da Ivora e masmorras~~ FEITO na v0.45.0 (sobra o verso Tecutlan).
 3. ~~Revisão de textos da Mesa~~ FEITO na v0.46.1 (9 perguntas sem título/rótulo). Era: Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
