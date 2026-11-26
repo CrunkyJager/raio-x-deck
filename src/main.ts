@@ -8,6 +8,7 @@ import App from './App.svelte';
 import Saida from './telas/Saida.svelte';
 import Janelas from './telas/Janelas.svelte';
 import type { Analise } from './analise/analise';
+import './versao';
 
 // A casca (App.svelte) vai primeiro e direto no <body>, antes do primeiro <script>, no mesmo lugar onde o HTML
 // fixo estava: os módulos abaixo procuram #deck-in, #examples, #out… assim que sobem.
