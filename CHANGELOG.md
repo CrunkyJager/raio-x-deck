@@ -2,6 +2,13 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.39.0 — 26/11/2026 · sessão de casa: Ivora e Ultron sem trava, masmorras no motor
+Testes: check 0 erros · Vitest 253/253 · raiox-testes verde. Motor joga inteiras 1313/1753. Partidas no node: Ivora 50 e masmorras 50, 0 erros.
+- **Ivora:** no banco 75/75 · motor joga 75/75 (inteiras 50/75; 25 com frase que o motor ainda pula). Anger, Brotherhood Regalia, Cool but Rude (Classe) e Clive (devoção). Corrigido "pode" + pagar que quebrava a repetição (Leaf-Crowned Visionary).
+- **Ultron:** 0 travas (grupo na saída, metalcraft/coven/blessing, buscar "quantas quiser", afinidade, improvisar, custo alternativo).
+- **Masmorras:** iniciativa (CR 727), aventurar nas 4 masmorras, completar, infectar + 10 venenos, Escolha um Antecedente; IA escolhe masmorra e sala por valor. Deck: no banco 81/81 · motor joga 72/81 (inteiras 67/81). Travam 9: Acererak, Corpse Cur, Demonic Gifts, Dungeon Descent, Fifty Feet of Rope, Prosperous Thief, Ravenloft Adventurer, Withercrown, Alora.
+- Ferramenta `ferramentas/partida-deck.mjs` (partidas de um deck de lista, conta mecânicas no registro).
+
 ## v0.38.0 — 25/11/2026 · decks do Edigar: Ivora 71/75 no motor, masmorras no banco
 Testes: valida 1753/0 · check 0 erros · Vitest 219/219 · testa 161/161 · verifica verde · build ok.
 - **Motor (A):** jogar carta de outro lugar, lutar, modal em gatilho, recapitular, proeza, parceiro, gatilhos de/não de/a oponente, modificar até o fim do turno (Key to the City, Wedding Invitation, Witch's Mark), laço obrigatório (104.4b). Ivora: faltam Anger, Brotherhood Regalia, Cool but Rude e Clive.

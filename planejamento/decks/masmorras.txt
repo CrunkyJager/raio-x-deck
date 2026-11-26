@@ -33,7 +33,7 @@
 1 Flux Channeler
 1 Imoen, Mystic Trickster
 1 Irenicus's Vile Duplication
-1 10 Island
+10 Island
 1 Jwar Isle Refuge
 1 Karn's Bastion
 1 Knowledge Exploitation
@@ -66,7 +66,7 @@
 1 Sol Ring
 1 Soulknife Spy
 1 Steady Progress
-1 9 Swamp
+9 Swamp
 1 Temple of Deceit
 1 Terramorphic Expanse
 1 Tezzeret's Gambit

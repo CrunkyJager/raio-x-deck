@@ -32,7 +32,19 @@ Atualizado em 25/11/2026 às 18:00 pelo coordenador (FARSEER). Quem retomar lê 
 - Marcador de veneno do jogador = `poison` (decisão): normalizar as cartas do banco que escrevem `veneno`.
 - Para integrar: `casa-ivora` + `casa-masmorras-banco` + `casa-masmorras-motor` → `integracao` → main + tag + CHANGELOG (coordenador).
 
+## Estado em 26/11 manhã (trabalho) — v0.39.0 na main
+- Os 3 ramos `casa-*` juntos na main (conflito do `estado.ts` resolvido como anotado: `morbid` na tabela PALAVRA). `masmorras.txt` sem a coluna dupla.
+- **Ivora:** no banco 75/75 · motor joga 75/75 · inteiras 50/75. **Masmorras:** no banco 81/81 · motor joga 72/81 · inteiras 67/81. Ultron: 0 travas (lista com nomes reais ainda falta em `planejamento/decks/ultron.txt`).
+- Partidas no node: Ivora 50 e masmorras 50, 0 erros; registro mostra aventura, iniciativa, completar masmorra, recapitular, Sangue.
+- Divergência Undercity: o A2 seguiu a CR (aventurar com a Undercity aberta avança nela) — está certo; o caso do B é que precisa mudar.
+
 ## Próximo passo (nesta ordem)
+1. Masmorras **motor joga 81/81**: as 9 travas (Acererak repetirCada, Corpse Cur gat entra vários campos, Demonic Gifts modificar.gat, Dungeon Descent virarOutros, Fifty Feet virar.naoDesvira, Prosperous Thief danoUmaVez, Ravenloft perderVida.qtd, Withercrown perderVida.aMenosQue, Alora gatilhoAtrasado com alvo). Uma por commit, com caso. Corrigir o caso do B da Undercity.
+2. `falta` da Ivora (25) e das masmorras (5): milagre, fuga, reconfigurar, "descartadas no turno"… → inteiras.
+3. Revisão de textos da Mesa (PERG/botões em `src/mesa/mesa-ui.js`, rotulo/TITULO em `src/mesa/arena-nova.ts`).
+4. T44 medida em lotes → T46 depois da autorização.
+
+## Próximo passo (antigo, 25/11)
 **Amanhã, primeiro:** ler `planejamento/adeptos/A.md` no ramo `casa-masmorras-motor` (onde o A2 parou), juntar `casa-ivora` + `casa-masmorras-motor` (casa-ivora já contém o banco do B) → rodar check + Vitest + `node ferramentas/motor-cobertura.mjs` + `node ferramentas/partida-deck.mjs planejamento/decks/masmorras.txt --comandante "Safana, Calimport Cutthroat" --basico Swamp --partidas 50` → integracao → main + tag + CHANGELOG. O que o A2 não terminou vira o passo 2 abaixo.
 **A2 terminou (casa-masmorras-motor, 1b0f115):** os 5 itens (infectar + 10 venenos, as 4 masmorras/aventurar/completar, iniciativa CR 727, IA de masmorra com caso 603.3b, antecedente), Vitest 248 verde; 40 partidas de masmorras (Safana|Dungeon Delver) sem erro; deck masmorras 69/83 inteiras, 9 travadas (Acererak repetirCada, Withercrown perderVida.aMenosQue, Ravenloft perderVida.qtd comMarcador, Alora gatilho atrasado com alvo, Corpse Cur filtro com infect, Demonic Gifts modificar.gat, Dungeon Descent virarOutros, Fifty Feet virar.naoDesvira, Prosperous Thief danoUmaVez). O merge com o casa-ivora tem UM conflito em `src/motor/estado.ts` (COND_OK/condValorOk): ficar com a tabela PALAVRA do casa-ivora, pôr `morbid: e => M.morbido(e)` nela, manter `temIniciativa`/`completouMasmorra` no COND_OK e `&& M.condMasmorraOk(se)` no condValorOk. Divergência a decidir: o caso do B diz que aventurar comum com a Undercity escolhe outra masmorra; o A2 seguiu a CR 701.49b/309.5a (avança na Undercity). `masmorras.txt` tem duas colunas de número ("1 1 Safana…"): tirar a primeira. Ao medir, cuidado: as cartas novas do B usam campos que só o motor do A2 lê (sem ele, o deck de masmorras mostra 35 travas).
 0. [FEITO 18:15] v0.38.0 na main = os dois ramos juntos (sem o patch T44). ATENÇÃO: "motor joga" conta só o que trava. Há cartas com pedaço em `falta` (frase que o motor ainda pula): Ivora 26 de 75, masmorras pelo menos as 11 de iniciativa/masmorra/completou/infect. O número honesto para o Felipe é "inteira = sem trava E sem falta".
