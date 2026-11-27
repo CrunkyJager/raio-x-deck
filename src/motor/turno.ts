@@ -98,17 +98,6 @@ function passoMulligan(e) {
 }
 
 // ---------- ações do turno (não usam a pilha) ----------
-// radiação (marcadores rad, 122.1): no começo da 1ª fase principal de quem tem rad, ele mói esse tanto; por carta não-terreno
-// moída perde 1 de vida e tira um rad. Simplificação: feito como ação do turno (é gatilho na pilha). radiacaoGanhaVida: "you
-// gain life rather than lose life from radiation" (Strong, the Brutish Thespian)
-function radiacao(e, a) {
-  const J = e.jogs[a], cx: any = { voce: a, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } };
-  M.executar(e, { op: 'moer', quem: 'voce', qtd: J.marc.rad }, cx, () => ({ a: 'nao' }));
-  const n = (cx.movidos || []).filter(m => e.objs[m.id] && !M.temTipo(e, e.objs[m.id], 'Land')).length; if (!n) return;
-  const ganha = M.indiceCampo(e).est.some(id => { const F = e.objs[id]; return F.ctrl === a && (M.dadoDe(e, F).est || []).some(s => s.modo === 'radiacaoGanhaVida'); });
-  if (ganha) M.ganharVida(e, a, n); else M.perderVida(e, a, n);
-  J.marc.rad = Math.max(0, J.marc.rad - n); M.log(e, J.nome, 'radiação:', n, ganha ? 'de vida ganha' : 'de vida perdida');
-}
 function acaoDoTurno(e) {
   const T = e.turno, a = T.ativo, J = e.jogs[a];
   if (J.saiu) return;                                               // CR 800.4j: turno segue sem jogador ativo
@@ -129,7 +118,6 @@ function acaoDoTurno(e) {
       break;
     case 'principal1':                                              // CR 714.3b: marcador de história nas sagas de quem joga
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
-      if (J.marc && J.marc.rad > 0) radiacao(e, a);
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
       if (!(T.n === 1 && e.jogs.length === 2)) {
@@ -191,7 +179,7 @@ function proximoPasso(e) {
   while (e.turnosExtra && e.turnosExtra.length && e.jogs[e.turnosExtra[e.turnosExtra.length - 1]].saiu) e.turnosExtra.pop();
   if (e.turnosExtra && e.turnosExtra.length) p = e.turnosExtra.pop();
   else do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.radFeito = false; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.radFeito = false; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.sigs = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
   M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
@@ -220,7 +208,7 @@ M.PROC.terreno = (e, P, ask) => {
   const j = P.j, o = e.objs[P.id];
   const terra = P.face === undefined ? M.temTipo(e, o, 'Land') : M.faceTerreno(e, o);
   const pj = M.permJogar(e, j, o);
-  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj) || !terra) throw new Error('terreno ilegal');
+  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj && !(o.zona === 'exilio' && M.podeJogarDe(e, j, o))) || !terra) throw new Error('terreno ilegal');
   const plano = M.decidirEntrada(e, P.id, j, P.face === undefined ? {} : { face: P.face }, ask);
   e.proc = null;
   e.jogs[j].terrenos++;
@@ -243,9 +231,12 @@ const RESP = {
     else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id, op.face);
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
     else if (op.a === 'manaEsc') M.manaEsc(e, p.j, op.id, op.k, op.escolha);          // CR 605.3a com escolha no custo
-    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
+    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face, op.baixo);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
     else if (op.a === 'prever') M.prever(e, p.j, op.id);
+    else if (op.a === 'suspender') M.suspender(e, p.j, op.id);
+    else if (op.a === 'virarParaCima') M.virarParaCima(e, p.j, op.id);   // 116.2b
+    else if (op.a === 'destrancar') M.destrancar(e, p.j, op.id, op.porta);
   },
   descartar(e, p, op) {
     M.descartar(e, p.j, [op.id]);                                   // CR 514.1 (dispara 'descarta'; loucura vale)
@@ -300,6 +291,7 @@ M.abe = e => {
       if (!v) { roles.set(k, o); continue; }
       if (v.ts < o.ts) { morrem.push(v.id); roles.set(k, o); } else morrem.push(id);
     }
+    for (const id of e.campo) { const o = e.objs[id]; if (o.par && !M.parDe(e, o)) { delete o.par; e.vCamada = (e.vCamada || 0) + 1; } }   // 702.95e: o par quebrou (não volta)
     // preparar: a cópia no exílio deixa de existir se a criatura saiu do campo ou não está mais preparada
     for (const J of e.jogs) for (const id of [...J.zonas.exilio]) { const c = e.objs[id]; if (c.copiaPrep && !M.prepValida(e, c)) { M.mover(e, id, 'cemiterio'); mudou = true; } }
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
@@ -311,7 +303,8 @@ M.abe = e => {
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
     for (const id of sagas) if (e.objs[id].zona === 'campo') { M.mover(e, id, 'cemiterio', { sac: true }); mudou = true; }   // 714.4: é sacrifício (701.21)
-    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
+    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);
+    M.ligarMotores(e);                                                 // 702.179a: Start your engines!           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
     if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
