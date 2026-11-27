@@ -510,10 +510,10 @@ function temTumulto(e, o, d, ctrl) {
   }
   return false;
 }
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null }: any) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   if (sacEntra) for (const sid of sacEntra.ids) if (e.objs[sid] && e.objs[sid].zona === 'campo') M.mover(e, sid, 'cemiterio', { sac: true });   // 701.21, antes de entrar
-  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, clone });
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, clone });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
@@ -1046,11 +1046,11 @@ const H = {
   ganharJogo: { fx(e, f, ctx) {                                     // CR 104.2b: o efeito diz que ele vence; no multijogador os outros perdem juntos (104.3h)
     if (e.fim) return;
     const j = jogsDe(e, f, ctx).find(x => !e.jogs[x].saiu);
-    if (j === undefined) return;
+    if (j === undefined || M.naoVence(e, j)) return;   // um oponente com "your opponents can't win" (104.2)
     M.log(e, e.jogs[j].nome, 'vence o jogo por efeito');
     e.fim = { vencedor: j, motivo: 'efeito: vence o jogo', turno: e.turno.n };
   } },
-  perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
+  perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu && !M.naoPerde(e, j)) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) if (!M.vidaFixa(e, j)) M.perderVida(e, j, q); } },   // 119.7
   copiarMagica: {                                                   // CR 707.10: "copy that spell" (pilha.ts: M.alvosDaCopia/M.criarCopia)
     campos: ['novoAlvo'],
@@ -1066,6 +1066,15 @@ const H = {
       for (const pl of planos) M.criarCopia(e, o, ctx.voce, pl);
     },
   },
+  trocarAlvos: { fx(e, f, ctx, ask) {                                // "you may choose new targets for target spell or ability" (115.7d): mesmo número, alvos legais
+    for (const o of objsDe(e, f, ctx)) {
+      if (o.zona !== 'pilha' || !o.pil || o.id === ctx.item) continue;
+      const pl = M.alvosDaCopia(e, o, ctx.voce, true, ask);
+      if (!pl.novos) continue;
+      o.pil.alvos = pl.alvos; M.eventosAlvo(e, pl.alvos, o.id);
+      M.log(e, o.n, 'muda de alvo');
+    }
+  } },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
     campos: ['token', 'virada', 'atacando', 'porJogadorAtacado'],

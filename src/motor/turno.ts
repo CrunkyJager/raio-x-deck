@@ -244,7 +244,7 @@ M.abe = e => {
     const perdem: any[] = [];
     for (const J of e.jogs) {
       if (J.saiu) continue;
-      if (J.vida <= 0 || J.comprouVazio || J.veneno >= 10 || Object.values<any>(J.danoCmd).some(d => d >= 21)) perdem.push(J.i);
+      if ((J.vida <= 0 || J.comprouVazio || J.veneno >= 10 || Object.values<any>(J.danoCmd).some(d => d >= 21)) && !M.naoPerde(e, J.i)) perdem.push(J.i);   // naoPerdeJogo: a condição fica, mas não perde (104.3)
       J.comprouVazio = false;
     }
     // permanentes (CR 704.5f, g, i) e fichas fora do campo (704.5d)
@@ -332,5 +332,5 @@ M.sair = (e, j, motivo) => {
   if (e.perg && e.perg.j === j) e.perg = null;
   M.log(e, J.nome, 'sai do jogo:', motivo);
   const v = M.vivos(e);
-  if (v.length <= 1) e.fim = { vencedor: v.length ? v[0] : null, motivo: 'último na mesa', turno: e.turno.n };   // CR 104.2a
+  if (v.length <= 1 && !(v.length && M.naoVence(e, v[0]))) e.fim = { vencedor: v.length ? v[0] : null, motivo: 'último na mesa', turno: e.turno.n };   // CR 104.2a
 };
