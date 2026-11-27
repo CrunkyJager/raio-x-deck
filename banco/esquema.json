@@ -1551,6 +1551,10 @@
      "type": "boolean",
      "description": "marcador: remover em vez de pôr"
     },
+    "cadaCor": {
+     "const": true,
+     "description": "marcador com f: para cada cor (W, U, B, R, G), um objeto de f daquela cor recebe o marcador; resultado = quantos objetos distintos receberam (Call the Spirit Dragons)"
+    },
     "fase": {
      "enum": [
       "combate",
@@ -2618,6 +2622,10 @@
     "de": {
      "$ref": "#/$defs/zona"
     },
+    "pagarVida": {
+     "const": true,
+     "description": "podeJogar de 'exilio': a mágica conjurada por esta permissão paga vida igual ao valor de mana em vez do custo de mana (Valgavoth, Terror Eater; 118.9, 119.4)"
+    },
     "exilaAoSair": {
      "type": "boolean",
      "description": "podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage) | podeJogar: a mágica conjurada assim vai para o exílio em vez do cemitério (Kess: 'If a spell cast this way would be put into your graveyard, exile it instead')"
@@ -2751,6 +2759,10 @@
       "G"
      ],
      "description": "manaComoQualquerCor: a cor da mana que vale por qualquer cor (\"spend blue mana as though it were mana of any color\")"
+    },
+    "qualquerCor": {
+     "const": true,
+     "description": "ganhaAtivadas: pode gastar mana como se fosse de qualquer cor para ativar as habilidades ganhas (Drana and Linvala; 609.4b). {C} e phyrexiano não mudam"
     },
     "primeiraNoSeuTurno": {
      "type": "boolean",

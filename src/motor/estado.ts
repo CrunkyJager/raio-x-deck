@@ -374,7 +374,7 @@ M.antimagiaJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && (s.
 // Blightsteel). Várias: a primeira (616.1, a escolha do afetado fica para depois). Retorna {zona, marc?, embaralhar?}.
 // talvez ("you may put it on top… instead", Library of Leng): só com quem decide (opc.ask) e só em descarte por EFEITO
 // (custo e limpeza não são efeito; ruling de Leng). Quem escolhe é o controlador da fonte, carta a carta.
-function substCemiterio(e, o, opc: any = {}) {
+function substCemiterio(e, o, opc: any = {}): any {
   const fontes = M.indiceCampo(e).sb.map(i => e.objs[i]);
   if (o.zona !== 'campo' && (M.dadoDe(e, o).subst || []).length) fontes.push(o);
   for (const F of fontes) for (const sb of M.dadoDe(e, F).subst || []) {
@@ -389,7 +389,7 @@ function substCemiterio(e, o, opc: any = {}) {
     }
     if (sb.muda) return { zona: sb.muda.para, n: F.n };
     const [a, b] = sb.emVez;
-    if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n };
+    if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n, ...(a.comEste ? { exPor: { id: F.id, ts: F.ts } } : {}) };   // comEste: "exiled with Valgavoth" (607.2a)
     return { zona: 'grimorio', embaralhar: true, n: F.n };
   }
   return null;
@@ -426,6 +426,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && Number.isInteger(pos) && pos > 1) para.splice(Math.max(0, para.length - (pos - 1)), 0, id);   // "fourth from the top" (Lost to Legend): pos 4 = 3 cartas por cima
   else if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
+  if (sub && sub.exPor) o.exPor = sub.exPor;
   if (sub && sub.marc) for (const m in sub.marc) o.marc[m] = (o.marc[m] || 0) + sub.marc[m];   // "exile-a com um marcador hit" (fica no exílio)
   if (sub && sub.embaralhar) M.embaralhar(e, para);
   if (zona === 'campo') { M.campoEntra(e, id); M.registraEntrada(e, o); }
@@ -1034,9 +1035,13 @@ M.atvDe = (e, o) => {
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
   if (o.zona === 'mao') b = b.concat(cicloNaMao(e, o));
   if (o.zona === 'campo') for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'ganhaAtivadas' && s.afeta === 'este' && s.f)   // "has all activated abilities of all creatures your opponents control" (Drana and Linvala): as impressas (sem as ganhas, 613.8 sem laço)
-    for (const x of M.objetosQue(e, { zona: 'campo', ...s.f }, { voce: o.ctrl, este: o.id })) if (x.id !== o.id) b = b.concat(atvCarta(M.dadoDe(e, x)));
+    for (const x of M.objetosQue(e, { zona: 'campo', ...s.f }, { voce: o.ctrl, este: o.id })) if (x.id !== o.id) b = b.concat(s.qualquerCor ? atvCarta(M.dadoDe(e, x)).map(comQualquerCor) : atvCarta(M.dadoDe(e, x)));
   return h.length ? b.concat(h) : b;
 };
+// "you may spend mana as though it were mana of any color to activate those abilities" (Drana and Linvala, 609.4b):
+// a habilidade ganha leva a marca _qualquerCor (cópia estável por habilidade: o índice e os memos continuam valendo); M.custoAtv lê
+const QCOR = new WeakMap();
+const comQualquerCor = a => { let w = QCOR.get(a); if (!w) QCOR.set(a, (w = { ...a, _qualquerCor: true })); return w; };
 /** alguém no campo dá habilidade (habil)? sem isso gatDe/atvDe são só os da carta */
 M.temHabil = e => fontesCont(e).hab;
 /** habilidades desencadeadas: as da carta e as dadas pelas camadas; quantas são da carta = (dadoDe.gat || []).length.

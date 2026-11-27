@@ -137,6 +137,7 @@ const basico = (e, p) => {
     }
     case 'escolherCarta': {           // marcadores numa criatura escolhida (Finality): a de maior resistência
       if (!(p.ctx && p.ctx.op === 'marcador')) return 0;
+      if (p.ctx.cor) return 0;          // cadaCor (Call the Spirit Dragons): a 1ª é o emparelhamento máximo (cinco Dragões distintos = vence)
       return melhorOp(p.ops, op => op.id === undefined ? -99 : M.resistencia(e, o(op.id)));
     }
     case 'desvirar': {                // "desvire até N": as suas primeiro (o núcleo já põe as suas na frente)
