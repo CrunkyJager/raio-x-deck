@@ -973,17 +973,17 @@ const H = {
   // 'cadaAtual'), na ordem do turno (101.4). Cada efeito de dentro é uma etapa: o progresso fica no ctx (ctx.rep) porque o
   // processo roda de novo a cada pergunta. Com filtro de objetos ("para cada criatura sua com marcador +1/+1", Kalonian Hydra,
   // Second Harvest): a lista é tirada ao começar a resolver (608.2h) e em/copiaDe 'cadaAtual' é o objeto da vez; o que saiu
-  // do campo no meio fica de fora (400.7). repetirCada dentro de outro: ainda não.
+  // do campo no meio fica de fora (400.7). cada {alvo:N}: cada alvo legal daquele grupo (Twinflame). repetirCada dentro de outro: ainda não.
   repetirCada: {
     campos: ['cada', 'fx'],
     ok: f => !dentroCada && !dentroObj && Array.isArray(f.fx) && f.fx.length > 0 && f.fx.every(x => x.op !== 'modal')
       && ((f.cada === 'cadaOponente' || f.cada === 'cadaJogador' || f.cada === 'umJogador' || f.cada === 'oponente') ? comCada(() => M.fxSuportado(f.fx, { topo: false }))
-        : !!f.cada && typeof f.cada === 'object' && M.filtroOk(f.cada) && comObj(() => M.fxSuportado(f.fx, { topo: false }))),
+        : !!f.cada && typeof f.cada === 'object' && (Number.isInteger(f.cada.alvo) && Object.keys(f.cada).length === 1 || M.filtroOk(f.cada)) && comObj(() => M.fxSuportado(f.fx, { topo: false }))),
     fx(e, f, ctx, ask) {
       const obj = typeof f.cada === 'object';
       let R = ctx.rep;
       if (!R) {   // a lista sai antes de tudo; se perguntou (cada 'umJogador'), a resposta já ficou na lista: zera para os efeitos de dentro
-        R = ctx.rep = { f, js: obj ? M.objetosQue(e, f.cada.zona ? f.cada : { ...f.cada, zona: 'campo' }, ctx).map(o => ({ id: o.id, ts: o.ts })) : jogsDe(e, { quem: f.cada, op: 'repetirCada' }, ctx), k: 0, i: 0 };
+        R = ctx.rep = { f, js: obj ? (Number.isInteger(f.cada.alvo) ? objsDe(e, { em: f.cada }, ctx) : M.objetosQue(e, f.cada.zona ? f.cada : { ...f.cada, zona: 'campo' }, ctx)).map(o => ({ id: o.id, ts: o.ts })) : jogsDe(e, { quem: f.cada, op: 'repetirCada' }, ctx), k: 0, i: 0 };
         if (ask && ask.etapa) ask.etapa();
       }
       while (R.k < R.js.length) {

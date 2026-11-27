@@ -50,7 +50,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
-    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
+    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist'].includes(o) && chaves(c, []);   // poder/resist: o objeto da vez (Unnatural Growth)
   }
   return false;
 }
@@ -165,7 +165,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'sacrificadas': return (ctx.sac || []).reduce((s, l) => s + (o === 'poder' ? Math.max(0, l.poder) : l.vm || 0), 0);   // LKI, 608.2h
     case 'cada':
       if (o === 'vida') return ctx.cadaAtual !== undefined ? e.jogs[ctx.cadaAtual].vida : 0;   // o jogador da vez (Dire Fleet Ravager)
-      { const cc = ctx.cadaObj, ob = cc && e.objs[cc.id]; return !ob || ob.ts !== cc.ts ? 0 : ob.marc[c.marc] || 0; }   // o objeto da vez
+      { const cc = ctx.cadaObj, ob = cc && e.objs[cc.id]; return !ob || ob.ts !== cc.ts ? 0 : o === 'poder' ? M.poder(e, ob) : o === 'resist' ? M.resistencia(e, ob) : ob.marc[c.marc] || 0; }   // o objeto da vez; poder pode ser negativo (dobrar, 701.10e)
   }
   throw new Error('conta sem suporte: ' + JSON.stringify(c));
 };

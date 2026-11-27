@@ -1331,12 +1331,25 @@
      }
     },
     "cada": {
-     "oneOf": [
+     "anyOf": [
       {
        "$ref": "#/$defs/jogador"
       },
       {
        "$ref": "#/$defs/filtro"
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "alvo"
+       ],
+       "properties": {
+        "alvo": {
+         "type": "integer"
+        }
+       },
+       "description": "repetirCada: cada alvo legal do grupo N (Twinflame: uma cópia para cada)"
       }
      ]
     },
@@ -1709,6 +1722,7 @@
       "kicker",
       "flashback",
       "cemiterio",
+      "exilio",
       "madness",
       "evoke",
       "alternativo",
@@ -1931,6 +1945,7 @@
       "bis",
       "prole",
       "iminente",
+      "converter",
       "capitulo",
       "classe",
       "entraComMarcador",
@@ -2074,7 +2089,8 @@
       "sala",
       "tomaIniciativa",
       "nivel",
-      "monstruosa"
+      "monstruosa",
+      "gasta"
      ]
     },
     "naoMorre": {

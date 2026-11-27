@@ -5724,6 +5724,67 @@ caso('118.3', "Tortured Existence: o descarte do custo tem que ser carta de cria
   igual(f.jogs[0].zonas.mao.map(id => f.objs[id].n).sort(), ['Forest', 'Serra Angel'], 'descartou o Urso, voltou o Anjo');
 });
 
+caso('701.63', "expend: Wandertale Mentor ganha o marcador quando a mana gasta em mágicas no turno chega a 4 (2+2), uma vez só; Trailtracker aceita expend 8", () => {
+  ok(M.carta('Trailtracker Scout').gat.every(g => M.gatOk(g)), 'Trailtracker aceita');
+  const e = cena({ campo: [...terras(6, 'Forest'), [0, 'Wandertale Mentor']], mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const w = objN(e, 0, 'Wandertale Mentor');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(w.marc['+1/+1'] || 0, 0, '2 gastos: nada');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(w.marc['+1/+1'], 1, '4 gastos: marcador');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(w.marc['+1/+1'], 1, '6 gastos: não repete');
+});
+
+caso('701.16', "Twilight Prophet: com a bênção, revela o topo, põe na mão e o oponente perde / você ganha o valor de mana dele (Serra Angel: 5); Twenty-Toed Toad conta marcador de qualquer tipo", () => {
+  ok(M.carta('Twilight Prophet').gat.every(g => M.gatOk(g)), 'aceita');
+  const e = cena({ campo: [[0, 'Twilight Prophet']], grimorio: 0 }); e.por(0, 'Serra Angel', { zona: 'grimorio' });
+  const t = objN(e, 0, 'Twilight Prophet'), g = M.carta('Twilight Prophet').gat[0];
+  const v0 = e.jogs[0].vida, v1 = e.jogs[1].vida;
+  const cx = { voce: 0, este: t.id, alvos: [], ilegal: {}, lki: { alvos: [] } }; for (const fx of g.fx) M.executar(e, fx, cx, () => ({ a: 'sim' }));
+  igual(naZona(e, 0, 'mao'), ['Serra Angel'], 'na mão');
+  igual([e.jogs[1].vida, e.jogs[0].vida], [v1 - 5, v0 + 5], '5 e 5');
+  const f = cena({ campo: [[0, 'Twenty-Toed Toad']] }), s = objN(f, 0, 'Twenty-Toed Toad');
+  s.marc = { '+1/+1': 12, stun: 8 };
+  igual(M.contar(f, { de: 'este', o: 'marcadores' }, { voce: 0, este: s.id }), 20, '12+8 de tipos diferentes');
+});
+
+caso('707.2', "Twinflame: com dois alvos, uma ficha cópia de CADA um (repetirCada cada alvo), com ímpeto", () => {
+  ok(M.fxSuportado(M.carta('Twinflame').fx), 'aceita');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Serra Angel']] }); e.pend = [];
+  const b = objN(e, 0, 'Grizzly Bears'), a = objN(e, 0, 'Serra Angel');
+  M.executar(e, M.carta('Twinflame').fx[0], { voce: 0, alvos: [[{ o: b.id, ts: b.ts }, { o: a.id, ts: a.ts }]], ilegal: {}, lki: { alvos: [] }, criadas: [] }, () => ({ a: 'nao' }));
+  const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha);
+  igual(fs.map(o => M.dadoDe(e, o).n).sort(), ['Grizzly Bears', 'Serra Angel'], 'uma de cada');
+  ok(fs.every(o => M.temKw(e, o, 'pressa')), 'com ímpeto');
+});
+
+caso('702.143', "Ultimate Magic: Holy: conjurada do exílio (prever) previne o dano a você no turno; da mão, não. Ugin lê mágica incolor (cor 'C')", () => {
+  ok(M.fxSuportado(M.carta('Ultimate Magic: Holy').fx), 'aceita');
+  const e = cena({ mao: [[0, 'Ultimate Magic: Holy']] }), h = e.objs[e.jogs[0].zonas.mao[0]];
+  M.mover(e, h.id, 'pilha'); h.conjDe = 'mao';
+  ok(!M.condicao(e, { conjuradaCom: 'exilio' }, { voce: 0, este: h.id }), 'da mão: não');
+  h.conjDe = 'exilio'; ok(M.condicao(e, { conjuradaCom: 'exilio' }, { voce: 0, este: h.id }), 'do exílio: sim');
+  const f = cena({ campo: [[0, 'Sol Ring'], [0, 'Grizzly Bears']] });
+  ok(M.bate(f, objN(f, 0, 'Sol Ring'), { cor: 'C' }, { voce: 0 }) && !M.bate(f, objN(f, 0, 'Grizzly Bears'), { cor: 'C' }, { voce: 0 }), 'incolor');
+});
+
+caso('702.162', "Ultra Magnus: More Than Meets the Eye — com 5 terrenos (não fecha os 7) conjura convertida por {2}{R}{G}{W} e entra já como Armored Carrier", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Forest'], [0, 'Plains'], [0, 'Plains'], [0, 'Forest']], mao: [[0, 'Ultra Magnus, Tactician']] }); e.pend = [];
+  const id = e.jogs[0].zonas.mao[0];
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === id); resolveCom(e);
+  igual(e.objs[id].zona, 'campo', 'entrou'); igual(M.dadoDe(e, e.objs[id]).n, 'Ultra Magnus, Armored Carrier', 'transformada');
+});
+
+caso('701.10e', "Unnatural Growth: no começo do combate dobra P/R de cada criatura minha (Urso 2/2 → 4/4, Anjo 4/4 → 8/8); a do oponente fica", () => {
+  const g = M.carta('Unnatural Growth').gat[0]; ok(M.gatOk(g), 'aceita');
+  const e = cena({ campo: [[0, 'Unnatural Growth'], [0, 'Grizzly Bears'], [0, 'Serra Angel'], [1, 'Llanowar Elves']] }); e.pend = [];
+  const u = objN(e, 0, 'Unnatural Growth'), b = objN(e, 0, 'Grizzly Bears'), a = objN(e, 0, 'Serra Angel'), l = objN(e, 1, 'Llanowar Elves');
+  const cx = { voce: 0, este: u.id, alvos: [], ilegal: {}, lki: { alvos: [] } }; for (const fx of g.fx) M.executar(e, fx, cx, () => ({ a: 'nao' }));
+  igual([M.poder(e, b), M.resistencia(e, b), M.poder(e, a), M.resistencia(e, a)], [4, 4, 8, 8], 'dobrou');
+  igual([M.poder(e, l), M.resistencia(e, l)], [1, 1], 'oponente igual');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

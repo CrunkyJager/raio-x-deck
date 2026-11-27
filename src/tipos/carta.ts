@@ -656,7 +656,12 @@ export interface RxFx {
     };
   };
   modos?: RxFxs[];
-  cada?: RxJogador | RxFiltro;
+  cada?:
+    | RxJogador
+    | RxFiltro
+    | {
+        alvo: number;
+      };
   /**
    * repetirCada / sub-efeito
    */
@@ -886,7 +891,7 @@ export interface RxCond {
    */
   vidaOponenteMax?: number;
   conjuradaCom?:
-    'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke' | 'alternativo' | 'impending';
+    'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'exilio' | 'madness' | 'evoke' | 'alternativo' | 'impending';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -1039,6 +1044,7 @@ export interface RxKw {
     | 'bis'
     | 'prole'
     | 'iminente'
+    | 'converter'
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
@@ -1132,7 +1138,8 @@ export interface RxGat {
     | 'sala'
     | 'tomaIniciativa'
     | 'nivel'
-    | 'monstruosa';
+    | 'monstruosa'
+    | 'gasta';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
