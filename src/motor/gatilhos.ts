@@ -8,7 +8,24 @@ const EV_OK = new Set(['gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca'
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa']);
 const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
-const LACO = 500;
+// CR 104.4b/732: laço obrigatório = empate. Muitos disparos não bastam (Krenko com 700 goblins + Purphoros é finito):
+// passado LACO, cada disparo da mesma habilidade grava a assinatura do estado; laço = a mesma assinatura de novo.
+// Laço que cresce (ficha criando ficha) nunca repete o estado: TETO disparos no turno encerram também.
+const LACO = 500, TETO = 20000;
+// o estado sem ids/ts (que só crescem): vidas, marcadores, mana, tamanho das zonas, o campo por nome, pilha e pendentes
+const assinatura = (e): string => {
+  const nm = id => { const o = e.objs[id]; return o ? o.n + (o.face ? '/' + o.face : '') : '?'; };
+  const mc = m => m ? Object.keys(m).filter(k => m[k]).sort().map(k => k + m[k]).join(',') : '';
+  const jogs = e.jogs.map(j => [j.saiu ? 'x' : '', j.vida, j.veneno, mc(j.marc), mc(j.reserva), ...Object.keys(j.zonas).sort().map(z => j.zonas[z].length)].join(':'));
+  const campo = e.campo.map(id => { const o = e.objs[id]; return [nm(id), o.ctrl, o.virada ? 1 : 0, mc(o.marc), o.anexo ? nm(o.anexo.id) : ''].join(':'); }).sort();
+  const pend = e.pend.map(p => p.n + '#' + p.k);
+  let h1 = 0x811c9dc5, h2 = 0;   // FNV-1a + djb2: 64 bits, chave curta
+  for (const t of [jogs.join('|'), campo.join('|'), e.pilha.map(nm).join('|'), pend.join('|'), e.turno.passo]) for (let i = 0; i < t.length; i++) {
+    const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0;
+  }
+  return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36);
+};
+M.assinaturaLaco = assinatura;
 const memoOk = new WeakMap();
 // grupo ("uma ou mais"): só no descarte por ora
 M.gatOk = g => {
@@ -285,9 +302,14 @@ M.evento = (e, ev) => {
       if (g.naoPrimeira && ev.primeiraEtapa) continue;                                     // Xyris: a 1ª compra da etapa de compra não
       if (g.limite) { const T = e.turno, ch = F.id + ':' + F.ts + ':' + k; T.lim = T.lim || {}; if (T.lim[ch]) continue; T.lim[ch] = true; }   // "só uma vez a cada turno"
 
-      // CR 104.4b: laço que ninguém pode parar = empate. Mais de LACO disparos da mesma habilidade num turno só acontece
-      // com dado errado (ex.: o "uma vez por turno" faltando) ou laço de verdade; a partida acaba em vez de travar.
-      { const T = e.turno, ch = F.id + ':' + k; T.disp = T.disp || {}; if ((T.disp[ch] = (T.disp[ch] || 0) + 1) > LACO) { e.fim = e.fim || { vencedor: null, motivo: 'laço obrigatório (104.4b): ' + F.n }; M.log(e, 'laço obrigatório:', F.n); return; } }
+      // CR 104.4b: laço que ninguém pode parar = empate (ver LACO/TETO); a partida acaba em vez de travar.
+      { const T = e.turno, ch = F.id + ':' + k; T.disp = T.disp || {}; const n = T.disp[ch] = (T.disp[ch] || 0) + 1;
+        if (n > LACO) {
+          T.sigs = T.sigs || {}; const S = T.sigs[ch] = T.sigs[ch] || {}, a = assinatura(e);
+          const fim = S[a] ? 'laço obrigatório (104.4b): ' : n > TETO ? 'laço sem fim (104.4b, ' + TETO + ' disparos): ' : '';
+          if (fim) { e.fim = e.fim || { vencedor: null, motivo: fim + F.n }; M.log(e, 'laço obrigatório:', F.n); return; }
+          S[a] = 1;
+        } }
       const vezes = 1 + extras(e, F, g, ev);
       const dada = k >= nb || mudado ? { g } : {};                                                // habilidade dada (camadas): leva o texto
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(g.grupo && SAIDA.has(g.ev) && ev.snap ? { loteP: [M.poder(e, ev.snap)] } : {}), ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem

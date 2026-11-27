@@ -6717,6 +6717,20 @@ caso('707.10', "Zada: Giant Growth só nela copia para cada outra criatura minha
   igual([M.poder(e, z), M.poder(e, b), M.poder(e, l)], [6, 8, 4], 'mirando o Urso: só ele');
 });
 
+caso('104.4b', "laço: 800 fichas entrando com Impact Tremors é finito (800 gatilhos, não empata); o mesmo estado repetido é laço de verdade", () => {
+  const e = cena({ campo: [[0, 'Impact Tremors']] }); e.pend = [];
+  const cx: any = { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: {} };
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 800, token: { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' } }, cx, null);
+  igual(e.pend.filter(p => p.n === 'Impact Tremors').length, 800, '800 gatilhos');
+  ok(!e.fim, 'muitos gatilhos finitos não são laço: ' + JSON.stringify(e.fim));
+  const gob = { op: 'ficha', quem: 'voce', qtd: 1, token: { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' } };
+  e.campo.splice(1); e.pend = [];
+  for (let i = 0; i < 600 && !e.fim; i++) {   // entra uma ficha, o gatilho sai e a ficha some: o mesmo estado a cada volta, sem fim
+    M.executar(e, gob, cx, null); const t = e.campo.pop(); e.objs[t].zona = 'fora'; e.pend = [];
+  }
+  ok(e.fim && e.fim.vencedor === null && /laço obrigatório \(104\.4b\)/.test(e.fim.motivo), 'estado repetido: ' + JSON.stringify(e.fim));
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
