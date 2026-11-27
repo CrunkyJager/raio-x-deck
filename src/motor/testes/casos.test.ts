@@ -3849,6 +3849,18 @@ caso('701.26', "virar/desvirar 'até N': Snap devolve a criatura e desvira até 
   igual(M.poder(f, bs), 6, '+2/+0'); igual(f.jogs[1].vida, 40 - 2 - 6, '2 da habilidade + 6 de combate');
 });
 
+caso('702.34a', "Increasing Devotion: 5 Humanos; com flashback, 10. Return to Dust na sua principal exila os 2 alvos", () => {
+  ok(M.fxSuportado(M.carta('Increasing Devotion').fx) && M.fxSuportado(M.carta('Return to Dust').fx), 'aceitos');
+  const conta = e => e.campo.filter(id => e.objs[id].ficha).length;
+  const e = cena({ campo: terras(5, 'Plains'), mao: [[0, 'Increasing Devotion']] });
+  M.avancar(e); conj(e, 'Increasing Devotion'); resolveCom(e); igual(conta(e), 5, 'da mão: 5');
+  const f = cena({ campo: terras(9, 'Plains') }); f.por(0, 'Increasing Devotion', { zona: 'cemiterio' });
+  M.avancar(f); conj(f, 'Increasing Devotion'); resolveCom(f); igual(conta(f), 10, 'com flashback: 10');
+  const g = cena({ campo: [...terras(4, 'Plains'), [1, 'Sol Ring'], [1, 'Swiftfoot Boots']], mao: [[0, 'Return to Dust']] });
+  M.avancar(g); conj(g, 'Return to Dust'); alvoObj(g, 'Sol Ring'); if (g.perg && g.perg.tipo === 'alvo') alvoObj(g, 'Swiftfoot Boots'); resolveCom(g);
+  igual(g.campo.filter(id => g.objs[id].ctrl === 1).length, 0, 'os dois exilados');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
