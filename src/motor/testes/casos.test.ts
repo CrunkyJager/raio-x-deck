@@ -3610,6 +3610,14 @@ caso('701.54', "o Anel te tenta: escolhe o Portador (vira lendário, não é blo
   for (const c of ['Call of the Ring', 'Boromir, Warden of the Tower']) ok(M.carta(c).gat ? M.carta(c).gat.some(g => M.gatOk(g)) : (M.carta(c).atv || []).some(a => M.fxSuportado(a.fx, { topo: false })), c);
 });
 
+caso('601.2f', "impostoPorAlvo: o motor declara o campo (M.CARTA_OK) para a cobertura; Twinflame paga {2}{R} por alvo a mais", () => {
+  for (const c of ['Fireball', 'Twinflame']) ok(Object.keys(M.carta(c)).filter(k => k === 'impostoPorAlvo').every(k => M.CARTA_OK.has(k)), c);
+  const e = cena({ campo: [...enche(6, 'Mountain').map(n => [0, n]), [0, 'Grizzly Bears'], [0, 'Llanowar Elves']], mao: [[0, 'Twinflame']] });
+  M.avancar(e); conj(e, 'Twinflame');
+  for (let i = 0; i < 4 && e.perg && e.perg.tipo === 'alvo'; i++) { const k = e.perg.ops.findIndex(o => o.a === 'alvo'); M.responder(e, k >= 0 ? k : e.perg.ops.findIndex(o => o.a === 'pronto')); }
+  igual(e.campo.filter(id => e.objs[id].n === 'Mountain' && e.objs[id].virada).length, 5, '{1}{R} + {2}{R} do 2º alvo');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
