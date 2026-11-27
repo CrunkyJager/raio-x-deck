@@ -105,6 +105,7 @@ M.alvoLegal = (e, a, esc, ctx) => {
   if (typeof f === 'string') return false;
   if (o.hab) return false;
   const ff = f.zona ? f : { ...f, zona: 'campo' };
+  if (a.ouZona && o.zona === a.ouZona) return M.bate(e, o, { ...f, zona: a.ouZona }, ctx);   // "from the battlefield and/or … from graveyards" (Angel of Serenity)
   return M.bate(e, o, ff, ctx);
 };
 // só lê: em lote (cada alvoLegal olha palavra-chave/P-R, e com mil fichas a contagem das estáticas pesava)
@@ -118,6 +119,7 @@ function alvosPoss(e, a, ctx) {
   else if (f === 'qualquerAlvo') ids = e.campo;
   else if (typeof f === 'string') ids = [];
   else ids = M.objetosQue(e, f.zona ? f : { ...f, zona: 'campo' }, ctx).map(o => o.id);
+  if (a.ouZona && typeof f === 'object') ids = [...ids, ...M.objetosQue(e, { ...f, zona: a.ouZona }, ctx).map(o => o.id)];
   for (const id of ids) { const esc = { o: id, ts: e.objs[id].ts }; if (M.alvoLegal(e, a, esc, ctx)) r.push(esc); }
   return r;
 }
@@ -160,7 +162,9 @@ M.custoSuportado = c => {
   return true;
 };
 // candidatos a sacrificar/descartar de um custo
-const candSac = (e, j, c, fonte) => M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });
+// "players can't pay life or sacrifice creatures to cast spells or activate abilities" (est custoProibido, Angel of Jubilation)
+M.custoProibido = (e, k) => e.campo.some(id => (M.dadoDe(e, e.objs[id]).est || []).some(s => s.modo === 'custoProibido' && (s.proibe || []).includes(k)));
+const candSac = (e, j, c, fonte) => { const l = M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }); return M.custoProibido(e, 'sacrificarCriatura') ? l.filter(o => !M.temTipo(e, o, 'Creature')) : l; };
 const candDev = (e, j, c, fonte) => M.objetosQue(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });   // devolver à mão como custo (Master Transmuter)
 const candVir = (e, j, c, fonte) => M.objetosQue(e, { ...(c.virarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => !o.virada && o.id !== fonte);
 M.candVir = candVir;
@@ -175,9 +179,11 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
     if (M.temTipo(e, o, 'Creature') && o.doente && !M.temKw(e, o, 'pressa')) return false;
   }
   if (c.vida && (J.vida < c.vida || M.vidaFixa(e, j))) return false;   // CR 119.4, 119.8
+  if (c.vida && M.custoProibido(e, 'vida')) return false;
+  if (c.sacrificar === 'este' && o && M.temTipo(e, o, 'Creature') && M.custoProibido(e, 'sacrificarCriatura')) return false;
   if (c.descartarEste && (!o || o.zona !== 'mao')) return false;
   if (c.porMarcador && (!o || o.zona !== 'campo')) return false;   // canalizar: só da mão (CR 602.2, a habilidade diz a zona)
-  if (c.sacrificar && c.sacrificar !== 'este' && !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1)) return false;
+  if (c.sacrificar && c.sacrificar !== 'este' && (M.custoProibido(e, 'sacrificarCriatura') ? candSac(e, j, c, o && o.id).length < (c.sacrificar.qtd || 1) : !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1))) return false;
   if (c.descartar && candDesc(e, j, daMao).length < c.descartar) return false;
   if (c.devolver === 'este' && (!o || o.zona !== 'campo')) return false;
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
@@ -203,7 +209,7 @@ function manaMax(e, j, excluir, para) {
   }
   return t;
 }
-const vidaPhy = (e, j) => M.vidaFixa(e, j) ? 0 : Math.max(0, e.jogs[j].vida - 1);   // 119.8: vida fixa não paga        // phyrexiano: o plano pode gastar vida sem morrer
+const vidaPhy = (e, j) => M.vidaFixa(e, j) || M.custoProibido(e, 'vida') ? 0 : Math.max(0, e.jogs[j].vida - 1);   // 119.8: vida fixa não paga        // phyrexiano: o plano pode gastar vida sem morrer
 const plano0 = (e, j, custo, x, excluir, para?) => M.planoMana(e, j, custo, { x, vidaDisp: vidaPhy(e, j), excluir, para });
 // improvisar (CR 702.126): cada artefato seu desvirado que você vira paga {1} genérico da mágica. Primeiro os que não
 // dão mana (virar um Sol Ring para improvisar perde 1); só se não fechar, os que dão mana, um a um. O plano leva

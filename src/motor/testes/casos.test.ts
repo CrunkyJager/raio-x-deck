@@ -3964,6 +3964,56 @@ caso('701.37', "monstruosidade: Alpha Deathclaw ganha 4 marcadores e fica monstr
   for (const c of ['Alpha Deathclaw', 'Giggling Skitterspike']) ok(M.fxSuportado(M.carta(c).atv[0].fx) && M.carta(c).gat.every(g => M.gatOk(g)), c);
 });
 
+caso('104.3e', "Angel of Destiny: com 15 de vida acima da inicial, perde só quem ESTE anjo atacou neste turno (não cada oponente)", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Angel of Destiny']] });
+  const a = e.objs[e.campo[0]], g = M.carta('Angel of Destiny').gat[1], ctx: any = { voce: 0, este: a.id, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  e.jogs[0].vida = 54; ok(!M.condicao(e, g.se, ctx), '54 < 40+15');
+  e.jogs[0].vida = 55; ok(M.condicao(e, g.se, ctx), '55');
+  e.turno.ataques = [{ id: a.id, ts: a.ts, j: 0, def: 2, jog: 2 }];
+  for (const f of g.fx) M.executar(e, f, ctx, (j, t, o) => o[0]);
+  ok(e.jogs[2].saiu && !e.jogs[1].saiu, 'só o 2 perde');
+  ok(M.carta('Angel of Destiny').gat.every(x => M.gatOk(x)), 'gatOk');
+});
+
+caso('118.3', "Angel of Jubilation: ninguém sacrifica criatura (Viscera Seer) nem paga vida (Gitaxian Probe sem mana) para conjurar/ativar; sacrificar artefato (Lotus Petal) pode", () => {
+  const e = cena({ campo: [[0, 'Viscera Seer'], [0, 'Grizzly Bears']], mao: [[0, 'Gitaxian Probe']] });
+  const [vs] = e.campo.map(id => e.objs[id]), probe = e.objs[e.jogs[0].zonas.mao[0]];
+  ok(M.podeAtivar(e, 0, vs, 0), 'sem o anjo: sacrifica');
+  ok(M.podeConjurar(e, 0, probe), 'sem o anjo: paga 2 de vida');
+  e.por(1, 'Angel of Jubilation');
+  ok(!M.podeAtivar(e, 0, vs, 0), 'com o anjo: não sacrifica criatura');
+  ok(!M.podeConjurar(e, 0, probe), 'com o anjo: não paga vida pelo phyrexiano');
+  const lp = e.por(0, 'Lotus Petal');
+  ok(M.fontesDeMana(e, 0).some(f => f.id === lp.id), 'Lotus Petal: sacrificar artefato vale');
+});
+
+caso('607.2a', "Angel of Serenity: exila criaturas do campo e/ou cartas de criatura de cemitérios (até 3) e, ao sair, elas voltam à mão dos donos", () => {
+  const e = cena({ campo: [[1, 'Grizzly Bears']] });
+  const gb = e.objs[e.campo[0]], cem = e.por(1, 'Grizzly Bears', { zona: 'cemiterio' }), an = e.por(0, 'Angel of Serenity');
+  const g = M.carta('Angel of Serenity').gat, ctx: any = { voce: 0, este: an.id, ilegal: {}, lki: { alvos: [] } };
+  const poss = M.alvosPossiveis(e, g[0].alvos[0], ctx).map(x => x.o);
+  ok(poss.includes(gb.id) && poss.includes(cem.id) && !poss.includes(an.id), 'campo e cemitério, não ela mesma');
+  ctx.alvos = [[{ o: gb.id, ts: gb.ts }, { o: cem.id, ts: cem.ts }]];
+  for (const f of g[0].fx) M.executar(e, f, ctx, (j, t, o) => o.find(x => x.a === 'sim') || o[0]);
+  igual(naZona(e, 1, 'exilio').length, 2);
+  const lki = M.lkiDe(e, an); M.mover(e, an.id, 'cemiterio');
+  for (const f of g[1].fx) M.executar(e, f, { voce: 0, este: an.id, alvos: [], ilegal: {}, lki: { este: lki, alvos: [] } }, (j, t, o) => o[0]);
+  igual(naZona(e, 1, 'mao').filter(n => n === 'Grizzly Bears').length, 2, 'voltam à mão');
+  ok(g.every(x => M.gatOk(x)), 'gatOk');
+});
+
+caso('101.2', "Angelic Arbiter: o oponente que conjurou mágica no turno não ataca; o que atacou com criatura não conjura; quem não fez nada joga normal", () => {
+  const e = cena({ campo: [[0, 'Angelic Arbiter'], [1, 'Grizzly Bears'], [1, 'Mountain']], mao: [[1, 'Lightning Bolt']] });
+  const gb = e.objs[e.campo[1]], bolt = e.objs[e.jogs[1].zonas.mao[0]];
+  e.turno.ativo = 1;
+  ok(M.podeConjurar(e, 1, bolt), 'nada feito: conjura');
+  e.jogs[1].conjT = { t: e.turno.n, n: 1 };
+  ok(!M.podeAtacarObj(e, gb, 1), 'conjurou: não ataca');
+  e.jogs[1].conjT = null; ok(M.podeAtacarObj(e, gb, 1), 'não conjurou: ataca');
+  e.turno.ataques = [{ id: gb.id, ts: gb.ts, j: 1, def: 0, jog: 0 }];
+  ok(!M.podeConjurar(e, 1, bolt), 'atacou: não conjura');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

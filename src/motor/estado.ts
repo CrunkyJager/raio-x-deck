@@ -184,7 +184,7 @@ M.novoJogo = (decks, cfg: any = {}) => {
   };
   decks.forEach((d, i) => {
     const j = {
-      i, nome: d.nome || 'J' + (i + 1), vida: 40, veneno: 0,                // CR 103.4c
+      i, nome: d.nome || 'J' + (i + 1), vida: 40, vidaInicial: 40, veneno: 0,  // CR 103.4c
       danoCmd: {} as any, reserva: zeroMana(), terrenos: 0, comprouVazio: false, saiu: false,
       ci: '', cmd: [] as any[], imposto: {} as any, zonas: {} as any, mulls: 0,
     };
@@ -279,7 +279,16 @@ M.vidaFixa = (e, j) => estJog(e, j, s => s.modo === 'vidaNaoMuda');
 M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protTudo(s));
 // "você tem antimagia" (702.11c): oponente não mira você (Dawn's Truce, Lazotep Plating, Metropolis Reformer)
 // "você não pode conjurar mágicas neste turno" (Conduit of Worlds, 101.2: o "não pode" vence)
-M.naoConjura = (e, j) => estJog(e, j, s => s.modo === 'naoPodeConjurar' && !s.f);
+// seJog (Angelic Arbiter): a condição é do jogador afetado — 'atacouNoTurno' (atacou com criatura, 508.1) ou 'conjurouNoTurno'
+M.jogFez = (e, j, k) => k === 'atacouNoTurno' ? (e.turno.ataques || []).some(r => r.j === j && !r.entrou)
+  : k === 'conjurouNoTurno' ? !!(e.jogs[j].conjT && e.jogs[j].conjT.t === e.turno.n && e.jogs[j].conjT.n > 0) : false;
+// "seus oponentes não podem conjurar…" de uma permanente de outro jogador (Myrel e Voice of Victory no seu turno, Angelic Arbiter)
+const naoConjOp = (e, j) => indice(e).est.some(id => {
+  const F = e.objs[id]; if (F.ctrl === j) return false;
+  return (M.dadoDe(e, F).est || []).some(s => s.modo === 'naoPodeConjurar' && (s.afeta === 'cadaOponente' || s.afeta === 'oponente') && !s.f
+    && (!s.seJog || M.jogFez(e, j, s.seJog)) && (() => { try { return M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { return false; } })());
+});
+M.naoConjura = (e, j) => estJog(e, j, s => s.modo === 'naoPodeConjurar' && !s.f) || naoConjOp(e, j);
 // "[objetos] não podem ter as habilidades ativadas ativadas" (Linvala, Keeper of Silence; Myrel no seu turno): CR 602.5,
 // 101.2 (o "não pode" vence). Vale para as de mana também (605.1a são ativadas). afeta é filtro lido do lado da fonte.
 M.ativBloqueada = (e, o) => {

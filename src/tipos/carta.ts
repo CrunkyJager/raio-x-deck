@@ -170,6 +170,7 @@ export type RxJogador =
       | 'atacado'
       | 'proximo'
       | 'cadaAtual'
+      | 'atacadosPorEste'
     )
   | {
       alvo: number;
@@ -352,6 +353,10 @@ export interface RxAlvo {
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
   opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
+  /**
+   * o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)
+   */
+  ouZona?: RxZona;
 }
 
 /**
@@ -1137,7 +1142,8 @@ export interface RxEst {
     | 'deveBloquear'
     | 'darFuga'
     | 'darLoucura'
-    | 'oponentesNaoProcuram';
+    | 'oponentesNaoProcuram'
+    | 'custoProibido';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1225,6 +1231,14 @@ export interface RxEst {
    * darFuga: exilar N outras do cemitério (Underworld Breach)
    */
   exilar?: number;
+  /**
+   * custoProibido: o que nenhum jogador pode pagar para conjurar mágicas ou ativar habilidades (Angel of Jubilation: vida e sacrificar criatura; inclui a vida do mana phyrexiano)
+   */
+  proibe?: ('vida' | 'sacrificarCriatura')[];
+  /**
+   * condição do jogador afetado (naoPodeConjurar: o jogador; naoPodeAtacar: o controlador da criatura) — Angelic Arbiter: 'each opponent who cast a spell / attacked with a creature this turn'
+   */
+  seJog?: 'atacouNoTurno' | 'conjurouNoTurno';
 }
 
 /**

@@ -34,7 +34,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   switch (c.de) {
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
-      : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
+      : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'vidaInicial'].includes(o) && chaves(c, []);
     case 'turno': return ['magias', 'descartes', 'ataques'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
@@ -49,7 +49,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 // estática: só o que não depende de evento/alvo/efeito anterior (é o CONTA_EST + PROP_EST de antes)
 function estOk(c) {
   if (temF(c)) return true;
-  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'devocao'].includes(c.o);
+  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao'].includes(c.o);
   if (c.de === 'turno') return c.o === 'magias';
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
@@ -95,6 +95,7 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'mao') return J.zonas.mao.length;
       if (o === 'grimorio') return J.zonas.grimorio.length;
       if (o === 'vida') return J.vida;
+      if (o === 'vidaInicial') return J.vidaInicial ?? 40;   // 103.4: a vida com que começou (Angel of Destiny)
       if (o === 'devocao') return M.devocao(e, ctx.voce, c.cores);
       return c.marc === 'poison' ? J.veneno || 0 : (J.marc || {})[c.marc] || 0;   // "for each experience counter you have" (122.1)
     case 'turno':
