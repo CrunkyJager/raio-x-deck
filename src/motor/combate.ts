@@ -39,7 +39,8 @@ function protegeDe(e, alvo, fonteDado) {
 }
 M.protegeDe = protegeDe;
 // "de" de uma proteção bate com a fonte? cor (W/U/B/R/G), tipo de carta (Serra's Emissary) ou subtipo (Dog, Rat)
-M.protKwBate = (de, fd) => de.length === 1 ? (fd.cores || '').includes(de) : (fd.tipos || []).includes(de) || (fd.sub || []).includes(de);
+M.protKwBate = (de, fd) => /^[WUBRG]+$/.test(de) ? [...de].some(c => (fd.cores || '').includes(c)) :   // uma cor ou várias ("each of that creature's colors")
+   (fd.tipos || []).includes(de) || (fd.sub || []).includes(de);
 
 // ---------- atacantes (CR 508.1) ----------
 // "[criaturas que batem] não podem atacar", de outra permanente (est naoPodeAtacar com afeta filtro; seJog: o controlador
@@ -142,7 +143,7 @@ function podeBloquear(e, b, d) {
 function bloqueiaEste(e, b, at) {                                                          // 509.1b: restrições do atacante
   for (const s of M.dadoDe(e, at).est || []) {                                             // "não pode ser bloqueada (por X)"
     if (s.modo !== 'naoPodeSerBloqueada' || s.afeta !== 'este') continue;
-    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id }); } catch (_) { vale = false; }
+    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id, ev: { def: b.ctrl } }); } catch (_) { vale = false; }   // ev.def: "as long as defending player…" (Nightkin)
     if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, { voce: at.ctrl, este: at.id })))) return false;
   }
   for (const [F, s] of M.estDaEquipada(e, at, 'naoPodeSerBloqueada')) {                   // Equipamento/Aura (Brotherhood Regalia)

@@ -265,7 +265,7 @@ function est(P: Perfil, s: any, x: Ctx, c: CartaB, temporario = false) {
     case 'terraExtra': P.f.add('ramp'); if (P.ramp == null) P.ramp = 'condicional'; break;
     case 'aumentaCusto': case 'naoPodeConjurar': case 'naoPodeAtacar': case 'maoMax': if (s.quem !== 'voce') P.f.add('stax'); break;
     case 'dobraGatilhoEntrar': P.f.add('amplify'); break;
-    case 'protecaoJogador': case 'vidaNaoMuda': poe(P, 'protect', xx); break;
+    case 'protecaoJogador': case 'vidaNaoMuda': case 'naoPerdeJogo': poe(P, 'protect', xx); break;
     case 'conjurarComLampejo': case 'custoAlternativo': P.f.add('speed'); break;
     case 'naoPodeSerBloqueada': if (af !== 'este') P.f.add('combat'); break;
     case 'podeJogar': {

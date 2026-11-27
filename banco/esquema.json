@@ -538,8 +538,8 @@
      "description": "atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)"
     },
     "comMarcador": {
-     "type": "string",
-     "description": "tem ao menos 1 marcador deste tipo"
+     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "description": "texto = tem ao menos 1 marcador deste tipo; true = tem algum marcador (Mutational Advantage)"
     },
     "feridaPorEsteNoTurno": {
      "type": "boolean",
@@ -1095,8 +1095,14 @@
      }
     },
     "prod": {
-     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)",
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)",
      "oneOf": [
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": ["coresEntre"],
+       "properties": {"coresEntre": {"$ref": "#/$defs/filtro"}}
+      },
       {
        "enum": [
         "qualquer",
@@ -1399,6 +1405,18 @@
      "type": "boolean",
      "description": "op mana: a mágica paga com esta mana não pode ser anulada (Cavern of Souls)"
     },
+    "exilaAoSair": {
+     "type": "boolean",
+     "description": "op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)"
+    },
+    "tipoTerrenoComum": {
+     "type": "boolean",
+     "description": "op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: \"that share a land type\")"
+    },
+    "copia": {
+     "type": "boolean",
+     "description": "op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está"
+    },
     "soConjurar": {
      "type": "boolean",
      "description": "op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)"
@@ -1633,7 +1651,8 @@
       "cemiterio",
       "madness",
       "evoke",
-      "alternativo"
+      "alternativo",
+      "impending"
      ]
     },
     "conjuradaNaPrincipal": {
@@ -1852,6 +1871,7 @@
       "eco",
       "bis",
       "prole",
+      "iminente",
       "capitulo",
       "classe",
       "entraComMarcador",
@@ -1872,7 +1892,7 @@
     },
     "de": {
      "type": "string",
-     "description": "proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo"
+     "description": "proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo"
     },
     "tipo": {
      "type": "string"
@@ -2117,6 +2137,10 @@
      "const": "este",
      "description": "conjura: só se a mana desta fonte pagou a mágica (\"using mana produced by\", Tecutlan)"
     },
+    "revelaTerreno": {
+     "type": "boolean",
+     "description": "ev explora: true = revelou terreno (\"explores a land card\"), false = revelou não-terreno (Nicanzil); grimório vazio não dispara nenhum dos dois"
+    },
     "recebe": {
      "$ref": "#/$defs/filtro",
      "description": "ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)"
@@ -2287,6 +2311,10 @@
       "$ref": "#/$defs/kw"
      },
      "description": "continuo: os afetados perdem estas palavras-chave (Colossus Hammer: \"and loses flying\")"
+    },
+    "trocaSub": {
+     "type": "boolean",
+     "description": "continuo afeta equipada: os tipos de criatura viram só os de sub (\"is a black Zombie\", Nim Deathmantle; CR 205.1b)"
     },
     "contra": {
      "type": "object",
@@ -2639,7 +2667,8 @@
      "oneOf": [
       {
        "enum": [
-        "este",
+        "atacado",
+         "este",
         "voce",
         "turno",
         "combate",
@@ -2723,7 +2752,11 @@
      ],
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
-    "junta": {
+    "f": {
+       "$ref": "#/$defs/filtro",
+       "description": "de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)"
+      },
+      "junta": {
      "enum": [
       "soma",
       "maior",

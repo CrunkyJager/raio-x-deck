@@ -264,9 +264,9 @@ export interface RxFiltro {
    */
   naoBloqueada?: boolean;
   /**
-   * tem ao menos 1 marcador deste tipo
+   * texto = tem ao menos 1 marcador deste tipo; true = tem algum marcador (Mutational Advantage)
    */
-  comMarcador?: string;
+  comMarcador?: boolean | string;
   /**
    * recebeu dano deste objeto neste turno (Markov Enforcer: 'a creature dealt damage by this creature this turn dies')
    */
@@ -559,9 +559,12 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
    */
   prod?:
+    | {
+        coresEntre: RxFiltro;
+      }
     | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
     | string[]
     | {
@@ -707,6 +710,18 @@ export interface RxFx {
    */
   naoAnulavel?: boolean;
   /**
+   * op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)
+   */
+  exilaAoSair?: boolean;
+  /**
+   * op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: "that share a land type")
+   */
+  tipoTerrenoComum?: boolean;
+  /**
+   * op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está
+   */
+  copia?: boolean;
+  /**
    * op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)
    */
   soConjurar?: boolean;
@@ -840,7 +855,7 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke' | 'alternativo';
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke' | 'alternativo' | 'impending';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -991,6 +1006,7 @@ export interface RxKw {
     | 'eco'
     | 'bis'
     | 'prole'
+    | 'iminente'
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
@@ -1003,7 +1019,7 @@ export interface RxKw {
   custo?: RxMana;
   n?: number;
   /**
-   * proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
+   * proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
    */
   de?: string;
   tipo?: string;
@@ -1172,6 +1188,10 @@ export interface RxGat {
    */
   comManaDe?: 'este';
   /**
+   * ev explora: true = revelou terreno ("explores a land card"), false = revelou não-terreno (Nicanzil); grimório vazio não dispara nenhum dos dois
+   */
+  revelaTerreno?: boolean;
+  /**
    * ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)
    */
   recebe?: RxFiltro;
@@ -1272,6 +1292,10 @@ export interface RxEst {
    * continuo: os afetados perdem estas palavras-chave (Colossus Hammer: "and loses flying")
    */
   tiraKw?: RxKw[];
+  /**
+   * continuo afeta equipada: os tipos de criatura viram só os de sub ("is a black Zombie", Nim Deathmantle; CR 205.1b)
+   */
+  trocaSub?: boolean;
   /**
    * naoPodeAtacar/ataqueCusta: o defensor (jogador e/ou permanente)
    */
@@ -1478,6 +1502,7 @@ export interface RxContagem {
    */
   de:
     | (
+        | 'atacado'
         | 'este'
         | 'voce'
         | 'turno'
@@ -1537,6 +1562,10 @@ export interface RxContagem {
     | 'nome'
     | 'tipos'
     | 'tentacoes';
+  /**
+   * de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)
+   */
+  f?: RxFiltro;
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */

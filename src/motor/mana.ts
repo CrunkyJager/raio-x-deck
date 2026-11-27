@@ -12,6 +12,11 @@ M.coresDeProd = (e, o, prod) => {
   if (Array.isArray(prod)) return [...new Set(prod.flatMap(c => c === 'escolhida' ? (esc ? [esc] : []) : [c]))];
   if (prod === 'escolhida') return esc ? [esc] : [];
   if (prod === 'qualquer') return CORES;
+  if (prod && typeof prod === 'object' && prod.coresEntre) {      // "one mana of any color among legendary creatures and planeswalkers you control" (Mox Amber)
+    const s = new Set<string>();
+    for (const x of M.objetosQue(e, { zona: 'campo', ...prod.coresEntre }, { voce: o.ctrl, este: o.id })) for (const c of M.dadoDe(e, x).cores || '') s.add(c);
+    return CORES.filter(c => s.has(c));
+  }
   if (prod === 'comandante') return CORES.filter(c => e.jogs[o.ctrl].ci.includes(c));
   // {cadaCor: filtro}: "for each color among permanents you control, add one mana of that color" (Faeburrow Elder, Bloom
   // Tender): as cores do conjunto. pacotesDe dá TODAS juntas (um pacote só), não uma à escolha

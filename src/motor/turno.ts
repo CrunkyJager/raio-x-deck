@@ -172,7 +172,7 @@ function proximoPasso(e) {
   while (e.turnosExtra && e.turnosExtra.length && e.jogs[e.turnosExtra[e.turnosExtra.length - 1]].saiu) e.turnosExtra.pop();
   if (e.turnosExtra && e.turnosExtra.length) p = e.turnosExtra.pop();
   else do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
   M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
