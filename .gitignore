@@ -14,3 +14,5 @@ cartas-rx.js
 # T43: Vite
 node_modules/
 dist/
+firebase-debug.log
+.firebase/
