@@ -49,12 +49,14 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'marcadores' ? chaves(c, ['marc', 'junta']) && typeof c.marc === 'string' && !!c.marc && c.junta === 'soma' : o === 'cemiterio' ? chaves(c, ['min']) && Number.isInteger(c.min)   // "each graveyard with seven or more cards" (Master of Lake-town)
       : o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
+    case 'custo': return o === 'marcadores' && chaves(c, []);   // os marcadores tirados no custo ("that much damage", Arcee)
     case 'lembradas': return (o === 'quantos' && (j === undefined || j === 'maiorPorDono') || (o === 'vm' && j === 'soma')) && chaves(c, ['junta']);
-    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || (typeof c.marc === 'string' && !!c.marc))
+    case 'evento': if (o === 'alvos') return chaves(c, ['f']) && !!c.f && M.filtroOk(c.f);   // "that many": quantos alvos da mágica do evento batem no filtro (Arcee)
+      return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || (typeof c.marc === 'string' && !!c.marc))
       : ['quantos', 'vida', 'dano', 'poder', 'resist', 'vm', 'cores', 'mao', 'jogadores', 'manaGasta'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
-    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist'].includes(o) && chaves(c, []);   // poder/resist: o objeto da vez (Unnatural Growth)
+    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist', 'ataques'].includes(o) && chaves(c, []);   // ataques: quantas vezes o objeto da vez atacou neste turno (Moraug)   // poder/resist: o objeto da vez (Unnatural Growth)
   }
   return false;
 }
@@ -64,6 +66,7 @@ function estOk(c) {
   if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes', 'marcadores', 'cores'].includes(c.o);   // marcadores: os do jogador (rad, energia…)
   if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'excesso', 'aoCemiterio'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
+  if (c.de === 'cada') return c.o === 'ataques';   // na estática, 'cada' = o objeto afetado (camadas põem ctx.cadaObj)
   return c.de === 'oponentes' || c.de === 'jogadores';
 }
 /** a conta (já nova) é jogável neste lugar? */
@@ -153,6 +156,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'jogadores': if (o === 'marcadores') return M.vivos(e).reduce((t, jj) => { const J = e.jogs[jj]; return t + (c.marc === 'poison' ? J.veneno || 0 : (J.marc || {})[c.marc] || 0); }, 0);   // "the total number of rad counters among players" (Vault 12)
       return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
     case 'X': return ctx.x || 0;
+    case 'custo': return ctx.tirados || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {
       // "lose life equal to that card's mana value" (Caustic Bronco): as do efeito anterior (descartadas, ou as que ele moveu)
@@ -167,7 +171,9 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'quantos') return vidaEv(ev) ? ev.q || 0 : ev.n ?? 1;        // no evento de vida: "that much" (Exquisite Blood)
       if (o === 'vida') return vidaEv(ev) ? ev.q || 0 : 0;                    // "that much life" (Sanguine Bond)
       if (o === 'jogadores') return ev.jogs ? ev.jogs.length : ev.jog !== undefined ? 1 : 0;   // danoUmaVez: os jogadores feridos na etapa (Hordewing Skaab)
-      if (o === 'dano') return ev.ev === 'dano' || ev.ev === 'danoPrevenido' ? ev.q || 0 : 0;   // danoPrevenido: "that many" (Selfless Squire)              // "that much damage"
+      if (o === 'dano') return ev.ev === 'dano' || ev.ev === 'danoPrevenido' ? ev.q || 0 : 0;   // danoPrevenido: "that many" (Selfless Squire)
+      if (o === 'alvos') { const S = e.objs[ev.id], l = S && S.pil ? (S.pil.alvos || []).flat().filter(a => a && a.o !== undefined) : [];
+        return new Set(l.filter(a => { const x = e.objs[a.o]; return x && x.ts === a.ts && M.bate(e, x, c.f, ctx); }).map(a => a.o)).size; }              // "that much damage"
       const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo, JJ = jj !== undefined ? e.jogs[jj] : undefined;   // o jogador do evento
       if (o === 'marcadores' && c.marc) return !JJ ? 0 : c.marc === 'poison' ? JJ.veneno || 0 : (JJ.marc || {})[c.marc] || 0;   // "if they don't have any rad counters" (Vexing Radgull, 122.1)
       if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;
@@ -190,7 +196,9 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'sacrificadas': return (ctx.sac || []).reduce((s, l) => s + (o === 'poder' ? Math.max(0, l.poder) : l.vm || 0), 0);   // LKI, 608.2h
     case 'cada':
       if (o === 'vida') return ctx.cadaAtual !== undefined ? e.jogs[ctx.cadaAtual].vida : 0;   // o jogador da vez (Dire Fleet Ravager)
-      { const cc = ctx.cadaObj, ob = cc && e.objs[cc.id]; return !ob || ob.ts !== cc.ts ? 0 : o === 'poder' ? M.poder(e, ob) : o === 'resist' ? M.resistencia(e, ob) : ob.marc[c.marc] || 0; }   // o objeto da vez; poder pode ser negativo (dobrar, 701.10e)
+      { const cc = ctx.cadaObj, ob = cc && e.objs[cc.id]; if (!ob || ob.ts !== cc.ts) return 0;
+        if (o === 'ataques') return (e.turno.ataques || []).filter(r => r.id === ob.id && r.ts === ob.ts && !r.entrou).length;   // "each time it has attacked this turn" (508.1; entrar atacando não é atacar, 508.4)
+        return o === 'poder' ? M.poder(e, ob) : o === 'resist' ? M.resistencia(e, ob) : ob.marc[c.marc] || 0; }   // o objeto da vez; poder pode ser negativo (dobrar, 701.10e)
   }
   throw new Error('conta sem suporte: ' + JSON.stringify(c));
 };

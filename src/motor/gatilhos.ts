@@ -4,17 +4,34 @@
 // Gatilho com campo/efeito/filtro que o núcleo não lê NÃO dispara (nada joga errado em silêncio).
 import { M } from './nucleo';
 
-const EV_OK = new Set(['danoPrevenido', 'gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
+const EV_OK = new Set(['danoPrevenido', 'gasta', 'destranca', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'naoBloqueada', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa']);
 const CAMPOS_OK = new Set(['naoPorEste', 'ouConjurada', 'comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
-const LACO = 500;
+// CR 104.4b/732: laço obrigatório = empate. Muitos disparos não bastam (Krenko com 700 goblins + Purphoros é finito):
+// passado LACO, cada disparo da mesma habilidade grava a assinatura do estado; laço = a mesma assinatura de novo.
+// Laço que cresce (ficha criando ficha) nunca repete o estado: TETO disparos no turno encerram também.
+const LACO = 500, TETO = 20000;
+// o estado sem ids/ts (que só crescem): vidas, marcadores, mana, tamanho das zonas, o campo por nome, pilha e pendentes
+const assinatura = (e): string => {
+  const nm = id => { const o = e.objs[id]; return o ? o.n + (o.face ? '/' + o.face : '') : '?'; };
+  const mc = m => m ? Object.keys(m).filter(k => m[k]).sort().map(k => k + m[k]).join(',') : '';
+  const jogs = e.jogs.map(j => [j.saiu ? 'x' : '', j.vida, j.veneno, mc(j.marc), mc(j.reserva), ...Object.keys(j.zonas).sort().map(z => j.zonas[z].length)].join(':'));
+  const campo = e.campo.map(id => { const o = e.objs[id]; return [nm(id), o.ctrl, o.virada ? 1 : 0, mc(o.marc), o.anexo ? nm(o.anexo.id) : ''].join(':'); }).sort();
+  const pend = e.pend.map(p => p.n + '#' + p.k);
+  let h1 = 0x811c9dc5, h2 = 0;   // FNV-1a + djb2: 64 bits, chave curta
+  for (const t of [jogs.join('|'), campo.join('|'), e.pilha.map(nm).join('|'), pend.join('|'), e.turno.passo]) for (let i = 0; i < t.length; i++) {
+    const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0;
+  }
+  return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36);
+};
+M.assinaturaLaco = assinatura;
 const memoOk = new WeakMap();
 // grupo ("uma ou mais"): só no descarte por ora
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
   if (g.ev === 'viraParaMana') { const v = M.gatManaOk(g); memoOk.set(g, v); return v; }   // habilidade de mana desencadeada: mana.ts (605.1b)
-  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' || g.ev === 'gasta' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.porAtivada || (g.porAtivada === true && g.ev === 'alvoDe')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && (!g.naoPorEste || (g.naoPorEste === true && g.ev === 'entra')) && (!g.ouConjurada || (g.ouConjurada === true && g.ev === 'entra' && !!g.de)) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
+  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' || g.ev === 'gasta' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogador || g.ev === 'dano' || g.ev === 'danoUmaVez' || g.ev === 'naoBloqueada') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.porAtivada || (g.porAtivada === true && g.ev === 'alvoDe')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && (!g.naoPorEste || (g.naoPorEste === true && g.ev === 'entra')) && (!g.ouConjurada || (g.ouConjurada === true && g.ev === 'entra' && !!g.de)) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por)) && (!g.recebe || (g.ev === 'dano' && M.filtroOk(g.recebe)));
   if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'nao', 'emCombate'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se)) && (!g.se.nao || M.seOk(g.se.nao));   // nao: "if it isn't that player's turn" (Tataru Taru)
@@ -30,6 +47,11 @@ function bateEv(e, g, ev, F) {
   const ctx = { voce: F.ctrl, este: F.id, movidos: F.movidos }, q = o => !g.quem || (o && bate(e, o, g.quem, ctx));   // movidos: os afetados do efeito temporário (filtro lembrada: Tamiyo +1)
   switch (g.ev) {
     case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && (!g.de || ev.de === g.de || (g.ouConjurada && ev.de === 'pilha' && !!e.objs[ev.id] && e.objs[ev.id].conjDe === g.de)) && (!g.naoDe || ev.de !== g.naoDe) && (!g.naoPorEste || ev.porFx !== F.id) && q(e.objs[ev.id]);   // naoPorEste: "if it wasn't put onto the battlefield with this ability" (Kodama of the East Tree); ouConjurada: "entered from a graveyard or was cast from a graveyard" (Kotis)   // de: "enters from a graveyard" (River Kelpie, Kotis)
+    case 'destranca': {                                                                // 709.5h: "when you unlock this door": o gatilho é o da porta destrancada
+      if (ev.ev !== 'destranca' || ev.id !== F.id || ev.ts !== F.ts || F.ficha) return false;
+      const lado = M.dadoFace(M.carta(F.n), ev.porta === 'e' ? 'esq' : 0);
+      return (lado.gat || []).includes(g);
+    }
     case 'ficaMonstruosa': return ev.ev === 'ficaMonstruosa' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.37b
     case 'vira': return ev.ev === 'vira' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.26a
     case 'fichaCriada': return ev.ev === 'fichaCriada' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 111.2: quem cria = ev.j
@@ -42,6 +64,7 @@ function bateEv(e, g, ev, F) {
     case 'explora': return ev.ev === 'explora' && (g.revelaTerreno === undefined || ev.terreno === g.revelaTerreno) && q(e.objs[ev.id]);   // CR 701.44c: "whenever a creature you control explores" (revelaTerreno: "explores a land / nonland card", Nicanzil)
     case 'atacantesDeclarados': return ev.ev === 'atacantesDeclarados' && !g.quem && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'bloqueia': return ev.ev === 'bloqueia' && q(e.objs[ev.id]);
+    case 'naoBloqueada': return ev.ev === 'naoBloqueada' && (!g.aJogador || ev.jog !== undefined) && q(e.objs[ev.id]);   // 509.3g; aJogador: "attacks a player and isn't blocked"
     case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.recebe || (ev.o !== undefined && !!e.objs[ev.o] && bate(e, e.objs[ev.o], g.recebe, ctx))) && (!g.aJogador || ev.jog !== undefined) && (!g.aJogadorOuPw || ev.jog !== undefined || (ev.o !== undefined && !!e.objs[ev.o] && M.temTipo(e, e.objs[ev.o], 'Planeswalker'))) && (!g.aOponente || (ev.jog !== undefined && ev.jog !== F.ctrl)) && q(ev.snap || e.objs[ev.fonte]);
     // "uma ou mais … causam dano de combate a um jogador" (Prosperous Thief): o mesmo teste do dano, uma vez só por lote (abaixo)
     // recebe: quem levou o dano é um objeto que bate (enrage: {este: true}; Wrathful Raptors: Dinossauro seu)
@@ -153,6 +176,16 @@ function proeza(e, ev) {
     for (let i = 0; i < n; i++) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'proeza', g: PROEZA, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ...ev, snap: undefined } });
   }
 }
+// suspender (702.62a): "no começo da sua manutenção, se esta carta está suspensa, tire um marcador de tempo dela" — gatilho
+// de carta no exílio do dono; a condição é vista ao disparar e ao resolver (603.4). O segundo ("ao tirar o último") sai do op.
+const G_SUSP_TIRA = { ev: 'fase', fx: [{ op: 'suspensoTira' }] };
+M.suspensa = o => !!o && o.zona === 'exilio' && !!o.suspensa && (o.marc.time || 0) > 0;   // 702.62b
+M.suspensoEvento = (e, j) => {
+  for (const id of e.jogs[j].zonas.exilio) {
+    const o = e.objs[id]; if (!M.suspensa(o) || !M.suspenderDe(e, o)) continue;
+    e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'suspender', g: G_SUSP_TIRA, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'fase', passo: 'manutencao', j } });
+  }
+};
 M.fimAtrasados = e => { if (e.atras && e.atras.length) e.atras = e.atras.filter(A => !(A.g.nesteTurno && A.t !== e.turno.n)); };
 
 // ---------- dobraGatilho (CR 603.2d): "dispara uma vez a mais" ----------
@@ -287,9 +320,14 @@ M.evento = (e, ev) => {
       if (g.naoPrimeira && ev.primeiraEtapa) continue;                                     // Xyris: a 1ª compra da etapa de compra não
       if (g.limite) { const T = e.turno, ch = F.id + ':' + F.ts + ':' + k; T.lim = T.lim || {}; if (T.lim[ch]) continue; T.lim[ch] = true; }   // "só uma vez a cada turno"
 
-      // CR 104.4b: laço que ninguém pode parar = empate. Mais de LACO disparos da mesma habilidade num turno só acontece
-      // com dado errado (ex.: o "uma vez por turno" faltando) ou laço de verdade; a partida acaba em vez de travar.
-      { const T = e.turno, ch = F.id + ':' + k; T.disp = T.disp || {}; if ((T.disp[ch] = (T.disp[ch] || 0) + 1) > LACO) { e.fim = e.fim || { vencedor: null, motivo: 'laço obrigatório (104.4b): ' + F.n }; M.log(e, 'laço obrigatório:', F.n); return; } }
+      // CR 104.4b: laço que ninguém pode parar = empate (ver LACO/TETO); a partida acaba em vez de travar.
+      { const T = e.turno, ch = F.id + ':' + k; T.disp = T.disp || {}; const n = T.disp[ch] = (T.disp[ch] || 0) + 1;
+        if (n > LACO) {
+          T.sigs = T.sigs || {}; const S = T.sigs[ch] = T.sigs[ch] || {}, a = assinatura(e);
+          const fim = S[a] ? 'laço obrigatório (104.4b): ' : n > TETO ? 'laço sem fim (104.4b, ' + TETO + ' disparos): ' : '';
+          if (fim) { e.fim = e.fim || { vencedor: null, motivo: fim + F.n }; M.log(e, 'laço obrigatório:', F.n); return; }
+          S[a] = 1;
+        } }
       const vezes = 1 + extras(e, F, g, ev);
       const dada = k >= nb || mudado ? { g } : {};                                                // habilidade dada (camadas): leva o texto
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(g.grupo && SAIDA.has(g.ev) && ev.snap ? { loteP: [M.poder(e, ev.snap)] } : {}), ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem
@@ -297,6 +335,7 @@ M.evento = (e, ev) => {
   }
   atrasados(e, ev);
   temporarios(e, ev);
+  if (ev.ev === 'fase' && ev.passo === 'manutencao') M.suspensoEvento(e, ev.ativo);       // suspender (702.62a): as cartas suspensas do ativo
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
@@ -306,7 +345,8 @@ M.evento = (e, ev) => {
       for (const x of M.kwDe(e, F)) if (x.k === 'desaparecer') e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'desaparecer', g: GAT_DESAPARECER, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } });
     }
     for (const id of e.campo) {
-      const F = e.objs[id]; if (!F || !F.eco || F.ctrl !== ev.ativo) continue;
+      const F = e.objs[id]; if (!F || F.ctrl !== ev.ativo) continue;
+      if (!F.eco) continue;
       delete F.eco;
       for (const x of M.kwDe(e, F)) if (x.k === 'eco' && x.custo) { const g = ecoDe(x); e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'eco', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } }); }
     }
