@@ -849,6 +849,23 @@ const H = {
       }
     },
   },
+  // CR 701.47: amassar [tipo] N. Sem Armada (criatura Army) sua, cria uma ficha 0/0 preta [tipo] Army; depois escolhe
+  // uma Armada sua (a maior), põe N marcadores +1/+1 e, se não for do [tipo], ela passa a ser também (701.47a).
+  // Simplificação: o tipo a mais vai para os valores da ficha (fica numa cópia dela); Armada que não é ficha não ganha o tipo.
+  amassar: {
+    campos: ['sub'],
+    ok: f => (f.quem === undefined || f.quem === 'voce') && Array.isArray(f.sub) && f.sub.length <= 1 && f.sub.every(x => typeof x === 'string') && f.em === undefined,
+    fx(e, f, ctx) {
+      const q = qtdDe(e, f.qtd, ctx), j = ctx.voce, sub = (f.sub || [])[0];
+      const armadas = () => e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && M.temTipo(e, o, 'Creature') && (t => t === 'todos' || t.includes('Army'))(M.tiposCriatura(e, o)));
+      if (!armadas().length) M.criarFichas(e, j, { tipos: ['Creature'], sub: sub ? [sub, 'Army'] : ['Army'], cores: 'B', pt: [0, 0] }, 1);
+      const a = armadas().sort((x, y) => M.poder(e, y) + M.resistencia(e, y) - M.poder(e, x) - M.resistencia(e, x))[0];
+      if (!a) return;                                               // a ficha pode ter sido trocada (substituição) ou morrido antes: nada a escolher
+      if (q > 0) M.porMarcadores(e, a, '+1/+1', q);
+      if (sub && a.ficha && !(a.ficha.sub || []).includes(sub)) a.ficha.sub = [...(a.ficha.sub || []), sub];
+      M.log(e, 'amassar', sub || '', q, '→', a.n);
+    },
+  },
   marcador: {                                                       // CR 122
     campos: ['tipoMarc', 'tirar'],
     fx(e, f, ctx) {

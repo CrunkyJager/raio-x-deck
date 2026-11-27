@@ -817,6 +817,7 @@ const tiposCriatura = (e, o) => {
   if ((d.kw || []).some(x => x.k === 'metamorfo')) return 'todos';
   return (d.tipos || []).some(t => t === 'Creature' || t === 'Kindred' || t === 'Tribal') ? d.sub || [] : [];
 };
+M.tiposCriatura = tiposCriatura;
 const comumCom = (a, b) => a === 'todos' ? (b === 'todos' || b.length > 0) : b === 'todos' ? a.length > 0 : a.some(t => b.includes(t));
 // tipoEmComum: 'este' (a fonte), 'doEvento' (o objeto do evento: ctx.ev), 'comandante' (os seus) ou um filtro (alguma que bate)
 function tipoEmComum(e, o, ref, ctx) {

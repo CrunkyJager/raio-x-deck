@@ -3423,6 +3423,22 @@ caso('702.131', "ascender: com 10 permanentes e uma com ascender ganha a bênç�
   ok(!f.jogs[0].bencao && !M.condicao(f, { palavra: 'blessing' }, { voce: 0 }), 'sem permanente com ascender: nada');
 });
 
+caso('701.47', "amassar: sem Armada cria a ficha 0/0 com o tipo e põe os marcadores; com Armada, só marca a que existe e dá o tipo", () => {
+  ok(M.fxSuportado([{ op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }]), 'amassar aceito');
+  const e = cena({ campo: [] });
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: {} });
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }, cx(), () => ({ a: 'nao' }));
+  const ars = () => e.campo.map(id => e.objs[id]).filter(o => (M.dadoDe(e, o).sub || []).includes('Army'));
+  igual(ars().length, 1, 'criou uma Armada');
+  const a = ars()[0];
+  igual([M.poder(e, a), M.resistencia(e, a)], [1, 1], 'Armada 1/1');
+  ok(M.dadoDe(e, a).sub.includes('Orc'), 'é Orc');
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Zombie'], qtd: 2 }, cx(), () => ({ a: 'nao' }));
+  igual(ars().length, 1, 'não cria outra');
+  igual(M.poder(e, a), 3, '+2 na mesma');
+  ok(M.dadoDe(e, a).sub.includes('Zombie'), 'virou Zombie também');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
