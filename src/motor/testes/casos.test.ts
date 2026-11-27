@@ -5863,6 +5863,28 @@ caso('704.5j', "Sliver Gravemother: duas dela ficam (regra da lenda não vale pa
   M.avancar(f); ok(f.perg && f.perg.tipo === 'lenda', 'lenda que não é Fractius: a regra vale');
 });
 
+caso('613.1d', "Starfield of Nyx: com 5 encantamentos, os outros não-Aura viram criaturas com P/R base = valor de mana; com 4, não", () => {
+  const e = cena({ campo: [[0, 'Starfield of Nyx'], [0, 'Propaganda'], [0, 'Smothering Tithe'], [0, 'Rhystic Study'], [0, 'Phyrexian Arena']] });
+  const s = objN(e, 0, 'Starfield of Nyx'), p = objN(e, 0, 'Propaganda'), t = objN(e, 0, 'Smothering Tithe');
+  ok(M.temTipo(e, p, 'Creature') && M.temTipo(e, t, 'Creature') && !M.temTipo(e, s, 'Creature'), 'os outros viram criatura');
+  igual([M.poder(e, p), M.resistencia(e, p), M.poder(e, t), M.resistencia(e, t)], [3, 3, 4, 4], 'P/R = vm');
+  const f = cena({ campo: [[0, 'Starfield of Nyx'], [0, 'Propaganda'], [0, 'Smothering Tithe'], [0, 'Rhystic Study']] });
+  ok(!M.temTipo(f, objN(f, 0, 'Propaganda'), 'Creature'), 'com 4: não');
+});
+
+caso('122.1', "radiação: no começo da 1ª principal, mói N (rad); por não-terreno perde 1 e tira 1 rad. Com Strong, ganha em vez de perder", () => {
+  for (const comStrong of [false, true]) {
+    const e = cena({ campo: comStrong ? [[0, 'Strong, the Brutish Thespian']] : [] }); e.pend = [];
+    for (const n of ['Lightning Bolt', 'Forest', 'Grizzly Bears']) e.por(0, n, { zona: 'grimorio' });
+    const g = e.jogs[0].zonas.grimorio, topo = g.slice(-3).map(id => e.objs[id].n);
+    igual(topo.filter(n => n === 'Forest').length, 1, 'os 3 de cima: ' + topo);
+    e.jogs[0].marc = { rad: 3 }; const v = e.jogs[0].vida;
+    e.turno.feito = false; M.avancar(e);
+    igual(e.jogs[0].zonas.cemiterio.length, 3, 'moeu 3');
+    igual([e.jogs[0].vida, e.jogs[0].marc.rad], [comStrong ? v + 2 : v - 2, 1], comStrong ? 'Strong: +2' : '-2, sobra 1 rad');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

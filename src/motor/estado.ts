@@ -73,7 +73,7 @@ const misto = (d, m) => {
   if (m.super) r.super = un(d.super, m.super);
   const novas = (m.sub || []).filter(t => ATV_BASICA[t] && !(d.sub || []).includes(t));
   if (novas.length && (r.tipos || []).includes('Land')) r.atv = [...(d.atv || []), ...novas.map(t => ATV_BASICA[t])];
-  if (m.pt) r.pt = m.pt;
+  if (m.pt) r.pt = m.pt === 'vm' ? [d.vm || 0, d.vm || 0] : m.pt;   // 'vm': P/R base = o valor de mana dele (Starfield of Nyx)
   if (m.kw && m.kw.length) r.kw = [...(d.kw || []), ...m.kw];
   if (m.cores !== undefined) r.cores = m.cores;
   if (m.maisCores) r.cores = [...new Set([...(r.cores || ''), ...m.maisCores])].join('');   // "in addition to its other colors" (105.3)
@@ -623,7 +623,7 @@ M.estTipoEquipOk = s => !!s && s.modo === 'continuo' && s.afeta === 'equipada' &
 // (camadas 4 e 7b), a de kw/habil nas camadas. Subtipo de terreno básico fica de fora (como na equipada).
 const estAnimFiltroOk = s => s.modo === 'continuo' && estTipoFiltro(s) && M.filtroOk(s.afeta)
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).some(x => x === 'escolhido' || TERRA_BASICA.has(x))
-  && (s.pt === undefined || (Array.isArray(s.pt) && s.pt.length === 2 && s.pt.every(n => Number.isInteger(n))))
+  && (s.pt === undefined || s.pt === 'vm' || (Array.isArray(s.pt) && s.pt.length === 2 && s.pt.every(n => Number.isInteger(n))))
   && Object.keys(s).every(k => CONT_OK.has(k) || k === 'tipo' || k === 'sub' || k === 'pt' || k.startsWith('_')) && (!s.se || M.seOk(s.se))
 M.estTipoFiltroOk = s => !!s && s.modo === 'continuo' && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && !!(s.tipo || s.sub)
   && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'se'].includes(k)) && (s.tipo || []).every(t => TIPOS_CARTA.has(t))
