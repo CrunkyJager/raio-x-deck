@@ -240,6 +240,15 @@ Botão **"Jogar você mesmo"** na Mesa ao vivo: o motor pergunta, a tela respond
 - **Banco de 30 com a trava**: média −0,39 ±0,19 (`banco_trava`). O `banco_atual` (19/11) não serve de comparação: as trocas mudaram em 20/11 (sinergia + preços MYP), 0/30 listas iguais. Comparado igual por igual com o código sem a T08 (`banco_hoje`, mesmas trocas 28/28): +0,00 ±0,21 → diferença −0,44 ±0,29, dentro do ruído. Rin&Seri −9/−10 já acontece sem a trava (Beastmaster Ascension → Garruk's Uprising): problema das trocas por sinergia, a investigar.
 - Teste no Chrome headless: `LD_LIBRARY_PATH=$HOME/.local/pwlibs/usr/lib/x86_64-linux-gnu ~/.venv-pw/bin/python ...` (libs sem sudo).
 
+## Conta e Meus decks na nuvem (T48, 27/11/2026, pedido do usuário)
+Igual ao Grimório Arena do Edgar: **Firebase** (projeto `raiox-do-deck`, conta Google do Felipe; console: https://console.firebase.google.com/project/raiox-do-deck). Na aba Lista, bloco **Meus decks**: entrar com Google (ou e-mail e senha), salvar a lista da caixa com um nome (mesmo nome = atualiza), abrir em qualquer PC, apagar.
+- Código: `src/conta/nuvem.svelte.ts` (config, login, Firestore) e `src/conta/MeusDecks.svelte` (tela). O SDK (`firebase`, npm) só carrega ao clicar em Entrar, ou ao abrir a página se a pessoa já tinha entrado antes neste navegador (`raiox:logado` no localStorage).
+- Banco: Firestore em São Paulo, `usuarios/<uid>/decks/<id>` = `{nome, lista, atualizado}`. Regras em `firestore.rules`: só o dono lê e grava; lista até 20 mil letras.
+- Configuração no repositório: `firebase.json` (regras) e `.firebaserc`. Mudou a regra → `npx firebase-tools deploy --only firestore:rules`. Os provedores do login (Google + e-mail) já estão ligados no projeto; o bloco `auth` do firebase.json (com o e-mail de suporte) ficou fora do git de propósito. A CLI está logada na conta do Felipe neste PC.
+- A `apiKey` no código é pública por desenho do Firebase: quem protege os dados são as regras.
+- Teste: conta de e-mail de teste no Chromium headless → salvar → navegador limpo → entrar → abrir e analisar → apagar (27/11 ok); sem login, ler os decks de alguém dá 403.
+- Depois: a sala do X1 pode ir para o Firestore no lugar do PeerJS (link curto como `#x1/BOT8KUP` do Edgar).
+
 ## X1 online: cada um no seu PC (T47, 27/11/2026, pedido do usuário)
 Na Mesa ao vivo, botão **"Jogar com amigo"** (`#v-x1`): cria uma sala no PeerJS (servidor público, sem conta) e mostra o link `?sala=<id>`. O amigo abre o link, cola o deck dele e clica em **"Entrar na sala do amigo"**.
 - Como funciona: os dois PCs rodam o MESMO motor com a mesma semente e os mesmos decks (`ks: [0, 1]` = os dois lugares são humanos). Só as escolhas andam pela rede (`{tp:'esc', v, n}`), e cada tela refaz a partida igual. O anfitrião é o lugar 0, o convidado é o 1 (`MEU_LUGAR()`); a tela vê do próprio lugar e mostra "Vez de X… esperando a escolha dele" na vez do outro.

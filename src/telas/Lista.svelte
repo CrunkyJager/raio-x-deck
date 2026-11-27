@@ -1,4 +1,5 @@
 <script lang="ts">
+  import MeusDecks from '../conta/MeusDecks.svelte';
   // Aba Lista (T43 d): primeira tela em componente. A caixa #deck-in continua sem bind (análise e montar leem e
   // escrevem .value direto); o Analisar e os exemplos chamam window.RAIOX.run, que lê a caixa como antes.
   const ex: Record<string, string> = window.EXEMPLOS || {};
@@ -21,4 +22,5 @@
   <textarea id="deck-in" aria-label="Lista do deck" spellcheck="false" placeholder="Cole aqui a lista do deck (uma carta por linha, ex.: 1 Sol Ring)."></textarea>
   <div class="row"><button class="btn primary" id="go" onclick={analisa}>Analisar</button><span class="note">Exemplos (decks médios do EDHREC):</span><span id="examples" class="row" style="margin:0">{#each Object.keys(ex) as nome}<button class="btn small" data-ex={nome} onclick={() => exemplo(nome)}>{nome}</button>{/each}</span></div>
   <p class="note" id="go-msg" role="status"></p>
+  <MeusDecks {analisa} />
 </section>

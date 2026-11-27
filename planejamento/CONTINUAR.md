@@ -68,7 +68,8 @@ Atualizado em 27/11/2026 de manhã pelo coordenador (FARSEER). Quem retomar lê 
 - Hoje: pedido do Edigar feito (marcador +1/+1 separado do lorde; ordem de gatilhos indiferente não pergunta — CR 701.9a + 603.3b; falta mostrar a citação a ele); aviso "Saiu uma versão nova… Recarregar" (o ⚠ falso na mão era aba com o site de 25/11); motor: modo ao entrar, efeito temporário (substituição de dano, terra extra, mão máxima, lampejo, não conjurar, antimagia de jogador, gatilho e contínua em emblema), monarca (CR 724), dano não prevenível, Lightning, Past in Flames (flashback dado no cemitério), modificar até o seu próximo turno / enquanto no campo, Hellkite Courser (atrasado com 'anterior', mover para a zona de comando), Mortarpod (arma viva).
 - Fila automática: `~/.local/bin/raiox-fila` (worktree `~/raio-x-c`, ramo `fila-auto`); falta o Felipe pôr a linha no crontab (*/30).
 
-## Estado em 27/11 — v0.61.0 na main
+## Estado em 27/11 — v0.62.0 na main
+- v0.62.0: T48 conta + Meus decks (Firebase `raiox-do-deck`; ver NOTAS "Conta e Meus decks na nuvem").
 - v0.61.0: T47 X1 online (Mesa ao vivo → Jogar com amigo; PeerJS; só as escolhas na rede). Teste no navegador: `ferramentas/x1-navegador.py`.
 - v0.60.0: destruir aceita `semRegenerar` (regenerar ainda não existe no motor; quando entrar, respeitar o campo).
 - v0.59.0: copiarMagica (`M.alvosDaCopia` pergunta, `M.criarCopia` mexe, pilha.ts; a cópia tem `copia: true` e some no M.mover/tirarDaPilha).
@@ -84,7 +85,6 @@ Atualizado em 27/11/2026 de manhã pelo coordenador (FARSEER). Quem retomar lê 
 - Tamiyo, Field Researcher ficou para depois: a carta precisa ser reescrita (o +1 é gatilho "até o seu próximo turno" com quem compra = você; o −7 é emblema de custo alternativo grátis da mão).
 
 ## Próximo passo (27/11 tarde, nesta ordem)
-0. T48 login Google + decks salvos (Firebase): o Felipe roda uma vez `npx firebase-tools login`; o resto é nosso. Depois volta para as travas da T43.
 1. T43 travas (`node ferramentas/motor-cobertura.mjs --por-carta /tmp/cob.json`): (gat ev sacrificado v0.53.0, op escolher v0.54.0, op faseExtra v0.55.0, gat ev saiCemiterio v0.56.0, gat.recebe v0.57.0, kw convocar v0.58.0, op copiarMagica v0.59.0, op destruir.semRegenerar v0.60.0). Depois Tamiyo.
 2. Pendências do Felipe: lista do Ultra Magnus com nomes reais (`planejamento/decks/ultron.txt`); linha do cron da fila; ok para remover worktrees `~/raio-x-base`/`~/raio-x-b`.
 3. T44: medida dos 30 decks em lotes de 10 (arquivos no ramo `t44-medida`).

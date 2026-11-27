@@ -1,0 +1,12 @@
+rules_version = '2';
+// T48: cada pessoa só lê e grava os próprios decks (usuarios/<uid>/decks/<id>).
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /usuarios/{uid}/decks/{deck} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.lista is string && request.resource.data.lista.size() < 20000
+        && request.resource.data.nome is string && request.resource.data.nome.size() < 200;
+    }
+  }
+}

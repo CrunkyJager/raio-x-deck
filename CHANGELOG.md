@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.62.0 — 27/11/2026 · Conta e Meus decks na nuvem
+Testes: check 0 erros · Vitest 385/385 · partida Stangg igual à linha de base (erros 0) · navegador: criar conta → salvar → entrar em outro navegador → abrir → apagar ok; sem login o banco recusa (403).
+- **Meus decks** (aba Lista): entrar com Google ou com e-mail e senha, salvar o deck com nome e abrir em qualquer PC. Firebase, como no Grimório Arena. Cada pessoa só vê os próprios decks.
+
 ## v0.61.0 — 27/11/2026 · X1 online (Mesa ao vivo)
 Testes: check 0 erros · Vitest 385/385 · partida Stangg igual à linha de base (erros 0) · `mesa-nova.mjs 7 --x1` IGUAIS · `x1-navegador.py`: partida inteira entre duas janelas, 21 turnos, telas IGUAIS.
 - **Jogar com amigo**: cada um no seu PC. O anfitrião cria a sala e manda o link, e o amigo entra com o deck dele. Só as escolhas passam pela rede e as duas telas refazem a mesma partida. Desfazer fica desligado no X1.
