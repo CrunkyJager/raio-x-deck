@@ -233,6 +233,7 @@ const candRev = (e, j, c, fora) => M.objetosQue(e, { ...(c.revelar.f || {}), zon
 const candExi = (e, j, c, fora) => M.objetosQue(e, { ...(c.exilarDe.f || {}), zona: c.exilarDe.zona }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas[c.exilarDe.zona].includes(o.id));
 const candDesc = (e, j, fora, f?) => e.jogs[j].zonas.mao.filter(id => id !== fora && (!f || M.bate(e, e.objs[id], { ...f, zona: 'mao' }, { voce: j })));   // descartarF: "discard a creature card" (Tortured Existence)
 // custo fora da mana dá para pagar agora? (antes da mana: o que sai daqui não paga mana)
+const nSac = c => c.sacrificar.qtd === 'X' ? c.sacrificar.xMin || 0 : c.sacrificar.qtd || 1;   // "Sacrifice X artifacts": o mínimo do X
 function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (!c) return true;
   const J = e.jogs[j];
@@ -248,7 +249,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.descartarEste && (!o || o.zona !== 'mao')) return false;
   if (c.porMarcador && (!o || o.zona !== 'campo')) return false;   // canalizar: só da mão (CR 602.2, a habilidade diz a zona)
   if (c.sacrificar && c.sacrificar.e && !sacE(e, j, c, o && o.id)) return false;
-  else if (c.sacrificar && c.sacrificar !== 'este' && !c.sacrificar.e && (M.custoProibido(e, 'sacrificarCriatura') ? candSac(e, j, c, o && o.id).length < (c.sacrificar.qtd || 1) : !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1))) return false;
+  else if (c.sacrificar && c.sacrificar !== 'este' && !c.sacrificar.e && (M.custoProibido(e, 'sacrificarCriatura') ? candSac(e, j, c, o && o.id).length < nSac(c) : !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, nSac(c)))) return false;
   if (c.descartar && candDesc(e, j, daMao, c.descartarF).length < c.descartar) return false;
   if (c.revelar && M.objetosQue(e, { ...(c.revelar.f || {}), dono: 'voce', zona: 'mao' }, { voce: j }).filter(x => x.id !== daMao).length < (c.revelar.qtd || 1)) return false;
   if (c.devolver === 'este' && (!o || o.zona !== 'campo')) return false;
@@ -718,7 +719,7 @@ M.podeAtivar = (e, j, o, k) => {
   if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
   if (a._soltar && !o.anexo) return false;                            // reconfigurar: soltar só se anexada (702.151a)
   if (!custoFisicoOk(e, j, o, a.custo, { daMao: a.custo.descartarEste ? o.id : undefined })) return false;
-  const ctx = { voce: j, este: o.id };
+  const ctx = { voce: j, este: o.id, ...(a.custo.sacrificar && a.custo.sacrificar.qtd === 'X' ? { x: candSac(e, j, a.custo, o.id).length } : {}) };   // "Sacrifice X": o maior X possível
   for (const i of alvosUsados(a.fx)) {
     const al = (a.alvos || [])[i];
     if (!al || !M.alvoSuportado(al)) return false;
@@ -865,6 +866,13 @@ const jogDoAlvo = (e, x) => x.jog !== undefined ? x.jog : e.objs[x.o].zona === '
 const minAlvo = (a, ctx?) => a.min === 'X' ? (ctx && ctx.x) || 0 : a.min ?? 1;
 // o X não passa do número de alvos possíveis quando são exatamente X
 const tetoXAlvos = (e, d, ctx, mx) => (d.alvos || []).reduce((m, a) => a && a.min === 'X' ? Math.min(m, M.alvosPossiveis(e, a, ctx).length) : m, mx);
+// X do "Sacrifice X …" com alvo de poder até X: não passa do maior poder entre os alvos possíveis (não sacrifica à toa)
+const xPorSac = (e, d, ctx, mx) => {
+  const a = (d.alvos || [])[0], pm = a && a.f && a.f.poder && a.f.poder.max === 'X' ? a.f.poder : null;
+  if (!pm) return mx;
+  const os = M.alvosPossiveis(e, a, { ...ctx, x: mx }).filter(t => t.o !== undefined).map(t => M.poder(e, e.objs[t.o]));
+  return os.length ? Math.min(mx, Math.max(0, ...os)) : -1;
+};
 function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc?: any) {
   const esc: any[] = [];
   let total = 0;
@@ -1215,6 +1223,10 @@ const PROC = {
     if (mana && mana.x) {
       const mx = tetoXAlvos(e, a, ctx, maxX(e, j, mana, ex));
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
+    } else if (c.sacrificar && c.sacrificar.qtd === 'X') {                             // "Sacrifice X artifacts" (Ruthless Technomancer): anuncia o X (601.2b via 602.2b)
+      const mn = c.sacrificar.xMin || 0, mx = xPorSac(e, a, ctx, candSac(e, j, c, o.id).length);
+      if (mx < mn) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
+      x = ask(j, 'x', Array.from({ length: mx - mn + 1 }, (_, v) => ({ a: 'x', v: v + mn })).reverse(), { id: o.id }).v;
     }
     let tir = 0;                                                                      // "remove one or more +1/+1 counters" (Arcee, 602.2b/601.2f): quantos tira é escolha de quem ativa
     if (c.tirarMarcador && c.tirarMarcador.umOuMais) {
@@ -1226,7 +1238,7 @@ const PROC = {
     if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
     const red = reducaoAlvo(e, j, alvos); if (red.g && mana && mana.g) mana = { ...mana, g: Math.max(0, mana.g - red.g) };   // Professor Hojo
-    const fis = escolherCustoFisico(e, j, c, o.id, c.descartarEste ? o.id : null, ask);
+    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask);
     const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac, ...fis.dev, ...fis.vir]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }

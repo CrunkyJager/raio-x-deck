@@ -1743,16 +1743,19 @@ const H = {
   },
   embaralhar: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.embaralhar(e, e.jogs[j].zonas.grimorio); } },
   buscar: {                                                         // CR 701.19 (pode não achar: 701.19b)
-    campos: ['f', 'para', 'revelar', 'virada', 'destinos', 'noDe', 'tipoTerrenoComum', 'nomesDiferentes'],
+    campos: ['f', 'para', 'revelar', 'virada', 'destinos', 'noDe', 'tipoTerrenoComum', 'nomesDiferentes', 'ouCemiterio'],
     qtd: q => qtdOk(q) || (ateOk(q) && q.ate !== 'X') || ateContaOk(q),   // "any number of" (Ugin −11): {ate:'qualquer'}
     ok: f => (f.nomesDiferentes === undefined || f.nomesDiferentes === true) && ['mao', 'campo', 'cemiterio', 'grimorio', 'exilio', undefined].includes(f.para) && (!f.destinos || f.destinos.every(d => ['mao', 'campo', 'cemiterio', 'grimorio'].includes(d.para))),
     fx(e, f, ctx, ask) {
       const plano: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
-        if (j === ctx.voce && M.procuraBloqueada(e, j)) { M.log(e, e.jogs[j].nome, 'não pode procurar no grimório'); continue; }   // Ashiok, Dream Render
+        const bloq = j === ctx.voce && M.procuraBloqueada(e, j);
+        if (bloq && !f.ouCemiterio) { M.log(e, e.jogs[j].nome, 'não pode procurar no grimório'); continue; }   // Ashiok, Dream Render
         // noDe {alvo:N}: procura no grimório do jogador alvo (Knowledge Exploitation); quem escolhe é j
         const dono = f.noDe ? ((ctx.alvos[f.noDe.alvo] || [])[0] || {}).jog : j; if (dono === undefined || (f.noDe && ctx.ilegal && ctx.ilegal[f.noDe.alvo + ':0'])) continue;
-        const cand = M.objetosQue(e, { ...f.f, zona: 'grimorio', dono: 'voce' }, { ...ctx, voce: dono }).map(o => o.id);
+        // ouCemiterio: "search your library and/or graveyard" (Sanctum of All): as do cemitério do dono também valem
+        const cand = [...(bloq ? [] : M.objetosQue(e, { ...f.f, zona: 'grimorio', dono: 'voce' }, { ...ctx, voce: dono })),
+          ...(f.ouCemiterio ? M.objetosQue(e, { ...f.f, zona: 'cemiterio', dono: 'voce' }, { ...ctx, voce: dono }) : [])].map(o => o.id);
         let pegou;
         if (f.tipoTerrenoComum) {                                   // "that share a land type" (Myriad Landscape): as seguintes têm um tipo de terreno da 1ª
           const n = qtdDe(e, f.qtd, ctx), p1 = escolherN(ask, j, 'buscar', cand, Math.min(1, n), { podeMenos: true });
