@@ -4841,6 +4841,20 @@ caso('702.100', "evoluir: entra criatura sua maior (poder ou resistência) → +
   gs.marc['+1/+1'] = 2; e.pend = []; e.por(0, 'Llanowar Elves');
   igual(e.pend.filter(p => p.k === 'evoluir').length, 0, 'menor: não');
 });
+caso('702.100b', "evoluir: a comparação é refeita ao resolver (603.4); se a que entrou saiu, vale o último P/R conhecido", () => {
+  const e = cena({ campo: [[0, 'Gyre Sage']] });
+  const gs = e.objs[e.campo[0]];
+  e.pend = []; e.por(0, 'Grizzly Bears');
+  const p = e.pend.find(x => x.k === 'evoluir'); ok(p, 'disparou');
+  const pil = (ev: any) => ({ hab: { fonte: gs.id, fonteTs: gs.ts, gat: 'evoluir', fx: [], alvos: [] }, ctrl: 0, pil: { ev } });
+  ok(M.gatilhoAindaVale(e, pil(p.ev)), 'Bears 2/2 > Sage 1/2 ao resolver');
+  M.mover(e, p.ev.id, 'cemiterio');
+  ok(M.gatilhoAindaVale(e, pil(p.ev)), 'Bears saiu: vale o 2/2 de quando estava no campo');
+  e.pend = []; e.por(0, 'Grizzly Bears');
+  const q = e.pend.find(x => x.k === 'evoluir');
+  gs.marc['+1/+1'] = 2;
+  ok(!M.gatilhoAindaVale(e, pil(q.ev)), 'Sage virou 3/4 antes de resolver: não evolui');
+});
 
 caso('702.181', "mobilizar: Zurgo ataca e cria 1 Guerreiro virado e atacando; sacrificado na etapa final", () => {
   const e = cena({ campo: [[0, 'Zurgo Stormrender']] });
