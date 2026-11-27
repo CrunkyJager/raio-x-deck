@@ -10,8 +10,7 @@ let dentroCada = 0, dentroObj = 0;
 const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada--; } };
 // dentro de um repetirCada com filtro de objetos (Kalonian Hydra): em/copiaDe 'cadaAtual' = o objeto da vez
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
-const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'maiorDescarte', 'grimorioDoAlvo', 'vidaDoAlvo', 'marcadoresSeus', 'resistDoEvento']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+// contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
 
@@ -23,9 +22,11 @@ const dadoOk = q => !!q && typeof q === 'object' && Number.isInteger(q.dado) && 
 const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && (Number.isInteger(q.ate) || q.ate === 'X' || q.ate === 'qualquer');
 // {ate: conta}: "up to that many / up to X onde X é uma contagem" (Scapeshift, Kyoshi Island Plaza) — só onde o handler aceita
 const ateContaOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && !!q.ate && typeof q.ate === 'object' && qtdOk(q.ate);
-const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
-  || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
-    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop', 'de', 'divCima', 'metade'].includes(k)) && (q.metade === undefined || (q.metade === true && q.prop === undefined)) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1)) && (q.conta !== 'vidaDoAtual' || dentroCada > 0) && (q.de === undefined || ((q.conta === 'marcadoresNoEste' || q.conta === 'marcadoresNoCada' || q.conta === 'devocao' || q.conta === 'marcadoresSeus') && typeof q.de === 'string')) && (q.conta !== 'marcadoresNoCada' || dentroObj > 0) && (q.conta !== 'devocao' || /^[WUBRG]+$/.test(q.de || '')) && (q.conta !== 'marcadoresSeus' || !!q.de) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
+const ehConj = c => !!c.de && typeof c.de === 'object' && 'f' in c.de;
+const qtdOk = q0 => { const q = M.qn(q0); return q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
+  || (!!q && typeof q === 'object' && M.contaOk(q.conta, 'efeito') && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'divCima', 'metade'].includes(k))
+    && (q.metade === undefined || (q.metade === true && !(ehConj(q.conta) && q.conta.junta))) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1))
+    && !(q.conta.de === 'cada' && q.conta.o === 'vida' && !(dentroCada > 0)) && !(q.conta.de === 'cada' && q.conta.o === 'marcadores' && !(dentroObj > 0))); };
 const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
   && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || (qtdOk(se.conta.q) && ['min', 'max', 'igual'].every(k => se.conta[k] === undefined || typeof se.conta[k] === 'number' || qtdOk(se.conta[k]))))
@@ -67,7 +68,7 @@ const SUBST: Record<string, (s) => boolean> = {
   compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
   entraMarc: s => !!s.muda && Object.keys(s.muda).length === 1 && !!s.muda.marcadores && typeof s.muda.marcadores === 'object'
-    && Object.values<any>(s.muda.marcadores).every((q: any) => qtdOk(q === 'X' ? q : q && typeof q === 'object' && q.conta === 'X' ? 'X' : q)),
+    && Object.values<any>(s.muda.marcadores).every((q: any) => qtdOk(q === 'X' ? q : M.qn(q) && typeof q === 'object' && M.qn(q).conta && M.qn(q).conta.de === 'X' ? 'X' : q)),
   ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')
     || (Array.isArray(s.muda.trocaPor) && s.muda.trocaPor.length > 0 && s.muda.trocaPor.every(t => !!t && typeof t === 'object')))
     && (s.talvez === undefined || (s.talvez === true && !!s.muda.trocaPor)),
@@ -129,7 +130,7 @@ function entraComMarcadores(e, o, x) {
     for (const t in s.muda.marcadores) {
       let v = s.muda.marcadores[t];
       const cx = { voce: F.ctrl, este: F.id, x: F.id === o.id ? x || 0 : 0, lki: {}, alvos: [], ilegal: {} };
-      if (v && typeof v === 'object' && v.conta === 'X') v = (cx.x) * (v.mult || 1) + (v.soma || 0);
+      if (v && typeof v === 'object' && M.qn(v).conta && M.qn(v).conta.de === 'X') v = (cx.x) * (v.mult || 1) + (v.soma || 0);
       const q = qtdDe(e, v, cx);
       if (q > 0) M.porMarcadores(e, o, t, q);
     }
@@ -250,62 +251,19 @@ function jogsDe(e, f, ctx) {
   }
   throw new Error('quem sem suporte: ' + f.quem);
 }
-function qtdDe(e, q, ctx) {
-  if (q === undefined) return 1;
+function qtdDe(e, q0, ctx) {
+  if (q0 === undefined) return 1;
+  const q = M.qn(q0);
   if (dadoOk(q)) { const v = 1 + Math.floor(M.aleat(e) * q.dado); M.log(e, 'd' + q.dado, 'deu', v); return v; }   // CR 706
   if (ateContaOk(q)) return qtdDe(e, q.ate, ctx);
   if (ateOk(q)) return q.ate === 'qualquer' ? Infinity : q.ate === 'X' ? ctx.x || 0 : q.ate;   // o máximo; quem escolhe para antes
-  if (q && typeof q === 'object' && typeof q.conta === 'string') {
-    const L = ctx.lki, a = L.alvos && L.alvos[q.alvo || 0] && L.alvos[q.alvo || 0][0];
-    const este = e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : L.este;
-    let v;
-    switch (q.conta) {
-      case 'poderDoAlvo': v = a ? a.poder : 0; break;
-      case 'resistDoAlvo': v = a ? a.resist : 0; break;
-      case 'vmDoAlvo': v = a ? a.vm : 0; break;
-      case 'poderDoEste': v = este ? este.poder : 0; break;
-      case 'resistDoEste': v = este ? este.resist : 0; break;
-      case 'descartadasNoTurno': { const D = e.jogs[ctx.voce].descT; v = D && D.t === e.turno.n ? D.n : 0; break; }   // "for each card you've discarded this turn"
-      case 'marcadoresNoCada': { const c = ctx.cadaObj, o = c && e.objs[c.id]; v = !o || o.ts !== c.ts ? 0 : o.marc[q.de] || 0; break; }   // o objeto da vez do repetirCada
-      case 'marcadoresNoEste': v = !este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0); break;   // de: um tipo de marcador ('lore')
-      case 'devocao': v = M.devocao(e, ctx.voce, q.de); break;
-      case 'vidaDoAtual': v = ctx.cadaAtual !== undefined ? e.jogs[ctx.cadaAtual].vida : 0; break;   // repetirCada: a vida do jogador da vez (Dire Fleet Ravager)
-      case 'cartasNaMao': v = e.jogs[ctx.voce].zonas.mao.length; break;
-      case 'cartasNoGrimorio': v = e.jogs[ctx.voce].zonas.grimorio.length; break;
-      case 'magiasNoTurno': v = M.magiasT(e, ctx); break;
-      case 'oponentes': v = M.vivos(e).filter(j => j !== ctx.voce).length; break;
-      case 'jogadores': v = M.vivos(e).length; break;
-      case 'suaVida': v = e.jogs[ctx.voce].vida; break;
-      case 'X': v = ctx.x || 0; break;
-      case 'resultado': v = ctx.resultado || 0; break;
-      case 'lembrados': v = (ctx.lembrados || []).length; break;
-      // "the greatest number of cards a player discarded this way" (Windfall): das lembradas pelo descartar anterior, por dono
-      case 'maiorDescarte': { const n = {}; for (const id of ctx.lembrados || []) { const o = e.objs[id]; if (o) n[o.dono] = (n[o.dono] || 0) + 1; } v = Math.max(0, ...Object.values<number>(n)); break; }
-      // do jogador alvo N (Peer into the Abyss: "half the cards in their library / half their life, rounded up" com divCima 2)
-      case 'grimorioDoAlvo': case 'vidaDoAlvo': { const jj = jogsAlvo(e, q.alvo || 0, ctx)[0];
-        v = jj === undefined ? 0 : q.conta === 'vidaDoAlvo' ? e.jogs[jj].vida : e.jogs[jj].zonas.grimorio.length; break; }
-      case 'marcadoresSeus': { const J = e.jogs[ctx.voce]; v = q.de === 'poison' ? J.veneno || 0 : (J.marc || {})[q.de] || 0; break; }   // "for each experience counter you have" (122.1)
-      case 'marcadoresNoEvento': v = ctx.ev && ctx.ev.ev === 'marcadorPosto' ? ctx.ev.n || 0 : 0; break;   // "that many" (Shalai and Hallar)
-      case 'evento': v = !ctx.ev ? 0 : vidaEv(ctx.ev) ? ctx.ev.q || 0 : ctx.ev.n ?? 1; break;   // no evento de vida: "that much" (Exquisite Blood, Prize Pig)
-      case 'vidaGanha': v = ctx.ev && vidaEv(ctx.ev) ? ctx.ev.q || 0 : 0; break;               // "that much life" (Sanguine Bond, Vito)
-      case 'danoCausado': v = ctx.ev && ctx.ev.ev === 'dano' ? ctx.ev.q || 0 : 0; break;   // "that much damage" (o dano do evento)
-      case 'resistDoEvento': { const o = ctx.ev && e.objs[ctx.ev.id]; v = o && o.zona === 'campo' ? M.resistencia(e, o) : ctx.ev && ctx.ev.snap ? M.resistencia(e, ctx.ev.snap) : 0; break; }   // "life equal to its toughness" (Verdant Sun's Avatar)
-      case 'vmDoEvento': { const o = ctx.ev && e.objs[ctx.ev.id]; v = o ? M.dadoDe(e, o).vm || 0 : 0; break; }   // "that spell's mana value"
-      case 'coresDoEvento': { const o = ctx.ev && e.objs[ctx.ev.id]; v = o ? new Set((M.dadoDe(e, o).cores || '').replace(/[^WUBRG]/g, '')).size : 0; break; }   // "for each of that spell's colors" (Ramos; 105.2)
-      case 'poderDoSacrificado': v = (ctx.sac || []).reduce((s, l) => s + Math.max(0, l.poder), 0); break;   // custo adicional sacrificar (LKI, 608.2h)
-      case 'vmDoSacrificado': v = (ctx.sac || []).reduce((s, l) => s + (l.vm || 0), 0); break;
-      case 'atacantes': case 'atacantesEmVoce': case 'ataquesNoTurno': v = M.contaAtaque(e, q.conta, ctx.voce); break;
-      default: throw new Error('conta sem suporte: ' + q.conta);
-    }
-    if (q.divCima) v = Math.ceil(v / q.divCima);
-    if (q.metade) v = Math.floor(v / 2);                             // "half …, rounded down" (Endless Ranks of the Dead)                    // "a third of their life, rounded up"
-    return Math.max(0, v * (q.mult || 1) + (q.soma || 0));
-  }
+  if (q && typeof q === 'object' && q.conta && typeof q.conta === 'object' && 'de' in q.conta) return Math.max(0, M.qtdConta(e, q, ctx));
   const v = M.qtd(e, q, ctx);
   if (v === null) throw new Error('qtd sem suporte: ' + JSON.stringify(q));
   return Math.max(0, v);
 }
 M.qtdDe = qtdDe;
+M.jogsAlvo = jogsAlvo;
 M.objsDe = (e, f, ctx) => objsDe(e, f, { lki: {}, alvos: [], ilegal: {}, ...ctx });
 const fonteDado = (e, ctx) => {
   const it = e.objs[ctx.item];
