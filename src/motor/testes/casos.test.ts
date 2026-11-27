@@ -3331,6 +3331,15 @@ caso('120.3', "dano fora do combate é evento: Bolt no Ripjaw Raptor dispara o e
   igual(e.jogs[0].zonas.mao.length, m + 1, 'comprou 1');
 });
 
+caso('702.51', "convocar: Hour of Reckoning ({4}{W}{W}{W}) com 3 Planícies + 4 criaturas viradas; com 3 criaturas não fecha", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Grizzly Bears', { doente: true }], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']], mao: [[0, 'Hour of Reckoning']] });
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar'), 'paga com convocar (criatura com enjoo também vira)');
+  M.avancar(e); conj(e, 'Hour of Reckoning');
+  igual(e.campo.map(id => e.objs[id]).filter(o => o.n === 'Grizzly Bears' && o.virada).length + e.jogs[0].zonas.cemiterio.filter(id => e.objs[id].n === 'Grizzly Bears').length, 4, 'as 4 criaturas pagaram');
+  const f = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']], mao: [[0, 'Hour of Reckoning']] });
+  ok(!M.opcoesPrioridade(f, 0).some(o => o.a === 'conjurar'), '3 criaturas + 3 terrenos = 6 de 7');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
