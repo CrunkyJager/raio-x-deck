@@ -995,7 +995,19 @@ const H = {
       }
     },
   },
-  desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.desvirarObj(e, o); } },
+  // qtd {ate: N} ("desvire até três terrenos", Frantic Search): quem resolve escolhe até N dos que batem (só os virados importam)
+  desvirar: {
+    qtd: q => q === undefined || ateOk(q),
+    fx(e, f, ctx, ask) {
+      let os = objsDe(e, f, ctx);
+      if (f.qtd !== undefined) {
+        const cand = os.filter(o => o.virada).sort((a, b) => (a.ctrl === ctx.voce ? 0 : 1) - (b.ctrl === ctx.voce ? 0 : 1)).map(o => o.id);
+        const ids = escolherN(ask || ((_j, _t, ops) => ops[0]), ctx.voce, 'desvirar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: true, ctx: { op: 'desvirar' } });
+        os = ids.map(id => e.objs[id]);
+      }
+      for (const o of os) M.desvirarObj(e, o);
+    },
+  },
   // CR 701.3: prende o Equipamento/Aura (em) ao objeto a. Equipamento só em criatura e nunca em si mesmo (301.5c);
   // Aura só no que o encantar permite (303.4a); preso ao mesmo objeto = nada acontece (701.3b).
   // ninjutsu (702.49c): a carta, se ainda estiver na mão, entra virada e atacando quem o devolvido atacava (sem declarar: não dispara "ataca")

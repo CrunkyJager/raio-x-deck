@@ -86,6 +86,10 @@ const basico = (e, p) => {
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
     }
+    case 'desvirar': {                // "desvire até N": as suas primeiro (o núcleo já põe as suas na frente)
+      const k = p.ops.findIndex(op => op.id !== undefined && o(op.id).ctrl === p.j);
+      return k >= 0 ? k : 0;
+    }
     case 'tumulto': {                 // 702.136a: pressa se ainda dá para atacar neste turno; senão o marcador (fica para sempre)
       const atacaJa = e.turno.ativo === p.j && ['principal1', 'inicioCombate'].includes(e.turno.passo);
       return p.ops.findIndex(op => op.a === (atacaJa ? 'pressa' : 'marcador'));

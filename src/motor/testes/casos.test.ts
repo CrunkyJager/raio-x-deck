@@ -3944,6 +3944,13 @@ caso('122.1', "Damning Verdict: destrói só as criaturas sem marcador nenhum", 
   igual(noCampo(e).sort(), ['Grizzly Bears'], 'só a com marcador fica (marcador zerado não conta)');
 });
 
+caso('701.26', "Frantic Search: compra 2, descarta 2 e desvira até três terrenos (os seus virados)", () => {
+  const e = cena({ campo: [...terras(4, 'Island'), [1, 'Forest', { virada: true }]], mao: [[0, 'Frantic Search'], [0, 'Grizzly Bears'], [0, 'Sol Ring']] }); e.pend = [];
+  M.avancar(e); conj(e, 'Frantic Search'); resolveCom(e);
+  const ilhas = e.campo.map(id => e.objs[id]).filter(o => o.n === 'Island');
+  igual([ilhas.filter(o => !o.virada).length, objN(e, 1, 'Forest').virada, e.jogs[0].zonas.cemiterio.length], [4, true, 3], 'pagou 3, desvirou as 3 suas; a do oponente fica');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
