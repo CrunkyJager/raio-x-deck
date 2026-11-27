@@ -3423,6 +3423,23 @@ caso('702.131', "ascender: com 10 permanentes e uma com ascender ganha a bênç�
   ok(!f.jogs[0].bencao && !M.condicao(f, { palavra: 'blessing' }, { voce: 0 }), 'sem permanente com ascender: nada');
 });
 
+caso('614.1a', "troca de ficha: Academy Manufactor faz Pista+Comida+Tesouro (×2 com Doubling Season); Jinnie Fay troca o Servo 1/1 por Gato 2/2 e deixa o Tesouro", () => {
+  for (const c of ['Academy Manufactor', "Jinnie Fay, Jetmir's Second"]) ok(M.carta(c).subst.every(s => M.substOk(s)), c + ' aceita');
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  const conta = (e, n) => e.campo.filter(id => e.objs[id].n === n && e.objs[id].ctrl === 0).length;
+  const e = cena({ campo: [[0, 'Academy Manufactor'], [0, 'Doubling Season']] });
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual([conta(e, 'Clue'), conta(e, 'Food'), conta(e, 'Treasure')], [2, 2, 2], 'um de cada, ×2 com Doubling Season');
+  M.executar(e, { op: 'ficha', quem: 'cadaOponente', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual(e.campo.filter(id => e.objs[id].ctrl === 1).length, 1, 'do oponente não troca');
+  const f = cena({ campo: [[0, "Jinnie Fay, Jetmir's Second"]] });
+  M.executar(f, { op: 'ficha', quem: 'voce', qtd: 2, token: { pt: [1, 1], tipos: ['Artifact', 'Creature'], sub: ['Servo'] } }, cx(), null);
+  igual(conta(f, 'Cat Token'), 2, 'dois Gatos no lugar dos Servos'); igual(conta(f, 'Servo Token'), 0);
+  ok(f.campo.filter(id => f.objs[id].n === 'Cat Token').every(id => M.temKw(f, f.objs[id], 'pressa')), 'Gato com pressa');
+  M.executar(f, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual(conta(f, 'Treasure'), 1, 'Tesouro fica (talvez)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
