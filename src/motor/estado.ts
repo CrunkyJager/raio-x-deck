@@ -31,11 +31,13 @@ const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if
 const TIPO_EQUIP = new WeakMap<object, any[]>();
 const tipoEquip = (d): any[] => { let l: any[] | undefined = TIPO_EQUIP.get(d); if (!l) TIPO_EQUIP.set(d, (l = (d.est || []).filter(s => M.estTipoEquipOk(s)).map(s => ({ tipo: s.tipo, sub: s.sub, se: s.se })))); return l as any[]; };
 // camada 5 (cor, CR 613.1e): estática 'continuo' com cores ("é preto", Nim Deathmantle; "são de todas as cores",
-// Leyline of the Guildpact). Lida no M.dadoDe pelo índice I.cor; quem ela afeta é decidido sem cores dadas (613.8 simplificado).
+// Leyline of the Guildpact) e camadas 4/7b com filtro (Bello: "cada artefato … é uma criatura 4/4"). Lidas no M.dadoDe
+// pelo índice I.cor; quem ela afeta é decidido sem o que ela dá (613.8 simplificado: o filtro lê o tipo/cor de antes).
 const COR_EST = new WeakMap<object, any[]>();
-const corEst = (d): any[] => { let l: any[] | undefined = COR_EST.get(d); if (!l) COR_EST.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && typeof s.cores === 'string' && M.estContOk(s)))); return l as any[]; };
+const corEst = (d): any[] => { let l: any[] | undefined = COR_EST.get(d); if (!l) COR_EST.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && (typeof s.cores === 'string' || estTipoFiltro(s)) && M.estContOk(s)))); return l as any[]; };
 const COR_M = new WeakMap<object, any>();
-const corM = s => { let m = COR_M.get(s); if (!m) COR_M.set(s, (m = { cores: s.cores })); return m; };
+const corM = s => { let m = COR_M.get(s); if (!m) COR_M.set(s, (m = estTipoFiltro(s) ? { tipo: s.tipo, sub: s.sub, pt: s.pt, cores: s.cores } : { cores: s.cores })); return m; };
+const estTipoFiltro = s => !!s && !!s.afeta && typeof s.afeta === 'object' && !!(s.tipo || s.sub || s.pt);
 const MISTO = new WeakMap<object, Map<any, any>>();
 const misto = (d, m) => {
   let c = MISTO.get(d); if (!c) MISTO.set(d, (c = new Map()));
@@ -495,9 +497,18 @@ const TERRA_BASICA = new Set(['Plains', 'Island', 'Swamp', 'Mountain', 'Forest']
 M.estTipoEquipOk = s => !!s && s.modo === 'continuo' && s.afeta === 'equipada' && !!(s.tipo || s.sub)
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).some(x => x === 'escolhido' || TERRA_BASICA.has(x))
   && Object.keys(s).every(k => CONT_OK.has(k) || k === 'tipo' || k === 'sub' || k.startsWith('_')) && (!s.se || M.seOk(s.se));
+// tipo/sub/P-R base dados a quem bate um filtro (Bello, Bard of the Brambles): a parte de tipo e P/R no M.dadoDe
+// (camadas 4 e 7b), a de kw/habil nas camadas. Subtipo de terreno básico fica de fora (como na equipada).
+const estTipoFiltroOk = s => s.modo === 'continuo' && estTipoFiltro(s) && M.filtroOk(s.afeta)
+  && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).some(x => x === 'escolhido' || TERRA_BASICA.has(x))
+  && (s.pt === undefined || (Array.isArray(s.pt) && s.pt.length === 2 && s.pt.every(n => Number.isInteger(n))))
+  && Object.keys(s).every(k => CONT_OK.has(k) || k === 'tipo' || k === 'sub' || k === 'pt' || k.startsWith('_')) && (!s.se || M.seOk(s.se))
+  && (!(s.p !== undefined || s.r !== undefined || (s.kw || []).length || s.habil || s.cores !== undefined) || contOk(semTipoPt(s)));
+const SEM_TPT = new WeakMap<object, any>();
+const semTipoPt = s => { let r = SEM_TPT.get(s); if (!r) { const { tipo, sub, pt, ...x } = s; SEM_TPT.set(s, (r = x)); } return r; };
 const SEM_TIPO = new WeakMap<object, any>();
 const semTipo = s => { let r = SEM_TIPO.get(s); if (!r) { const { tipo, sub, ...x } = s; SEM_TIPO.set(s, (r = x)); } return r; };
-M.estContOk = s => M.estTipoOk(s) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
+M.estContOk = s => M.estTipoOk(s) || (!!s && estTipoFiltro(s) ? estTipoFiltroOk(s) : false) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
   ? M.estTipoEquipOk(s) && (!(s.p !== undefined || s.r !== undefined || (s.kw || []).length || s.habil) || contOk(semTipo(s)))
   : contOk(s));
 const contOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))

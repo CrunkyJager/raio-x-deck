@@ -3481,6 +3481,17 @@ caso('702.13b', "intimidar (Mikaeus): só criatura artefato ou que divide cor bl
   igual(['Grizzly Bears', 'Vampire Nighthawk', 'Ornithopter of Paradise'].map(n => M.bloqueiaEste(e, objN(e, 1, n), mk)), [false, true, true]);
 });
 
+caso('613.1d', "Bello: no seu turno o artefato de VM 4+ que não é Equipamento vira criatura Elemental 4/4 com indestrutível, pressa e a compra; fora do seu turno, não", () => {
+  const e = cena({ campo: [[0, 'Bello, Bard of the Brambles'], [0, 'Gilded Lotus'], [0, 'Sol Ring'], [1, 'Darksteel Forge']] });
+  const gl = objN(e, 0, 'Gilded Lotus'), sr = objN(e, 0, 'Sol Ring'), df = objN(e, 1, 'Darksteel Forge');
+  igual([M.temTipo(e, gl, 'Creature'), M.temTipo(e, gl, 'Artifact'), (M.dadoDe(e, gl).sub || []).includes('Elemental'), M.poder(e, gl), M.resistencia(e, gl), M.temKw(e, gl, 'pressa'), M.temKw(e, gl, 'indestrutivel')],
+    [true, true, true, 4, 4, true, true], 'Gilded Lotus');
+  ok(M.gatDe(e, gl).some(g => g.ev === 'dano' && g.aJogador), 'ganha o gatilho de compra');
+  igual([M.temTipo(e, sr, 'Creature'), M.temTipo(e, df, 'Creature')], [false, false], 'VM 1 e a do oponente não');
+  e.turno.ativo = 1;
+  igual(M.temTipo(e, gl, 'Creature'), false, 'turno do oponente');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
