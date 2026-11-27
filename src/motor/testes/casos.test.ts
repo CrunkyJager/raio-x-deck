@@ -3847,6 +3847,19 @@ caso('201.2', "filtros de gatilho: Guardian Project só compra com nome que não
   ok(!M.bate(e, el, k, ctx), 'poder base: não'); el.marc['+1/+1'] = 1; ok(M.bate(e, el, k, ctx), 'com marcador: sim');
 });
 
+caso('702.129a', "eternizar: do cemitério, como feitiço, exila a carta e cria cópia 4/4 preta Zombie além dos tipos, sem custo de mana", () => {
+  const e = cena({ campo: [...terras(4, 'Forest')] }); e.pend = [];
+  const f = e.por(0, 'Fanatic of Rhonas', { zona: 'cemiterio' });
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(op => op.a === 'ativar' && op.id === f.id);
+  ok(k >= 0, 'oferecida do cemitério'); M.responder(e, k); resolveCom(e);
+  ok(f.zona === 'exilio', 'exilada no custo');
+  const t = e.objs[e.campo.find(id => e.objs[id].ficha)];
+  ok(t && M.poder(e, t) === 4 && M.resistencia(e, t) === 4, '4/4');
+  const d = M.dadoDe(e, t); ok(d.cores === 'B' && d.sub.includes('Zombie') && d.sub.length > 1 && !d.custo && d.vm === 0, JSON.stringify([d.cores, d.sub, d.vm]));
+  ok(M.carta('Timeless Witness').kw.some(x => x.k === 'eternizar'), 'Timeless Witness');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

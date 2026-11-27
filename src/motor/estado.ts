@@ -825,6 +825,15 @@ const tripularDe = kw => {
   if (!a) TRIP.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, _tripular: true, fx: [{ op: 'animar', em: 'este', tipos: ['Artifact', 'Creature'], dura: 'fimDoTurno' }] }));
   return a;
 };
+// eternizar (CR 702.129a): "[custo], exile esta carta do cemitério: crie uma ficha cópia dela, exceto que é uma Zombie
+// 4/4 preta além dos outros tipos e não tem custo de mana. Ative só como feitiço."
+const ETERN = new WeakMap<object, any>();
+const eternizarDe = kw => {
+  let a = ETERN.get(kw);
+  if (!a) ETERN.set(kw, (a = { custo: { mana: kw.custo || {}, exilarEste: true }, zona: 'cemiterio', vel: 'feitico', _eternizar: true,
+    fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: { copiaDe: 'este', pt: [4, 4], cores: 'B', maisSub: ['Zombie'], semCusto: true } }] }));
+  return a;
+};
 const ehCiclo = x => (x.k === 'ciclar' && x.custo && Object.keys(x).length === 2) || (x.k === 'cicloTipo' && x.custo && typeof x.tipo === 'string' && Object.keys(x).length === 3);
 const cicloDe = x => x.k === 'ciclar' ? ciclarDe(x) : cicloTipoDe(x);
 // subir de nível (CR 716.2a): "[custo]: Nível N" — ativada como feitiço, só com a Classe no nível N−1 (pilha.ts podeAtivar)
@@ -862,7 +871,7 @@ const atvCarta = d => {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
-    const tp = (d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe);
+    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'eternizar' && x.custo).map(eternizarDe)];
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
     ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length || tp.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj, ...tp] : d.atv || NADA.atv));
   }

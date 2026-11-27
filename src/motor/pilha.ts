@@ -516,11 +516,16 @@ function opcoes(e, j) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
   }
-  // habilidade ativada da mão (atv zona 'mao': canalizar, Trumpeting Carnosaur). Do cemitério (Reassembling Skeleton…) ainda não
+  // habilidade ativada da mão (atv zona 'mao': canalizar, Trumpeting Carnosaur)
   for (const id of J.zonas.mao) {
     const o = e.objs[id], l = M.atvDe(e, o);
     // só a que tira a carta da mão no custo: sem isso (banco antes da correção 15) ativaria de graça sem parar ninjutsu: a carta sai da mão ao resolver (e o custo devolve um atacante)
     for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste || l[k]._ninjutsu) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
+  }
+  // do cemitério: só a que exila a própria carta no custo (eternizar, Kheru Goldkeeper) — não repete sem parar
+  for (const id of J.zonas.cemiterio) {
+    const o = e.objs[id], l = M.atvDe(e, o);
+    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && l[k].custo.exilarEste && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   ops.push(...M.manaEscOps(e, j));

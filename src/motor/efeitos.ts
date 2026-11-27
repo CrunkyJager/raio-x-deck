@@ -528,7 +528,11 @@ function copiaDe(e, token, ctx) {
   const src = de === 'doEvento' ? ctx.ev && e.objs[ctx.ev.id] : de === 'este' ? e.objs[ctx.este] : objsDe(e, { em: de }, ctx)[0];
   if (!src || src.hab) return null;
   const { faces, forma, ...base } = M.dadoBase(e, src);
-  return { ...base, ...resto, n: src.n };
+  const { maisSub, semCusto, ...over } = resto;                     // "é Zombie além dos outros tipos", "não tem custo de mana" (707.9b, eternizar)
+  const r: any = { ...base, ...over, n: src.n };
+  if (maisSub) r.sub = [...new Set([...(base.sub || []), ...maisSub])];
+  if (semCusto) { delete r.custo; r.vm = 0; }
+  return r;
 }
 // est oponentesNaoProcuram (Ashiok, Dream Render): mágica/habilidade de um oponente de quem controla não faz o próprio controlador procurar
 M.procuraBloqueada = (e, j) => e.campo.some(id => { const F = e.objs[id]; return F.ctrl !== j && (M.dadoDe(e, F).est || []).some(s => s.modo === 'oponentesNaoProcuram'); });
