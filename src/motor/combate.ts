@@ -52,23 +52,6 @@ const proibidaDeAtacar = (e, o) => e.campo.some(id => {
 });
 const bateF = (e, o, f, ctx) => { try { return M.bate(e, o, { ...f, zona: 'campo' }, ctx); } catch (_) { return false; } };
 M.podeAtacarObj = (e, o, a) => podeAtacar(e, o, a);
-// "no more than N creatures can attack you each combat" (Mirri, Weatherlight Duelist; 506.4/508.1c): est maxAtacantes
-// afeta 'voce' de uma permanente de J (com 'se'), ou temporária; "each opponent can't block with more than N creatures this
-// combat" (Mirri): efeitoTemporario maxBloqueadores afeta 'cadaOponente' (509.1c). Infinity = sem limite.
-const condF = (e, F, s) => { if (!s.se) return true; try { return M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { return true; } };
-const maxAtaque = (e, J) => {
-  let n = Infinity;
-  for (const id of e.campo) { const F = e.objs[id]; if (F.ctrl !== J) continue; for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'maxAtacantes' && s.afeta === 'voce' && condF(e, F, s)) n = Math.min(n, s.qtd); }
-  for (const { s, t } of M.tempDe(e, 'maxAtacantes')) if (s.afeta === 'voce' && t.ctrl === J) n = Math.min(n, s.qtd);
-  return n;
-};
-const maxBloqueio = (e, d) => {
-  let n = Infinity;
-  for (const { s, t } of M.tempDe(e, 'maxBloqueadores')) if ((s.afeta === 'cadaOponente' && t.ctrl !== d) || (s.afeta === 'voce' && t.ctrl === d)) n = Math.min(n, s.qtd);
-  return n;
-};
-M.maxAtaque = maxAtaque; M.maxBloqueio = maxBloqueio;
-
 function podeAtacar(e, o, a) {
   if (o.ctrl !== a || !M.temTipo(e, o, 'Creature') || o.virada) return false;           // 508.1a
   if (o.doente && !kw(e, o, 'pressa')) return false;                                       // 302.6
@@ -163,10 +146,9 @@ M.PROC.atacar = (e, P, ask) => {
   const alvosDe = id => {
     const inc = M.tempDe(e, 'incitado').filter(({ s, t }) => M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);
     const v = votoDe(e.objs[id]); if (v.length) { const ok = alvos.filter(t => !v.includes(defDe(e, t))); return ok; }   // voto (Promise of Loyalty): não ataca aquele jogador nem os planeswalkers dele
-    const lim = alvos.filter(t => t.jog === undefined || Object.values(decl).filter((x: any) => x.jog === t.jog).length < maxAtaque(e, t.jog));   // Mirri
-    if (!inc.length) return lim;
-    const fora = lim.filter(t => !inc.includes(defDe(e, t)));
-    return fora.length ? fora : lim;
+    if (!inc.length) return alvos;
+    const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
+    return fora.length ? fora : alvos;
   };
   // "no more than one creature can attack you each combat" (Mirri, Weatherlight Duelist, 506.6): limite por jogador atacado
   const limAtk = t => t.jog === undefined ? Infinity : M.maxAtacantes(e, t.jog);
@@ -174,9 +156,9 @@ M.PROC.atacar = (e, P, ask) => {
   for (;;) {
     const livres = aptos.filter(id => !decl[id]);
     // 508.1d: quem "ataca se puder" tem que atacar (qualquer alvo cumpre); só então dá para fechar
-    const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false) && alvosDe(id).length);   // sem alvo livre (limite: Mirri) não precisa
+    const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false));
     const ops = devem.length ? [] : [{ a: 'pronto' }];
-    if (livres.length > 1) for (const t of alvos) if (limAtk(t) === Infinity) if (t.jog === undefined || maxAtaque(e, t.jog) === Infinity) ops.push({ a: 'todos', ...t });   // atalho: todas as livres no mesmo alvo
+    if (livres.length > 1) for (const t of alvos) if (limAtk(t) === Infinity) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
     for (const id of livres) for (const t of alvosDe(id)) if (cabeAtk(t)) ops.push({ a: 'atacar', id, ...t });
     if (!ops.length) break;
     const op = ask(a, 'atacar', ops, { declarados: Object.keys(decl).length });
@@ -271,12 +253,12 @@ M.PROC.bloquear = (e, P, ask) => {
     const conta: any = {}; for (const k in bl) conta[bl[k]] = (conta[bl[k]] || 0) + 1;
     // 702.110b: ameaça precisa de dois ou mais; fechar só quando nenhuma está com um só
     const presa = meus.filter(i => conta[i] === 1 && kw(e, e.objs[C.atk[i].id], 'ameaca'));
-    const devem: any[] = [], ops: any[] = [], lim = maxBloqueio(e, d), cheio = Object.keys(bl).length >= lim;   // 509.1c (Mirri)
+    const devem: any[] = [], ops: any[] = [];
     M.lote(() => { for (const id of cands) {
-      if (bl[id] !== undefined || cheio) continue;
+      if (bl[id] !== undefined) continue;
       const rq = requisitoBloqueio(e, e.objs[id], meus, C);
       if (rq) devem.push(id);
-      for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && !(lim < 2 && kw(e, e.objs[C.atk[i].id], 'ameaca')) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
+      for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
     } });
     const lim = (C.limBloq || {})[d];                                                    // "can't block with more than one creature this combat" (Mirri, 509.1c)
     if (lim !== undefined && Object.keys(bl).length >= lim) { ops.length = 0; devem.length = 0; }
