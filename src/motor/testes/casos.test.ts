@@ -5916,6 +5916,7 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+// ---------- custo para atacar/bloquear e desanexar (mecânicas T43) ----------
 caso('506.4', "Reconnaissance: a atacante sai do combate e desvira; Retreat to Coralhelm: virar, desvirar ou vidência", () => {
   ok(M.fxSuportado(M.carta('Reconnaissance').atv[0].fx) && M.carta('Retreat to Coralhelm').gat.every(g => M.gatOk(g)), 'aceitos');
   const e = cena({ campo: [[0, 'Grizzly Bears', { virada: true }], [0, 'Hill Giant', { virada: true }]] });
@@ -6728,6 +6729,54 @@ caso('509.1h', "Brimaz bloqueia: cria um Gato 1/1 com vigilância que entra bloq
   ok(gato, 'criou o Gato');
   igual(e.turno.combate.atk[0].bloq.length, 2, 'Brimaz e o Gato bloqueando o Hill Giant');
   ok(e.turno.combate.atk[0].bloq.some(b => b.id === gato.id), 'o Gato está no bloqueio');
+});
+
+caso('508.1h', 'Ghostly Prison: atacar paga {2} por criatura (508.1d/g–h); sem pagar ou sem mana, ela não ataca', () => {
+  const mk = n => { const e = combate([[1, 'Ghostly Prison'], [0, 'Grizzly Bears'], ...terras(n)]); e.campo.forEach(id => { if (e.objs[id].ctrl === 0 && e.objs[id].n === 'Mountain') e.objs[id].virada = false; }); return e; };
+  const e = mk(1);                                                            // 2 Mountains: paga
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears')); fecha(e, 'atacar');
+  igual(e.perg && e.perg.tipo, 'custoCombate', 'pergunta o custo'); igual(e.perg.ctx.custo, { g: 2, p: [] });
+  respC(e, x => x.a === 'pagar');
+  igual(e.campo.filter(id => e.objs[id].n === 'Mountain' && e.objs[id].virada).length, 2, 'virou as duas terras');
+  ateFimCombate(e); igual(e.jogs[1].vida, 38);
+  const f = mk(1);                                                            // não quer pagar
+  ate(f, 'atacar'); atacaCom(f, objN(f, 0, 'Grizzly Bears')); fecha(f, 'atacar'); respC(f, x => x.a === 'naoPagar');
+  ateFimCombate(f); igual(f.jogs[1].vida, 40, 'não pagou: não atacou');
+  const g = mk(0);                                                            // 1 Mountain: não fecha, nem pergunta
+  ate(g, 'atacar'); atacaCom(g, objN(g, 0, 'Grizzly Bears')); fecha(g, 'atacar');
+  ok(!g.perg || g.perg.tipo !== 'custoCombate', 'sem mana não pergunta'); ateFimCombate(g); igual(g.jogs[1].vida, 40);
+});
+caso('509.1d', 'Archangel of Tithes atacando: bloquear custa {1} por criatura (509.1d/f); desvirada, atacá-la custa {1} (508.1d)', () => {
+  const e = combate([[0, 'Archangel of Tithes'], [1, 'Giant Spider'], [1, 'Forest']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Archangel of Tithes')); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Giant Spider'), objN(e, 0, 'Archangel of Tithes')); fecha(e, 'bloquear');
+  igual(e.perg && e.perg.tipo, 'custoCombate'); igual(e.perg.j, 1); igual(e.perg.ctx.custo, { g: 1, p: [] });
+  respC(e, x => x.a === 'pagar');
+  ok(objN(e, 1, 'Forest').virada, 'pagou com a Forest'); igual(e.jogs[1].vida, 40, 'bloqueou');
+  const f = combate([[0, 'Archangel of Tithes'], [1, 'Giant Spider'], [1, 'Forest']]);
+  ate(f, 'atacar'); atacaCom(f, objN(f, 0, 'Archangel of Tithes')); fecha(f, 'atacar');
+  ate(f, 'bloquear'); bloqueia(f, objN(f, 1, 'Giant Spider'), objN(f, 0, 'Archangel of Tithes')); fecha(f, 'bloquear'); respC(f, x => x.a === 'naoPagar');
+  ateFimCombate(f); igual(f.jogs[1].vida, 37, 'não pagou: não bloqueia');
+  const g = combate([[0, 'Archangel of Tithes'], [1, 'Grizzly Bears']]);
+  const A = objN(g, 0, 'Archangel of Tithes'), B = objN(g, 1, 'Grizzly Bears');
+  igual(M.custoCombate(g, 'ataqueCusta', B, { jog: 0 }), { g: 1, p: [] }, 'desvirada: atacar o dono custa {1}');
+  igual(M.custoCombate(g, 'ataqueCusta', B, { jog: 1 }), { g: 0, p: [] }, 'outro jogador: não');
+  A.virada = true; igual(M.custoCombate(g, 'ataqueCusta', B, { jog: 0 }), { g: 0, p: [] }, 'virada: não');
+  igual(M.custoCombate(g, 'bloqueioCusta', B), { g: 0, p: [] }, 'sem estar atacando: bloquear é de graça');
+});
+caso('701.3d', 'Akiri, Fearless Voyager: {W} desanexa um Equipamento de uma criatura sua (fica no campo, 301.5c); se fizer, ela vira e ganha indestrutível', () => {
+  const a = M.carta('Akiri, Fearless Voyager').atv[0]; ok(M.fxSuportado(a.fx, { topo: false }), 'fx aceito');
+  const e = cena({ campo: [[0, 'Akiri, Fearless Voyager'], [0, 'Grizzly Bears'], [0, "Hero's Blade"], [0, 'Plains']] });
+  const B = objN(e, 0, 'Grizzly Bears'), H = objN(e, 0, "Hero's Blade"), K = objN(e, 0, 'Akiri, Fearless Voyager');
+  H.anexo = { id: B.id, ts: B.ts };
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(o => o.a === 'ativar' && o.id === K.id); ok(k >= 0, 'oferece a habilidade');
+  M.responder(e, k, x => x.pilha.length > 0 || x.turno.passo !== 'principal1');
+  ok(e.pilha.length === 1, 'na pilha'); M.avancar(e);
+  resolveCom(e, p => p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'sim') : -1);
+  ok(!H.anexo && H.zona === 'campo', 'solto e no campo');
+  ok(B.virada, 'a criatura virou'); ok(M.temKw(e, B, 'indestrutivel'), 'indestrutível até o fim do turno');
+  ok(!K.virada, 'Akiri não vira');
 });
 
 // ---------- rodar ----------
