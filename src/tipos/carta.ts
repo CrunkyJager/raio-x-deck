@@ -337,6 +337,10 @@ export interface RxAlvo {
    */
   modo?: number;
   /**
+   * um alvo para cada jogador (até 1 de cada; permanente = de quem controla, carta fora do campo = do dono): Afterlife from the Loam
+   */
+  porJogador?: boolean;
+  /**
    * um alvo para cada oponente (até 1 de cada)
    */
   porOponente?: boolean;
@@ -498,7 +502,8 @@ export interface RxFx {
     | 'incitar'
     | 'fundir'
     | 'tomarIniciativa'
-    | 'aventurar';
+    | 'aventurar'
+    | 'monstruosidade';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -883,6 +888,7 @@ export interface RxKw {
     | 'afinidade'
     | 'convocar'
     | 'improvisar'
+    | 'delve'
     | 'loucura'
     | 'milagre'
     | 'reconfigurar'
@@ -991,6 +997,7 @@ export interface RxGat {
     | 'marcadorPosto'
     | 'alvoDe'
     | 'vira'
+    | 'ficaMonstruosa'
     | 'zonaVarios'
     | 'capitulo'
     | 'saiCemiterio'
@@ -1012,7 +1019,7 @@ export interface RxGat {
    */
   quem?: RxFiltro;
   /**
-   * jogador do evento (quem conjura/compra/perde vida; quem leva dano)
+   * jogador do evento (quem conjura/compra/perde vida; quem leva dano; marcadorPosto: quem pôs)
    */
   jog?: RxJogador;
   /**

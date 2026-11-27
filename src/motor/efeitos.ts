@@ -122,7 +122,7 @@ M.porMarcadores = (e, o, t, q) => {
   }
   q = (q + soma) * mult;
   if (t === 'lore') M.porHistoria(e, o, q); else o.marc[t] = (o.marc[t] || 0) + q;
-  if (M.evento) M.evento(e, { ev: 'marcadorPosto', id: o.id, ts: o.ts, t, n: q });   // "sempre que um ou mais marcadores forem postos" (122.6; um evento por objeto)
+  if (M.evento) M.evento(e, { ev: 'marcadorPosto', id: o.id, ts: o.ts, t, n: q, j: e.agente ?? o.ctrl });   // "sempre que um ou mais marcadores forem postos" (122.6; um evento por objeto); j = quem pôs (quem resolve o efeito; no custo/entrada, o controlador)
   return q;
 };
 // "entra com marcadores" (614.1c, 614.12): os da própria carta e os dados por outras permanentes (Arwen, Bramblewood)
@@ -380,7 +380,8 @@ M.executar = (e, f, ctx, ask) => {
   const h = H[f.op];
   if (!h) throw new Error('efeito sem suporte no motor2: ' + f.op + ' (' + ((e.objs[ctx.item] || {}).n || '?') + ')');
   if (f.talvez) ctx.pagou = true;                                    // "se fizer" (se.pagou) do efeito seguinte
-  h.fx(e, f, ctx, ask);
+  const ag = e.agente; e.agente = ctx.voce;                          // quem faz o efeito (o "you put counters" de All Will Be One)
+  try { h.fx(e, f, ctx, ask); } finally { e.agente = ag; }
 };
 
 // entrar no campo (CR 110.2: sob o controle de quem conjurou/pôs; 614.1c "entra virado"; 614.12 escolha ao entrar)
@@ -851,6 +852,18 @@ const H = {
   fasear: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.fasearFora(e, o.id); } },   // CR 702.26
   // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o escudo de regeneração não vale
   destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel') && (f.semRegenerar || !M.regenera(e, o))) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
+  // CR 701.37: monstruosidade N — se não é monstruosa, põe N marcadores +1/+1 e fica monstruosa (o.monstro = ts do objeto:
+  // mudou de zona, é objeto novo e não é mais, 400.7). Ativar de novo não faz nada; "quando fica monstruosa" (701.37b).
+  monstruosidade: {
+    qtd: q => typeof q === 'number' || qtdOk(q),
+    fx(e, f, ctx) {
+      for (const o of objsDe(e, f.em === undefined ? { em: 'este' } : f, ctx)) {
+        if (o.zona !== 'campo' || o.monstro === o.ts) continue;
+        M.porMarcadores(e, o, '+1/+1', qtdDe(e, f.qtd, ctx)); o.monstro = o.ts;
+        M.log(e, o.n, 'fica monstruosa'); M.evento(e, { ev: 'ficaMonstruosa', id: o.id, ts: o.ts });
+      }
+    },
+  },
   regenerar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo') M.porRegen(e, o); } },   // CR 701.15a
   // dura 'enquantoNoCampo' (CR 610.3): "exile … until [esta] leaves the battlefield" — volta ao campo do dono quando a
   // fonte sai (estado.ts M.mover, e.volta); se a fonte já saiu antes de resolver, não exila (610.3c)
@@ -1261,7 +1274,7 @@ const H = {
           esc.push(x); cand.splice(cand.indexOf(x), 1);
         }
         for (const x of esc) {
-          if (x.jog !== undefined) { e.jogs[x.jog].veneno++; continue; }
+          if (x.jog !== undefined) { const ag = e.agente; e.agente = j; M.marcadorJogador(e, x.jog, 'poison', 1, false); e.agente = ag; continue; }
           const o = e.objs[x.id];
           for (const t of Object.keys(o.marc)) if (o.marc[t] > 0) M.porMarcadores(e, o, t, 1);   // 701.34a: põe (as substituições valem, 614.1)
         }
