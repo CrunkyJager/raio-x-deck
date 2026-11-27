@@ -451,4 +451,4 @@ M.porGatilhos = e => {
   return true;
 };
 // 603.4: condição de intervenção checada de novo ao resolver
-M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ev: (o.pil && o.pil.ev) || undefined });   // com o evento: o defensor do 'ataca' (Preacher)
+M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ev: (o.pil && o.pil.ev) || undefined, ...(o.pil && o.pil.ev ? { ev: o.pil.ev } : {}) });   // com o evento: o defensor do 'ataca' (Preacher)   // com o evento: "if the amount of mana spent…" (Liberator) relê o evento

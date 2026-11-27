@@ -923,6 +923,7 @@ function pagarMana(e, j, pl, custo, x, para?, mag = false) {
   if (pl.delve) { for (const id of pl.delve) M.mover(e, id, 'exilio'); custo = pl.custo; }       // delve (702.66a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const R0 = M.reservaCom(e, j, para), pg = M.pagarDaReserva(R0, custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
+  if (para && pg) { const soma = r => Object.values<number>(r || {}).reduce((a, b) => a + (+b || 0), 0); para.manaGasta = soma(R0) - soma(pg.resto); }   // "the amount of mana spent to cast that spell" (Liberator, 601.2h)
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
   const sm = (custo.g || 0) + (custo.x || 0) * x + (custo.p || []).length - Math.floor((pg.vida || 0) / 2);   // manas gastas (phyrexiano pago em vida não conta)
   return Math.max(0, sm);
@@ -1028,11 +1029,12 @@ const PROC = {
     const antes = e.conjTodas && e.conjTodas.t === e.turno.n ? e.conjTodas.n : 0; e.conjTodas = { t: e.turno.n, n: antes + 1 };   // de todos os jogadores (tempestade, 702.40a)
     if (M.temKw(e, o, 'tempestade') && antes > 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'tempestade', g: { ev: 'conjura', fx: [{ op: 'copiarMagica', em: 'este', novoAlvo: true, qtd: antes }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.40a: copia uma vez por mágica conjurada antes neste turno
     for (let c = M.cascatas(e, o); c > 0; c--) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'cascata', g: { ev: 'conjura', fx: [{ op: 'descobrir', qtd: Math.max(-1, (M.dadoDe(e, o).vm || 0) - 1), cascata: true }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.85a/c: cada instância dispara
+    o.manaGasta = M.manaDoCusto(pl.improv || pl.delve ? pl.custo : custo, x);       // o gatilho "if the amount of mana spent…" (603.4) é visto já no evento; o pagarMana grava o exato
     M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
     gastar(e, j, pagarMana(e, j, pl, custo, x, o));                                   // CR 601.2h (expend: Wandertale Mentor)
     if (o.pil) o.pil.manaGasta = M.vmDe(pl.custo || custo) + (custo && custo.x ? custo.x * x : 0);   // "the amount of mana spent to cast that spell" (Mana Sculpt; 601.2h)
-    o.manaGasta = M.vmDe(custo) + x * (custo.x || 0);                                // "if no mana was spent to cast it" (Boromir, Warden; 601.2h). Firexiana paga com vida conta como mana (aproximação)
+    o.manaGasta ??= M.vmDe(custo) + x * (custo.x || 0);                                // "if no mana was spent to cast it" (Boromir, Warden; 601.2h). Firexiana paga com vida conta como mana (aproximação)
     if (imp.vida) M.perderVida(e, j, imp.vida);
     if (alt && alt.F) { if (alt.vida) M.perderVida(e, j, alt.vida); if (alt.s.limite) alt.F.altUso = { t: e.turno.n, ts: alt.F.ts }; }   // 119.4: vida paga; "uma vez por turno"
     if (cad) pagarFisico(e, j, o, cad, fis);

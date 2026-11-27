@@ -231,6 +231,8 @@ const simbolos = (custo, x = 0) => {
 };
 M.simbolos = simbolos;
 M.vmDe = custo => { const s = simbolos(custo); return s.g + s.cor.length + s.hib.length + s.fir.length + s.neve + 2 * s.dois.length; };
+// a mana que pagar este custo gasta (com o X anunciado; o {2/W} conta 2 e o phyrexiano 1: antes de escolher vida)
+M.manaDoCusto = (custo, x = 0) => { const s = simbolos(custo || {}, x); return s.g + s.cor.length + s.hib.length + s.fir.length + s.neve + 2 * s.dois.length; };
 
 // Pagar da reserva. Retorna {resto, vida} ou null. vidaDisp = quanto de vida pode gastar em phyrexiano (0 = não).
 // Ordem: símbolo exato → híbridos (testa as opções) → phyrexiano → 2/cor → genérico (gasta incolor primeiro,

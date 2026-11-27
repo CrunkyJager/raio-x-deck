@@ -51,7 +51,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return (o === 'quantos' && (j === undefined || j === 'maiorPorDono') || (o === 'vm' && j === 'soma')) && chaves(c, ['junta']);
     case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || (typeof c.marc === 'string' && !!c.marc))
-      : ['quantos', 'vida', 'dano', 'poder', 'resist', 'vm', 'cores', 'mao', 'jogadores'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
+      : ['quantos', 'vida', 'dano', 'poder', 'resist', 'vm', 'cores', 'mao', 'jogadores', 'manaGasta'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist'].includes(o) && chaves(c, []);   // poder/resist: o objeto da vez (Unnatural Growth)
@@ -71,7 +71,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -109,6 +109,7 @@ M.contar = (e, c, ctx: any = {}) => {
       const este = !L ? ob : ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : L.este;
       if (!este) return 0;
       if (o === 'marcadores') return c.marc ? este.marc[c.marc] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0);
+      if (!L && (o === 'poder' || o === 'resist')) return o === 'poder' ? M.poder(e, ob) : M.resistencia(e, ob);   // fora da resolução (condição do gatilho): o de agora
       return este[o];
     }
     case 'voce':
@@ -169,7 +170,8 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'dano') return ev.ev === 'dano' || ev.ev === 'danoPrevenido' ? ev.q || 0 : 0;   // danoPrevenido: "that many" (Selfless Squire)              // "that much damage"
       const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo, JJ = jj !== undefined ? e.jogs[jj] : undefined;   // o jogador do evento
       if (o === 'marcadores' && c.marc) return !JJ ? 0 : c.marc === 'poison' ? JJ.veneno || 0 : (JJ.marc || {})[c.marc] || 0;   // "if they don't have any rad counters" (Vexing Radgull, 122.1)
-      if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;   // "that many" (Shalai and Hallar)
+      if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;
+      if (o === 'manaGasta') return ev.ev === 'conjura' ? (e.objs[ev.id] || {}).manaGasta || 0 : 0;   // "the amount of mana spent to cast that spell" (Liberator): o pagarMana grava na mágica (paga depois do evento, 601.2h)   // "that many" (Shalai and Hallar)
       if (o === 'poder' && c.junta === 'soma') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
       if (o === 'mao') return JJ ? JJ.zonas.mao.length : 0;   // "if that player has four or more cards in hand" (Fevered Visions)
       const ob = e.objs[ev.id];
