@@ -65,6 +65,7 @@ const basico = (e, p) => {
       let b = -1, bv = -1;
       p.ops.forEach((op, i) => {
         if (op.a !== 'conjurar') return;
+        if (op.baixo) { if (meu && !p.ops.some(x => x.a === 'conjurar' && x.id === op.id && !x.baixo) && 3 > bv) { bv = 3; b = i; } return; }   // 702.37c: virada por {3} só quando não dá para conjurar normal
         const d = dOp(op), inst = (d.tipos || []).includes('Instant');
         if (!meu && !inst) return;
         if (inst && !d.alvos && !meu) return;            // instantânea sem alvo: no próprio turno
@@ -88,6 +89,9 @@ const basico = (e, p) => {
         // Room (709.5e): destranca a outra porta com a mana que sobrou das mágicas
         const kd = p.ops.findIndex(op => op.a === 'destrancar');
         if (kd >= 0) return kd;
+        // desvirar (116.2b): com a mana que sobrou das mágicas
+        const kv = p.ops.findIndex(op => op.a === 'virarParaCima');
+        if (kv >= 0) return kv;
       }
       if (meu) {
         const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());
