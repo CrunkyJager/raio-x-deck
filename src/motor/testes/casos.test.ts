@@ -3905,6 +3905,21 @@ caso('701.38a', "incitar: a criatura do oponente tem que atacar e ataca outro jo
   ok(M.carta('Marisi, Breaker of the Coil').gat.every(g => M.gatOk(g)), 'Marisi');
 });
 
+caso('707.5', "entra como cópia: Phyrexian Metamorph copia Grizzly Bears e é artefato além disso; Sculpting Steel copia Sol Ring; ao sair, volta a ser ele", () => {
+  const e = cena({ campo: [[1, 'Grizzly Bears']] });
+  const m = e.por(0, 'Phyrexian Metamorph', { zona: 'mao' }), gb = e.objs[e.campo[0]];
+  const ask = (j, t, ops) => ops.find(o => o.id === gb.id) || ops[0];
+  M.aplicarEntrada(e, M.decidirEntrada(e, m.id, 0, {}, ask));
+  const d = M.dadoDe(e, m);
+  ok(d.n === 'Grizzly Bears' && M.temTipo(e, m, 'Creature') && M.temTipo(e, m, 'Artifact') && M.poder(e, m) === 2, JSON.stringify([d.n, d.tipos]));
+  ok(m.ctrl === 0, 'meu');
+  M.mover(e, m.id, 'mao'); ok(M.dadoDe(e, m).n === 'Phyrexian Metamorph', 'fora do campo: a carta de novo');
+  const f = cena({ campo: [[0, 'Sol Ring']] }); const ss = f.por(0, 'Sculpting Steel', { zona: 'mao' });
+  M.aplicarEntrada(f, M.decidirEntrada(f, ss.id, 0, {}, (j, t, ops) => ops[0]));
+  ok(M.dadoDe(f, ss).n === 'Sol Ring' && M.fontesDeMana(f, 0).some(x => x.id === ss.id), 'Sculpting Steel vira Sol Ring e dá mana');
+  for (const c of ['Phyrexian Metamorph', 'Sculpting Steel']) ok(M.carta(c).subst.every(x => M.substOk(x)), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

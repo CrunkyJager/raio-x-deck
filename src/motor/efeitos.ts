@@ -63,7 +63,10 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
 // dano (substDano), anulada (pilha.ts), morre/vaiCemiterio (estado.ts, M.destinoSaida).
 const SUBST: Record<string, (s) => boolean> = {
   entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
-    || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo'))),
+    || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo')))
+    // "você pode fazer esta entrar como cópia de [f] no campo (exceto que é [tipos] além dos outros)" (CR 707.5, 614.1c)
+    || (!!s.emVez && s.emVez.length === 1 && s.emVez[0].op === 'copiarPermanente' && !!s.quem && s.quem.este && M.filtroOk(s.emVez[0].f || {})
+      && Object.keys(s.emVez[0]).every(k => ['op', 'f', 'tipos'].includes(k)) && (s.emVez[0].tipos === undefined || Array.isArray(s.emVez[0].tipos))),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
   compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
@@ -439,7 +442,18 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
       if (r.a === 'naoPagar') vir = true; else if (r.a === 'pagar') pagaVida = c.vida;
     } else vir = true;
   }
-  let escolha: any = null;
+  let escolha: any = null, clone: any = null;
+  const cp = ask && (d.subst || []).find(x => x.ev === 'entra' && x.emVez && x.emVez[0] && x.emVez[0].op === 'copiarPermanente');
+  if (cp) {                                                          // clone (707.5): escolhe ao entrar; a cópia são os valores copiáveis (707.2)
+    const fz = cp.emVez[0], cand = M.objetosQue(e, { ...(fz.f || {}), zona: 'campo' }, ctx).filter(x => x.id !== id);
+    if (cand.length) {
+      const r = ask(ctrl, 'escolherCarta', [...cand.map(x => ({ a: 'escolherCarta', id: x.id })), { a: 'nenhum' }], { id, op: 'copiarPermanente' });
+      if (r.a !== 'nenhum' && e.objs[r.id]) {
+        const S = e.objs[r.id], { faces, forma, ...base } = M.dadoBase(e, S);
+        clone = { ...base, n: base.n || S.n, ...(fz.tipos ? { tipos: [...new Set([...(base.tipos || []), ...fz.tipos])] } : {}) };
+      }
+    }
+  }
   if (ask) {
     for (const sb of d.subst || []) {
       if (sb.ev !== 'entra' || !sb.emVez || escolha) continue;
@@ -462,11 +476,11 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
       }
     }
   }
-  return { id, ctrl, vir, pagaVida, escolha, face };
+  return { id, ctrl, vir, pagaVida, escolha, face, clone };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, marc = null }: any) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, marc = null, clone = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
-  const o = M.mover(e, id, 'campo', { virada: vir, face, conj });
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, clone });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
@@ -530,7 +544,7 @@ function copiaDe(e, token, ctx) {
   if (!src || src.hab) return null;
   const { faces, forma, ...base } = M.dadoBase(e, src);
   const { maisSub, semCusto, ...over } = resto;                     // "é Zombie além dos outros tipos", "não tem custo de mana" (707.9b, eternizar)
-  const r: any = { ...base, ...over, n: src.n };
+  const r: any = { ...base, ...over, n: base.n || src.n };
   if (maisSub) r.sub = [...new Set([...(base.sub || []), ...maisSub])];
   if (semCusto) { delete r.custo; r.vm = 0; }
   return r;

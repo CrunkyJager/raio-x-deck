@@ -298,7 +298,8 @@ M.abe = e => {
     const lend: any = {};
     for (const id of e.campo) {
       const o = e.objs[id];
-      if ((M.dadoDe(e, o).super || []).includes('Legendary')) (lend[o.ctrl + '|' + o.n] = lend[o.ctrl + '|' + o.n] || []).push(id);
+      const d = M.dadoDe(e, o), nm = o.clone ? d.n || o.n : o.n;      // o clone tem o nome copiado (707.2)
+      if ((d.super || []).includes('Legendary')) (lend[o.ctrl + '|' + nm] = lend[o.ctrl + '|' + nm] || []).push(id);
     }
     const dup = Object.values<any>(lend).find(l => l.length > 1);
     if (dup) { e.perg = { j: e.objs[dup[0]].ctrl, tipo: 'lenda', ops: dup.map(id => ({ a: 'fica', id })), ctx: { ids: dup } }; return; }
