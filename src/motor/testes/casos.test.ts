@@ -3369,6 +3369,17 @@ caso('707.10', "cópia de mágica de permanente vira ficha (608.3f): Archmage of
   igual(e.jogs[0].conjT.n, 1, 'a cópia não dispara o Archmage de novo');
 });
 
+caso('701.15c', "destruir sem regenerar: Terminate mata o Urso (o campo semRegenerar é aceito)", () => {
+  ok(M.fxSuportado(M.carta('Terminate').fx), 'Terminate aceito');
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Swamp'], [1, 'Grizzly Bears']], mao: [[0, 'Terminate']] });
+  M.avancar(e); conj(e, 'Terminate'); alvoObj(e, 'Grizzly Bears');
+  igual(naZona(e, 1, 'cemiterio'), ['Grizzly Bears']); igual(naZona(e, 0, 'cemiterio'), ['Terminate']);
+  const f = cena({ campo: [[1, 'Grizzly Bears']] });
+  const id = f.campo[0];
+  M.executar(f, { op: 'destruir', em: { alvo: 0 }, semRegenerar: true }, { voce: 0, este: -1, alvos: [[{ o: id, ts: f.objs[id].ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(f.objs[id].zona, 'cemiterio', 'pelo executar também');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
