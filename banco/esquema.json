@@ -2551,6 +2551,7 @@
       "darRetrace",
       "darBis",
       "semRegraLenda",
+      "radiacaoGanhaVida",
       "darLoucura",
       "oponentesNaoProcuram",
       "custoProibido",
@@ -2586,7 +2587,15 @@
      "$ref": "#/$defs/qtd"
     },
     "pt": {
-     "type": "array"
+     "oneOf": [
+      {
+       "type": "array"
+      },
+      {
+       "const": "vm"
+      }
+     ],
+     "description": "continuo com tipo: P/R base [p, r]; 'vm' = cada afetado com P/R base iguais ao seu valor de mana (Starfield of Nyx, March of the Machines)"
     },
     "kw": {
      "type": "array",

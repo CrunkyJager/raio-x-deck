@@ -1493,6 +1493,7 @@ export interface RxEst {
     | 'darRetrace'
     | 'darBis'
     | 'semRegraLenda'
+    | 'radiacaoGanhaVida'
     | 'darLoucura'
     | 'oponentesNaoProcuram'
     | 'custoProibido'
@@ -1504,7 +1505,10 @@ export interface RxEst {
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
-  pt?: unknown[];
+  /**
+   * continuo com tipo: P/R base [p, r]; 'vm' = cada afetado com P/R base iguais ao seu valor de mana (Starfield of Nyx, March of the Machines)
+   */
+  pt?: unknown[] | 'vm';
   kw?: RxKw[];
   tipo?: string[];
   habil?: {

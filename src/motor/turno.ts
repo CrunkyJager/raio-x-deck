@@ -98,6 +98,17 @@ function passoMulligan(e) {
 }
 
 // ---------- ações do turno (não usam a pilha) ----------
+// radiação (marcadores rad, 122.1): no começo da 1ª fase principal de quem tem rad, ele mói esse tanto; por carta não-terreno
+// moída perde 1 de vida e tira um rad. Simplificação: feito como ação do turno (é gatilho na pilha). radiacaoGanhaVida: "you
+// gain life rather than lose life from radiation" (Strong, the Brutish Thespian)
+function radiacao(e, a) {
+  const J = e.jogs[a], cx: any = { voce: a, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  M.executar(e, { op: 'moer', quem: 'voce', qtd: J.marc.rad }, cx, () => ({ a: 'nao' }));
+  const n = (cx.movidos || []).filter(m => e.objs[m.id] && !M.temTipo(e, e.objs[m.id], 'Land')).length; if (!n) return;
+  const ganha = M.indiceCampo(e).est.some(id => { const F = e.objs[id]; return F.ctrl === a && (M.dadoDe(e, F).est || []).some(s => s.modo === 'radiacaoGanhaVida'); });
+  if (ganha) M.ganharVida(e, a, n); else M.perderVida(e, a, n);
+  J.marc.rad = Math.max(0, J.marc.rad - n); M.log(e, J.nome, 'radiação:', n, ganha ? 'de vida ganha' : 'de vida perdida');
+}
 function acaoDoTurno(e) {
   const T = e.turno, a = T.ativo, J = e.jogs[a];
   if (J.saiu) return;                                               // CR 800.4j: turno segue sem jogador ativo
@@ -118,6 +129,7 @@ function acaoDoTurno(e) {
       break;
     case 'principal1':                                              // CR 714.3b: marcador de história nas sagas de quem joga
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
+      if (J.marc && J.marc.rad > 0) radiacao(e, a);
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
       if (!(T.n === 1 && e.jogs.length === 2)) {
