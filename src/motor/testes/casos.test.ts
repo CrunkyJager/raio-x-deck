@@ -4389,6 +4389,20 @@ caso('120.3', "Molten Psyche: cada um embaralha a mão e compra o mesmo tanto; c
   igual(e.jogs[1].vida, 37, '3 de dano (comprou 3)');
 });
 
+caso('500.7', "turno extra: dois extras, o último criado vem primeiro; depois volta à ordem (Time Sieve)", () => {
+  ok(M.fxSuportado(M.carta('Time Sieve').atv[0].fx), 'turnoExtra aceito');
+  const e = cena({ jogs: 3 });
+  M.executar(e, { op: 'turnoExtra', quem: 'voce' }, { ...ctxDe(e), voce: 0 }, null);
+  M.executar(e, { op: 'turnoExtra', quem: 'voce' }, { ...ctxDe(e), voce: 2 }, null);
+  const vez: number[] = [];
+  for (let t = 0; t < 4; t++) {
+    const a = e.turno.n, pr = x => x.turno.n !== a;
+    for (let g = 0; g < 300 && e.turno.n === a && !e.fim; g++) { M.avancar(e, pr); if (e.perg && e.turno.n === a) M.responder(e, e.perg.tipo === 'acao' ? 0 : M.agenteBasico()(e, e.perg), pr); }
+    vez.push(e.turno.ativo);
+  }
+  igual(vez, [2, 0, 1, 2], 'extra do 2 (último criado), extra do 0, e segue do 0: 1, 2');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

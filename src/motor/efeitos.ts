@@ -1204,6 +1204,11 @@ const H = {
       }
     },
   },
+  turnoExtra: {                                                     // CR 500.7: "take an extra turn after this one" (pilha: o último criado vem primeiro)
+    qtd: q => q === undefined,
+    ok: f => f.quem === 'voce' || f.quem === undefined,
+    fx(e, f, ctx) { (e.turnosExtra || (e.turnosExtra = [])).push(ctx.voce); M.log(e, e.jogs[ctx.voce].nome, 'vai ter um turno extra depois deste'); },
+  },
   faseExtra: {                                                      // CR 500.8: "after this phase, there is an additional combat phase [followed by an additional main phase]"
     campos: ['fase'],
     qtd: q => q === undefined,
