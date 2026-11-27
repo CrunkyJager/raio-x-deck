@@ -862,14 +862,16 @@ const H = {
   // mana na resolução (CR 106.3, fora de habilidade de mana: Path of the Pyromancer, Neheb, Birgi). prod com várias
   // cores = uma delas, à escolha; ficaNoTurno: não esvazia entre etapas e fases até o fim do turno (Neheb, Birgi)
   mana: {
-    campos: ['prod', 'ficaNoTurno'],
-    ok: f => f.prod !== undefined && !['refletida', 'deSeusTerrenos'].includes(f.prod),
+    campos: ['prod', 'ficaNoTurno', 'so'],
+    ok: f => f.prod !== undefined && !['refletida', 'deSeusTerrenos'].includes(f.prod) && (f.so === undefined || !!M.filtroSo({}, f.so)),
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
       const F = e.objs[ctx.este] || { ctrl: ctx.voce, escolha: null };
       const cs = M.coresDeProd(e, { ...F, ctrl: ctx.voce }, f.prod); if (!cs || !cs.length) return;
       const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
       const J = e.jogs[ctx.voce];
+      // restrita (CR 106.6, Klauth: "spend this mana only to cast spells"): vai para J.restrita; com ficaNoTurno fica até o fim do turno
+      if (f.so) { const m = M.zeroMana(); m[c] = q; (J.restrita || (J.restrita = [])).push({ m, f: M.filtroSo(F, f.so), ...(f.ficaNoTurno ? { fica: e.turno.n } : {}) }); M.log(e, J.nome, 'recebe', c.repeat(q), '(só para ' + (M.fmtFiltroSo(M.filtroSo(F, f.so)) || 'mágicas') + ')'); return; }
       J.reserva[c] += q;
       if (f.ficaNoTurno) { if (!J.fica || J.fica.t !== e.turno.n) J.fica = { t: e.turno.n, m: M.zeroMana() }; J.fica.m[c] += q; }
       M.log(e, J.nome, 'recebe', c.repeat(q));

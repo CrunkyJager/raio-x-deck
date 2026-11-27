@@ -3861,6 +3861,21 @@ caso('702.34a', "Increasing Devotion: 5 Humanos; com flashback, 10. Return to Du
   igual(g.campo.filter(id => g.objs[id].ctrl === 1).length, 0, 'os dois exilados');
 });
 
+caso('106.6', "Klauth atacando: mana igual ao poder total dos atacantes, só para conjurar mágicas, e fica até o fim do turno", () => {
+  ok(M.carta('Klauth, Unrivaled Ancient').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = combate([[0, 'Klauth, Unrivaled Ancient'], [0, 'Grizzly Bears']], {}); e.jogs[0].zonas.mao.length = 0;
+  const k = objN(e, 0, 'Klauth, Unrivaled Ancient'), b = objN(e, 0, 'Grizzly Bears');
+  e.por(0, 'Krenko, Mob Boss', { zona: 'mao' });
+  ate(e, 'atacar'); atacaCom(e, k); atacaCom(e, b); fecha(e, 'atacar');
+  for (let g = 0; e.turno.passo !== 'principal2' && !e.fim && g < 300; g++) { const pr = x => x.turno.passo === 'principal2'; M.avancar(e, pr); if (e.perg) M.responder(e, e.perg.tipo === 'acao' ? 0 : M.agenteBasico()(e, e.perg), pr); }
+  const J = e.jogs[0], soma = J.restrita.reduce((s, r) => s + Object.values<number>(r.m).reduce((a, x) => a + x, 0), 0);
+  igual(soma, 6, '4 + 2 de poder, restrita, ainda na principal 2');
+  const kr = J.zonas.mao.map(id => e.objs[id]).find(o => o.n === 'Krenko, Mob Boss');
+  const R = M.reservaCom(e, 0, kr); igual(Object.values<number>(R).reduce((a, x) => a + x, 0), 6, 'a mágica enxerga');
+  igual(Object.values<number>(M.reservaCom(e, 0, null)).reduce((a, x) => a + x, 0) - Object.values<number>(J.reserva).reduce((a, x) => a + x, 0), 0, 'habilidade não');
+  e.turno.passo = 'limpeza'; M.esvaziarReservas(e); igual(J.restrita.length, 0, 'some na limpeza');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
