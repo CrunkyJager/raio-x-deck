@@ -1902,9 +1902,10 @@
      "enum": [
       "voce",
       "cadaJogador",
-      "oponente"
+      "oponente",
+      "oponenteEscolhido"
      ],
-     "description": "ev fase: no turno de quem"
+     "description": "ev fase: no turno de quem; oponenteEscolhido (só gatilho atrasado): o oponente escolhido quando o atrasado foi criado (Faramir)"
     },
     "combate": {
      "type": "boolean"

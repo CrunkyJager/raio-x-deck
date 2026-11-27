@@ -3772,6 +3772,40 @@ caso('106.1', "prod {cadaCor} (Faeburrow Elder): uma mana de CADA cor entre suas
   igual(p.length, 1, 'um pacote só'); igual([p[0].W, p[0].G, p[0].R], [1, 1, 0], 'W e G, sem a cor do oponente');
 });
 
+caso('603.7', "Faramir: escolhe um oponente; o atrasado só dispara na etapa final DELE (deQuem oponenteEscolhido)", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Faramir, Prince of Ithilien']] });
+  const F = objN(e, 0, 'Faramir, Prince of Ithilien');
+  const g = M.carta('Faramir, Prince of Ithilien').gat[0].fx[0];
+  let pergs = 0;
+  M.executar(e, g, { voce: 0, este: F.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, F) } }, (j, tipo, ops) => { pergs++; igual(ops.map(o => o.jog), [1, 2]); return ops[1]; });
+  igual([pergs, e.atras.length, e.atras[0].mem.jog], [1, 1, 2], 'perguntou e guardou o jogador 2');
+  e.turno.n = 3; e.pend = [];
+  M.evento(e, { ev: 'fase', passo: 'final', ativo: 1 });
+  igual(e.pend.length, 0, 'final do jogador 1: não');
+  e.turno.n = 4;
+  M.evento(e, { ev: 'fase', passo: 'final', ativo: 2 });
+  igual(e.pend.length, 1, 'final do escolhido: dispara');
+});
+
+caso('509.1b', "Feasting Hobbit: criatura com poder MENOR que o dele não bloqueia (limite do filtro = poder do este − 1)", () => {
+  const e = cena({ campo: [[0, 'Feasting Hobbit'], [1, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
+  const h = objN(e, 0, 'Feasting Hobbit'), por = M.dadoDe(e, h).est[0].por;
+  ok(M.bate(e, objN(e, 1, 'Llanowar Elves'), por, { voce: 0, este: h.id }), 'elfo 1 < 2: não pode bloquear');
+  ok(!M.bate(e, objN(e, 1, 'Grizzly Bears'), por, { voce: 0, este: h.id }), 'urso 2 = 2: pode bloquear');
+  h.marc['+1/+1'] = 3; e.vCamada = (e.vCamada || 0) + 1;
+  ok(M.bate(e, objN(e, 1, 'Grizzly Bears'), por, { voce: 0, este: h.id }), 'hobbit 5: urso não bloqueia');
+});
+
+caso('702.34a', "Flashback (a carta): a instantânea alvo no cemitério ganha flashback até o fim do turno, custo = o custo de mana dela", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Flashback']] });
+  const b = e.por(0, 'Lightning Bolt', { zona: 'cemiterio' });
+  M.avancar(e);
+  ok(!opsDe(e, 'conjurar').some(o => o.id === b.id), 'antes: não');
+  conj(e, 'Flashback'); resolvePilha(e);
+  ok(opsDe(e, 'conjurar').some(o => o.id === b.id), 'depois: conjura do cemitério');
+  igual(M.porFlash(e, 0, b), true);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

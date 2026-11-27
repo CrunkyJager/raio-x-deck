@@ -278,7 +278,8 @@ M.permJogar = (e, j, o) => { const l = e.permJogar; if (!l || !l.length) return 
 // recapitular (CR 702.34): conjurar do cemitério pelo custo de recapitular; ao sair da pilha vai para o exílio (702.34a)
 // flashback dado a cartas do cemitério por efeito "neste turno" (Past in Flames, 702.34a): custo = o custo de mana da carta
 const flashDado = (e, o) => {
-  for (const t of e.efTemp || []) for (const s of t.est) if (s.modo === 'continuo' && s.afeta && s.afeta.zona === 'cemiterio') {
+  for (const t of e.efTemp || []) for (const s of t.est) if (s.modo === 'darFlashback' && M.tempTem(t, o)) return M.dadoDe(e, o).custo || null;   // a carta alvo (Flashback, Snapcaster): presa por id+ts
+  else if (s.modo === 'continuo' && s.afeta && s.afeta.zona === 'cemiterio') {
     const k = (s.kw || []).find(x => x.k === 'flashback');
     if (k && M.bate(e, o, s.afeta, { voce: t.ctrl, este: -1 })) return k.custo || M.dadoDe(e, o).custo || null;
   }

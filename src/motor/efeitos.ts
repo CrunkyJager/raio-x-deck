@@ -536,6 +536,11 @@ const H = {
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k))))),
     fx(e, f, ctx) {
       if (gatSempre(f) && f.em === 'doEvento' && ctx.ev) for (const o of [e.objs[ctx.ev.id]]) if (o && o.zona === 'pilha' && !o.hab && (ctx.ev.ts === undefined || o.ts === ctx.ev.ts)) o.gatPilha = [...(o.gatPilha || []), ...f.habil.gat];   // a mágica: a permanente que ela vira tem (Rivaz)
+      // "target instant or sorcery card in your graveyard gains flashback until end of turn" (Flashback, Snapcaster Mage):
+      // a carta no cemitério, presa por id+ts no e.efTemp; custo = o custo de mana dela (lido no flashDe, pilha.ts)
+      const noCem = objsDe(e, f, ctx).filter(o => o.zona === 'cemiterio');
+      if (noCem.length && (f.kw || []).length === 1 && f.kw[0].k === 'flashback' && !f.kw[0].custo && f.dura === 'fimDoTurno')
+        (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: [{ modo: 'darFlashback' }], este: null, ids: noCem.map(o => ({ id: o.id, ts: o.ts })), fim: 'turno', ts: ++e.ts });
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
       if (f.sub !== undefined || f.cores !== undefined || gatSempre(f)) {
         for (const o of os) {
@@ -719,9 +724,15 @@ const H = {
   gatilhoAtrasado: {
     campos: ['quando'],
     ok: f => M.atrasadoOk(f.quando),
-    fx(e, f, ctx) {
+    fx(e, f, ctx, ask) {
+      // deQuem 'oponenteEscolhido' (Faramir: "choose an opponent. At the beginning of that player's next end step"): escolhe agora
+      let jog;
+      if (f.quando.deQuem === 'oponenteEscolhido') {
+        const ops = M.vivos(e).filter(x => x !== ctx.voce); if (!ops.length) return;
+        jog = ops.length === 1 ? ops[0] : ask(ctx.voce, 'escolha', ops.map(x => ({ a: 'jogador', jog: x })), { o: 'oponente', fonte: (e.objs[ctx.este] || {}).n }).jog;
+      }
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
-        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
+        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(jog !== undefined ? { jog } : {}), ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
     },
   },
   // CR 603.12: gatilho reflexo ("when you do, …"): criado na resolução, dispara na hora; vai à pilha da próxima vez que

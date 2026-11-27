@@ -1025,9 +1025,9 @@ export interface RxGat {
    */
   passo?: 'manutencao' | 'compra' | 'inicioCombate' | 'final' | 'principal1' | 'principal2' | 'fimCombate';
   /**
-   * ev fase: no turno de quem
+   * ev fase: no turno de quem; oponenteEscolhido (só gatilho atrasado): o oponente escolhido quando o atrasado foi criado (Faramir)
    */
-  deQuem?: 'voce' | 'cadaJogador' | 'oponente';
+  deQuem?: 'voce' | 'cadaJogador' | 'oponente' | 'oponenteEscolhido';
   combate?: boolean;
   aJogador?: boolean;
   /**

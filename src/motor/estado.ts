@@ -871,8 +871,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.entrouNoTurno !== undefined && (o.zona === 'campo' && o.tEntrou === e.turno.n) !== !!f.entrouNoTurno) return false;   // "que entrou neste turno" (Ocelot Pride)
   if (f.comandante !== undefined && !!o.cmd !== !!f.comandante) return false;
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
-  if (f.vm && !compara(d.vm || 0, f.vm)) return false;
-  if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
+  if (f.vm && !compara(d.vm || 0, limites(e, f.vm, ctx))) return false;
+  if (f.poder && !compara(M.poder(e, o), limites(e, f.poder, ctx))) return false;
   if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;
   if (f.conjurada !== undefined && (o.zona === 'pilha' ? !!o.pil : !!o.conjurada) !== !!f.conjurada) return false;   // "if you cast it" (601.2): a mágica na pilha ou a permanente que veio dela
   if (f.atacouNoTurno !== undefined && (e.turno.ataques || []).some(r => r.id === o.id && r.ts === o.ts) !== !!f.atacouNoTurno) return false;   // "attacked this turn" (508.1)
@@ -917,6 +917,17 @@ const quemBate = (e, j, q, voce, ctx: any = {}) => q === 'qualquer' ? true : q =
 const compara = (v, c) => typeof c === 'number' ? v === c
   : (c.min === undefined || v >= c.min) && (c.max === undefined || v <= c.max) && (c.igual === undefined || v === c.igual);
 M.compara = compara;
+// limite que é contagem: {conta:{de:'este', o:'poder'}} = o poder atual da fonte ("power less than this creature's power",
+// Feasting Hobbit: {max: poder do este, soma -1}); outra contagem vai por M.qtd; não sabe → NaN (o filtro não bate)
+const limite = (e, q, ctx) => {
+  if (typeof q === 'number' || q === undefined) return q;
+  const c = M.qn(q).conta, F = ctx && e.objs[ctx.este];
+  if (c && c.de === 'este' && (c.o === 'poder' || c.o === 'resist') && Object.keys(c).length === 2)
+    return F ? (c.o === 'poder' ? M.poder(e, F) : M.resistencia(e, F)) * (q.mult ?? 1) + (q.soma || 0) : NaN;
+  const v = M.qtd(e, q, ctx); return v === null ? NaN : v;
+};
+const limites = (e, c, ctx) => typeof c === 'number' || (typeof c.min !== 'object' && typeof c.max !== 'object' && typeof c.igual !== 'object') ? c
+  : { min: limite(e, c.min, ctx), max: limite(e, c.max, ctx), igual: limite(e, c.igual, ctx) };
 
 // objetos que batem num filtro (zona padrão: campo)
 M.objetosQue = (e, f, ctx) => {
