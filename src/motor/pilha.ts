@@ -354,7 +354,11 @@ const altInfo = (e, j, o) => {
   }
   for (const a of altDados(e, j, o)) if (!melhor || M.vmDe(a.custo) < M.vmDe(melhor) || (M.vmDe(a.custo) === M.vmDe(melhor) && info && a.vida < info.vida)) { melhor = a.custo; info = a; }
   // rondar (702.76a): custo alternativo se neste turno você causou dano de combate a um jogador com uma fonte que tem um tipo de criatura desta
-  const D = e.jogs[j].danoCombT, ro = (M.dadoDe(e, o).kw || []).find(x => x.k === 'rondar' && x.custo);
+  // ou dado por permanente seu (est darRondar {afeta, custo}: Hunting Velociraptor, "Dinosaur spells you cast have prowl {2}{R}")
+  const D = e.jogs[j].danoCombT, ro = (M.dadoDe(e, o).kw || []).find(x => x.k === 'rondar' && x.custo) || (() => {
+    for (const id of e.campo) { const F = e.objs[id]; if (F.ctrl !== j) continue; for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRondar' && s.custo && M.bate(e, o, { ...(s.afeta || {}), zona: o.zona }, { voce: j, este: F.id })) return { k: 'rondar', custo: s.custo }; }
+    return null;
+  })();
   if (ro && D && D.t === e.turno.n && (M.dadoDe(e, o).sub || []).some(s => D.sub.includes(s)) && (!melhor || M.vmDe(ro.custo) < M.vmDe(melhor))) { melhor = ro.custo; info = null; }
   if (!melhor) return undefined;
   if (info && info.custo !== melhor) info = null;

@@ -4535,6 +4535,35 @@ caso('702.171', "Caustic Bronco: ao atacar revela e põe na mão; sem selar voc�
   }
 });
 
+caso('509.1b', "Hei Bai: a ficha Spirit não bloqueia nem é bloqueada por criatura que não é Spirit", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears']] });
+  const f = M.carta('Hei Bai, Forest Guardian').atv[0].fx[0];
+  ok(M.fxSuportado([f]), 'aceito');
+  M.executar(e, { ...f, qtd: 1 }, { voce: 1, este: -1, alvos: [], ilegal: {}, lki: {} }, null);
+  const sp = e.objs[e.campo.find(id => e.objs[id].ficha)], b0 = objN(e, 0, 'Grizzly Bears'), b1 = objN(e, 1, 'Grizzly Bears');
+  ok(!M.bloqueiaEste(e, sp, b0), 'não bloqueia não-Spirit');
+  ok(!M.bloqueiaEste(e, b0, sp) && M.podeBloquear(e, b1, 1), 'não é bloqueada por não-Spirit; o urso dele bloqueia normal');
+});
+
+caso('510.2', "Hordewing Skaab: um disparo pela etapa de dano, compra (e descarta) uma por oponente ferido", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Hordewing Skaab'], [0, 'Grizzly Bears']] });
+  ok(M.carta('Hordewing Skaab').gat.every(g => M.gatOk(g)), 'aceito');
+  const h = objN(e, 0, 'Hordewing Skaab');
+  M.evento(e, { ev: 'dano', fonte: h.id, combate: true, q: 3, jog: 1 });
+  M.evento(e, { ev: 'dano', fonte: h.id, combate: true, q: 3, jog: 2 });
+  const p = e.pend.filter(x => x.n === 'Hordewing Skaab');
+  igual(p.length, 1, 'um disparo');
+  igual(M.qtdDe(e, { conta: { de: 'evento', o: 'jogadores' } }, { voce: 0, ev: p[0].ev, lki: {} }), 2, 'dois oponentes feridos');
+});
+
+caso('702.76', "Hunting Velociraptor: Dinossauros que você conjura têm rondar {2}{R} (depois de dano de combate de um Dinossauro a um jogador)", () => {
+  const e = cena({ campo: [[0, 'Hunting Velociraptor']], mao: [[0, 'Ghalta, Primal Hunger']] });
+  const g = e.objs[e.jogs[0].zonas.mao[0]];
+  igual(M.altDe(e, 0, g), undefined, 'sem dano: custo normal');
+  e.jogs[0].danoCombT = { t: e.turno.n, sub: ['Dinosaur'] };
+  igual(M.vmDe(M.altDe(e, 0, g) || {}), 3, 'com dano de Dinossauro: {2}{R}');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

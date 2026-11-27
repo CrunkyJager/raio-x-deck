@@ -11,7 +11,7 @@ const kw = (e, o, k) => M.temKw(e, o, k);
 // liberação não vale (pode ser bloqueada). Nunca dá vantagem sem ler a regra.
 function estEste(e, o, modo, seNaoLe) {
   for (const s of M.dadoDe(e, o).est || []) {
-    if (s.modo !== modo || s.afeta !== 'este') continue;
+    if (s.modo !== modo || s.afeta !== 'este' || s.por) continue;   // com 'por': só contra alguns atacantes (bloqueiaEste)
     if (!s.se) return true;
     try { if (M.condicao(e, s.se, { voce: o.ctrl, este: o.id })) return true; } catch (_) { if (seNaoLe) return true; }
   }
@@ -137,6 +137,8 @@ function bloqueiaEste(e, b, at) {                                               
     let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, c); } catch (_) { vale = false; }
     if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, c)))) return false;
   }
+  for (const s of M.dadoDe(e, b).est || [])                                               // "can't block non-Spirit creatures" (ficha do Hei Bai)
+    if (s.modo === 'naoPodeBloquear' && s.afeta === 'este' && s.por && !s.se && M.filtroOk(s.por) && M.bate(e, at, s.por, { voce: b.ctrl, este: b.id })) return false;
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
   if (M.ehPortador(e, at) && M.poder(e, b) > M.poder(e, at)) return false;               // 701.54c: Portador não é bloqueado por poder maior

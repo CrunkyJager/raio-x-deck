@@ -1212,7 +1212,7 @@ const H = {
   descartar: {
     campos: ['aleatorio'],
     ok: f => f.aleatorio === undefined || (f.aleatorio === true && !ateOk(f.qtd)),
-    qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira' || (ateOk(q) && q.ate !== 'X'),
+    qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira' || (ateOk(q) && q.ate !== 'X') || (!!q && typeof q === 'object' && !!q.conta && qtdOk(q)),   // "discard that many" (Hordewing Skaab)
     fx(e, f, ctx, ask) {
       const por: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
