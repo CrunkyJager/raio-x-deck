@@ -90,6 +90,10 @@ function passoMulligan(e) {
     return;
   }
   e.mull = null;
+  // CR 103.6a (Leylines): "se esta carta estiver na sua mão inicial, você pode começar o jogo com ela no campo" —
+  // na ordem do turno, depois dos mulligans. Simplificação: sempre começa (é o que todo mundo faz).
+  for (let i = 0; i < n; i++) { const j = (e.turno.primeiro + i) % n, J = e.jogs[j];
+    for (const id of J.zonas.mao.slice()) if ((M.dadoDe(e, e.objs[id]).kw || []).some(x => x.k === 'comecaNoCampo')) { M.mover(e, id, 'campo'); M.log(e, J.nome, 'começa o jogo com', e.objs[id].n, 'no campo'); } }
   Object.assign(e.turno, { n: 1, passo: 'desvirar', feito: false, passar: false });
 }
 

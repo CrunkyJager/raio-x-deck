@@ -1772,9 +1772,10 @@
       "decaida",
       "infectar",
       "fuga",
-      "prototipo"
+      "prototipo",
+      "comecaNoCampo"
      ],
-     "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
+     "description": "comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
     "custo": {
      "$ref": "#/$defs/mana"

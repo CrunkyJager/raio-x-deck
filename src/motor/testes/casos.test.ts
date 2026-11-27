@@ -4754,6 +4754,14 @@ caso('701.43', "exert / monarca ausente / diferença de poder / metade para cima
   igual([1, 2, 3].map(x => M.qtdDe(h, r, { voce: 0, x, lki: {} })), [1, 1, 2], 'X=1→1, 2→1, 3→2');
 });
 
+caso('103.6a', "Leyline of the Guildpact na mão inicial começa o jogo no campo (depois dos mulligans)", () => {
+  const e = M.novoJogo([{ cartas: Array(40).fill('Leyline of the Guildpact') }, { cartas: enche(40) }], { semente: 3 });
+  M.avancar(e);
+  while (e.perg && (e.perg.tipo === 'mulligan' || e.perg.tipo === 'fundo')) M.responder(e, 0);
+  const n = e.campo.filter(id => e.objs[id].n === 'Leyline of the Guildpact').length;
+  ok(n >= 6 && e.campo.every(id => e.objs[id].ctrl === 0), 'as 7 da mão inicial (menos a comprada depois) no campo: ' + n);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

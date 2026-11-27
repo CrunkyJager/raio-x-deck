@@ -890,7 +890,7 @@ export interface RxCond {
 
 export interface RxKw {
   /**
-   * sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
+   * comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
    */
   k:
     | 'voar'
@@ -962,7 +962,8 @@ export interface RxKw {
     | 'decaida'
     | 'infectar'
     | 'fuga'
-    | 'prototipo';
+    | 'prototipo'
+    | 'comecaNoCampo';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
