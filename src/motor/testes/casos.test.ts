@@ -7363,6 +7363,43 @@ caso('506.4', "Illusionist's Gambit: só nos bloqueadores do turno de um oponent
   igual([e.jogs[0].vida, e.jogs[2].vida], [40, 35], 'o 3º jogador leva 5');
 });
 
+caso('702.56a', "Hatchery Sliver: replicar {1}{G} pago 2 vezes → 2 cópias (fichas, 707.10f); as Sliver suas têm replicar = custo de mana; a não-Sliver não", () => {
+  const e = cena({ campo: enche(6, 'Forest').map(n => [0, n]), mao: [[0, 'Hatchery Sliver']] });
+  const ag = M.agenteBasico();
+  M.avancar(e); conj(e, 'Hatchery Sliver');
+  for (let i = 0; i < 20 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, ag(e, e.perg));
+  resolvePilha(e);
+  const hs = e.campo.map(id => e.objs[id]).filter(o => o.n === 'Hatchery Sliver');
+  igual([hs.length, hs.filter(o => o.ficha).length], [3, 2], '6 terrenos: {1}{G} + 2× {1}{G} — a carta e 2 fichas');
+  const H = hs.find(o => !o.ficha);
+  const ms = e.por(0, 'Muscle Sliver', { zona: 'mao' }), gb = e.por(0, 'Grizzly Bears', { zona: 'mao' });
+  igual(M.replicarDe(e, 0, ms), { g: 1, p: ['G'] }, 'Muscle Sliver ganha replicar {1}{G} (o custo dela)');
+  igual(M.replicarDe(e, 0, gb), null, 'Grizzly Bears não é Sliver');
+  M.mover(e, H.id, 'cemiterio');
+  ok(hs.filter(o => o.ficha).length && M.replicarDe(e, 0, ms) !== null, 'as fichas (cópias) também dão');
+});
+
+caso('117.3', "Springheart Nantuko: concedida, terreno entra → pode pagar {1}{G} e criar cópia da encantada; sem pagar (ou solta) → Inseto 1/1", () => {
+  const mesa = (n) => cena({ campo: [...enche(n, 'Forest').map(x => [0, x]), [0, 'Grizzly Bears']], mao: [[0, 'Springheart Nantuko']] });
+  const ag = M.agenteBasico();
+  const concede = e => { M.avancar(e); conj(e, 'Springheart Nantuko'); respE(e, o => o.a === 'opcao' && o.v.concessao);
+    if (e.perg && e.perg.tipo === 'concessao') M.responder(e, e.perg.ops.findIndex(o => o.o === objN(e, 0, 'Grizzly Bears').id), x => x.pilha.length > 0);
+    resolvePilha(e); ok(M.anexadoA(e, objN(e, 0, 'Springheart Nantuko')) === objN(e, 0, 'Grizzly Bears'), 'concedida na Grizzly Bears'); };
+  const terreno = e => { e.por(0, 'Forest'); M.avancar(e); resolveCom(e, p => p.tipo === 'aMenosQuePagar' ? ag(e, p) : -1); };
+  const conta = (e, n) => e.campo.map(id => e.objs[id]).filter(o => o.n === n || o.n === n + ' Token').length;
+  ok(M.gatOk(M.carta('Springheart Nantuko').gat[0]), 'gatilho aceito (pagando + copiaDe equipada)');
+  const e = mesa(4); concede(e);   // 2 dos 4 Forest ficam (o novo entra desvirado)
+  terreno(e);
+  igual([conta(e, 'Grizzly Bears'), conta(e, 'Insect')], [2, 0], 'pagou {1}{G}: cópia da Grizzly Bears, sem Inseto');
+  const e2 = mesa(3); concede(e2);
+  for (const id of e2.campo) if (e2.objs[id].n === 'Forest') e2.objs[id].virada = true;
+  terreno(e2);   // o Forest novo sozinho: não fecha {1}{G}
+  igual([conta(e2, 'Grizzly Bears'), conta(e2, 'Insect')], [1, 1], 'sem mana: Inseto 1/1');
+  const e3 = cena({ campo: [...enche(4, 'Forest').map(x => [0, x]), [0, 'Springheart Nantuko']] });
+  terreno(e3);
+  igual(conta(e3, 'Insect'), 1, 'solta (criatura): Inseto, sem pergunta de pagar');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;
@@ -7370,4 +7407,3 @@ for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   if (banco.faltas.size) return ctx.skip(`faltam no banco/cartas: ${[...banco.faltas].sort().join(', ')}`);
   if (erro) throw erro;
 });
-
