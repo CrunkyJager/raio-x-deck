@@ -306,7 +306,7 @@ M.naoPerde = (e, j) => estJog(e, j, s => s.modo === 'naoPerdeJogo');
 // virar (CR 701.26a): dispara 'vira' ("whenever … becomes tapped": Dionus, Deeproot Pilgrimage). Entrar virado não é virar.
 M.virarObj = (e, o) => { if (!o || o.virada) return; o.virada = true; if (M.evento) M.evento(e, { ev: 'vira', id: o.id, ts: o.ts, j: o.ctrl }); };
 // desvirar um permanente (CR 701.26b): dispara 'desvira' ("whenever this becomes untapped", Key to the City)
-M.desvirarObj = (e, o) => { if (!o || !o.virada) return; o.virada = false; if (M.evento) M.evento(e, { ev: 'desvira', id: o.id, ts: o.ts }); };
+M.desvirarObj = (e, o) => { if (!o || !o.virada) return; o.virada = false; if (M.evento) M.evento(e, { ev: 'desvira', id: o.id, ts: o.ts, j: o.ctrl }); };   // j: "that permanent's controller" (Mesmeric Orb)
 // "sua vida não pode mudar" (Teferi's Protection, Flare of Fortitude, Platinum Emperion): sem ganho, perda nem pagar vida (119.8)
 M.vidaFixa = (e, j) => estJog(e, j, s => s.modo === 'vidaNaoMuda');
 // "you can't lose the game and your opponents can't win the game" (Darksteel/Platinum Angel, CR 104.3 / 104.2)
@@ -1148,7 +1148,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -1187,6 +1187,7 @@ M.condicao = (e, se, ctx) => {
     if (!tem) return false;
   }
   if (se.primeiroCombate !== undefined && ((e.turno.combates || 0) <= 1) !== !!se.primeiroCombate) return false;   // "if it's the first combat phase of the turn"
+  if (se.emCombate !== undefined && ['inicioCombate', 'atacantes', 'bloqueadores', 'dano', 'fimCombate'].includes(e.turno.passo) !== !!se.emCombate) return false;   // "during combat" (Marisi, 506.1)
   if (se.fasePrincipal !== undefined && (['principal1', 'principal2'].includes(e.turno.passo) && e.turno.ativo === ctx.voce) !== !!se.fasePrincipal) return false;   // "if it's your main phase" (Moraug)
   if (se.conjuradaNaPrincipal !== undefined) { const E = e.objs[ctx.este]; if (!!(E && E.zona === 'pilha' && E.conjPrinc) !== !!se.conjuradaNaPrincipal) return false; }   // Addendum: esta mágica foi conjurada na sua fase principal
   if (se.conjuradaCom !== undefined || se.palavra !== undefined) {   // a mágica resolvendo (ctx.opc) ou a permanente que ela virou

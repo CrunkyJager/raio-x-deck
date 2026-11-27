@@ -5810,6 +5810,49 @@ caso('725.1', "Mariposa Military Base: pode entrar virada e ganhar 2 rad; a comp
   igual(e.jogs[0].vida, v0 - 2, 'moeu Hill Giant e Bears: perde 2'); igual(e.jogs[0].marc.rad, 0, 'tirou 2 rad');
 });
 
+caso('506.1', "Marisi (cond emCombate): os oponentes não conjuram durante o combate; fora dele, sim", () => {
+  const e = cena({ campo: [[0, 'Marisi, Breaker of the Coil']] });
+  e.turno.passo = 'principal1'; ok(!M.naoConjura(e, 1), 'principal: conjura');
+  e.turno.passo = 'atacantes'; ok(M.naoConjura(e, 1), 'combate: não'); ok(!M.naoConjura(e, 0), 'o dono da Marisi conjura');
+});
+
+caso('701.26b', "Mesmeric Orb: cada permanente que desvira faz o controlador dela moer 1", () => {
+  ok(M.carta('Mesmeric Orb').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Mesmeric Orb'], [1, 'Forest'], [1, 'Forest']] });
+  for (let i = 0; i < 5; i++) e.por(1, 'Island', { zona: 'grimorio' });
+  for (const id of e.campo) if (e.objs[id].n === 'Forest') e.objs[id].virada = true;
+  e.pend = []; for (const id of e.campo) if (e.objs[id].n === 'Forest') M.desvirarObj(e, e.objs[id]);
+  igual(e.pend.filter(p => p.n === 'Mesmeric Orb').length, 2, 'dois gatilhos');
+  M.avancar(e); resolvePilha(e); igual(e.jogs[1].zonas.cemiterio.length, 2, 'o dono das Forests moeu 2');
+});
+
+caso('702.93a', "imortal (Mikaeus dá às outras não-Humanas): o Urso morre sem +1/+1 e volta com um; com +1/+1, não volta", () => {
+  const e = cena({ campo: [[0, 'Mikaeus, the Unhallowed'], [0, 'Grizzly Bears']] });
+  const b = objN(e, 0, 'Grizzly Bears'); ok(M.temKw(e, b, 'imortal'), 'tem imortal');
+  M.mover(e, b.id, 'cemiterio'); M.avancar(e); resolvePilha(e);
+  igual(b.zona, 'campo', 'voltou'); igual(b.marc['+1/+1'], 1, 'com +1/+1');
+  M.mover(e, b.id, 'cemiterio'); M.avancar(e); resolvePilha(e);
+  igual(b.zona, 'cemiterio', 'com marcador: fica');
+});
+
+caso('106.7', "Mirari's Wake (prod doTerreno): virar Forest para mana dá G a mais, não qualquer cor", () => {
+  ok(M.carta("Mirari's Wake").gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, "Mirari's Wake"], [0, 'Forest']] });
+  const fo = objN(e, 0, 'Forest'), k = M.atvDe(e, fo).findIndex(a => a.deMana);
+  igual(M.pacotesDe(e, fo, M.atvDe(e, fo)[k]).map(p => p.G + '/' + p.R), ['2/0'], 'GG');
+});
+
+caso('509.1c', "Mirri: ao atacar, cada oponente bloqueia com no máximo uma criatura; virada, só uma criatura ataca o dono dela por combate", () => {
+  ok(M.carta('Mirri, Weatherlight Duelist').gat.every(g => M.gatOk(g)) && M.fxSuportado(M.carta('Mirri, Weatherlight Duelist').gat[0].fx), 'aceito');
+  const e = cena({ campo: [[0, 'Mirri, Weatherlight Duelist']] });
+  const mi = objN(e, 0, 'Mirri, Weatherlight Duelist');
+  igual(M.maxAtacantes(e, 0), Infinity, 'desvirada: sem limite');
+  mi.virada = true; igual(M.maxAtacantes(e, 0), 1, 'virada: 1');
+  e.turno.combate = { atk: [], etapa: 0 } as any;
+  M.executar(e, M.carta('Mirri, Weatherlight Duelist').gat[0].fx[0], ctxDe(e), (j, t, ops) => ops[0]);
+  igual(e.turno.combate.limBloq, { 1: 1 }, 'o oponente bloqueia com 1');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

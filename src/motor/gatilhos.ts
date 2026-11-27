@@ -17,7 +17,7 @@ M.gatOk = g => {
   let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por)) && (!g.recebe || (g.ev === 'dano' && M.filtroOk(g.recebe)));
-  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se));
+  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se));
   memoOk.set(g, ok);
   return ok;
 };
@@ -176,6 +176,7 @@ function extras(e, F, g, ev) {
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
 const GAT_PERSISTIR = { ev: 'morre', fx: [{ op: 'persistir' }] };
+const GAT_IMORTAL = { ev: 'morre', fx: [{ op: 'persistir', marc: '+1/+1' }] };   // imortal (undying, 702.93a): o mesmo retorno, com +1/+1
 const GAT_RADIACAO = { ev: 'fase', passo: 'principal1', fx: [{ op: 'radiacao' }] };   // 725.1
 const GAT_DESAPARECER = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'desaparecer' }] };   // 702.63a
 const GAT_MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
@@ -317,6 +318,9 @@ M.evento = (e, ev) => {
     // persistir (702.79a): "quando morre, se não tinha marcador -1/-1, volta ao campo do dono com um -1/-1" (603.4: olha o snap)
     if (M.temTipo(e, S, 'Creature') && !(S.marc && S.marc['-1/-1'] > 0) && e.objs[S.id]) for (const x of M.kwDe(e, S)) if (x.k === 'persistir')
       e.pend.push({ fonte: S.id, ts: S.ts, ctrl: S.ctrl, k: 'persistir', g: GAT_PERSISTIR, n: S.n, face: S.face ?? null, ficha: S.ficha || null, lki: M.lkiDe(e, S), ev: { ...ev, snap: undefined, tsCem: e.objs[S.id].ts } });
+    // imortal (702.93a): "quando morre, se não tinha marcador +1/+1, volta ao campo do dono com um +1/+1"
+    if (M.temTipo(e, S, 'Creature') && !(S.marc && S.marc['+1/+1'] > 0) && e.objs[S.id]) for (const x of M.kwDe(e, S)) if (x.k === 'imortal')
+      e.pend.push({ fonte: S.id, ts: S.ts, ctrl: S.ctrl, k: 'imortal', g: GAT_IMORTAL, n: S.n, face: S.face ?? null, ficha: S.ficha || null, lki: M.lkiDe(e, S), ev: { ...ev, snap: undefined, tsCem: e.objs[S.id].ts } });
     for (const x of M.kwDe(e, S)) if (x.k === 'posVida' && Number.isInteger(x.n) && x.n > 0)
       e.pend.push({ fonte: S.id, ts: S.ts, ctrl: S.ctrl, k: 'posVida', g: { ev: 'vaiCemiterio', fx: [{ op: 'ficha', quem: 'voce', qtd: x.n, token: ESPIRITO }] }, n: S.n, face: S.face ?? null, ficha: S.ficha || null, lki: M.lkiDe(e, S), ev: { ...ev, snap: undefined } });
   }
