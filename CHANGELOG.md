@@ -2,6 +2,15 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.66.0 — 27/11/2026 · Motor: 11 mecânicas (4 adeptos em paralelo)
+Testes: check 0 erros · Vitest 395/395 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1573/1756 (eram 1539). Selo ⓘ da Mesa atualizado.
+- **Tempestade** (702.40): Grapeshot, Empty the Warrens, Brain Freeze, Flusterstorm, Radstorm. Conta as mágicas de todos os jogadores no turno.
+- **Ciclo de tipo** (702.29e): Step Through, Homing Sliver e outras.
+- **Regenerar** (701.15): escudo que troca destruir/dano letal por virar + tirar o dano + sair do combate, só no turno; respeita "não pode ser regenerada".
+- **Amassar** (701.47): Orcish Bowmasters, Dreadhorde Invasion, Lazotep Plating e outras.
+- **Esconderijo**, **deuses de Theros** (deixam de ser criatura com pouca devoção), **comprar/criar fichas com quantidade calculada** (Windfall, Peer into the Abyss, Chasm Skulker, Elenda), **tipo escolhido** (Metallic Mimic, Yavimaya), **custo alternativo** (Bolas's Citadel, Rooftop Storm), **modificar** (Liliana Death's Majesty, Rivaz).
+- Simplificações anotadas: deus que deixa de ser criatura em combate não sai do combate (506.4); custo alternativo por vida só da carta do topo.
+
 ## v0.65.0 — 27/11/2026 · Motor: ascender
 Testes: check 0 erros · Vitest 388/388 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1539/1756 (eram 1535). Selo ⓘ da Mesa atualizado.
 - **Ascender / bênção da cidade** (CR 702.131): Ocelot Pride, Radiant Destiny, Twilight Prophet, Wayward Swordtooth e outras. Com 10 permanentes e uma com ascender, o jogador ganha a bênção e fica com ela até o fim.

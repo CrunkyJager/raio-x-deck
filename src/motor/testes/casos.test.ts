@@ -3423,6 +3423,128 @@ caso('702.131', "ascender: com 10 permanentes e uma com ascender ganha a bênç�
   ok(!f.jogs[0].bencao && !M.condicao(f, { palavra: 'blessing' }, { voce: 0 }), 'sem permanente com ascender: nada');
 });
 
+caso('702.40', "tempestade: Grapeshot depois de 2 mágicas no turno causa 3 de dano (a original + 2 cópias); primeira do turno não copia", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Shock'], [0, 'Shock'], [0, 'Grapeshot']] });
+  M.avancar(e);
+  for (let i = 0; i < 2; i++) { conj(e, 'Shock'); alvoJog(e, 1); M.avancar(e); }
+  igual(e.jogs[1].vida, 40 - 4, 'dois Shock');
+  conj(e, 'Grapeshot'); alvoJog(e, 1);
+  M.avancar(e);
+  for (let i = 0; i < 20 && e.perg && e.perg.tipo === 'talvez' && e.perg.ctx.op === 'novoAlvo'; i++) { respE(e, o => o.a === 'nao'); M.avancar(e); }   // as cópias ficam com o mesmo alvo
+  igual(e.jogs[1].vida, 40 - 4 - 3, 'Grapeshot + 2 cópias');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Grapeshot']] });
+  M.avancar(f); conj(f, 'Grapeshot'); alvoJog(f, 1); M.avancar(f);
+  igual(f.jogs[1].vida, 39, 'primeira mágica do turno: sem cópia');
+});
+
+caso('702.29e', "ciclo de tipo: Step Through (ciclo de Wizard {2}) procura um Wizard e embaralha; Homing Sliver dá ciclo de Sliver aos Slivers da mão", () => {
+  const e = cena({ campo: [...terras(2, 'Wastes')], mao: [[0, 'Step Through']] });
+  e.por(0, 'Vedalken Aethermage', { zona: 'grimorio' }); e.pend = [];
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(op => op.a === 'ativar' && e.objs[op.id].n === 'Step Through');
+  ok(k >= 0, 'ciclo de Wizard oferecido da mão'); M.responder(e, k); resolveCom(e);
+  igual(naZona(e, 0, 'cemiterio'), ['Step Through']);
+  igual(naZona(e, 0, 'mao'), ['Vedalken Aethermage'], 'achou o Wizard');
+  const f = cena({ campo: [...terras(3, 'Wastes'), [0, 'Homing Sliver']], mao: [[0, 'Grizzly Bears']] }); f.pend = [];
+  M.avancar(f); ok(!opsDe(f, 'ativar').some(op => f.objs[op.id].n === 'Grizzly Bears'), 'não-Sliver não cicla');
+  const g = cena({ campo: [...terras(3, 'Wastes'), [0, 'Homing Sliver']], mao: [[0, 'Blur Sliver']] }); g.pend = [];
+  M.avancar(g);
+  ok(opsDe(g, 'ativar').some(op => g.objs[op.id].n === 'Blur Sliver'), 'Sliver da mão ganha ciclo de Sliver');
+  const h = cena({ campo: [...terras(3, 'Wastes'), [1, 'Homing Sliver']], mao: [[0, 'Blur Sliver']] }); h.pend = [];
+  M.avancar(h);
+  ok(!opsDe(h, 'ativar').some(op => h.objs[op.id].n === 'Blur Sliver'), 'o Homing do oponente não dá à minha mão');
+});
+
+caso('121.1', "comprar com conta: Windfall (o maior descarte), Peer into the Abyss (metade do grimório e da vida do alvo, para cima), One with the Machine (maior VM)", () => {
+  const e = cena({ mao: [[0, 'Grizzly Bears'], [0, 'Forest'], [1, 'Forest'], [1, 'Forest'], [1, 'Sol Ring']] });
+  const X = (c, ctx = {}) => M.executar(e, c, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, ...ctx }, () => ({ a: 'nao' }));
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const f of M.carta('Windfall').fx) M.executar(e, f, ctx, () => ({ a: 'nao' }));
+  igual([e.jogs[0].zonas.mao.length, e.jogs[1].zonas.mao.length], [3, 3], 'cada um compra 3 (o maior descarte)');
+  const g0 = e.jogs[1].zonas.grimorio.length;
+  for (const f of M.carta('Peer into the Abyss').fx) X(f, { alvos: [[{ jog: 1 }]] });
+  igual(e.jogs[1].zonas.grimorio.length, g0 - Math.ceil(g0 / 2), 'metade do grimório, para cima');
+  igual(e.jogs[1].vida, 20, 'perde metade de 40');
+  const f = cena({ campo: [[0, 'Sol Ring'], [0, 'Gilded Lotus']] });
+  const m0 = f.jogs[0].zonas.mao.length;
+  M.executar(f, M.carta('One with the Machine').fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(f.jogs[0].zonas.mao.length - m0, 5, 'Gilded Lotus: VM 5');
+  for (const c of ['Windfall', 'Peer into the Abyss', 'One with the Machine', "Jace's Archivist", 'Whispering Madness']) ok(M.fxSuportado(M.carta(c).fx || M.carta(c).atv[0].fx), c);
+});
+
+caso('701.15', "regenerar: o escudo troca destruir e dano letal por virar + tirar o dano + sair do combate; um por escudo; semRegenerar e resistência 0 não; acaba no turno", () => {
+  const e = cena({ campo: [[0, 'Nightscape Familiar'], [1, 'Grizzly Bears']] });
+  const nf = e.objs[e.campo.find(id => e.objs[id].n === 'Nightscape Familiar')];
+  const X = (f, ctx: any = {}) => M.executar(e, f, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: nf.id, ...ctx }, () => ({ a: 'nao' }));
+  ok(M.fxSuportado(M.carta('Nightscape Familiar').atv.find(a => a.fx.some(f => f.op === 'regenerar')).fx), 'aceito');
+  X({ op: 'regenerar', em: 'este' }); X({ op: 'regenerar', em: 'este' });
+  X({ op: 'destruir', em: 'este' });
+  ok(nf.zona === 'campo' && nf.virada, '1º destruir: regenera (vira)');
+  nf.dano = 5; M.abe(e);
+  ok(nf.zona === 'campo' && nf.dano === 0, 'dano letal: 2º escudo, tira o dano');
+  nf.dano = 5; M.abe(e);
+  ok(nf.zona === 'cemiterio', 'sem escudo: morre');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }); const gb = f.objs[f.campo[0]];
+  const Y = fx => M.executar(f, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: gb.id }, () => ({ a: 'nao' }));
+  Y({ op: 'regenerar', em: 'este' }); Y({ op: 'destruir', em: 'este', semRegenerar: true });
+  ok(gb.zona === 'cemiterio', "can't be regenerated: vai");
+  const g = cena({ campo: [[0, 'Grizzly Bears']] }); const g2 = g.objs[g.campo[0]];
+  M.executar(g, { op: 'regenerar', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: g2.id }, () => ({ a: 'nao' }));
+  g.turno.n++;
+  M.executar(g, { op: 'destruir', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: g2.id }, () => ({ a: 'nao' }));
+  ok(g2.zona === 'cemiterio', 'o escudo é só deste turno');
+  for (const c of ['Asceticism', 'Crypt Sliver', 'Goblin Chirurgeon', 'Zombie Master']) ok(JSON.stringify(M.carta(c)).includes('regenerar'), c);
+});
+
+caso('613.1d', "tiraTipo: deus de Theros não é criatura com devoção < 5 (Purphoros); com 5 é criatura de novo; perde o subtipo God junto", () => {
+  const e = cena({ campo: [[0, 'Purphoros, God of the Forge']] });
+  const p = e.objs[e.campo[0]];
+  ok(!M.temTipo(e, p, 'Creature') && M.temTipo(e, p, 'Enchantment'), 'devoção 1: só encantamento');
+  ok(!(M.dadoDe(e, p).sub || []).includes('God'), 'sem o subtipo de criatura');
+  e.por(0, 'Krenko, Mob Boss'); ok(!M.temTipo(e, p, 'Creature'), 'devoção 3: ainda não');
+  e.por(0, 'Krenko, Mob Boss'); ok(M.temTipo(e, p, 'Creature') && M.poder(e, p) === 6, 'devoção 5: criatura 6/5');
+  for (const c of ['Athreos, God of Passage', 'Iroas, God of Victory', 'Nylea, God of the Hunt']) ok(M.carta(c).est.filter(s => s.tiraTipo).every(s => M.estContOk(s)), c);
+});
+
+caso('701.47', "amassar: sem Armada cria a ficha 0/0 com o tipo e põe os marcadores; com Armada, só marca a que existe e dá o tipo", () => {
+  ok(M.fxSuportado([{ op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }]), 'amassar aceito');
+  const e = cena({ campo: [] });
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: {} });
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }, cx(), () => ({ a: 'nao' }));
+  const ars = () => e.campo.map(id => e.objs[id]).filter(o => (M.dadoDe(e, o).sub || []).includes('Army'));
+  igual(ars().length, 1, 'criou uma Armada');
+  const a = ars()[0];
+  igual([M.poder(e, a), M.resistencia(e, a)], [1, 1], 'Armada 1/1');
+  ok(M.dadoDe(e, a).sub.includes('Orc'), 'é Orc');
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Zombie'], qtd: 2 }, cx(), () => ({ a: 'nao' }));
+  igual(ars().length, 1, 'não cria outra');
+  igual(M.poder(e, a), 3, '+2 na mesma');
+  ok(M.dadoDe(e, a).sub.includes('Zombie'), 'virou Zombie também');
+});
+
+caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores de experiência seus, poder e marcadores da que morreu (LKI)", () => {
+  for (const c of ['Chasm Skulker', 'Elenda, the Dusk Rose', "Elenda's Hierophant", 'Endless Ranks of the Dead', "Otharri, Suns' Glory"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: {} });
+  const zumbi = { pt: [2, 2], cores: 'B', tipos: ['Creature'], sub: ['Zombie'] };
+  const e = cena({ campo: [] });
+  M.criarFichas(e, 0, zumbi, 5);
+  M.executar(e, M.carta('Endless Ranks of the Dead').gat[0].fx[0], cx(), () => ({ a: 'nao' }));
+  igual(e.campo.length, 7, '5 Zumbis → +2');
+  e.jogs[0].marc = { experience: 3 };
+  igual(M.qtdDe(e, { conta: 'marcadoresSeus', de: 'experience' }, cx()), 3, '3 de experiência');
+  const f = cena({ campo: [[0, 'Chasm Skulker'], [0, 'Elenda, the Dusk Rose']] });
+  const sk = f.campo.map(id => f.objs[id]).find(o => o.n === 'Chasm Skulker'), el = f.campo.map(id => f.objs[id]).find(o => o.n === 'Elenda, the Dusk Rose');
+  sk.marc['+1/+1'] = 3; el.marc['+1/+1'] = 2;
+  const lk = o => ({ voce: 0, alvos: [], ilegal: {}, lki: { este: M.lkiDe(f, o) }, este: o.id });
+  const ls = lk(sk), le = lk(el);
+  M.mover(f, sk.id, 'cemiterio'); M.mover(f, el.id, 'cemiterio');
+  const antes = f.campo.length;
+  M.executar(f, M.carta('Chasm Skulker').gat[1].fx[0], ls, () => ({ a: 'nao' }));
+  igual(f.campo.length - antes, 3, 'Skulker: 3 Lulas');
+  M.executar(f, M.carta('Elenda, the Dusk Rose').gat[1].fx[0], le, () => ({ a: 'nao' }));
+  igual(f.campo.length - antes, 3 + 3, 'Elenda 1/1 com +2: 3 Vampiros');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
