@@ -390,7 +390,7 @@ function tempEstOk(s, f) {
     case 'danoNaoPrevenivel': return s.afeta === 'cadaJogador' && so();                                             // efeitos.ts M.substDano
     case 'ptDefinido': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && so('pBase', 'rBase')   // 7b (Sephiroth): e.temp.base
       && Number.isInteger(s.pBase) && Number.isInteger(s.rBase) && f.dura === 'fimDoTurno';
-    case 'naoPodeAtacar': return s.afeta === undefined && f.em === undefined && so('contra') && !!s.contra && Object.keys(s.contra).length === 1 && s.contra.jog === 'voce';   // "não podem atacar você neste turno" (Champions of Minas Tirith): combate.ts alvosAtaque
+    case 'naoPodeAtacar': return s.afeta === undefined && so('contra') && !!s.contra && Object.keys(s.contra).length === 1 && s.contra.jog === 'voce';   // "não podem atacar você neste turno" (Champions of Minas Tirith): combate.ts alvosAtaque
     case 'custoAlternativo': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && s.gratis === true && !s.limite && M.estAltOk(s);   // emblema da Tamiyo: lido no altDados (pilha.ts)
     case 'naoPodeConjurar': return s.afeta === 'voce' && so();                                                         // lido em pilha.ts (M.naoConjura)
     case 'conjurarComLampejo': return s.afeta === 'voce' && so('f') && (!s.f || M.filtroOk(s.f));                   // lido em pilha.ts (M.lampejoDado)
@@ -781,7 +781,7 @@ const H = {
     campos: ['dura', 'est', 'subst', 'emblema', 'gat', 'proximaMagica'],
     qtd: q => q === undefined,
     ok: f => (f.quem === undefined || f.quem === 'voce') && (f.dura === 'fimDoTurno' || f.dura === 'proximoTurnoSeu' || f.dura === 'sempre')
-      && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length + (f.gat || []).length) > 0
+      && (f.em === undefined || f.em === 'este' || f.em === 'anterior' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length + (f.gat || []).length) > 0
       && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => f.proximaMagica ? s.ev === 'anulada' && M.substOk(s) && Object.keys(s.quem).length === 1 : tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este))
       && (!f.proximaMagica || (f.em === undefined && !(f.gat || []).length && f.dura === 'fimDoTurno'
         && (!(f.est || []).length || (!(f.subst || []).length && f.est.every(s => s.modo === 'conjurarComLampejo')))))   // "the next spell of the chosen type … as though it had flash" (Progenitor's Icon)
@@ -1162,6 +1162,11 @@ const H = {
     e.fim = { vencedor: j, motivo: 'efeito: vence o jogo', turno: e.turno.n };
   } },
   perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu && !M.naoPerde(e, j)) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
+  // CR 119.5: "X's life total becomes N" = ganha ou perde a diferença (vida fixa, 119.8: não muda)
+  vidaVira: { fx(e, f, ctx) {
+    const q = qtdDe(e, f.qtd, ctx);
+    for (const j of jogsDe(e, f, ctx)) { const d = q - e.jogs[j].vida; if (d > 0) M.ganharVida(e, j, d); else if (d < 0 && !M.vidaFixa(e, j)) M.perderVida(e, j, -d); M.log(e, e.jogs[j].nome, 'fica com', e.jogs[j].vida, 'de vida'); }
+  } },
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) if (!M.vidaFixa(e, j)) M.perderVida(e, j, q); } },   // 119.7
   copiarMagica: {                                                   // CR 707.10: "copy that spell" (pilha.ts: M.alvosDaCopia/M.criarCopia)
     campos: ['novoAlvo', 'cadaOutroAlvo'],
@@ -1434,11 +1439,21 @@ const H = {
     ok: f => f.em !== undefined && f.quem === undefined,
     fx(e, f, ctx) {
       const C = e.turno.combate; if (!C) return;
-      for (const o of objsDe(e, f, ctx)) {
+      const os = objsDe(e, f, ctx).filter(o => C.atk.some(r => r.id === o.id) || C.atk.some(r => r.bloq.some(b => b.id === o.id)));
+      ctx.movidos = movidos(e, os.map(o => o.id));                  // em 'anterior': as que saíram do combate ("and untap them", Illusionist's Gambit)
+      for (const o of os) {
         C.atk = C.atk.filter(r => r.id !== o.id);
         for (const r of C.atk) r.bloq = r.bloq.filter(b => b.id !== o.id);
         M.log(e, o.n, 'sai do combate');
       }
+    },
+  },
+  // "this creature assigns no combat damage this combat" (Master of Cruelties): combate.ts pula o atacante no dano (C.semDano)
+  semDanoCombate: {
+    ok: f => f.quem === undefined,
+    fx(e, f, ctx) {
+      const C = e.turno.combate; if (!C) return;
+      for (const o of objsDe(e, f, ctx)) { C.semDano = C.semDano || {}; C.semDano[o.id] = o.ts; }
     },
   },
   desvirar: {
