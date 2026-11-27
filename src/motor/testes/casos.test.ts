@@ -5754,6 +5754,71 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+caso('702.138', "Kotis: uma criatura do cemitério por turno seu exilando 3 outras (darFuga limite/se); conjurada do cemitério → +2 marcadores", () => {
+  const e = cena({ campo: [[0, 'Kotis, Sibsig Champion'], ...enche(4, 'Forest').map(n => [0, n])] }); e.pend = [];
+  const k = objN(e, 0, 'Kotis, Sibsig Champion');
+  const u1 = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }), u2 = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }), bolt = e.por(0, 'Lightning Bolt', { zona: 'cemiterio' });
+  for (let i = 0; i < 4; i++) M.mover(e, e.jogs[0].zonas.grimorio[0], 'cemiterio');
+  ok(!M.porFuga(e, 0, bolt), 'só criatura');
+  e.turno.ativo = 1; ok(!M.porFuga(e, 0, u1), 'no turno do oponente: não'); e.turno.ativo = 0;
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === u1.id);
+  for (let i = 0; i < 8 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, 0);
+  resolvePilha(e);
+  igual([u1.zona, e.jogs[0].zonas.exilio.length, k.marc['+1/+1'] || 0], ['campo', 3, 2], 'o urso entrou, 3 exiladas, Kotis +2');
+  ok(!M.porFuga(e, 0, u2), 'a 2ª no mesmo turno: não');
+  M.mover(e, u1.id, 'cemiterio'); e.pend = []; M.mover(e, u1.id, 'campo');
+  igual(e.pend.filter(p => p.n === 'Kotis, Sibsig Champion').length, 1, 'entrou do cemitério (sem conjurar): dispara uma vez');
+  e.pend = []; e.por(0, 'Hill Giant'); igual(e.pend.filter(p => p.n === 'Kotis, Sibsig Champion').length, 0, 'da mão: não');
+});
+
+caso('702.130a', "Lazotep Sliver: seus Slivers têm afflict 2 — bloqueada por DOIS, o defensor perde 2 uma vez só (509.3c ficaBloqueada)", () => {
+  const e = combate([[0, 'Lazotep Sliver'], [0, 'Muscle Sliver'], [1, 'Gray Ogre'], [1, 'Hill Giant']]);
+  const lz = objN(e, 0, 'Lazotep Sliver'), ms = objN(e, 0, 'Muscle Sliver');
+  ate(e, 'atacar'); atacaCom(e, lz); atacaCom(e, ms); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Gray Ogre'), lz); bloqueia(e, objN(e, 1, 'Hill Giant'), lz); fecha(e, 'bloquear');
+  for (let g = 0; g < 200 && e.turno.passo !== 'principal2' && !e.fim; g++) { M.avancar(e, x => x.turno.passo === 'principal2'); if (e.perg) M.responder(e, 0, PARA2); }
+  igual(e.jogs[1].vida, 40 - 2 - 2, 'afflict 2 uma vez (o Lazotep) + 2 do Muscle Sliver não bloqueado (2/2 com o próprio bônus)');
+});
+
+caso('701.50', "Lethal Scheme: destrói o alvo e cada criatura que convocou conive (compra, descarta; não-terreno → +1/+1 nela)", () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves', { virada: true }], [1, 'Hill Giant']], mao: [[0, 'Lethal Scheme']] });
+  const g = e.jogs[0].zonas.grimorio; e.objs[g[g.length - 1]].n = 'Lightning Bolt'; e.objs[g[g.length - 2]].n = 'Forest';
+  M.avancar(e); conj(e, 'Lethal Scheme');
+  const ag = M.agenteBasico();
+  for (let i = 0; i < 20 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, ag(e, e.perg));
+  resolvePilha(e);
+  const ursos = e.campo.map(id => e.objs[id]).filter(o => o.n === 'Grizzly Bears');
+  ok(!e.campo.some(id => e.objs[id].n === 'Hill Giant'), 'o Gigante foi destruído');
+  igual(ursos.map(o => o.virada), [true, true], 'os dois ursos convocaram');
+  igual(ursos.map(o => o.marc['+1/+1'] || 0).sort(), [0, 1], 'o 1º descartou o Raio (+1/+1), o 2º a Floresta (nada)');
+  igual(e.jogs[0].zonas.cemiterio.filter(id => ['Lightning Bolt', 'Forest'].includes(e.objs[id].n)).length, 2, 'as duas descartadas');
+  igual(objN(e, 0, 'Llanowar Elves').marc['+1/+1'] || 0, 0, 'quem não convocou não conive');
+});
+
+caso('103.6', "Leyline of the Guildpact: na mão inicial (depois do mulligan) começa no campo; as do grimório não", () => {
+  const deck = [...Array(20).fill('Leyline of the Guildpact'), ...enche(20, 'Forest')];
+  const e = M.novoJogo([{ cartas: deck }, { cartas: enche(40) }], { semente: 5 });
+  M.avancar(e);
+  let na = -1;
+  for (let g = 0; g < 20 && e.perg && (e.perg.tipo === 'mulligan' || e.perg.tipo === 'fundo'); g++) { if (na < 0) na = e.jogs[0].zonas.mao.filter(id => e.objs[id].n === 'Leyline of the Guildpact').length; M.responder(e, 0); M.avancar(e); }
+  ok(na > 0, 'a semente dá Leyline na mão');
+  igual(e.campo.filter(id => e.objs[id].n === 'Leyline of the Guildpact').length, na, 'as da mão inicial estão no campo');
+  igual(e.jogs[0].zonas.mao.filter(id => e.objs[id].n === 'Leyline of the Guildpact').length, 0, 'nenhuma ficou na mão');
+});
+
+caso('601.2h', "Liberator: +1/+1 só se a mana gasta na mágica passa o poder dele (conta evento/manaGasta); incolor e artefato com lampejo", () => {
+  const e = cena({ campo: [[0, 'Liberator, Urza\'s Battlethopter'], ...enche(6, 'Mountain').map(n => [0, n])], mao: [[0, 'Hill Giant'], [0, 'Shock']] });
+  const L = objN(e, 0, 'Liberator, Urza\'s Battlethopter'); e.pend = [];
+  const k = e.por(0, 'Kozilek, Butcher of Truth', { zona: 'mao' }), sol = e.por(0, 'Sol Ring', { zona: 'mao' }), gi = e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Hill Giant');
+  ok(M.lampejoDado(e, 0, k) && M.lampejoDado(e, 0, sol) && !M.lampejoDado(e, 0, e.objs[gi]), 'Kozilek (incolor) e Sol Ring (artefato) com lampejo; o Gigante não');
+  M.avancar(e); conj(e, 'Hill Giant');
+  igual(e.objs[gi].manaGasta, 4, 'gastou 4');
+  resolvePilha(e);
+  igual(L.marc['+1/+1'] || 0, 1, '4 > 1: +1/+1');
+  M.avancar(e); conj(e, 'Shock'); alvoJog(e, 1); resolvePilha(e);
+  igual(L.marc['+1/+1'] || 0, 1, '1 não passa de 2: nada');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -89,6 +89,12 @@ function passoMulligan(e) {
     e.perg = { j, tipo: 'fundo', ops: e.jogs[j].zonas.mao.map(id => ({ a: 'fundo', id })) };
     return;
   }
+  // CR 103.6: "if this card is in your opening hand, you may begin the game with it on the battlefield" (Leylines), na ordem
+  // do turno a partir do primeiro (103.6a). O "may" é sempre sim: pôr de graça no campo antes do 1º turno não tem lado ruim
+  for (let i = 0; i < n; i++) {
+    const j = (e.turno.primeiro + i) % n;
+    for (const id of e.jogs[j].zonas.mao.slice()) if (M.temKw(e, e.objs[id], 'comecaNoCampo')) { M.aplicarEntrada(e, { id, ctrl: j }); M.log(e, e.jogs[j].nome, 'começa com', e.objs[id].n, 'no campo (103.6)'); }
+  }
   e.mull = null;
   Object.assign(e.turno, { n: 1, passo: 'desvirar', feito: false, passar: false });
 }

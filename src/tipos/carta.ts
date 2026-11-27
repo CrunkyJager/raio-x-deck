@@ -412,6 +412,7 @@ export type RxObjeto =
       | 'anterior'
       | 'cadaAtual'
       | 'descartadaCusto'
+      | 'convocaram'
       | 'sacrificada'
       | 'danificado'
     );
@@ -570,6 +571,7 @@ export interface RxFx {
     | 'moverMarcador'
     | 'tentarAnel'
     | 'explorar'
+    | 'conivir'
     | 'amassar'
     | 'popular'
     | 'incitar'
@@ -1010,6 +1012,7 @@ export interface RxKw {
     | 'manto'
     | 'metamorfo'
     | 'defensor'
+    | 'comecaNoCampo'
     | 'equipar'
     | 'encantar'
     | 'ciclar'
@@ -1135,6 +1138,7 @@ export interface RxGat {
     | 'alvoDe'
     | 'vira'
     | 'ficaMonstruosa'
+    | 'ficaBloqueada'
     | 'zonaVarios'
     | 'capitulo'
     | 'saiCemiterio'
@@ -1618,7 +1622,8 @@ export interface RxContagem {
     | 'nome'
     | 'tipos'
     | 'tentacoes'
-    | 'cemiterio';
+    | 'cemiterio'
+    | 'manaGasta';
   /**
    * de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)
    */

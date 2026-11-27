@@ -820,6 +820,7 @@
       "anterior",
       "cadaAtual",
       "descartadaCusto",
+      "convocaram",
       "sacrificada",
       "danificado"
      ]
@@ -1099,6 +1100,7 @@
       "moverMarcador",
       "tentarAnel",
       "explorar",
+      "conivir",
       "amassar",
       "popular",
       "incitar",
@@ -1892,6 +1894,7 @@
       "manto",
       "metamorfo",
       "defensor",
+      "comecaNoCampo",
       "equipar",
       "encantar",
       "ciclar",
@@ -2069,6 +2072,7 @@
       "alvoDe",
       "vira",
       "ficaMonstruosa",
+      "ficaBloqueada",
       "zonaVarios",
       "capitulo",
       "saiCemiterio",
@@ -2822,7 +2826,8 @@
       "nome",
       "tipos",
       "tentacoes",
-      "cemiterio"
+      "cemiterio",
+      "manaGasta"
      ],
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },

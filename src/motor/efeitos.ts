@@ -29,7 +29,7 @@ const qtdOk = q0 => { const q = M.qn(q0); return q === undefined || typeof q ===
   || (!!q && typeof q === 'object' && M.contaOk(q.conta, 'efeito') && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'divCima', 'metade'].includes(k))
     && (q.metade === undefined || (q.metade === true && !(ehConj(q.conta) && q.conta.junta))) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1))
     && !(q.conta.de === 'cada' && q.conta.o === 'vida' && !(dentroCada > 0)) && !(q.conta.de === 'cada' && q.conta.o === 'marcadores' && !(dentroObj > 0))); };
-const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'danificado' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos)) || (v.um && M.filtroOk(v.um))));
+const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || v === 'convocaram' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'danificado' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos)) || (v.um && M.filtroOk(v.um))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k)) && (se.portadorDoAnel === undefined || se.portadorDoAnel === true || se.portadorDoAnel === 'este')
   && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || (qtdOk(se.conta.q) && ['min', 'max', 'igual'].every(k => se.conta[k] === undefined || typeof se.conta[k] === 'number' || qtdOk(se.conta[k]))))
   && (!se.esteEm || (Array.isArray(se.esteEm) && se.esteEm.length > 0 && se.esteEm.every(z => ['campo', 'cemiterio', 'exilio', 'mao', 'comando', 'grimorio'].includes(z)))));
@@ -228,6 +228,7 @@ const c0ts = (ctx, id) => (ctx.criadas.find(c => c.id === id) || {}).ts;
 function objsDe(e, f, ctx) {
   const v = f.em;
   if (v === undefined) return [];
+  if (v === 'convocaram') { const S = e.objs[ctx.este]; return ((S && S.convocou) || []).map(c => e.objs[c.id]).filter((o, k) => o && o.ts === S.convocou[k].ts && o.zona === 'campo'); }   // as criaturas que convocaram esta mágica (702.51c)
   if (v === 'descartadaCusto') { const S = e.objs[ctx.este]; return ((S && S.descCusto) || []).map(c => e.objs[c.id]).filter((o, k) => o && o.ts === S.descCusto[k].ts); }   // a carta descartada para pagar o custo desta ("if the discarded card wasn't a land")
   if (v && typeof v === 'object' && v.um) {   // "a creature you control" sem alvo: quem faz (quem, padrão você) escolhe uma ao resolver
     const ids = M.objetosQue(e, v.um.zona ? v.um : { ...v.um, zona: 'campo' }, ctx).map(o => o.id), j = f.quem === 'cadaAtual' ? ctx.cadaAtual : ctx.voce;
@@ -944,6 +945,27 @@ const H = {
         if (r.a === 'sim') M.mover(e, top, 'cemiterio');
         M.log(e, o.n, 'explora:', t.n, r.a === 'sim' ? '→ cemitério' : '(fica no topo)');
         M.evento(e, { ev: 'explora', id: o.id, j, terreno: false });   // gatilho "sempre que uma criatura sua explora" (lote B); terreno: o que revelou (Nicanzil)
+      }
+    },
+  },
+  // conivir (CR 701.50): o controlador de cada uma compra uma e descarta uma; se descartou carta não-terreno, +1/+1 nela
+  // (701.50a). Várias ao mesmo tempo: uma de cada vez, na ordem (701.50c). O processo roda de novo a cada pergunta: guarda a fase
+  conivir: {
+    fx(e, f, ctx, ask) {
+      const feitos = ctx.coniv || (ctx.coniv = new Map());
+      const l = feitos.get(f) || (feitos.set(f, { ids: objsDe(e, f, ctx).map(o => ({ id: o.id, ts: o.ts, j: o.ctrl })), n: 0, fase: 0 }), feitos.get(f));
+      for (; l.n < l.ids.length; l.n++, l.fase = 0) {
+        const r = l.ids[l.n], j = r.j;
+        if (l.fase === 0) { M.comprar(e, j, 1); l.fase = 1; }
+        if (l.fase === 1) {
+          const mao = e.jogs[j].zonas.mao;
+          const d = mao.length ? escolherN(ask, j, 'descartar', mao, 1, { ctx: { op: 'conivir' } }) : [];
+          l.desc = d.map(id => ({ id, terreno: M.temTipo(e, e.objs[id], 'Land') })); l.fase = 2;
+          if (d.length) M.descartar(e, j, d, { ask, efeito: true });
+        }
+        const o = e.objs[r.id];
+        if ((l.desc || []).some(x => !x.terreno) && o && o.ts === r.ts && o.zona === 'campo') M.porMarcadores(e, o, '+1/+1', 1);   // 701.50e: saiu do campo, sem marcador
+        M.log(e, o ? o.n : '?', 'conive');
       }
     },
   },

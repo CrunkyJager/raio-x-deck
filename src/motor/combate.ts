@@ -214,7 +214,9 @@ M.PROC.bloquear = (e, P, ask) => {
   e.proc = null;
   const pares = cands.filter(id => bl[id] !== undefined).map(id => [id, bl[id]]);
   for (const [id, i] of pares) M.evento(e, { ev: 'bloqueia', id, atk: C.atk[i].id });   // 509.3
+  const jaBloq = new Set(C.atk.filter(r => r.bloqueado).map(r => r.id));
   for (const [id, i] of pares) { C.atk[i].bloq.push({ id, ts: e.objs[id].ts }); C.atk[i].bloqueado = true; }   // 509.1h
+  for (const i of new Set<number>(pares.map(p => p[1] as number))) if (!jaBloq.has(C.atk[i].id)) M.evento(e, { ev: 'ficaBloqueada', id: C.atk[i].id, def: C.atk[i].def });   // 509.3c (def: "defending player", afflict)
   C.bloqueou = C.bloqueou || {}; C.bloqueou[d] = true;
   if (pares.length) M.log(e, e.jogs[d].nome, 'bloqueia:', pares.map(([id, i]) => e.objs[id].n + '×' + e.objs[C.atk[i].id].n).join(', '));
 };

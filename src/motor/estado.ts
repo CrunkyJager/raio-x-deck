@@ -1223,7 +1223,7 @@ M.condicao = (e, se, ctx) => {
   if (se.vidaOponenteMax !== undefined && !M.vivos(e).some(j => j !== ctx.voce && e.jogs[j].vida <= se.vidaOponenteMax)) return false;   // "um oponente com N ou menos de vida" (Bloodghast)
   if (se.conta) {   // min/max/igual podem ser outra contagem (Thassa's Oracle: devoção a azul ≥ cartas no grimório)
     const v = M.qtd(e, se.conta.q, ctx); if (v === null) return false;
-    const c: any = {}; for (const k of ['min', 'max', 'igual']) if (se.conta[k] !== undefined) { const b = M.qtd(e, se.conta[k], ctx); if (b === null) return false; c[k] = b; }
+    const c: any = {}; for (const k of ['min', 'max', 'igual']) if (se.conta[k] !== undefined) { const b = limite(e, se.conta[k], ctx); if (b === null || Number.isNaN(b)) return false; c[k] = b; }   // limite: o poder do este com soma (Liberator: "greater than Liberator's power")
     if (!compara(v, c)) return false;
   }
   return true;

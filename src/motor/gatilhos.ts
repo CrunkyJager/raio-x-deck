@@ -5,7 +5,7 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'ficaBloqueada']);
 const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
 const LACO = 500;
@@ -42,6 +42,7 @@ function bateEv(e, g, ev, F) {
     case 'explora': return ev.ev === 'explora' && (g.revelaTerreno === undefined || ev.terreno === g.revelaTerreno) && q(e.objs[ev.id]);   // CR 701.44c: "whenever a creature you control explores" (revelaTerreno: "explores a land / nonland card", Nicanzil)
     case 'atacantesDeclarados': return ev.ev === 'atacantesDeclarados' && !g.quem && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'bloqueia': return ev.ev === 'bloqueia' && q(e.objs[ev.id]);
+    case 'ficaBloqueada': return ev.ev === 'ficaBloqueada' && q(e.objs[ev.id]);   // 509.3c: "becomes blocked" — uma vez por atacante, por mais bloqueadores que tenha (afflict 702.130a)
     case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.recebe || (ev.o !== undefined && !!e.objs[ev.o] && bate(e, e.objs[ev.o], g.recebe, ctx))) && (!g.aJogador || ev.jog !== undefined) && (!g.aJogadorOuPw || ev.jog !== undefined || (ev.o !== undefined && !!e.objs[ev.o] && M.temTipo(e, e.objs[ev.o], 'Planeswalker'))) && (!g.aOponente || (ev.jog !== undefined && ev.jog !== F.ctrl)) && q(ev.snap || e.objs[ev.fonte]);
     // "uma ou mais … causam dano de combate a um jogador" (Prosperous Thief): o mesmo teste do dano, uma vez só por lote (abaixo)
     // recebe: quem levou o dano é um objeto que bate (enrage: {este: true}; Wrathful Raptors: Dinossauro seu)
@@ -424,4 +425,4 @@ M.porGatilhos = e => {
   return true;
 };
 // 603.4: condição de intervenção checada de novo ao resolver
-M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte });
+M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ...(o.pil && o.pil.ev ? { ev: o.pil.ev } : {}) });   // ev: a condição que lê o evento (Liberator: mana gasta) relê o mesmo (603.4)
