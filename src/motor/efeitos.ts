@@ -877,6 +877,18 @@ const H = {
       }
     },
   },
+  // popular (CR 701.36a): escolha uma ficha de criatura que você controla e crie uma ficha que é cópia dela (sem ficha: nada, 701.36b)
+  popular: {
+    fx(e, f, ctx, ask) {
+      for (const j of jogsDe(e, f, ctx)) {
+        const cand = M.objetosQue(e, { tipo: ['Creature'], ficha: true, ctrl: 'voce', zona: 'campo' }, { ...ctx, voce: j }).map(o => o.id);
+        if (!cand.length) continue;
+        const [id] = escolherN(ask, j, 'escolherCarta', cand, 1, { ctx: { op: 'popular' } });
+        const tok = copiaDe(e, { copiaDe: 'este' }, { ...ctx, este: id }); if (!tok) continue;
+        ctx.criadas = M.criarFichas(e, j, tok, 1).map(o => ({ id: o.id, ts: o.ts }));
+      }
+    },
+  },
   marcador: {                                                       // CR 122
     campos: ['tipoMarc', 'tirar'],
     fx(e, f, ctx) {

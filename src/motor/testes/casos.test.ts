@@ -3583,6 +3583,18 @@ caso('701.19', "buscar até uma contagem (Scapeshift: tantos terrenos quanto sac
   igual(f.jogs[0].vida, 42, '+2 da Bears');
 });
 
+caso('701.36a', "popular: cria cópia de uma ficha de criatura sua; sem ficha, nada (Growing Ranks, Song of the Worldsoul, Promise of Aclazotz aceitas)", () => {
+  const e = cena({});
+  M.criarFichas(e, 0, { pt: [2, 2], tipos: ['Creature'], sub: ['Wolf'], cores: 'G' }, 1);
+  M.criarFichas(e, 1, { pt: [5, 5], tipos: ['Creature'], sub: ['Wurm'], cores: 'G' }, 1);
+  M.executar(e, { op: 'popular', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  igual(e.campo.filter(id => e.objs[id].ctrl === 0).map(id => e.objs[id].ficha.sub[0]), ['Wolf', 'Wolf'], 'copiou o Lobo');
+  const f = cena({});
+  M.executar(f, { op: 'popular', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  igual(f.campo.length, 0, 'sem ficha: nada');
+  for (const c of ['Growing Ranks', 'Song of the Worldsoul', 'Promise of Aclazotz']) { const d = M.carta(c); ok([...(d.gat || []).map(g => M.gatOk(g)), M.fxSuportado(d.fx || [])].every(Boolean), c); }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
