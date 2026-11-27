@@ -3472,6 +3472,23 @@ caso('613.4c', "Conqueror's Flail: a equipada ganha +1/+1 por cor entre as suas 
   igual([M.poder(e, b), M.resistencia(e, b)], [4, 4], 'verde e vermelho: +2/+2');
 });
 
+caso('305.7', "tipo dado por filtro (613.1d): Dryad faz seus terrenos de todo tipo básico (Forest dá as 5 cores, 305.6); Ashaya faz suas criaturas não-ficha Florestas (viram para {G})", () => {
+  for (const c of ['Dryad of the Ilysian Grove', 'Ashaya, Soul of the Wild']) ok(M.carta(c).est.every(s => s.modo !== 'continuo' || M.estContOk(s)), c + ' aceita');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Dryad of the Ilysian Grove'], [1, 'Island']] });
+  const fo = objN(e, 0, 'Forest'), il = objN(e, 1, 'Island');
+  igual(M.dadoDe(e, fo).sub.slice().sort(), ['Forest', 'Island', 'Mountain', 'Plains', 'Swamp']);
+  igual(M.atvDe(e, fo).filter(a => a.deMana).flatMap(a => a.fx[0].prod).sort(), ['B', 'G', 'R', 'U', 'W'], 'mana das 5 cores');
+  igual(M.dadoDe(e, il).sub, ['Island'], 'do oponente não');
+  const f = cena({ campo: [[0, 'Ashaya, Soul of the Wild'], [0, 'Grizzly Bears'], [0, 'Forest']] });
+  const b = objN(f, 0, 'Grizzly Bears'), a = objN(f, 0, 'Ashaya, Soul of the Wild');
+  ok(M.temTipo(f, b, 'Land') && M.temTipo(f, b, 'Creature'), 'o Urso é terreno e criatura');
+  ok(M.fontesDeMana(f, 0).some(x => x.id === b.id), 'o Urso vira para mana');
+  igual(M.poder(f, a), 3, 'Ashaya conta 3 terrenos (ela, o Urso e a Floresta)');
+  M.criarFichas(f, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Elf'] }, 1);
+  const tk = f.campo.map(id => f.objs[id]).find(o => o.ficha);
+  ok(!M.temTipo(f, tk, 'Land'), 'ficha não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

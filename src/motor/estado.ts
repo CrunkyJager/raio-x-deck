@@ -30,12 +30,21 @@ const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if
 // a parte de tipo das estáticas que dão tipo/sub à 'equipada' (só {tipo, sub, se}: a kw vai pelas camadas)
 const TIPO_EQUIP = new WeakMap<object, any[]>();
 const tipoEquip = (d): any[] => { let l: any[] | undefined = TIPO_EQUIP.get(d); if (!l) TIPO_EQUIP.set(d, (l = (d.est || []).filter(s => M.estTipoEquipOk(s)).map(s => ({ tipo: s.tipo, sub: s.sub, se: s.se })))); return l as any[]; };
+// a parte de tipo das estáticas que dão tipo/sub a quem bate um filtro (Ashaya: "nontoken creatures you control are
+// Forest lands"; Dryad: "lands you control are every basic land type", CR 613.1d, 305.7 "in addition")
+const TIPO_FILTRO = new WeakMap<object, any[]>();
+const tipoFiltro = (d): any[] => { let l: any[] | undefined = TIPO_FILTRO.get(d); if (!l) TIPO_FILTRO.set(d, (l = (d.est || []).filter(s => M.estTipoFiltroOk(s)))); return l as any[]; };
+// tipo básico de terreno ganho (CR 305.6): "{T}: Add [cor]" intrínseca; objetos fixos para o cache de atv
+const MANA_BASICA = { Plains: 'W', Island: 'U', Swamp: 'B', Mountain: 'R', Forest: 'G' };
+const ATV_BASICA = Object.fromEntries(Object.entries(MANA_BASICA).map(([t, c]) => [t, { custo: { virar: true }, deMana: true, fx: [{ op: 'mana', prod: [c], qtd: 1 }] }]));
 const MISTO = new WeakMap<object, Map<any, any>>();
 const misto = (d, m) => {
   let c = MISTO.get(d); if (!c) MISTO.set(d, (c = new Map()));
   let r = c.get(m); if (r) return r;
   const un = (a, b) => b && b.length ? [...new Set([...(a || []), ...b])] : a;
   r = { ...d, tipos: un(d.tipos, m.tipos || m.tipo), sub: un(d.sub, m.sub) };   // animar escreve tipos; a estática, tipo
+  const novas = (m.sub || []).filter(t => ATV_BASICA[t] && !(d.sub || []).includes(t));
+  if (novas.length && (r.tipos || []).includes('Land')) r.atv = [...(d.atv || []), ...novas.map(t => ATV_BASICA[t])];
   if (m.pt) r.pt = m.pt;
   if (m.kw && m.kw.length) r.kw = [...(d.kw || []), ...m.kw];
   if (m.cores !== undefined) r.cores = m.cores;
@@ -74,6 +83,16 @@ M.dadoDe = (e, o) => {
       for (const id of tp) {
         const F = e.objs[id]; if (!F || !presoA(e, F, o)) continue;
         for (const s of tipoEquip(M.dadoDe(e, F))) { let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { ok = false; } } if (ok) d = misto(d, s); }
+      }
+      // com filtro: o filtro lê o objeto sem as mudanças de tipo (dependência 613.8 não tratada: Dryad não vê as
+      // criaturas que a Ashaya fez terreno — simplificação)
+      for (const id of indice(e).tf) {
+        const F = e.objs[id]; if (!F) continue;
+        for (const s of tipoFiltro(M.dadoDe(e, F))) {
+          const cx = { voce: F.ctrl, este: F.id };
+          let ok = false; try { ok = M.bate(e, o, s.afeta, cx) && (!s.se || M.condicao(e, s.se, cx)); } catch (_) { ok = false; }
+          if (ok) d = misto(d, s);
+        }
       }
     } finally { lendoTipo--; }
   }
@@ -480,9 +499,12 @@ const TERRA_BASICA = new Set(['Plains', 'Island', 'Swamp', 'Mountain', 'Forest']
 M.estTipoEquipOk = s => !!s && s.modo === 'continuo' && s.afeta === 'equipada' && !!(s.tipo || s.sub)
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).some(x => x === 'escolhido' || TERRA_BASICA.has(x))
   && Object.keys(s).every(k => CONT_OK.has(k) || k === 'tipo' || k === 'sub' || k.startsWith('_')) && (!s.se || M.seOk(s.se));
+M.estTipoFiltroOk = s => !!s && s.modo === 'continuo' && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && !!(s.tipo || s.sub)
+  && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'se'].includes(k)) && (s.tipo || []).every(t => TIPOS_CARTA.has(t))
+  && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
 const SEM_TIPO = new WeakMap<object, any>();
 const semTipo = s => { let r = SEM_TIPO.get(s); if (!r) { const { tipo, sub, ...x } = s; SEM_TIPO.set(s, (r = x)); } return r; };
-M.estContOk = s => M.estTipoOk(s) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
+M.estContOk = s => M.estTipoOk(s) || M.estTipoFiltroOk(s) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
   ? M.estTipoEquipOk(s) && (!(s.p !== undefined || s.r !== undefined || (s.kw || []).length || s.habil) || contOk(semTipo(s)))
   : contOk(s));
 const contOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
@@ -496,14 +518,14 @@ let lendoCamada = 0;
 // O mover e o criarFicha avisam quem entra e sai (M.campoEntra/M.campoSai); e.vCamada (transformar, trocar de
 // controle, anexar) ou o tamanho do campo fora do esperado refazem tudo. Antes a chave era e.ts: cada ficha nova
 // refazia a varredura, e com milhares de Goblins do Krenko cada evento era O(campo) — O(n²) na partida.
-type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; tp: number[]; l: [any, any][] | null; hab: boolean };
+type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; tp: number[]; tf: number[]; l: [any, any][] | null; hab: boolean };
 const IDX = new WeakMap<any, Idx>();
 function indice(e): Idx {
   let I = IDX.get(e);
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
-  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], l: null, hab: false };
+  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], tf: [], l: null, hab: false };
   lendoTipo++;   // o dadoDe daqui não lê o tipo dado pela equipada (é o próprio índice que ele usa)
-  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && o.ganhos.gat)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
+  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && o.ganhos.gat)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); if (tipoFiltro(d).length) I.tf.push(id); } }
   finally { lendoTipo--; }
   IDX.set(e, I);
   return I;
@@ -514,7 +536,7 @@ M.campoEntra = (e, id) => {
   const I = IDX.get(e); if (!I) return;
   if (I.v !== (e.vCamada || 0) || I.n + 1 !== e.campo.length) { IDX.delete(e); return; }
   let d; lendoTipo++; try { d = M.dadoDe(e, e.objs[id]); } finally { lendoTipo--; }
-  if (tipoEquip(d).length) { IDX.delete(e); return; }   // raro (Equipamento que dá tipo): refaz tudo, a equipada pode mudar de tipo
+  if (tipoEquip(d).length || tipoFiltro(d).length) { IDX.delete(e); return; }   // raro (Equipamento que dá tipo): refaz tudo, a equipada pode mudar de tipo
   I.n++;
   if (d.gat) I.gat.push(id);
   if (d.est) { I.est.push(id); I.l = null; }
@@ -528,6 +550,7 @@ M.campoSai = (e, id) => {
   k = I.est.indexOf(id); if (k >= 0) { I.est.splice(k, 1); I.l = null; }
   k = I.sb.indexOf(id); if (k >= 0) I.sb.splice(k, 1);
   k = I.tp.indexOf(id); if (k >= 0) I.tp.splice(k, 1);
+  k = I.tf.indexOf(id); if (k >= 0) I.tf.splice(k, 1);
 };
 // ganho de vida (CR 119.3) com as substituições 'ganhaVida' do campo (CR 614.1a): Angel of Vitality/Bilbo (soma),
 // The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
@@ -563,7 +586,7 @@ function fontesCont(e): Idx & { l: [any, any][] } {
   const I = indice(e);
   if (I.l) return I as Idx & { l: [any, any][] };
   const l: [any, any][] = [];
-  for (const id of I.est) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s)) l.push([id, s]);
+  for (const id of I.est) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s) && !M.estTipoFiltroOk(s)) l.push([id, s]);   // tipo com filtro: no dadoDe
   I.l = l; I.hab = l.some(([, s]) => s.habil);
   return I as Idx & { l: [any, any][] };
 }
