@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.67.1 — 27/11/2026 · Conserto do login (Meus decks)
+- **Entrar com Google** deve funcionar agora também no celular e no Safari. Antes o botão esperava baixar o Firebase e só depois abria a janela do Google; o navegador via isso como janela "sem clique" e bloqueava, e a reserva (ir e voltar pela página do Google) não funciona com o site no github.io. Agora o Firebase carrega quando o bloco "Meus decks" aparece na tela, e o clique abre a janela na hora. Se o navegador ainda bloquear, aparece o aviso para clicar de novo ou liberar pop-ups.
+- Para testar: aba Lista → Meus decks → Entrar com Google (ou com e-mail) → cole uma lista → Salvar → abra o site em outro navegador/PC e entre: o deck está lá.
+
 ## v0.67.0 — 27/11/2026 · Motor: mais 26 mecânicas (adeptos A, B, C + coordenador)
 Testes: check 0 erros · Vitest 412/412 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1619/1756 (eram 1573). Selo ⓘ da Mesa atualizado.
 - Mecânicas novas: popular, tentar o Anel, mover marcador, vigiar, anexar, explorar, turno extra, mentor, prole, tripular e outras da lista do T43 (detalhe nos commits `T43:` do dia).
