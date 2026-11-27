@@ -304,7 +304,12 @@ M.abe = e => {
       const d = M.dadoDe(e, o), nm = o.clone ? d.n || o.n : o.n;      // o clone tem o nome copiado (707.2)
       if ((d.super || []).includes('Legendary')) (lend[o.ctrl + '|' + nm] = lend[o.ctrl + '|' + nm] || []).push(id);
     }
-    const dup = Object.values<any>(lend).find(l => l.length > 1);
+    let dup = Object.values<any>(lend).find(l => l.length > 1);
+    if (dup) {                                                        // "the legend rule doesn't apply to Slivers you control" (Sliver Gravemother): tira os isentos
+      const isento = id => { const o = e.objs[id]; return M.indiceCampo(e).est.some(fid => { const F = e.objs[fid];
+        return F.ctrl === o.ctrl && (M.dadoDe(e, F).est || []).some(s => s.modo === 'semRegraLenda' && s.afeta && M.bate(e, o, { ...s.afeta, zona: 'campo' }, { voce: F.ctrl, este: F.id })); }); };
+      dup = Object.values<any>(lend).map(l => l.filter(id => !isento(id))).find(l => l.length > 1);
+    }
     if (dup) { e.perg = { j: e.objs[dup[0]].ctrl, tipo: 'lenda', ops: dup.map(id => ({ a: 'fica', id })), ctx: { ids: dup } }; return; }
     // comandante no cemitério/exílio desde a última checagem (CR 903.9a): o dono pode mandar ao comando
     while (e.abeNovo.length) {
