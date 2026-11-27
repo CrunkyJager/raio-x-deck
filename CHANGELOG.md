@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.61.0 — 27/11/2026 · X1 online (Mesa ao vivo)
+Testes: check 0 erros · Vitest 385/385 · partida Stangg igual à linha de base (erros 0) · `mesa-nova.mjs 7 --x1` IGUAIS · `x1-navegador.py`: partida inteira entre duas janelas, 21 turnos, telas IGUAIS.
+- **Jogar com amigo**: cada um no seu PC. O anfitrião cria a sala e manda o link, e o amigo entra com o deck dele. Só as escolhas passam pela rede e as duas telas refazem a mesma partida. Desfazer fica desligado no X1.
+- Conserto: clicar num exemplo antes da análise carregar não fazia nada; agora avisa e roda quando ela chega.
+
 ## v0.60.0 — 27/11/2026 · Motor: destruir sem regenerar
 Testes: check 0 erros · Vitest 385/385 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1525/1756 (eram 1520). Ivora e Masmorras: 20 partidas cada, 0 erros.
 - **"Não pode ser regenerada"** (CR 701.15c): Terminate, Putrefy, Pongify, Rapid Hybridization, Artifact Mutation. O motor ainda não tem regenerar, então a destruição já era definitiva; o campo agora é aceito. Quando regenerar entrar, tem que respeitar este campo.

@@ -1,6 +1,6 @@
 // ferramentas/mesa-nova.mjs — T22: joga uma partida da Mesa ao vivo com o motor novo (src/mesa/arena-nova.ts) no node,
 // com os 4 decks de exemplo montados como a página monta (engine.js), e compara com o motor velho (motor/mesa.js).
-// Uso: node ferramentas/mesa-nova.mjs [semente] [--log] [--humano]
+// Uso: node ferramentas/mesa-nova.mjs [semente] [--log] [--humano] [--x1]   (--x1: T47, dois humanos em dois "PCs" com a mesma lista de escolhas)
 import { createServer } from 'vite';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -36,5 +36,22 @@ try {
       esc.push(v); S.continua(esc.slice(), q.nq); if (nP > 3000) { console.log('humano: perguntas demais'); break; } } }
     const S2 = novaSessao(Ds, seed, { ...cfg, humano: { k: 0, esc } }); const f2 = S2.rodar();
     console.log('refeito do zero com as mesmas respostas:', f2.quadros.length, 'quadros, venc', cfg.nomes[f2.venc]);
+  }
+  if (arg.includes('--x1')) {             // T47: lugares 0 e 1 humanos; A e B são os dois PCs (cada um responde a sua, a lista é uma só)
+    const cx = { ...cfg, nomes: ['Anfitrião', 'Amigo', ...nomes.slice(2)] };
+    const ses = () => novaSessao(Ds, seed, { ...cx, humano: { k: 0, ks: [0, 1], esc: [] } });
+    const A = ses(), B = ses(), esc = [], deQuem = { 0: 0, 1: 0 }; let fA = null, fB = null, nP = 0, t2 = Date.now();
+    const roda = S => { try { return { fim: S.rodar() }; } catch (x) { if (!x.raioxPergunta) throw x; return { q: x.raioxPergunta }; } };
+    for (;;) {
+      const a = roda(A), b = roda(B);
+      if (a.fim || b.fim) { fA = a.fim; fB = b.fim; break; }
+      if (a.q.j !== b.q.j || a.q.tipo !== b.q.tipo || a.q.n !== b.q.n) { console.log('x1: DESSINCRONIZOU', a.q.j, a.q.tipo, a.q.n, '×', b.q.j, b.q.tipo, b.q.n); break; }
+      const q = a.q; nP++; deQuem[q.j]++;
+      const v = q.tipo === 'mulligan' ? 0 : q.tipo === 'lanca' ? (q.ops[0] ? q.ops[0].v : -1) : q.tipo === 'ataque' ? { alvo: q.alvos[0].v, at: q.ops.map(o => o.v) } : q.ops && q.ops[0] ? q.ops[0].v : 0;
+      esc.push(v); A.continua(esc.slice(), q.nq); B.continua(esc.slice(), q.nq);
+      if (nP > 4000) { console.log('x1: perguntas demais'); break; }
+    }
+    const ig = fA && fB && JSON.stringify(fA.log) === JSON.stringify(fB.log) && fA.venc === fB.venc;
+    console.log(`x1: ${nP} perguntas (anfitrião ${deQuem[0]}, amigo ${deQuem[1]}) · ${Date.now() - t2} ms · ${fA ? 'venc ' + cx.nomes[fA.venc] + ', ' + fA.quadros.length + ' quadros' : 'sem fim'} · os dois PCs ${ig ? 'IGUAIS' : 'DIFERENTES'}`);
   }
 } finally { await srv.close(); }

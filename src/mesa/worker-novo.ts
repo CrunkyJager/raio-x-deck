@@ -9,9 +9,9 @@ let SESS: { chave: string; s: ReturnType<typeof novaSessao> } | null = null;
 const cfgDe = (d: any) => ({ log: true, T: d.T || 20, vida: d.vida, nomes: d.nomes });
 
 function jogar(d: any) {
-  const chave = JSON.stringify([d.seed, d.T, d.vida, d.nomes, d.Dv.base, d.Dv.M.map((m: any) => m.nome), d.Ops.map((o: any) => [o.base, o.M.map((m: any) => m.nome)])]);
+  const chave = JSON.stringify([d.seed, d.T, d.vida, d.nomes, d.ks || null, d.Dv.base, d.Dv.M.map((m: any) => m.nome), d.Ops.map((o: any) => [o.base, o.M.map((m: any) => m.nome)])]);
   if (!SESS || SESS.chave !== chave || !SESS.s.continua(d.esc || [], d.desde || 0))
-    SESS = { chave, s: novaSessao([d.Dv, ...d.Ops], d.seed, { ...cfgDe(d), humano: { k: 0, esc: d.esc || [], desde: d.desde || 0 } }) };
+    SESS = { chave, s: novaSessao([d.Dv, ...d.Ops], d.seed, { ...cfgDe(d), humano: { k: 0, ...(d.ks ? { ks: d.ks } : {}), esc: d.esc || [], desde: d.desde || 0 } }) };
   try { const fim = SESS.s.rodar(); SESS = null; return { fim }; }
   catch (x: any) { if (!x.raioxPergunta) { SESS = null; throw x; } return { perg: x.raioxPergunta }; }
 }

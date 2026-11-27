@@ -65,7 +65,8 @@ export function arenaNova(Ds: any[], seed: number, cfg: any = {}) {
 /** sessão: a partida e o registro; rodar() joga até o fim ou até a próxima pergunta do humano (throw raioxPergunta) */
 export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
   const TMAX = cfg.T || 20, VIDA = cfg.vida || 40, NOM: string[] = cfg.nomes || Ds.map((_, k) => (k ? 'Oponente ' + k : 'Você'));
-  const HU = cfg.humano || null, HK = HU ? HU.k : -1;
+  const HU = cfg.humano || null, HS: number[] = HU ? (HU.ks || [HU.k]) : [];   // T47: X1 com amigo = dois humanos, uma lista de escolhas só (a ordem das perguntas é a mesma nos dois PCs)
+  let HK = HS.length ? HS[0] : -1;                                  // o humano da pergunta da vez
   const banco: any = bancoProprio();
   // nome no motor de cada carta do modelo (frente para dupla face/split) e o índice de volta (para a tela)
   const db: any = { ...banco };
@@ -117,7 +118,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         const an = M.anexosDe(e, o);
         if (an.length) x.an = an.map((a: any) => ({ n: a.n, i: iDe(a), de: a.ctrl !== j ? a.ctrl : undefined }));
         if ((d.sub || []).includes('Equipment') && !M.anexadoA(e, o)) x.solto = 1;
-        if (j === HK) piDe.set(o.id, x.pi);
+        if (HS.includes(j)) piDe.set(o.id, x.pi);
         perm.push(x);
       }
       const cmdD = e.jogs.map((_: any, i: number) => Object.entries(J.danoCmd).filter(([id]) => e.objs[id] && e.objs[id].dono === i).reduce((s, [, v]: any) => s + v, 0));
@@ -125,7 +126,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         vida: J.vida, vivo: !J.saiu, terr: terras.length, tes: 0, mao: J.zonas.mao.map((id: number) => iDe(e.objs[id])), lib: J.zonas.grimorio.length,
         zona: J.cmd.some((id: number) => e.objs[id] && e.objs[id].zona === 'comando'), tax: J.cmd.reduce((s: number, id: number) => s + 2 * (J.imposto[id] || 0), 0), cmdD,
         perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, ex: J.zonas.exilio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
-        ...((HK < 0 || j === HK) && J.zonas.grimorio.length && M.olhaTopo(e, j) ? { topo: iDe(e.objs[J.zonas.grimorio[J.zonas.grimorio.length - 1]]) } : {}),   // podeOlhar (Courser): o dono vê o topo
+        ...((HK < 0 || HS.includes(j)) && J.zonas.grimorio.length && M.olhaTopo(e, j) ? { topo: iDe(e.objs[J.zonas.grimorio[J.zonas.grimorio.length - 1]]) } : {}),   // podeOlhar (Courser): o dono vê o topo
       };
     });
     quadros.push({ t: rodada, k, log: log.length, j: ps });
@@ -290,7 +291,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
   function pede(tipo: string, info: any) {
     if (!fotoPendente) foto(HK); fotoPendente = false;
     if (HI < esc.length) return esc[HI++];
-    const q: any = { tipo, n: HI, t: rodada, ...info, quadro: quadros[quadros.length - 1], nq: quadros.length, lacs };
+    const q: any = { tipo, j: HK, n: HI, t: rodada, ...info, quadro: quadros[quadros.length - 1], nq: quadros.length, lacs };
     q.passos = quadros.slice(HD, -1).map(Q => ({ Q, ev: log[Q.log - 1] || null }));
     q.log = log.slice(-40);
     fotoPendente = true;
@@ -439,7 +440,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         despeja();
         if (rodada > TMAX) break;
         const p = e.perg;
-        const k = p.j === HK ? humano(p) : ag(e, p);
+        const k = HS.includes(p.j) ? (HK = p.j, humano(p)) : ag(e, p);
         M.responder(e, k);
       }
       despeja();

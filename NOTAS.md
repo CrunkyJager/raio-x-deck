@@ -240,6 +240,14 @@ Botão **"Jogar você mesmo"** na Mesa ao vivo: o motor pergunta, a tela respond
 - **Banco de 30 com a trava**: média −0,39 ±0,19 (`banco_trava`). O `banco_atual` (19/11) não serve de comparação: as trocas mudaram em 20/11 (sinergia + preços MYP), 0/30 listas iguais. Comparado igual por igual com o código sem a T08 (`banco_hoje`, mesmas trocas 28/28): +0,00 ±0,21 → diferença −0,44 ±0,29, dentro do ruído. Rin&Seri −9/−10 já acontece sem a trava (Beastmaster Ascension → Garruk's Uprising): problema das trocas por sinergia, a investigar.
 - Teste no Chrome headless: `LD_LIBRARY_PATH=$HOME/.local/pwlibs/usr/lib/x86_64-linux-gnu ~/.venv-pw/bin/python ...` (libs sem sudo).
 
+## X1 online: cada um no seu PC (T47, 27/11/2026, pedido do usuário)
+Na Mesa ao vivo, botão **"Jogar com amigo"** (`#v-x1`): cria uma sala no PeerJS (servidor público, sem conta) e mostra o link `?sala=<id>`. O amigo abre o link, cola o deck dele e clica em **"Entrar na sala do amigo"**.
+- Como funciona: os dois PCs rodam o MESMO motor com a mesma semente e os mesmos decks (`ks: [0, 1]` = os dois lugares são humanos). Só as escolhas andam pela rede (`{tp:'esc', v, n}`), e cada tela refaz a partida igual. O anfitrião é o lugar 0, o convidado é o 1 (`MEU_LUGAR()`); a tela vê do próprio lugar e mostra "Vez de X… esperando a escolha dele" na vez do outro.
+- Mensagens vão como texto JSON (`x1Txt`/`x1Obj`): o deck tem `Set`, e o PeerJS não manda Set/Map.
+- **Desfazer fica desligado no X1** (a escolha já foi para o amigo; desfazer só de um lado separaria as partidas).
+- Testes: `node ferramentas/mesa-nova.mjs 7 --x1` (motor, dois PCs com a mesma lista de escolhas terminam iguais) e `ferramentas/x1-navegador.py` (duas janelas do Chromium jogam uma partida inteira pela sala; 27/11: 21 turnos, 628 lances, IGUAIS).
+- Conserto junto: clicar num exemplo ou em Analisar antes de a análise carregar não fazia nada (`window.RAIOX?.run()` sem RAIOX); agora aparece "Carregando as cartas…" e a análise roda quando ela chega.
+
 ## Motor novo `motor2/` (T14 parte 1, 24/11/2026)
 Motor próprio pelas regras (CR 06/11/2026), lê `cartas-rx.js`; o velho (`motor/`) segue congelado até a T24.
 - `estado.js` (estado clonável com semente própria, zonas, mover = objeto novo CR 400.7, filtros/condições RX), `mana.js` (reserva, habilidades de mana, pagar com híbrido/phyrexiano, imposto 903.8, plano de quais fontes virar), `turno.js` (mulligan London 103.5, etapas CR 500, terreno 305 com "entra virado" condicional, ações de estado 704 + 903.9a/903.10a, jogador sai 800.4), `agentes.js` (aleatório, básico, `lerLista`).
