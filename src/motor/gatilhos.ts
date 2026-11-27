@@ -306,6 +306,13 @@ M.evento = (e, ev) => {
       const vezes = n * (1 + extras(e, F, g, ev));
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'mentor', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
+    // mobilizar N (CR 702.181a): "quando ataca, crie N fichas 1/1 vermelhas de Guerreiro viradas e atacando; sacrifique-as
+    // no começo da próxima etapa final" (o gatilho atrasado leva as criadas)
+    for (const k of M.kwDe(e, F).filter(x => x.k === 'mobilizar' && Number.isInteger(x.n) && x.n > 0)) {
+      const g = { ev: 'ataca', fx: [{ op: 'ficha', quem: 'voce', qtd: k.n, token: { pt: [1, 1], cores: 'R', tipos: ['Creature'], sub: ['Warrior'] }, virada: true, atacando: true },
+        { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'sacrificar', em: 'criadas' }] } }] };
+      for (let v = 0; v < 1 + extras(e, F, g, ev); v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'mobilizar', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+    }
     // corpo a corpo (CR 702.121a): "quando ataca, +1/+1 até o fim do turno por oponente que você atacou com criatura neste
     // combate" — o número de jogadores atacados (planeswalker não conta) é conhecido na declaração (508.1)
     const nm = M.kwDe(e, F).filter(x => x.k === 'corpo-a-corpo').length, C = e.turno.combate;

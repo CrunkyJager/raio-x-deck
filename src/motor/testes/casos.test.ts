@@ -4010,6 +4010,22 @@ caso('702.100', "evoluir: entra criatura sua maior (poder ou resistência) → +
   igual(e.pend.filter(p => p.k === 'evoluir').length, 0, 'menor: não');
 });
 
+caso('702.181', "mobilizar: Zurgo ataca e cria 1 Guerreiro virado e atacando; sacrificado na etapa final", () => {
+  const e = cena({ campo: [[0, 'Zurgo Stormrender']] });
+  const z = e.objs[e.campo[0]];
+  e.turno.combate = { atk: [{ id: z.id, ts: z.ts, alvo: { jog: 1 }, def: 1, bloq: [], bloqueado: false }] };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: z.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'mobilizar'); ok(p, 'disparou');
+  const cx: any = { voce: 0, este: z.id, alvos: [], ilegal: {}, lki: {} };
+  for (const f of p.g.fx) M.executar(e, f, cx, (_j, _t, ops) => ops[0]);
+  const w = e.campo.map(id => e.objs[id]).find(o => o.ficha && (o.ficha.sub || []).includes('Warrior'));
+  ok(w && w.virada && M.atacando(e, w), 'Guerreiro virado e atacando');
+  const A = e.atras[e.atras.length - 1];
+  M.executar(e, A.g.fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {}, criadas: A.mem.criadas }, () => ({ a: 'nao' }));
+  ok(w.zona !== 'campo', 'sacrificado');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
