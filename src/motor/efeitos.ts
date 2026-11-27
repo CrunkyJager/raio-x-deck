@@ -162,7 +162,6 @@ M.qtdMarcadorJogador = (e, j, t, q) => {
 };
 // "entra com marcadores" (614.1c, 614.12): os da própria carta e os dados por outras permanentes (Arwen, Bramblewood)
 function entraComMarcadores(e, o, x) {
-  for (const k of M.kwDe(e, o)) if (k.k === 'desaparecer' && Number.isInteger(k.n) && k.n > 0) M.porMarcadores(e, o, 'time', k.n);   // 702.63a: entra com N de tempo
   const d = M.dadoDe(e, o), lista: any[] = (d.subst || []).filter(s => tipoSubst(s) === 'entraMarc' && s.quem && s.quem.este && M.substOk(s)).map(s => ({ F: o, s }));
   for (const r of substsDe(e, 'entraMarc')) if (r.F.id !== o.id && !(r.s.quem && r.s.quem.este)) lista.push(r);
   for (const { F, s } of lista) {
@@ -1563,7 +1562,9 @@ const H = {
       H.moer.fx(e, { op: 'moer', quem: 'voce', qtd: n }, ctx);
       const k = (ctx.movidos || []).filter(x => !M.temTipo(e, e.objs[x.id], 'Land')).length;
       M.log(e, J.nome, 'radiação: moe', n, '—', k, 'não terreno');
-      if (k) { M.perderVida(e, j, k); M.marcadorJogador(e, j, 'rad', k, true); }
+      // "you gain life rather than lose life from radiation" (Strong, the Brutish Thespian): estática radiacaoGanhaVida
+      const ganha = k && M.indiceCampo(e).est.some(id => { const F = e.objs[id]; return F.ctrl === j && (M.dadoDe(e, F).est || []).some(s => s.modo === 'radiacaoGanhaVida'); });
+      if (k) { if (ganha) M.ganharVida(e, j, k); else M.perderVida(e, j, k); M.marcadorJogador(e, j, 'rad', k, true); }
     },
   },
   // suspender (CR 702.62a): tira um marcador de tempo da carta suspensa; ao tirar o último, dispara "você pode conjurá-la
@@ -1575,16 +1576,6 @@ const H = {
       o.marc.time--;
       M.log(e, o.n, 'perde um marcador de tempo', `(${o.marc.time})`);
       if (o.marc.time === 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.dono, k: 'suspender:conjura', g: { ev: 'fase', fx: [{ op: 'suspensoConjura' }] }, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'tiraMarcador', id: o.id, j: o.dono } });
-    },
-  },
-  // desaparecer (CR 702.63a): "se tem marcador de tempo, tire um"; ao tirar o último, dispara "sacrifique-o"
-  desaparecerTira: {
-    fx(e, f, ctx) {
-      const o = e.objs[ctx.este], L = ctx.lki && ctx.lki.este;
-      if (!o || o.zona !== 'campo' || (L && L.ts !== o.ts) || !(o.marc.time > 0)) return;
-      o.marc.time--;
-      M.log(e, o.n, 'perde um marcador de tempo', `(${o.marc.time})`);
-      if (o.marc.time === 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'desaparecer:sac', g: { ev: 'fase', fx: [{ op: 'sacrificar', em: 'este' }] }, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ev: 'tiraMarcador', id: o.id, j: o.ctrl } });
     },
   },
   suspensoConjura: {

@@ -223,7 +223,6 @@ const kwEntraDe = d => {
 // eco (CR 702.30a): "no começo da sua manutenção, se veio para o seu controle desde a sua última manutenção, sacrifique
 // a menos que pague o eco". o.eco marca a entrada no campo; a 1ª manutenção de quem controla dispara e apaga a marca.
 // Simplificação: troca de controle não remarca.
-const G_DESAP = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'desaparecerTira' }] };   // desaparecer (702.63a)
 const ECO = new WeakMap<object, any>();
 const ecoDe = kw => { let g = ECO.get(kw); if (!g) ECO.set(kw, (g = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'sacrificar', em: 'este', aMenosQue: { quem: 'voce', custo: { mana: kw.custo } } }] })); return g; };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
@@ -341,7 +340,6 @@ M.evento = (e, ev) => {
     }
     for (const id of e.campo) {
       const F = e.objs[id]; if (!F || F.ctrl !== ev.ativo) continue;
-      if (F.marc && F.marc.time > 0) for (const x of M.kwDe(e, F)) if (x.k === 'desaparecer') e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'desaparecer', g: G_DESAP, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } });   // 702.63a (cada instância, 702.63b)
       if (!F.eco) continue;
       delete F.eco;
       for (const x of M.kwDe(e, F)) if (x.k === 'eco' && x.custo) { const g = ecoDe(x); e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'eco', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } }); }

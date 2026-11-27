@@ -7042,7 +7042,9 @@ caso('122.1', "radiação: no começo da 1ª principal, mói N (rad); por não-t
     const g = e.jogs[0].zonas.grimorio, topo = g.slice(-3).map(id => e.objs[id].n);
     igual(topo.filter(n => n === 'Forest').length, 1, 'os 3 de cima: ' + topo);
     e.jogs[0].marc = { rad: 3 }; const v = e.jogs[0].vida;
-    e.turno.feito = false; M.avancar(e);
+    M.masmorrasEvento(e, { ev: 'fase', passo: 'principal1', ativo: 0 });   // a radiação é a do masmorras.ts (gatilho inerente, 729.1)
+    const p = e.pend.find(x => x.k === 'radiacao'); ok(p, 'disparou');
+    for (const f of p.g.fx) M.executar(e, f, { voce: p.ctrl, alvos: [], ilegal: {}, lki: {} }, (_j, _t, o) => o[0]);
     igual(e.jogs[0].zonas.cemiterio.length, 3, 'moeu 3');
     igual([e.jogs[0].vida, e.jogs[0].marc.rad], [comStrong ? v + 2 : v - 2, 1], comStrong ? 'Strong: +2' : '-2, sobra 1 rad');
   }
@@ -7210,15 +7212,6 @@ caso('702.62c', 'suspender de criatura: conjurada ao tirar o último marcador ga
   } finally { delete (banco.db as any)[nm]; }
 });
 
-caso('702.63a', 'desaparecer 2 (Dreamtide Whale): entra com 2 de tempo; tira 1 só na manutenção de quem controla; ao tirar o último é sacrificada', () => {
-  const e = cena({ mao: [[0, 'Dreamtide Whale']] }); e.pend = [];
-  const w = e.jogs[0].zonas.mao[0]; M.aplicarEntrada(e, { id: w, ctrl: 0 });
-  igual(e.objs[w].marc.time, 2, 'entrou com 2');
-  ateTurno(e, 3); igual(e.objs[w].marc.time, 2, 'manutenção do oponente não tira');
-  ateTurno(e, 4); igual(e.objs[w].marc.time, 1, 'tira 1');
-  ateTurno(e, 6); igual(e.objs[w].zona, 'cemiterio', 'tirou o último: sacrificada');
-});
-
 caso('613.1f', "Tishana's Tidebinder: anulada a habilidade de uma criatura, ela perde todas as habilidades (voar, ativadas) enquanto a Tidebinder estiver no campo; o dado antes some, o dado depois fica (613.7); a Tidebinder sai, volta tudo", () => {
   ok(M.gatOk(M.carta("Tishana's Tidebinder").gat[0]), 'aceita');
   const e = cena({ campo: [[0, "Tishana's Tidebinder"], [1, 'Serra Angel'], [1, 'Llanowar Elves']] });
@@ -7255,7 +7248,6 @@ caso('613.1f', "Poppet Factory: as fichas de criatura suas perdem todas as habil
   ok(M.temKw(e, dele, 'voar'), 'a do oponente voa');
   ok(M.temKw(e, objN(e, 0, 'Serra Angel'), 'voar'), 'não ficha: voa');
   ok(M.perdeTs(e, meu) > 0 && !M.perdeTs(e, objN(e, 0, 'Serra Angel')), 'perdeTs');
-});
 });
 
 caso('508.1', "Moraug, Fury of Akoum: suas criaturas +1/+0 por vez que atacaram neste turno (conta {de:'cada', o:'ataques'}); entrar atacando não conta (508.4)", () => {
