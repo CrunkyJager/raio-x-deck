@@ -4,20 +4,37 @@
 // Gatilho com campo/efeito/filtro que o núcleo não lê NÃO dispara (nada joga errado em silêncio).
 import { M } from './nucleo';
 
-const EV_OK = new Set(['danoPrevenido', 'gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
+const EV_OK = new Set(['danoPrevenido', 'gasta', 'destranca', 'viradaParaCima', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'atacaJogador', 'reflexo', 'bloqueia', 'naoBloqueada', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa']);
 const CAMPOS_OK = new Set(['naoPorEste', 'ouConjurada', 'comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
-const LACO = 500;
+// CR 104.4b/732: laço obrigatório = empate. Muitos disparos não bastam (Krenko com 700 goblins + Purphoros é finito):
+// passado LACO, cada disparo da mesma habilidade grava a assinatura do estado; laço = a mesma assinatura de novo.
+// Laço que cresce (ficha criando ficha) nunca repete o estado: TETO disparos no turno encerram também.
+const LACO = 500, TETO = 20000;
+// o estado sem ids/ts (que só crescem): vidas, marcadores, mana, tamanho das zonas, o campo por nome, pilha e pendentes
+const assinatura = (e): string => {
+  const nm = id => { const o = e.objs[id]; return o ? o.n + (o.face ? '/' + o.face : '') : '?'; };
+  const mc = m => m ? Object.keys(m).filter(k => m[k]).sort().map(k => k + m[k]).join(',') : '';
+  const jogs = e.jogs.map(j => [j.saiu ? 'x' : '', j.vida, j.veneno, mc(j.marc), mc(j.reserva), ...Object.keys(j.zonas).sort().map(z => j.zonas[z].length)].join(':'));
+  const campo = e.campo.map(id => { const o = e.objs[id]; return [nm(id), o.ctrl, o.virada ? 1 : 0, mc(o.marc), o.anexo ? nm(o.anexo.id) : ''].join(':'); }).sort();
+  const pend = e.pend.map(p => p.n + '#' + p.k);
+  let h1 = 0x811c9dc5, h2 = 0;   // FNV-1a + djb2: 64 bits, chave curta
+  for (const t of [jogs.join('|'), campo.join('|'), e.pilha.map(nm).join('|'), pend.join('|'), e.turno.passo]) for (let i = 0; i < t.length; i++) {
+    const c = t.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = (Math.imul(h2, 33) + c) | 0;
+  }
+  return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36);
+};
+M.assinaturaLaco = assinatura;
 const memoOk = new WeakMap();
 // grupo ("uma ou mais"): só no descarte por ora
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
   if (g.ev === 'viraParaMana') { const v = M.gatManaOk(g); memoOk.set(g, v); return v; }   // habilidade de mana desencadeada: mana.ts (605.1b)
-  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' || g.ev === 'gasta' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.porAtivada || (g.porAtivada === true && g.ev === 'alvoDe')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && (!g.naoPorEste || (g.naoPorEste === true && g.ev === 'entra')) && (!g.ouConjurada || (g.ouConjurada === true && g.ev === 'entra' && !!g.de)) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
+  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' || g.ev === 'gasta' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez' || g.ev === 'atacaJogador') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogador || g.ev === 'dano' || g.ev === 'danoUmaVez' || g.ev === 'naoBloqueada') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.porAtivada || (g.porAtivada === true && g.ev === 'alvoDe')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && (!g.naoPorEste || (g.naoPorEste === true && g.ev === 'entra')) && (!g.ouConjurada || (g.ouConjurada === true && g.ev === 'entra' && !!g.de)) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por)) && (!g.recebe || (g.ev === 'dano' && M.filtroOk(g.recebe)));
-  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'nao', 'emCombate'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se)) && (!g.se.nao || M.seOk(g.se.nao));   // nao: "if it isn't that player's turn" (Tataru Taru)
+  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'eventoMais', 'contra', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'nao', 'emCombate'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se)) && (!g.se.nao || M.seOk(g.se.nao));   // nao: "if it isn't that player's turn" (Tataru Taru)
   memoOk.set(g, ok);
   return ok;
 };
@@ -30,6 +47,12 @@ function bateEv(e, g, ev, F) {
   const ctx = { voce: F.ctrl, este: F.id, movidos: F.movidos }, q = o => !g.quem || (o && bate(e, o, g.quem, ctx));   // movidos: os afetados do efeito temporário (filtro lembrada: Tamiyo +1)
   switch (g.ev) {
     case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && (!g.de || ev.de === g.de || (g.ouConjurada && ev.de === 'pilha' && !!e.objs[ev.id] && e.objs[ev.id].conjDe === g.de)) && (!g.naoDe || ev.de !== g.naoDe) && (!g.naoPorEste || ev.porFx !== F.id) && q(e.objs[ev.id]);   // naoPorEste: "if it wasn't put onto the battlefield with this ability" (Kodama of the East Tree); ouConjurada: "entered from a graveyard or was cast from a graveyard" (Kotis)   // de: "enters from a graveyard" (River Kelpie, Kotis)
+    case 'viradaParaCima': return ev.ev === 'viradaParaCima' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && (g.quem ? q(e.objs[ev.id]) : ev.id === F.id);   // 708.8: "when this is turned face up" (quem: de outra)
+    case 'destranca': {                                                                // 709.5h: "when you unlock this door": o gatilho é o da porta destrancada
+      if (ev.ev !== 'destranca' || ev.id !== F.id || ev.ts !== F.ts || F.ficha) return false;
+      const lado = M.dadoFace(M.carta(F.n), ev.porta === 'e' ? 'esq' : 0);
+      return (lado.gat || []).includes(g);
+    }
     case 'ficaMonstruosa': return ev.ev === 'ficaMonstruosa' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.37b
     case 'vira': return ev.ev === 'vira' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.26a
     case 'fichaCriada': return ev.ev === 'fichaCriada' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 111.2: quem cria = ev.j
@@ -41,7 +64,9 @@ function bateEv(e, g, ev, F) {
     case 'ataca': return ev.ev === 'ataca' && q(e.objs[ev.id]);
     case 'explora': return ev.ev === 'explora' && (g.revelaTerreno === undefined || ev.terreno === g.revelaTerreno) && q(e.objs[ev.id]);   // CR 701.44c: "whenever a creature you control explores" (revelaTerreno: "explores a land / nonland card", Nicanzil)
     case 'atacantesDeclarados': return ev.ev === 'atacantesDeclarados' && !g.quem && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
+    case 'atacaJogador': return ev.ev === 'atacaJogador' && !g.quem && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && (!g.aOponente || ev.jog !== F.ctrl);   // ev.j atacou ev.jog
     case 'bloqueia': return ev.ev === 'bloqueia' && q(e.objs[ev.id]);
+    case 'naoBloqueada': return ev.ev === 'naoBloqueada' && (!g.aJogador || ev.jog !== undefined) && q(e.objs[ev.id]);   // 509.3g; aJogador: "attacks a player and isn't blocked"
     case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.recebe || (ev.o !== undefined && !!e.objs[ev.o] && bate(e, e.objs[ev.o], g.recebe, ctx))) && (!g.aJogador || ev.jog !== undefined) && (!g.aJogadorOuPw || ev.jog !== undefined || (ev.o !== undefined && !!e.objs[ev.o] && M.temTipo(e, e.objs[ev.o], 'Planeswalker'))) && (!g.aOponente || (ev.jog !== undefined && ev.jog !== F.ctrl)) && q(ev.snap || e.objs[ev.fonte]);
     // "uma ou mais … causam dano de combate a um jogador" (Prosperous Thief): o mesmo teste do dano, uma vez só por lote (abaixo)
     // recebe: quem levou o dano é um objeto que bate (enrage: {este: true}; Wrathful Raptors: Dinossauro seu)
@@ -153,6 +178,16 @@ function proeza(e, ev) {
     for (let i = 0; i < n; i++) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'proeza', g: PROEZA, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ...ev, snap: undefined } });
   }
 }
+// suspender (702.62a): "no começo da sua manutenção, se esta carta está suspensa, tire um marcador de tempo dela" — gatilho
+// de carta no exílio do dono; a condição é vista ao disparar e ao resolver (603.4). O segundo ("ao tirar o último") sai do op.
+const G_SUSP_TIRA = { ev: 'fase', fx: [{ op: 'suspensoTira' }] };
+M.suspensa = o => !!o && o.zona === 'exilio' && !!o.suspensa && (o.marc.time || 0) > 0;   // 702.62b
+M.suspensoEvento = (e, j) => {
+  for (const id of e.jogs[j].zonas.exilio) {
+    const o = e.objs[id]; if (!M.suspensa(o) || !M.suspenderDe(e, o)) continue;
+    e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'suspender', g: G_SUSP_TIRA, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'fase', passo: 'manutencao', j } });
+  }
+};
 M.fimAtrasados = e => { if (e.atras && e.atras.length) e.atras = e.atras.filter(A => !(A.g.nesteTurno && A.t !== e.turno.n)); };
 
 // ---------- dobraGatilho (CR 603.2d): "dispara uma vez a mais" ----------
@@ -287,9 +322,14 @@ M.evento = (e, ev) => {
       if (g.naoPrimeira && ev.primeiraEtapa) continue;                                     // Xyris: a 1ª compra da etapa de compra não
       if (g.limite) { const T = e.turno, ch = F.id + ':' + F.ts + ':' + k; T.lim = T.lim || {}; if (T.lim[ch]) continue; T.lim[ch] = true; }   // "só uma vez a cada turno"
 
-      // CR 104.4b: laço que ninguém pode parar = empate. Mais de LACO disparos da mesma habilidade num turno só acontece
-      // com dado errado (ex.: o "uma vez por turno" faltando) ou laço de verdade; a partida acaba em vez de travar.
-      { const T = e.turno, ch = F.id + ':' + k; T.disp = T.disp || {}; if ((T.disp[ch] = (T.disp[ch] || 0) + 1) > LACO) { e.fim = e.fim || { vencedor: null, motivo: 'laço obrigatório (104.4b): ' + F.n }; M.log(e, 'laço obrigatório:', F.n); return; } }
+      // CR 104.4b: laço que ninguém pode parar = empate (ver LACO/TETO); a partida acaba em vez de travar.
+      { const T = e.turno, ch = F.id + ':' + k; T.disp = T.disp || {}; const n = T.disp[ch] = (T.disp[ch] || 0) + 1;
+        if (n > LACO) {
+          T.sigs = T.sigs || {}; const S = T.sigs[ch] = T.sigs[ch] || {}, a = assinatura(e);
+          const fim = S[a] ? 'laço obrigatório (104.4b): ' : n > TETO ? 'laço sem fim (104.4b, ' + TETO + ' disparos): ' : '';
+          if (fim) { e.fim = e.fim || { vencedor: null, motivo: fim + F.n }; M.log(e, 'laço obrigatório:', F.n); return; }
+          S[a] = 1;
+        } }
       const vezes = 1 + extras(e, F, g, ev);
       const dada = k >= nb || mudado ? { g } : {};                                                // habilidade dada (camadas): leva o texto
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(g.grupo && SAIDA.has(g.ev) && ev.snap ? { loteP: [M.poder(e, ev.snap)] } : {}), ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem
@@ -297,6 +337,7 @@ M.evento = (e, ev) => {
   }
   atrasados(e, ev);
   temporarios(e, ev);
+  if (ev.ev === 'fase' && ev.passo === 'manutencao') M.suspensoEvento(e, ev.ativo);       // suspender (702.62a): as cartas suspensas do ativo
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
@@ -306,7 +347,8 @@ M.evento = (e, ev) => {
       for (const x of M.kwDe(e, F)) if (x.k === 'desaparecer') e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'desaparecer', g: GAT_DESAPARECER, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } });
     }
     for (const id of e.campo) {
-      const F = e.objs[id]; if (!F || !F.eco || F.ctrl !== ev.ativo) continue;
+      const F = e.objs[id]; if (!F || F.ctrl !== ev.ativo) continue;
+      if (!F.eco) continue;
       delete F.eco;
       for (const x of M.kwDe(e, F)) if (x.k === 'eco' && x.custo) { const g = ecoDe(x); e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'eco', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } }); }
     }
@@ -338,12 +380,20 @@ M.evento = (e, ev) => {
     // evoluir (CR 702.100a): "sempre que uma criatura entra sob seu controle, se ela tem poder ou resistência maior que
     // esta, +1/+1 nesta". A condição (603.4) é vista ao disparar e de novo ao resolver (M.gatilhoAindaVale; 702.100b:
     // se a que entrou já saiu, vale o último P/R conhecido, guardado aqui em ev.evo).
+    // soulbond (CR 702.95a), a outra metade: outra criatura entra sob o seu controle → cada soulbond seu sem par pode parear com ela
+    const fSb = M.temTipo(e, F, 'Creature') && !M.parDe(e, F);
     if (M.temTipo(e, F, 'Creature')) for (const id of e.campo) {
       const X = e.objs[id]; if (!X || X.id === F.id || X.ctrl !== F.ctrl || !M.temTipo(e, X, 'Creature')) continue;
-      const n = M.kwDe(e, X).filter(x => x.k === 'evoluir').length; if (!n) continue;
+      const kws = M.kwDe(e, X);
+      if (fSb && !M.parDe(e, X) && kws.some(x => x.k === 'soulbond')) e.pend.push({ fonte: X.id, ts: X.ts, ctrl: X.ctrl, k: 'soulbond', g: SOULBOND_OUTRA, n: X.n, ficha: X.ficha || null, lki: M.lkiDe(e, X), ev: { ...ev, snap: undefined } });
+      const n = kws.filter(x => x.k === 'evoluir').length; if (!n) continue;
       if (!(M.poder(e, F) > M.poder(e, X) || M.resistencia(e, F) > M.resistencia(e, X))) continue;
       for (let v = 0; v < n * (1 + extras(e, X, EVOLUIR, ev)); v++) e.pend.push({ fonte: X.id, ts: X.ts, ctrl: X.ctrl, k: 'evoluir', g: EVOLUIR, n: X.n, ficha: X.ficha || null, lki: M.lkiDe(e, X), ev: { ...ev, snap: undefined, evo: { ts: F.ts, p: M.poder(e, F), r: M.resistencia(e, F) } } });
     }
+    // soulbond (CR 702.95a): "você pode parear esta com outra criatura sua não pareada quando uma das duas entra": a que
+    // entra com soulbond, sem par → escolhe ao resolver (a outra metade está no laço do evoluir, acima)
+    if (M.temTipo(e, F, 'Creature') && M.kwDe(e, F).some(x => x.k === 'soulbond') && !M.parDe(e, F))
+      e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'soulbond', g: SOULBOND_ESTE, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     // prole (CR 702.175a): pago o custo, "quando entra, cria uma ficha cópia dela, só que 1/1"; a ficha não tem o pago (não repete)
     if (F.conjCom && F.conjCom.prole && (M.dadoDe(e, F).kw || []).some(x => x.k === 'prole')) {
       const vezes = 1 + extras(e, F, PROLE, ev);
@@ -386,6 +436,7 @@ M.evento = (e, ev) => {
   }
 };
 const EVOLUIR = { ev: 'entra', fx: [{ op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 1 }] };
+const SOULBOND_ESTE = { ev: 'entra', fx: [{ op: 'parear' }] }, SOULBOND_OUTRA = { ev: 'entra', fx: [{ op: 'parear', em: 'doEvento' }] };   // 702.95a
 const PROLE = { ev: 'entra', quem: { este: true }, fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: { copiaDe: 'este', pt: [1, 1] } }] };
 
 // Ordem que não muda nada (Edigar 26/11, Ivora + Bag of Holding no mesmo descarte): pela regra a ordem é do jogador

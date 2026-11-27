@@ -227,7 +227,7 @@ function fxs(P: Perfil, lista: RxFx[] | undefined, x: Ctx, c: CartaB) {
         break;
       }
       case 'ganharControle': poe(P, 'steal', x); break;
-      case 'copiarPermanente': case 'copiarMagica': poe(P, 'copy', x); break;
+      case 'copiarPermanente': case 'copiarMagica': case 'copiarHabilidade': poe(P, 'copy', x); break;
       case 'faseExtra': case 'turnoExtra': poe(P, 'extra', x); break;
       case 'virarMonarca': case 'incitar': poe(P, 'politics', x); break;
       case 'marcador': if (!e.tirar && e.tipoMarc === '+1/+1') poe(P, 'counters', x); break;
