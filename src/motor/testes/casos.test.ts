@@ -2191,6 +2191,20 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('605.1b', "gatilho de mana ao virar terreno (Wild Growth, Regal Behemoth): resolve na hora, o solver conta com ele; Behemoth só se for o monarca", () => {
+  for (const c of ['Wild Growth', 'Fertile Ground', 'Regal Behemoth', "Mirari's Wake"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Wild Growth'], [0, 'Regal Behemoth']], passo: 'principal2' }); e.pend = [];
+  const [fo, wg] = e.campo;
+  e.objs[wg].anexo = { id: fo, ts: e.objs[fo].ts };
+  const tot = p => Object.values(p).reduce((a: number, b: any) => a + b, 0);
+  igual(M.fontesDeMana(e, 0).find(f => f.id === fo).pacotes.map(tot), [2], 'sem monarca: Forest + Wild Growth = 2');
+  ok(!!M.planoMana(e, 0, { g: 1, p: ['G'] }), 'paga {1}{G} só com a Forest');
+  M.virarMonarca(e, 0);
+  const pac = M.fontesDeMana(e, 0).find(f => f.id === fo).pacotes;
+  igual([pac.length, tot(pac[0])], [5, 3], 'monarca: + 1 de qualquer cor (5 escolhas)');
+  M.ativarMana(e, 0, fo, 0, 0);
+  igual([e.objs[fo].virada, tot(e.jogs[0].reserva)], [true, 3], 'virou e a reserva tem 3');
+});
 caso('724', "Éomer: 'target player becomes the monarch' — a IA escolhe a si mesma; Faramir: na sua etapa final, se você é o monarca (603.4), 2 fichas", () => {
   const Eo = M.carta('Éomer, King of Rohan'), Fa = M.carta('Faramir, Steward of Gondor');
   ok(M.gatOk(Eo.gat[0]) && M.gatOk(Fa.gat[1]), 'gatilhos aceitos');

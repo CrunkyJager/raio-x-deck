@@ -44,6 +44,34 @@ M.filtroSo = (o, so) => {
   }
   return f;
 };
+// CR 605.1b: "sempre que [terreno] for virado para mana, adicione…" (Wild Growth, Fertile Ground, Regal Behemoth,
+// Mirari's Wake) é habilidade de mana desencadeada: resolve na hora, sem pilha (605.4a). O motor soma a mana dela aos
+// pacotes da habilidade que vira o terreno (o solver já conta com ela). Quem recebe: 'controlador' = quem controla o
+// terreno; sem quem = quem controla a fonte do gatilho. Só entra no pacote quando quem recebe é quem virou; senão vai
+// direto à reserva do outro no ativarMana.
+M.gatManaOk = g => !!g && g.ev === 'viraParaMana' && Object.keys(g).every(k => ['ev', 'quem', 'se', 'fx'].includes(k)) && (!g.quem || M.filtroOk(g.quem))
+  && (!g.se || (Object.keys(g.se).every(k => ['monarca', 'controla', 'existe'].includes(k)) && M.condValorOk(g.se))) && (g.fx || []).length > 0
+  && g.fx.every(f => f.op === 'mana' && Object.keys(f).every(k => ['op', 'prod', 'qtd', 'quem'].includes(k)) && [undefined, 'voce', 'controlador'].includes(f.quem)
+    && (f.qtd === undefined || (Number.isInteger(f.qtd) && f.qtd > 0)) && (f.prod === 'qualquer' || (Array.isArray(f.prod) && f.prod.every(c => TIPOS.includes(c)))));
+// [fonte, fx, quem recebe] dos gatilhos de mana que olham para o terreno o
+const gatsMana = (e, o) => {
+  const mk = M.memo && 'vpm';
+  let fontes: any[] = mk && M.memo[mk];
+  if (!fontes) {
+    fontes = [];
+    for (const id of e.campo) { const F = e.objs[id]; for (const g of M.gatDe(e, F)) if (g.ev === 'viraParaMana' && M.gatManaOk(g)) fontes.push([F, g]); }
+    if (mk) M.memo[mk] = fontes;
+  }
+  const r: any[] = [];
+  for (const [F, g] of fontes) {
+    const ctx = { voce: F.ctrl, este: F.id };
+    if (g.quem && !M.bate(e, o, { zona: 'campo', ...g.quem }, ctx)) continue;
+    if (g.se && !M.condicao(e, g.se, ctx)) continue;
+    for (const f of g.fx) r.push([F, f, f.quem === 'controlador' ? o.ctrl : F.ctrl]);
+  }
+  return r;
+};
+M.gatsMana = gatsMana;
 M.pacotesDe = (e, o, atv, ctx: any = {}) => {
   let pac = [M.zeroMana()];
   for (const f of atv.fx || []) {
@@ -59,6 +87,12 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
     if (!cs || q === null) return null;
     if (!cs.length || q <= 0) continue;
     const novo: any[] = [];
+    for (const p of pac) for (const c of cs) { const n = { ...p }; n[c] += q; novo.push(n); }
+    pac = novo;
+  }
+  if (atv.custo && atv.custo.virar) for (const [F, f, quem] of gatsMana(e, o)) {   // 605.1b: só "virado para mana"
+    if (quem !== o.ctrl) continue;
+    const cs = M.coresDeProd(e, F, f.prod), q = f.qtd ?? 1, novo: any[] = [];
     for (const p of pac) for (const c of cs) { const n = { ...p }; n[c] += q; novo.push(n); }
     pac = novo;
   }
@@ -117,6 +151,9 @@ M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
   const R = e.jogs[j].reserva;
   for (const c of TIPOS) R[c] += p[c];
   M.log(e, e.jogs[j].nome, 'mana de', o.n, fmt(p));
+  if (a.custo.virar) for (const [F, f, quem] of gatsMana(e, o)) if (quem !== j && !e.jogs[quem].saiu) {   // gatilho de mana de outro jogador (Fertile Ground do oponente no seu terreno)
+    const c = (M.coresDeProd(e, F, f.prod) || [])[0]; if (c) { e.jogs[quem].reserva[c] += f.qtd ?? 1; M.log(e, e.jogs[quem].nome, 'mana de', F.n, (f.qtd ?? 1) + c); }
+  }
 };
 
 // CR 106.4: a reserva esvazia no fim de cada etapa e fase
