@@ -780,7 +780,20 @@ M.perderVida = (e, j, q) => {
   const J = e.jogs[j]; J.vida -= q;
   J.perdT = { t: e.turno.n, n: (J.perdT && J.perdT.t === e.turno.n ? J.perdT.n : 0) + q };   // "the life that player lost this turn"
   M.evento(e, { ev: 'perdeVida', j, q });
+  M.subirVelocidade(e, j);
   return q;
+};
+// velocidade (CR 702.179d): o jogador com velocidade tem "sempre que um ou mais oponentes perdem vida durante o seu turno,
+// se sua velocidade for menor que 4, ela sobe 1; só dispara uma vez por turno". Sobe na hora (gatilho sem fonte; sem pilha:
+// simplificação). Nada tira a velocidade quando a permanente sai; "Max speed" = velocidade 4 (702.179e, 702.178a: 'maxspeed').
+M.subirVelocidade = (e, j) => {
+  const a = e.turno && e.turno.ativo, P = e.jogs[a];
+  if (a === undefined || a === j || !P || !P.vel || P.vel >= 4 || P.velT === e.turno.n) return;
+  P.velT = e.turno.n; P.vel++; M.log(e, P.nome, 'velocidade', P.vel);
+};
+// Start your engines! (702.179a): quem controla uma permanente com ela e não tem velocidade passa a ter 1 (é ABE, 704)
+M.ligarMotores = e => {
+  for (const J of e.jogs) if (!J.saiu && !J.vel && e.campo.some(id => e.objs[id].ctrl === J.i && M.temKw(e, e.objs[id], 'ligarMotores'))) { J.vel = 1; M.log(e, J.nome, 'velocidade', 1); }
 };
 // quem no campo tem estática 'continuo' lida (sem isso, cada leitura de P/R ou palavra-chave varria o campo inteiro)
 function fontesCont(e): Idx & { l: [any, any][] } {
@@ -954,6 +967,11 @@ const selarDe = kw => {
   if (!a) SELA.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, vel: 'feitico', _selar: true, fx: [{ op: 'selar' }] }));
   return a;
 };
+// estação (CR 702.184a): "vire outra criatura desvirada sua: ponha neste marcadores de carga iguais ao poder da virada.
+// Só como feitiço." Os símbolos 'N+' (722.2a: com N ou mais marcadores de carga, tem as habilidades) são atv/est com
+// se {conta: {q: {conta: {de:'este', o:'marcadores', marc:'charge'}}, min: N}}; 'N+' com P/R (722.2b, Spacecraft) ainda não.
+const ESTACAO = { custo: { virarOutros: { f: { tipo: ['Creature'] }, qtd: 1 } }, vel: 'feitico', _estacao: true,
+  fx: [{ op: 'marcador', em: 'este', tipoMarc: 'charge', qtd: { conta: { de: 'viradas', o: 'poder', junta: 'soma' } } }] };
 M.selada = (e, o) => !!o.selada && o.selada.ts === o.ts && o.selada.t === e.turno.n && o.zona === 'campo';
 // eternizar (CR 702.129a): "[custo], exile esta carta do cemitério: crie uma ficha cópia dela, exceto que é uma Zombie
 // 4/4 preta além dos outros tipos e não tem custo de mana. Ative só como feitiço."
@@ -1009,7 +1027,7 @@ const atvCarta = d => {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
-    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'eternizar' && x.custo).map(eternizarDe), ...(d.kw || []).filter(x => x.k === 'bis' && x.custo).map(bisDe), ...(d.kw || []).filter(x => x.k === 'selar' && Number.isInteger(x.n)).map(selarDe)];
+    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'eternizar' && x.custo).map(eternizarDe), ...(d.kw || []).filter(x => x.k === 'bis' && x.custo).map(bisDe), ...(d.kw || []).filter(x => x.k === 'selar' && Number.isInteger(x.n)).map(selarDe), ...(d.kw || []).filter(x => x.k === 'estacao').map(() => ESTACAO)];
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
     ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length || tp.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj, ...tp] : d.atv || NADA.atv));
   }
@@ -1264,6 +1282,7 @@ const PALAVRA: Record<string, (e, ctx) => boolean> = {
   coven: (e, ctx) => new Set(M.objetosQue(e, { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' }, ctx).map(o => M.poder(e, o))).size >= 3,
   blessing: (e, ctx) => M.bencao(e, ctx.voce, ctx.este),
   morbid: e => M.morbido(e),
+  maxspeed: (e, ctx) => (e.jogs[ctx.voce] && e.jogs[ctx.voce].vel || 0) >= 4,   // Max speed (702.178a)
   solved: (e, ctx) => { const o = e.objs[ctx.este]; return !!o && o.zona === 'campo' && o.solved === o.ts; },   // Caso resolvido (719.3b; mudou de zona: objeto novo)
 };
 M.condValorOk = se => (se.conjuradaCom === undefined || ['kicker', 'flashback', 'cemiterio', 'exilio', 'alternativo', 'impending'].includes(se.conjuradaCom)) && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);

@@ -1063,7 +1063,7 @@ export interface RxCond {
     nao?: boolean;
   };
   /**
-   * condição nomeada: metalcraft, blessing, maxspeed…; solved (este Caso está resolvido, 719.3)
+   * condição nomeada: metalcraft, blessing, maxspeed (Max speed: sua velocidade é 4, 702.178a)…; solved (este Caso está resolvido, 719.3)
    */
   palavra?: string;
   /**
@@ -1130,7 +1130,7 @@ export interface RxCond {
 
 export interface RxKw {
   /**
-   * comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
+   * comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx; ligarMotores: Start your engines! (702.179a: sem velocidade, passa a ter 1; sobe 1 por turno seu em que um oponente perde vida, até 4, 702.179d); estacao: Station (702.184a: vire outra criatura sua: marcadores de carga = poder dela, só como feitiço; 'N+' (722.2a) = se {conta:{q:{conta:{de:'este',o:'marcadores',marc:'charge'}},min:N}})
    */
   k:
     | 'voar'
@@ -1217,7 +1217,9 @@ export interface RxKw {
     | 'prototipo'
     | 'comecaNoCampo'
     | 'converter'
-    | 'dragar';
+    | 'dragar'
+    | 'ligarMotores'
+    | 'estacao';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
@@ -1767,7 +1769,7 @@ export interface RxFace {
  */
 export interface RxContagem {
   /**
-   * este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se
+   * este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se | viradas (as viradas para pagar o custo: estação)
    */
   de:
     | (
@@ -1787,6 +1789,7 @@ export interface RxContagem {
         | 'cada'
         | 'tipoMaisComum'
         | 'se'
+        | 'viradas'
       )
     | {
         alvo: number;
