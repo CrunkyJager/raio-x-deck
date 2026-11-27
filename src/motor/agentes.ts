@@ -186,7 +186,17 @@ const basico = (e, p) => {
       if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura
       return meu ? k : 0;
     }
-    case 'custoCombate': return 0;   // custo para atacar/bloquear (Ghostly Prison, Archangel of Tithes): já escolheu atacar/bloquear, paga
+    // custo para atacar/bloquear (Ghostly Prison, Archangel of Tithes): já escolheu atacar/bloquear, paga. Só não paga
+    // o de atacar quando a mana é a de uma mágica da mão que ainda cabe na principal 2 e deixaria de caber (ataque
+    // letal paga sempre). Bloquear: é no turno do outro, a mana sobraria.
+    case 'custoCombate': {
+      const pg = p.ops.findIndex(op => op.a === 'pagar'), np = p.ops.findIndex(op => op.a === 'naoPagar');
+      if (pg < 0 || np < 0 || !p.ctx || p.ctx.tipo !== 'atacar') return Math.max(0, pg);
+      const dano = (p.ctx.ids || []).reduce((s, id) => s + Math.max(0, e.objs[id] ? M.poder(e, o(id)) : 0), 0);
+      if (M.vivos(e).some(x => x !== p.j && e.jogs[x].vida <= dano)) return pg;
+      const mata = J.zonas.mao.some(id => { const d = M.dadoDe(e, o(id)); return !terra(id) && d.custo && M.planoMana(e, p.j, d.custo) && !M.planoMana(e, p.j, M.somaCusto(d.custo, p.ctx.custo)); });
+      return mata ? np : pg;
+    }
     case 'atacar': return atacarBasico(e, p);
     case 'bloquear': return bloquearBasico(e, p);
     case 'ordemDano': {               // o mais caro leva o letal primeiro
