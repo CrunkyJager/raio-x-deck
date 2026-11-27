@@ -309,7 +309,7 @@ function perfilDe(c: CartaB): Perfil {
     }
     for (const k of cc.kw || []) {
       if (k.k === 'ciclar' || k.k === 'cicloTipo') P.f.add('cardflow');
-      if (k.k === 'flashback' || k.k === 'eternizar' || k.k === 'persistir') P.f.add('recursion');
+      if (k.k === 'flashback' || k.k === 'eternizar' || k.k === 'persistir' || k.k === 'imortal') P.f.add('recursion');
     }
   };
   um(c);

@@ -63,7 +63,7 @@ M.filtroSo = (o, so) => {
 M.gatManaOk = g => !!g && g.ev === 'viraParaMana' && Object.keys(g).every(k => ['ev', 'quem', 'se', 'fx'].includes(k)) && (!g.quem || M.filtroOk(g.quem))
   && (!g.se || (Object.keys(g.se).every(k => ['monarca', 'controla', 'existe'].includes(k)) && M.condValorOk(g.se))) && (g.fx || []).length > 0
   && g.fx.every(f => f.op === 'mana' && Object.keys(f).every(k => ['op', 'prod', 'qtd', 'quem'].includes(k)) && [undefined, 'voce', 'controlador'].includes(f.quem)
-    && (f.qtd === undefined || (Number.isInteger(f.qtd) && f.qtd > 0)) && (f.prod === 'qualquer' || f.prod === 'doTerreno' || (Array.isArray(f.prod) && f.prod.every(c => TIPOS.includes(c)))));
+    && (f.qtd === undefined || (Number.isInteger(f.qtd) && f.qtd > 0)) && (f.prod === 'qualquer' || f.prod === 'doTerreno' || f.prod === 'produzida' || (Array.isArray(f.prod) && f.prod.every(c => TIPOS.includes(c)))));
 // [fonte, fx, quem recebe] dos gatilhos de mana que olham para o terreno o
 const gatsMana = (e, o) => {
   const mk = M.memo && 'vpm';
@@ -111,11 +111,16 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
     const G = gatsMana(e, o).filter(([, f, quem]) => quem === o.ctrl && f.prod === 'doTerreno');
     for (const [, f] of G) { const novo: any[] = []; for (const p of pac) for (const c of TIPOS) if (p[c] > 0) { const n = { ...p }; n[c] += f.qtd ?? 1; novo.push(n); } pac = novo; }
   }
-  if (atv.custo && atv.custo.virar) for (const [F, f, quem] of gatsMana(e, o)) {   // 605.1b: só "virado para mana"
-    if (quem !== o.ctrl || f.prod === 'doTerreno') continue;
-    const cs = M.coresDeProd(e, F, f.prod), q = f.qtd ?? 1, novo: any[] = [];
-    for (const p of pac) for (const c of cs) { const n = { ...p }; n[c] += q; novo.push(n); }
-    pac = novo;
+  if (atv.custo && atv.custo.virar) {   // 605.1b: só "virado para mana"
+    const gs = gatsMana(e, o).filter(([, , quem]) => quem === o.ctrl || f.prod === 'doTerreno');
+    // 'produzida' (Mirari's Wake, 106.7): um tipo que o terreno produziu nesta ativação — olha o pacote antes dos gatilhos
+    const base = pac.map(p => TIPOS.filter(c => p[c] > 0));
+    let orig = pac.map((_, k) => k);
+    for (const [F, f] of gs) {
+      const q = f.qtd ?? 1, novo: any[] = [], no: number[] = [];
+      pac.forEach((p, k) => { for (const c of (f.prod === 'produzida' ? base[orig[k]] : M.coresDeProd(e, F, f.prod))) { const n = { ...p }; n[c] += q; novo.push(n); no.push(orig[k]); } });
+      pac = novo; orig = no;
+    }
   }
   return pac;
 };
@@ -174,7 +179,7 @@ M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
   M.log(e, e.jogs[j].nome, 'mana de', o.n, fmt(p));
   if (a.custo.virar) for (const [F, f, quem] of gatsMana(e, o)) if (quem !== j && !e.jogs[quem].saiu) {   // gatilho de mana de outro jogador (Fertile Ground do oponente no seu terreno)
     if (f.prod === 'doTerreno') continue;   // só para quem virou (Mirari's Wake é "you tap")
-    const c = (M.coresDeProd(e, F, f.prod) || [])[0]; if (c) { e.jogs[quem].reserva[c] += f.qtd ?? 1; M.log(e, e.jogs[quem].nome, 'mana de', F.n, (f.qtd ?? 1) + c); }
+    const c = (f.prod === 'produzida' ? TIPOS.filter(t => p[t] > 0) : M.coresDeProd(e, F, f.prod) || [])[0]; if (c) { e.jogs[quem].reserva[c] += f.qtd ?? 1; M.log(e, e.jogs[quem].nome, 'mana de', F.n, (f.qtd ?? 1) + c); }
   }
 };
 
