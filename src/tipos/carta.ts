@@ -1156,6 +1156,7 @@ export interface RxGat {
     | 'tomaIniciativa'
     | 'nivel'
     | 'gasta'
+    | 'danoPrevenido'
     | 'monstruosa';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)

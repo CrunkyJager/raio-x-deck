@@ -213,7 +213,10 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
     if (s.por && !(fonte && M.bate(e, fonte, s.por, { voce: F.ctrl, este: F.id }))) return false;
     return substSe(e, F, s);
   });
-  if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) return 0;   // Bonecrusher Giant: prevenir não vale (615.12)
+  if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) {   // Bonecrusher Giant: prevenir não vale (615.12)
+    if (jog !== undefined && M.evento) M.evento(e, { ev: 'danoPrevenido', jog, q, combate });   // "whenever damage that would be dealt to you is prevented" (Selfless Squire)
+    return 0;
+  }
   for (const r of lista) if (r.s.muda.teto !== undefined) q = Math.min(q, r.s.muda.teto);
   for (const r of lista) if (r.s.muda.mult) q *= r.s.muda.mult;
   for (const r of lista) if (r.s.muda.metade) q = Math.ceil(q / 2);

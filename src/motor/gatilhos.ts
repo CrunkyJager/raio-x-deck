@@ -4,7 +4,7 @@
 // Gatilho com campo/efeito/filtro que o núcleo não lê NÃO dispara (nada joga errado em silêncio).
 import { M } from './nucleo';
 
-const EV_OK = new Set(['gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
+const EV_OK = new Set(['danoPrevenido', 'gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa']);
 const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
@@ -53,6 +53,7 @@ function bateEv(e, g, ev, F) {
     case 'marcadorPosto': return ev.ev === 'marcadorPosto' && (!g.marc || g.marc === ev.t) && (!g.jog || relJog(g.jog, ev.j, F.ctrl))   // jog: quem pôs ("whenever you put", All Will Be One)
       && (ev.jog !== undefined ? !g.quem : !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]));   // 122.6: o evento já é o lote (grupo); em jogador (122.1) só sem 'quem' ("on a permanent or player")
     case 'prolifera': return ev.ev === 'prolifera' && relJog(g.jog || 'voce', ev.j, F.ctrl);                       // 701.34
+    case 'danoPrevenido': return ev.ev === 'danoPrevenido' && relJog(g.jog || 'qualquer', ev.jog, F.ctrl);   // 615: o dano a um jogador foi prevenido (ev.q = quanto)
     case 'gasta': return ev.ev === 'gasta' && ev.n === g.n && relJog(g.jog || 'qualquer', ev.j, F.ctrl);   // expend N (gastar): a N-ésima mana gasta em mágicas no turno
     case 'capitulo': return ev.ev === 'capitulo' && ev.id === F.id && ev.ts === F.ts && ev.de < g.n && ev.para >= g.n;   // CR 714.2b
     // masmorras.ts: entrar numa sala (309.4c), completar (309.7), tomar a iniciativa (727.2); jog: de quem (padrão: você)

@@ -5818,6 +5818,27 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+caso('702.85a', "Wildsear: encantamento conjurado DA MÃO tem cascata (continuo afeta pilha + conjurada 'mao'); do cemitério ou criatura, não", () => {
+  const e = cena({ campo: [[0, 'Wildsear, Scouring Maw']], mao: [[0, 'Weaver of Harmony'], [0, 'Grizzly Bears']] });
+  const w = naMao(e, 0, 'Weaver of Harmony'), b = naMao(e, 0, 'Grizzly Bears');
+  w.pil = { de: 'mao' }; w.ctrl = 0; w.zona = 'pilha'; b.pil = { de: 'mao' }; b.ctrl = 0; b.zona = 'pilha';
+  igual([M.cascatas(e, w), M.cascatas(e, b)], [1, 0], 'encantamento da mão: 1; criatura não-encantamento: 0');
+  w.pil.de = 'cemiterio'; igual(M.cascatas(e, w), 0, 'do cemitério: não');
+});
+
+caso('615', "Selfless Squire: com o dano a você prevenido neste turno, dispara 'danoPrevenido' e ganha tantos +1/+1 quanto o dano prevenido", () => {
+  const S = M.carta('Selfless Squire');
+  ok(S.gat.every(g => M.gatOk(g)), 'gatilhos aceitos');
+  const e = cena({ campo: [[0, 'Selfless Squire'], [1, 'Grizzly Bears']] }), q = objN(e, 0, 'Selfless Squire');
+  M.executar(e, S.gat[0].fx[0], { voce: 0, este: q.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, q) } }, () => null);
+  e.pend = [];
+  igual(M.substDano(e, 3, { fonte: objN(e, 1, 'Grizzly Bears'), jog: 0, combate: true }), 0, 'prevenido');
+  const p = e.pend.find(x => x.fonte === q.id);
+  ok(p, 'o Escudeiro dispara');
+  igual(M.contar(e, { de: 'evento', o: 'dano' }, { voce: 0, ev: p.ev }), 3, 'that many = 3');
+  e.pend = []; M.substDano(e, 2, { jog: 1 }); igual(e.pend.length, 0, 'dano no oponente: nada');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
