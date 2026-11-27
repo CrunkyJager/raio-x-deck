@@ -282,83 +282,12 @@
      ],
      "properties": {
       "conta": {
-       "oneOf": [
-        {
-         "$ref": "#/$defs/filtro"
-        },
-        {
-         "enum": [
-          "vmDoAlvo",
-          "vmDoEvento",
-          "vmDoSacrificado",
-          "poderDoSacrificado",
-          "poderDoEste",
-          "poderDoEvento",
-          "resistDoEvento",
-          "poderDoAlvo",
-          "danoCausado",
-          "vidaGanha",
-          "cartasNaMao",
-          "oponentes",
-          "marcadoresNoEste",
-          "marcadoresNoCada",
-          "descartadasNoTurno",
-          "evento",
-          "X",
-          "jogadores",
-          "resistDoEste",
-          "vmDoEste",
-          "lembrados",
-          "suaVida",
-          "vidaInicial",
-          "cartasNoGrimorio",
-          "energia",
-          "convergir",
-          "dominio",
-          "devocao",
-          "impostoCmd",
-          "seusTurnos",
-          "resolvidasNoTurno",
-          "magiasNoTurno",
-          "coresDoEste",
-          "resistDoAlvo",
-          "marcadoresNoEvento",
-          "maoDoAlvo",
-          "vidaDoAlvo",
-          "tipoMaisComum",
-          "maiorEntreJogadores",
-          "entrouNoTurno",
-          "resultado",
-          "se",
-          "numeroEscolhido",
-          "vidaGanhaNoTurno",
-          "compradasNoTurno",
-          "atacantes",
-          "coresDoEvento",
-          "ataquesNoTurno",
-          "grimorioDoAlvo",
-          "marcadoresSeus",
-          "vezesKicker",
-          "maoDoEvento",
-          "vidaPerdidaOpsNoTurno",
-          "maiorVidaPerdidaOpNoTurno",
-          "vidaPerdidaNoTurno",
-          "maiorDescarte",
-          "resolucoesDestaHabNoTurno",
-          "atacantesEmVoce",
-          "vidaDoAtual"
-         ]
-        }
-       ],
-       "description": "atacantesEmVoce: criaturas que atacaram você ou um planeswalker seu NESTE TURNO (no ev atacantesDeclarados = as deste ataque: Mangara, Firemane Commando, Struggle Enclave; no final do turno do oponente: Faramir)"
+       "$ref": "#/$defs/contagem"
       },
       "mult": {
        "type": "integer"
       },
       "soma": {
-       "type": "integer"
-      },
-      "alvo": {
        "type": "integer"
       },
       "divCima": {
@@ -369,33 +298,6 @@
       "metade": {
        "type": "boolean",
        "description": "divide por 2 (arredonda p/ baixo)"
-      },
-      "cond": {
-       "type": "string",
-       "description": "conta 'se': condição (kicked, promisedgift, morbid…)"
-      },
-      "sim": {
-       "type": "integer"
-      },
-      "nao": {
-       "type": "integer"
-      },
-      "prop": {
-       "enum": [
-        "cores",
-        "somaPoder",
-        "maiorPoder",
-        "somaResist",
-        "somaVm",
-        "nomesDiferentes",
-        "tiposDiferentes",
-        "maiorVm"
-       ],
-       "description": "em vez de contar objetos: propriedade do conjunto"
-      },
-      "de": {
-       "type": "string",
-       "description": "devocao: cores (W U B R G); marcadores*: tipo do marcador"
       }
      }
     },
@@ -2548,6 +2450,136 @@
     }
    },
    "description": "outra face (dupla face, aventura, split, modal): mesmos campos da carta, sem v/id/oracleHash/rev"
+  },
+  "contagem": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "de"
+   ],
+   "description": "UMA forma de contar (27/11, src/motor/contagem.ts): de = de quem/onde, o = o que se lê, junta = como junta vários. Ex.: poder deste = {de:'este', o:'poder'}; soma do poder das suas criaturas = {de:{f:{tipo:['Creature'],ctrl:'voce',zona:'campo'}}, o:'poder', junta:'soma'}; maior nº descartado por um jogador = {de:'lembradas', o:'quantos', junta:'maiorPorDono'}. Nunca criar nome novo: combinar de/o/junta.",
+   "properties": {
+    "de": {
+     "oneOf": [
+      {
+       "enum": [
+        "este",
+        "voce",
+        "turno",
+        "combate",
+        "oponentes",
+        "jogadores",
+        "X",
+        "resultado",
+        "escolhido",
+        "lembradas",
+        "evento",
+        "sacrificadas",
+        "cada",
+        "tipoMaisComum",
+        "se"
+       ]
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "alvo"
+       ],
+       "properties": {
+        "alvo": {
+         "type": "integer"
+        }
+       },
+       "description": "o alvo N (objeto ou jogador)"
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "f"
+       ],
+       "properties": {
+        "f": {
+         "$ref": "#/$defs/filtro"
+        }
+       },
+       "description": "os objetos que batem no filtro"
+      }
+     ],
+     "description": "este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se"
+    },
+    "o": {
+     "enum": [
+      "quantos",
+      "poder",
+      "resist",
+      "vm",
+      "grimorio",
+      "vida",
+      "mao",
+      "cores",
+      "marcadores",
+      "kicker",
+      "coresPagas",
+      "vidaInicial",
+      "devocao",
+      "dominio",
+      "impostoCmd",
+      "turnos",
+      "magias",
+      "descartes",
+      "ataques",
+      "resolvidas",
+      "vidaGanha",
+      "compras",
+      "vidaPerdida",
+      "resolucoesDestaHab",
+      "oponentesAtacados",
+      "entraram",
+      "atacantes",
+      "atacantesEmVoce",
+      "maior",
+      "dano",
+      "nome",
+      "tipos"
+     ],
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
+    },
+    "junta": {
+     "enum": [
+      "soma",
+      "maior",
+      "maiorPorDono",
+      "diferentes"
+     ],
+     "description": "vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)"
+    },
+    "marc": {
+     "type": "string",
+     "description": "o: marcadores — tipo do marcador ('+1/+1', 'lore', 'energy', 'poison'…); sem marc = todos"
+    },
+    "cores": {
+     "type": "string",
+     "description": "o: devocao — cores (W U B R G) ou 'escolhida'"
+    },
+    "quem": {
+     "enum": [
+      "oponentes"
+     ],
+     "description": "de: turno — de quem (padrão: você)"
+    },
+    "cond": {
+     "type": "string",
+     "description": "de: se — condição (kicked, promisedgift, morbid…)"
+    },
+    "sim": {
+     "type": "integer"
+    },
+    "nao": {
+     "type": "integer"
+    }
+   }
   }
  }
 }
