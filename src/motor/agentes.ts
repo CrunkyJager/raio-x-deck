@@ -80,6 +80,7 @@ const basico = (e, p) => {
       });
       return b;
     }
+    case 'virar':                     // "tap X untapped Myr" (Myr Battlesphere): vira todas (mais dano)
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
     case 'sacrificar': case 'custo': {
       let b = 0, bv = Infinity;

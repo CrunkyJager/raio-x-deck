@@ -901,9 +901,21 @@ const H = {
   },
   // naoDesvira: não desvira no próximo desvirar do controlador (Junk Winder); soNaoDesvira: só isso, sem virar (Fifty Feet of Rope)
   virar: {
+    // qtd {ate: N | 'qualquer'}: "tap X untapped Myr you control" (Myr Battlesphere): escolhe quais entre as desviradas
+    // que batem; ctx.resultado = quantas virou (o "+X/+0" e o "X de dano" do efeito seguinte)
     campos: ['naoDesvira', 'soNaoDesvira'],
+    qtd: q => q === undefined || (ateOk(q) && q.ate !== 'X'),
     ok: f => !f.soNaoDesvira || f.naoDesvira === true,
-    fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) { if (!f.soNaoDesvira) o.virada = true; if (f.naoDesvira) o.naoDesv = o.ts; } },
+    fx(e, f, ctx, ask) {
+      let os = objsDe(e, f, ctx);
+      if (f.qtd !== undefined) {
+        const cand = os.filter(o => o.zona === 'campo' && !o.virada).map(o => o.id);
+        const n = Math.min(qtdDe(e, f.qtd, ctx), cand.length);
+        const ids = escolherN(ask || ((_j, _t, ops) => ops[ops.length > 1 ? 1 : 0]), ctx.voce, 'virar', cand, n, { podeMenos: true });
+        os = ids.map(id => e.objs[id]); ctx.resultado = ids.length;
+      }
+      for (const o of os) { if (!f.soNaoDesvira) o.virada = true; if (f.naoDesvira) o.naoDesv = o.ts; }
+    },
   },
   // CR 701.27: vira para a outra face. Não é objeto novo (701.27c): ts, marcadores, dano e virada ficam.
   // Só carta de dupla face (701.27d), nunca para uma face de instantânea/feitiço (701.27e), e a habilidade da própria

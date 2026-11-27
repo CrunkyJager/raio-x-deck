@@ -3790,6 +3790,23 @@ caso('702.34a', "Increasing Devotion: da mão cria 5 Humanos; conjurada do cemit
   igual([humanos(), e.objs[id].zona], [15, 'exilio'], 'do cemitério: mais 10');
 });
 
+caso('701.26a', "Myr Battlesphere ataca: vira 2 dos 3 Myr desvirados (escolhe), ganha +2/+0 e causa 2 ao atacado", () => {
+  ok(M.fxSuportado(M.carta('Myr Battlesphere').gat[1].fx), 'virar com qtd {ate} aceito');
+  const e = combate([[0, 'Myr Battlesphere']]);
+  const mb = objN(e, 0, 'Myr Battlesphere');
+  const myr = M.criarFichas(e, 0, { pt: [1, 1], tipos: ['Artifact', 'Creature'], sub: ['Myr'] }, 3, {});
+  ate(e, 'atacar'); atacaCom(e, mb); fecha(e, 'atacar');
+  let viradas = 0;
+  for (let g = 0; g < 200 && e.turno.passo !== 'principal2'; g++) {
+    M.avancar(e, PARA2); if (!e.perg) continue;
+    const t = e.perg.tipo;
+    const k = t === 'talvez' ? e.perg.ops.findIndex(x => x.a === 'sim') : t === 'virar' ? (viradas++ < 2 ? e.perg.ops.findIndex(x => x.a === 'virar') : e.perg.ops.findIndex(x => x.a === 'nenhum')) : 0;
+    M.responder(e, k, PARA2);
+  }
+  igual(myr.filter(o => o.virada).length, 2, '2 Myr virados');
+  igual(e.jogs[1].vida, 40 - 2 - 6, '2 do gatilho + 6 do combate (4+2)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
