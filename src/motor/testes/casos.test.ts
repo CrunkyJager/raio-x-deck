@@ -4256,7 +4256,7 @@ caso('702.30a', "eco: Mogg War Marshal dispara na 1ª manutenção de quem contr
   e.pend = []; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); igual(e.pend.length, 0, 'a próxima: não');
   const f = cena({ campo: [[0, 'Mogg War Marshal']] }); f.pend = [];
   const m2 = objN(f, 0, 'Mogg War Marshal');
-  M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolvePilha(f);
+  M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolveCom(f);
   igual(m2.zona, 'cemiterio', 'sem mana: sacrificado');
 });
 
@@ -5644,6 +5644,31 @@ caso('609.4b', "Drana and Linvala: 'you may spend mana as though it were mana of
   igual(M.custoAtv(e, pf, M.atvDe(e, pf)[0]), { p: ['G'] }, 'no Perfect: {G}');
 });
 
+caso('614.1a', "Valgavoth, Terror Eater: carta que você não controlava iria ao cemitério do oponente → exílio; no seu turno, conjura a exilada pagando vida = valor de mana (118.9)", () => {
+  const e = cena({ campo: [[0, 'Valgavoth, Terror Eater'], [1, 'Grizzly Bears']], mao: [[1, 'Lightning Bolt'], [0, 'Llanowar Elves']] });
+  const b = objN(e, 1, 'Grizzly Bears'), raio = naMao(e, 1, 'Lightning Bolt'), el = naMao(e, 0, 'Llanowar Elves');
+  M.mover(e, b.id, 'cemiterio'); M.mover(e, raio.id, 'cemiterio'); M.mover(e, el.id, 'cemiterio');
+  igual([b.zona, raio.zona, el.zona], ['exilio', 'exilio', 'cemiterio'], 'as do oponente vão para o exílio; a minha, para o meu cemitério');
+  e.turno.ativo = 1; ok(!M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === b.id), 'no turno do oponente: não');
+  e.turno.ativo = 0; M.avancar(e);
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === b.id), 'no meu turno, sem terreno: conjura pagando vida');
+  const v0 = e.jogs[0].vida; conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(e.jogs[0].vida, v0 - 2, 'pagou 2 de vida'); igual([b.zona, b.ctrl], ['campo', 0], 'entrou sob meu controle');
+  M.mover(e, b.id, 'cemiterio'); igual(b.zona, 'cemiterio', 'eu a controlava: vai ao cemitério do dono normalmente');
+});
+
+caso('122.1', "Call the Spirit Dragons: na manutenção, um +1/+1 por cor num Dragão daquela cor; se foram cinco Dragões distintos, vence (104.2b). Tiamat de 5 cores fica com a cor que sobrar", () => {
+  const ds = ['Tiamat', 'Ancient Gold Dragon', 'Ancient Silver Dragon', 'Silumgar, the Drifting Death', 'Savage Ventmaw'];
+  const e = cena({ campo: [[0, 'Call the Spirit Dragons'], ...ds.map(n => [0, n])] }); e.pend = [];
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolveCom(e);
+  igual(ds.map(n => objN(e, 0, n).marc['+1/+1'] || 0), [1, 1, 1, 1, 1], 'um marcador em cada um dos cinco');
+  ok(e.fim && e.fim.vencedor === 0, 'cinco Dragões: vence');
+  const f = cena({ campo: [[0, 'Call the Spirit Dragons'], [0, 'Tiamat'], [0, 'Ancient Gold Dragon']] }); f.pend = [];
+  M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolveCom(f);
+  igual([objN(f, 0, 'Tiamat').marc['+1/+1'], objN(f, 0, 'Ancient Gold Dragon').marc['+1/+1']], [4, 1], 'Tiamat recebe U, B, R, G; o Ouro, o W');
+  ok(!f.fim, 'dois Dragões: não vence');
+});
+
 caso('601.2f', "tipo de card em comum / escolhido (Semblance Anvil, Cemetery Prowler, Cloud Key): reduzem só as mágicas que dividem tipo de card com o que foi exilado por ele / o tipo escolhido", () => {
   const e = cena({ campo: [[0, 'Semblance Anvil'], [0, 'Cemetery Prowler'], [0, 'Cloud Key']], mao: [[0, 'Sol Ring'], [0, 'Llanowar Elves'], [0, 'Lightning Bolt'], [0, 'Counterspell']] });
   const A = objN(e, 0, 'Semblance Anvil'), P = objN(e, 0, 'Cemetery Prowler'), K = objN(e, 0, 'Cloud Key');
@@ -6039,9 +6064,9 @@ caso('702.63a', "desaparecer 2 (Dreamtide Whale): entra com 2 de tempo; cada man
   const w = e.por(0, 'Dreamtide Whale', { zona: 'mao' }); M.mover(e, w.id, 'campo');
   igual(w.marc.time, 2, 'entra com 2');
   e.pend = []; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 1 }); igual(e.pend.length, 0, 'a do oponente: não');
-  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolveCom(e);
   igual(w.marc.time, 1, 'tira 1'); igual(w.zona, 'campo', 'fica');
-  e.perg = null; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  e.perg = null; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolveCom(e);
   igual(w.zona, 'cemiterio', 'o último: sacrificada');
 });
 

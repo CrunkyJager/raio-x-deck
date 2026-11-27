@@ -433,7 +433,7 @@ M.antimagiaJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && (s.
 // Blightsteel). Várias: a primeira (616.1, a escolha do afetado fica para depois). Retorna {zona, marc?, embaralhar?}.
 // talvez ("you may put it on top… instead", Library of Leng): só com quem decide (opc.ask) e só em descarte por EFEITO
 // (custo e limpeza não são efeito; ruling de Leng). Quem escolhe é o controlador da fonte, carta a carta.
-function substCemiterio(e, o, opc: any = {}) {
+function substCemiterio(e, o, opc: any = {}): any {
   const fontes = M.indiceCampo(e).sb.map(i => e.objs[i]);
   if (o.zona !== 'campo' && (M.dadoDe(e, o).subst || []).length) fontes.push(o);
   for (const F of fontes) for (const sb of M.dadoDe(e, F).subst || []) {
@@ -448,7 +448,7 @@ function substCemiterio(e, o, opc: any = {}) {
     }
     if (sb.muda) return { zona: sb.muda.para, n: F.n };
     const [a, b] = sb.emVez;
-    if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n };
+    if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n, ...(a.comEste ? { exPor: { id: F.id, ts: F.ts } } : {}) };   // comEste: "exiled with Valgavoth" (607.2a)
     return { zona: 'grimorio', embaralhar: true, n: F.n };
   }
   return null;
@@ -488,6 +488,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && Number.isInteger(pos) && pos > 1) para.splice(Math.max(0, para.length - (pos - 1)), 0, id);   // "fourth from the top" (Lost to Legend): pos 4 = 3 cartas por cima
   else if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
+  if (sub && sub.exPor) o.exPor = sub.exPor;
   if (sub && sub.marc) for (const m in sub.marc) o.marc[m] = (o.marc[m] || 0) + sub.marc[m];   // "exile-a com um marcador hit" (fica no exílio)
   if (sub && sub.embaralhar) M.embaralhar(e, para);
   if (zona === 'campo') { M.campoEntra(e, id); M.registraEntrada(e, o); }

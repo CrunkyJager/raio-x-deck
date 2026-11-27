@@ -854,6 +854,10 @@ export interface RxFx {
    */
   tirar?: boolean;
   /**
+   * marcador com f: para cada cor (W, U, B, R, G), um objeto de f daquela cor recebe o marcador; resultado = quantos objetos distintos receberam (Call the Spirit Dragons)
+   */
+  cadaCor?: true;
+  /**
    * faseExtra: qual
    */
   fase?: 'combate' | 'principal' | 'turno';
@@ -1631,6 +1635,10 @@ export interface RxEst {
    */
   camada?: string;
   de?: RxZona;
+  /**
+   * podeJogar de 'exilio': a mágica conjurada por esta permissão paga vida igual ao valor de mana em vez do custo de mana (Valgavoth, Terror Eater; 118.9, 119.4)
+   */
+  pagarVida?: true;
   /**
    * podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage) | podeJogar: a mágica conjurada assim vai para o exílio em vez do cemitério (Kess: 'If a spell cast this way would be put into your graveyard, exile it instead')
    */

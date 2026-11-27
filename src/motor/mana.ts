@@ -228,6 +228,7 @@ const simbolos = (custo, x = 0) => {
     else if (/^2\/[WUBRG]$/.test(p)) s.dois.push(p[2]);                     // CR 107.4e: cor ou {2}
     else if (/^[WUBRGC]\/[WUBRG]$/.test(p)) s.hib.push([p[0], p[2]]);       // CR 107.4e híbrido
     else if (/^[WUBRG]\/[WUBRG]\/P$/.test(p)) s.hib.push([p[0], p[2], 'P']); // híbrido phyrexiano
+    else if (p === '*') s.hib.push([...CORES]);                             // interno: mana de qualquer cor paga (609.4b; Drana and Linvala)
     else throw new Error('símbolo de mana desconhecido: ' + p);
   }
   return s;

@@ -116,7 +116,7 @@ function saidaOk(s) {
   if (s.talvez !== undefined && (s.talvez !== true || s.ev !== 'vaiCemiterio' || !s.quem || s.quem.zona !== 'mao')) return false;   // só "descartada por efeito" (Leng)
   if (s.muda) return Object.keys(s.muda).length === 1 && ['exilio', 'grimorio', 'mao'].includes(s.muda.para);
   const [a, b, ...r] = s.emVez; if (r.length || !a) return false;
-  if (a.op === 'exilar' && a.em === 'doEvento' && Object.keys(a).length === 2) return !b || (b.op === 'marcador' && b.em === 'doEvento' && typeof b.tipoMarc === 'string' && Number.isInteger(b.qtd) && Object.keys(b).length === 4);
+  if (a.op === 'exilar' && a.em === 'doEvento' && Object.keys(a).every(k => ['op', 'em', 'comEste'].includes(k)) && (a.comEste === undefined || a.comEste === true)) return !b || (b.op === 'marcador' && b.em === 'doEvento' && typeof b.tipoMarc === 'string' && Number.isInteger(b.qtd) && Object.keys(b).length === 4);
   if (a.op === 'mover' && a.em === 'este' && a.para === 'grimorio' && Object.keys(a).length === 3) return !!b && b.op === 'embaralhar' && b.quem === 'dono' && Object.keys(b).length === 2 && !!s.quem && s.quem.este;
   return false;
 }
@@ -668,6 +668,14 @@ function danoEm(e, alvoObj, q, fonte) {
 }
 
 // ---------- os efeitos ----------
+// emparelhamento máximo cor → objeto distinto (Kuhn): l[i] = ids que têm a cor i; devolve o id sugerido por cor
+const CORES_WUBRG = ['W', 'U', 'B', 'R', 'G'];
+function emparelhaCores(l: number[][]) {
+  const dono = new Map<number, number>();
+  const tenta = (i, visto) => { for (const id of l[i]) { if (visto.has(id)) continue; visto.add(id); const k = dono.get(id); if (k === undefined || tenta(k, visto)) { dono.set(id, i); return true; } } return false; };
+  l.forEach((_, i) => tenta(i, new Set()));
+  const r: (number | undefined)[] = l.map(() => undefined); for (const [id, i] of dono) r[i] = id; return r;
+}
 const H = {
   // "may draw up to N" (Arcane Denial): cada jogador escolhe quantas, de 0 a N; pergunta a todos antes de comprar
   comprar: {
@@ -1418,10 +1426,24 @@ const H = {
   },
   // f (sem em): "ponha N marcadores numa criatura que você controla" — escolhida na resolução, sem alvo (Finality), como o sacrificar
   marcador: {                                                       // CR 122
-    campos: ['tipoMarc', 'tirar', 'f'],
-    ok: f => f.f === undefined || (f.em === undefined && f.quem === undefined && M.filtroOk(f.f)),
+    campos: ['tipoMarc', 'tirar', 'f', 'cadaCor'],
+    ok: f => (f.cadaCor === undefined || (f.cadaCor === true && !!f.f && !f.tirar)) && (f.f === undefined || (f.em === undefined && f.quem === undefined && M.filtroOk(f.f))),
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx);
+      if (f.cadaCor) {   // "for each color, put a +1/+1 counter on a Dragon you control of that color" (Call the Spirit Dragons; 105.1): uma escolha por cor
+        const cand = M.objetosQue(e, { ...f.f, zona: f.f.zona || 'campo' }, ctx), deCor = c => cand.filter(o => M.bate(e, o, { cor: c }, ctx)).map(o => o.id);
+        const sug = emparelhaCores(CORES_WUBRG.map(deCor)), esc: number[] = [];   // a 1ª opção de cada cor = um emparelhamento máximo (o "cinco Dragões" quando dá)
+        CORES_WUBRG.forEach((c, i) => {   // todas as escolhas antes de pôr (a pergunta repete o passo: nada muda até a última resposta)
+          const l = deCor(c); if (!l.length) return;
+          const ord = sug[i] !== undefined ? [sug[i], ...l.filter(id => id !== sug[i])] : l;
+          const [id] = escolherN(ask || ((_j, _t, ops) => ops[0]), ctx.voce, 'escolherCarta', ord, 1, { ctx: { op: 'marcador', cor: c } });
+          if (id !== undefined) esc.push(id);
+        });
+        for (const id of esc) M.porMarcadores(e, e.objs[id], f.tipoMarc, q);
+        const rec = new Set(esc);
+        ctx.resultado = rec.size;                                        // "if you put +1/+1 counters on five Dragons this way": quantos receberam
+        return;
+      }
       if (f.f) {
         const cand = M.objetosQue(e, { ...f.f, zona: f.f.zona || 'campo' }, ctx).map(o => o.id);
         const [id] = escolherN(ask || ((_j, _t, ops) => ops[0]), ctx.voce, 'escolherCarta', cand, Math.min(1, cand.length), { ctx: { op: 'marcador' } });
