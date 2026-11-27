@@ -2,6 +2,14 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.52.0 — 27/11/2026 · Motor: jogar do topo, ganhar o controle, marcador posto
+Testes: check 0 erros · Vitest 374/374 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1477/1756 (eram 1453). Ivora e Masmorras: 20 partidas cada, 0 erros.
+- **Jogar do topo do grimório** com permissão (Courser of Kruphix, Oracle of Mul Daya, Mihail, Realmwalker, Verge Rangers, Mystic Forge, Summoning Materia, Case of the Locked Hothouse): antes a cobertura contava como lido e o motor não jogava. A Mesa mostra "topo: carta" no seu grimório quando você pode olhar.
+- **Mesa:** terreno do cemitério/topo aparecia como "Baixar X (outra face)"; agora "Baixar X (do cemitério)" / "(do topo do grimório)".
+- **Ganhar o controle** (camada 2, CR 613.1b): até o fim do turno (Zealous Conscripts), para sempre (Sliver Overlord, Captivating Vampire), enquanto você controlar a fonte (Roil Elemental, Yuffie); muda de lado com enjoo e sai do combate.
+- **Conserto:** filtro "controlado pelo jogador do evento" valia para qualquer jogador (Hellkite Tyrant pegaria os artefatos de todos; Balefire Dragon acertaria todas as criaturas).
+- **Gatilho "marcador posto"** (CR 122.6): Simic Ascendancy, Fathom Mage, Exemplar of Light, Shalai and Hallar, All Will Be One, Benthic Biomancer, Evolution Witness. Proliferar agora põe pelo mesmo caminho (Doubling Season dobra).
+
 ## v0.51.0 — 27/11/2026 · Motor: camada 7b, modificada, monarca-alvo, gatilho de mana
 Testes: check 0 erros · Vitest 370/370 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1453/1756 (eram 1444). Masmorras: 20 partidas, 0 erros.
 - **Sephiroth:** filtro "modificada" (CR 700.9: marcador, Equipamento ou Aura sua) e P/R base fixado até o fim do turno (camada 7b, 613.4b); o +X da 7c soma por cima.
