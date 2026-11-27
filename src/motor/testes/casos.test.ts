@@ -3305,6 +3305,18 @@ caso('500.8', "Aurelia: ataca, desvira e ganha um 2º combate; no 2º ataque nã
   ok(M.condicao(e, { primeiroCombate: false }, { voce: 0 }), 'depois do 2º combate não é mais o 1º');
 });
 
+caso('603.2', "gatilho 'sai do cemitério': Syr Konrad por criatura que sai do seu; Teval uma vez pelo grupo (uma ou mais); carta do oponente não conta", () => {
+  for (const c of ['Insidious Roots', 'Kheru Goldkeeper', 'Kishla Skimmer', 'Syr Konrad, the Grim', "Teval's Judgment", 'Teval, the Balanced Scale']) ok(M.carta(c).gat.filter(g => g.ev === 'saiCemiterio').every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Syr Konrad, the Grim'], [0, 'Teval, the Balanced Scale']], passo: 'principal2' });
+  const gb = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }), le = e.por(0, 'Llanowar Elves', { zona: 'cemiterio' }), fo = e.por(0, 'Forest', { zona: 'cemiterio' }), op = e.por(1, 'Grizzly Bears', { zona: 'cemiterio' });
+  e.pend = [];
+  for (const o of [gb, le, fo]) M.mover(e, o.id, 'exilio');
+  const n = nm => e.pend.filter(p => p.n === nm).length;
+  igual([n('Syr Konrad, the Grim'), n('Teval, the Balanced Scale')], [2, 1], 'Konrad: 2 criaturas; Teval: 1 pelo grupo');
+  e.pend = []; M.mover(e, op.id, 'exilio');
+  igual(e.pend.length, 0, 'carta do oponente saindo do cemitério dele não conta');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
