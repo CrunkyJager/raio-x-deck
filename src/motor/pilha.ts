@@ -213,6 +213,7 @@ function manaMax(e, j, excluir, para) {
     const ids = new Set(fs.map(f => f.id));
     t += e.campo.filter(id => { const o = e.objs[id]; return o.ctrl === j && !o.virada && !ids.has(id) && (!excluir || !excluir.includes(id)) && M.temTipo(e, o, 'Artifact'); }).length;
   }
+  if (para && M.temKw(e, para, 'delve')) t += cemDelve(e, j, excluir, para).length;   // cada carta exilada do cemitério paga {1} (702.66)
   if (para && M.temKw(e, para, 'convocar')) {                       // as criaturas que não dão mana pagam 1 cada (702.51)
     const ids = new Set(fs.map(f => f.id));
     t += e.campo.filter(id => { const o = e.objs[id]; return o.ctrl === j && !o.virada && !ids.has(id) && (!excluir || !excluir.includes(id)) && M.temTipo(e, o, 'Creature'); }).length;
@@ -244,7 +245,23 @@ const planoConvocar = (e, j, custo, x, excluir, para) => {
   }
   return null;
 };
+// delve (CR 702.66): cada carta que você exila do seu cemitério ao conjurar paga {1} genérico. Primeiro as que não são
+// criatura (a criatura pode ser alvo de reanimação), e só as que fecham; os alvos da própria mágica ficam (vêm em excluir).
+const cemDelve = (e, j, excluir, para) => {
+  const fora = new Set(excluir || []);
+  const cs = e.jogs[j].zonas.cemiterio.filter(id => id !== para.id && !fora.has(id)).map(id => e.objs[id]);
+  return [...cs.filter(o => !M.temTipo(e, o, 'Creature')), ...cs.filter(o => M.temTipo(e, o, 'Creature'))].map(o => o.id);
+};
+const planoDelve = (e, j, custo, x, excluir, para) => {
+  const ordem = cemDelve(e, j, excluir, para), semCr = ordem.filter(id => !M.temTipo(e, e.objs[id], 'Creature')).length;
+  for (let n = Math.min(custo.g || 0, semCr); n <= Math.min(custo.g || 0, ordem.length); n++) {
+    const c = { ...custo, g: (custo.g || 0) - n }, pl = plano0(e, j, c, x, excluir, para);
+    if (pl) return n ? { ...pl, delve: ordem.slice(0, n), custo: c } : pl;
+  }
+  return null;
+};
 const plano = (e, j, custo, x, excluir, para?) => {
+  if (para && custo.g && M.temKw(e, para, 'delve')) return planoDelve(e, j, custo, x, excluir, para);
   if (para && M.temKw(e, para, 'convocar')) return planoConvocar(e, j, custo, x, excluir, para);
   if (!para || !custo.g || !M.temKw(e, para, 'improvisar')) return plano0(e, j, custo, x, excluir, para);
   const fora = new Set(excluir || []);
@@ -610,6 +627,8 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 // cabe(n): o custo ainda fecha com n alvos no total (impostoPorAlvo, CR 601.2f); sem ele, qualquer número.
 // o alvo-jogador i é o primeiro de jogador e o efeito que o usa é bom para quem ganha (Éomer: "target player becomes the monarch")
 const paraSi = (fx, alvos, i) => (alvos || []).findIndex(a => a && (a.f === 'jogador' || a.f === 'qualquerAlvo')) === i && (fx || []).some(f => f && f.op === 'virarMonarca' && f.quem === 'alvoJogador');
+// de que jogador é o alvo: o próprio jogador; permanente = quem controla; carta fora do campo = o dono (Afterlife from the Loam)
+const jogDoAlvo = (e, x) => x.jog !== undefined ? x.jog : e.objs[x.o].zona === 'campo' ? e.objs[x.o].ctrl : e.objs[x.o].dono;
 function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc?: any) {
   const esc: any[] = [];
   let total = 0;
@@ -618,6 +637,7 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
     const a = d.alvos[i], min = a.min ?? 1, max = a.max === 'qualquer' ? Infinity : a.max ?? 1, lista: any[] = [];
     while (lista.length < max) {
       let ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y)) && !(Number.isInteger(a.diferenteDe) && (esc[a.diferenteDe] || []).some(y => mesmo(x, y)))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3; diferenteDe: "another target" (Markov Retribution)
+      if (a.porJogador || a.porOponente) ops = ops.filter(x => { const jx = jogDoAlvo(e, x); return (!a.porOponente || jx !== ctx.voce) && !lista.some(y => jogDoAlvo(e, y) === jx); });   // "for each player/opponent, up to one target … that player controls/owns" (até 1 de cada)
       if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
       if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto' && max === Infinity)) break;
@@ -770,6 +790,7 @@ function pagarFisico(e, j, o, c, esc) {
 }
 function pagarMana(e, j, pl, custo, x, para?) {
   if (pl.improv) { for (const id of pl.improv) M.virarObj(e, e.objs[id]); custo = pl.custo; }   // improvisar (702.126a) e convocar (702.51a)
+  if (pl.delve) { for (const id of pl.delve) M.mover(e, id, 'exilio'); custo = pl.custo; }       // delve (702.66a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(M.reservaCom(e, j, para), custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
@@ -830,7 +851,8 @@ const PROC = {
     const fisA = opc.alt !== undefined ? escolherCustoFisico(e, j, fisAlt(d, opc), null, o.id, ask) : null;   // alternativo físico (601.2f)                      // "ou pague {1}" (Thunderherd Migration): soma ao total (601.2f)
     const fuga = !porFlash(e, j, o) && !P.gratis && porFuga(e, j, o) ? fugaDe(e, j, o) : null;   // 702.138: as N outras do cemitério (601.2f)
     const exFuga = fuga ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), fuga.exilar, { ctx: { o: 'exilar' } }) : [];
-    const pl = plano(e, j, custo, x, [...fis.sac, ...(fisA ? [...fisA.sac, ...fisA.vir] : [])], o);                                     // CR 601.2g: mana antes de pagar
+    const alvoIds = alvos.flatMap(l => (l || []).filter(a => a.o !== undefined).map(a => a.o));   // delve não exila os alvos
+    const pl = plano(e, j, custo, x, [...fis.sac, ...(fisA ? [...fisA.sac, ...fisA.vir] : []), ...exFuga, ...alvoIds], o);   // CR 601.2g: mana antes de pagar
     e.proc = null;
     if (!pl) { o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(custo não fecha)'); return; }   // CR 727: volta atrás
     const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;

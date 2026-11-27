@@ -4630,6 +4630,50 @@ caso('603.2', "Omnath, Locus of Creation: terreno entra → 1ª vez no turno gan
   igual([e.pilha.length, e.jogs[0].vida - vida0[0], e.jogs[1].vida - vida0[1], [R.R, R.G, R.W, R.U]], [0, 4, -4, [1, 1, 1, 1]], 'uma vez cada efeito');
 });
 
+caso('702.66a', "delve + um alvo por jogador: Afterlife from the Loam exila 5 do cemitério para pagar {5}, pega 1 criatura de cada cemitério (não 2 do mesmo) e elas são Zumbis", () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Swamp']], mao: [[0, 'Afterlife from the Loam']] });
+  for (let k = 0; k < 5; k++) e.por(0, 'Lightning Bolt', { zona: 'cemiterio' });
+  const meu = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }), d1 = e.por(1, 'Grizzly Bears', { zona: 'cemiterio' }); e.por(1, 'Grizzly Bears', { zona: 'cemiterio' });
+  M.avancar(e); conj(e, 'Afterlife from the Loam');
+  respE(e, o => o.a === 'alvo' && o.o === d1.id);
+  ok(!e.perg.ops.some(o => o.a === 'alvo' && o.o !== undefined && e.objs[o.o].dono === 1), 'só um do cemitério do oponente');
+  respE(e, o => o.a === 'alvo' && o.o === meu.id);
+  if (e.perg && e.perg.tipo === 'alvo') respE(e, o => o.a === 'pronto');
+  while (e.pilha.length && e.perg) M.responder(e, 0);
+  const bs = e.campo.map(id => e.objs[id]).filter(o => o.n === 'Grizzly Bears');
+  igual(bs.length, 2); ok(bs.every(o => o.ctrl === 0), 'meus');
+  ok(bs.every(o => M.tiposCriatura(e, o).includes('Zombie')), 'Zumbis: ' + JSON.stringify(bs.map(o => M.tiposCriatura(e, o))));
+  igual(naZona(e, 0, 'exilio').filter(n => n === 'Lightning Bolt').length, 5, 'delve exilou os 5 Bolts');
+  ok(e.campo.map(id => e.objs[id]).filter(o => o.n === 'Swamp').every(o => o.virada), 'BBB dos pântanos');
+});
+
+caso('122.6', "All Will Be One: dispara quando VOCÊ põe marcadores (em permanente ou jogador), com a quantidade; o marcador que o oponente põe não dispara", () => {
+  const e = cena({ campo: [[0, 'All Will Be One'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears']] });
+  const [, meu, dele] = e.campo.map(id => e.objs[id]), ask: any = (j, t, o) => o[0];
+  e.pend = [];
+  M.executar(e, { op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 2 }, { voce: 1, este: dele.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, ask);
+  igual(e.pend.length, 0, 'o oponente pôs: não dispara');
+  M.executar(e, { op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 2 }, { voce: 0, este: meu.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, ask);
+  igual(e.pend.length, 1, 'você pôs: dispara'); igual(M.contar(e, { de: 'evento', o: 'marcadores' }, { voce: 0, ev: e.pend[0].ev }), 2, 'that much');
+  e.pend = []; e.jogs[1].veneno = 1;
+  M.executar(e, { op: 'proliferar', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, o) => o.find(x => x.jog === 1 && !e.pend.length) || o[0]);
+  igual(e.jogs[1].veneno, 2); ok(e.pend.some(p => p.ev && p.ev.jog === 1), 'marcador em jogador dispara: ' + JSON.stringify(e.pend.map(p => p.ev)));
+  ok(M.carta('All Will Be One').gat.every(g => M.gatOk(g)), 'gatOk');
+});
+
+caso('701.37', "monstruosidade: Alpha Deathclaw ganha 4 marcadores e fica monstruosa (dispara 'destrua'); ativar de novo não põe mais", () => {
+  const e = cena({ campo: [[0, 'Alpha Deathclaw'], [1, 'Grizzly Bears']] });
+  const a = e.objs[e.campo[0]], f = M.carta('Alpha Deathclaw').atv[0].fx, ask: any = (j, t, o) => o[0];
+  const ctx = () => ({ voce: 0, este: a.id, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  e.pend = [];
+  for (const x of f) M.executar(e, x, ctx(), ask);
+  igual(a.marc['+1/+1'], 4); igual(e.pend.length, 1, 'quando fica monstruosa');
+  e.pend = [];
+  for (const x of f) M.executar(e, x, ctx(), ask);
+  igual(a.marc['+1/+1'], 4, 'já é monstruosa'); igual(e.pend.length, 0);
+  for (const c of ['Alpha Deathclaw', 'Giggling Skitterspike']) ok(M.fxSuportado(M.carta(c).atv[0].fx) && M.carta(c).gat.every(g => M.gatOk(g)), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

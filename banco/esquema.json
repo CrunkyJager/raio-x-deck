@@ -679,6 +679,10 @@
      "type": "integer",
      "description": "alvo só existe se o modo N (fx modal) for escolhido"
     },
+    "porJogador": {
+      "type": "boolean",
+      "description": "um alvo para cada jogador (até 1 de cada; permanente = de quem controla, carta fora do campo = do dono): Afterlife from the Loam"
+    },
     "porOponente": {
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
@@ -983,7 +987,8 @@
       "incitar",
       "fundir",
       "tomarIniciativa",
-      "aventurar"
+      "aventurar",
+      "monstruosidade"
      ],
      "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)"
     },
@@ -1693,7 +1698,7 @@
       "flashback",
       "afinidade",
       "convocar",
-      "improvisar",
+      "improvisar", "delve",
       "loucura",
       "milagre",
       "reconfigurar",
@@ -1853,6 +1858,7 @@
       "marcadorPosto",
       "alvoDe",
       "vira",
+      "ficaMonstruosa",
       "zonaVarios",
       "capitulo",
       "saiCemiterio",
@@ -1877,7 +1883,7 @@
     },
     "jog": {
      "$ref": "#/$defs/jogador",
-     "description": "jogador do evento (quem conjura/compra/perde vida; quem leva dano)"
+     "description": "jogador do evento (quem conjura/compra/perde vida; quem leva dano; marcadorPosto: quem pôs)"
     },
     "passo": {
      "enum": [

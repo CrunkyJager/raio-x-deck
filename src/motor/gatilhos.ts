@@ -5,7 +5,7 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa']);
 const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
 const LACO = 500;
@@ -30,6 +30,7 @@ function bateEv(e, g, ev, F) {
   const ctx = { voce: F.ctrl, este: F.id }, q = o => !g.quem || (o && bate(e, o, g.quem, ctx));
   switch (g.ev) {
     case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(e.objs[ev.id]);   // de: "enters from a graveyard" (River Kelpie, Kotis)
+    case 'ficaMonstruosa': return ev.ev === 'ficaMonstruosa' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.37b
     case 'vira': return ev.ev === 'vira' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.26a
     case 'fichaCriada': return ev.ev === 'fichaCriada' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 111.2: quem cria = ev.j
     case 'morre': return ev.ev === 'zona' && ev.de === 'campo' && ev.para === 'cemiterio' && M.temTipo(e, ev.snap, 'Creature') && q(ev.snap);   // 700.4
@@ -49,7 +50,8 @@ function bateEv(e, g, ev, F) {
     case 'cicla': return ev.ev === 'cicla' && relJog(g.jog || 'voce', ev.j, F.ctrl) && q(e.objs[ev.id]);          // 702.29
     case 'desvira': return ev.ev === 'desvira' && q(e.objs[ev.id]);                                                 // 701.26b
     case 'jogaTerreno': return ev.ev === 'jogaTerreno' && relJog(g.jog || 'voce', ev.j, F.ctrl) && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(e.objs[ev.id]);
-    case 'marcadorPosto': return ev.ev === 'marcadorPosto' && (!g.marc || g.marc === ev.t) && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 122.6: o evento já é o lote (grupo)
+    case 'marcadorPosto': return ev.ev === 'marcadorPosto' && (!g.marc || g.marc === ev.t) && (!g.jog || relJog(g.jog, ev.j, F.ctrl))   // jog: quem pôs ("whenever you put", All Will Be One)
+      && (ev.jog !== undefined ? !g.quem : !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]));   // 122.6: o evento já é o lote (grupo); em jogador (122.1) só sem 'quem' ("on a permanent or player")
     case 'prolifera': return ev.ev === 'prolifera' && relJog(g.jog || 'voce', ev.j, F.ctrl);                       // 701.34
     case 'capitulo': return ev.ev === 'capitulo' && ev.id === F.id && ev.ts === F.ts && ev.de < g.n && ev.para >= g.n;   // CR 714.2b
     // masmorras.ts: entrar numa sala (309.4c), completar (309.7), tomar a iniciativa (727.2); jog: de quem (padrão: você)

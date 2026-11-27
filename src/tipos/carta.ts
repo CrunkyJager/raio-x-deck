@@ -279,9 +279,9 @@ export interface RxFiltro {
    */
   kw?: string[];
   /**
-   * não tem o mesmo nome de outra permanente que você controla
+   * true: não tem o mesmo nome de outra permanente que você controla (Yenna); 'criaturaOuCemiterio': de outra criatura sua nem de card de criatura no seu cemitério (Guardian Project)
    */
-  nomeUnico?: boolean;
+  nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
    * poder maior que o poder base
    */
@@ -336,6 +336,10 @@ export interface RxAlvo {
    * alvo só existe se o modo N (fx modal) for escolhido
    */
   modo?: number;
+  /**
+   * um alvo para cada jogador (até 1 de cada; permanente = de quem controla, carta fora do campo = do dono): Afterlife from the Loam
+   */
+  porJogador?: boolean;
   /**
    * um alvo para cada oponente (até 1 de cada)
    */
@@ -498,7 +502,8 @@ export interface RxFx {
     | 'incitar'
     | 'fundir'
     | 'tomarIniciativa'
-    | 'aventurar';
+    | 'aventurar'
+    | 'monstruosidade';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -883,6 +888,7 @@ export interface RxKw {
     | 'afinidade'
     | 'convocar'
     | 'improvisar'
+    | 'delve'
     | 'loucura'
     | 'milagre'
     | 'reconfigurar'
@@ -991,6 +997,7 @@ export interface RxGat {
     | 'marcadorPosto'
     | 'alvoDe'
     | 'vira'
+    | 'ficaMonstruosa'
     | 'zonaVarios'
     | 'capitulo'
     | 'saiCemiterio'
@@ -1012,7 +1019,7 @@ export interface RxGat {
    */
   quem?: RxFiltro;
   /**
-   * jogador do evento (quem conjura/compra/perde vida; quem leva dano)
+   * jogador do evento (quem conjura/compra/perde vida; quem leva dano; marcadorPosto: quem pôs)
    */
   jog?: RxJogador;
   /**
