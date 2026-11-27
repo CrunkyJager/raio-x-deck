@@ -4716,6 +4716,44 @@ caso('702.120a', "custo por modo: Tiered (Cloud's Limit Break: {0}/{1}/{3}{W}) e
   igual(g.campo.filter(id => g.objs[id].n === 'Forest' && g.objs[id].virada).length, 3, 'pagou {1}{G} + {G}');
 });
 
+caso('702.160', "protótipo (Cradle Clearcutter): sem {6}, conjura por {2}{G} e entra 1/3 verde; o {T} dá mana igual ao poder (1); com {6}, 3/6 incolor", () => {
+  const e = cena({ campo: [...terras(3, 'Forest')], mao: [[0, 'Cradle Clearcutter']] });
+  M.avancar(e); conj(e, 'Cradle Clearcutter'); resolveCom(e);
+  const C = objN(e, 0, 'Cradle Clearcutter');
+  ok(C && C.proto, 'entrou como protótipo: ' + e.log.slice(-3).join(' / '));
+  igual([M.poder(e, C), M.resistencia(e, C), M.dadoDe(e, C).cores, M.dadoDe(e, C).vm], [1, 3, 'G', 3], '1/3 verde, valor de mana 3');
+  M.mover(e, C.id, 'mao'); ok(!e.objs[C.id].proto && M.dadoDe(e, e.objs[C.id]).vm === 6, 'fora do campo volta a ser a carta normal');
+  const f = cena({ campo: [...terras(6, 'Forest')], mao: [[0, 'Cradle Clearcutter']] });
+  M.avancar(f); conj(f, 'Cradle Clearcutter'); if (f.perg && f.perg.tipo === 'opcao') respE(f, o => o.a === 'opcao' && !o.v.prototipo); resolveCom(f);
+  const D = objN(f, 0, 'Cradle Clearcutter');
+  igual([M.poder(f, D), M.resistencia(f, D), D.proto], [3, 6, false], 'com 6: a normal');
+});
+
+caso('701.43', "exert / monarca ausente / diferença de poder / metade para cima: Combat Celebrant, Crown of Gondor, Conformer Shuriken, Contaminated Drink", () => {
+  // Combat Celebrant: exercida não desvira no próximo desvirar do controlador
+  const fx = M.carta('Combat Celebrant').gat[0].fx;
+  const e = cena({ campo: [[0, 'Combat Celebrant'], [0, 'Grizzly Bears']] });
+  const C = objN(e, 0, 'Combat Celebrant'), B = objN(e, 0, 'Grizzly Bears'); C.virada = true; B.virada = true;
+  const cx = () => ({ voce: 0, este: C.id, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  for (const f of fx.slice(0, 2)) M.executar(e, f, cx(), null);
+  ok(C.virada && !B.virada && C.naoDesv === C.ts, 'o urso desvira; a Celebrant fica exercida');
+  // Crown of Gondor: lendária entrando sem monarca → você vira; com monarca (outro), não
+  const g = cena({ campo: [[0, 'Crown of Gondor']] }); g.pend = [];
+  g.por(0, 'Aesi, Tyrant of Gyre Strait'); igual(g.pend.filter(p => p.n === 'Crown of Gondor').length, 1, 'sem monarca: dispara');
+  g.pend = []; g.monarca = 1; g.por(0, 'Aesi, Tyrant of Gyre Strait'); igual(g.pend.filter(p => p.n === 'Crown of Gondor').length, 0, 'já há monarca: não');
+  const K = objN(g, 0, 'Crown of Gondor'), eq = M.atvDe(g, K).findIndex(a => a.equipar || (a.fx || []).some(x => x.op === 'anexar' || x.op === 'equipar'));
+  const custoEq = () => M.custoAtv(g, K, M.atvDe(g, K)[eq >= 0 ? eq : 0]);
+  igual(custoEq().g, 4, 'equipar {4} sem ser o monarca'); g.monarca = 0; igual(custoEq().g, 1, 'monarca: {3} a menos');
+  // Conformer Shuriken: marcadores = poder do alvo − poder deste, se maior
+  const q = { conta: { de: { alvo: 0 }, o: 'poderAcimaDeste' } };
+  const h = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Serra Angel'], [1, 'Llanowar Elves']] });
+  const U = objN(h, 0, 'Grizzly Bears'), lk = o => ({ voce: 0, este: U.id, lki: { alvos: [[M.lkiDe(h, o)]] } });
+  igual([M.qtdDe(h, q, lk(objN(h, 1, 'Serra Angel'))), M.qtdDe(h, q, lk(objN(h, 1, 'Llanowar Elves')))], [2, 0], '4−2 = 2; menor: 0');
+  // Contaminated Drink: metade de X arredondada para cima
+  const r = M.carta('Contaminated Drink').fx[1].qtd;
+  igual([1, 2, 3].map(x => M.qtdDe(h, r, { voce: 0, x, lki: {} })), [1, 1, 2], 'X=1→1, 2→1, 3→2');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

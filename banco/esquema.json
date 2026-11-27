@@ -1631,6 +1631,10 @@
      "type": "boolean",
      "description": "você é o monarca"
     },
+    "haMonarca": {
+     "type": "boolean",
+     "description": "existe um monarca na partida (false = \"if there is no monarch\": Crown of Gondor)"
+    },
     "portadorDoAnel": {
      "type": "boolean",
      "description": "você tem um Portador do Anel (o Anel te tentou)"
@@ -1767,12 +1771,23 @@
       "intimidar",
       "decaida",
       "infectar",
-      "fuga"
+      "fuga",
+      "prototipo"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
     "custo": {
      "$ref": "#/$defs/mana"
+    },
+    "pt": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     },
+     "description": "prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')"
+    },
+    "cores": {
+     "type": "string"
     },
     "n": {
      "type": "integer"
@@ -2589,9 +2604,10 @@
       "maior",
       "dano",
       "nome",
-      "tipos"
+      "tipos",
+      "poderAcimaDeste"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken)"
     },
     "junta": {
      "enum": [

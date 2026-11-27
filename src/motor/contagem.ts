@@ -5,7 +5,8 @@
 //           | 'voce' | 'oponentes' | 'jogadores' | 'turno' | 'combate' | 'X' | 'resultado' | 'se' | 'escolhido'
 //   o     = O QUE se lê: 'quantos' | 'poder' | 'resist' | 'vm' | 'cores' | 'marcadores' (marc = tipo) | 'vida' | 'mao'
 //           | 'grimorio' | 'devocao' (cores) | 'magias' | 'descartes' | 'ataques' | 'atacantes' | 'atacantesEmVoce' | 'dano'
-//           | 'tipos' (tipos de card, com junta 'diferentes': delirium) | 'resolucoesDestaHab' (de 'turno': Omnath) …
+//           | 'tipos' (tipos de card, com junta 'diferentes': delirium) | 'resolucoesDestaHab' (de 'turno': Omnath)
+//           | 'poderAcimaDeste' (de {alvo:N}: quanto o poder do alvo passa o deste, 0 se não passa: Conformer Shuriken) …
 //   junta = como junta vários: 'soma' | 'maior' | 'diferentes' | 'maiorPorDono' (sem junta = quantos / o valor do único)
 // Os nomes velhos continuam entrando por traduzQtd() (o cartas-rx.js de reserva, até a T45, usa os nomes velhos);
 // o banco próprio (banco/cartas) já é escrito no formato novo e o esquema não aceita mais nome velho.
@@ -33,7 +34,7 @@ const DO_CONJ = { quantos: [undefined], poder: ['soma', 'maior'], resist: ['soma
 function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   const o = c.o, j = c.junta;
   if (temF(c)) return M.filtroOk(c.de.f) && !!DO_CONJ[o] && DO_CONJ[o].includes(j) && chaves(c, ['junta']);
-  if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida'].includes(o) && chaves(c, []);
+  if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida', 'poderAcimaDeste'].includes(o) && chaves(c, []);
   switch (c.de) {
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
@@ -88,6 +89,10 @@ M.contar = (e, c, ctx: any = {}) => {
     const i = c.de.alvo;
     if (o === 'vida' || o === 'grimorio') { const jj = M.jogsAlvo(e, i, ctx)[0]; return jj === undefined ? 0 : o === 'vida' ? e.jogs[jj].vida : e.jogs[jj].zonas.grimorio.length; }
     const a = L && L.alvos && L.alvos[i] && L.alvos[i][0];
+    if (o === 'poderAcimaDeste') {                  // "If that creature has greater power than this creature, … equal to the difference" (Conformer Shuriken); 0 se não for maior
+      const ob = e.objs[ctx.este], este = ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : L && L.este;
+      return a && este ? Math.max(0, a.poder - este.poder) : 0;
+    }
     return a ? a[o] : 0;
   }
   const J = e.jogs[ctx.voce];

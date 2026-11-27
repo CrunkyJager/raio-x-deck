@@ -230,13 +230,14 @@ M.morbido = e => e.morreuT === e.turno.n;
 
 // ---------- condições (temIniciativa, completouMasmorra) ----------
 // completouMasmorra: true = completou alguma; false = nenhuma; {nome} = aquela; {nome, nao: true} = não aquela (Acererak)
-M.condMasmorraOk = se => (se.monarca === undefined || typeof se.monarca === 'boolean') && (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean') && (se.desceu === undefined || typeof se.desceu === 'boolean')
+M.condMasmorraOk = se => (se.monarca === undefined || typeof se.monarca === 'boolean') && (se.haMonarca === undefined || typeof se.haMonarca === 'boolean') && (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean') && (se.desceu === undefined || typeof se.desceu === 'boolean')
   && (se.completouMasmorra === undefined || typeof se.completouMasmorra === 'boolean'
     || (!!se.completouMasmorra && typeof se.completouMasmorra === 'object' && typeof se.completouMasmorra.nome === 'string'
       && Object.keys(se.completouMasmorra).every(k => k === 'nome' || k === 'nao')));
 M.condMasmorra = (e, se, ctx) => {
   if (se.temIniciativa !== undefined && (e.iniciativa === ctx.voce) !== se.temIniciativa) return false;
   if (se.monarca !== undefined && (e.monarca === ctx.voce) !== se.monarca) return false;          // se você é o monarca
+  if (se.haMonarca !== undefined && (e.monarca !== undefined && e.monarca !== null && !(e.jogs[e.monarca] || {}).saiu) !== se.haMonarca) return false;   // "if there is no monarch" (Crown of Gondor)
   if (se.desceu !== undefined && (e.jogs[ctx.voce].desceuT === e.turno.n) !== se.desceu) return false;   // "if you descended this turn"
   const c = se.completouMasmorra;
   if (c !== undefined) {

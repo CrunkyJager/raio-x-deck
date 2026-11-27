@@ -843,6 +843,10 @@ export interface RxCond {
    */
   monarca?: boolean;
   /**
+   * existe um monarca na partida (false = "if there is no monarch": Crown of Gondor)
+   */
+  haMonarca?: boolean;
+  /**
    * você tem um Portador do Anel (o Anel te tentou)
    */
   portadorDoAnel?: boolean;
@@ -957,8 +961,14 @@ export interface RxKw {
     | 'intimidar'
     | 'decaida'
     | 'infectar'
-    | 'fuga';
+    | 'fuga'
+    | 'prototipo';
   custo?: RxMana;
+  /**
+   * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
+   */
+  pt?: number[];
+  cores?: string;
   n?: number;
   /**
    * proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
@@ -1438,7 +1448,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken)
    */
   o?:
     | 'quantos'
@@ -1472,7 +1482,8 @@ export interface RxContagem {
     | 'maior'
     | 'dano'
     | 'nome'
-    | 'tipos';
+    | 'tipos'
+    | 'poderAcimaDeste';
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */
