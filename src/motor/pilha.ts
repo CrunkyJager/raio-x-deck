@@ -992,6 +992,7 @@ function naoAnulavel(e, o) {
     if (sb.se) { let ok = false; try { ok = M.condicao(e, sb.se, { voce: F.ctrl ?? F.dono, este: F.id }); } catch (_) { ok = false; } if (!ok) continue; }
     return F;
   }
+  for (const t of e.efTemp || []) if (t.mag && t.mag.id === o.id && t.mag.ts === o.ts && t.subst.some(sb => sb.ev === 'anulada')) return { n: t.n, id: -1 };   // efeitoTemporario proximaMagica
   return null;
 }
 M.naoAnulavel = naoAnulavel;

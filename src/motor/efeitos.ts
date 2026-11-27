@@ -117,7 +117,7 @@ function substsDe(e, tipo) {
   for (const id of M.indiceCampo(e).sb) { const F = e.objs[id]; if (!F) continue; for (const s of M.dadoDe(e, F).subst || []) if (tipoSubst(s) === tipo && M.substOk(s)) r.push({ F, s }); }   // índice: só quem tem substituição
   // efeitoTemporario com substituição (Spore Frog, Riot Control, Selfless Squire): vale mesmo que a fonte já tenha saído
   // (611.2b); o "você" é quem resolveu o efeito
-  for (const t of e.efTemp || []) for (const s of t.subst || []) if (tipoSubst(s) === tipo) r.push({ F: { id: t.este ? t.este.id : -1, ctrl: t.ctrl }, s });
+  for (const t of e.efTemp || []) if (!t.proxMag) for (const s of t.subst || []) if (tipoSubst(s) === tipo) r.push({ F: { id: t.este ? t.este.id : -1, ctrl: t.ctrl }, s });
   return r;
 }
 const substSe = (e, F, s) => { if (!s.se) return true; try { return M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { return false; } };
@@ -557,7 +557,15 @@ function danoEm(e, alvoObj, q, fonte) {
 
 // ---------- os efeitos ----------
 const H = {
-  comprar: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) M.comprar(e, j, q); } },
+  // "may draw up to N" (Arcane Denial): cada jogador escolhe quantas, de 0 a N; pergunta a todos antes de comprar
+  comprar: {
+    qtd: q => qtdOk(q) || (ateOk(q) && Number.isInteger(q.ate)),
+    fx(e, f, ctx, ask) {
+      const q = qtdDe(e, f.qtd, ctx), js = jogsDe(e, f, ctx);
+      const n = ateOk(f.qtd) ? js.map(j => ask(j, 'x', Array.from({ length: q + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { op: 'comprar' }).v) : js.map(() => q);
+      js.forEach((j, i) => { if (n[i] > 0) M.comprar(e, j, n[i]); });
+    },
+  },
   dano: {
     campos: ['fonte'],
     ok: f => f.fonte === undefined || f.fonte === 'doEvento' || (!!f.fonte && typeof f.fonte === 'object' && Number.isInteger(f.fonte.alvo) && Object.keys(f.fonte).length === 1),
@@ -641,11 +649,12 @@ const H = {
   },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
   efeitoTemporario: {
-    campos: ['dura', 'est', 'subst', 'emblema', 'gat'],
+    campos: ['dura', 'est', 'subst', 'emblema', 'gat', 'proximaMagica'],
     qtd: q => q === undefined,
     ok: f => (f.quem === undefined || f.quem === 'voce') && (f.dura === 'fimDoTurno' || f.dura === 'proximoTurnoSeu' || f.dura === 'sempre')
       && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length + (f.gat || []).length) > 0
-      && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este))
+      && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => f.proximaMagica ? s.ev === 'anulada' && M.substOk(s) && Object.keys(s.quem).length === 1 : tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este))
+      && (!f.proximaMagica || (f.em === undefined && !(f.est || []).length && !(f.gat || []).length && f.dura === 'fimDoTurno'))
       && (f.gat || []).every(g => f.em === undefined && M.gatOk(g) && !(g.quem && g.quem.este)),
     fx(e, f, ctx) {
       const F = e.objs[ctx.este], este = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? { id: F.id, ts: F.ts } : null;
@@ -659,7 +668,7 @@ const H = {
         if (os.length) (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p: 0, r: 0, kw: [], base: [s.pBase, s.rBase], ts: ++e.ts });
       }
       if (!(f.est || []).some(x => x.modo !== 'ptDefinido') && !subst.length && !(f.gat || []).length) return;
-      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: (f.est || []).filter(x => x.modo !== 'ptDefinido'), subst, gat: f.gat || [], n, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: (f.est || []).filter(x => x.modo !== 'ptDefinido'), subst, gat: f.gat || [], n, este, ids, ...(f.proximaMagica ? { proxMag: true, mag: null } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
     },
   },
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
@@ -786,7 +795,7 @@ const H = {
     ok: f => M.atrasadoOk(f.quando),
     fx(e, f, ctx) {
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
-        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
+        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal, lkiAlvos: ctx.lki && ctx.lki.alvos } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
     },
   },
   // miríade (CR 702.116a): para cada oponente que não é o defensor, pode criar uma ficha cópia desta, virada e atacando

@@ -4368,6 +4368,34 @@ caso('614.1c', "Feasting Hobbit: ao entrar sacrifica as Comidas que quiser e ent
   igual(M.poder(f, objN(f, 0, 'Feasting Hobbit')), 2, 'sem Comida: 2/2');
 });
 
+caso('603.7', "Arcane Denial: anula; no começo da manutenção do próximo turno o dono da mágica compra até 2 (escolhe) e você compra 1", () => {
+  ok(M.fxSuportado(M.carta('Arcane Denial').fx), 'aceito');
+  const e = cena({ mao: [[1, 'Grizzly Bears']] });
+  const u = e.jogs[1].zonas.mao[0]; M.mover(e, u, 'pilha');
+  const U = e.objs[u];
+  const ctx: any = { voce: 0, este: -1, alvos: [[{ o: u, ts: U.ts }]], ilegal: {}, lki: { alvos: [[M.lkiDe(e, U)]] } };
+  for (const f of M.carta('Arcane Denial').fx) M.executar(e, f, ctx, null);
+  igual(U.zona, 'cemiterio', 'anulada');
+  const m0 = e.jogs[0].zonas.mao.length, m1 = e.jogs[1].zonas.mao.length;
+  passarAte(e, 'manutencao'); M.avancar(e);
+  resolveCom(e, p => p.tipo === 'x' ? p.ops.findIndex(o => o.v === 1) : -1);
+  igual([e.jogs[0].zonas.mao.length - m0, e.jogs[1].zonas.mao.length - m1], [1, 1], 'escolheu comprar 1 das 2; você compra 1');
+  igual(e.atras.length, 0, 'uma vez só (603.7c)');
+});
+
+caso('611.2', "Mistrise Village: a próxima mágica que você conjurar neste turno não pode ser anulada; a seguinte e a de antes, sim", () => {
+  ok(M.fxSuportado(M.carta('Mistrise Village').atv[1].fx), 'aceito');
+  const e = cena({ campo: [[0, 'Mistrise Village']], mao: [[0, 'Grizzly Bears'], [0, 'Hill Giant'], [0, 'Llanowar Elves']] });
+  const [a, b, c] = e.jogs[0].zonas.mao.slice();
+  const conjura = id => { M.mover(e, id, 'pilha'); M.evento(e, { ev: 'conjura', id, j: 0 }); };
+  conjura(a);
+  M.executar(e, M.carta('Mistrise Village').atv[1].fx[0], { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: {} }, null);
+  conjura(b); conjura(c);
+  ok(M.naoAnulavel(e, e.objs[b]), 'a próxima: não pode');
+  ok(!M.naoAnulavel(e, e.objs[a]) && !M.naoAnulavel(e, e.objs[c]), 'a de antes e a seguinte: podem');
+  ok(!M.anular(e, b) && M.anular(e, c), 'anular respeita');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -229,6 +229,8 @@ function loteInfo(e, lote) {
   return I;
 }
 M.evento = (e, ev) => {
+  // "the next spell you cast this turn …" (Mistrise Village, CR 611.2): o efeito se prende à mágica quando ela é conjurada (601.2i)
+  if (ev.ev === 'conjura' && e.efTemp) for (const t of e.efTemp) if (t.proxMag && !t.mag && t.ctrl === ev.j && e.objs[ev.id]) t.mag = { id: ev.id, ts: e.objs[ev.id].ts };
   if (!e.pend || (e.turno.passo === 'mulligan')) return;
   const saida = ev.ev === 'zona' && ev.de === 'campo';
   if (saida) (e.lote = e.lote || []).push(ev.snap);
@@ -398,7 +400,7 @@ M.PROC.gatilhos = (e, P, ask) => {
       const id = e.prox++;
       e.objs[id] = { id, n: p.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
         hab: { fonte: p.fonte, fonteTs: p.ts, gat: p.k, fx: g.fx, alvos: g.alvos || [], ficha: p.ficha, se: g.se || null, talvez: !!g.talvez },
-        pil: { x: 0, alvos, modos, ctrl: j, lki: { este: p.lki }, ev: p.ev, mem: p.mem || null } };
+        pil: { x: 0, alvos, modos, ctrl: j, lki: { este: p.lki, ...(p.mem && p.mem.lkiAlvos ? { alvos: p.mem.lkiAlvos } : {}) }, ev: p.ev, mem: p.mem || null } };
       e.pilha.push(id);
       M.eventosAlvo(e, alvos, id);
       M.log(e, e.jogs[j].nome, 'gatilho de', p.n, '(' + g.ev + ')');
