@@ -560,7 +560,8 @@ const H = {
         for (const o of os) o.ganhos = { atv: [...((o.ganhos && o.ganhos.atv) || []), ...f.habil.atv] };
         return;
       }
-      const n = q => q === undefined ? 0 : typeof q === 'number' ? q : qtdDe(e, q, ctx);   // número direto: −4/−4 não vira 0
+      // número direto: −4/−4 não vira 0; {conta, mult:-1} = −X/−X (Toxic Deluge, Olivia's Wrath): conta positiva, sinal depois
+      const n = q => q === undefined ? 0 : typeof q === 'number' ? q : q && q.mult < 0 && !q.soma ? -qtdDe(e, { ...q, mult: -q.mult }, ctx) : qtdDe(e, q, ctx);
       const p = n(f.p), r = n(f.r);
       const ev = ctx.ev, at = ev && e.objs[ev.id];
       if ((f.gat || []).length) { for (const o of os) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.gat] }; e.vCamada = (e.vCamada || 0) + 1; }   // sai na limpeza (514.2) ou ao mudar de zona

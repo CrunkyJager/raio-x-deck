@@ -3440,6 +3440,17 @@ caso('614.1a', "troca de ficha: Academy Manufactor faz Pista+Comida+Tesouro (×2
   igual(conta(f, 'Treasure'), 1, 'Tesouro fica (talvez)');
 });
 
+caso('601.2b', "Toxic Deluge: anuncia X, paga X de vida (custo adicional) e todas as criaturas ganham −X/−X; o agente escolhe o X que mata a maior do oponente", () => {
+  ok(M.custoAdSuportado(M.carta('Toxic Deluge').custoAd), 'custo aceito');
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Swamp'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']], mao: [[0, 'Toxic Deluge']] });
+  M.avancar(e); conj(e, 'Toxic Deluge');
+  igual(e.perg.tipo, 'x'); igual(e.perg.ops.length, 41, 'X de 0 a 40');
+  igual(e.perg.ops[M.agenteBasico()(e, e.perg)].v, 2, 'agente: X = 2 (o Urso)');
+  respE(e, o => o.v === 2); M.avancar(e);
+  igual(e.jogs[0].vida, 38, 'pagou 2 de vida');
+  igual(e.campo.filter(id => e.objs[id].ctrl === 1).length, 0, 'as duas morreram');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

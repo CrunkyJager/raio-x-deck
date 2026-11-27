@@ -617,8 +617,11 @@ M.escolherModos = (e, j, d, f, ask, de?) => escolherModos(e, j, d, f, ask, de);
 // custo físico com escolha (sacrificar X, descartar)
 // custo adicional com "ou" (Demand Answers): cada opção junta o resto do objeto; só as suportadas e pagáveis agora
 const opcoesAd = c => { const { ou, ...resto } = c; return ou ? ou.map(a => ({ ...resto, ...a })) : [c]; };
-M.custoAdSuportado = c => opcoesAd(c).some(M.custoSuportado);
+// "pague X de vida" como custo adicional (Toxic Deluge, CR 601.2b/119.4): o X é anunciado na conjuração (vidaX)
+const vidaX = c => !!c && c.vida === 'X' && !c.ou;
+M.custoAdSuportado = c => vidaX(c) ? M.custoSuportado({ ...c, vida: 1 }) : opcoesAd(c).some(M.custoSuportado);
 function altsAd(e, j, o, c) {
+  if (vidaX(c)) return M.vidaFixa(e, j) ? [{ ...c, vida: 0 }] : [c];   // 119.8: vida fixa só paga X = 0
   return opcoesAd(c).filter(a => M.custoSuportado(a) && custoFisicoOk(e, j, null, a, { daMao: o.id }));
 }
 function escolherAd(e, j, o, c, ask) {
@@ -699,7 +702,11 @@ const PROC = {
     const cabe = d.impostoPorAlvo ? n => !!plano(e, j, comAlvos(n), x, null, o) : undefined;
     const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask, cabe, opc);          // CR 601.2c
     custo = comAlvos(alvos.reduce((s, l) => s + (l ? l.length : 0), 0));
-    const cad = d.custoAd ? escolherAd(e, j, o, d.custoAd, ask) : null;             // CR 601.2b: anuncia qual custo do "ou"
+    let cad = d.custoAd ? escolherAd(e, j, o, d.custoAd, ask) : null;             // CR 601.2b: anuncia qual custo do "ou"
+    if (cad && cad.vida === 'X') {                                                    // 601.2b/119.4: X de vida até a vida que tem
+      x = ask(j, 'x', Array.from({ length: Math.max(0, e.jogs[j].vida) + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id, vida: true }).v;
+      cad = { ...cad, vida: x };
+    }
     const fis = cad ? escolherCustoFisico(e, j, cad, null, o.id, ask) : { sac: [] as any[], desc: [] as any[], dev: [] as any[] };
     const fuga = !porFlash(e, j, o) && !P.gratis && porFuga(e, j, o) ? fugaDe(e, j, o) : null;   // 702.138: as N outras do cemitério (601.2f)
     const exFuga = fuga ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), fuga.exilar, { ctx: { o: 'exilar' } }) : [];
