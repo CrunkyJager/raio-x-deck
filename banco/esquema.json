@@ -390,8 +390,8 @@
      "description": "a própria carta"
     },
     "outro": {
-     "type": "boolean",
-     "description": "exceto a própria carta"
+     "anyOf": [{"type": "boolean"}, {"const": "doEvento"}],
+     "description": "exceto a própria carta; 'doEvento' = exceto o objeto do evento (\"each other attacking creature\" que compartilha tipo com ela, Shared Animosity)"
     },
     "tipo": {
      "type": "array",
@@ -835,6 +835,10 @@
       "semPresente"
      ],
      "description": "o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)"
+    },
+    "ou": {
+     "$ref": "#/$defs/filtro",
+     "description": "o alvo pode bater este outro filtro em vez do f (Sink into Stupor: magia de oponente na pilha OU permanente não-terreno dele)"
     },
     "ouZona": {
      "$ref": "#/$defs/zona",
@@ -2135,6 +2139,7 @@
       "evoluir",
       "persistir",
       "imortal",
+      "segundoDividido",
       "desaparecer",
       "rebote",
       "dobra",

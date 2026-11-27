@@ -55,6 +55,7 @@ M.alvoSuportado = a => {
   if (a.diferenteDe !== undefined && !Number.isInteger(a.diferenteDe)) return false;
   if (a.vmTotal !== undefined && typeof a.vmTotal !== 'number' && a.vmTotal !== 'X') return false;   // vmTotal: número ou X
   if (a.ctrlDiferentes !== undefined && a.ctrlDiferentes !== true) return false;   // "with different controllers" (Blade Beam)
+  if (a.ou !== undefined && !(a.ou && typeof a.ou === 'object' && M.filtroOk(a.ou))) return false;
   if (typeof f === 'string') return ['qualquerAlvo', 'jogador', 'oponente', 'magica', 'magicaOuHab', 'habilidade'].includes(f);
   return M.filtroOk(f);
 };
@@ -120,6 +121,7 @@ M.alvoLegal = (e, a, esc, ctx) => {
   if (f === 'qualquerAlvo') return o.zona === 'campo' && TIPOS_ALVO_OBJ.some(t => M.temTipo(e, o, t));
   if (typeof f === 'string') return false;
   if (o.hab) return false;
+  if (a.ou && o.zona === (a.ou.zona || 'campo') && M.bate(e, o, { zona: 'campo', ...a.ou }, ctx)) return true;   // "target spell or nonland permanent an opponent controls" (Sink into Stupor): o outro filtro
   const ff = f.zona ? f : { ...f, zona: 'campo' };
   if (a.ouZona && o.zona === a.ouZona) return M.bate(e, o, { ...f, zona: a.ouZona }, ctx);   // "from the battlefield and/or … from graveyards" (Angel of Serenity)
   return M.bate(e, o, ff, ctx);
@@ -136,6 +138,7 @@ function alvosPoss(e, a, ctx) {
   else if (typeof f === 'string') ids = [];
   else ids = M.objetosQue(e, f.zona ? f : { ...f, zona: 'campo' }, ctx).map(o => o.id);
   if (a.ouZona && typeof f === 'object') ids = [...ids, ...M.objetosQue(e, { ...f, zona: a.ouZona }, ctx).map(o => o.id)];
+  if (a.ou && typeof a.ou === 'object') ids = [...new Set([...ids, ...M.objetosQue(e, { zona: 'campo', ...a.ou }, ctx).map(o => o.id)])];
   for (const id of ids) { const esc = { o: id, ts: e.objs[id].ts }; if (M.alvoLegal(e, a, esc, ctx)) r.push(esc); }
   return r;
 }
@@ -378,7 +381,7 @@ const fugaDe = (e, j, o) => {
   if (k) return { mana: k.custo, exilar: k.exilar, comMarc: k.comMarc || null };
   for (const id of e.campo) {
     const F = e.objs[id]; if (F.ctrl !== j) continue;
-    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRetrace' && s.afeta && M.dadoDe(e, o).custo && (!s.se || M.condicao(e, s.se, { voce: j, este: F.id })) && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: j, este: F.id })) return { mana: M.dadoDe(e, o).custo, exilar: 0, comMarc: null, descTerreno: true };   // 702.81a retrace: + descartar um terreno
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRetrace' && s.afeta && M.dadoDe(e, o).custo && (!s.se || M.condicao(e, s.se, { voce: j, este: F.id })) && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: j, este: F.id }) && (!s.se || (() => { try { return M.condicao(e, s.se, { voce: j, este: F.id }); } catch (_) { return false; } })())) return { mana: M.dadoDe(e, o).custo, exilar: 0, comMarc: null, descTerreno: true };   // 702.81a retrace: + descartar um terreno
     for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darFuga' && Number.isInteger(s.exilar) && M.dadoDe(e, o).custo && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: j, este: F.id })) return { mana: M.dadoDe(e, o).custo, exilar: s.exilar, comMarc: null };
   }
   return null;
@@ -642,6 +645,11 @@ function opcoes(e, j) {
   const J = e.jogs[j], ops: any[] = [{ a: 'passar' }];
   if (M.segundoDividido(e)) {                                         // CR 702.61a: com ela na pilha, só habilidade de mana (e ação especial: prever, 702.61b)
     for (const id of J.zonas.mao) if (M.podePrever(e, j, e.objs[id])) ops.push({ a: 'prever', id });
+    for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
+    ops.push(...M.manaEscOps(e, j));
+    return ops;
+  }
+  if (e.pilha.some(id => { const o = e.objs[id]; return o && !o.hab && M.temKw(e, o, 'segundoDividido'); })) {   // 702.61a: só mana (e passar) enquanto a mágica com segundo dividido está na pilha
     for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
     ops.push(...M.manaEscOps(e, j));
     return ops;

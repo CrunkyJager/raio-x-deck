@@ -6850,6 +6850,47 @@ caso('509.1c', "Mirri: ao atacar, cada oponente bloqueia com no máximo uma cria
   igual(e.turno.combate.limBloq, { 1: 1 }, 'o oponente bloqueia com 1');
 });
 
+caso('506.4', "Shared Animosity: +1/+0 por OUTRA atacante que compartilha tipo (filtro outro:'doEvento'); sem tipo em comum, +0", () => {
+  const e = cena({ campo: [[0, 'Shared Animosity'], [0, 'Blackcleave Goblin'], [0, 'Blackcleave Goblin'], [0, 'Blackcleave Goblin'], [0, 'Grizzly Bears']] });
+  const gs = e.campo.filter(id => ['Blackcleave Goblin', 'Grizzly Bears'].includes(e.objs[id].n));
+  for (const id of gs) e.objs[id].atacando = true;
+  e.turno.combate = { atk: gs.map(id => ({ id, ts: e.objs[id].ts, def: 1, alvo: { jog: 1 }, bloq: [] })), etapa: 0 } as any;
+  const q = M.carta('Shared Animosity').gat[0].fx[0].p;
+  igual(M.qtdDe(e, q, { voce: 0, este: -1, ev: { ev: 'ataca', id: gs[0] }, lki: {} }), 2, 'Goblin: 2 outros Goblins');
+  igual(M.qtdDe(e, q, { voce: 0, este: -1, ev: { ev: 'ataca', id: gs[3] }, lki: {} }), 0, 'Bears: nenhum');
+});
+
+caso('702.61a', "segundo dividido (Siege Smash): com ela na pilha, ninguém conjura nem ativa (só mana)", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [1, 'Island'], [1, 'Island'], [1, 'Sol Ring']], mao: [[0, 'Siege Smash'], [1, 'Counterspell']] });
+  M.avancar(e); const naPilha = x => x.pilha.length > 0;
+  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && e.objs[o.id].n === 'Siege Smash'), naPilha);
+  for (let i = 0; i < 5 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, M.agenteBasico()(e, e.perg), naPilha);
+  ok(e.pilha.length === 1, 'na pilha');
+  const ops = M.opcoesPrioridade(e, 1);
+  ok(!ops.some(o => o.a === 'conjurar' || o.a === 'ativar'), 'o oponente não conjura nem ativa');
+  ok(ops.some(o => o.a === 'mana'), 'mana pode');
+});
+
+caso('115.1', "Sink into Stupor (alvo ou): devolve a mágica do oponente na pilha OU a permanente não-terreno dele", () => {
+  const e = cena({ campo: [[1, 'Forest'], [1, 'Forest'], [1, 'Sol Ring']], mao: [[1, 'Grizzly Bears']] });
+  e.turno.ativo = 1; M.avancar(e); const naPilha = x => x.pilha.length > 0;
+  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && e.objs[o.id].n === 'Grizzly Bears'), naPilha);
+  for (let i = 0; i < 5 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, M.agenteBasico()(e, e.perg), naPilha);
+  const a = M.carta('Sink into Stupor').alvos[0], ctx = { voce: 0, este: -1 };
+  const ps = M.alvosPossiveis(e, a, ctx).map(x => e.objs[x.o].n).sort();
+  igual(ps, ['Grizzly Bears', 'Sol Ring'], 'a mágica e o Sol Ring (terreno não)');
+  const gb = e.objs[e.pilha[0]];
+  M.executar(e, M.carta('Sink into Stupor').fx[0], { ...ctxDe(e), alvos: [[{ o: gb.id, ts: gb.ts }]] }, (j, t, ops) => ops[0]);
+  igual(gb.zona, 'mao', 'a mágica voltou para a mão'); igual(e.pilha.length, 0, 'pilha vazia');
+});
+
+caso('702.81a', "Six (darRetrace se turno seu): permanente não-terreno do cemitério por retrace no seu turno; no do oponente, não", () => {
+  const e = cena({ campo: [[0, 'Six'], [0, 'Forest'], [0, 'Forest']], mao: [[0, 'Forest']] });
+  const b = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
+  M.avancar(e); ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === b.id), 'no seu turno: pode');
+  e.turno.ativo = 1; ok(!M.porFuga(e, 0, b), 'no do oponente: não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -186,9 +186,9 @@ export interface RxFiltro {
    */
   este?: boolean;
   /**
-   * exceto a própria carta
+   * exceto a própria carta; 'doEvento' = exceto o objeto do evento ("each other attacking creature" que compartilha tipo com ela, Shared Animosity)
    */
-  outro?: boolean;
+  outro?: boolean | 'doEvento';
   /**
    * algum destes tipos (Creature, Land, Permanent, Card, Spell, Token…)
    */
@@ -420,6 +420,10 @@ export interface RxAlvo {
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
   opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
+  /**
+   * o alvo pode bater este outro filtro em vez do f (Sink into Stupor: magia de oponente na pilha OU permanente não-terreno dele)
+   */
+  ou?: RxFiltro;
   /**
    * o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)
    */
@@ -1184,6 +1188,7 @@ export interface RxKw {
     | 'evoluir'
     | 'persistir'
     | 'imortal'
+    | 'segundoDividido'
     | 'desaparecer'
     | 'rebote'
     | 'dobra'
