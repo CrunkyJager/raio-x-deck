@@ -3451,6 +3451,17 @@ caso('601.2b', "Toxic Deluge: anuncia X, paga X de vida (custo adicional) e toda
   igual(e.campo.filter(id => e.objs[id].ctrl === 1).length, 0, 'as duas morreram');
 });
 
+caso('602.2b', "Devoted Druid: pôr um marcador −1/−1 nela é custo — desvira; na segunda vez morre (0/0) pela ação de estado", () => {
+  ok(M.carta('Devoted Druid').atv.every(a => M.custoSuportado(a.custo)), 'custos aceitos');
+  const e = cena({ campo: [[0, 'Devoted Druid', { virada: true }]] });
+  const d = e.campo.map(id => e.objs[id]).find(o => o.n === 'Devoted Druid');
+  M.avancar(e);
+  respE(e, o => o.a === 'ativar' && o.id === d.id && o.k === 1); resolvePilha(e);
+  ok(!d.virada, 'desvirou'); igual(d.marc['-1/-1'], 1); igual(M.resistencia(e, d), 1);
+  respE(e, o => o.a === 'ativar' && o.id === d.id && o.k === 1); resolvePilha(e);
+  igual(d.zona, 'cemiterio', '0/0 morre');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
