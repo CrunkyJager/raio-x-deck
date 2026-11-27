@@ -11,7 +11,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 // dentro de um repetirCada com filtro de objetos (Kalonian Hydra): em/copiaDe 'cadaAtual' = o objeto da vez
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'maiorDescarte', 'grimorioDoAlvo', 'vidaDoAlvo']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
 
@@ -255,6 +255,11 @@ function qtdDe(e, q, ctx) {
       case 'X': v = ctx.x || 0; break;
       case 'resultado': v = ctx.resultado || 0; break;
       case 'lembrados': v = (ctx.lembrados || []).length; break;
+      // "the greatest number of cards a player discarded this way" (Windfall): das lembradas pelo descartar anterior, por dono
+      case 'maiorDescarte': { const n = {}; for (const id of ctx.lembrados || []) { const o = e.objs[id]; if (o) n[o.dono] = (n[o.dono] || 0) + 1; } v = Math.max(0, ...Object.values<number>(n)); break; }
+      // do jogador alvo N (Peer into the Abyss: "half the cards in their library / half their life, rounded up" com divCima 2)
+      case 'grimorioDoAlvo': case 'vidaDoAlvo': { const jj = jogsAlvo(e, q.alvo || 0, ctx)[0];
+        v = jj === undefined ? 0 : q.conta === 'vidaDoAlvo' ? e.jogs[jj].vida : e.jogs[jj].zonas.grimorio.length; break; }
       case 'marcadoresNoEvento': v = ctx.ev && ctx.ev.ev === 'marcadorPosto' ? ctx.ev.n || 0 : 0; break;   // "that many" (Shalai and Hallar)
       case 'evento': v = !ctx.ev ? 0 : vidaEv(ctx.ev) ? ctx.ev.q || 0 : ctx.ev.n ?? 1; break;   // no evento de vida: "that much" (Exquisite Blood, Prize Pig)
       case 'vidaGanha': v = ctx.ev && vidaEv(ctx.ev) ? ctx.ev.q || 0 : 0; break;               // "that much life" (Sanguine Bond, Vito)
@@ -761,9 +766,9 @@ const H = {
     },
   },
   fasear: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.fasearFora(e, o.id); } },   // CR 702.26
-  // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o motor ainda não tem escudo de regeneração
-  // (op regenerar trava), então destruir já é definitivo; quando regenerar entrar, ele tem que olhar f.semRegenerar.
-  destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel')) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
+  // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o escudo de regeneração não vale
+  destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel') && (f.semRegenerar || !M.regenera(e, o))) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
+  regenerar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo') M.porRegen(e, o); } },   // CR 701.15a
   exilar: { fx(e, f, ctx) { const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id)); } },
   mover: {
     campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste'],

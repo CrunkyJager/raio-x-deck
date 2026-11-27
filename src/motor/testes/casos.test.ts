@@ -3455,6 +3455,57 @@ caso('702.29e', "ciclo de tipo: Step Through (ciclo de Wizard {2}) procura um Wi
   ok(!opsDe(h, 'ativar').some(op => h.objs[op.id].n === 'Blur Sliver'), 'o Homing do oponente não dá à minha mão');
 });
 
+caso('121.1', "comprar com conta: Windfall (o maior descarte), Peer into the Abyss (metade do grimório e da vida do alvo, para cima), One with the Machine (maior VM)", () => {
+  const e = cena({ mao: [[0, 'Grizzly Bears'], [0, 'Forest'], [1, 'Forest'], [1, 'Forest'], [1, 'Sol Ring']] });
+  const X = (c, ctx = {}) => M.executar(e, c, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, ...ctx }, () => ({ a: 'nao' }));
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const f of M.carta('Windfall').fx) M.executar(e, f, ctx, () => ({ a: 'nao' }));
+  igual([e.jogs[0].zonas.mao.length, e.jogs[1].zonas.mao.length], [3, 3], 'cada um compra 3 (o maior descarte)');
+  const g0 = e.jogs[1].zonas.grimorio.length;
+  for (const f of M.carta('Peer into the Abyss').fx) X(f, { alvos: [[{ jog: 1 }]] });
+  igual(e.jogs[1].zonas.grimorio.length, g0 - Math.ceil(g0 / 2), 'metade do grimório, para cima');
+  igual(e.jogs[1].vida, 20, 'perde metade de 40');
+  const f = cena({ campo: [[0, 'Sol Ring'], [0, 'Gilded Lotus']] });
+  const m0 = f.jogs[0].zonas.mao.length;
+  M.executar(f, M.carta('One with the Machine').fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(f.jogs[0].zonas.mao.length - m0, 5, 'Gilded Lotus: VM 5');
+  for (const c of ['Windfall', 'Peer into the Abyss', 'One with the Machine', "Jace's Archivist", 'Whispering Madness']) ok(M.fxSuportado(M.carta(c).fx || M.carta(c).atv[0].fx), c);
+});
+
+caso('701.15', "regenerar: o escudo troca destruir e dano letal por virar + tirar o dano + sair do combate; um por escudo; semRegenerar e resistência 0 não; acaba no turno", () => {
+  const e = cena({ campo: [[0, 'Nightscape Familiar'], [1, 'Grizzly Bears']] });
+  const nf = e.objs[e.campo.find(id => e.objs[id].n === 'Nightscape Familiar')];
+  const X = (f, ctx: any = {}) => M.executar(e, f, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: nf.id, ...ctx }, () => ({ a: 'nao' }));
+  ok(M.fxSuportado(M.carta('Nightscape Familiar').atv.find(a => a.fx.some(f => f.op === 'regenerar')).fx), 'aceito');
+  X({ op: 'regenerar', em: 'este' }); X({ op: 'regenerar', em: 'este' });
+  X({ op: 'destruir', em: 'este' });
+  ok(nf.zona === 'campo' && nf.virada, '1º destruir: regenera (vira)');
+  nf.dano = 5; M.abe(e);
+  ok(nf.zona === 'campo' && nf.dano === 0, 'dano letal: 2º escudo, tira o dano');
+  nf.dano = 5; M.abe(e);
+  ok(nf.zona === 'cemiterio', 'sem escudo: morre');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }); const gb = f.objs[f.campo[0]];
+  const Y = fx => M.executar(f, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: gb.id }, () => ({ a: 'nao' }));
+  Y({ op: 'regenerar', em: 'este' }); Y({ op: 'destruir', em: 'este', semRegenerar: true });
+  ok(gb.zona === 'cemiterio', "can't be regenerated: vai");
+  const g = cena({ campo: [[0, 'Grizzly Bears']] }); const g2 = g.objs[g.campo[0]];
+  M.executar(g, { op: 'regenerar', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: g2.id }, () => ({ a: 'nao' }));
+  g.turno.n++;
+  M.executar(g, { op: 'destruir', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: g2.id }, () => ({ a: 'nao' }));
+  ok(g2.zona === 'cemiterio', 'o escudo é só deste turno');
+  for (const c of ['Asceticism', 'Crypt Sliver', 'Goblin Chirurgeon', 'Zombie Master']) ok(JSON.stringify(M.carta(c)).includes('regenerar'), c);
+});
+
+caso('613.1d', "tiraTipo: deus de Theros não é criatura com devoção < 5 (Purphoros); com 5 é criatura de novo; perde o subtipo God junto", () => {
+  const e = cena({ campo: [[0, 'Purphoros, God of the Forge']] });
+  const p = e.objs[e.campo[0]];
+  ok(!M.temTipo(e, p, 'Creature') && M.temTipo(e, p, 'Enchantment'), 'devoção 1: só encantamento');
+  ok(!(M.dadoDe(e, p).sub || []).includes('God'), 'sem o subtipo de criatura');
+  e.por(0, 'Krenko, Mob Boss'); ok(!M.temTipo(e, p, 'Creature'), 'devoção 3: ainda não');
+  e.por(0, 'Krenko, Mob Boss'); ok(M.temTipo(e, p, 'Creature') && M.poder(e, p) === 6, 'devoção 5: criatura 6/5');
+  for (const c of ['Athreos, God of Passage', 'Iroas, God of Victory', 'Nylea, God of the Hunt']) ok(M.carta(c).est.filter(s => s.tiraTipo).every(s => M.estContOk(s)), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
