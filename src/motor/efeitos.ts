@@ -93,7 +93,8 @@ const SUBST: Record<string, (s) => boolean> = {
   vaiCemiterio: s => saidaOk(s),
   anulada: s => !!s.muda && Object.keys(s.muda).length === 1 && s.muda.impedir === true && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k))
     && !!s.quem && s.quem.zona === 'pilha',   // "não pode ser anulada" (M.anular, pilha.ts)
-  dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
+  dano: s => !!s.muda && ((Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto)))
+    || (Object.keys(s.muda).length === 2 && s.muda.prevenir === true && !!s.muda.fichaPorDano && typeof s.muda.fichaPorDano === 'object'))
     && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento'),
 };
 // "As this enters, you may sacrifice any number of Foods. It enters with three +1/+1 counters for each" (Feasting
@@ -212,7 +213,11 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
     if (s.por && !(fonte && M.bate(e, fonte, s.por, { voce: F.ctrl, este: F.id }))) return false;
     return substSe(e, F, s);
   });
-  if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) return 0;   // Bonecrusher Giant: prevenir não vale (615.12)
+  if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) {   // Bonecrusher Giant: prevenir não vale (615.12)
+    const r = lista.find(r => r.s.muda.prevenir && r.s.muda.fichaPorDano);   // "for each 1 damage prevented this way, create…" (Inkshield): um escudo só leva o crédito
+    if (r) M.criarFichas(e, r.F.ctrl, r.s.muda.fichaPorDano, q);
+    return 0;
+  }
   for (const r of lista) if (r.s.muda.teto !== undefined) q = Math.min(q, r.s.muda.teto);
   for (const r of lista) if (r.s.muda.mult) q *= r.s.muda.mult;
   for (const r of lista) if (r.s.muda.metade) q = Math.ceil(q / 2);
@@ -552,10 +557,12 @@ function escolherAte(e, f, ctx, ask, tipo, ok) {
 // escolher n objetos de uma lista, um por pergunta (pode parar antes se 'podeMenos')
 M.escolherN = (...a) => (escolherN as any)(...a);
 const SUB_TERRENO = new Set(['Plains', 'Island', 'Swamp', 'Mountain', 'Forest', 'Desert', 'Gate', 'Lair', 'Locus', 'Mine', 'Power-Plant', 'Tower', 'Urza\'s', 'Cave', 'Sphere', 'Town']);   // CR 205.3i
-function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {}, distinto }: any = {}) {
+// "an Angel card, a Demon card, and/or a Dragon card" (Kaalia): cada carta pega ocupa uma vaga diferente (categorias(id) = as vagas que ela preenche)
+const cabemVagas = (ids, cat, usadas: any[] = []) => !ids.length || cat(ids[0]).some(v => !usadas.includes(v) && cabemVagas(ids.slice(1), cat, [...usadas, v]));
+function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {}, distinto, vagas }: any = {}) {
   const r: any[] = [];
   while (r.length < n) {
-    const ops = ids.filter(id => !r.includes(id) && (!distinto || !r.some(x => distinto(x) === distinto(id)))).map(id => ({ a: tipo, id }));   // distinto: "each have different names" (Tiamat)
+    const ops = ids.filter(id => !r.includes(id) && (!distinto || !r.some(x => distinto(x) === distinto(id))) && (!vagas || cabemVagas([...r, id], vagas))).map(id => ({ a: tipo, id }));   // distinto: "each have different names" (Tiamat)
     if (podeMenos) ops.unshift({ a: 'nenhum' });
     if (!ops.length) break;
     const x = ask(j, tipo, ops, ctx);
@@ -1494,11 +1501,12 @@ const H = {
     },
   },
   cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
-    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio'],
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'umDeCada'],
     talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
     ok: f => {
       const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
       if (f.aleatorio !== undefined && (f.aleatorio !== true || !f.resto)) return false;
+      if (f.umDeCada !== undefined && !(f.umDeCada === true && f.f && Array.isArray(f.f.sub) && f.f.sub.length > 1 && f.pega && ateOk(f.pega))) return false;
       if (f.ateAchar ? f.olha !== undefined || !M.filtroOk(f.ateAchar.f) || !qtdOk(f.ateAchar.qtd) || Object.keys(f.ateAchar).some(k => k !== 'f' && k !== 'qtd') : !qtdOk(f.olha) || f.olha === undefined) return false;
       if (!(f.pega === 'tudo' || Number.isInteger(f.pega) || (ateOk(f.pega) && Number.isInteger(f.pega.ate)))) return false;
       if (f.destinos ? !f.destinos.every(d => (Z.includes(d.para) || d.para === 'grimorio') && Object.keys(d).every(k => ['para', 'qtd', 'virada'].includes(k))) || f.para !== undefined : f.pega !== 0 && !Z.includes(f.para)) return false;
@@ -1532,7 +1540,7 @@ const H = {
         } else if (f.pega !== 0) {
           let vai;
           if (f.pega === 'tudo') vai = f.talvez && cand.length && ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'cavar' }).a === 'nao' ? [] : cand.slice();
-          else { const n = typeof f.pega === 'number' ? f.pega : f.pega.ate; vai = escolherN(ask, j, 'cavar', cand, Math.min(n, cand.length), { podeMenos: !!f.talvez || typeof f.pega !== 'number', ctx: { para: f.para } }); }
+          else { const n = typeof f.pega === 'number' ? f.pega : f.pega.ate; vai = escolherN(ask, j, 'cavar', cand, Math.min(n, cand.length), { podeMenos: !!f.talvez || typeof f.pega !== 'number', ctx: { para: f.para }, ...(f.umDeCada ? { vagas: id => f.f.sub.filter(t => (M.dadoDe(e, e.objs[id]).sub || []).includes(t)) } : {}) }); }
           tira(vai);
           for (const id of vai) plano.push({ id, j, para: f.para, virada: !!f.virada });
         }

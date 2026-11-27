@@ -435,6 +435,10 @@ export interface RxCustoAtv {
         f?: RxFiltro;
         qtd?: number;
         /**
+         * uma permanente para cada filtro, todas diferentes (Jarad: 'Sacrifice a Swamp and a Forest'); no lugar de f/qtd
+         */
+        e?: RxFiltro[];
+        /**
          * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
          */
         comEste?: boolean;
@@ -809,6 +813,10 @@ export interface RxFx {
    * animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: "It's a green Mutant… loses its other creature types" — The Master, Transcendent)
    */
   soSub?: boolean;
+  /**
+   * cavar: no máximo uma carta de cada subtipo do f.sub ("an Angel card, a Demon card, and/or a Dragon card": Kaalia, Zenith Seeker)
+   */
+  umDeCada?: boolean;
   /**
    * buscar: as cartas pegas têm nomes diferentes entre si ("that each have different names": Tiamat)
    */
@@ -1301,6 +1309,10 @@ export interface RxEst {
    */
   camada?: string;
   de?: RxZona;
+  /**
+   * podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage)
+   */
+  exilaAoSair?: boolean;
   limite?: number;
   gratis?: boolean;
   /**
@@ -1441,6 +1453,10 @@ export interface RxSubst {
      * no máximo N (previne todo menos N)
      */
     teto?: number;
+    /**
+     * com prevenir: cria uma desta ficha para cada 1 de dano prevenido assim (Inkshield, CR 615)
+     */
+    fichaPorDano?: RxToken;
     /**
      * quantas fichas a mais (padrão 1)
      */

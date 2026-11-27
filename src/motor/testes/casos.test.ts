@@ -5718,6 +5718,54 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+caso('615.1', "Inkshield: previne o dano de combate a você e cria uma Inkling 2/1 voadora para cada 1 prevenido; dano fora de combate passa", () => {
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  const e = cena(); e.pend = [];
+  M.executar(e, ach(M.carta('Inkshield')), { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([M.substDano(e, 3, { jog: 0, combate: true }), M.substDano(e, 2, { jog: 0 }), M.substDano(e, 4, { jog: 1, combate: true })], [0, 2, 4], 'só o de combate em você');
+  const ink = e.campo.filter(id => e.objs[id].ctrl === 0 && (M.dadoDe(e, e.objs[id]).sub || []).includes('Inkling'));
+  igual(ink.length, 3, '3 prevenidos = 3 Inklings');
+  ok(M.temKw(e, e.objs[ink[0]], 'voar'), 'voadora');
+});
+
+caso('602.2b', "custo com um filtro por permanente (Jarad: 'Sacrifice a Swamp and a Forest'): dois Pântanos não pagam; Pântano + Floresta pagam e ele volta à mão", () => {
+  for (const terras2 of [['Swamp', 'Swamp'], ['Swamp', 'Forest']]) {
+    const e = cena({ campo: [...terras2.map(n => [0, n]), [0, 'Island']] }); e.pend = [];
+    e.por(0, 'Jarad, Golgari Lich Lord', { zona: 'cemiterio' });
+    const pode = M.opcoesPrioridade(e, 0).some(o => o.a === 'ativar' && e.objs[o.id].n === 'Jarad, Golgari Lich Lord');
+    igual(pode, terras2[1] === 'Forest', terras2.join('+'));
+    if (!pode) continue;
+    M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Jarad, Golgari Lich Lord');
+    resolveCom(e);
+    igual([naZona(e, 0, 'mao'), noCampo(e).sort()], [['Jarad, Golgari Lich Lord'], ['Island']], 'sacrificou os dois, Jarad na mão');
+  }
+});
+
+caso('701.16', "Kaalia, Zenith Seeker: entre as 6 do topo pega no máximo um Anjo, um Demônio e um Dragão (dois Anjos não); o resto vai ao fundo", () => {
+  const fx = M.carta('Kaalia, Zenith Seeker').gat[0].fx;
+  ok(M.fxSuportado(fx), 'aceita');
+  ok(!M.fxSuportado([{ op: 'cavar', olha: 6, pega: { ate: 3 }, f: { sub: ['Angel'] }, para: 'mao', umDeCada: true }]), 'umDeCada com um subtipo só: não');
+  const e = cena({ grimorio: 0 });
+  for (const n of ['Forest', 'Island', 'Balefire Dragon', 'Archfiend of Despair', 'Reya Dawnbringer', 'Serra Angel']) e.por(0, n, { zona: 'grimorio' });
+  M.executar(e, fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.a !== 'nenhum') || ops[0]);
+  const mao = naZona(e, 0, 'mao').sort();
+  igual(mao.length, 3, 'três: ' + mao.join(', '));
+  ok(mao.includes('Balefire Dragon') && mao.includes('Archfiend of Despair') && mao.filter(n => n === 'Serra Angel' || n === 'Reya Dawnbringer').length === 1, 'um de cada');
+  igual(e.jogs[0].zonas.grimorio.length, 3, 'o resto no fundo');
+});
+
+caso('601.3', "Kess, Dissident Mage: uma vez no seu turno conjura instantânea do cemitério; ela vai para o exílio em vez do cemitério; a segunda não", () => {
+  const e = cena({ campo: [...terras(4, 'Island'), [0, 'Kess, Dissident Mage']] }); e.pend = [];
+  e.por(0, 'Opt', { zona: 'cemiterio' }); e.por(0, 'Brainstorm', { zona: 'cemiterio' });
+  const doCem = () => M.opcoesPrioridade(e, 0).filter(o => o.a === 'conjurar' && e.objs[o.id].zona === 'cemiterio').map(o => e.objs[o.id].n).sort();
+  igual(doCem(), ['Brainstorm', 'Opt'], 'as duas do cemitério');
+  M.avancar(e); conj(e, 'Opt'); resolveCom(e);
+  ok(naZona(e, 0, 'exilio').includes('Opt') && !naZona(e, 0, 'cemiterio').includes('Opt'), 'Opt foi para o exílio');
+  igual(doCem(), [], 'uma vez por turno');
+  e.turno.ativo = 1; e.turno.n++;
+  igual(doCem(), [], 'no turno do oponente não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
