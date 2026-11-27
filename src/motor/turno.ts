@@ -179,7 +179,7 @@ function proximoPasso(e) {
   while (e.turnosExtra && e.turnosExtra.length && e.jogs[e.turnosExtra[e.turnosExtra.length - 1]].saiu) e.turnosExtra.pop();
   if (e.turnosExtra && e.turnosExtra.length) p = e.turnosExtra.pop();
   else do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.radFeito = false; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.radFeito = false; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.sigs = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
   M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
@@ -299,7 +299,8 @@ M.abe = e => {
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
     for (const id of sagas) if (e.objs[id].zona === 'campo') { M.mover(e, id, 'cemiterio', { sac: true }); mudou = true; }   // 714.4: é sacrifício (701.21)
-    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
+    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);
+    M.ligarMotores(e);                                                 // 702.179a: Start your engines!           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
     if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
