@@ -15,6 +15,7 @@ const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEst
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
 
+const EXILA_FIM_COMBATE = { ev: 'fase', passo: 'fimCombate', deQuem: 'qualquer', nesteTurno: true, fx: [{ op: 'exilar', em: 'criadas' }] };
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
 const quemAlvo = q => !!q && typeof q === 'object' && typeof q.alvo === 'number' && Object.keys(q).length === 1;
@@ -417,13 +418,28 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
       }
     }
   }
-  return { id, ctrl, vir, pagaVida, escolha, face };
+  // tumulto (702.136a): entra com um marcador +1/+1 a mais OU ganha pressa. Vale a dela e a dada por permanente sua (Rhythm
+  // of the Wild: "criaturas não-ficha que você controla têm tumulto"), olhando-a como vai estar no campo (614.12)
+  const tumulto = ask && temTumulto(e, o, d, ctrl) ? ask(ctrl, 'tumulto', [{ a: 'marcador' }, { a: 'pressa' }], { id }).a : null;
+  return { id, ctrl, vir, pagaVida, escolha, face, tumulto };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0 }) => {
+function temTumulto(e, o, d, ctrl) {
+  if (!(d.tipos || []).includes('Creature')) return false;
+  if ((d.kw || []).some(x => x.k === 'tumulto')) return true;
+  for (const id of e.campo) {
+    const F = e.objs[id]; if (F.ctrl !== ctrl) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'continuo' && (s.kw || []).some(x => x.k === 'tumulto') && s.afeta && typeof s.afeta === 'object'
+      && M.bate(e, { ...o, ctrl }, { ...s.afeta, zona: o.zona }, { voce: F.ctrl, este: F.id })) return true;
+  }
+  return false;
+}
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, tumulto = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   const o = M.mover(e, id, 'campo', { virada: vir, face, conj });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
+  if (tumulto === 'marcador') M.porMarcadores(e, o, '+1/+1', 1);
+  else if (tumulto === 'pressa') (o.anim || (o.anim = [])).push({ ts: o.ts, kw: [{ k: 'pressa' }], fim: null });   // 702.136a: pressa enquanto estiver no campo
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
 };
@@ -847,6 +863,18 @@ const H = {
         // CR 508.4: "virada e atacando" — fora do combate só entra virada; no "para cada oponente", ataca aquele jogador
         if (f.atacando && e.turno.combate) { const t = M.escolherAtacado(e, o.ctrl, ask || ((_j, _t, ops) => ops[0]), ctx.cadaAtual); if (t) M.porAtacando(e, o, t); }
       }
+    },
+  },
+  // miríade (702.116a, o gatilho vem do combate.ts): uma cópia virada atacando cada oponente além do defensor; o atrasado
+  // de "fim do combate" exila as criadas (mem.criadas)
+  miriade: {
+    fx(e, f, ctx) {
+      const F = e.objs[ctx.este], C = e.turno.combate, def = ctx.ev && ctx.ev.def;
+      if (!F || F.zona !== 'campo' || !C) return;
+      const tok = copiaDe(e, { copiaDe: 'este' }, ctx); if (!tok) return;
+      const criadas: any[] = [];
+      for (const j of M.vivos(e)) if (j !== F.ctrl && j !== def) for (const o of M.criarFichas(e, F.ctrl, tok, 1, { virada: true })) { criadas.push({ id: o.id, ts: o.ts }); M.porAtacando(e, o, { jog: j }); }
+      if (criadas.length) (e.atras || (e.atras = [])).push({ g: EXILA_FIM_COMBATE, ctrl: F.ctrl, fonte: F.id, n: F.n, t: e.turno.n, lki: M.lkiDe(e, F), mem: { criadas }, ts: ++e.ts });
     },
   },
   marcador: {                                                       // CR 122

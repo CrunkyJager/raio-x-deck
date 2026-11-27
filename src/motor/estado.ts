@@ -729,6 +729,20 @@ const ciclarDe = kw => {
   if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }));
   return a;
 };
+// ciclagem de tipo (702.29e): "[custo], descarte esta carta: procure um card de [tipo], revele, ponha na mão, embaralhe".
+// É ciclar (702.29e): dispara "quando você ciclar". tipo = tipo de carta, 'Basic' (ciclagem de terreno básico) ou subtipo.
+const TIPO_CARTA_CICLO = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Instant', 'Sorcery', 'Battle']);
+const CICLO_T = new WeakMap<object, any>();
+const cicloTipoDe = kw => {
+  let a = CICLO_T.get(kw);
+  if (!a) {
+    const f = TIPO_CARTA_CICLO.has(kw.tipo) ? { tipo: [kw.tipo] } : kw.tipo === 'Basic' ? { tipo: ['Land'], super: ['Basic'] } : { sub: [kw.tipo] };
+    CICLO_T.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'buscar', f, qtd: 1, para: 'mao' }, { op: 'embaralhar', quem: 'voce' }] }));
+  }
+  return a;
+};
+const cicloOk = x => (x.k === 'ciclar' && x.custo && Object.keys(x).length === 2) || (x.k === 'cicloTipo' && x.custo && typeof x.tipo === 'string' && Object.keys(x).length === 3);
+const cicloAtv = x => x.k === 'ciclar' ? ciclarDe(x) : cicloTipoDe(x);
 // subir de nível (CR 716.2a): "[custo]: Nível N" — ativada como feitiço, só com a Classe no nível N−1 (pilha.ts podeAtivar)
 const SUBIR = new WeakMap<object, any>();
 const subirDe = l => {
@@ -763,15 +777,29 @@ const atvCarta = d => {
   if (!l) {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
-    const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
+    const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(cicloOk);
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
-    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloAtv), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
   }
   return l as any[];
 };
 // ganhas por efeito de resolução enquanto no campo (o.ganhos.atv: Urza's Saga) vêm logo depois das da carta: só crescem, k estável
+// ciclar dado na mão (Homing Sliver: "cartas de Sliver na sua mão têm ciclagem de Sliver {3}"): estática 'continuo' com
+// afeta.zona 'mao' de uma permanente do dono da carta (as camadas só olham o campo)
+const CICLO_DADO = new WeakMap<object, any[]>();
+const cicloDado = s => { let l = CICLO_DADO.get(s); if (!l) CICLO_DADO.set(s, (l = (s.kw || []).filter(cicloOk).map(cicloAtv))); return l as any[]; };
+function ciclosNaMao(e, o) {
+  const r: any[] = [];
+  for (const [id, s] of fontesCont(e).l) {
+    if (!s.afeta || typeof s.afeta !== 'object' || s.afeta.zona !== 'mao' || !cicloDado(s).length) continue;
+    const F = e.objs[id]; if (!F || F.ctrl !== o.dono) continue;
+    if (M.bate(e, o, s.afeta, { voce: F.ctrl, este: F.id })) for (const a of cicloDado(s)) r.push(a);
+  }
+  return r;
+}
 M.atvDe = (e, o) => {
   let b = atvCarta(M.dadoDe(e, o));
+  if (o.zona === 'mao') { const c = ciclosNaMao(e, o); if (c.length) b = b.concat(c); }
   if (o.ganhos && o.ganhos.atv) b = b.concat(o.ganhos.atv);
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
   return h.length ? b.concat(h) : b;

@@ -3533,6 +3533,43 @@ caso('700.4', "Dour Port-Mage: criatura sua que sai sem morrer (volta à mão, e
   igual(pm(), 1, 'só uma vez por turno');
 });
 
+caso('702.136a', "tumulto dado (Rhythm of the Wild): a criatura não-ficha que entra escolhe marcador +1/+1 ou pressa", () => {
+  for (const esc of ['marcador', 'pressa']) {
+    const e = cena({ campo: [[0, 'Rhythm of the Wild'], ...terras(2, 'Forest')], mao: [[0, 'Grizzly Bears']] }); e.pend = []; e.jogs[0].terrenos = 1;
+    let perguntou = false;
+    M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e, p => { if (p.tipo !== 'tumulto') return -1; perguntou = true; return p.ops.findIndex(o => o.a === esc); });
+    const gb = objN(e, 0, 'Grizzly Bears');
+    igual([perguntou, gb.marc['+1/+1'] || 0, M.temKw(e, gb, 'pressa')], [true, esc === 'marcador' ? 1 : 0, esc === 'pressa'], esc);
+  }
+  const f = cena({ campo: [...terras(2, 'Forest')], mao: [[0, 'Grizzly Bears']] }); f.pend = []; f.jogs[0].terrenos = 1;
+  let perg = false; M.avancar(f); conj(f, 'Grizzly Bears'); resolveCom(f, p => { if (p.tipo === 'tumulto') perg = true; return -1; });
+  ok(!perg, 'sem o Rhythm: nada');
+});
+caso('702.116a', "miríade dada (Cybermen Squadron): com 3 jogadores, ao atacar um, cria uma cópia atacando o outro; no fim do combate a cópia é exilada. No X1 nada", () => {
+  for (const jogs of [3, 2]) {
+    const e = cena({ jogs, campo: [[0, 'Cybermen Squadron']] });
+    const cs = objN(e, 0, 'Cybermen Squadron');
+    ok(M.temKw(e, cs, 'miriade'), 'ganha miríade (é artefato criatura não lendária)');
+    const BLQ = x => x.turno.passo === 'bloqueadores';
+    ate(e, 'atacar'); M.responder(e, e.perg.ops.findIndex(x => x.a === 'atacar' && x.id === cs.id && x.jog === 1), BLQ);
+    if (e.perg && e.perg.tipo === 'atacar') M.responder(e, e.perg.ops.findIndex(x => x.a === 'pronto'), BLQ);
+    resolveCom(e);
+    const C = e.turno.combate, copias = e.campo.filter(id => e.objs[id].ficha && e.objs[id].n === 'Cybermen Squadron');
+    igual([copias.length, C ? C.atk.filter(r => e.objs[r.id] && e.objs[r.id].ficha).map(r => r.alvo.jog) : []], jogs === 3 ? [1, [2]] : [0, []], jogs + ' jogadores');
+    ateFimCombate(e);
+    igual(e.campo.filter(id => e.objs[id].ficha).length, 0, 'a cópia saiu no fim do combate');
+  }
+});
+caso('702.29e', "ciclagem de tipo: Homing Sliver da mão busca um Sliver; com um Homing Sliver no campo, outro Sliver na mão também cicla", () => {
+  const e = cena({ campo: [...terras(3), [0, 'Homing Sliver']], mao: [[0, 'Blur Sliver'], [0, 'Homing Sliver']] }); e.pend = [];
+  const gr = e.jogs[0].zonas.grimorio; const alvo = e.por(0, 'Crypt Sliver', { zona: 'grimorio' }); gr.unshift(gr.pop());
+  const ops = M.opcoesPrioridade(e, 0).filter(o => o.a === 'ativar' && e.objs[o.id].zona === 'mao').map(o => e.objs[o.id].n).sort();
+  igual(ops, ['Blur Sliver', 'Homing Sliver', 'Homing Sliver'], 'Blur ganhou; a Homing da mão tem a dela e a dada');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Blur Sliver');
+  resolveCom(e);
+  igual([naZona(e, 0, 'cemiterio'), alvo.zona], [['Blur Sliver'], 'mao']);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

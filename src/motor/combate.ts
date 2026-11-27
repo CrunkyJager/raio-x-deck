@@ -72,6 +72,7 @@ M.escolherAtacado = (e, j, ask, soDe = undefined) => {
   const op = ask(j, 'atacado', alvos.map(t => ({ a: 'atacado', ...t })), {});
   return op.jog !== undefined ? { jog: op.jog } : { o: op.o };
 };
+const MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
 M.porAtacando = (e, o, alvo) => {
   const C = e.turno.combate; if (!C || !o || o.zona !== 'campo' || !M.temTipo(e, o, 'Creature')) return;   // 506.3: só criatura ataca
   if (alvo.o !== undefined && (!e.objs[alvo.o] || e.objs[alvo.o].zona !== 'campo')) return;
@@ -111,6 +112,11 @@ M.PROC.atacar = (e, P, ask) => {
   // quem atacou quem neste turno (contas ataquesNoTurno/atacantesEmVoce; o combate some no fim do combate)
   e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def })));
   for (const r of C.atk) M.evento(e, { ev: 'ataca', id: r.id, def: r.def });          // 508.3a
+  // miríade (702.116a): "sempre que esta criatura ataca, para cada oponente além do defensor, crie uma ficha cópia virada e
+  // atacando aquele jogador; exile as fichas no fim do combate". O gatilho vem da palavra-chave (dada também: Cybermen Squadron).
+  // Simplificação: o "pode" é sempre sim. No X1 não há outro oponente: não dispara.
+  for (const r of C.atk) { const o = e.objs[r.id]; if (kw(e, o, 'miriade') && M.vivos(e).some(j => j !== a && j !== r.def))
+    e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'miriade', g: MIRIADE, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ev: 'ataca', id: o.id, def: r.def } }); }
   if (C.atk.length) M.evento(e, { ev: 'atacantesDeclarados', j: a, n: C.atk.length });
   if (C.atk.length) M.log(e, e.jogs[a].nome, 'ataca com', C.atk.map(r => e.objs[r.id].n + '→' + (r.alvo.jog !== undefined ? e.jogs[r.alvo.jog].nome : e.objs[r.alvo.o].n)).join(', '));
 };
