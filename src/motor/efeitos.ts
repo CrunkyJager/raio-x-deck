@@ -989,7 +989,11 @@ const H = {
       M.log(e, e.jogs[ctx.voce].nome, 'escolhe', r.v);
     },
   },
-  moer: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) M.mover(e, g[g.length - 1], 'cemiterio'); } } },   // CR 701.13
+  moer: { fx(e, f, ctx) {   // CR 701.13. Depois de mover: 'moe' por carta {id, j} e o lote 'moeGrupo' {ids, n} ("uma ou mais", Scorchbeast)
+    const q = qtdDe(e, f.qtd, ctx), ids: any[] = [];
+    for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
+    if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
+  } },
   sacrificar: {                                                     // CR 701.21: quem sacrifica escolhe
     campos: ['f'],
     fx(e, f, ctx, ask) {

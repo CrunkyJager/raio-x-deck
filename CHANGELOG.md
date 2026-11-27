@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.64.0 — 27/11/2026 · Motor: gatilho de moer
+Testes: check 0 erros · Vitest 387/387 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1535/1756 (eram 1530).
+- **"Sempre que um jogador moer uma carta"** (CR 701.13): Glowing One, Infesting Radroach (volta do cemitério), Mirelurk Queen, Screeching Scorchbeast (uma vez pelo lote, tantas fichas quantas cartas não-terreno) e The Wise Mothman. Carta que uma substituição manda para outra zona não conta como moída.
+- Simplificação: The Wise Mothman dispara uma vez por carta, com um alvo cada (a carta real é uma vez pelo lote com até X alvos).
+
 ## v0.63.0 — 27/11/2026 · Motor: sobrecarga
 Testes: check 0 erros · Vitest 386/386 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1530/1756 (eram 1525).
 - **Sobrecarga** (CR 702.96): Cyclonic Rift e as outras de um alvo. Com mana para o custo de sobrecarga, a Mesa pergunta normal ou sobrecarga; na sobrecarga não tem alvo e o efeito vale para cada objeto que o alvo aceitaria. Sem mana, nem pergunta.

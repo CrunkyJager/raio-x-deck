@@ -5,7 +5,7 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe']);
 const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
 const LACO = 500;
@@ -14,7 +14,7 @@ const memoOk = new WeakMap();
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
   if (g.ev === 'viraParaMana') { const v = M.gatManaOk(g); memoOk.set(g, v); return v; }   // habilidade de mana desencadeada: mana.ts (605.1b)
-  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'entra' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.aOponente || g.ev === 'dano') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
+  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.aOponente || g.ev === 'dano') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por)) && (!g.recebe || (g.ev === 'dano' && M.filtroOk(g.recebe)));
   if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se));
@@ -57,6 +57,9 @@ function bateEv(e, g, ev, F) {
     case 'descarta': return g.grupo                    // CR 701.9: uma vez por carta, ou uma vez pelo lote ("one or more")
       ? ev.ev === 'descartaGrupo' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && (!g.quem || ev.ids.some(id => bate(e, e.objs[id], g.quem, ctx)))
       : ev.ev === 'descarta' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && q(e.objs[ev.id]);
+    case 'moe': return g.grupo                         // CR 701.13: "whenever a player mills a nonland card" (uma por carta) ou "one or more" (o lote)
+      ? ev.ev === 'moeGrupo' && ev.ids.some(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && q(e.objs[id]))
+      : ev.ev === 'moe' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && q(e.objs[ev.id]);
     case 'ganhaVida': case 'perdeVida': return ev.ev === g.ev && relJog(g.jog || 'voce', ev.j, F.ctrl);   // 119.9/119.10: um disparo por evento
     case 'alvoDe': {                                   // CR 115.1, 603.2: "becomes the target of" (ao conjurar/ativar/pôr na pilha)
       if (ev.ev !== 'alvoDe' || !q(e.objs[ev.id])) return false;
@@ -249,7 +252,7 @@ M.evento = (e, ev) => {
       { const T = e.turno, ch = F.id + ':' + k; T.disp = T.disp || {}; if ((T.disp[ch] = (T.disp[ch] || 0) + 1) > LACO) { e.fim = e.fim || { vencedor: null, motivo: 'laço obrigatório (104.4b): ' + F.n }; M.log(e, 'laço obrigatório:', F.n); return; } }
       const vezes = 1 + extras(e, F, g, ev);
       const dada = k >= nb || mudado ? { g } : {};                                                // habilidade dada (camadas): leva o texto
-      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem
     }
   }
   atrasados(e, ev);
