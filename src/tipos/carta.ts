@@ -170,6 +170,7 @@ export type RxJogador =
       | 'atacado'
       | 'proximo'
       | 'cadaAtual'
+      | 'atacadosPorEste'
     )
   | {
       alvo: number;
@@ -282,7 +283,7 @@ export interface RxFiltro {
    */
   kw?: string[];
   /**
-   * true: não tem o mesmo nome de outra permanente que você controla (Yenna); 'criaturaOuCemiterio': de outra criatura sua nem de card de criatura no seu cemitério (Guardian Project)
+   * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
   nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
@@ -359,6 +360,10 @@ export interface RxAlvo {
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
   opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
+  /**
+   * o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)
+   */
+  ouZona?: RxZona;
 }
 
 /**
@@ -381,6 +386,7 @@ export type RxObjeto =
       | 'cadaAtual'
       | 'descartadaCusto'
       | 'danificado'
+      | 'sacrificada'
     );
 
 /**
@@ -536,10 +542,10 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)
    */
   prod?:
-    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos')
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
     | string[]
     | {
         cadaCor: RxFiltro;
@@ -632,6 +638,10 @@ export interface RxFx {
    */
   gat?: RxGat[];
   emblema?: boolean;
+  /**
+   * efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)
+   */
+  proximaMagica?: boolean;
   /**
    * copiarMagica: pode escolher novos alvos
    */
@@ -737,6 +747,10 @@ export interface RxFx {
    */
   soNaoDesvira?: boolean;
   /**
+   * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
+   */
+  trocaCor?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -801,7 +815,7 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke' | 'alternativo';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -880,6 +894,10 @@ export interface RxCond {
          */
         nao?: boolean;
       };
+  /**
+   * o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)
+   */
+  eventoMais?: 'mao' | 'terrenos' | 'vida';
 }
 
 export interface RxKw {
@@ -1170,6 +1188,8 @@ export interface RxEst {
     | 'darFuga'
     | 'darLoucura'
     | 'oponentesNaoProcuram'
+    | 'custoProibido'
+    | 'naoGanhaVida'
     | 'equiparComoInstantanea'
     | 'primeiroEquiparGratis';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
@@ -1259,6 +1279,14 @@ export interface RxEst {
    * darFuga: exilar N outras do cemitério (Underworld Breach)
    */
   exilar?: number;
+  /**
+   * custoProibido: o que nenhum jogador pode pagar para conjurar mágicas ou ativar habilidades (Angel of Jubilation: vida e sacrificar criatura; inclui a vida do mana phyrexiano)
+   */
+  proibe?: ('vida' | 'sacrificarCriatura')[];
+  /**
+   * condição do jogador afetado (naoPodeConjurar: o jogador; naoPodeAtacar: o controlador da criatura) — Angelic Arbiter: 'each opponent who cast a spell / attacked with a creature this turn'
+   */
+  seJog?: 'atacouNoTurno' | 'conjurouNoTurno';
   /**
    * reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')
    */
@@ -1490,9 +1518,9 @@ export interface RxContagem {
    */
   cores?: string;
   /**
-   * de: turno — de quem (padrão: você)
+   * de: turno — de quem (padrão: você; cadaAtual = o jogador da vez no repetirCada)
    */
-  quem?: 'oponentes';
+  quem?: 'oponentes' | 'cadaAtual';
   /**
    * de: se — condição (kicked, promisedgift, morbid…)
    */

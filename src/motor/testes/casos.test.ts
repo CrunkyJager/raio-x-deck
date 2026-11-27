@@ -4998,6 +4998,124 @@ caso('701.20', "Gitaxian Probe olha a mão do alvo (log) e compra; Glass-Cast He
   ok(h.zona !== 'campo', 'o Coração foi sacrificado'); igual(g.campo.filter(id => g.objs[id].n === 'Blood').length, 0, 'as 13 Blood também');
 });
 
+caso('104.3e', "Angel of Destiny: com 15 de vida acima da inicial, perde só quem ESTE anjo atacou neste turno (não cada oponente)", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Angel of Destiny']] });
+  const a = e.objs[e.campo[0]], g = M.carta('Angel of Destiny').gat[1], ctx: any = { voce: 0, este: a.id, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  e.jogs[0].vida = 54; ok(!M.condicao(e, g.se, ctx), '54 < 40+15');
+  e.jogs[0].vida = 55; ok(M.condicao(e, g.se, ctx), '55');
+  e.turno.ataques = [{ id: a.id, ts: a.ts, j: 0, def: 2, jog: 2 }];
+  for (const f of g.fx) M.executar(e, f, ctx, (j, t, o) => o[0]);
+  ok(e.jogs[2].saiu && !e.jogs[1].saiu, 'só o 2 perde');
+  ok(M.carta('Angel of Destiny').gat.every(x => M.gatOk(x)), 'gatOk');
+});
+
+caso('118.3', "Angel of Jubilation: ninguém sacrifica criatura (Viscera Seer) nem paga vida (Gitaxian Probe sem mana) para conjurar/ativar; sacrificar artefato (Lotus Petal) pode", () => {
+  const e = cena({ campo: [[0, 'Viscera Seer'], [0, 'Grizzly Bears']], mao: [[0, 'Gitaxian Probe']] });
+  const [vs] = e.campo.map(id => e.objs[id]), probe = e.objs[e.jogs[0].zonas.mao[0]];
+  ok(M.podeAtivar(e, 0, vs, 0), 'sem o anjo: sacrifica');
+  ok(M.podeConjurar(e, 0, probe), 'sem o anjo: paga 2 de vida');
+  e.por(1, 'Angel of Jubilation');
+  ok(!M.podeAtivar(e, 0, vs, 0), 'com o anjo: não sacrifica criatura');
+  ok(!M.podeConjurar(e, 0, probe), 'com o anjo: não paga vida pelo phyrexiano');
+  const lp = e.por(0, 'Lotus Petal');
+  ok(M.fontesDeMana(e, 0).some(f => f.id === lp.id), 'Lotus Petal: sacrificar artefato vale');
+});
+
+caso('607.2a', "Angel of Serenity: exila criaturas do campo e/ou cartas de criatura de cemitérios (até 3) e, ao sair, elas voltam à mão dos donos", () => {
+  const e = cena({ campo: [[1, 'Grizzly Bears']] });
+  const gb = e.objs[e.campo[0]], cem = e.por(1, 'Grizzly Bears', { zona: 'cemiterio' }), an = e.por(0, 'Angel of Serenity');
+  const g = M.carta('Angel of Serenity').gat, ctx: any = { voce: 0, este: an.id, ilegal: {}, lki: { alvos: [] } };
+  const poss = M.alvosPossiveis(e, g[0].alvos[0], ctx).map(x => x.o);
+  ok(poss.includes(gb.id) && poss.includes(cem.id) && !poss.includes(an.id), 'campo e cemitério, não ela mesma');
+  ctx.alvos = [[{ o: gb.id, ts: gb.ts }, { o: cem.id, ts: cem.ts }]];
+  for (const f of g[0].fx) M.executar(e, f, ctx, (j, t, o) => o.find(x => x.a === 'sim') || o[0]);
+  igual(naZona(e, 1, 'exilio').length, 2);
+  const lki = M.lkiDe(e, an); M.mover(e, an.id, 'cemiterio');
+  for (const f of g[1].fx) M.executar(e, f, { voce: 0, este: an.id, alvos: [], ilegal: {}, lki: { este: lki, alvos: [] } }, (j, t, o) => o[0]);
+  igual(naZona(e, 1, 'mao').filter(n => n === 'Grizzly Bears').length, 2, 'voltam à mão');
+  ok(g.every(x => M.gatOk(x)), 'gatOk');
+});
+
+caso('101.2', "Angelic Arbiter: o oponente que conjurou mágica no turno não ataca; o que atacou com criatura não conjura; quem não fez nada joga normal", () => {
+  const e = cena({ campo: [[0, 'Angelic Arbiter'], [1, 'Grizzly Bears'], [1, 'Mountain']], mao: [[1, 'Lightning Bolt']] });
+  const gb = e.objs[e.campo[1]], bolt = e.objs[e.jogs[1].zonas.mao[0]];
+  e.turno.ativo = 1;
+  ok(M.podeConjurar(e, 1, bolt), 'nada feito: conjura');
+  e.jogs[1].conjT = { t: e.turno.n, n: 1 };
+  ok(!M.podeAtacarObj(e, gb, 1), 'conjurou: não ataca');
+  e.jogs[1].conjT = null; ok(M.podeAtacarObj(e, gb, 1), 'não conjurou: ataca');
+  e.turno.ataques = [{ id: gb.id, ts: gb.ts, j: 1, def: 0, jog: 0 }];
+  ok(!M.podeConjurar(e, 1, bolt), 'atacou: não conjura');
+});
+
+caso('118.9', "Baleful Mastery: pelo custo alternativo {1}{B} o oponente compra; pelo custo normal, não", () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [1, 'Grizzly Bears']], mao: [[0, 'Baleful Mastery']] });
+  const m0 = e.jogs[1].zonas.mao.length;
+  M.avancar(e); conj(e, 'Baleful Mastery'); alvoObj(e, 'Grizzly Bears');
+  while (e.pilha.length && e.perg) M.responder(e, 0);
+  igual(naZona(e, 1, 'cemiterio').length + naZona(e, 1, 'exilio').length, 1, 'exilou'); igual(e.jogs[1].zonas.mao.length, m0 + 1, 'o oponente comprou');
+  const f = M.carta('Baleful Mastery').fx[1];
+  ok(!M.condicao(e, f.se, { voce: 0, opc: {} }) && M.condicao(e, f.se, { voce: 0, opc: { altPago: true } }), 'só com o alternativo');
+});
+
+caso('119.7', "Archfiend of Despair: oponente não ganha vida (você ganha); no fim, cada oponente perde o que ELE perdeu no turno", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Archfiend of Despair']] });
+  igual(M.ganharVida(e, 1, 5), 0); igual(e.jogs[1].vida, 40, 'oponente não ganha');
+  ok(M.ganharVida(e, 0, 2) > 0, 'você ganha');
+  M.danoJogador(e, 1, 3); M.perderVida(e, 2, 1); M.perderVida(e, 0, 4);
+  const g = M.carta('Archfiend of Despair').gat[0];
+  for (const f of g.fx) M.executar(e, f, { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, o) => o[0]);
+  igual([e.jogs[1].vida, e.jogs[2].vida], [34, 38]);
+  ok(M.gatOk(g), 'gatOk');
+});
+
+caso('608.2c', "Battle Angels of Tyr: cada parte só se o jogador que levou o dano tem mais (mão / terrenos / vida) que cada outro", () => {
+  const e = cena({ campo: [[0, 'Battle Angels of Tyr'], [1, 'Forest'], [1, 'Forest']] });
+  const g = M.carta('Battle Angels of Tyr').gat[0], ctx: any = { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'dano', jog: 1, q: 4 } };
+  e.jogs[0].zonas.mao.length = 0; e.jogs[1].vida = 30;
+  const m0 = e.jogs[0].zonas.mao.length;
+  for (const f of g.fx) M.executar(e, f, ctx, (j, t, o) => o[0]);
+  igual(e.jogs[0].zonas.mao.length, m0 + (e.jogs[1].zonas.mao.length > m0 ? 1 : 0), 'compra se ele tem mais na mão');
+  ok(e.campo.some(id => e.objs[id].n === 'Treasure' || (e.objs[id].ficha && e.objs[id].ctrl === 0)), 'tesouro: ele tem mais terrenos');
+  igual(e.jogs[0].vida, 40, 'não ganha 3: ele tem menos vida');
+  ok(M.gatOk(g), 'gatOk');
+});
+
+caso('122.1', "filtro semMarcador: true = sem nenhum marcador (Damning Verdict); com tipo = sem marcador daquele tipo (Wave Goodbye)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Serra Angel']] });
+  objN(e, 0, 'Grizzly Bears').marc['-1/-1'] = 1; objN(e, 0, 'Serra Angel').marc['+1/+1'] = 1;
+  const nomes = f => M.objetosQue(e, { tipo: ['Creature'], zona: 'campo', ...f }, { voce: 0 }).map(o => o.n).sort();
+  igual(nomes({ semMarcador: true }), ['Llanowar Elves']);
+  igual(nomes({ semMarcador: '+1/+1' }), ['Grizzly Bears', 'Llanowar Elves']);
+});
+
+caso('121.1', "Fists of Flame: compra 1 e a criatura ganha +1/+0 por carta que você comprou no turno (conta {de:'turno', o:'compras'})", () => {
+  ok(M.fxSuportado(M.carta('Fists of Flame').fx), 'aceito');
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Grizzly Bears']], mao: [[0, 'Fists of Flame']] });
+  M.comprar(e, 0, 2);
+  M.avancar(e); conj(e, 'Fists of Flame'); if (e.perg && e.perg.tipo === 'alvo') alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  const b = objN(e, 0, 'Grizzly Bears');
+  igual(M.poder(e, b), 2 + 3, '2 compradas antes + a do Fists'); ok(M.temKw(e, b, 'atropelar'));
+});
+
+caso('603.4', "Nissa, Resurgent Animist: só na 2ª resolução do gatilho de terreno no turno revela até achar Elfo/Elemental e põe na mão (conta {de:'turno', o:'resolucoesDestaHab'})", () => {
+  const e = cena({ campo: [[0, 'Nissa, Resurgent Animist']] });
+  e.por(0, 'Llanowar Elves', { zona: 'grimorio' }); e.por(0, 'Sol Ring', { zona: 'grimorio' });   // topo: Sol Ring, depois o Elfo
+  const naMao = () => e.jogs[0].zonas.mao.filter(id => e.objs[id].n === 'Llanowar Elves').length;
+  e.por(0, 'Forest'); M.avancar(e); resolveCom(e);
+  igual(naMao(), 0, '1ª resolução: só a mana');
+  e.por(0, 'Forest'); M.avancar(e); resolveCom(e);
+  igual(naMao(), 1, '2ª: o Elfo foi para a mão');
+  ok(e.jogs[0].zonas.grimorio.map(id => e.objs[id].n).indexOf('Sol Ring') === 0, 'o Sol Ring revelado foi para o fundo');
+});
+
+caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste turno (Omnath) — conta por fonte e por habilidade', () => {
+  const e = cena({});
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'resolucoesDestaHab' } }, { voce: 0, resHab: 2 }), 2, 'a habilidade a');
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'resolucoesDestaHab' } }, { voce: 0 }), 0, 'outra habilidade');
+  ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

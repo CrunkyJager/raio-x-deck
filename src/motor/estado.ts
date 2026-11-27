@@ -212,7 +212,7 @@ M.novoJogo = (decks, cfg: any = {}) => {
   };
   decks.forEach((d, i) => {
     const j = {
-      i, nome: d.nome || 'J' + (i + 1), vida: 40, veneno: 0,                // CR 103.4c
+      i, nome: d.nome || 'J' + (i + 1), vida: 40, vidaInicial: 40, veneno: 0,  // CR 103.4c
       danoCmd: {} as any, reserva: zeroMana(), terrenos: 0, comprouVazio: false, saiu: false,
       ci: '', cmd: [] as any[], imposto: {} as any, zonas: {} as any, mulls: 0,
     };
@@ -314,7 +314,16 @@ function protJogDe(e, j, fonte) {
 }
 // "você tem antimagia" (702.11c): oponente não mira você (Dawn's Truce, Lazotep Plating, Metropolis Reformer)
 // "você não pode conjurar mágicas neste turno" (Conduit of Worlds, 101.2: o "não pode" vence)
-M.naoConjura = (e, j) => estJog(e, j, s => s.modo === 'naoPodeConjurar' && !s.f);
+// seJog (Angelic Arbiter): a condição é do jogador afetado — 'atacouNoTurno' (atacou com criatura, 508.1) ou 'conjurouNoTurno'
+M.jogFez = (e, j, k) => k === 'atacouNoTurno' ? (e.turno.ataques || []).some(r => r.j === j && !r.entrou)
+  : k === 'conjurouNoTurno' ? !!(e.jogs[j].conjT && e.jogs[j].conjT.t === e.turno.n && e.jogs[j].conjT.n > 0) : false;
+// "seus oponentes não podem conjurar…" de uma permanente de outro jogador (Myrel e Voice of Victory no seu turno, Angelic Arbiter)
+const naoConjOp = (e, j) => indice(e).est.some(id => {
+  const F = e.objs[id]; if (F.ctrl === j) return false;
+  return (M.dadoDe(e, F).est || []).some(s => s.modo === 'naoPodeConjurar' && (s.afeta === 'cadaOponente' || s.afeta === 'oponente') && !s.f
+    && (!s.seJog || M.jogFez(e, j, s.seJog)) && (() => { try { return M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { return false; } })());
+});
+M.naoConjura = (e, j) => estJog(e, j, s => s.modo === 'naoPodeConjurar' && !s.f) || naoConjOp(e, j);
 // "[objetos] não podem ter as habilidades ativadas ativadas" (Linvala, Keeper of Silence; Myrel no seu turno): CR 602.5,
 // 101.2 (o "não pode" vence). Vale para as de mana também (605.1a são ativadas). afeta é filtro lido do lado da fonte.
 M.ativBloqueada = (e, o) => {
@@ -668,8 +677,10 @@ M.campoSai = (e, id) => {
 // ganho de vida (CR 119.3) com as substituições 'ganhaVida' do campo (CR 614.1a): Angel of Vitality/Bilbo (soma),
 // The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
 // dos dobros, que é a que dá mais. jog: de quem é o ganho, visto do controlador da fonte. Devolve o que ganhou.
+// "your opponents can't gain life" (est naoGanhaVida afeta cadaOponente: Archfiend of Despair; afeta voce: o próprio)
+M.semGanhoVida = (e, j) => indice(e).est.some(id => { const F = e.objs[id]; return (M.dadoDe(e, F).est || []).some(s => s.modo === 'naoGanhaVida' && (s.afeta === 'cadaOponente' ? F.ctrl !== j : s.afeta === 'voce' ? F.ctrl === j : s.afeta === 'cadaJogador')); });
 M.ganharVida = (e, j, q) => {
-  if (!(q > 0) || e.jogs[j].saiu || M.vidaFixa(e, j)) return 0;
+  if (!(q > 0) || e.jogs[j].saiu || M.vidaFixa(e, j) || M.semGanhoVida(e, j)) return 0;
   let soma = 0, mult = 1;
   for (const id of indice(e).sb) {
     const F = e.objs[id];
@@ -1098,7 +1109,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -1119,7 +1130,7 @@ const PALAVRA: Record<string, (e, ctx) => boolean> = {
   blessing: (e, ctx) => M.bencao(e, ctx.voce, ctx.este),
   morbid: e => M.morbido(e),
 };
-M.condValorOk = se => (se.conjuradaCom === undefined || ['kicker', 'flashback', 'cemiterio'].includes(se.conjuradaCom)) && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
+M.condValorOk = se => (se.conjuradaCom === undefined || ['kicker', 'flashback', 'cemiterio', 'alternativo'].includes(se.conjuradaCom)) && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
 M.condicao = (e, se, ctx) => {
   if (!se) return true;
   for (const k in se) if (!COND_OK.has(k)) throw new Error('condição sem suporte no motor2: ' + k);
@@ -1143,12 +1154,18 @@ M.condicao = (e, se, ctx) => {
     if (!M.condValorOk(se)) throw new Error('condição sem suporte no motor2: ' + (se.conjuradaCom || se.palavra));
     const E = e.objs[ctx.este], cc = E && E.zona === 'campo' ? E.conjCom : null, op = ctx.opc;
     if (se.conjuradaCom === 'kicker' && !((op && op.chute) || (cc && cc.kicker))) return false;
+    if (se.conjuradaCom === 'alternativo' && !(op && (op.altPago || op.alt !== undefined))) return false;   // CR 118.9: o custo alternativo foi pago
     if (se.conjuradaCom === 'flashback' && !(E && E.zona === 'pilha' && E.flash)) return false;   // "if this spell was cast with flashback" (702.34a: o.flash na pilha)
     if (se.conjuradaCom === 'cemiterio' && !(E && E.zona === 'pilha' && E.conjDe === 'cemiterio')) return false;   // "if this spell was cast from a graveyard" (cópia não foi conjurada, 707.10)
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
     if (se.palavra && PALAVRA[se.palavra] && !PALAVRA[se.palavra](e, ctx)) return false;
   }
   if ((se.temIniciativa !== undefined || se.monarca !== undefined || se.completouMasmorra !== undefined || se.desceu !== undefined) && !M.condMasmorra(e, se, ctx)) return false;
+  if (se.eventoMais !== undefined) {   // "if that player has more cards in hand / lands / life than each other player" (Battle Angels of Tyr): o jogador do evento
+    const jj = ctx.ev ? (ctx.ev.jog !== undefined ? ctx.ev.jog : ctx.ev.j) : undefined; if (jj === undefined) return false;
+    const v = j => se.eventoMais === 'mao' ? e.jogs[j].zonas.mao.length : se.eventoMais === 'vida' ? e.jogs[j].vida : e.campo.filter(id => e.objs[id].ctrl === j && M.temTipo(e, e.objs[id], 'Land')).length;
+    if (!M.vivos(e).every(j => j === jj || v(jj) > v(j))) return false;
+  }
   if (se.maisTerrenosOponente !== undefined) {   // Land Tax, Loyal Warhound ('algum'); Archaeomancer's Map ('doEvento': quem controla o terreno que entrou)
     const terr = j => e.campo.filter(id => { const o = e.objs[id]; return o.ctrl === j && M.temTipo(e, o, 'Land'); }).length, meus = terr(ctx.voce);
     if (se.maisTerrenosOponente === 'algum') { if (!M.vivos(e).some(j => j !== ctx.voce && terr(j) > meus)) return false; }

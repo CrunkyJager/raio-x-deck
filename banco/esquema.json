@@ -359,7 +359,8 @@
       "doEvento",
       "atacado",
       "proximo",
-      "cadaAtual"
+      "cadaAtual",
+      "atacadosPorEste"
      ]
     },
     {
@@ -706,8 +707,8 @@
      "description": "alvo só existe se o modo N (fx modal) for escolhido"
     },
     "porJogador": {
-      "type": "boolean",
-      "description": "um alvo para cada jogador (até 1 de cada; permanente = de quem controla, carta fora do campo = do dono): Afterlife from the Loam"
+     "type": "boolean",
+     "description": "um alvo para cada jogador (até 1 de cada; permanente = de quem controla, carta fora do campo = do dono): Afterlife from the Loam"
     },
     "porOponente": {
      "type": "boolean",
@@ -725,6 +726,10 @@
       "semPresente"
      ],
      "description": "o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)"
+    },
+    "ouZona": {
+     "$ref": "#/$defs/zona",
+     "description": "o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)"
     }
    }
   },
@@ -1580,7 +1585,8 @@
       "flashback",
       "cemiterio",
       "madness",
-      "evoke"
+      "evoke",
+      "alternativo"
      ]
     },
     "conjuradaNaPrincipal": {
@@ -1716,6 +1722,14 @@
       }
      ],
      "description": "você completou uma masmorra (309.7) nesta partida; {nome} = aquela masmorra (Tomb of Annihilation)"
+    },
+    "eventoMais": {
+     "enum": [
+      "mao",
+      "terrenos",
+      "vida"
+     ],
+     "description": "o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)"
     }
    }
   },
@@ -1755,7 +1769,8 @@
       "flashback",
       "afinidade",
       "convocar",
-      "improvisar", "delve",
+      "improvisar",
+      "delve",
       "loucura",
       "milagre",
       "reconfigurar",
@@ -2105,6 +2120,8 @@
       "darFuga",
       "darLoucura",
       "oponentesNaoProcuram",
+      "custoProibido",
+      "naoGanhaVida",
       "equiparComoInstantanea",
       "primeiroEquiparGratis"
      ],
@@ -2261,6 +2278,23 @@
     "exilar": {
      "type": "integer",
      "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
+    },
+    "proibe": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "vida",
+       "sacrificarCriatura"
+      ]
+     },
+     "description": "custoProibido: o que nenhum jogador pode pagar para conjurar mágicas ou ativar habilidades (Angel of Jubilation: vida e sacrificar criatura; inclui a vida do mana phyrexiano)"
+    },
+    "seJog": {
+     "enum": [
+      "atacouNoTurno",
+      "conjurouNoTurno"
+     ],
+     "description": "condição do jogador afetado (naoPodeConjurar: o jogador; naoPodeAtacar: o controlador da criatura) — Angelic Arbiter: 'each opponent who cast a spell / attacked with a creature this turn'"
     },
     "minimo": {
      "type": "integer",

@@ -42,10 +42,20 @@ M.protegeDe = protegeDe;
 M.protKwBate = (de, fd) => de.length === 1 ? (fd.cores || '').includes(de) : (fd.tipos || []).includes(de) || (fd.sub || []).includes(de);
 
 // ---------- atacantes (CR 508.1) ----------
+// "[criaturas que batem] não podem atacar", de outra permanente (est naoPodeAtacar com afeta filtro; seJog: o controlador
+// da atacante fez algo no turno — Angelic Arbiter: quem conjurou mágica neste turno não ataca)
+const proibidaDeAtacar = (e, o) => e.campo.some(id => {
+  const F = e.objs[id];
+  return (M.dadoDe(e, F).est || []).some(s => s.modo === 'naoPodeAtacar' && s.afeta && typeof s.afeta === 'object' && (!s.seJog || M.jogFez(e, o.ctrl, s.seJog))
+    && bateF(e, o, s.afeta, { voce: F.ctrl, este: F.id }));
+});
+const bateF = (e, o, f, ctx) => { try { return M.bate(e, o, { ...f, zona: 'campo' }, ctx); } catch (_) { return false; } };
+M.podeAtacarObj = (e, o, a) => podeAtacar(e, o, a);
 function podeAtacar(e, o, a) {
   if (o.ctrl !== a || !M.temTipo(e, o, 'Creature') || o.virada) return false;           // 508.1a
   if (o.doente && !kw(e, o, 'pressa')) return false;                                       // 302.6
   if (kw(e, o, 'defensor') || estEste(e, o, 'naoPodeAtacar', true)) return false;          // 702.3b, 508.1c
+  if (proibidaDeAtacar(e, o)) return false;
   return true;
 }
 // quem pode ser atacado: oponentes vivos e seus planeswalkers (506.2, 508.1b). Batalha precisa do protetor
@@ -118,7 +128,7 @@ M.PROC.atacar = (e, P, ask) => {
     C.atk.push({ id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
   }
   // quem atacou quem neste turno (contas ataquesNoTurno/atacantesEmVoce; o combate some no fim do combate)
-  e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def })));
+  e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def, jog: r.alvo.jog })));
   for (const r of C.atk) M.evento(e, { ev: 'ataca', id: r.id, def: r.def });          // 508.3a
   if (C.atk.length) M.evento(e, { ev: 'atacantesDeclarados', j: a, n: C.atk.length });
   if (C.atk.length) M.log(e, e.jogs[a].nome, 'ataca com', C.atk.map(r => e.objs[r.id].n + '→' + (r.alvo.jog !== undefined ? e.jogs[r.alvo.jog].nome : e.objs[r.alvo.o].n)).join(', '));

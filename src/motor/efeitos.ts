@@ -4,7 +4,7 @@
 import { M } from './nucleo';
 
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando']);
-const QUEM_OK = new Set(['cadaOutroOponente', 'voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual']);
+const QUEM_OK = new Set(['cadaOutroOponente', 'voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual', 'atacadosPorEste', 'oponente']);
 // cadaAtual (o jogador da vez) só vale dentro de um repetirCada: fora dele seria um jogador que não existe
 let dentroCada = 0, dentroObj = 0;
 const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada--; } };
@@ -12,7 +12,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 // contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -266,7 +266,9 @@ function jogsDe(e, f, ctx) {
     case undefined: case 'voce': return vivos.includes(ctx.voce) ? [ctx.voce] : [];
     case 'cadaOponente': return vivos.filter(j => j !== ctx.voce);
     case 'cadaOutroOponente': { const d = ctx.ev && ctx.ev.jog; return vivos.filter(j => j !== ctx.voce && j !== d); }   // "each other opponent": menos o que levou o dano (Kediss)
+    case 'atacadosPorEste': { const F = e.objs[ctx.este]; return F ? vivos.filter(j => (e.turno.ataques || []).some(r => r.id === F.id && r.ts === F.ts && r.jog === j)) : []; }   // "each player this creature attacked this turn" (Angel of Destiny; o jogador, não o planeswalker dele)
     case 'atacado': return ctx.ev && ctx.ev.def !== undefined && vivos.includes(ctx.ev.def) ? [ctx.ev.def] : [];   // o jogador defensor do ataque (Kozilek, Ulamog: 508.5)
+    case 'oponente': { const os = vivos.filter(j => j !== ctx.voce); return os.length ? [os.find(j => j > ctx.voce) ?? os[0]] : []; }   // "an opponent" sem alvo: o próximo na ordem de turno (em X1, o único)
     case 'cadaJogador': return vivos;
     case 'alvoJogador': { for (let i = 0; i < ctx.alvos.length; i++) { const js = jogsAlvo(e, i, ctx); if (js.length) return js; } return []; }
     case 'controlador': return [...new Set(lkisDe(e, f, ctx).map(l => l.ctrl))].filter(j => vivos.includes(j));
