@@ -177,6 +177,7 @@ function extras(e, F, g, ev) {
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
 const GAT_PERSISTIR = { ev: 'morre', fx: [{ op: 'persistir' }] };
+const GAT_IMORTAL = { ev: 'morre', fx: [{ op: 'persistir', marc: '+1/+1' }] };   // imortal/undying (702.93a)
 const GAT_MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
 const ESPIRITO = { pt: [1, 1], cores: 'WB', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] };
 // esconderijo N (CR 702.75a): idem, um gatilho por instância (702.75b não junta)
@@ -307,8 +308,10 @@ M.evento = (e, ev) => {
   if (ev.ev === 'zona' && ev.de === 'campo' && ev.para === 'cemiterio' && ev.snap) {
     const S = ev.snap;
     // persistir (702.79a): "quando morre, se não tinha marcador -1/-1, volta ao campo do dono com um -1/-1" (603.4: olha o snap)
-    if (M.temTipo(e, S, 'Creature') && !(S.marc && S.marc['-1/-1'] > 0) && e.objs[S.id]) for (const x of M.kwDe(e, S)) if (x.k === 'persistir')
-      e.pend.push({ fonte: S.id, ts: S.ts, ctrl: S.ctrl, k: 'persistir', g: GAT_PERSISTIR, n: S.n, face: S.face ?? null, ficha: S.ficha || null, lki: M.lkiDe(e, S), ev: { ...ev, snap: undefined, tsCem: e.objs[S.id].ts } });
+    // imortal (702.93a): o mesmo com +1/+1 ("se não tinha marcador +1/+1, volta com um +1/+1")
+    for (const [k, mc, g] of [['persistir', '-1/-1', GAT_PERSISTIR], ['imortal', '+1/+1', GAT_IMORTAL]] as const)
+      if (M.temTipo(e, S, 'Creature') && !(S.marc && S.marc[mc] > 0) && e.objs[S.id]) for (const x of M.kwDe(e, S)) if (x.k === k)
+        e.pend.push({ fonte: S.id, ts: S.ts, ctrl: S.ctrl, k, g, n: S.n, face: S.face ?? null, ficha: S.ficha || null, lki: M.lkiDe(e, S), ev: { ...ev, snap: undefined, tsCem: e.objs[S.id].ts } });
     for (const x of M.kwDe(e, S)) if (x.k === 'posVida' && Number.isInteger(x.n) && x.n > 0)
       e.pend.push({ fonte: S.id, ts: S.ts, ctrl: S.ctrl, k: 'posVida', g: { ev: 'vaiCemiterio', fx: [{ op: 'ficha', quem: 'voce', qtd: x.n, token: ESPIRITO }] }, n: S.n, face: S.face ?? null, ficha: S.ficha || null, lki: M.lkiDe(e, S), ev: { ...ev, snap: undefined } });
   }

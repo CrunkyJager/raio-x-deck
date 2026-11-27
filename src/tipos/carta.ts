@@ -186,9 +186,9 @@ export interface RxFiltro {
    */
   este?: boolean;
   /**
-   * exceto a própria carta
+   * exceto a própria carta; 'doEvento' = exceto o objeto do evento do gatilho ('each other attacking creature', Shared Animosity)
    */
-  outro?: boolean;
+  outro?: boolean | 'doEvento';
   /**
    * algum destes tipos (Creature, Land, Permanent, Card, Spell, Token…)
    */
@@ -578,13 +578,13 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); 'produzida' = no gatilho viraParaMana: um tipo que o terreno virado produziu nesta ativação (Mirari's Wake, 106.7); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
    */
   prod?:
     | {
         coresEntre: RxFiltro;
       }
-    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas' | 'produzida')
     | string[]
     | {
         cadaCor: RxFiltro;
@@ -1044,6 +1044,7 @@ export interface RxKw {
     | 'corpo-a-corpo'
     | 'evoluir'
     | 'persistir'
+    | 'imortal'
     | 'eternizar'
     | 'agregar'
     | 'miriade'
@@ -1256,7 +1257,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
+   * manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); maxAtacantes (afeta 'voce', qtd, se): no máximo qtd criaturas atacam você em cada combate (Mirri, Weatherlight Duelist, 506.4); maxBloqueadores (só em efeitoTemporario, afeta 'cadaOponente'/'voce', qtd): o jogador afetado não bloqueia com mais de qtd criaturas (Mirri, 509.1c)
    */
   modo:
     | 'continuo'
@@ -1267,6 +1268,8 @@ export interface RxEst {
     | 'terraExtra'
     | 'custoAlternativo'
     | 'naoPodeConjurar'
+    | 'maxAtacantes'
+    | 'maxBloqueadores'
     | 'deveAtacar'
     | 'naoPodeAtacar'
     | 'naoPodeBloquear'

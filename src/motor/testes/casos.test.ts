@@ -5765,6 +5765,57 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+caso('701.26b', 'Mesmeric Orb: um permanente que desvira faz o CONTROLADOR dele moer 1 (o do oponente mói o oponente)', () => {
+  ok(M.gatOk(M.carta('Mesmeric Orb').gat[0]), 'gatilho aceito');
+  const e = cena({ campo: [[0, 'Mesmeric Orb'], [1, 'Grizzly Bears']] }); e.pend = [];
+  const urso = objN(e, 1, 'Grizzly Bears'), cem = j => e.jogs[j].zonas.cemiterio.length;
+  urso.virada = true; M.desvirarObj(e, urso); M.avancar(e);
+  igual([cem(0), cem(1)], [0, 1], 'só o controlador do urso moeu');
+});
+
+caso('702.93a', 'imortal (Mikaeus, the Unhallowed): a não-Humana sem +1/+1 morre e volta com +1/+1; morrendo com ele, fica; o Humano não ganha', () => {
+  const e = cena({ campo: [[0, 'Mikaeus, the Unhallowed'], [0, 'Grizzly Bears'], [0, 'Boros Swiftblade']] }); e.pend = [];
+  ok(M.kwDe(e, objN(e, 0, 'Grizzly Bears')).some(x => x.k === 'imortal'), 'o urso tem imortal');
+  ok(!M.kwDe(e, objN(e, 0, 'Boros Swiftblade')).some(x => x.k === 'imortal'), 'o Humano não');
+  M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio'); M.avancar(e); resolveCom(e);
+  const u = objN(e, 0, 'Grizzly Bears');
+  igual([u.zona, u.marc['+1/+1']], ['campo', 1], 'voltou com +1/+1');
+  M.mover(e, u.id, 'cemiterio'); M.avancar(e); resolveCom(e);
+  igual(e.jogs[0].zonas.cemiterio.filter(id => e.objs[id].n === 'Grizzly Bears').length, 1, 'com o marcador: fica no cemitério');
+});
+
+caso('106.7', "Mirari's Wake: virar terreno para mana dá mais uma de um tipo que AQUELE terreno produziu (Forest: GG; Command Tower: duas iguais)", () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Command Tower'], [0, "Mirari's Wake"]], cmd: ['Mirri, Weatherlight Duelist'] }); e.pend = [];
+  const [fo, ct] = e.campo, pac = id => M.fontesDeMana(e, 0).find(f => f.id === id).pacotes;
+  igual(pac(fo), [{ ...M.zeroMana(), G: 2 }], 'Forest: GG');
+  igual(pac(ct).map(p => Object.keys(p).filter(c => p[c]).map(c => c + p[c]).join()), ['W2', 'G2'], 'Command Tower: WW ou GG');
+});
+
+caso('509.1c', 'Mirri, Weatherlight Duelist: atacando, o oponente bloqueia com uma criatura só; virada, só uma criatura ataca o controlador dela', () => {
+  const M0 = M.carta('Mirri, Weatherlight Duelist');
+  ok(M.gatOk(M0.gat[0]) && M.fxSuportado(M0.gat[0].fx), 'gatilho aceito');
+  const e = cena({ campo: [[0, 'Mirri, Weatherlight Duelist'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves'], [1, 'Boros Swiftblade']], passo: 'inicioCombate' });
+  for (const id of e.campo) e.objs[id].doente = false;
+  e.pend = [];
+  const mirri = objN(e, 0, 'Mirri, Weatherlight Duelist');
+  igual(M.maxAtaque(e, 0), Infinity, 'desvirada: sem limite');
+  M.executar(e, M0.gat[0].fx[0], { voce: 0, este: mirri.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  igual([M.maxBloqueio(e, 1), M.maxBloqueio(e, 0)], [1, Infinity], 'o oponente bloqueia com 1');
+  mirri.virada = true;
+  igual(M.maxAtaque(e, 0), 1, 'virada: só 1 ataca o controlador');
+  // jogador 1 declara: só uma criatura consegue atacar o jogador 0
+  e.efTemp = []; e.turno.ativo = 1; let decl = 0;
+  M.PROC.atacar(e, { j: 1 }, Object.assign((j, t, ops) => { const a = ops.find(o => o.a === 'atacar' && o.jog === 0); if (a) { decl++; return a; } return ops.find(o => o.a === 'pronto'); }, { etapa: () => {} }));
+  igual([decl, e.turno.combate.atk.length], [1, 1], 'um atacante só');
+});
+
+caso('603.2', "Shared Animosity: cada atacante ganha +1/+0 por OUTRA atacante com tipo em comum (filtro outro:'doEvento') — Goblins +1, o Urso +0", () => {
+  const e = cena({ campo: [[0, 'Shared Animosity'], [0, 'Boggart Brute'], [0, "Dragonlord's Servant"], [0, 'Grizzly Bears']] });
+  for (const id of e.campo) e.objs[id].doente = false;
+  ate(e, 'atacar'); respC(e, x => x.a === 'todos' && x.jog === 1); fecha(e, 'atacar');
+  igual([M.poder(e, objN(e, 0, 'Boggart Brute')), M.poder(e, objN(e, 0, "Dragonlord's Servant")), M.poder(e, objN(e, 0, 'Grizzly Bears'))], [4, 2, 2]);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
