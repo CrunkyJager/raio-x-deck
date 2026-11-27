@@ -614,6 +614,10 @@
       }
      ],
      "description": "compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)"
+    },
+    "comX": {
+     "type": "boolean",
+     "description": "com {X} no custo de mana (Frontline Medic)"
     }
    }
   },
@@ -721,7 +725,7 @@
    }
   },
   "objeto": {
-   "description": "sobre o que o efeito age: alvo escolhido (índice em 'alvos'), todos que batem no filtro, ou referência",
+   "description": "sobre o que o efeito age: alvo escolhido (índice em 'alvos'), todos que batem no filtro, ou referência; danificado = no gatilho de dano, a permanente que levou o dano (Ghyrson Starn)",
    "oneOf": [
     {
      "type": "object",
@@ -756,7 +760,8 @@
       "escolhida",
       "anterior",
       "cadaAtual",
-      "descartadaCusto"
+      "descartadaCusto",
+      "danificado"
      ]
     }
    ]

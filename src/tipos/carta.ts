@@ -313,6 +313,10 @@ export interface RxFiltro {
    * compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)
    */
   tipoEmComum?: ('este' | 'comandante' | 'doEvento') | RxFiltro;
+  /**
+   * com {X} no custo de mana (Frontline Medic)
+   */
+  comX?: boolean;
 }
 
 export interface RxCompara {
@@ -354,7 +358,7 @@ export interface RxAlvo {
 }
 
 /**
- * sobre o que o efeito age: alvo escolhido (índice em 'alvos'), todos que batem no filtro, ou referência
+ * sobre o que o efeito age: alvo escolhido (índice em 'alvos'), todos que batem no filtro, ou referência; danificado = no gatilho de dano, a permanente que levou o dano (Ghyrson Starn)
  */
 export type RxObjeto =
   | {
@@ -363,7 +367,17 @@ export type RxObjeto =
   | {
       todos: RxFiltro;
     }
-  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
+  | (
+      | 'este'
+      | 'equipada'
+      | 'doEvento'
+      | 'criadas'
+      | 'escolhida'
+      | 'anterior'
+      | 'cadaAtual'
+      | 'descartadaCusto'
+      | 'danificado'
+    );
 
 /**
  * custo de habilidade ativada / custo adicional / 'a menos que pague'
