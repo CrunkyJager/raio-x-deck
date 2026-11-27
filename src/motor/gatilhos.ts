@@ -170,6 +170,16 @@ function proeza(e, ev) {
     for (let i = 0; i < n; i++) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'proeza', g: PROEZA, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ...ev, snap: undefined } });
   }
 }
+// suspender (702.62a): "no começo da sua manutenção, se esta carta está suspensa, tire um marcador de tempo dela" — gatilho
+// de carta no exílio do dono; a condição é vista ao disparar e ao resolver (603.4). O segundo ("ao tirar o último") sai do op.
+const G_SUSP_TIRA = { ev: 'fase', fx: [{ op: 'suspensoTira' }] };
+M.suspensa = o => !!o && o.zona === 'exilio' && !!o.suspensa && (o.marc.time || 0) > 0;   // 702.62b
+M.suspensoEvento = (e, j) => {
+  for (const id of e.jogs[j].zonas.exilio) {
+    const o = e.objs[id]; if (!M.suspensa(o) || !M.suspenderDe(e, o)) continue;
+    e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'suspender', g: G_SUSP_TIRA, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'fase', passo: 'manutencao', j } });
+  }
+};
 M.fimAtrasados = e => { if (e.atras && e.atras.length) e.atras = e.atras.filter(A => !(A.g.nesteTurno && A.t !== e.turno.n)); };
 
 // ---------- dobraGatilho (CR 603.2d): "dispara uma vez a mais" ----------
@@ -213,6 +223,7 @@ const kwEntraDe = d => {
 // eco (CR 702.30a): "no começo da sua manutenção, se veio para o seu controle desde a sua última manutenção, sacrifique
 // a menos que pague o eco". o.eco marca a entrada no campo; a 1ª manutenção de quem controla dispara e apaga a marca.
 // Simplificação: troca de controle não remarca.
+const G_DESAP = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'desaparecerTira' }] };   // desaparecer (702.63a)
 const ECO = new WeakMap<object, any>();
 const ecoDe = kw => { let g = ECO.get(kw); if (!g) ECO.set(kw, (g = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'sacrificar', em: 'este', aMenosQue: { quem: 'voce', custo: { mana: kw.custo } } }] })); return g; };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
@@ -319,6 +330,7 @@ M.evento = (e, ev) => {
   }
   atrasados(e, ev);
   temporarios(e, ev);
+  if (ev.ev === 'fase' && ev.passo === 'manutencao') M.suspensoEvento(e, ev.ativo);       // suspender (702.62a): as cartas suspensas do ativo
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
@@ -328,7 +340,9 @@ M.evento = (e, ev) => {
       for (const x of M.kwDe(e, F)) if (x.k === 'desaparecer') e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'desaparecer', g: GAT_DESAPARECER, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } });
     }
     for (const id of e.campo) {
-      const F = e.objs[id]; if (!F || !F.eco || F.ctrl !== ev.ativo) continue;
+      const F = e.objs[id]; if (!F || F.ctrl !== ev.ativo) continue;
+      if (F.marc && F.marc.time > 0) for (const x of M.kwDe(e, F)) if (x.k === 'desaparecer') e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'desaparecer', g: G_DESAP, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } });   // 702.63a (cada instância, 702.63b)
+      if (!F.eco) continue;
       delete F.eco;
       for (const x of M.kwDe(e, F)) if (x.k === 'eco' && x.custo) { const g = ecoDe(x); e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'eco', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } }); }
     }

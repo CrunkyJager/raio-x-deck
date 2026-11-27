@@ -162,6 +162,7 @@ M.qtdMarcadorJogador = (e, j, t, q) => {
 };
 // "entra com marcadores" (614.1c, 614.12): os da própria carta e os dados por outras permanentes (Arwen, Bramblewood)
 function entraComMarcadores(e, o, x) {
+  for (const k of M.kwDe(e, o)) if (k.k === 'desaparecer' && Number.isInteger(k.n) && k.n > 0) M.porMarcadores(e, o, 'time', k.n);   // 702.63a: entra com N de tempo
   const d = M.dadoDe(e, o), lista: any[] = (d.subst || []).filter(s => tipoSubst(s) === 'entraMarc' && s.quem && s.quem.este && M.substOk(s)).map(s => ({ F: o, s }));
   for (const r of substsDe(e, 'entraMarc')) if (r.F.id !== o.id && !(r.s.quem && r.s.quem.este)) lista.push(r);
   for (const { F, s } of lista) {
@@ -1546,6 +1547,42 @@ const H = {
       const k = (ctx.movidos || []).filter(x => !M.temTipo(e, e.objs[x.id], 'Land')).length;
       M.log(e, J.nome, 'radiação: moe', n, '—', k, 'não terreno');
       if (k) { M.perderVida(e, j, k); M.marcadorJogador(e, j, 'rad', k, true); }
+    },
+  },
+  // suspender (CR 702.62a): tira um marcador de tempo da carta suspensa; ao tirar o último, dispara "você pode conjurá-la
+  // sem pagar o custo de mana (se puder); se não, fica exilada"
+  suspensoTira: {
+    fx(e, f, ctx) {
+      const o = e.objs[ctx.este], L = ctx.lki && ctx.lki.este;
+      if (!M.suspensa(o) || (L && L.ts !== o.ts)) return;
+      o.marc.time--;
+      M.log(e, o.n, 'perde um marcador de tempo', `(${o.marc.time})`);
+      if (o.marc.time === 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.dono, k: 'suspender:conjura', g: { ev: 'fase', fx: [{ op: 'suspensoConjura' }] }, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'tiraMarcador', id: o.id, j: o.dono } });
+    },
+  },
+  // desaparecer (CR 702.63a): "se tem marcador de tempo, tire um"; ao tirar o último, dispara "sacrifique-o"
+  desaparecerTira: {
+    fx(e, f, ctx) {
+      const o = e.objs[ctx.este], L = ctx.lki && ctx.lki.este;
+      if (!o || o.zona !== 'campo' || (L && L.ts !== o.ts) || !(o.marc.time > 0)) return;
+      o.marc.time--;
+      M.log(e, o.n, 'perde um marcador de tempo', `(${o.marc.time})`);
+      if (o.marc.time === 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'desaparecer:sac', g: { ev: 'fase', fx: [{ op: 'sacrificar', em: 'este' }] }, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ev: 'tiraMarcador', id: o.id, j: o.ctrl } });
+    },
+  },
+  suspensoConjura: {
+    fx(e, f, ctx, ask) {
+      const o = e.objs[ctx.este], L = ctx.lki && ctx.lki.este;
+      if (!o || o.zona !== 'exilio' || (L && L.ts !== o.ts)) return;   // "if it's exiled"
+      o.suspensa = false;
+      if (M.podeConjurar(e, o.dono, o, undefined, { agora: true, gratis: true }) && ask(o.dono, 'jogar', [{ a: 'jogar', id: o.id }, { a: 'naoJogar', id: o.id }], { gratis: true, suspender: true }).a === 'jogar') {
+        const P0 = e.proc;
+        M.PROC.conjurar(e, { j: o.dono, id: o.id, agora: true, gratis: true, suspensa: true, resp: [] }, ask);
+        e.proc = P0; ask.etapa();
+        if (o.zona === 'pilha') M.log(e, e.jogs[o.dono].nome, 'conjura', o.n, 'pelo suspender');
+        return;
+      }
+      M.log(e, o.n, 'fica no exílio (não conjurada pelo suspender)');
     },
   },
   turnoExtra: {                                                     // CR 500.7: "take an extra turn after this one" (Timestream Navigator, Time Sieve)
