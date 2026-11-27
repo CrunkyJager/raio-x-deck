@@ -920,7 +920,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -980,6 +980,7 @@ M.condicao = (e, se, ctx) => {
   const vida = e.jogs[ctx.voce].vida;
   if (se.vidaMin !== undefined && vida < se.vidaMin) return false;
   if (se.vidaMax !== undefined && vida > se.vidaMax) return false;
+  if (se.vidaOponenteMax !== undefined && !M.vivos(e).some(j => j !== ctx.voce && e.jogs[j].vida <= se.vidaOponenteMax)) return false;   // "um oponente com N ou menos de vida" (Bloodghast)
   if (se.conta) {   // min/max/igual podem ser outra contagem (Thassa's Oracle: devoção a azul ≥ cartas no grimório)
     const v = M.qtd(e, se.conta.q, ctx); if (v === null) return false;
     const c: any = {}; for (const k of ['min', 'max', 'igual']) if (se.conta[k] !== undefined) { const b = M.qtd(e, se.conta[k], ctx); if (b === null) return false; c[k] = b; }

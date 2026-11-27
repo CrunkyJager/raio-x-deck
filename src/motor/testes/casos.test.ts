@@ -3492,6 +3492,15 @@ caso('613.1d', "Bello: no seu turno o artefato de VM 4+ que não é Equipamento 
   igual(M.temTipo(e, gl, 'Creature'), false, 'turno do oponente');
 });
 
+caso('611.3a', "Bloodghast: tem pressa só enquanto um oponente estiver com 10 ou menos de vida", () => {
+  const e = cena({ campo: [[0, 'Bloodghast', { doente: true }]] });
+  const bg = objN(e, 0, 'Bloodghast');
+  ok(M.estContOk(M.carta('Bloodghast').est[1]), 'lida');
+  igual(M.temKw(e, bg, 'pressa'), false, '40 de vida');
+  e.jogs[1].vida = 10; igual(M.temKw(e, bg, 'pressa'), true, 'oponente com 10');
+  e.jogs[0].vida = 5; e.jogs[1].vida = 11; igual(M.temKw(e, bg, 'pressa'), false, 'a sua vida não conta');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
