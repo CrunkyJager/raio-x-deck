@@ -471,7 +471,6 @@ const ptCda = (e, o, i) => {
   const s = (M.dadoDe(e, o).est || []).find(x => x.modo === 'ptDefinido' && x.afeta === 'este' && x[i ? 'rBase' : 'pBase'] !== undefined);
   if (!s) return null;
   const q = s[i ? 'rBase' : 'pBase'], voce = o.ctrl ?? o.dono;
-  if (q && q.conta === 'cartasNaMao') return e.jogs[voce].zonas.mao.length * (q.mult || 1) + (q.soma || 0);
   return M.qtd(e, q, { voce, este: o.id });
 };
 M.ptCda = ptCda;
@@ -535,14 +534,9 @@ const TIPOS_CARTA = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Pla
 M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub || s.tiraTipo) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'tiraTipo', 'se'].includes(k))
   && (s.tiraTipo === undefined || (Array.isArray(s.tiraTipo) && s.tiraTipo.every(t => TIPOS_CARTA.has(t))))
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
-const CONTA_EST = new Set(['cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste', 'devocao']);
-// prop: em vez de quantos, soma/maior de uma característica dos que batem (Ghalta, The Great Henge, Metalwork Colossus, Excalibur)
-const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm', 'maiorVm', 'cores']);   // cores: "for each color among permanents you control" (Conqueror's Flail, CR 105.2)
-M.PROP_EST = PROP_EST;
-const qtdEstOk = q => q === undefined || typeof q === 'number'
-  || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de', 'prop'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste' || (q.conta === 'devocao' && /^[WUBRG]+$/.test(q.de)))
-    && (q.prop === undefined || (PROP_EST.has(q.prop) && typeof q.conta === 'object'))
-    && (typeof q.conta === 'string' ? CONTA_EST.has(q.conta) : !!q.conta && typeof q.conta === 'object' && M.filtroOk(q.conta)));
+// contagens da estática (sem evento/alvo): M.contaOk(c, 'est') em contagem.ts — antes CONTA_EST + PROP_EST
+const qtdEstOk = q0 => { const q = M.qn(q0); return q === undefined || typeof q === 'number'
+  || (!!q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma'].includes(k)) && M.contaOk(q.conta, 'est')); };
 M.qtdEstOk = qtdEstOk;
 M.kwListaOk = kw => (kw || []).every(x => x && typeof x.k === 'string');   // palavra-chave dada = mesmo formato da kw da carta
 // habil (CR 613.1f): habilidades dadas, no formato da carta (gat/atv); quem lê cada uma decide se joga (gatOk, podeAtivar)
@@ -752,24 +746,10 @@ const magiasT = (e, ctx) => { const j = ctx.ev && ctx.ev.ev === 'conjura' ? ctx.
 M.magiasT = magiasT;
 // cores entre os objetos (CR 105.2: incolor não é cor)
 M.coresEntre = (e, os) => CORES.filter(c => os.some(o => (M.dadoDe(e, o).cores || '').includes(c)));
-M.qtdEst = (e, q, ctx) => {
+M.qtdEst = (e, q0, ctx) => {
+  const q = M.qn(q0);
   if (typeof q === 'number') return q;
-  if (typeof q.conta === 'object' && q.prop) {
-    const os = M.objetosQue(e, q.conta, ctx);
-    const v = q.prop === 'cores' ? new Set(os.flatMap(o => (M.dadoDe(e, o).cores || '').replace(/[^WUBRG]/g, '').split('')).filter(Boolean)).size
-      : q.prop === 'somaVm' ? os.reduce((s, o) => s + (M.dadoDe(e, o).vm || 0), 0)
-      : q.prop === 'maiorVm' ? os.reduce((m, o) => Math.max(m, M.dadoDe(e, o).vm || 0), 0)   // "greatest mana value among" (One with the Machine)
-      : q.prop === 'somaPoder' ? os.reduce((s, o) => s + Math.max(0, M.poder(e, o)), 0)
-      : os.reduce((m, o) => Math.max(m, M.poder(e, o)), 0);      // maiorPoder (sem criatura: 0)
-    return v * (q.mult || 1) + (q.soma || 0);
-  }
-  if (typeof q.conta === 'object') return (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
-  const J = e.jogs[ctx.voce], este = e.objs[ctx.este];
-  const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'cartasNoGrimorio' ? J.zonas.grimorio.length : q.conta === 'magiasNoTurno' ? magiasT(e, ctx) : q.conta === 'suaVida' ? J.vida
-    : q.conta === 'oponentes' ? M.vivos(e).filter(j => j !== ctx.voce).length : q.conta === 'jogadores' ? M.vivos(e).length
-    : q.conta === 'devocao' ? M.devocao(e, ctx.voce, q.de)
-    : q.conta === 'marcadoresNoEste' ? (!este ? 0 : q.de ? este.marc[q.de] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0)) : 0;   // de: um tipo de marcador
-  return v * (q.mult || 1) + (q.soma || 0);
+  return M.contaOk(q.conta, 'efeito') ? M.qtdConta(e, q, ctx) : (q.soma || 0);
 };
 /** palavras-chave do objeto: as da carta (ou face/ficha) e as dadas pelas camadas (CR 613.1f) */
 // CR 122.1b: marcador de palavra-chave dá a palavra-chave (Luminous Broodmoth põe "flying"; sem isso a que voltou voltava de novo)
@@ -986,7 +966,6 @@ M.temPeloMenos = (e, f, ctx, n) => {
 // contas de ataque: atacantes = as que estão atacando neste combate (Jazal, Firemane Commando); atacantesEmVoce = as
 // que atacam você ou um planeswalker seu (no combate de agora; fora dele, as deste turno: Faramir); ataquesNoTurno = as
 // que você pôs para atacar neste turno (Alesha, Windbrisk Heights). e.turno.ataques guarda o turno (combate.ts).
-const CONTA_ATK = new Set(['atacantes', 'atacantesEmVoce', 'ataquesNoTurno']);
 M.contaAtaque = (e, conta, voce) => {
   const C = e.turno.combate, hist = (e.turno.ataques || []).filter(r => !r.entrou);   // quem entrou atacando não "atacou" (508.4)
   if (conta === 'atacantes') return C ? C.atk.filter(r => M.emCombate(e, r)).length : 0;
@@ -995,15 +974,14 @@ M.contaAtaque = (e, conta, voce) => {
 };
 
 // ---- quantidade RX (número, X, {conta:filtro}) ----
-M.qtd = (e, q, ctx: any = {}) => {
+M.qtd = (e, q0, ctx: any = {}) => {
+  const q = M.qn(q0);
   if (typeof q === 'number') return q;
   if (q === 'X') return ctx.x || 0;
-  if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
-  if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
-  if (q && CONTA_ATK.has(q.conta)) return M.contaAtaque(e, q.conta, ctx.voce) * (q.mult || 1) + (q.soma || 0);
-  if (q && CONTA_EST.has(q.conta) && qtdEstOk(q)) return M.qtdEst(e, q, ctx);   // marcadoresNoEste (de), mão, vida, devoção…
-  return null;      // contagem que o núcleo ainda não sabe → quem chama não oferece a habilidade
-};
+  if (!q || typeof q !== 'object' || !q.conta || typeof q.conta !== 'object' || !('de' in q.conta) || !M.contaOk(q.conta, 'cond')) return null;   // o núcleo ainda não sabe → quem chama não oferece
+  if (q.conta.de === 'lembradas' || q.conta.de === 'evento') return M.qtdDe(e, q, { lki: {}, ...ctx });
+  return M.qtdConta(e, q, ctx);
+}
 
 // devoção (CR 700.5): símbolos de mana das cores pedidas nos custos dos permanentes que j controla; símbolo híbrido
 // conta uma vez se tiver qualquer uma delas (700.5a); genérico e {C} não contam
