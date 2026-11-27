@@ -279,9 +279,9 @@ export interface RxFiltro {
    */
   kw?: string[];
   /**
-   * não tem o mesmo nome de outra permanente que você controla
+   * true: não tem o mesmo nome de outra permanente que você controla (Yenna); 'criaturaOuCemiterio': de outra criatura sua nem de card de criatura no seu cemitério (Guardian Project)
    */
-  nomeUnico?: boolean;
+  nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
    * poder maior que o poder base
    */
