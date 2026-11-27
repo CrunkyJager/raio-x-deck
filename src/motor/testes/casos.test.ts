@@ -5760,6 +5760,48 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+caso('506.4', "Reconnaissance: a atacante sai do combate e desvira; Retreat to Coralhelm: virar, desvirar ou vidência", () => {
+  ok(M.fxSuportado(M.carta('Reconnaissance').atv[0].fx) && M.carta('Retreat to Coralhelm').gat.every(g => M.gatOk(g)), 'aceitos');
+  const e = cena({ campo: [[0, 'Grizzly Bears', { virada: true }], [0, 'Hill Giant', { virada: true }]] });
+  const u = objN(e, 0, 'Grizzly Bears'), h = objN(e, 0, 'Hill Giant');
+  e.turno.combate = { atk: [{ id: u.id, ts: u.ts, alvo: { jog: 1 }, def: 1, bloq: [], bloqueado: false }, { id: h.id, ts: h.ts, alvo: { jog: 1 }, def: 1, bloq: [], bloqueado: false }], etapa: 0, deu1: {} };
+  for (const f of M.carta('Reconnaissance').atv[0].fx) M.executar(e, f, { voce: 0, este: -1, alvos: [[{ o: u.id, ts: u.ts }]], ilegal: {}, lki: {} }, null);
+  igual([e.turno.combate.atk.map(r => r.id), u.virada], [[h.id], false], 'só o Gigante segue atacando; o Urso desvirou');
+});
+
+caso('120.10', "Rith: no seu passo final, só se uma criatura de um oponente levou dano excedente neste turno; Righteous Valkyrie: +2/+2 com 7 de vida acima da inicial", () => {
+  ok(M.carta('Rith, Liberated Primeval').gat.every(g => M.gatOk(g)), 'Rith aceito');
+  const e = cena({ campo: [[0, 'Rith, Liberated Primeval'], [1, 'Grizzly Bears'], [1, 'Hill Giant']] });
+  const se = M.carta('Rith, Liberated Primeval').gat[0].se, ctx = { voce: 0, este: -1 };
+  M.danoEm(e, objN(e, 1, 'Hill Giant'), 3, { kw: [] });
+  ok(!M.condicao(e, se, ctx), '3 no Gigante 3/3: letal, sem excesso');
+  M.danoEm(e, objN(e, 1, 'Grizzly Bears'), 5, { kw: [] });
+  ok(M.condicao(e, se, ctx), '5 no Urso 2/2: excedente');
+  const v = cena({ campo: [[0, 'Righteous Valkyrie']] }), va = objN(v, 0, 'Righteous Valkyrie');
+  v.jogs[0].vida = 46; igual(M.poder(v, va), 2, '46: não');
+  v.jogs[0].vida = 47; igual(M.poder(v, va), 4, '47 (40 + 7): +2/+2');
+});
+
+caso('602.2', "Runic Armasaur: um oponente ativa habilidade (não de mana) de criatura ou terreno → pode comprar; a minha não", () => {
+  ok(M.carta('Runic Armasaur').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Runic Armasaur'], [1, 'Grizzly Bears'], [0, 'Grizzly Bears']] });
+  M.evento(e, { ev: 'ativa', id: objN(e, 0, 'Grizzly Bears').id, j: 0 });
+  igual(e.pend.length, 0, 'a minha: não');
+  M.evento(e, { ev: 'ativa', id: objN(e, 1, 'Grizzly Bears').id, j: 1 });
+  igual(e.pend.filter(p => p.n === 'Runic Armasaur').length, 1, 'do oponente: dispara');
+});
+
+caso('702.109', "Riders of Rohan: investida (dash) é opção de conjuração; o Urza deixa jogar a exilada até o fim do turno", () => {
+  const e = cena({ campo: [...terras(4, 'Mountain'), ...terras(3, 'Plains')], mao: [[0, 'Riders of Rohan']] });
+  M.avancar(e); conj(e, 'Riders of Rohan');
+  if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v.investida);
+  resolveCom(e);
+  const r = objN(e, 0, 'Riders of Rohan');
+  ok(r && M.temKw(e, r, 'pressa'), 'com pressa');
+  igual(e.atras.length, 1, 'volta no próximo passo final');
+  ok(M.fxSuportado(M.carta('Urza, Lord High Artificer').atv[1].fx), 'Urza aceito');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

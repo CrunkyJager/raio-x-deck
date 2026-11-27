@@ -39,6 +39,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'vidaInicial', 'tentacoes'].includes(o) && chaves(c, []);
     case 'turno': if (o === 'entraram') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
+      if (o === 'excesso') return chaves(c, ['quem']) && (c.quem === undefined || c.quem === 'oponentes');   // objetos (criatura/planeswalker) que levaram dano excedente (120.10)
       return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
       : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
@@ -58,7 +59,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 function estOk(c) {
   if (temF(c)) return true;
   if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes'].includes(c.o);
-  if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha'].includes(c.o);
+  if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'excesso'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
 }
@@ -117,6 +118,10 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
+      if (o === 'excesso') {   // "if a creature or planeswalker an opponent controlled was dealt excess damage this turn" (Rith)
+        const de = jj => { const T = e.jogs[jj].excT; return T && T.t === e.turno.n ? T.n : 0; };
+        return c.quem === 'oponentes' ? e.jogs.map((_, jj) => jj).filter(jj => jj !== ctx.voce).reduce((t, jj) => t + de(jj), 0) : de(ctx.voce);
+      }
       if (o === 'vidaPerdida' || o === 'compras') {   // de você, do jogador da vez (cadaAtual, no repetirCada) ou dos oponentes (soma/maior)
         const de = jj => { const T = o === 'vidaPerdida' ? e.jogs[jj].perdT : e.jogs[jj].compT; return T && T.t === e.turno.n ? T.n : 0; };
         if (c.quem === 'oponentes') { const v = M.vivos(e).filter(x => x !== ctx.voce).map(de); return c.junta === 'soma' ? v.reduce((a, b) => a + b, 0) : Math.max(0, ...v); }

@@ -503,7 +503,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4)
    */
   op:
     | 'mana'
@@ -565,7 +565,8 @@ export interface RxFx {
     | 'monstruosidade'
     | 'olharMao'
     | 'resolverCaso'
-    | 'selar';
+    | 'selar'
+    | 'tirarDoCombate';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -1100,7 +1101,7 @@ export interface RxAtv {
 
 export interface RxGat {
   /**
-   * portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você)
+   * portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)
    */
   ev:
     | 'cicla'
@@ -1140,7 +1141,8 @@ export interface RxGat {
     | 'tomaIniciativa'
     | 'nivel'
     | 'monstruosa'
-    | 'portador';
+    | 'portador'
+    | 'ativa';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1572,7 +1574,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)
    */
   o?:
     | 'quantos'
@@ -1609,7 +1611,8 @@ export interface RxContagem {
     | 'tipos'
     | 'tentacoes'
     | 'cemiterio'
-    | 'jogadores';
+    | 'jogadores'
+    | 'excesso';
   /**
    * de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)
    */

@@ -618,6 +618,10 @@ function copiaDe(e, token, ctx) {
 M.procuraBloqueada = (e, j) => e.campo.some(id => { const F = e.objs[id]; return F.ctrl !== j && (M.dadoDe(e, F).est || []).some(s => s.modo === 'oponentesNaoProcuram'); });
 M.danoEm = (e, o, q, fd) => danoEm(e, o, q, fd);
 function danoEm(e, alvoObj, q, fonte) {
+  // dano excedente (120.10): mais do que o letal (criatura: resistência − dano marcado, ou 1 com toque mortífero; planeswalker: a lealdade)
+  { const cr = M.temTipo(e, alvoObj, 'Creature'), pw = M.temTipo(e, alvoObj, 'Planeswalker');
+    const let0 = cr ? ((fonte.kw || []).some(k => k.k === 'toqueMortifero') ? (alvoObj.dano > 0 ? 0 : 1) : Math.max(0, M.resistencia(e, alvoObj) - alvoObj.dano)) : pw ? Math.max(0, alvoObj.marc.lealdade || 0) : Infinity;
+    if ((cr || pw) && q > let0) { const J = e.jogs[alvoObj.ctrl]; J.excT = { t: e.turno.n, n: (J.excT && J.excT.t === e.turno.n ? J.excT.n : 0) + 1 }; } }
   if (M.temTipo(e, alvoObj, 'Planeswalker')) alvoObj.marc.lealdade = (alvoObj.marc.lealdade || 0) - q;   // CR 120.3c
   if (M.temTipo(e, alvoObj, 'Creature')) { if (M.temInfectar(fonte.kw)) alvoObj.marc['-1/-1'] = (alvoObj.marc['-1/-1'] || 0) + q; else alvoObj.dano += q; if ((fonte.kw || []).some(k => k.k === 'toqueMortifero')) alvoObj.mortal = true; }   // 120.3e (infectar: −1/−1, 702.90c), 702.2b
   if (M.temTipo(e, alvoObj, 'Battle')) alvoObj.marc.defesa = (alvoObj.marc.defesa || 0) - q;                // CR 120.3h
@@ -1306,6 +1310,18 @@ const H = {
     },
   },
   // qtd {ate: N} ("desvire até três terrenos", Frantic Search): quem resolve escolhe até N dos que batem (só os virados importam)
+  // CR 506.4: tira do combate (Reconnaissance): deixa de ser atacante/bloqueadora; quem ela bloqueava continua bloqueado (509.1h)
+  tirarDoCombate: {
+    ok: f => f.em !== undefined && f.quem === undefined,
+    fx(e, f, ctx) {
+      const C = e.turno.combate; if (!C) return;
+      for (const o of objsDe(e, f, ctx)) {
+        C.atk = C.atk.filter(r => r.id !== o.id);
+        for (const r of C.atk) r.bloq = r.bloq.filter(b => b.id !== o.id);
+        M.log(e, o.n, 'sai do combate');
+      }
+    },
+  },
   desvirar: {
     qtd: q => q === undefined || ateOk(q),
     fx(e, f, ctx, ask) {
