@@ -1537,7 +1537,8 @@
       "kicker",
       "flashback",
       "madness",
-      "evoke"
+      "evoke",
+      "impending"
      ]
     },
     "conjuradaNaPrincipal": {
@@ -1740,6 +1741,7 @@
       "eco",
       "bis",
       "prole",
+      "iminente",
       "capitulo",
       "classe",
       "entraComMarcador",
@@ -1760,7 +1762,7 @@
     },
     "de": {
      "type": "string",
-     "description": "proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo"
+     "description": "proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo"
     },
     "tipo": {
      "type": "string"
@@ -2158,6 +2160,10 @@
       "type": "string"
      },
      "description": "continuo: perde estes tipos (deus com devoção baixa)"
+    },
+    "trocaSub": {
+     "type": "boolean",
+     "description": "continuo afeta equipada: os tipos de criatura viram só os de sub (\"is a black Zombie\", Nim Deathmantle; CR 205.1b)"
     },
     "contra": {
      "type": "object",
@@ -2572,7 +2578,11 @@
      ],
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
     },
-    "junta": {
+    "f": {
+       "$ref": "#/$defs/filtro",
+       "description": "de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)"
+      },
+      "junta": {
      "enum": [
       "soma",
       "maior",

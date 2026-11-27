@@ -37,7 +37,8 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
-    case 'turno': return ['magias', 'descartes', 'ataques', 'compras', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
+    case 'turno': if (o === 'entraram') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
+      return ['magias', 'descartes', 'ataques', 'compras', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'atacado': return o === 'marcadores' && chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc;   // o jogador defensor (Nightkin Ambusher: rad)
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
@@ -63,7 +64,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab')));
+  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -107,6 +108,7 @@ M.contar = (e, c, ctx: any = {}) => {
       return c.marc === 'poison' ? J.veneno || 0 : (J.marc || {})[c.marc] || 0;   // "for each experience counter you have" (122.1)
     case 'turno':
       if (o === 'magias') return M.magiasT(e, ctx);
+      if (o === 'entraram') { const R = e.turno.entraram; if (!R || R.t !== e.turno.n) return 0; const { zona, ...f } = c.f || {}; return R.l.filter(x => M.bate(e, x, f, ctx)).length; }   // como era ao entrar (Éowyn, Shieldmaiden)
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
       if (o === 'compras') { const D = J.compT; return D && D.t === e.turno.n ? D.n : 0; }      // "cards you've drawn this turn" (Fists of Flame)
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)

@@ -786,7 +786,7 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke' | 'impending';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -932,6 +932,7 @@ export interface RxKw {
     | 'eco'
     | 'bis'
     | 'prole'
+    | 'iminente'
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
@@ -944,7 +945,7 @@ export interface RxKw {
   custo?: RxMana;
   n?: number;
   /**
-   * proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
+   * proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
    */
   de?: string;
   tipo?: string;
@@ -1205,6 +1206,10 @@ export interface RxEst {
    */
   tiraTipo?: string[];
   /**
+   * continuo afeta equipada: os tipos de criatura viram só os de sub ("is a black Zombie", Nim Deathmantle; CR 205.1b)
+   */
+  trocaSub?: boolean;
+  /**
    * naoPodeAtacar/ataqueCusta: o defensor (jogador e/ou permanente)
    */
   contra?: {
@@ -1457,6 +1462,10 @@ export interface RxContagem {
     | 'dano'
     | 'nome'
     | 'tipos';
+  /**
+   * de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)
+   */
+  f?: RxFiltro;
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */

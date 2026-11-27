@@ -4455,6 +4455,61 @@ caso('509.1b', "Nightkin Ambusher: não pode ser bloqueada enquanto o jogador de
   ok(!pode(), 'no combate (bloqueiaEste)');
 });
 
+caso('205.1b', "Nim Deathmantle: a equipada é um Zumbi preto (perde Urso e verde), +2/+2 e intimidar", () => {
+  ok(M.carta('Nim Deathmantle').est.every(s => M.estContOk(s)), 'estática aceita');
+  const e = cena({ campo: [[0, 'Nim Deathmantle'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves'], [1, 'Esper Sentinel']] });
+  const nm = objN(e, 0, 'Nim Deathmantle'), b = objN(e, 0, 'Grizzly Bears');
+  nm.anexo = { id: b.id, ts: b.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  igual(M.dadoDe(e, b).sub, ['Zombie'], 'só Zumbi'); igual(M.dadoDe(e, b).cores, 'B', 'preto');
+  igual(M.poder(e, b), 4); ok(M.temKw(e, b, 'intimidar'), 'intimidar');
+  ok(!M.bloqueiaEste(e, objN(e, 1, 'Llanowar Elves'), b) && M.bloqueiaEste(e, objN(e, 1, 'Esper Sentinel'), b), 'intimidar (702.13b): o Elfo verde não bloqueia o Zumbi preto; o artefato sim');
+});
+
+caso('601.2f', "Otawara: canalizar custa {1} a menos por criatura lendária sua (redução da própria carta, na mão)", () => {
+  const e = cena({ campo: [[0, 'Krenko, Mob Boss'], [0, 'Lathril, Blade of the Elves']], mao: [[0, 'Otawara, Soaring City']] });
+  const ot = e.objs[e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Otawara, Soaring City')];
+  const a = M.atvDe(e, ot).find(x => x.zona === 'mao');
+  igual(M.custoAtv(e, ot, a), { g: 1, p: ['U'] }, 'duas lendárias: {1}{U}');
+});
+
+caso('702.176a', "Overlord of the Hauntwoods: iminente {1}{G}{G} entra com 4 marcadores de tempo e não é criatura até tirar o último; custo cheio, criatura", () => {
+  const d = M.carta('Overlord of the Hauntwoods');
+  ok(d.gat.every(g => M.gatOk(g)) && d.est.every(s => M.estContOk(s)), 'gatilhos e estática aceitos');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest'], [0, 'Forest']], mao: [[0, 'Overlord of the Hauntwoods']] });
+  M.avancar(e); conj(e, 'Overlord of the Hauntwoods');
+  for (let g = 0; g < 20 && e.perg && (e.pilha.length || e.perg.tipo !== 'acao'); g++) respE(e, o => o.a === 'passar' || o.a === 'opcao' && o.v.iminente || o.a !== 'opcao');
+  const ov = objN(e, 0, 'Overlord of the Hauntwoods');
+  ok(ov, 'no campo'); igual(ov.marc.time, 4, '4 marcadores de tempo');
+  ok(!M.temTipo(e, ov, 'Creature') && M.temTipo(e, ov, 'Enchantment'), 'só encantamento');
+  ok(e.campo.some(id => e.objs[id].n === 'Everywhere'), 'o gatilho de entrar criou Everywhere');
+  ov.marc.time = 0; e.vCamada = (e.vCamada || 0) + 1;
+  ok(M.temTipo(e, ov, 'Creature'), 'sem marcador: criatura');
+  const f = cena({ campo: [[0, 'Overlord of the Hauntwoods']] });
+  const o2 = objN(f, 0, 'Overlord of the Hauntwoods'); o2.marc.time = 4; f.vCamada = (f.vCamada || 0) + 1;
+  ok(M.temTipo(f, o2, 'Creature'), 'sem pagar o iminente, marcador de tempo não tira o tipo');
+});
+
+caso('702.16', "Éowyn, Fearless Knight: exila a criatura de poder maior e as lendárias suas ganham proteção das cores dela (multicolorida = cada cor)", () => {
+  const e = cena({ campo: [[0, 'Éowyn, Fearless Knight'], [0, 'Krenko, Mob Boss'], [0, 'Grizzly Bears'], [1, 'Lathril, Blade of the Elves']] });
+  const ow = objN(e, 0, 'Éowyn, Fearless Knight'), kr = objN(e, 0, 'Krenko, Mob Boss'), gb = objN(e, 0, 'Grizzly Bears'), la = objN(e, 1, 'Lathril, Blade of the Elves');
+  const ctx: any = { voce: 0, este: ow.id, alvos: [[{ o: la.id, ts: la.ts }]], ilegal: {}, lki: { alvos: [[M.lkiDe(e, la)]] } };
+  for (const f of M.carta('Éowyn, Fearless Knight').gat[0].fx) M.executar(e, f, ctx, () => ({ a: 'nao' }));
+  igual(la.zona, 'exilio', 'Lathril exilada');
+  ok(M.protegeDe(e, ow, { cores: 'B' }) && M.protegeDe(e, kr, { cores: 'G' }), 'lendárias: proteção de preto e de verde');
+  ok(!M.protegeDe(e, kr, { cores: 'R' }), 'não de vermelho'); ok(!M.protegeDe(e, gb, { cores: 'G' }), 'o Urso não é lendário');
+});
+
+caso('603.4', "Éowyn, Shieldmaiden: 'se outro Humano entrou sob seu controle neste turno' vale mesmo se ele já saiu; ela mesma não conta", () => {
+  const g = M.carta('Éowyn, Shieldmaiden').gat[0]; ok(M.gatOk(g), 'gatilho aceito');
+  const e = cena({ campo: [[0, 'Éowyn, Shieldmaiden']] });
+  const ow = objN(e, 0, 'Éowyn, Shieldmaiden'), se = () => M.condicao(e, g.se, { voce: 0, este: ow.id });
+  ok(!se(), 'só ela entrou: não');
+  const h = e.por(0, 'Esper Sentinel'); e.por(1, 'Esper Sentinel');
+  ok(se(), 'outro Humano seu entrou'); M.mover(e, h.id, 'cemiterio');
+  ok(se(), 'e já morreu: continua valendo');
+  e.turno.n++; ok(!se(), 'no turno seguinte, não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

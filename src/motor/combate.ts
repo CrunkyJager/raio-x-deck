@@ -33,7 +33,7 @@ function protegeDe(e, alvo, fonteDado) {
     if (x.k !== 'protecao') continue;
     if (x.de === 'tudo' || x.de === 'everything') return true;
     if ((x.de === 'cadaCor' || x.de === 'each color') && cores) return true;
-    if (x.de && x.de.length === 1 && cores.includes(x.de)) return true;
+    if (x.de && /^[WUBRG]+$/.test(x.de) && [...x.de].some(c => cores.includes(c))) return true;   // uma cor ou várias ("each of that creature's colors")
   }
   return false;
 }
@@ -139,6 +139,7 @@ function bloqueiaEste(e, b, at) {                                               
   }
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
+  if (kw(e, at, 'intimidar') && !M.temTipo(e, b, 'Artifact') && ![...(M.dadoDe(e, at).cores || '')].some(c => (M.dadoDe(e, b).cores || '').includes(c))) return false;   // 702.13b: só artefato ou quem tem uma cor em comum
   if (M.ehPortador(e, at) && M.poder(e, b) > M.poder(e, at)) return false;               // 701.54c: Portador não é bloqueado por poder maior
   // caminhada de terreno (702.14c): não pode ser bloqueada enquanto o defensor controla terreno daquele tipo
   for (const x of M.kwDe(e, at)) if (x.k === 'caminhadaTerreno' && typeof x.tipo === 'string'
