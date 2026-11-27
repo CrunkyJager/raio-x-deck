@@ -1122,7 +1122,8 @@ M.anular = (e, id) => {
 };
 
 function lkiDe(e, o) {
-  return { id: o.id, ts: o.ts, n: o.n, ctrl: o.ctrl, dono: o.dono, poder: M.poder(e, o), resist: M.resistencia(e, o), vm: M.dadoDe(e, o).vm || 0, marc: { ...o.marc }, transf: o.transf || 0, face: o.face ?? null };
+  return { id: o.id, ts: o.ts, n: o.n, ctrl: o.ctrl, dono: o.dono, poder: M.poder(e, o), resist: M.resistencia(e, o), vm: M.dadoDe(e, o).vm || 0, marc: { ...o.marc }, transf: o.transf || 0, face: o.face ?? null,
+    ...(o.zona === 'campo' ? { anexos: M.anexosDe(e, o).map(x => ({ id: x.id, ts: x.ts })) } : {}) };   // os presos a ela ("attached to [it]" depois que saiu)
 }
 M.lkiDe = lkiDe;
 function descAlvos(e, alvos) {

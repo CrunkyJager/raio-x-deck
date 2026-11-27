@@ -3340,13 +3340,13 @@ caso('702.51', "convocar: Hour of Reckoning ({4}{W}{W}{W}) com 3 Planícies + 4 
   ok(!M.opcoesPrioridade(f, 0).some(o => o.a === 'conjurar'), '3 criaturas + 3 terrenos = 6 de 7');
 });
 
-caso('707.10', "copiar mágica: Zada copia o Bolt por criatura; Dualcaster copia o Bolt na pilha; a cópia some (não vai ao cemitério) e não é conjurada", () => {
+caso('707.10', "copiar mágica: Zada não copia o Bolt no jogador (só o que mira só ela); Dualcaster copia o Bolt na pilha; a cópia some (não vai ao cemitério) e não é conjurada", () => {
   const e = cena({ campo: [[0, 'Zada, Hedron Grinder'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
   e.cfg.log = true;
   M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
   const ag = M.agenteBasico();
   while (e.perg && e.perg.tipo !== 'acao') M.responder(e, ag(e, e.perg), x => x.turno.passo !== 'principal1');
-  igual(e.jogs[1].vida, 31, 'Bolt + 2 cópias (2 outras criaturas)');
+  igual(e.jogs[1].vida, 37, 'só o Bolt: mirou o jogador, não a Zada');
   igual(naZona(e, 0, 'cemiterio'), ['Lightning Bolt'], 'só a original no cemitério');
   igual(e.pilha.length, 0, 'pilha limpa');
   igual(e.jogs[0].conjT.n, 1, 'as cópias não contam como conjuradas');
@@ -5783,6 +5783,42 @@ caso('701.10e', "Unnatural Growth: no começo do combate dobra P/R de cada criat
   const cx = { voce: 0, este: u.id, alvos: [], ilegal: {}, lki: { alvos: [] } }; for (const fx of g.fx) M.executar(e, fx, cx, () => ({ a: 'nao' }));
   igual([M.poder(e, b), M.resistencia(e, b), M.poder(e, a), M.resistencia(e, a)], [4, 4, 8, 8], 'dobrou');
   igual([M.poder(e, l), M.resistencia(e, l)], [1, 1], 'oponente igual');
+});
+
+caso('702.72', "Wren's Run Packmaster: campeão — exila outro Elfo meu; sem Elfo, sacrifica; ao sair, o Elfo volta", () => {
+  const [g1, g2] = M.carta("Wren's Run Packmaster").gat; ok(M.gatOk(g1) && M.gatOk(g2), 'aceita');
+  const e = cena({ campo: [[0, "Wren's Run Packmaster"], [0, 'Llanowar Elves']] }); e.pend = [];
+  const p = objN(e, 0, "Wren's Run Packmaster"), l = objN(e, 0, 'Llanowar Elves');
+  const cx: any = { voce: 0, este: p.id, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const fx of g1.fx) M.executar(e, fx, cx, (j, t, ops) => ops && ops.length ? ops[0] : { a: 'sim' });
+  igual([e.objs[l.id].zona, e.objs[p.id].zona], ['exilio', 'campo'], 'Elfo exilado, fica');
+  const lki = { este: { ...p } }; M.mover(e, p.id, 'cemiterio');
+  for (const fx of g2.fx) M.executar(e, fx, { voce: 0, este: p.id, alvos: [], ilegal: {}, lki }, () => ({ a: 'sim' }));
+  igual(e.objs[l.id].zona, 'campo', 'Elfo voltou');
+  const f = cena({ campo: [[0, "Wren's Run Packmaster"]] }); f.pend = []; const q = objN(f, 0, "Wren's Run Packmaster");
+  for (const fx of g1.fx) M.executar(f, fx, { voce: 0, este: q.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'sim' }));
+  igual(f.objs[q.id].zona, 'cemiterio', 'sem Elfo: sacrificada');
+});
+
+caso('608.2h', "Zack Fair: sacrificado no custo, põe na criatura os marcadores DELE de cada tipo e prende o Equipamento que estava nele (LKI)", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Zack Fair'], [0, 'Grizzly Bears'], [0, 'Swiftfoot Boots']] }); e.pend = [];
+  const z = objN(e, 0, 'Zack Fair'), b = objN(e, 0, 'Grizzly Bears'), s = objN(e, 0, 'Swiftfoot Boots');
+  z.marc = { '+1/+1': 2, stun: 1 }; z.doente = false; s.anexo = { id: z.id, ts: z.ts };
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === z.id);
+  resolveCom(e, p => p.ops.findIndex(o => o.o === b.id || o.id === b.id));
+  igual(z.zona, 'cemiterio', 'sacrificado');
+  igual([b.marc['+1/+1'], b.marc.stun], [2, 1], 'os marcadores dele');
+  ok(s.anexo && s.anexo.id === b.id, 'Botas no Urso'); ok(M.temKw(e, b, 'indestrutivel'), 'indestrutível');
+});
+
+caso('707.10', "Zada: Giant Growth só nela copia para cada outra criatura minha (cada cópia numa); mirando outra, não copia", () => {
+  ok(M.gatOk(M.carta('Zada, Hedron Grinder').gat[0]), 'aceita');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest'], [0, 'Zada, Hedron Grinder'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Serra Angel']], mao: [[0, 'Giant Growth'], [0, 'Giant Growth']] });
+  const z = objN(e, 0, 'Zada, Hedron Grinder'), b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 0, 'Llanowar Elves'), s = objN(e, 1, 'Serra Angel');
+  M.avancar(e); conj(e, 'Giant Growth'); alvoObj(e, 'Zada, Hedron Grinder'); resolveCom(e);
+  igual([M.poder(e, z), M.poder(e, b), M.poder(e, l), M.poder(e, s)], [6, 5, 4, 4], 'três +3/+3, o Anjo do oponente fica');
+  conj(e, 'Giant Growth'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  igual([M.poder(e, z), M.poder(e, b), M.poder(e, l)], [6, 8, 4], 'mirando o Urso: só ele');
 });
 
 // ---------- rodar ----------

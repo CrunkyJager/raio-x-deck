@@ -331,6 +331,10 @@ export interface RxFiltro {
    * não tem este nome ("not named Tiamat")
    */
   naoNome?: string;
+  /**
+   * mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um ("a spell that targets only Zada")
+   */
+  soMiraEste?: true;
 }
 
 export interface RxCompara {
@@ -693,6 +697,10 @@ export interface RxFx {
    * efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)
    */
   proximaMagica?: boolean;
+  /**
+   * copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)
+   */
+  cadaOutroAlvo?: true;
   /**
    * copiarMagica: pode escolher novos alvos
    */

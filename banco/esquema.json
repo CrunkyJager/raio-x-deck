@@ -659,6 +659,10 @@
     "naoNome": {
      "type": "string",
      "description": "não tem este nome (\"not named Tiamat\")"
+    },
+    "soMiraEste": {
+     "const": true,
+     "description": "mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um (\"a spell that targets only Zada\")"
     }
    }
   },
@@ -1413,6 +1417,10 @@
     "proximaMagica": {
      "type": "boolean",
      "description": "efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)"
+    },
+    "cadaOutroAlvo": {
+     "const": true,
+     "description": "copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)"
     },
     "novoAlvo": {
      "type": "boolean",

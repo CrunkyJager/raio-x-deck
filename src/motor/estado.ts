@@ -968,7 +968,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['comX', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'soMiraEste']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -977,6 +977,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.este && o.id !== ctx.este) return false;
   if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.naoNome !== undefined && (o.n === f.naoNome || d.n === f.naoNome)) return false;   // "not named Tiamat"
+  if (f.soMiraEste) { const F = e.objs[ctx.este], l = o.zona === 'pilha' && o.pil ? (o.pil.alvos || []).flat().filter(Boolean) : [];   // "a spell that targets only Zada"
+    if (!F || !l.length || !l.every(a => a.o === F.id && a.ts === F.ts)) return false; }
   if (f.outro && o.id === ctx.este) return false;
   if (f.naoAlvo !== undefined && ((ctx.alvos || [])[f.naoAlvo] || []).some(x => x && x.o === o.id)) return false;   // "each other creature" = menos o alvo N (Chandra's Ignition)
   if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;
@@ -1016,7 +1018,9 @@ M.bate = (e, o, f, ctx: any = {}) => {
   // anexos: equipada = o objeto a que a fonte (ctx.este) está presa; anexadoA 'este' = preso à fonte;
   // encantada / comEquipamento = com pelo menos uma Aura / um Equipamento preso a ele
   if (f.equipada !== undefined) { const F = e.objs[ctx.este], A = F && F.anexo; if ((!!A && A.id === o.id && A.ts === o.ts) !== !!f.equipada) return false; }
-  if (f.anexadoA === 'este') { const F = e.objs[ctx.este]; if (!F || !o.anexo || o.anexo.id !== F.id || o.anexo.ts !== F.ts) return false; }
+  if (f.anexadoA === 'este') { const F = e.objs[ctx.este], L = ctx.lki && ctx.lki.este;
+    if (F && F.zona !== 'campo' && L && L.id === F.id && L.anexos) { if (o.zona !== 'campo' || !L.anexos.some(x => x.id === o.id && x.ts === o.ts)) return false; }   // "an Equipment that WAS attached to" (Zack Fair): o LKI da fonte que saiu
+    else if (!F || !o.anexo || o.anexo.id !== F.id || o.anexo.ts !== F.ts) return false; }
   if (f.encantada !== undefined && M.anexosDe(e, o).some(x => M.temTipo(e, x, 'Enchantment') && (M.dadoDe(e, x).sub || []).includes('Aura')) !== !!f.encantada) return false;
   if (f.topo !== undefined) { const g = e.jogs[o.dono].zonas.grimorio; if ((o.zona === 'grimorio' && g[g.length - 1] === o.id) !== !!f.topo) return false; }   // a carta do topo do grimório (o fim da lista)
   // CR 700.9: modificada = com marcador, equipada, ou encantada por Aura que o controlador dela controla
