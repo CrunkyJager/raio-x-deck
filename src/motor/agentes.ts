@@ -157,6 +157,7 @@ const basico = (e, p) => {
     }
     case 'escolherCarta': {           // marcadores numa criatura escolhida (Finality): a de maior resistência
       if (!(p.ctx && p.ctx.op === 'marcador')) return 0;
+      if (p.ctx.cor) return 0;          // cadaCor (Call the Spirit Dragons): a 1ª é o emparelhamento máximo (cinco Dragões distintos = vence)
       return melhorOp(p.ops, op => op.id === undefined ? -99 : M.resistencia(e, o(op.id)));
     }
     case 'desvirar': {                // "desvire até N": as suas primeiro (o núcleo já põe as suas na frente)
@@ -305,9 +306,21 @@ function atacarBasico(e, p) {
 // bloqueio: bloqueia quando o bloqueador sobrevive ou troca por algo que vale mais; bloqueia "de sacrifício" quando
 // o dano que passa mata
 function bloquearBasico(e, p) {
-  const d = p.j, o = id => e.objs[id], vm = x => M.dadoDe(e, x).vm || 0;
+  const d = p.ctx.def ?? p.j, o = id => e.objs[id], vm = x => M.dadoDe(e, x).vm || 0;
   const ja = new Set(p.ctx.bl.map(x => x[1]));
   const pronto = p.ops.findIndex(op => op.a === 'pronto');
+  if (d !== p.j) {                                                                // quem escolhe é o atacante (Brutal Hordechief): o pior bloqueio para o defensor
+    if (pronto >= 0) return pronto;
+    let k = -1, kv = -Infinity;
+    p.ops.forEach((op, i) => {
+      if (op.a !== 'bloquear') return;
+      const b = o(op.id), at = o(op.atk), pa = M.poder(e, at), pb = M.poder(e, b);
+      const mata = pa >= M.resistencia(e, b) || (M.temKw(e, at, 'toqueMortifero') && pa > 0), troca = pb >= M.resistencia(e, at) || (M.temKw(e, b, 'toqueMortifero') && pb > 0);
+      const v = (mata ? 3 + vm(b) / 10 : 0) - (troca ? 4 + vm(at) / 10 : 0) - (p.ctx.devem.includes(op.id) ? 0 : 10);
+      if (v > kv) { kv = v; k = i; }
+    });
+    return k >= 0 ? k : Math.max(0, p.ops.findIndex(op => op.a === 'desfazer'));
+  }
   if (pronto < 0 && (p.ctx.devem || []).length) {                                // bloqueio obrigatório (509.1c)
     const k = p.ops.findIndex(op => op.a === 'bloquear' && p.ctx.devem.includes(op.id));
     if (k >= 0) return k;

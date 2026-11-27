@@ -433,7 +433,7 @@ M.antimagiaJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && (s.
 // Blightsteel). Várias: a primeira (616.1, a escolha do afetado fica para depois). Retorna {zona, marc?, embaralhar?}.
 // talvez ("you may put it on top… instead", Library of Leng): só com quem decide (opc.ask) e só em descarte por EFEITO
 // (custo e limpeza não são efeito; ruling de Leng). Quem escolhe é o controlador da fonte, carta a carta.
-function substCemiterio(e, o, opc: any = {}) {
+function substCemiterio(e, o, opc: any = {}): any {
   const fontes = M.indiceCampo(e).sb.map(i => e.objs[i]);
   if (o.zona !== 'campo' && (M.dadoDe(e, o).subst || []).length) fontes.push(o);
   for (const F of fontes) for (const sb of M.dadoDe(e, F).subst || []) {
@@ -448,7 +448,7 @@ function substCemiterio(e, o, opc: any = {}) {
     }
     if (sb.muda) return { zona: sb.muda.para, n: F.n };
     const [a, b] = sb.emVez;
-    if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n };
+    if (a.op === 'exilar') return { zona: 'exilio', marc: b ? { [b.tipoMarc]: b.qtd } : null, n: F.n, ...(a.comEste ? { exPor: { id: F.id, ts: F.ts } } : {}) };   // comEste: "exiled with Valgavoth" (607.2a)
     return { zona: 'grimorio', embaralhar: true, n: F.n };
   }
   return null;
@@ -488,6 +488,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && Number.isInteger(pos) && pos > 1) para.splice(Math.max(0, para.length - (pos - 1)), 0, id);   // "fourth from the top" (Lost to Legend): pos 4 = 3 cartas por cima
   else if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo
+  if (sub && sub.exPor) o.exPor = sub.exPor;
   if (sub && sub.marc) for (const m in sub.marc) o.marc[m] = (o.marc[m] || 0) + sub.marc[m];   // "exile-a com um marcador hit" (fica no exílio)
   if (sub && sub.embaralhar) M.embaralhar(e, para);
   if (zona === 'campo') { M.campoEntra(e, id); M.registraEntrada(e, o); }
@@ -1135,8 +1136,8 @@ const QQ_COR = new WeakMap<any, any>();
 const qualquerCorDe = a => { let c = QQ_COR.get(a); if (!c) QQ_COR.set(a, (c = { ...a, _qualquerCor: true })); return c; };
 M.atvDe = (e, o) => {
   let b = atvCarta(M.dadoDe(e, o));
-  const sem = !!o.ganhos && perdeu(e, o);   // perdeu tudo: o ganho por resolução (sem timestamp) conta como mais velho
   if (o.zona === 'cemiterio') { const x = bisDado(e, o); if (x && !b.some(a => a._bis)) b = b.concat([x]); }
+  const sem = !!o.ganhos && perdeu(e, o);   // perdeu tudo: o ganho por resolução (sem timestamp) conta como mais velho
   if (o.ganhos && o.ganhos.atv && !sem) b = b.concat(o.ganhos.atv);
   if (o.ganhos && o.ganhos.atvT && !sem) b = b.concat(o.ganhos.atvT);   // até o fim do turno (Quicksilver Elemental)
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
@@ -1163,7 +1164,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['convocou', 'comX', 'postaPorEste', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'manaGasta', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'maiorPoder', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste', 'semKw', 'pareadaComEste', 'miraUm']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'manaGasta', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'miraUm', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'maiorPoder', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste', 'soMiraUma', 'semKw', 'pareadaComEste']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k)) && (!f || f.ou === undefined || (Array.isArray(f.ou) && f.ou.length > 1 && f.ou.every(g => !!g && typeof g === 'object' && M.filtroOk(g))));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -1177,6 +1178,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
     if (!l.some(a => { const x = e.objs[a.o]; return x && x.ts === a.ts && M.bate(e, x, f.miraUm, ctx); })) return false; }
   if (f.soMiraEste) { const F = e.objs[ctx.este], l = o.zona === 'pilha' && o.pil ? (o.pil.alvos || []).flat().filter(Boolean) : [];   // "a spell that targets only Zada"
     if (!F || !l.length || !l.every(a => a.o === F.id && a.ts === F.ts)) return false; }
+  if (f.soMiraUma) { const l = o.zona === 'pilha' && o.pil ? (o.pil.alvos || []).flat().filter(Boolean) : [], A = l.length && e.objs[l[0].o];   // "a spell that targets only a single creature you control" (Frontline Heroism)
+    if (!A || !l.every(a => a.o === A.id && a.ts === A.ts) || !M.bate(e, A, { zona: 'campo', ...f.soMiraUma }, ctx)) return false; }
   if (f.outro === 'doEvento' ? !!ctx.ev && o.id === ctx.ev.id : f.outro && o.id === ctx.este) return false;   // 'doEvento': "each OTHER attacking creature" (Shared Animosity)
   if (f.naoAlvo !== undefined && ((ctx.alvos || [])[f.naoAlvo] || []).some(x => x && x.o === o.id)) return false;   // "each other creature" = menos o alvo N (Chandra's Ignition)
   if (f.ou && !f.ou.some(g => M.bate(e, o, g, ctx))) return false;   // "a Human or artifact card" (Boromir): bate em ao menos um
@@ -1357,7 +1360,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'contra', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -1419,7 +1422,7 @@ M.condicao = (e, se, ctx) => {
   if (se.eventoMais !== undefined) {   // "if that player has more cards in hand / lands / life than each other player" (Battle Angels of Tyr): o jogador do evento
     const jj = ctx.ev ? (ctx.ev.jog !== undefined ? ctx.ev.jog : ctx.ev.j) : undefined; if (jj === undefined) return false;
     const v = j => se.eventoMais === 'mao' ? e.jogs[j].zonas.mao.length : se.eventoMais === 'vida' ? e.jogs[j].vida : e.campo.filter(id => e.objs[id].ctrl === j && M.temTipo(e, e.objs[id], 'Land')).length;
-    if (!M.vivos(e).every(j => j === jj || v(jj) > v(j))) return false;
+    if (se.contra === 'algumOponente' ? !M.vivos(e).some(j => j !== jj && j !== ctx.voce && v(jj) > v(j)) : !M.vivos(e).every(j => j === jj || v(jj) > v(j))) return false;
   }
   if (se.maisTerrenosOponente !== undefined) {   // Land Tax, Loyal Warhound ('algum'); Archaeomancer's Map ('doEvento': quem controla o terreno que entrou)
     const terr = j => e.campo.filter(id => { const o = e.objs[id]; return o.ctrl === j && M.temTipo(e, o, 'Land'); }).length, meus = terr(ctx.voce);
