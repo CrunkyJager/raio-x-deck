@@ -3951,6 +3951,18 @@ caso('701.26', "Frantic Search: compra 2, descarta 2 e desvira até três terren
   igual([ilhas.filter(o => !o.virada).length, objN(e, 1, 'Forest').virada, e.jogs[0].zonas.cemiterio.length], [4, true, 3], 'pagou 3, desvirou as 3 suas; a do oponente fica');
 });
 
+caso('118.12', "Masked Vandal: ao entrar pode exilar um card de criatura do seu cemitério; se exilar, exila o artefato/encantamento alvo do oponente", () => {
+  for (const tem of [true, false]) {
+    const e = cena({ campo: [[1, 'Sol Ring']] });
+    if (tem) e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
+    e.por(0, 'Lightning Bolt', { zona: 'cemiterio' });
+    const sr = objN(e, 1, 'Sol Ring'), mv = e.por(0, 'Masked Vandal');
+    ok(M.gatOk(M.carta('Masked Vandal').gat[0]), 'lido');
+    M.executar(e, M.carta('Masked Vandal').gat[0].fx[0], { voce: 0, este: mv.id, alvos: [[{ o: sr.id, ts: sr.ts }]], ilegal: {}, lki: {} }, (j, t, ops) => ops[ops.length - 1]);
+    igual([sr.zona, naZona(e, 0, 'exilio')], tem ? ['exilio', ['Grizzly Bears']] : ['campo', []], tem ? 'com criatura no cemitério' : 'só mágica no cemitério');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

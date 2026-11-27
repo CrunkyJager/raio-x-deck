@@ -41,6 +41,7 @@ const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['q
     : a.custo.vida ? Number.isInteger(a.custo.vida)
     : a.custo.sacrificar === 'este' ? true                                         // "unless you sacrifice this" (Withercrown dá à encantada)
     : a.custo.sacrificar ? typeof a.custo.sacrificar === 'object' && M.filtroOk(a.custo.sacrificar.f || {}) && Object.keys(a.custo.sacrificar).every(k => k === 'f' || k === 'qtd') && (a.custo.sacrificar.qtd === undefined || Number.isInteger(a.custo.sacrificar.qtd))
+    : a.custo.exilarDe ? M.custoSuportado({ exilarDe: a.custo.exilarDe })            // "você pode exilar um card de criatura do seu cemitério" (Masked Vandal)
     : false)
   && (a.qtd === undefined || !!a.custo.mana);
 M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
@@ -377,13 +378,19 @@ function pagouParaImpedir(e, f, ctx, ask) {
     else if (c.vida) { if (J.vida >= c.vida && !M.vidaFixa(e, j)) ops.push({ a: 'pagar' }); }   // CR 119.4, 119.8
     else if (c.sacrificar === 'este') { const o = e.objs[ctx.este]; if (o && o.zona === 'campo' && o.ctrl === j) ops.push({ a: 'pagar' }); }
     else if (c.sacrificar) { if (M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }, c.sacrificar.qtd || 1)) ops.push({ a: 'pagar' }); }
+    const candEx = () => c.exilarDe ? M.objetosQue(e, { ...(c.exilarDe.f || {}), zona: c.exilarDe.zona }, { voce: j }).filter(o => J.zonas[c.exilarDe.zona].includes(o.id) && o.id !== ctx.este) : [];
+    if (c.exilarDe && candEx().length >= (c.exilarDe.qtd || 1)) ops.push({ a: 'pagar' });
     const fo = e.objs[ctx.item] || e.objs[ctx.este];
     const r = ask(j, 'aMenosQuePagar', ops, { op: f.op, fonte: fo ? fo.n : '?', de: ctx.voce, custo: c, x });
     if (r.a !== 'pagar') continue;
     if (mana) M.pagarComPlano(e, j, mana, { x });
     else if (c.vida) M.perderVida(e, j, c.vida);                                                      // CR 119.4
     else if (c.sacrificar === 'este') M.mover(e, ctx.este, 'cemiterio', { sac: true });
-    else {
+    else if (c.exilarDe) {
+      const ex: any[] = [];
+      for (let i = 0; i < (c.exilarDe.qtd || 1); i++) ex.push(ask(j, 'custo', candEx().filter(o => !ex.includes(o.id)).map(o => ({ a: 'exilar', id: o.id })), { o: 'exilar' }).id);
+      for (const id of ex) M.mover(e, id, 'exilio');
+    } else {
       const sac: any[] = [];
       for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
         const cand = M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }).filter(o => !sac.includes(o.id));
