@@ -130,7 +130,7 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
   if (mk) M.memo[mk] = r;
   for (const id of e.campo) {
     const o = e.objs[id];
-    if (o.ctrl !== j) continue;
+    if (o.ctrl !== j || M.ativBloqueada(e, o)) continue;   // Linvala: nem as de mana (605.1a)
     M.atvDe(e, o).forEach((a, k) => {
       if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo) || !M.atvSeOk(e, a, o)) return;
       // soVirar: sem pagar mana nem vida ({T} e/ou sacrificar este: terreno, Lotus Petal, Treasure, Gold)

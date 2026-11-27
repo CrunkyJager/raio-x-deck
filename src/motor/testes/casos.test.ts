@@ -3618,6 +3618,18 @@ caso('601.2f', "impostoPorAlvo: o motor declara o campo (M.CARTA_OK) para a cobe
   igual(e.campo.filter(id => e.objs[id].n === 'Mountain' && e.objs[id].virada).length, 5, '{1}{R} + {2}{R} do 2º alvo');
 });
 
+caso('602.5', "não pode ativar: Linvala trava as habilidades (até as de mana) das criaturas do oponente; Myrel só no turno do dono", () => {
+  const e = cena({ campo: [[0, 'Linvala, Keeper of Silence'], [1, 'Llanowar Elves'], [0, 'Llanowar Elves']] });
+  const el = j => e.objs[e.campo.find(id => e.objs[id].n === 'Llanowar Elves' && e.objs[id].ctrl === j)];
+  ok(M.ativBloqueada(e, el(1)) && !M.ativBloqueada(e, el(0)), 'só a do oponente');
+  el(1).doente = false; el(0).doente = false;
+  ok(!M.fontesDeMana(e, 1).some(x => x.id === el(1).id) && M.fontesDeMana(e, 0).some(x => x.id === el(0).id), 'a mana do Elves do oponente some; a minha fica');
+  const f = cena({ campo: [[0, 'Myrel, Shield of Argive'], [1, 'Sol Ring']] });
+  const sr = f.objs[f.campo[1]];
+  ok(M.ativBloqueada(f, sr), 'no meu turno o Sol Ring do oponente não ativa');
+  f.turno.ativo = 1; ok(!M.ativBloqueada(f, sr), 'no turno dele, ativa');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

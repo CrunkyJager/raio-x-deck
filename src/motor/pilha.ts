@@ -415,6 +415,7 @@ M.atvSeOk = (e, a, o) => { if (!a.se) return true; if (!M.seOk(a.se)) return fal
 M.podeAtivar = (e, j, o, k) => {
   const d = M.dadoDe(e, o), a = M.atvDe(e, o)[k];
   if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
+  if (o.zona === 'campo' && M.ativBloqueada(e, o)) return false;   // Linvala, Myrel (602.5)
   if (!M.atvSeOk(e, a, o)) return false;                             // "Activate only if …" (602.5b)
   if ((d.falta || []).some(s => s.startsWith('Cost'))) return false;   // custo que o conversor não leu: não ativa errado
   if (!M.custoSuportado(a.custo) || !(a.fx && a.fx.length) || !M.fxSuportado(a.fx, { topo: false })) return false;

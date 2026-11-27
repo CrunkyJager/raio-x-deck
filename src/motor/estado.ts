@@ -257,6 +257,20 @@ M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protT
 // "você tem antimagia" (702.11c): oponente não mira você (Dawn's Truce, Lazotep Plating, Metropolis Reformer)
 // "você não pode conjurar mágicas neste turno" (Conduit of Worlds, 101.2: o "não pode" vence)
 M.naoConjura = (e, j) => estJog(e, j, s => s.modo === 'naoPodeConjurar' && !s.f);
+// "[objetos] não podem ter as habilidades ativadas ativadas" (Linvala, Keeper of Silence; Myrel no seu turno): CR 602.5,
+// 101.2 (o "não pode" vence). Vale para as de mana também (605.1a são ativadas). afeta é filtro lido do lado da fonte.
+M.ativBloqueada = (e, o) => {
+  for (const id of indice(e).est) {
+    const F = e.objs[id];
+    for (const s of M.dadoDe(e, F).est || []) {
+      if (s.modo !== 'naoPodeAtivar' || !s.afeta || typeof s.afeta !== 'object') continue;
+      const c = { voce: F.ctrl, este: F.id };
+      if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, c); } catch (_) { ok = false; } if (!ok) continue; }
+      if (M.bate(e, o, { zona: 'campo', ...s.afeta }, c)) return true;
+    }
+  }
+  return false;
+};
 M.antimagiaJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && (s.kw || []).some(k => k.k === 'antimagia'));
 
 // Mover de zona. CR 400.7: vira objeto novo — o id fica (é a carta física, a designação de comandante vai junto,
