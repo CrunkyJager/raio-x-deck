@@ -5067,6 +5067,51 @@ caso('114.4', "Tamiyo, Field Researcher: +1 — dano de combate das criaturas es
   igual(M.altDe(e, 1, sa), undefined, 'o oponente não tem o emblema');
 });
 
+caso('603.4', "Tataru Taru: oponente compra fora do turno DELE → Tesouro (cond nao turno doEvento); no turno dele, não; no seu, sim", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Tataru Taru']] });
+  const g = M.carta('Tataru Taru').gat[1], ctx = ev => ({ voce: 0, este: objN(e, 0, 'Tataru Taru').id, ev });
+  ok(M.gatOk(g), 'gatilho aceito');
+  e.turno.ativo = 1; ok(!M.condicao(e, g.se, ctx({ ev: 'compra', j: 1 })), 'turno do 1, o 1 compra: não');
+  e.turno.ativo = 2; ok(M.condicao(e, g.se, ctx({ ev: 'compra', j: 1 })), 'turno do 2, o 1 compra: sim');
+  e.turno.ativo = 0; ok(M.condicao(e, g.se, ctx({ ev: 'compra', j: 1 })), 'seu turno: sim');
+});
+
+caso('400.7', "Welcome the Dead: X Zumbis = cartas suas que foram da mão/grimório ao cemitério neste turno (conta turno/aoCemiterio): o descarte + as moídas", () => {
+  const e = cena({ campo: terras(4, 'Swamp'), mao: [[0, 'Welcome the Dead'], [0, 'Grizzly Bears']] });
+  M.mover(e, e.jogs[0].zonas.grimorio[0], 'cemiterio'); M.mover(e, e.jogs[0].zonas.grimorio[0], 'cemiterio');   // duas moídas
+  igual(M.contar(e, { de: 'turno', o: 'aoCemiterio' }, { voce: 0 }), 2, 'moeu 2');
+  M.avancar(e); conj(e, 'Welcome the Dead'); resolveCom(e);
+  igual(e.campo.filter(id => e.objs[id].ficha && e.objs[id].ctrl === 0 && e.objs[id].virada).length, 3, '2 moídas + 1 descarte = 3 Zumbis virados (a própria mágica não conta)');
+});
+
+caso('611.2b', "Welcome to . . .: I — artefato não-criatura de um oponente vira Muralha 0/4 com defensor enquanto você tiver a Saga (animar enquantoNoCampo); II — Dinossauro 3/3 com pressa só neste turno", () => {
+  const W = M.carta('Welcome to . . .');
+  ok(W.gat.every(g => M.gatOk(g)), 'capítulos aceitos');
+  const e = cena({ campo: [[0, 'Welcome to . . .'], [1, 'Mind Stone']] });
+  const sg = objN(e, 0, 'Welcome to . . .'), ms = objN(e, 1, 'Mind Stone');
+  M.executar(e, W.gat[0].fx[0], { voce: 0, este: sg.id, alvos: [[{ o: ms.id, ts: ms.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, sg) } }, () => null);
+  igual([M.temTipo(e, ms, 'Creature'), M.poder(e, ms), M.resistencia(e, ms), M.temKw(e, ms, 'defensor'), (M.dadoDe(e, ms).sub || []).includes('Wall')], [true, 0, 4, true, true], 'Muralha 0/4 defensora');
+  M.mover(e, sg.id, 'cemiterio');
+  igual(M.temTipo(e, ms, 'Creature'), false, 'a Saga saiu: volta a ser só artefato');
+  const f = cena({ campo: [[0, 'Welcome to . . .']] }), sf = objN(f, 0, 'Welcome to . . .');
+  const cx: any = { voce: 0, este: sf.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(f, sf) } };
+  for (const x of W.gat[1].fx) M.executar(f, x, cx, () => null);
+  const d = f.campo.map(id => f.objs[id]).find(o => o.ficha);
+  ok(d && M.temKw(f, d, 'atropelar') && M.temKw(f, d, 'pressa'), 'Dinossauro com atropelar e pressa');
+  f.turno.passo = 'final'; passarAte(f, 'principal1');
+  ok(M.temKw(f, d, 'atropelar') && !M.temKw(f, d, 'pressa'), 'no turno seguinte: sem pressa');
+});
+
+caso('107.3', "Well of Lost Dreams: ganhou 3 de vida → pode pagar {X} com X ≤ 3 e comprar X (fx pagando + xAte); com 2 terras, X = 2", () => {
+  const g = M.carta('Well of Lost Dreams').gat[0];
+  ok(M.gatOk(g), 'gatilho aceito');
+  const e = cena({ campo: [[0, 'Well of Lost Dreams'], ...terras(2, 'Forest')] }), w = objN(e, 0, 'Well of Lost Dreams');
+  const mao = e.jogs[0].zonas.mao.length; let vistos: any = null;
+  M.executar(e, g.fx[0], { voce: 0, este: w.id, ev: { ev: 'ganhaVida', j: 0, q: 3 }, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => { if (t === 'escolha') vistos = ops.map(o => o.v); return ops[0]; });
+  igual(vistos, [2, 1, 0], 'X de 2 a 0 (só 2 manas)');
+  igual([e.jogs[0].zonas.mao.length - mao, e.campo.filter(id => e.objs[id].virada).length], [2, 2], 'pagou {2}, comprou 2');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

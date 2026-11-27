@@ -3,7 +3,7 @@
 // não jogar do que jogar errado em silêncio. Regra de cada handler: perguntar tudo antes de mexer no estado.
 import { M } from './nucleo';
 
-const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando']);
+const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando', 'xAte']);
 const QUEM_OK = new Set(['cadaOutroOponente', 'voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual']);
 // cadaAtual (o jogador da vez) só vale dentro de um repetirCada: fora dele seria um jogador que não existe
 let dentroCada = 0, dentroObj = 0;
@@ -58,7 +58,8 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   if (!(h.qtd ? h.qtd(f.qtd) : qtdOk(f.qtd))) return false;
   if (f.f && !M.filtroOk(f.f)) return false;
   if (f.aMenosQue !== undefined && !amqOk(f.aMenosQue)) return false;
-  if (f.pagando !== undefined && !amqOk({ quem: 'voce', custo: f.pagando })) return false;   // "você pode pagar…; se pagar"
+  if (f.pagando !== undefined && f.xAte !== undefined) { if (!(f.pagando.mana && f.pagando.mana.x === 1 && Object.keys(f.pagando).length === 1 && qtdOk(f.xAte))) return false; }   // pagar {X} escolhido até xAte
+  else if (f.pagando !== undefined && !amqOk({ quem: 'voce', custo: f.pagando })) return false;   // "você pode pagar…; se pagar"
   return h.ok ? h.ok(f) : true;
 });
 
@@ -398,7 +399,14 @@ M.executar = (e, f, ctx, ask) => {
   const h0 = H[f.op];
   if (f.talvez && !f.pagando && !(h0 && h0.talvezDentro) && ask(f.quem === 'cadaAtual' ? ctx.cadaAtual : ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: f.op }).a === 'nao') { ctx.pagou = false; return; }   // "pode"
   if (f.aMenosQue && pagouParaImpedir(e, f, ctx, ask)) { ctx.pagou = false; return; }   // CR 118.12: alguém pagou, o efeito não acontece
-  if (f.pagando) {                                                   // "você pode pagar X. Se pagar, …" (pergunta e paga antes do efeito)
+  if (f.pagando && f.xAte !== undefined) {                           // "you may pay {X}, where X ≤ N. If you do, … X" (Well of Lost Dreams): escolhe o X
+    const cap = Math.max(0, qtdDe(e, f.xAte, ctx)), mana = f.pagando.mana; let max = 0;
+    for (let k = cap; k > 0; k--) if (M.planoMana(e, ctx.voce, mana, { x: k })) { max = k; break; }
+    const ops = Array.from({ length: max + 1 }, (_, i) => ({ a: 'escolha', v: max - i }));   // do maior ao 0 (o agente básico pega o primeiro)
+    const X = max ? ask(ctx.voce, 'escolha', ops, { op: 'pagarX', id: ctx.este }).v : 0;
+    if (!X) { ctx.pagou = false; return; }
+    M.pagarComPlano(e, ctx.voce, mana, { x: X }); ctx.x = X; ctx.pagou = true;
+  } else if (f.pagando) {                                            // "você pode pagar X. Se pagar, …" (pergunta e paga antes do efeito)
     const pagou = pagouParaImpedir(e, { op: 'pagando', aMenosQue: { quem: 'voce', custo: f.pagando } }, ctx, ask);
     ctx.pagou = pagou; if (!pagou) return;
   }
@@ -713,17 +721,19 @@ const H = {
     campos: ['p', 'r', 'tipos', 'sub', 'kw', 'cores', 'dura', 'todosTipos', 'tiraKw', 'habil'],
     qtd: q => q === undefined,
     // habil: só gatilhos, só até o fim do turno (Den of the Bugbear: "e ganha 'sempre que ataca, …'"): vão para o.ganhos.gat, que a limpeza zera (514.2)
-    ok: f => f.em !== undefined && (f.habil === undefined || (f.dura === 'fimDoTurno' && !!f.habil && Object.keys(f.habil).every(k => k === 'gat') && Array.isArray(f.habil.gat) && f.habil.gat.every(g => M.gatOk(g)))) && (f.dura === 'fimDoTurno' || f.dura === 'sempre') && (f.p === undefined) === (f.r === undefined)
+    ok: f => f.em !== undefined && (f.habil === undefined || (f.dura === 'fimDoTurno' && !!f.habil && Object.keys(f.habil).every(k => k === 'gat') && Array.isArray(f.habil.gat) && f.habil.gat.every(g => M.gatOk(g)))) && (f.dura === 'fimDoTurno' || f.dura === 'sempre' || (f.dura === 'enquantoNoCampo' && !f.habil)) && (f.p === undefined) === (f.r === undefined)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw) && M.kwListaOk(f.tiraKw) && (f.todosTipos === undefined || f.todosTipos === true)
       && (f.p !== undefined || (f.tipos || []).length > 0 || (f.kw || []).length > 0 || (f.tiraKw || []).length > 0),
     fx(e, f, ctx) {
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
+      const F0 = e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? e.objs[ctx.este] : null;
+      if (f.dura === 'enquantoNoCampo' && !F0) return;                  // a fonte já saiu: a duração acabou antes de começar (611.2b)
       const n = q => typeof q === 'number' ? q : qtdDe(e, q, ctx);
       const pt = f.p !== undefined ? [n(f.p), n(f.r)] : undefined;
       for (const o of os) {
         // todosTipos (Mirror Entity, 205.3m): "ganha todos os tipos de criatura" = metamorfo dado (lido em tiposCriatura)
         const kw = f.todosTipos ? [...(f.kw || []), { k: 'metamorfo' }] : f.kw;
-        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null });
+        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null, ...(f.dura === 'enquantoNoCampo' && F0 ? { src: { id: F0.id, ts: F0.ts, ctrl: ctx.voce } } : {}) });   // src: "for as long as you control [fonte]" (Welcome to . . . I)
         if (f.habil) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.habil.gat] };   // 613.1f
         M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
       }

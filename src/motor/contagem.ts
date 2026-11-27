@@ -39,7 +39,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'tentacoes', 'cores'].includes(o) && chaves(c, []);   // cores: da identidade dos seus comandantes (903.4; War Room)
     case 'turno': return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
-      : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
+      : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados', 'aoCemiterio'].includes(o) && chaves(c, []);   // aoCemiterio: cartas suas que foram da mão/grimório ao cemitério (Welcome the Dead)
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
@@ -55,7 +55,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 function estOk(c) {
   if (temF(c)) return true;
   if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'devocao', 'tentacoes', 'cores'].includes(c.o);
-  if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha'].includes(c.o);
+  if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'aoCemiterio'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
 }
@@ -111,6 +111,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'turno':
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
+      if (o === 'aoCemiterio') { const D = J.cemT; return D && D.t === e.turno.n ? D.n : 0; }   // da mão ou do grimório (estado.ts M.mover)
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
       if (o === 'vidaPerdida' || o === 'compras') {   // de você, do jogador da vez (cadaAtual, no repetirCada) ou dos oponentes (soma/maior)

@@ -739,6 +739,10 @@ export interface RxFx {
    */
   trocaCor?: boolean;
   /**
+   * com pagando {mana:{x:1}}: "you may pay {X}, where X is less than or equal to N" — você escolhe o X (0…N); o efeito lê o X pago (qtd 'X'; Well of Lost Dreams)
+   */
+  xAte?: RxQtd;
+  /**
    * copiarPermanente: "except its name is [este]" (707.9b; Sunfrill Imitator, Sarkhan Soul Aflame)
    */
   mantemNome?: boolean;
@@ -1466,7 +1470,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)
    */
   o?:
     | 'quantos'
@@ -1501,7 +1505,8 @@ export interface RxContagem {
     | 'dano'
     | 'nome'
     | 'tipos'
-    | 'tentacoes';
+    | 'tentacoes'
+    | 'aoCemiterio';
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */
