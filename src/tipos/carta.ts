@@ -1200,13 +1200,17 @@ export interface RxKw {
     | 'fuga'
     | 'prototipo'
     | 'comecaNoCampo'
-    | 'converter';
+    | 'converter'
+    | 'dragar';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
    */
   pt?: number[];
   cores?: string;
+  /**
+   * dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b)
+   */
   n?: number;
   /**
    * proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo

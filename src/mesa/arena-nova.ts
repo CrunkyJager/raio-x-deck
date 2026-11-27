@@ -307,6 +307,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'modo': { const fx = p.ctx && p.ctx.modos ? p.ctx.modos[op.m] : null, oq = fx ? [...new Set((Array.isArray(fx) ? fx : fx.fx || [fx]).map((x: any) => x && x.op).filter(Boolean))].join(', ') : ''; return 'Modo ' + (op.m + 1) + (oq ? ' — ' + oq : ''); }
       case 'x': return 'X = ' + op.v;
       case 'nenhum': return 'Nenhum';
+      case 'comprar': return 'Comprar normalmente';
+      case 'dragar': return `Dragar ${op.n}: moer ${op.n} e ${nomeOp(ob)} volta à mão`;
       case 'cor': return { W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde' }[op.v as string] || op.v;
       case 'tipo': return op.v;
       case 'modo': return op.v;
@@ -351,7 +353,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
   }
   const DE_ZONA: Record<string, string> = { grimorio: 'do topo do grimório', cemiterio: 'do cemitério', exilio: 'do exílio', comando: 'da zona de comando', mao: 'da mão' };
   const TIPO_PT: Record<string, string> = { Creature: 'criatura', Artifact: 'artefato', Land: 'terreno', Enchantment: 'encantamento', Planeswalker: 'planeswalker', permanente: 'permanente' };
-  const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
+  const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', dragar: 'Comprar ou dragar?', custo: 'Pague o custo',
     ordemGatilho: 'Estes gatilhos dispararam juntos, pelo mesmo evento (CR 603.3b). Escolha qual vai para a pilha primeiro: ele resolve por ÚLTIMO.', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
     buscar: 'Busca no grimório', escolherCarta: 'Escolha a carta', destino: 'Para onde vai?', sacrificar: 'Escolha o que sacrificar', lenda: 'Regra da lenda: qual fica?',
     cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', custoCombate: 'Custo de combate (Ghostly Prison e afins): pagar?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha',

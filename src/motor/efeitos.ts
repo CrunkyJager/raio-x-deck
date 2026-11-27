@@ -673,7 +673,8 @@ const H = {
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx), js = jogsDe(e, f, ctx);
       const n = ateOk(f.qtd) ? js.map(j => ask(j, 'x', Array.from({ length: q + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { op: 'comprar' }).v) : js.map(() => q);
-      js.forEach((j, i) => { if (n[i] > 0) M.comprar(e, j, n[i]); });
+      const pl = js.map((j, i) => n[i] > 0 ? M.planoCompra(e, j, n[i], ask) : null);   // dragar (702.52a): pergunta a todos antes de comprar
+      js.forEach((j, i) => { if (n[i] > 0) M.comprar(e, j, n[i], { plano: pl[i] }); });
     },
   },
   dano: {

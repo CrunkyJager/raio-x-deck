@@ -6845,6 +6845,36 @@ caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste t
   ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
 });
 
+caso('702.52a', 'dragar (Life from the Loam): na etapa de compra pergunta [comprar, dragar 3]; dragando moe 3 e a carta volta à mão sem ser compra', () => {
+  const e = cena({ passo: 'manutencao', campo: [[0, 'Life from the Loam', { zona: 'cemiterio' }], [0, 'Forest', { zona: 'cemiterio' }]] });
+  const J = e.jogs[0], g0 = J.zonas.grimorio.length, m0 = J.zonas.mao.length;
+  let compras = 0; const ev0 = M.evento; M.evento = (x, ev) => { if (ev.ev === 'compra') compras++; return ev0(x, ev); };
+  try {
+    ate(e, 'dragar');
+    igual(e.perg.ops.map(o => o.a + (o.n || '')), ['comprar', 'dragar3'], 'opções');
+    respE(e, o => o.a === 'dragar');
+  } finally { M.evento = ev0; }
+  igual([J.zonas.grimorio.length, J.zonas.mao.length, J.zonas.cemiterio.length, compras], [g0 - 3, m0 + 1, 4, 0], 'moeu 3, Loam na mão, nenhuma compra');
+  ok(naZona(e, 0, 'mao').includes('Life from the Loam'), 'Loam na mão');
+});
+caso('702.52b', 'dragar: com menos de N cartas no grimório não dá; carta com dragar moída na 1ª compra pode dragar na 2ª', () => {
+  const e = cena({ campo: [[0, 'Life from the Loam', { zona: 'cemiterio' }]] });
+  const J = e.jogs[0];
+  J.zonas.grimorio.splice(0, J.zonas.grimorio.length - 2);          // sobram 2 < 3
+  const vistos: any[] = [];
+  const ask = (j, tipo, ops) => { vistos.push(ops.map(o => o.a)); return ops[0]; };
+  igual(M.planoCompra(e, 0, 1, ask), [null], 'só compra');
+  igual(vistos.length, 0, 'uma opção: não pergunta');
+  const e2 = cena({ campo: [[0, 'Life from the Loam', { zona: 'cemiterio' }]] }), J2 = e2.jogs[0];
+  const g = J2.zonas.grimorio; e2.objs[g[g.length - 2]].n = 'Life from the Loam';   // a 2ª do topo também draga
+  const ops2: any[] = [];
+  const pl = M.planoCompra(e2, 0, 2, (j, tipo, ops) => { ops2.push(ops.filter(o => o.a === 'dragar').map(o => o.id)); return ops.find(o => o.a === 'dragar') || ops[0]; });
+  igual(ops2.length, 2, 'pergunta nas duas compras');
+  ok(ops2[1].includes(g[g.length - 2]), 'a moída na 1ª é opção na 2ª');
+  M.comprar(e2, 0, 2, { plano: pl });
+  igual(naZona(e2, 0, 'mao').filter(n => n === 'Life from the Loam').length, 2, 'as duas na mão');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;

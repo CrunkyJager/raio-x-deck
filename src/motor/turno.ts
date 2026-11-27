@@ -120,7 +120,10 @@ function acaoDoTurno(e) {
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
-      if (!(T.n === 1 && e.jogs.length === 2)) M.comprar(e, a, 1);
+      if (!(T.n === 1 && e.jogs.length === 2)) {
+        if (M.temDragar(e, a)) M.iniciarProc(e, { tp: 'compra', j: a, qtd: 1 });   // dragar (702.52a): pergunta antes de comprar
+        else M.comprar(e, a, 1);
+      }
       break;
     case 'limpeza': {                                               // CR 514.1 descarte até o máximo
       const sobra = J.zonas.mao.length - maoMax(e, a);
@@ -214,6 +217,8 @@ M.PROC.terreno = (e, P, ask) => {
   M.evento(e, { ev: 'jogaTerreno', id: o.id, j, de });            // CR 305.1: "jogar um terreno" (de: de onde; Shadow of the Goblin)
   M.agiu(e, j);                                                     // CR 117.3c
 };
+// etapa de compra com carta de dragar no cemitério: a compra é processo (todas as perguntas antes de mexer)
+M.PROC.compra = (e, P, ask) => M.comprar(e, P.j, P.qtd, { ask, antes: () => { e.proc = null; } });
 const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });
 M.jogarTerreno = jogarTerreno;
 
