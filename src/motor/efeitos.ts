@@ -921,6 +921,8 @@ const H = {
       let ids;
       // em 'este' com de: a carta que acabou de ir para lá (o gatilho de mudar de zona acha o objeto novo, CR 603.6/400.7)
       if (f.em === 'este' && f.de) { const o = e.objs[ctx.este]; ids = o && o.zona === f.de && !o.hab ? [o.id] : []; }
+      // em alvo com de: o alvo que o efeito anterior acabou de mover para lá ("exile target creature, then return it", Ephemerate; 400.7: objeto novo, achado por ctx.movidos)
+      else if (f.de && f.em && typeof f.em === 'object' && Number.isInteger(f.em.alvo)) { const v = objsDe(e, f, ctx).map(o => o.id); ids = [...v, ...((ctx.alvos || [])[f.em.alvo] || []).map(a => a.o).filter(id => { const o = e.objs[id]; return o && !v.includes(id) && o.zona === f.de && (ctx.movidos || []).some(m => m.id === id && m.ts === o.ts); })]; }
       else if (f.em !== undefined) ids = objsDe(e, f, ctx).map(o => o.id);
       else {                                                        // "ponha N cartas da sua mão…" (Brainstorm)
         const j = jogsDe(e, f, ctx)[0]; if (j === undefined) return;
@@ -1252,6 +1254,20 @@ const H = {
     for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
     ctx.movidos = movidos(e, ids);                                   // "put a card from among them" (Ripples of Undeath: f.lembrada)
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
+  } },
+  // "separate all permanents target player controls into two piles; that player sacrifices all permanents in the pile of
+  // their choice" (Liliana of the Veil −6): quem resolve separa (uma pergunta por permanente), o jogador escolhe a pilha
+  duasPilhas: { fx(e, f, ctx, ask) {
+    for (const j of jogsDe(e, f, ctx)) {
+      const P: number[][] = [[], []], soma = [0, 0], val = id => M.dadoDe(e, e.objs[id]).vm || 0.5;
+      for (const id of e.campo.filter(id => e.objs[id].ctrl === j)) {
+        const k = ask(ctx.voce, 'pilha', [0, 1].map(v => ({ a: 'pilha', v, id })), { id, somas: [...soma] }).v;
+        P[k].push(id); soma[k] += val(id);
+      }
+      const sac = ask(j, 'pilha', [0, 1].map(v => ({ a: 'pilha', v })), { somas: [...soma], sacrifica: true }).v;
+      M.log(e, e.jogs[j].nome, 'sacrifica a pilha', sac + 1, '(' + P[sac].length + ' permanentes)');
+      for (const id of P[sac]) if (e.objs[id] && e.objs[id].zona === 'campo' && e.objs[id].ctrl === j) M.mover(e, id, 'cemiterio', { sac: true });   // 701.21
+    }
   } },
   // qtd 'tudo' = "sacrifica todas" (Living Death, sem escolha); {ate:N|'qualquer'} = "quantas quiser" (Scapeshift)
   sacrificar: {                                                     // CR 701.21: quem sacrifica escolhe

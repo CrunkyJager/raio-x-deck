@@ -4491,6 +4491,48 @@ caso('613.1d', "Enduring Courage/Vitality: morre e volta ao campo como encantame
   }
 });
 
+caso('702.88a', "rebote (Ephemerate): da mão, exila ao resolver e na sua próxima manutenção pode conjurar de graça (pisca de novo)", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Grizzly Bears']], mao: [[0, 'Ephemerate']] });
+  const ep = e.jogs[0].zonas.mao.map(id => e.objs[id]).find(o => o.n === 'Ephemerate');
+  M.avancar(e); conj(e, 'Ephemerate'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(ep.zona, 'exilio', 'exilada (rebote)');
+  igual((e.atras || []).length, 1, 'atrasado para a próxima manutenção');
+  const b = objN(e, 0, 'Grizzly Bears'), ts = b.ts;
+  e.perg = null; e.turno.n++; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e);
+  for (let i = 0; i < 30 && e.perg && (e.pilha.length || e.perg.tipo !== 'acao'); i++) {
+    const p = e.perg;
+    if (p.tipo === 'jogar') { respE(e, o => o.a === 'jogar'); continue; }
+    if (p.tipo === 'alvo') { alvoObj(e, 'Grizzly Bears'); continue; }
+    if (p.tipo === 'acao') { respE(e, o => o.a === 'passar'); continue; }
+    M.responder(e, M.agenteBasico()(e, p));
+  }
+  igual(ep.zona, 'cemiterio', 'conjurada do exílio: agora vai ao cemitério');
+  ok(objN(e, 0, 'Grizzly Bears').ts > ts, 'piscou de novo');
+});
+
+caso('702.185a', "dobra/warp (Exalted Sunborn): da mão por {1}{W}; no final é exilada e depois pode ser conjurada do exílio", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Plains']], mao: [[0, 'Exalted Sunborn']] });
+  const s = e.jogs[0].zonas.mao.map(id => e.objs[id]).find(o => o.n === 'Exalted Sunborn');
+  M.avancar(e); conj(e, 'Exalted Sunborn'); resolveCom(e);
+  igual(s.zona, 'campo', 'entrou pagando 2');
+  e.perg = null; M.evento(e, { ev: 'fase', passo: 'final', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(s.zona, 'exilio', 'no final: exilada');
+  ok(!!M.permJogar(e, 0, s), 'pode conjurar do exílio depois');
+});
+
+caso('701.21', "duasPilhas (Liliana of the Veil −6): quem resolve separa as permanentes do alvo em duas pilhas; ele sacrifica a que escolher. Liliana Dreadhorde −9: um de cada tipo fica", () => {
+  ok(M.fxSuportado(M.carta('Liliana of the Veil').atv[2].fx) && M.fxSuportado(M.carta('Liliana, Dreadhorde General').atv[2].fx), 'aceitos');
+  const e = cena({ campo: [[1, 'Grizzly Bears'], [1, 'Hill Giant'], [1, 'Forest'], [1, 'Sol Ring']] });
+  const ag = M.agenteBasico();
+  M.executar(e, { op: 'duasPilhas', quem: 'alvoJogador' }, { ...ctxDe(e), alvos: [[{ jog: 1 }]] }, (j, t, ops, c) => ops[ag(e, { j, tipo: t, ops, ctx: c })]);
+  const fica = e.campo.filter(id => e.objs[id].ctrl === 1).length;
+  ok(fica > 0 && fica < 4, 'uma pilha foi, a outra ficou: ' + fica);
+  igual(e.jogs[1].zonas.cemiterio.length, 4 - fica, 'as da pilha no cemitério');
+  const f = cena({ campo: [[1, 'Grizzly Bears'], [1, 'Hill Giant'], [1, 'Forest'], [1, 'Mountain'], [1, 'Sol Ring']] });
+  M.executar(f, M.carta('Liliana, Dreadhorde General').atv[2].fx[0], ctxDe(f), (j, t, ops) => ops[0]);
+  igual(f.campo.filter(id => f.objs[id].ctrl === 1).length, 3, 'fica 1 criatura, 1 terreno, 1 artefato');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

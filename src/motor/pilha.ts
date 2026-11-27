@@ -60,7 +60,8 @@ M.alvoSuportado = a => {
 // alvo.opcao: o alvo só existe com (ou sem) a opção (Tear Asunder, Wear Down, Long River's Pull).
 const OPCAO_OK = new Set(['chute', 'semChute', 'presente', 'semPresente']);
 const chuteDe = d => (d.kw || []).find(k => k.k === 'chute' && k.custo);
-const proleDe = d => (d.kw || []).find(k => k.k === 'prole' && k.custo);   // CR 702.175a: custo adicional opcional
+const proleDe = d => (d.kw || []).find(k => k.k === 'prole' && k.custo);
+const dobraDe = d => (d.kw || []).find(k => k.k === 'dobra' && k.custo);   // warp (702.185a): custo alternativo da mão; exila no próximo final, depois pode conjurar do exílio   // CR 702.175a: custo adicional opcional
 const presenteDe = d => (d.kw || []).find(k => k.k === 'ofertaPresente' && k.tipo === 'carta');
 const alvoAtivo = (a, opc) => opc && opc.sobrecarga ? false : !a || !a.opcao || !opc ? true : a.opcao === 'chute' ? !!opc.chute : a.opcao === 'semChute' ? !opc.chute
   : a.opcao === 'presente' ? !!opc.presente : !opc.presente;
@@ -84,9 +85,10 @@ function opcoesConj(e, j, d) {
   if (presenteDe(d) && M.vivos(e).some(x => x !== j)) l = l.flatMap(o => [{ ...o, presente: true }, o]);
   if (altSacDe(d)) l = [...l, ...l.filter(o => !o.sobrecarga).map(o => ({ ...o, altSac: true }))];
   if (proleDe(d)) l = l.flatMap(o => [{ ...o, prole: true }, o]);
+  if (dobraDe(d)) l = [...l, ...l.filter(o => !o.sobrecarga && !o.altSac).map(o => ({ ...o, dobra: true }))];   // depois da normal: o agente básico prefere a normal
   return l;
 }
-const custoOpc = (d, custo, opc, e?, o?) => { const c = opc.altSac ? (opc.chute ? chuteDe(d).custo : {}) : opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo; return opc.prole ? M.somaCusto(c, proleDe(d).custo) : c; };
+const custoOpc = (d, custo, opc, e?, o?) => { const c = opc.dobra ? (e ? M.custoComImposto(e, o, dobraDe(d).custo) : dobraDe(d).custo) : opc.altSac ? (opc.chute ? chuteDe(d).custo : {}) : opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo; return opc.prole ? M.somaCusto(c, proleDe(d).custo) : c; };
 // pode ser alvo de quem controla a mágica/habilidade? antimagia (CR 702.11b) e manto (CR 702.18a); proteção = T18
 const alcancavel = (e, o, voce) => !(M.temKw(e, o, 'manto') || (M.temKw(e, o, 'antimagia') && o.ctrl !== voce));
 M.alvoLegal = (e, a, esc, ctx) => {
@@ -451,6 +453,7 @@ function opcOk(e, j, d, usados, custo0, opc, o) {
     if ((a.min ?? 1) > 0 && M.alvosPossiveis(e, a, ctx).length < (a.min ?? 1)) return false;
   }
   if (opc.altSac && !custoFisicoOk(e, j, null, { sacrificar: altSacDe(d).pagar.sacrificar }, { daMao: o.id })) return false;
+  if (opc.dobra && (o.zona !== 'mao' || altUsado(e, j, o, {}))) return false;   // 702.185a: só da mão, pelo custo de dobra
   const custo = custoOpc(d, custo0, opc, e, o);
   if (M.vmDe(custo) > manaMax(e, j, null, o) + Math.floor(vidaPhy(e, j) / 2)) return false;
   return !!plano(e, j, custo, 0, null, o);
@@ -667,6 +670,8 @@ function escolherModos(e, j, d, f, ask, de?) {
   return modos.sort((a, b) => a - b);
 }
 // fx efetivo: modal no topo → só os modos escolhidos, em ordem (CR 700.2)
+const GAT_DOBRA = { ev: 'fase', passo: 'final', fx: [{ op: 'exilar', em: 'anterior' }, { op: 'jogar', em: 'anterior', dura: 'sempre' }] };   // warp: no próximo final, exila; depois pode conjurar do exílio
+const GAT_REBOTE = { ev: 'fase', passo: 'manutencao', deQuem: 'voce', proximoTurno: true, fx: [{ op: 'jogar', em: 'anterior', gratis: true, talvez: true }] };   // 702.88a
 const fxEfetivo = (d, fx, modos) => modos && fx.length === 1 && fx[0].op === 'modal' ? modos.flatMap(m => fx[0].modos[m]) : fx;
 M.fxEfetivo = fxEfetivo;
 M.escolherModos = (e, j, d, f, ask, de?) => escolherModos(e, j, d, f, ask, de);
@@ -937,12 +942,18 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
     const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga, deZ = o.pil.de;
     o.pil = null;
     const ent = M.aplicarEntrada(e, { ...plano, conj, x, conjDe: deZ || 'mao' });   // conjurada já na entrada: o "if you cast it" do gatilho de entrar é lido aí (603.4)
-    if (ent) { ent.conjurada = true; ent.conjDe = deZ || 'mao'; }     // conjDe: de que zona ("if you cast it from your hand", Cyclone Summoner); filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
+    if (ent) { ent.conjurada = true; ent.conjDe = deZ || 'mao'; }
+    if (ent && conj && conj.dobra) (e.atras || (e.atras = [])).push({ g: GAT_DOBRA, ctrl: ent.ctrl, fonte: ent.id, n: ent.n, t: e.turno.n, lki: null, mem: { movidos: [{ id: ent.id, ts: ent.ts }] } });   // 702.185a     // conjDe: de que zona ("if you cast it from your hand", Cyclone Summoner); filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
     if (fuga && typeof fuga === 'object') for (const m in fuga) ent.marc[m] = (ent.marc[m] || 0) + fuga[m];   // 702.138c: "foge com"                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
     return;
   }
-  const ctrl = o.pil && o.pil.ctrl;
+  const ctrl = o.pil && o.pil.ctrl, deZona = o.pil && o.pil.de;
   o.pil = null;
+  if (resolveu && deZona === 'mao' && M.temKw(e, o, 'rebote')) {                 // 702.88a rebote: exila ao resolver; na sua próxima manutenção, pode conjurá-la de graça
+    M.mover(e, o.id, 'exilio'); M.log(e, o.n, 'vai para o exílio (rebote)');
+    (e.atras || (e.atras = [])).push({ g: GAT_REBOTE, ctrl, fonte: o.id, n: o.n, t: e.turno.n, lki: null, mem: { movidos: [{ id: o.id, ts: e.objs[o.id].ts }] } });
+    return;
+  }
   if (resolveu && o.face === 0 && M.formaDe(e, o) === 'aventura') {               // 716.3d: a Aventura vai para o exílio
     M.mover(e, o.id, 'exilio'); o.aventura = ctrl;                                // e quem conjurou pode conjurar a criatura de lá
     return;
