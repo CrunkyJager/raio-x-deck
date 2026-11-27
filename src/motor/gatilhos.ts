@@ -231,6 +231,8 @@ function loteInfo(e, lote) {
   return I;
 }
 M.evento = (e, ev) => {
+  // "the next spell you cast this turn …" (Mistrise Village, CR 611.2): o efeito se prende à mágica quando ela é conjurada (601.2i)
+  if (ev.ev === 'conjura' && e.efTemp) for (const t of e.efTemp) if (t.proxMag && !t.mag && t.ctrl === ev.j && e.objs[ev.id]) t.mag = { id: ev.id, ts: e.objs[ev.id].ts };
   if (!e.pend || (e.turno.passo === 'mulligan')) return;
   const saida = ev.ev === 'zona' && ev.de === 'campo';
   if (saida) (e.lote = e.lote || []).push(ev.snap);
@@ -311,6 +313,14 @@ M.evento = (e, ev) => {
       const vezes = 1 + extras(e, F, g, ev);
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: g._k, g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
+    // evoluir (CR 702.100a): "sempre que uma criatura entra sob seu controle, se ela tem poder ou resistência maior que
+    // esta, +1/+1 nesta". Simplificação: a condição (603.4) é vista só ao disparar, não de novo ao resolver.
+    if (M.temTipo(e, F, 'Creature')) for (const id of e.campo) {
+      const X = e.objs[id]; if (!X || X.id === F.id || X.ctrl !== F.ctrl || !M.temTipo(e, X, 'Creature')) continue;
+      const n = M.kwDe(e, X).filter(x => x.k === 'evoluir').length; if (!n) continue;
+      if (!(M.poder(e, F) > M.poder(e, X) || M.resistencia(e, F) > M.resistencia(e, X))) continue;
+      for (let v = 0; v < n * (1 + extras(e, X, EVOLUIR, ev)); v++) e.pend.push({ fonte: X.id, ts: X.ts, ctrl: X.ctrl, k: 'evoluir', g: EVOLUIR, n: X.n, ficha: X.ficha || null, lki: M.lkiDe(e, X), ev: { ...ev, snap: undefined } });
+    }
     // prole (CR 702.175a): pago o custo, "quando entra, cria uma ficha cópia dela, só que 1/1"; a ficha não tem o pago (não repete)
     if (F.conjCom && F.conjCom.prole && (M.dadoDe(e, F).kw || []).some(x => x.k === 'prole')) {
       const vezes = 1 + extras(e, F, PROLE, ev);
@@ -326,6 +336,13 @@ M.evento = (e, ev) => {
       const vezes = n * (1 + extras(e, F, g, ev));
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'mentor', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
+    // mobilizar N (CR 702.181a): "quando ataca, crie N fichas 1/1 vermelhas de Guerreiro viradas e atacando; sacrifique-as
+    // no começo da próxima etapa final" (o gatilho atrasado leva as criadas)
+    for (const k of M.kwDe(e, F).filter(x => x.k === 'mobilizar' && Number.isInteger(x.n) && x.n > 0)) {
+      const g = { ev: 'ataca', fx: [{ op: 'ficha', quem: 'voce', qtd: k.n, token: { pt: [1, 1], cores: 'R', tipos: ['Creature'], sub: ['Warrior'] }, virada: true, atacando: true },
+        { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'sacrificar', em: 'criadas' }] } }] };
+      for (let v = 0; v < 1 + extras(e, F, g, ev); v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'mobilizar', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+    }
     // corpo a corpo (CR 702.121a): "quando ataca, +1/+1 até o fim do turno por oponente que você atacou com criatura neste
     // combate" — o número de jogadores atacados (planeswalker não conta) é conhecido na declaração (508.1)
     const nm = M.kwDe(e, F).filter(x => x.k === 'corpo-a-corpo').length, C = e.turno.combate;
@@ -337,6 +354,7 @@ M.evento = (e, ev) => {
     }
   }
 };
+const EVOLUIR = { ev: 'entra', fx: [{ op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 1 }] };
 const PROLE = { ev: 'entra', quem: { este: true }, fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: { copiaDe: 'este', pt: [1, 1] } }] };
 
 // Ordem que não muda nada (Edigar 26/11, Ivora + Bag of Holding no mesmo descarte): pela regra a ordem é do jogador
@@ -384,7 +402,7 @@ M.PROC.gatilhos = (e, P, ask) => {
       const id = e.prox++;
       e.objs[id] = { id, n: p.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
         hab: { fonte: p.fonte, fonteTs: p.ts, gat: p.k, fx: g.fx, alvos: g.alvos || [], ficha: p.ficha, se: g.se || null, talvez: !!g.talvez },
-        pil: { x: 0, alvos, modos, ctrl: j, lki: { este: p.lki }, ev: p.ev, mem: p.mem || null } };
+        pil: { x: 0, alvos, modos, ctrl: j, lki: { este: p.lki, ...(p.mem && p.mem.lkiAlvos ? { alvos: p.mem.lkiAlvos } : {}) }, ev: p.ev, mem: p.mem || null } };
       e.pilha.push(id);
       M.eventosAlvo(e, alvos, id);
       M.log(e, e.jogs[j].nome, 'gatilho de', p.n, '(' + g.ev + ')');

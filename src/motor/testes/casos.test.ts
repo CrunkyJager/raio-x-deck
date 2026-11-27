@@ -3532,7 +3532,7 @@ caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores 
   M.executar(e, M.carta('Endless Ranks of the Dead').gat[0].fx[0], cx(), () => ({ a: 'nao' }));
   igual(e.campo.length, 7, '5 Zumbis → +2');
   e.jogs[0].marc = { experience: 3 };
-  igual(M.qtdDe(e, { conta: 'marcadoresSeus', de: 'experience' }, cx()), 3, '3 de experiência');
+  igual(M.qtdDe(e, { conta: { de: 'voce', o: 'marcadores', marc: 'experience' } }, cx()), 3, '3 de experiência');
   const f = cena({ campo: [[0, 'Chasm Skulker'], [0, 'Elenda, the Dusk Rose']] });
   const sk = f.campo.map(id => f.objs[id]).find(o => o.n === 'Chasm Skulker'), el = f.campo.map(id => f.objs[id]).find(o => o.n === 'Elenda, the Dusk Rose');
   sk.marc['+1/+1'] = 3; el.marc['+1/+1'] = 2;
@@ -4042,9 +4042,9 @@ caso('120.3', "dano igual ao poder da criatura do evento (Terror of the Peaks) e
   for (const c of ['Basalt Ravager', 'Terror of the Peaks', 'Warstorm Surge']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
   const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Elvish Mystic'], [0, 'Grizzly Bears'], [0, 'Hill Giant']] });
   const cx = (ev?) => ({ voce: 0, alvos: [], ilegal: {}, lki: {}, ev });
-  igual(M.qtdDe(e, { conta: 'tipoMaisComum' }, cx()), 2, 'dois Elfos');
+  igual(M.qtdDe(e, { conta: { de: 'tipoMaisComum' } }, cx()), 2, 'dois Elfos');
   const hg = e.campo.map(id => e.objs[id]).find(o => o.n === 'Hill Giant');
-  igual(M.qtdDe(e, { conta: 'poderDoEvento' }, cx({ ev: 'zona', id: hg.id, para: 'campo' })), 3, 'Hill Giant 3/3');
+  igual(M.qtdDe(e, { conta: { de: 'evento', o: 'poder' } }, cx({ ev: 'zona', id: hg.id, para: 'campo' })), 3, 'Hill Giant 3/3');
 });
 
 caso('122.5', "mover marcadores: Nesting Grounds tira um e põe no outro; Zack Fair sacrificado passa os +1/+1 que tinha; Forgotten Ancient um a um", () => {
@@ -4672,6 +4672,93 @@ caso('701.37', "monstruosidade: Alpha Deathclaw ganha 4 marcadores e fica monstr
   for (const x of f) M.executar(e, x, ctx(), ask);
   igual(a.marc['+1/+1'], 4, 'já é monstruosa'); igual(e.pend.length, 0);
   for (const c of ['Alpha Deathclaw', 'Giggling Skitterspike']) ok(M.fxSuportado(M.carta(c).atv[0].fx) && M.carta(c).gat.every(g => M.gatOk(g)), c);
+});
+
+caso('702.100', "evoluir: entra criatura sua maior (poder ou resistência) → +1/+1; menor ou do oponente, não", () => {
+  const e = cena({ campo: [[0, 'Gyre Sage']] });
+  const gs = e.objs[e.campo[0]];
+  e.pend = []; e.por(0, 'Grizzly Bears');
+  igual(e.pend.filter(p => p.k === 'evoluir').length, 1, 'Bears 2/2 > Sage 1/2: evolui');
+  e.pend = []; e.por(1, 'Hill Giant');
+  igual(e.pend.filter(p => p.k === 'evoluir').length, 0, 'do oponente: não');
+  gs.marc['+1/+1'] = 2; e.pend = []; e.por(0, 'Llanowar Elves');
+  igual(e.pend.filter(p => p.k === 'evoluir').length, 0, 'menor: não');
+});
+
+caso('702.181', "mobilizar: Zurgo ataca e cria 1 Guerreiro virado e atacando; sacrificado na etapa final", () => {
+  const e = cena({ campo: [[0, 'Zurgo Stormrender']] });
+  const z = e.objs[e.campo[0]];
+  e.turno.combate = { atk: [{ id: z.id, ts: z.ts, alvo: { jog: 1 }, def: 1, bloq: [], bloqueado: false }] };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: z.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'mobilizar'); ok(p, 'disparou');
+  const cx: any = { voce: 0, este: z.id, alvos: [], ilegal: {}, lki: {} };
+  for (const f of p.g.fx) M.executar(e, f, cx, (_j, _t, ops) => ops[0]);
+  const w = e.campo.map(id => e.objs[id]).find(o => o.ficha && (o.ficha.sub || []).includes('Warrior'));
+  ok(w && w.virada && M.atacando(e, w), 'Guerreiro virado e atacando');
+  const A = e.atras[e.atras.length - 1];
+  M.executar(e, A.g.fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {}, criadas: A.mem.criadas }, () => ({ a: 'nao' }));
+  ok(w.zona !== 'campo', 'sacrificado');
+});
+
+caso('610.3', "exilar até esta sair do campo: Grasp of Fate exila; quando sai, a carta volta sob o controle do dono; fonte que já saiu não exila", () => {
+  for (const c of ['Bronzebeak Foragers', 'Grasp of Fate']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Grasp of Fate'], [1, 'Hill Giant']] });
+  const [gf, hg] = e.campo.map(id => e.objs[id]);
+  const cx: any = { voce: 0, este: gf.id, alvos: [[{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, gf) } };
+  M.executar(e, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, cx, () => ({ a: 'nao' }));
+  igual(hg.zona, 'exilio', 'exilado');
+  M.mover(e, gf.id, 'cemiterio');
+  ok(hg.zona === 'campo' && hg.ctrl === 1, 'voltou para o dono');
+  const f = cena({ campo: [[0, 'Grasp of Fate'], [1, 'Hill Giant']] });
+  const [g2, h2] = f.campo.map(id => f.objs[id]);
+  const c2: any = { voce: 0, este: g2.id, alvos: [[{ o: h2.id, ts: h2.ts }]], ilegal: {}, lki: { este: M.lkiDe(f, g2) } };
+  M.mover(f, g2.id, 'cemiterio');
+  M.executar(f, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, c2, () => ({ a: 'nao' }));
+  igual(h2.zona, 'campo', 'a fonte já tinha saído: nada (610.3c)');
+});
+
+caso('701.42', "fundir: Gisela com Bruna no campo vira Brisela (9/10); quando Brisela sai, as duas cartas vão para o cemitério", () => {
+  for (const c of ['Gisela, the Broken Blade', 'Mishra, Claimed by Gix']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Gisela, the Broken Blade'], [0, 'Bruna, the Fading Light']] });
+  const [gi, br] = e.campo.map(id => e.objs[id]);
+  M.executar(e, M.carta('Gisela, the Broken Blade').gat[0].fx[0], { voce: 0, este: gi.id, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(e.campo.length, 1, 'um permanente só');
+  const b = e.objs[e.campo[0]];
+  igual(M.dadoDe(e, b).n, 'Brisela, Voice of Nightmares'); igual([M.poder(e, b), M.resistencia(e, b)], [9, 10]);
+  M.mover(e, b.id, 'cemiterio');
+  igual(naZona(e, 0, 'cemiterio').sort(), ['Bruna, the Fading Light', 'Gisela, the Broken Blade']);
+  const f = cena({ campo: [[0, 'Gisela, the Broken Blade'], [1, 'Bruna, the Fading Light']] });
+  M.executar(f, M.carta('Gisela, the Broken Blade').gat[0].fx[0], { voce: 0, este: f.campo[0], alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(f.campo.length, 2, 'Bruna do oponente: não funde');
+});
+
+caso('603.7', "Arcane Denial: anula; no começo da manutenção do próximo turno o dono da mágica compra até 2 (escolhe) e você compra 1", () => {
+  ok(M.fxSuportado(M.carta('Arcane Denial').fx), 'aceito');
+  const e = cena({ mao: [[1, 'Grizzly Bears']] });
+  const u = e.jogs[1].zonas.mao[0]; M.mover(e, u, 'pilha');
+  const U = e.objs[u];
+  const ctx: any = { voce: 0, este: -1, alvos: [[{ o: u, ts: U.ts }]], ilegal: {}, lki: { alvos: [[M.lkiDe(e, U)]] } };
+  for (const f of M.carta('Arcane Denial').fx) M.executar(e, f, ctx, null);
+  igual(U.zona, 'cemiterio', 'anulada');
+  const m0 = e.jogs[0].zonas.mao.length, m1 = e.jogs[1].zonas.mao.length;
+  passarAte(e, 'manutencao'); M.avancar(e);
+  resolveCom(e, p => p.tipo === 'x' ? p.ops.findIndex(o => o.v === 1) : -1);
+  igual([e.jogs[0].zonas.mao.length - m0, e.jogs[1].zonas.mao.length - m1], [1, 1], 'escolheu comprar 1 das 2; você compra 1');
+  igual(e.atras.length, 0, 'uma vez só (603.7c)');
+});
+
+caso('611.2', "Mistrise Village: a próxima mágica que você conjurar neste turno não pode ser anulada; a seguinte e a de antes, sim", () => {
+  ok(M.fxSuportado(M.carta('Mistrise Village').atv[1].fx), 'aceito');
+  const e = cena({ campo: [[0, 'Mistrise Village']], mao: [[0, 'Grizzly Bears'], [0, 'Hill Giant'], [0, 'Llanowar Elves']] });
+  const [a, b, c] = e.jogs[0].zonas.mao.slice();
+  const conjura = id => { M.mover(e, id, 'pilha'); M.evento(e, { ev: 'conjura', id, j: 0 }); };
+  conjura(a);
+  M.executar(e, M.carta('Mistrise Village').atv[1].fx[0], { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: {} }, null);
+  conjura(b); conjura(c);
+  ok(M.naoAnulavel(e, e.objs[b]), 'a próxima: não pode');
+  ok(!M.naoAnulavel(e, e.objs[a]) && !M.naoAnulavel(e, e.objs[c]), 'a de antes e a seguinte: podem');
+  ok(!M.anular(e, b) && M.anular(e, c), 'anular respeita');
 });
 
 // ---------- rodar ----------

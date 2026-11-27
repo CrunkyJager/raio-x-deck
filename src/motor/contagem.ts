@@ -135,6 +135,7 @@ M.contar = (e, c, ctx: any = {}) => {
       const ob = e.objs[ev.id];
       if (o === 'poder') return !ob ? 0 : ob.zona === 'campo' || !ev.snap ? M.poder(e, ob) : M.poder(e, ev.snap);   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
       if (o === 'resist') return ob && ob.zona === 'campo' ? M.resistencia(e, ob) : ev.snap ? M.resistencia(e, ev.snap) : 0;   // Verdant Sun's Avatar
+      if (o === 'poder') return ob && ob.zona === 'campo' ? M.poder(e, ob) : ev.snap ? M.poder(e, ev.snap) : ob ? M.poder(e, ob) : 0;   // "that creature's power" (Terror of the Peaks)
       if (!ob) return 0;
       return o === 'vm' ? M.dadoDe(e, ob).vm || 0 : coresN(M.dadoDe(e, ob).cores);   // "that spell's mana value / colors" (Ramos, 105.2)
     }

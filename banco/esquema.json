@@ -1246,6 +1246,10 @@
     "emblema": {
      "type": "boolean"
     },
+    "proximaMagica": {
+     "type": "boolean",
+     "description": "efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)"
+    },
     "novoAlvo": {
      "type": "boolean",
      "description": "copiarMagica: pode escolher novos alvos"
