@@ -462,7 +462,19 @@
      "description": "cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)"
     },
     "zona": {
-     "$ref": "#/$defs/zona"
+     "oneOf": [
+      {
+       "$ref": "#/$defs/zona"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/zona"
+       },
+       "minItems": 2
+      }
+     ],
+     "description": "lista = em alguma destas zonas (Visions of Glory: comandante no campo ou na zona de comando)"
     },
     "virada": {
      "type": "boolean"
@@ -524,8 +536,15 @@
      "description": "equipada, encantada ou com marcador"
     },
     "conjurada": {
-     "type": "boolean",
-     "description": "foi conjurada (não só posta)"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "$ref": "#/$defs/zona"
+      }
+     ],
+     "description": "foi conjurada (não só posta); zona = conjurada DE lá (\"if you cast it from your hand\": 'mao'; Wakening Sun's Avatar)"
     },
     "ouEste": {
      "type": "boolean",
@@ -1522,6 +1541,10 @@
    "additionalProperties": false,
    "description": "condição (todas valem juntas)",
    "properties": {
+    "nao": {
+     "$ref": "#/$defs/cond",
+     "description": "a condição de dentro NÃO vale (\"unless you have the city's blessing\": {nao:{palavra:'blessing'}}; Wayward Swordtooth)"
+    },
     "controla": {
      "type": "object",
      "properties": {
@@ -1870,6 +1893,10 @@
     "se": {
      "$ref": "#/$defs/cond",
      "description": "\"Activate only if …\""
+    },
+    "reduz": {
+     "$ref": "#/$defs/qtd",
+     "description": "\"This ability costs {1} less to activate for each …\": tira N do genérico desta habilidade (CR 601.2f/602.2b; Voldaren Estate, Otawara)"
     }
    }
   },
@@ -1917,7 +1944,8 @@
       "completaMasmorra",
       "sala",
       "tomaIniciativa",
-      "nivel"
+      "nivel",
+      "gasta"
      ]
     },
     "naoMorre": {
@@ -2014,7 +2042,7 @@
     },
     "n": {
      "type": "integer",
-     "description": "capitulo: número do capítulo da saga"
+     "description": "capitulo: número do capítulo da saga; gasta: N de \"whenever you expend N\" (a N-ésima mana gasta em mágicas no turno; Wandertale Mentor)"
     },
     "umAlvo": {
      "type": "boolean",

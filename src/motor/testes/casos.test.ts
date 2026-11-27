@@ -4966,6 +4966,68 @@ caso('205.2a', "escolher tipo de carta ao entrar: Cloud Key (instantânea custa 
   ok(M.alvoLegal(e, { f: { tipo: ['Creature'] } }, { o: meu.id, ts: meu.ts }, { voce: 1, este: bolt.id }), 'Bolt pode mirar a sua criatura');
 });
 
+caso('702.34', "Visions of Glory: flashback custa {X} a menos, X = maior VM de um comandante seu no campo ou no comando (filtro zona em lista); da mão não reduz", () => {
+  const e = cena({ cmd: ['Krenko, Mob Boss'], campo: terras(6, 'Plains') });
+  const v = e.por(0, 'Visions of Glory', { zona: 'cemiterio' }), fb = M.carta('Visions of Glory').kw[0].custo;
+  ok(M.estReduzOk(M.carta('Visions of Glory').est[0]), 'redução aceita');
+  igual(M.custoComImposto(e, v, fb).g, 4, 'Krenko (VM 4) no comando: {4}{W}{W}');
+  ok(M.podeConjurar(e, 0, v), 'com 6 Planícies dá para conjurar do cemitério');
+  const k = e.jogs[0].zonas.comando[0]; M.mover(e, k, 'campo');
+  igual(M.custoComImposto(e, v, fb).g, 4, 'no campo: igual');
+  M.mover(e, k, 'exilio');
+  igual(M.custoComImposto(e, v, fb).g, 8, 'comandante no exílio: sem redução');
+  M.mover(e, k, 'campo'); M.mover(e, v.id, 'mao');
+  igual(M.custoComImposto(e, e.objs[v.id]).g, 4, 'da mão: {4}{W} normal');
+});
+
+caso('602.2b', "atv.reduz: Voldaren Estate (Sangue custa {1} a menos por Vampiro seu, só essa habilidade) e Otawara (canalizar da mão, por lendária sua)", () => {
+  const e = cena({ campo: [[0, 'Voldaren Estate'], [0, 'Vampire Nighthawk'], [0, 'Vampire Nighthawk'], [1, 'Vampire Nighthawk']], mao: [[0, 'Otawara, Soaring City']] });
+  const v = objN(e, 0, 'Voldaren Estate'), a = M.atvDe(e, v);
+  igual(M.custoAtv(e, v, a[2]), { g: 3 }, '2 Vampiros seus (o do oponente não conta): {3}');
+  igual(a[0].custo.mana, undefined, 'a de mana não muda');
+  const o = e.por(0, 'Otawara, Soaring City', { zona: 'mao' }), oa = M.atvDe(e, o)[1];
+  igual(M.custoAtv(e, o, oa), { g: 3, p: ['U'] }, 'sem lendária: {3}{U}');
+  e.por(0, 'Krenko, Mob Boss', { zona: 'campo' });
+  igual(M.custoAtv(e, o, oa), { g: 2, p: ['U'] }, 'com 1 lendária: {2}{U}');
+});
+
+caso('601.2', "Wakening Sun's Avatar: só destrói as não-Dinossauro se foi conjurado DA MÃO (filtro conjurada 'mao'); do comando, não", () => {
+  const e = cena({ campo: [...terras(8, 'Plains'), [1, 'Grizzly Bears']], mao: [[0, "Wakening Sun's Avatar"]] });
+  M.avancar(e); conj(e, "Wakening Sun's Avatar"); resolveCom(e);
+  ok(noCampo(e).includes("Wakening Sun's Avatar") && !noCampo(e).includes('Grizzly Bears'), 'da mão: o urso morre');
+  const f = cena({ cmd: ["Wakening Sun's Avatar"], campo: [...terras(8, 'Plains'), [1, 'Grizzly Bears']] });
+  M.avancar(f); conj(f, "Wakening Sun's Avatar"); resolveCom(f);
+  ok(noCampo(f).includes("Wakening Sun's Avatar") && noCampo(f).includes('Grizzly Bears'), 'do comando: o urso fica');
+});
+
+caso('601.2h', "expend 4 (Wandertale Mentor): +1/+1 quando você gasta a 4ª mana em mágicas no turno; uma vez só, e mágica do oponente não conta", () => {
+  const e = cena({ campo: [[0, 'Wandertale Mentor'], ...terras(6, 'Forest')], mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']] });
+  const w = objN(e, 0, 'Wandertale Mentor'), m = () => w.marc['+1/+1'] || 0;
+  ok(M.gatOk(M.carta('Wandertale Mentor').gat[0]), 'gatilho aceito');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e); igual(m(), 0, '2 manas: nada');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e); igual(m(), 1, '4ª mana: +1/+1');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e); igual(m(), 1, '6ª: não de novo');
+});
+
+caso('119.4', "War Room: {3},{T}, pague vida = nº de cores da identidade dos seus comandantes (conta voce/cores): compra 1", () => {
+  const e = cena({ cmd: ['Lathril, Blade of the Elves'], campo: [[0, 'War Room'], ...terras(3, 'Forest')] });
+  const w = objN(e, 0, 'War Room'), a = M.atvDe(e, w), k = a.findIndex(x => !x.deMana);
+  ok(M.custoSuportado(a[k].custo), 'custo aceito');
+  igual(M.contar(e, { de: 'voce', o: 'cores' }, { voce: 0 }), 2, 'Lathril: BG = 2');
+  M.avancar(e); const mao = e.jogs[0].zonas.mao.length;
+  respE(e, o => o.a === 'ativar' && o.id === w.id && o.k === k); resolveCom(e);
+  igual([e.jogs[0].vida, e.jogs[0].zonas.mao.length], [38, mao + 1], '2 de vida, 1 carta');
+});
+
+caso('702.131', "Wayward Swordtooth: não ataca nem bloqueia a menos que você tenha a bênção da cidade (cond nao: {palavra: blessing})", () => {
+  const se = M.carta('Wayward Swordtooth').est[1].se;
+  ok(M.seOk(se) && M.seOk({ nao: { palavra: 'blessing' }, turno: 'seu' }) && !M.seOk({ nao: { inventada: 1 } }), 'nao aceito (e o de dentro conferido)');
+  const e = cena({ campo: [[0, 'Wayward Swordtooth']] }), w = objN(e, 0, 'Wayward Swordtooth'); w.doente = false;
+  ok(M.condicao(e, se, { voce: 0, este: w.id }), 'sem bênção: a proibição vale');
+  e.jogs[0].bencao = true;
+  ok(!M.condicao(e, se, { voce: 0, este: w.id }), 'com bênção: não vale');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

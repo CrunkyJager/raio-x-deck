@@ -65,7 +65,8 @@ try {
         }
       }
       for (const a of d.atv || []) {
-        if (a.se && !M.seOk(a.se)) anota('atv.se', n);              // "ative só se …" que o motor não lê: não ativa
+        if (a.se && !M.seOk(a.se)) anota('atv.se', n);
+        if (a.reduz !== undefined && !M.qtdEstOk(a.reduz)) anota('atv.reduz', n);   // "costs {1} less to activate for each …" (mana.ts custoAtv)              // "ative só se …" que o motor não lê: não ativa
         if (a.deMana) { if (a.custo && !M.custoManaOk(a.custo) && !M.manaEscSuportada(a)) for (const k of Object.keys(a.custo)) if (!M.custoManaOk({ [k]: a.custo[k] })) anota(`custoMana.${k}`, n); continue; }   // mana.ts: o que a habilidade de mana sabe pagar
         if (a.custo && !M.custoSuportado(a.custo)) for (const k of Object.keys(a.custo)) if (!M.custoSuportado({ [k]: a.custo[k] })) anota(`custoAtv.${k}`, n);
         if (!M.fxSuportado(a.fx, { topo: false })) fxMotivos(a.fx, false, n, 'atv');

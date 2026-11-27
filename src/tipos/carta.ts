@@ -210,7 +210,10 @@ export interface RxFiltro {
    * cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)
    */
   cor?: string | string[];
-  zona?: RxZona;
+  /**
+   * lista = em alguma destas zonas (Visions of Glory: comandante no campo ou na zona de comando)
+   */
+  zona?: RxZona | [RxZona, RxZona, ...RxZona[]];
   virada?: boolean;
   /**
    * 'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)
@@ -250,9 +253,9 @@ export interface RxFiltro {
    */
   modificada?: boolean;
   /**
-   * foi conjurada (não só posta)
+   * foi conjurada (não só posta); zona = conjurada DE lá ("if you cast it from your hand": 'mao'; Wakening Sun's Avatar)
    */
-  conjurada?: boolean;
+  conjurada?: boolean | RxZona;
   /**
    * a própria carta também conta ("este ou outro X")
    */
@@ -282,7 +285,7 @@ export interface RxFiltro {
    */
   kw?: string[];
   /**
-   * true: não tem o mesmo nome de outra permanente que você controla (Yenna); 'criaturaOuCemiterio': de outra criatura sua nem de card de criatura no seu cemitério (Guardian Project)
+   * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
   nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
@@ -367,7 +370,17 @@ export type RxObjeto =
   | {
       todos: RxFiltro;
     }
-  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
+  | (
+      | 'este'
+      | 'equipada'
+      | 'doEvento'
+      | 'criadas'
+      | 'escolhida'
+      | 'anterior'
+      | 'cadaAtual'
+      | 'descartadaCusto'
+      | 'sacrificada'
+    );
 
 /**
  * custo de habilidade ativada / custo adicional / 'a menos que pague'
@@ -517,10 +530,10 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)
    */
   prod?:
-    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos')
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
     | string[]
     | {
         cadaCor: RxFiltro;
@@ -613,6 +626,10 @@ export interface RxFx {
    */
   gat?: RxGat[];
   emblema?: boolean;
+  /**
+   * efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)
+   */
+  proximaMagica?: boolean;
   /**
    * copiarMagica: pode escolher novos alvos
    */
@@ -718,6 +735,10 @@ export interface RxFx {
    */
   soNaoDesvira?: boolean;
   /**
+   * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
+   */
+  trocaCor?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -762,6 +783,10 @@ export interface RxToken {
  * condição (todas valem juntas)
  */
 export interface RxCond {
+  /**
+   * a condição de dentro NÃO vale ("unless you have the city's blessing": {nao:{palavra:'blessing'}}; Wayward Swordtooth)
+   */
+  nao?: RxCond;
   controla?: {
     f?: RxFiltro;
     min?: number;
@@ -782,7 +807,7 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -978,6 +1003,10 @@ export interface RxAtv {
    * "Activate only if …"
    */
   se?: RxCond;
+  /**
+   * "This ability costs {1} less to activate for each …": tira N do genérico desta habilidade (CR 601.2f/602.2b; Voldaren Estate, Otawara)
+   */
+  reduz?: RxQtd;
 }
 
 export interface RxGat {
@@ -1017,7 +1046,8 @@ export interface RxGat {
     | 'completaMasmorra'
     | 'sala'
     | 'tomaIniciativa'
-    | 'nivel';
+    | 'nivel'
+    | 'gasta';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1077,7 +1107,7 @@ export interface RxGat {
    */
   nesteTurno?: boolean;
   /**
-   * capitulo: número do capítulo da saga
+   * capitulo: número do capítulo da saga; gasta: N de "whenever you expend N" (a N-ésima mana gasta em mágicas no turno; Wandertale Mentor)
    */
   n?: number;
   /**
@@ -1470,9 +1500,9 @@ export interface RxContagem {
    */
   cores?: string;
   /**
-   * de: turno — de quem (padrão: você)
+   * de: turno — de quem (padrão: você; cadaAtual = o jogador da vez no repetirCada)
    */
-  quem?: 'oponentes';
+  quem?: 'oponentes' | 'cadaAtual';
   /**
    * de: se — condição (kicked, promisedgift, morbid…)
    */
