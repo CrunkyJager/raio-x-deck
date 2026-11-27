@@ -3834,6 +3834,21 @@ caso('613.1f', "animar: Shadowspear tira antimagia e indestrutível das permanen
   igual([M.poder(f, b2), M.resistencia(f, b2)], [3, 3]); igual(M.tiposCriatura(f, b2), 'todos', 'todos os tipos');
 });
 
+caso('701.26', "virar/desvirar 'até N': Snap devolve a criatura e desvira até 2 terrenos; Myr Battlesphere atacando vira os Myr desvirados e ganha +X/+0 e causa X", () => {
+  for (const c of ['Snap', 'Myr Battlesphere']) ok(M.fxSuportado(M.carta(c).fx || []) && (M.carta(c).gat || []).every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Island', { virada: true }], [0, 'Island', { virada: true }], [0, 'Island', { virada: true }], [0, 'Island'], [0, 'Island'], [1, 'Grizzly Bears']], mao: [[0, 'Snap']] });
+  M.avancar(e); conj(e, 'Snap'); if (e.perg && e.perg.tipo === 'alvo') alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(objN(e, 1, 'Grizzly Bears'), undefined, 'o Urso voltou');
+  igual(e.campo.filter(id => e.objs[id].n === 'Island' && e.objs[id].virada).length, 3, '5 ilhas: 2 pagaram, 3 viradas antes → desvirou 2, sobram 3');
+  const f = combate([[0, 'Myr Battlesphere']]);
+  const bs = objN(f, 0, 'Myr Battlesphere');
+  for (let i = 0; i < 2; i++) M.criarFicha(f, 0, { pt: [1, 1], tipos: ['Artifact', 'Creature'], sub: ['Myr'] });
+  ate(f, 'atacar'); atacaCom(f, bs); fecha(f, 'atacar');
+  for (let g = 0; f.turno.passo !== 'principal2' && !f.fim && g < 300; g++) { const pr = x => x.turno.passo === 'principal2'; M.avancar(f, pr); if (f.perg) M.responder(f, f.perg.tipo === 'acao' ? 0 : M.agenteBasico()(f, f.perg), pr); }
+  igual(f.campo.filter(id => f.objs[id].ficha && f.objs[id].virada).length, 2, 'virou os 2 Myr');
+  igual(M.poder(f, bs), 6, '+2/+0'); igual(f.jogs[1].vida, 40 - 2 - 6, '2 da habilidade + 6 de combate');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

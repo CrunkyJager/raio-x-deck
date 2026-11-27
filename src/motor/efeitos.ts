@@ -469,6 +469,12 @@ M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x 
   return o;
 };
 
+// "até N" dos objetos do em que passam no teste: quem resolve escolhe (sem ask, todos até N)
+function escolherAte(e, f, ctx, ask, tipo, ok) {
+  const ids = objsDe(e, f, ctx).filter(o => o.zona === 'campo' && ok(o)).map(o => o.id), n = qtdDe(e, f.qtd, ctx);
+  const esc = ask ? escolherN(ask, ctx.voce, tipo, ids, n, { podeMenos: true }) : ids.slice(0, n);
+  return esc.map(id => e.objs[id]);
+}
 // escolher n objetos de uma lista, um por pergunta (pode parar antes se 'podeMenos')
 M.escolherN = (...a) => (escolherN as any)(...a);
 function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {} }: any = {}) {
@@ -946,10 +952,16 @@ const H = {
     },
   },
   // naoDesvira: não desvira no próximo desvirar do controlador (Junk Winder); soNaoDesvira: só isso, sem virar (Fifty Feet of Rope)
+  // qtd {ate: N|'qualquer'} ("tap X untapped Myr you control", Myr Battlesphere): quem resolve escolhe quantas, entre as
+  // desviradas do em; resultado = quantas virou (o "se fizer" lê ctx.pagou do talvez)
   virar: {
     campos: ['naoDesvira', 'soNaoDesvira'],
-    ok: f => !f.soNaoDesvira || f.naoDesvira === true,
-    fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) { if (!f.soNaoDesvira) o.virada = true; if (f.naoDesvira) o.naoDesv = o.ts; } },
+    qtd: q => q === undefined || (ateOk(q) && q.ate !== 'X'),
+    ok: f => (!f.soNaoDesvira || f.naoDesvira === true) && (f.qtd === undefined || !f.naoDesvira),
+    fx(e, f, ctx, ask) {
+      if (f.qtd !== undefined) { const os = escolherAte(e, f, ctx, ask, 'virar', o => !o.virada); for (const o of os) o.virada = true; ctx.resultado = os.length; return; }
+      for (const o of objsDe(e, f, ctx)) { if (!f.soNaoDesvira) o.virada = true; if (f.naoDesvira) o.naoDesv = o.ts; }
+    },
   },
   // CR 701.27: vira para a outra face. Não é objeto novo (701.27c): ts, marcadores, dano e virada ficam.
   // Só carta de dupla face (701.27d), nunca para uma face de instantânea/feitiço (701.27e), e a habilidade da própria
@@ -969,7 +981,15 @@ const H = {
       }
     },
   },
-  desvirar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.desvirarObj(e, o); } },
+  // qtd {ate: N} ("untap up to two lands", Snap): quem resolve escolhe entre as viradas do em
+  desvirar: {
+    qtd: q => q === undefined || (ateOk(q) && q.ate !== 'X'),
+    fx(e, f, ctx, ask) {
+      const os = f.qtd !== undefined ? escolherAte(e, f, ctx, ask, 'desvirar', o => o.virada) : objsDe(e, f, ctx);
+      for (const o of os) M.desvirarObj(e, o);
+      if (f.qtd !== undefined) ctx.resultado = os.length;
+    },
+  },
   // CR 701.3: prende o Equipamento/Aura (em) ao objeto a. Equipamento só em criatura e nunca em si mesmo (301.5c);
   // Aura só no que o encantar permite (303.4a); preso ao mesmo objeto = nada acontece (701.3b).
   // ninjutsu (702.49c): a carta, se ainda estiver na mão, entra virada e atacando quem o devolvido atacava (sem declarar: não dispara "ataca")
