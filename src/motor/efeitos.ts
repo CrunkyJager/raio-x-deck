@@ -495,10 +495,10 @@ function escolherAte(e, f, ctx, ask, tipo, ok) {
 }
 // escolher n objetos de uma lista, um por pergunta (pode parar antes se 'podeMenos')
 M.escolherN = (...a) => (escolherN as any)(...a);
-function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {} }: any = {}) {
+function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {}, distinto }: any = {}) {
   const r: any[] = [];
   while (r.length < n) {
-    const ops = ids.filter(id => !r.includes(id)).map(id => ({ a: tipo, id }));
+    const ops = ids.filter(id => !r.includes(id) && (!distinto || !r.some(x => distinto(x) === distinto(id)))).map(id => ({ a: tipo, id }));   // distinto: "each have different names" (Tiamat)
     if (podeMenos) ops.unshift({ a: 'nenhum' });
     if (!ops.length) break;
     const x = ask(j, tipo, ops, ctx);
@@ -1224,6 +1224,10 @@ const H = {
       }
     },
   },
+  turnoExtra: {                                                     // CR 500.7: "take an extra turn after this one" (Timestream Navigator, Time Sieve)
+    qtd: q => q === undefined || Number.isInteger(q),
+    fx(e, f, ctx) { const q = f.qtd === undefined ? 1 : f.qtd; for (const j of jogsDe(e, f, ctx)) for (let i = 0; i < q; i++) { (e.turnosExtra || (e.turnosExtra = [])).push(j); M.log(e, e.jogs[j].nome, 'terá um turno extra'); } },
+  },
   faseExtra: {                                                      // CR 500.8: "after this phase, there is an additional combat phase [followed by an additional main phase]"
     campos: ['fase'],
     qtd: q => q === undefined,
@@ -1294,9 +1298,9 @@ const H = {
   },
   embaralhar: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.embaralhar(e, e.jogs[j].zonas.grimorio); } },
   buscar: {                                                         // CR 701.19 (pode não achar: 701.19b)
-    campos: ['f', 'para', 'revelar', 'virada', 'destinos', 'noDe'],
+    campos: ['f', 'para', 'revelar', 'virada', 'destinos', 'noDe', 'nomesDiferentes'],
     qtd: q => qtdOk(q) || (ateOk(q) && q.ate !== 'X') || ateContaOk(q),   // "any number of" (Ugin −11): {ate:'qualquer'}
-    ok: f => ['mao', 'campo', 'cemiterio', 'grimorio', 'exilio', undefined].includes(f.para) && (!f.destinos || f.destinos.every(d => ['mao', 'campo', 'cemiterio', 'grimorio'].includes(d.para))),
+    ok: f => (f.nomesDiferentes === undefined || f.nomesDiferentes === true) && ['mao', 'campo', 'cemiterio', 'grimorio', 'exilio', undefined].includes(f.para) && (!f.destinos || f.destinos.every(d => ['mao', 'campo', 'cemiterio', 'grimorio'].includes(d.para))),
     fx(e, f, ctx, ask) {
       const plano: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
@@ -1304,7 +1308,7 @@ const H = {
         // noDe {alvo:N}: procura no grimório do jogador alvo (Knowledge Exploitation); quem escolhe é j
         const dono = f.noDe ? ((ctx.alvos[f.noDe.alvo] || [])[0] || {}).jog : j; if (dono === undefined || (f.noDe && ctx.ilegal && ctx.ilegal[f.noDe.alvo + ':0'])) continue;
         const cand = M.objetosQue(e, { ...f.f, zona: 'grimorio', dono: 'voce' }, { ...ctx, voce: dono }).map(o => o.id);
-        const pegou = escolherN(ask, j, 'buscar', cand, qtdDe(e, f.qtd, ctx), { podeMenos: true });
+        const pegou = escolherN(ask, j, 'buscar', cand, qtdDe(e, f.qtd, ctx), { podeMenos: true, ...(f.nomesDiferentes ? { distinto: id => e.objs[id].n } : {}) });
         if (f.destinos) {                                           // Cultivate: separa entre os destinos
           let resto = pegou.slice();
           for (const d of f.destinos) {

@@ -310,6 +310,10 @@ export interface RxFiltro {
    * compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)
    */
   tipoEmComum?: ('este' | 'comandante' | 'doEvento') | RxFiltro;
+  /**
+   * não tem este nome ("not named Tiamat")
+   */
+  naoNome?: string;
 }
 
 export interface RxCompara {
@@ -432,6 +436,10 @@ export interface RxCustoAtv {
         f?: RxFiltro;
         qtd?: number;
       };
+  /**
+   * pôr esta no fundo do grimório do dono como custo (Timestream Navigator)
+   */
+  fundoEste?: boolean;
 }
 
 export type RxDura =
@@ -715,6 +723,10 @@ export interface RxFx {
    * animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: "It's a green Mutant… loses its other creature types" — The Master, Transcendent)
    */
   soSub?: boolean;
+  /**
+   * buscar: as cartas pegas têm nomes diferentes entre si ("that each have different names": Tiamat)
+   */
+  nomesDiferentes?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".

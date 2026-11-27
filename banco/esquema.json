@@ -606,6 +606,10 @@
       }
      ],
      "description": "compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)"
+    },
+    "naoNome": {
+     "type": "string",
+     "description": "não tem este nome (\"not named Tiamat\")"
     }
    }
   },
@@ -922,6 +926,10 @@
       }
      ],
      "description": "devolver à mão do dono como custo: 'este' (Shigeki) ou {f, qtd} uma permanente sua que bate no filtro (Master Transmuter, Mina and Denn)"
+    },
+    "fundoEste": {
+     "type": "boolean",
+     "description": "pôr esta no fundo do grimório do dono como custo (Timestream Navigator)"
     }
    }
   },
@@ -1404,6 +1412,10 @@
     "soSub": {
      "type": "boolean",
      "description": "animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: \"It's a green Mutant… loses its other creature types\" — The Master, Transcendent)"
+    },
+    "nomesDiferentes": {
+     "type": "boolean",
+     "description": "buscar: as cartas pegas têm nomes diferentes entre si (\"that each have different names\": Tiamat)"
     }
    },
    "additionalProperties": false,

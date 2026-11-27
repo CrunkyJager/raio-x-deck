@@ -150,7 +150,7 @@ const alvosUsadosDe = (d, fx) => {
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
 M.CARTA_OK = new Set(['impostoPorAlvo']);
-const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador']);
+const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'fundoEste']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
@@ -158,6 +158,7 @@ M.custoSuportado = c => {
   if (c && c.porMarcador !== undefined && !(c.porMarcador && typeof c.porMarcador.tipo === 'string' && (c.porMarcador.qtd === undefined || Number.isInteger(c.porMarcador.qtd))
     && Object.keys(c.porMarcador).every(k => k === 'tipo' || k === 'qtd'))) return false;
   if (c && c.sacrificar && c.sacrificar !== 'este' && !M.filtroOk(c.sacrificar.f || {})) return false;
+  if (c && c.revelar !== undefined && !(c.revelar && typeof c.revelar === 'object' && M.filtroOk(c.revelar.f || {}) && Object.keys(c.revelar).every(k => k === 'f' || k === 'qtd') && (c.revelar.qtd === undefined || Number.isInteger(c.revelar.qtd)))) return false;   // "reveal a Dinosaur card from your hand" (601.2f): só mostra
   if (c && c.devolver !== undefined && c.devolver !== 'este' && !(c.devolver && typeof c.devolver === 'object' && M.filtroOk(c.devolver.f || {})
     && (c.devolver.qtd === undefined || Number.isInteger(c.devolver.qtd)) && Object.keys(c.devolver).every(k => k === 'f' || k === 'qtd'))) return false;
   // "vire uma criatura lendária desvirada que você controla" (Dungeon Descent): {f, qtd}; não é o {T} dela, enjoo não importa (302.6)
@@ -185,7 +186,9 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.porMarcador && (!o || o.zona !== 'campo')) return false;   // canalizar: só da mão (CR 602.2, a habilidade diz a zona)
   if (c.sacrificar && c.sacrificar !== 'este' && !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1)) return false;
   if (c.descartar && candDesc(e, j, daMao).length < c.descartar) return false;
+  if (c.revelar && M.objetosQue(e, { ...(c.revelar.f || {}), dono: 'voce', zona: 'mao' }, { voce: j }).filter(x => x.id !== daMao).length < (c.revelar.qtd || 1)) return false;
   if (c.devolver === 'este' && (!o || o.zona !== 'campo')) return false;
+  if (c.fundoEste && (!o || o.zona !== 'campo')) return false;
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
   if (c.virarOutros && c.virarOutros.poder === undefined && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
@@ -688,8 +691,9 @@ function altsAd(e, j, o, c) {
   if (vidaX(c)) return M.vidaFixa(e, j) ? [{ ...c, vida: 0 }] : [c];   // 119.8: vida fixa só paga X = 0
   return opcoesAd(c).filter(a => M.custoSuportado(a) && custoFisicoOk(e, j, null, a, { daMao: o.id }));
 }
-function escolherAd(e, j, o, c, ask) {
-  const alts = altsAd(e, j, o, c);
+function escolherAd(e, j, o, c, ask, custo?, x = 0) {
+  let alts = altsAd(e, j, o, c);
+  if (custo && alts.length > 1) { const pag = alts.filter(a => !a.mana || !!plano(e, j, M.somaCusto(custo, a.mana), x, null, o)); if (pag.length) alts = pag; }   // a do "ou pague {1}" que não fecha sai
   if (alts.length <= 1) return alts[0] || c;
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
@@ -741,6 +745,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (esc.desc.length) o.descCusto = esc.desc.map(id => ({ id, ts: e.objs[id].ts })); else delete o.descCusto;   // em 'descartadaCusto' (Grab the Prize)
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio', { sac: true });
   if (c.exilarEste) M.mover(e, o.id, 'exilio');
+  if (c.fundoEste) M.mover(e, o.id, 'grimorio', { topo: false });   // "put this on the bottom of its owner's library" como custo (Timestream Navigator)
   if (c.descartarEste) M.descartar(e, j, [o.id]);                  // CR 701.9 (Otawara, Trumpeting Carnosaur)
   for (const id of esc.dev || []) M.mover(e, id, 'mao');            // à mão do dono (Master Transmuter, Mina and Denn)
   if (c.devolver === 'este') M.mover(e, o.id, 'mao');              // Shigeki
@@ -798,13 +803,14 @@ const PROC = {
     const imp = impostoAlvo(e, j, alvos, false);                                     // 601.2f: Kopala, Terror of the Peaks
     if (imp.g) custo = M.somaCusto(custo, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(sem vida para o custo a mais)'); return; }   // 119.4
-    let cad = d.custoAd ? escolherAd(e, j, o, d.custoAd, ask) : null;             // CR 601.2b: anuncia qual custo do "ou"
+    let cad = d.custoAd ? escolherAd(e, j, o, d.custoAd, ask, custo, x) : null;             // CR 601.2b: anuncia qual custo do "ou"
     if (cad && cad.vida === 'X') {                                                    // 601.2b/119.4: X de vida até a vida que tem
       x = ask(j, 'x', Array.from({ length: Math.max(0, e.jogs[j].vida) + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id, vida: true }).v;
       cad = { ...cad, vida: x };
     }
     if (opc.altSac) cad = { ...(cad || {}), sacrificar: altSacDe(d).pagar.sacrificar };   // 118.9: o custo alternativo (sacrificar)
     const fis = cad ? escolherCustoFisico(e, j, cad, null, o.id, ask) : { sac: [] as any[], desc: [] as any[], dev: [] as any[] };
+    if (cad && cad.mana) custo = M.somaCusto(custo, cad.mana);                     // "reveal a Dinosaur card or pay {1}" (Thunderherd Migration): a mana do custo adicional entra no total (601.2f)
     const fuga = !porFlash(e, j, o) && !P.gratis && porFuga(e, j, o) ? fugaDe(e, j, o) : null;   // 702.138: as N outras do cemitério (601.2f)
     const exFuga = fuga ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), fuga.exilar, { ctx: { o: 'exilar' } }) : [];
     const pl = plano(e, j, custo, x, fis.sac, o);                                     // CR 601.2g: mana antes de pagar

@@ -4511,6 +4511,42 @@ caso('701.26a', "Thousand Moons Smithy: na principal pode virar 5 artefatos/cria
   ok(t.face == null, 'só 4 (terreno não conta): não transforma'); igual(f.campo.filter(id => f.objs[id].virada).length, 0);
 });
 
+caso('601.2f', "Thunderherd Migration: custo adicional 'revele um Dinossauro OU pague {1}' — sem Dinossauro paga 3 terras; com, 2", () => {
+  ok(M.custoAdSuportado(M.carta('Thunderherd Migration').custoAd), 'aceita');
+  const e = cena({ campo: terras(3, 'Forest'), mao: [[0, 'Thunderherd Migration']] });
+  M.avancar(e); conj(e, 'Thunderherd Migration'); resolveCom(e);
+  igual(e.campo.filter(id => e.objs[id].virada && !e.objs[id].ficha).length, 4, '3 Florestas viradas + a básica que entra virada');
+  const f = cena({ campo: terras(2, 'Forest'), mao: [[0, 'Thunderherd Migration'], [0, 'Apex Altisaur']] });
+  M.avancar(f); conj(f, 'Thunderherd Migration'); resolveCom(f);
+  igual(f.jogs[0].zonas.cemiterio.map(id => f.objs[id].n), ['Thunderherd Migration'], 'conjurou revelando');
+  ok(f.jogs[0].zonas.mao.some(id => f.objs[id].n === 'Apex Altisaur'), 'o Dinossauro fica na mão');
+});
+
+caso('701.19', "Tiamat: busca até 5 Dragões de nomes diferentes e não Tiamat (filtro naoNome, buscar nomesDiferentes)", () => {
+  const fx = M.carta('Tiamat').gat[0].fx; ok(M.fxSuportado(fx), 'aceita');
+  const e = cena({ grimorio: 0 });
+  for (const n of ['Tiamat', 'Ancient Copper Dragon', 'Ancient Copper Dragon', 'Ancient Gold Dragon', 'Forest']) e.por(0, n, { zona: 'grimorio' });
+  const pega = (j, t, ops) => ops.find(o => o.a !== 'nenhum') || ops[0];
+  M.executar(e, fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, pega);
+  igual(e.jogs[0].zonas.mao.map(id => e.objs[id].n).sort(), ['Ancient Copper Dragon', 'Ancient Gold Dragon'], 'um de cada nome, sem Tiamat');
+});
+
+caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundoEste) — vai ao fundo e o turno extra fica na pilha; Tifa aceita (danoUmaVez)", () => {
+  const a = M.carta('Timestream Navigator').atv[0]; ok(M.custoSuportado(a.custo), 'custo aceito'); ok(M.fxSuportado(a.fx, { topo: false }), 'fx aceito');
+  ok(M.carta('Tifa, Martial Artist').gat.every(g => M.gatOk(g)), 'Tifa aceita');
+  const e = cena({ campo: [[0, 'Timestream Navigator'], ...terras(4, 'Island')] });
+  const t = objN(e, 0, 'Timestream Navigator'); e.jogs[0].bencao = true;
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(o => o.a === 'ativar' && o.id === t.id);
+  ok(k >= 0, 'oferece com a bênção');
+  M.responder(e, k, x => x.pilha.length > 0 || x.turno.passo !== 'principal1');
+  igual(t.zona, 'grimorio'); igual(e.jogs[0].zonas.grimorio[0], t.id, 'no fundo');
+  ok(e.pilha.length === 1, 'na pilha');
+  const n = e.turno.n; M.avancar(e); resolveCom(e);
+  if (e.turno.n === n) { passarAte(e, 'final'); passarAte(e, 'manutencao'); }
+  igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
