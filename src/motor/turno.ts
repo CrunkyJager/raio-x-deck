@@ -127,7 +127,7 @@ function acaoDoTurno(e) {
   }
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
-  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
+  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; o.regen = null; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
   // 'modificar' até o fim do turno (efeitos.ts) sai; o de dura 'sempre' (Witch's Mark: +1/+1 sem prazo, 611.2a) fica
   // enquanto o objeto (mesmo ts) estiver no campo. Array novo: o índice do somaTemp refaz.
   e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
@@ -245,16 +245,17 @@ M.abe = e => {
       J.comprouVazio = false;
     }
     // permanentes (CR 704.5f, g, i) e fichas fora do campo (704.5d)
-    const morrem: any[] = [], sagas: any[] = [];
+    const morrem: any[] = [], sagas: any[] = [], letal: any[] = [];
     M.lote(() => { for (const id of e.campo) {
       const o = e.objs[id];
       if (M.temTipo(e, o, 'Creature')) {
         const r = M.resistencia(e, o);
         if (r <= 0) morrem.push(id);                                   // CR 704.5f
-        else if ((o.dano >= r || (o.mortal && o.dano > 0)) && !M.temKw(e, o, 'indestrutivel')) morrem.push(id);   // 704.5g–h; regenerar = T19
+        else if ((o.dano >= r || (o.mortal && o.dano > 0)) && !M.temKw(e, o, 'indestrutivel')) letal.push(id);   // 704.5g–h (destruída: o escudo de regeneração vale, 701.15)
       }
       if (M.temTipo(e, o, 'Planeswalker') && (o.marc.lealdade || 0) <= 0) morrem.push(id);
     } });
+    for (const id of letal) if (M.regenera(e, e.objs[id])) mudou = true; else morrem.push(id);   // fora do lote: regenerar muda o estado
     // CR 704.5m/n: Aura presa a nada (ou a objeto ilegal) vai ao cemitério; Equipamento preso a nada ou a não-criatura
     // (ou que virou criatura, 301.5c) se solta e fica no campo
     for (const id of e.campo) {
