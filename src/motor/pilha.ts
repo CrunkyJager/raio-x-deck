@@ -378,7 +378,7 @@ const fugaDe = (e, j, o) => {
   if (k) return { mana: k.custo, exilar: k.exilar, comMarc: k.comMarc || null };
   for (const id of e.campo) {
     const F = e.objs[id]; if (F.ctrl !== j) continue;
-    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRetrace' && s.afeta && M.dadoDe(e, o).custo && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: j, este: F.id })) return { mana: M.dadoDe(e, o).custo, exilar: 0, comMarc: null, descTerreno: true };   // 702.81a retrace: + descartar um terreno
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRetrace' && s.afeta && M.dadoDe(e, o).custo && (!s.se || M.condicao(e, s.se, { voce: j, este: F.id })) && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: j, este: F.id })) return { mana: M.dadoDe(e, o).custo, exilar: 0, comMarc: null, descTerreno: true };   // 702.81a retrace: + descartar um terreno
     for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darFuga' && Number.isInteger(s.exilar) && M.dadoDe(e, o).custo && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: j, este: F.id })) return { mana: M.dadoDe(e, o).custo, exilar: s.exilar, comMarc: null };
   }
   return null;
@@ -632,12 +632,20 @@ M.temPrioridadeNoPasso = passo => passo !== 'desvirar' && passo !== 'limpeza';  
 M.proxVivo = (e, j) => { const n = e.jogs.length; let p = j; do p = (p + 1) % n; while (e.jogs[p].saiu && p !== j); return p; };
 
 // opções de quem tem prioridade. O núcleo só pergunta quando há algo além de passar e virar mana.
+// segundo dividido (CR 702.61): uma mágica com ela na pilha (cópia também tem: 707.2)
+M.segundoDividido = e => e.pilha.some(id => { const o = e.objs[id]; return !o.hab && (M.dadoDe(e, o).kw || []).some(x => x.k === 'segundoDividido'); });
 M.opcoesPrioridade = (e, j) => {
   M.memo = {};                                                        // nada muda enquanto lista: fontes de mana uma vez só
   try { return M.lote(() => opcoes(e, j)); } finally { M.memo = null; }
 };
 function opcoes(e, j) {
   const J = e.jogs[j], ops: any[] = [{ a: 'passar' }];
+  if (M.segundoDividido(e)) {                                         // CR 702.61a: com ela na pilha, só habilidade de mana (e ação especial: prever, 702.61b)
+    for (const id of J.zonas.mao) if (M.podePrever(e, j, e.objs[id])) ops.push({ a: 'prever', id });
+    for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
+    ops.push(...M.manaEscOps(e, j));
+    return ops;
+  }
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))      // CR 305.2 (+ 305.2a)
     for (const id of J.zonas.mao) {
       if (M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id });

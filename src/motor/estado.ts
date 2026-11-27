@@ -966,8 +966,19 @@ const atvCarta = d => {
   return l as any[];
 };
 // ganhas por efeito de resolução enquanto no campo (o.ganhos.atv: Urza's Saga) vêm logo depois das da carta: só crescem, k estável
+// darBis (Sliver Gravemother): "each [card] in your graveyard has encore {X}, where X is its mana value" — atv de bis com {vm}
+const BIS_VM = new Map<number, any>();
+const bisDado = (e, o) => {
+  if (o.zona !== 'cemiterio') return null;
+  for (const id of M.indiceCampo(e).est) { const F = e.objs[id]; if (F.ctrl !== o.dono) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darBis' && s.afeta && M.bate(e, o, { ...s.afeta, zona: 'cemiterio' }, { voce: F.ctrl, este: F.id })) {
+      const vm = M.dadoDe(e, o).vm || 0; let k = BIS_VM.get(vm); if (!k) BIS_VM.set(vm, (k = { k: 'bis', custo: { g: vm } })); return bisDe(k);
+    } }
+  return null;
+};
 M.atvDe = (e, o) => {
   let b = atvCarta(M.dadoDe(e, o));
+  if (o.zona === 'cemiterio') { const x = bisDado(e, o); if (x && !b.some(a => a._bis)) b = b.concat([x]); }
   if (o.ganhos && o.ganhos.atv) b = b.concat(o.ganhos.atv);
   if (o.ganhos && o.ganhos.atvT) b = b.concat(o.ganhos.atvT);   // até o fim do turno (Quicksilver Elemental)
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;

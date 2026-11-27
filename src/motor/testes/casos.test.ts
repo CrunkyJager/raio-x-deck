@@ -6649,6 +6649,48 @@ caso('603.2d', "Veyran: conjurar OU copiar instantânea/feitiço faz o gatilho d
   e.pend = []; M.evento(e, { ev: 'copia', id: b.id, j: 0 }); igual(e.pend.filter(p => p.fonte === v.id).length, 2, 'copiar: 2');
 });
 
+caso('702.61a', "Siege Smash: com segundo dividido na pilha, ninguém conjura nem ativa (só mana); depois de resolver, volta", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Grizzly Bears'], [1, 'Sol Ring']], mao: [[0, 'Siege Smash'], [0, 'Lightning Bolt']] });
+  M.avancar(e); const s = e.objs[e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Siege Smash')];
+  M.mover(e, s.id, 'pilha'); s.pil = { alvos: [], ctrl: 0, modos: [0] };
+  ok(M.segundoDividido(e), 'na pilha');
+  const ops = M.opcoesPrioridade(e, 0);
+  ok(!ops.some(o => o.a === 'conjurar' || o.a === 'ativar'), 'sem conjurar/ativar'); ok(ops.some(o => o.a === 'mana'), 'mana pode');
+  M.mover(e, s.id, 'cemiterio');
+  ok(!M.segundoDividido(e) && M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar'), 'saiu: Bolt de novo');
+});
+
+caso('115.1', "Sink into Stupor: mira mágica do oponente na pilha ou permanente não-terreno dele (não o terreno, não a minha) e devolve à mão", () => {
+  const e = cena({ campo: [[1, 'Forest'], [1, 'Sol Ring'], [0, 'Grizzly Bears']], mao: [[1, 'Llanowar Elves']] }); M.avancar(e);
+  const l = e.objs[e.jogs[1].zonas.mao[0]]; M.mover(e, l.id, 'pilha'); l.pil = { alvos: [], ctrl: 1 };
+  const d = M.carta('Sink into Stupor'), cx = { voce: 0, este: -1 };
+  const ids = M.alvosPossiveis(e, d.alvos[0], cx).map(x => e.objs[x.o].n).sort();
+  igual(ids, ['Llanowar Elves', 'Sol Ring'], 'a mágica e o Sol Ring');
+  M.executar(e, d.fx[0], { voce: 0, alvos: [[{ o: l.id, ts: l.ts }]], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(naZona(e, 1, 'mao'), ['Llanowar Elves'], 'voltou à mão');
+});
+
+caso('702.81a', "Six: no meu turno, permanente não-terreno do cemitério tem retrace (Urso sim; Bolt e terreno não); darRetrace com se", () => {
+  const e = cena({ campo: [[0, 'Six'], [0, 'Forest'], [0, 'Forest'], [0, 'Mountain']], mao: [[0, 'Forest']] });
+  const u = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }), b = e.por(0, 'Lightning Bolt', { zona: 'cemiterio' }); e.por(0, 'Forest', { zona: 'cemiterio' });
+  M.avancar(e); const nomes = M.opcoesPrioridade(e, 0).filter(o => o.a === 'conjurar').map(o => e.objs[o.id].n);
+  ok(nomes.includes('Grizzly Bears') && !nomes.includes('Lightning Bolt'), 'Urso sim, Bolt não: ' + nomes);
+  ok(!M.condicao(e, { turno: 'seu' }, { voce: 1 }), 'no turno do outro a condição falha');
+  conj(e, 'Grizzly Bears'); resolveCom(e); igual(e.objs[u.id].zona, 'campo', 'conjurado do cemitério'); igual(e.objs[b.id].zona, 'cemiterio', 'Bolt fica');
+});
+
+caso('704.5j', "Sliver Gravemother: duas dela ficam (regra da lenda não vale para Fractius meus); Fractius no cemitério tem bis {vm}", () => {
+  const e = cena({ campo: [[0, 'Sliver Gravemother'], [0, 'Sliver Gravemother'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']] }); e.pend = [];
+  const b = e.por(0, 'Blur Sliver', { zona: 'cemiterio' }), u = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
+  M.avancar(e);
+  igual(e.campo.filter(id => e.objs[id].n === 'Sliver Gravemother').length, 2, 'as duas ficam');
+  const a = M.atvDe(e, b).find(x => x._bis); ok(a && a.custo.mana.g === M.carta('Blur Sliver').vm, 'bis {vm}');
+  ok(!M.atvDe(e, u).some(x => x._bis), 'Urso não');
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'ativar' && o.id === b.id), 'pode ativar');
+  const f = cena({ campo: [[0, 'Sliver Gravemother'], [0, 'Six'], [0, 'Six']] }); f.pend = [];
+  M.avancar(f); ok(f.perg && f.perg.tipo === 'lenda', 'lenda que não é Fractius: a regra vale');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
