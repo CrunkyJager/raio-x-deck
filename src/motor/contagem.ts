@@ -37,7 +37,8 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
     case 'turno': return ['magias', 'descartes', 'ataques'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
-    case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
+    case 'oponentes': return o === 'quantos' && chaves(c, []);
+    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' && chaves(c, ['min']) && Number.isInteger(c.min);   // "each graveyard with seven or more cards" (Master of Lake-town)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
     case 'evento': return ['quantos', 'vida', 'dano', 'marcadores', 'resist', 'vm', 'cores'].includes(o) && chaves(c, []);
@@ -103,7 +104,7 @@ M.contar = (e, c, ctx: any = {}) => {
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
-    case 'jogadores': return M.vivos(e).length;
+    case 'jogadores': return o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
     case 'X': return ctx.x || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {

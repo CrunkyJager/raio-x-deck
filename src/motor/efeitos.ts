@@ -609,9 +609,9 @@ const H = {
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
   // fimDoTurno sai na limpeza (514.2). Os números são lidos na resolução (611.2c). Lido no M.dadoDe (estado.ts).
   animar: {
-    campos: ['p', 'r', 'tipos', 'sub', 'kw', 'cores', 'dura'],
+    campos: ['p', 'r', 'tipos', 'sub', 'kw', 'cores', 'dura', 'soSub'],
     qtd: q => q === undefined,
-    ok: f => f.em !== undefined && (f.dura === 'fimDoTurno' || f.dura === 'sempre') && (f.p === undefined) === (f.r === undefined)
+    ok: f => f.em !== undefined && (f.soSub === undefined || (f.soSub === true && (f.sub || []).length > 0)) && (f.dura === 'fimDoTurno' || f.dura === 'sempre') && (f.p === undefined) === (f.r === undefined)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
       && (f.p !== undefined || (f.tipos || []).length > 0 || (f.kw || []).length > 0),
     fx(e, f, ctx) {
@@ -619,7 +619,7 @@ const H = {
       const n = q => typeof q === 'number' ? q : qtdDe(e, q, ctx);
       const pt = f.p !== undefined ? [n(f.p), n(f.r)] : undefined;
       for (const o of os) {
-        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, pt, kw: f.kw, cores: f.cores, fim: f.dura === 'fimDoTurno' ? 'turno' : null });
+        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, soSub: !!f.soSub, pt, kw: f.kw, cores: f.cores, fim: f.dura === 'fimDoTurno' ? 'turno' : null });
         M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
       }
       e.vCamada = (e.vCamada || 0) + 1;
@@ -663,7 +663,10 @@ const H = {
   },
   // CR 701.57a descobrir N: exila do topo até uma não-terreno com valor de mana ≤ N; conjura de graça ou põe na mão
   // (701.57b: se não conjurar); as outras exiladas vão para o fundo em ordem aleatória. qtd: número ou conta.
+  // cascata: exila até uma não-terreno de valor MENOR (qtd = vm − 1); a não conjurada vai ao fundo com as outras (702.85a)
   descobrir: {
+    campos: ['cascata'],
+    ok: f => f.cascata === undefined || f.cascata === true,
     fx(e, f, ctx, ask) {
       const j = ctx.voce, J = e.jogs[j];
       // o exílio mexe no estado antes da pergunta: guarda o achado em ctx para a pergunta repetida não exilar de novo
@@ -677,17 +680,20 @@ const H = {
           if (!M.temTipo(e, o, 'Land') && (M.dadoDe(e, o).vm || 0) <= n) { ach = o; break; }
           ex.push(id);
         }
-        M.embaralhar(e, ex);
-        for (const id of ex) if (e.objs[id].zona === 'exilio') M.mover(e, id, 'grimorio', { topo: false });
-        M.log(e, J.nome, 'descobre', n, ach ? '→ ' + ach.n : '(nada)', ex.length ? `(${ex.length} para o fundo)` : '');
+        if (!f.cascata) { M.embaralhar(e, ex); for (const id of ex) if (e.objs[id].zona === 'exilio') M.mover(e, id, 'grimorio', { topo: false }); }
+        else (ctx.cascEx || (ctx.cascEx = new Map())).set(f, ex);
+        M.log(e, J.nome, f.cascata ? 'cascata' : 'descobre', n, ach ? '→ ' + ach.n : '(nada)', ex.length ? `(${ex.length} para o fundo)` : '');
         feitos.set(f, ach ? { id: ach.id, ts: ach.ts } : null);
       }
       const F0 = feitos.get(f), achou = F0 && e.objs[F0.id];
-      if (!achou || achou.ts !== F0.ts || achou.zona !== 'exilio') return;
+      const fundo = (ids: number[]) => { const r = ids.filter(id => e.objs[id] && e.objs[id].zona === 'exilio'); M.embaralhar(e, r); for (const id of r) M.mover(e, id, 'grimorio', { topo: false }); };
+      if (!achou || achou.ts !== F0.ts || achou.zona !== 'exilio') { if (f.cascata) fundo((ctx.cascEx && ctx.cascEx.get(f)) || []); return; }
       const pode = M.podeConjurar(e, j, achou, undefined, { agora: true, gratis: true });
-      const r = pode ? ask(j, 'jogar', [{ a: 'jogar', id: achou.id }, { a: 'mao', id: achou.id }], { gratis: true }) : { a: 'mao' };
+      const nao = f.cascata ? 'fundo' : 'mao';
+      const r = pode ? ask(j, 'jogar', [{ a: 'jogar', id: achou.id }, { a: nao, id: achou.id }], { gratis: true }) : { a: nao };
+      if (f.cascata) fundo([...((ctx.cascEx && ctx.cascEx.get(f)) || []), ...(r.a === 'jogar' ? [] : [achou.id])]);   // 702.85a: o resto (e a não conjurada) ao fundo, ordem aleatória
       if (r.a === 'jogar') { const P0 = e.proc; M.PROC.conjurar(e, { j, id: achou.id, agora: true, gratis: true, resp: [] }, ask); e.proc = P0; ask.etapa(); }
-      else M.mover(e, achou.id, 'mao');
+      else if (!f.cascata) M.mover(e, achou.id, 'mao');
     },
     talvezDentro: true,
   },

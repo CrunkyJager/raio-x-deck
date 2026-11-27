@@ -284,6 +284,16 @@ const flashDado = (e, o) => {
   }
   return null;
 };
+// cascata (702.85): as da mágica + as dadas pelas permanentes do controlador a mágicas na pilha ("Sliver spells you
+// cast have cascade": est continuo afeta {zona:'pilha'}, The First Sliver) e pelos efeitos temporários iguais
+M.cascatas = (e, o) => {
+  let n = (M.dadoDe(e, o).kw || []).filter(x => x.k === 'cascata').length;
+  const da = (s, ctrl, este) => s.modo === 'continuo' && s.afeta && typeof s.afeta === 'object' && s.afeta.zona === 'pilha' && ctrl === o.ctrl
+    && M.bate(e, o, s.afeta, { voce: ctrl, este }) ? (s.kw || []).filter(x => x.k === 'cascata').length : 0;
+  for (const id of e.campo) { const p = e.objs[id]; for (const s of M.dadoDe(e, p).est || []) n += da(s, p.ctrl, p.id); }
+  for (const t of e.efTemp || []) for (const s of t.est) n += da(s, t.ctrl, -1);
+  return n;
+};
 const flashDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'flashback' && x.custo); return k ? k.custo : o.zona === 'cemiterio' && e.efTemp && e.efTemp.length ? flashDado(e, o) : null; };
 const porFlash = (e, j, o) => o.zona === 'cemiterio' && o.dono === j && !!flashDe(e, o) && !M.podeJogarDe(e, j, o);
 M.porFlash = porFlash;
@@ -741,6 +751,7 @@ const PROC = {
     { const J = e.jogs[j]; J.conjT = { t: e.turno.n, n: (J.conjT && J.conjT.t === e.turno.n ? J.conjT.n : 0) + 1 }; }   // conta magiasNoTurno (Aetherflux, Dreamtide Whale)
     const antes = e.conjTodas && e.conjTodas.t === e.turno.n ? e.conjTodas.n : 0; e.conjTodas = { t: e.turno.n, n: antes + 1 };   // de todos os jogadores (tempestade, 702.40a)
     if (M.temKw(e, o, 'tempestade') && antes > 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'tempestade', g: { ev: 'conjura', fx: [{ op: 'copiarMagica', em: 'este', novoAlvo: true, qtd: antes }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.40a: copia uma vez por mágica conjurada antes neste turno
+    for (let c = M.cascatas(e, o); c > 0; c--) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'cascata', g: { ev: 'conjura', fx: [{ op: 'descobrir', qtd: Math.max(-1, (M.dadoDe(e, o).vm || 0) - 1), cascata: true }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.85a/c: cada instância dispara
     M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
     pagarMana(e, j, pl, custo, x, o);                                                 // CR 601.2h

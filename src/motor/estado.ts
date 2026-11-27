@@ -48,6 +48,7 @@ const misto = (d, m) => {
   r = { ...d, tipos: un(d.tipos, m.tipos || m.tipo), sub: un(d.sub, m.sub) };   // animar escreve tipos; a estática, tipo
   // tiraTipo (camada 4): "isn't a creature" (deuses de Theros com pouca devoção). Sem o tipo Criatura, perde os
   // subtipos de criatura (205.1b; fica o de Equipamento/Aura etc. que é de outro tipo) e o P/R
+  if (m.soSub) r.sub = [...(d.sub || []).filter(x => SUB_NAO_CRIATURA.has(x)), ...m.sub];   // "loses its other creature types" (205.1b; The Master, Transcendent)
   if (m.tiraTipo) { r.tipos = (r.tipos || []).filter(t => !m.tiraTipo.includes(t)); if (m.tiraTipo.includes('Creature')) { r.sub = (r.sub || []).filter(x => SUB_NAO_CRIATURA.has(x)); r.pt = undefined; } }
   const novas = (m.sub || []).filter(t => ATV_BASICA[t] && !(d.sub || []).includes(t));
   if (novas.length && (r.tipos || []).includes('Land')) r.atv = [...(d.atv || []), ...novas.map(t => ATV_BASICA[t])];

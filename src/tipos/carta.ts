@@ -705,6 +705,14 @@ export interface RxFx {
    */
   soNaoDesvira?: boolean;
   /**
+   * descobrir: é a cascata (702.85a): qtd = valor de mana − 1 e a não conjurada vai ao fundo com as outras, em ordem aleatória (não vai à mão)
+   */
+  cascata?: boolean;
+  /**
+   * animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: "It's a green Mutant… loses its other creature types" — The Master, Transcendent)
+   */
+  soSub?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -903,6 +911,7 @@ export interface RxKw {
     | 'tripular'
     | 'fabricar'
     | 'posVida'
+    | 'cascata'
     | 'caminhadaTerreno'
     | 'armaduraUmbra'
     | 'corpo-a-corpo'
@@ -1431,7 +1440,8 @@ export interface RxContagem {
     | 'maior'
     | 'dano'
     | 'nome'
-    | 'tipos';
+    | 'tipos'
+    | 'cemiterio';
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */
@@ -1454,4 +1464,8 @@ export interface RxContagem {
   cond?: string;
   sim?: number;
   nao?: number;
+  /**
+   * de: jogadores, o: cemiterio — quantos jogadores têm pelo menos min cartas no cemitério (Master of Lake-town)
+   */
+  min?: number;
 }

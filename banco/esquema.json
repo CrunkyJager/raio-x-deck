@@ -1374,6 +1374,14 @@
     "soNaoDesvira": {
      "type": "boolean",
      "description": "op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)"
+    },
+    "cascata": {
+     "type": "boolean",
+     "description": "descobrir: é a cascata (702.85a): qtd = valor de mana − 1 e a não conjurada vai ao fundo com as outras, em ordem aleatória (não vai à mão)"
+    },
+    "soSub": {
+     "type": "boolean",
+     "description": "animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: \"It's a green Mutant… loses its other creature types\" — The Master, Transcendent)"
     }
    },
    "additionalProperties": false,
@@ -1708,6 +1716,7 @@
       "tripular",
       "fabricar",
       "posVida",
+      "cascata",
       "caminhadaTerreno",
       "armaduraUmbra",
       "corpo-a-corpo",
@@ -2542,7 +2551,8 @@
       "maior",
       "dano",
       "nome",
-      "tipos"
+      "tipos",
+      "cemiterio"
      ],
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
     },
@@ -2578,6 +2588,10 @@
     },
     "nao": {
      "type": "integer"
+    },
+    "min": {
+     "type": "integer",
+     "description": "de: jogadores, o: cemiterio — quantos jogadores têm pelo menos min cartas no cemitério (Master of Lake-town)"
     }
    }
   }

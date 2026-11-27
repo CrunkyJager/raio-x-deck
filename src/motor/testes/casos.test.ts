@@ -3791,6 +3791,46 @@ caso('104.3b', "não pode perder o jogo: The Book of Exalted Deeds dá ao Anjo '
   M.mover(e, an.id, 'cemiterio'); M.abe(e); ok(e.jogs[0].saiu, 'sem o Anjo: perde');
 });
 
+caso('702.85a', "cascata: The First Sliver dá cascata às mágicas Sliver suas — Blur Sliver (vm 3) exila até a Bears (vm 2, menor), conjura de graça; o resto vai ao fundo; não-Sliver não cascateia", () => {
+  ok(M.estContOk(M.carta('The First Sliver').est[0]), 'estática aceita'); ok(M.fxSuportado([{ op: 'descobrir', qtd: 2, cascata: true }]), 'descobrir cascata aceito');
+  const e = cena({ campo: [[0, 'The First Sliver'], ...terras(3)], mao: [[0, 'Blur Sliver']], grimorio: 0 });
+  for (const n of ['Island', 'Grizzly Bears', 'Serra Angel', 'Forest']) e.por(0, n, { zona: 'grimorio' });   // topo = Forest
+  M.avancar(e); conj(e, 'Blur Sliver');
+  ok(e.pend.some(p => p.k === 'cascata') || e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.k === 'cascata') || e.perg, 'disparou');
+  resolveCom(e, p => p.tipo === 'jogar' ? p.ops.findIndex(o => o.a === 'jogar') : -1);
+  ok(e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), 'Bears conjurada de graça: ' + JSON.stringify(e.log.slice(-8)));
+  ok(e.campo.some(id => e.objs[id].n === 'Blur Sliver'), 'Blur Sliver resolveu');
+  const g = e.jogs[0].zonas.grimorio.map(id => e.objs[id].n);
+  igual(g[g.length - 1], 'Island', 'a de baixo fica no topo'); igual(g.slice(0, 2).sort(), ['Forest', 'Serra Angel'], 'as exiladas no fundo');
+  const f = cena({ campo: [[0, 'The First Sliver'], ...terras(2, 'Forest')], mao: [[0, 'Grizzly Bears']] });
+  M.avancar(f); conj(f, 'Grizzly Bears'); ok(!f.pend.some(p => p.k === 'cascata'), 'Bears não é Sliver');
+  resolveCom(f); igual(f.jogs[0].zonas.grimorio.length, 30, 'nada exilado'); ok(!f.log.some(l => String(l).includes('cascata')), 'sem cascata no log');
+});
+
+caso('120.3', "contagem de cemitérios: The Master of Lake-town morre e compra 1 por cemitério com 7+ cartas ({de:'jogadores', o:'cemiterio', min:7})", () => {
+  ok(M.carta('The Master of Lake-town').gat.every(g => M.gatOk(g)), 'aceita');
+  ok(!M.contaOk({ de: 'jogadores', o: 'cemiterio' }), 'sem min: não');
+  const e = cena({ campo: [[0, 'The Master of Lake-town']] });
+  for (let i = 0; i < 6; i++) e.por(0, 'Forest', { zona: 'cemiterio' });
+  for (let i = 0; i < 9; i++) e.por(1, 'Island', { zona: 'cemiterio' });
+  const cx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  igual(M.contar(e, { de: 'jogadores', o: 'cemiterio', min: 7 }, cx), 1, 'só o do oponente (9)');
+  e.por(0, 'Forest', { zona: 'cemiterio' });
+  igual(M.contar(e, { de: 'jogadores', o: 'cemiterio', min: 7 }, cx), 2, 'os dois com 7+');
+});
+
+caso('205.1b', "The Master, Transcendent: a criatura que volta do cemitério é um Mutante verde 3/3 base (perde as outras cores e tipos de criatura; animar soSub)", () => {
+  const d = M.carta('The Master, Transcendent'); ok(M.fxSuportado(d.atv[0].fx, { topo: false }), 'aceita');
+  const e = cena({});
+  const a = e.por(1, 'Serra Angel', { zona: 'cemiterio' });
+  const cx: any = { voce: 0, alvos: [[{ o: a.id, ts: a.ts }]], ilegal: {}, lki: { alvos: [] } };
+  for (const f of d.atv[0].fx) M.executar(e, f, cx, (j, t, ops) => ops[0]);
+  const o = e.objs[a.id];
+  igual(o.zona, 'campo'); igual(o.ctrl, 0, 'sob meu controle');
+  igual([M.poder(e, o), M.resistencia(e, o)], [3, 3]); igual(M.dadoDe(e, o).sub, ['Mutant']); igual(M.dadoDe(e, o).cores, 'G');
+  ok(M.temKw(e, o, 'voar'), 'mantém as habilidades');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
