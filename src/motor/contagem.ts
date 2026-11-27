@@ -118,7 +118,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
-    case 'turno': return ['magias', 'descartes', 'ataques', 'resolucoesDestaHab'].includes(o) && chaves(c, []);
+    case 'turno': return ['magias', 'descartes', 'ataques', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
@@ -184,7 +184,9 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'turno':
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
-      if (o === 'resolucoesDestaHab') return ctx.resHab || 0;   // "the second time this ability has resolved this turn" (contando esta)
+      if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
+      // corpo-a-corpo (702.121a): os oponentes que você atacou com criatura neste combate (jogador, não planeswalker), na resolução
+      if (o === 'oponentesAtacados') return new Set(((e.turno.combate || {}).atk || []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== ctx.voce && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog)).size;   // "the second time this ability has resolved this turn" (contando esta)
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;

@@ -449,7 +449,10 @@ M.comprar = (e, j, qtd = 1) => {
     J.compT = { t: e.turno.n, n: (J.compT && J.compT.t === e.turno.n ? J.compT.n : 0) + 1 };
     // milagre (702.94): a primeira compra do turno com milagre é revelada (simplificação: sempre) e o gatilho vai para a pilha
     if (J.compT.n === 1 && e.pend && e.turno.passo !== 'mulligan' && M.milagreDe(e, e.objs[id])) { const o = e.objs[id]; e.pend.push({ fonte: id, ts: o.ts, ctrl: j, k: 'milagre', g: GAT_MILAGRE, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'compra', j } }); M.log(e, J.nome, 'revela', o.n, '(milagre)'); }
-    if (M.evento) M.evento(e, { ev: 'compra', j });
+    // a 1ª compra na própria etapa de compra (Xyris: "except the first one they draw in each of their draw steps", 504.1)
+    const etapa = e.turno.passo === 'compra' && e.turno.ativo === j;
+    if (etapa) J.compEt = { t: e.turno.n, n: (J.compEt && J.compEt.t === e.turno.n ? J.compEt.n : 0) + 1 };
+    if (M.evento) M.evento(e, { ev: 'compra', j, ...(etapa && J.compEt.n === 1 ? { primeiraEtapa: true } : {}) });
   }
 };
 
@@ -769,6 +772,9 @@ M.kwDe = (e, o) => {
   let b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw;
   if (c.length) b = b.concat(c);
   if (o.zona === 'campo' && o.marc) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
+  // "perde antimagia e indestrutível até o fim do turno" (Shadowspear, 613.1f): o.anim.tiraKw. Simplificação: tira também a
+  // palavra-chave ganha depois (613.7 diria que a mais nova vale)
+  if (o.anim && o.zona === 'campo') for (const a of o.anim) if (a.ts === o.ts && a.tiraKw) b = b.filter(x => !a.tiraKw.includes(x.k));
   return b;
 };
 // "cada card de Sliver na sua mão tem ciclo de Sliver {3}" (Homing Sliver): as camadas só olham o campo, então a
@@ -893,7 +899,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -919,6 +925,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   // 'C'/'Colorless' = incolor (CR 105.2c: sem cor nenhuma; Mystic Forge, Ugin): includes('C') nunca casava
   if (f.cor && !(Array.isArray(f.cor) ? f.cor : [f.cor]).some(c => c === 'C' || c === 'Colorless' ? !(d.cores || '') : (d.cores || '').includes(COR_NOME[c] || c))) return false;
   if (f.kw && !f.kw.every(k => M.temKw(e, o, k))) return false;
+  if (f.semMarcador && (f.semMarcador === true ? Object.values<any>(o.marc || {}).some(n => n > 0) : (o.marc || {})[f.semMarcador] > 0)) return false;   // true: sem marcador nenhum (Damning Verdict); tipo: "without a +1/+1 counter on it" (Wave Goodbye)
   if (f.comMarcador && !((o.marc || {})[f.comMarcador] > 0)) return false;   // "com um marcador hit" (Ravenloft Adventurer)   // "com infectar" (Corpse Cur): palavras-chave dela, com as camadas
   if (f.virada !== undefined && !!o.virada !== !!f.virada) return false;
   if (f.entrouNoTurno !== undefined && (o.zona === 'campo' && o.tEntrou === e.turno.n) !== !!f.entrouNoTurno) return false;   // "que entrou neste turno" (Ocelot Pride)
@@ -1052,7 +1059,7 @@ const PALAVRA: Record<string, (e, ctx) => boolean> = {
   blessing: (e, ctx) => M.bencao(e, ctx.voce, ctx.este),
   morbid: e => M.morbido(e),
 };
-M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
+M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker' || se.conjuradaCom === 'flashback') && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
 M.condicao = (e, se, ctx) => {
   if (!se) return true;
   for (const k in se) if (!COND_OK.has(k)) throw new Error('condição sem suporte no motor2: ' + k);
@@ -1070,6 +1077,7 @@ M.condicao = (e, se, ctx) => {
     if (!M.condValorOk(se)) throw new Error('condição sem suporte no motor2: ' + (se.conjuradaCom || se.palavra));
     const E = e.objs[ctx.este], cc = E && E.zona === 'campo' ? E.conjCom : null, op = ctx.opc;
     if (se.conjuradaCom === 'kicker' && !((op && op.chute) || (cc && cc.kicker))) return false;
+    if (se.conjuradaCom === 'flashback' && !(E && E.zona === 'pilha' && E.flash)) return false;   // "if this spell was cast with flashback" (702.34a: o.flash na pilha)
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
     if (se.palavra && PALAVRA[se.palavra] && !PALAVRA[se.palavra](e, ctx)) return false;
   }

@@ -162,7 +162,7 @@ M.esvaziarReservas = e => {
   for (const J of e.jogs) {
     const F = J.fica && J.fica.t === e.turno.n && e.turno.passo !== 'limpeza' ? J.fica : null, r = M.zeroMana();
     if (F) for (const c of TIPOS) { r[c] = Math.min(J.reserva[c], F.m[c]); F.m[c] = r[c]; }
-    J.reserva = r; J.restrita = [];
+    J.reserva = r; J.restrita = (J.restrita || []).filter(x => x.fica === e.turno.n && e.turno.passo !== 'limpeza');   // restrita com ficaNoTurno (Klauth)
   }
 };
 

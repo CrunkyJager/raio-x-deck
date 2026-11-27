@@ -638,8 +638,8 @@
      "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"
     },
     "semMarcador": {
-     "type": "boolean",
-     "description": "sem nenhum marcador (Damning Verdict)"
+     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "description": "true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')"
     },
     "kw": {
      "type": "array",
@@ -2065,6 +2065,10 @@
     "ouCopia": {
      "type": "boolean",
      "description": "conjura: também quando copia"
+    },
+    "primeiraNoTurno": {
+     "type": "boolean",
+     "description": "conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)"
     },
     "de": {
      "$ref": "#/$defs/zona",
