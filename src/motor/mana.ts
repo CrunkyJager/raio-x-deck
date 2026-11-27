@@ -119,7 +119,7 @@ const pagarCustoAtv = (e, o, c) => {
   if (c.virar) o.virada = true;
   if (c.mana) e.jogs[o.ctrl].reserva = M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana).resto;
   if (c.vida) M.perderVida(e, o.ctrl, c.vida);
-  if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
+  if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio', { sac: true });
 };
 
 // habilidades de mana disponíveis de um jogador: [{id, k, pacotes}]

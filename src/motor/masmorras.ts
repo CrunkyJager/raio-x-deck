@@ -287,7 +287,7 @@ H._perdeAMenosQue = {
     }
     for (const [j, r] of plano) {
       if (r.a === 'descartar') M.descartar(e, j, [r.id]);
-      else if (r.a === 'sacrificar') { if (e.objs[r.id] && e.objs[r.id].zona === 'campo') M.mover(e, r.id, 'cemiterio'); }
+      else if (r.a === 'sacrificar') { if (e.objs[r.id] && e.objs[r.id].zona === 'campo') M.mover(e, r.id, 'cemiterio', { sac: true }); }
       else if (!M.vidaFixa(e, j)) { M.perderVida(e, j, q); M.log(e, e.jogs[j].nome, 'perde', q, 'de vida'); }
     }
   },

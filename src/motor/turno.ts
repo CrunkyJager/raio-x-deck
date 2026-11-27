@@ -231,7 +231,7 @@ M.abe = e => {
       J.comprouVazio = false;
     }
     // permanentes (CR 704.5f, g, i) e fichas fora do campo (704.5d)
-    const morrem: any[] = [];
+    const morrem: any[] = [], sagas: any[] = [];
     M.lote(() => { for (const id of e.campo) {
       const o = e.objs[id];
       if (M.temTipo(e, o, 'Creature')) {
@@ -265,9 +265,10 @@ M.abe = e => {
       const o = e.objs[id], n = M.capitulos(M.dadoDe(e, o));
       if (!n || (o.marc.lore || 0) < n) continue;
       if ((e.pend || []).some(p => p.fonte === id && p.ts === o.ts) || e.pilha.some(h => { const x = e.objs[h].hab; return x && x.fonte === id && x.fonteTs === o.ts; })) continue;
-      morrem.push(id);
+      sagas.push(id);
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
+    for (const id of sagas) if (e.objs[id].zona === 'campo') { M.mover(e, id, 'cemiterio', { sac: true }); mudou = true; }   // 714.4: é sacrifício (701.21)
     if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
