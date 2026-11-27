@@ -335,6 +335,10 @@ export interface RxFiltro {
    * Montaria selada neste turno (702.171b)
    */
   selada?: boolean;
+  /**
+   * não tem nenhuma destas palavras-chave ("if it didn't have decayed": Wilhelt)
+   */
+  semKw?: string[];
 }
 
 export interface RxCompara {
@@ -852,6 +856,14 @@ export interface RxToken {
   copiaDe?: RxObjeto;
   anexadaA?: 'criadas' | 'este';
   /**
+   * com copiaDe: tipos de carta além dos da cópia (707.9b: "a 1/1 Soldier creature in addition to its other types")
+   */
+  maisTipos?: string[];
+  /**
+   * com copiaDe: subtipos além dos da cópia (707.9b)
+   */
+  maisSub?: string[];
+  /**
    * cópia sem o supertipo lendário
    */
   naoLendaria?: boolean;
@@ -1028,6 +1040,7 @@ export interface RxKw {
     | 'proeza'
     | 'tripular'
     | 'selar'
+    | 'investida'
     | 'fabricar'
     | 'posVida'
     | 'cascata'

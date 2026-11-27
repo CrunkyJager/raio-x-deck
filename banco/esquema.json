@@ -643,6 +643,13 @@
     "selada": {
      "type": "boolean",
      "description": "Montaria selada neste turno (702.171b)"
+    },
+    "semKw": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "não tem nenhuma destas palavras-chave (\"if it didn't have decayed\": Wilhelt)"
     }
    }
   },
@@ -1618,6 +1625,20 @@
       "criadas",
       "este"
      ]
+    },
+    "maisTipos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "com copiaDe: tipos de carta além dos da cópia (707.9b: \"a 1/1 Soldier creature in addition to its other types\")"
+    },
+    "maisSub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "com copiaDe: subtipos além dos da cópia (707.9b)"
     },
     "naoLendaria": {
      "type": "boolean",

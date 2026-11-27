@@ -87,7 +87,7 @@ const SUBST: Record<string, (s) => boolean> = {
     || (Array.isArray(s.muda.trocaPor) && s.muda.trocaPor.length > 0 && s.muda.trocaPor.every(t => !!t && typeof t === 'object')))
     && (s.talvez === undefined || (s.talvez === true && !!s.muda.trocaPor)),
   marcador: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || Number.isInteger(s.muda.soma) || s.muda.impedir === true)
-    && Object.keys(s).every(k => ['ev', 'quem', 'marc', 'muda', 'se'].includes(k)),
+    && Object.keys(s).every(k => ['ev', 'quem', 'marc', 'muda', 'se', 'jog'].includes(k)) && (s.jog === undefined || ((s.jog === 'voce' || s.jog === 'oponente') && !s.quem)),   // jog: no jogador (Winding Constrictor)
   // morre / vaiCemiterio (CR 614.1a, lido no M.mover): muda.para (Liesa), "exile com marcador" (Ravenloft), "embaralhe no grimório" (Blightsteel)
   morre: s => saidaOk(s),
   vaiCemiterio: s => saidaOk(s),
@@ -136,7 +136,7 @@ M.porMarcadores = (e, o, t, q) => {
   if (!(q > 0)) return 0;
   let soma = 0, mult = 1;
   for (const { F, s } of substsDe(e, 'marcador')) {
-    if (s.marc && s.marc !== t) continue;
+    if ((s.marc && s.marc !== t) || s.jog) continue;
     if (!substQuem(e, F, s, o) || !substSe(e, F, s)) continue;
     if (s.muda.impedir) return 0;
     if (s.muda.soma) soma += s.muda.soma; if (s.muda.mult) mult *= s.muda.mult;
@@ -145,6 +145,16 @@ M.porMarcadores = (e, o, t, q) => {
   if (t === 'lore') M.porHistoria(e, o, q); else o.marc[t] = (o.marc[t] || 0) + q;
   if (M.evento) M.evento(e, { ev: 'marcadorPosto', id: o.id, ts: o.ts, t, n: q, j: e.agente ?? o.ctrl });   // "sempre que um ou mais marcadores forem postos" (122.6; um evento por objeto); j = quem pôs (quem resolve o efeito; no custo/entrada, o controlador)
   return q;
+};
+// marcador num jogador (122.1): as substituições 'marcador' com jog ("if you would get one or more counters", Winding Constrictor)
+M.qtdMarcadorJogador = (e, j, t, q) => {
+  let soma = 0, mult = 1;
+  for (const { F, s } of substsDe(e, 'marcador')) {
+    if (!s.jog || (s.marc && s.marc !== t) || (s.jog === 'voce') !== (F.ctrl === j) || !substSe(e, F, s)) continue;
+    if (s.muda.impedir) return 0;
+    if (s.muda.soma) soma += s.muda.soma; if (s.muda.mult) mult *= s.muda.mult;
+  }
+  return (q + soma) * mult;
 };
 // "entra com marcadores" (614.1c, 614.12): os da própria carta e os dados por outras permanentes (Arwen, Bramblewood)
 function entraComMarcadores(e, o, x) {
@@ -608,9 +618,10 @@ function copiaDe(e, token, ctx) {
   const src = de === 'sacrificada' ? sac : de === 'doEvento' ? ctx.ev && e.objs[ctx.ev.id] : de === 'este' ? e.objs[ctx.este] : objsDe(e, { em: de }, ctx)[0];
   if (!src || src.hab) return null;
   const { faces, forma, ...base } = M.dadoBase(e, src);
-  const { maisSub, semCusto, ...over } = resto;                     // "é Zombie além dos outros tipos", "não tem custo de mana" (707.9b, eternizar)
+  const { maisSub, maisTipos, semCusto, ...over } = resto;          // "é Zombie além dos outros tipos", "não tem custo de mana" (707.9b, eternizar)
   const r: any = { ...base, ...over, n: base.n || src.n };
   if (maisSub) r.sub = [...new Set([...(base.sub || []), ...maisSub])];
+  if (maisTipos) r.tipos = [...new Set([...(base.tipos || []), ...maisTipos])];   // "a 1/1 Soldier creature in addition to its other types" (Urza, Prince of Kroog)
   if (semCusto) { delete r.custo; r.vm = 0; }
   return r;
 }
