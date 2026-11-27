@@ -1012,7 +1012,12 @@
          "$ref": "#/$defs/filtro"
         },
         "qtd": {
-         "type": "integer"
+         "anyOf": [{"type": "integer"}, {"const": "X"}],
+         "description": "'X' = \"Sacrifice X …\": o X é anunciado ao ativar (602.2b) e vale no efeito/alvos (Ruthless Technomancer)"
+        },
+        "xMin": {
+         "type": "integer",
+         "description": "qtd 'X': o menor X (\"X can't be 0\" = 1)"
         },
         "e": {
          "type": "array",
@@ -1675,6 +1680,10 @@
     "tipoTerrenoComum": {
      "type": "boolean",
      "description": "op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: \"that share a land type\")"
+    },
+    "ouCemiterio": {
+     "type": "boolean",
+     "description": "op buscar: procura no grimório e/ou no cemitério (Sanctum of All: \"search your library and/or graveyard\")"
     },
     "copia": {
      "type": "boolean",

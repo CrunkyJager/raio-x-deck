@@ -524,7 +524,14 @@ export interface RxCustoAtv {
     | 'este'
     | {
         f?: RxFiltro;
-        qtd?: number;
+        /**
+         * 'X' = "Sacrifice X …": o X é anunciado ao ativar (602.2b) e vale no efeito/alvos (Ruthless Technomancer)
+         */
+        qtd?: number | 'X';
+        /**
+         * qtd 'X': o menor X ("X can't be 0" = 1)
+         */
+        xMin?: number;
         /**
          * uma permanente para cada filtro, todas diferentes (Jarad: 'Sacrifice a Swamp and a Forest'); no lugar de f/qtd
          */
@@ -882,6 +889,10 @@ export interface RxFx {
    * op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: "that share a land type")
    */
   tipoTerrenoComum?: boolean;
+  /**
+   * op buscar: procura no grimório e/ou no cemitério (Sanctum of All: "search your library and/or graveyard")
+   */
+  ouCemiterio?: boolean;
   /**
    * op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está
    */
