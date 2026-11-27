@@ -94,7 +94,7 @@ const SUBST: Record<string, (s) => boolean> = {
   vaiCemiterio: s => saidaOk(s),
   anulada: s => !!s.muda && Object.keys(s.muda).length === 1 && s.muda.impedir === true && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k))
     && !!s.quem && s.quem.zona === 'pilha',   // "não pode ser anulada" (M.anular, pilha.ts)
-  dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
+  dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto) || (s.muda.vidaMin === 1 && s.jog === 'voce' && s.quem === undefined))
     && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento'),
 };
 // "As this enters, you may sacrifice any number of Foods. It enters with three +1/+1 counters for each" (Feasting
@@ -220,6 +220,7 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
   for (const r of lista) if (r.s.muda.teto !== undefined) q = Math.min(q, r.s.muda.teto);
   for (const r of lista) if (r.s.muda.mult) q *= r.s.muda.mult;
   for (const r of lista) if (r.s.muda.metade) q = Math.ceil(q / 2);
+  if (jog !== undefined && lista.some(r => r.s.muda.vidaMin === 1)) q = Math.max(0, Math.min(q, e.jogs[jog].vida - 1));   // "damage that would reduce your life total to less than 1 reduces it to 1 instead" (Serra the Benevolent, Worship)
   return q;
 };
 
@@ -1614,7 +1615,8 @@ const H = {
       for (const j of jogsDe(e, f, ctx)) {
         const temMarc = o => Object.values<any>(o.marc).some(n => n > 0);
         const cand: any[] = e.campo.filter(id => temMarc(e.objs[id])).map(id => ({ a: 'proliferar', id }));
-        for (const J of e.jogs) if (!J.saiu && J.veneno > 0) cand.push({ a: 'proliferar', jog: J.i });
+        const tiposJ = J => [...(J.veneno > 0 ? ['poison'] : []), ...Object.keys(J.marc || {}).filter(t => J.marc[t] > 0)];   // veneno, rad, experiência… (122.1, 701.34a)
+        for (const J of e.jogs) if (!J.saiu && tiposJ(J).length) cand.push({ a: 'proliferar', jog: J.i });
         const esc: any[] = [];
         while (cand.length) {
           const x = ask(j, 'proliferar', [{ a: 'pronto' }, ...cand], {});
@@ -1622,7 +1624,7 @@ const H = {
           esc.push(x); cand.splice(cand.indexOf(x), 1);
         }
         for (const x of esc) {
-          if (x.jog !== undefined) { const ag = e.agente; e.agente = j; M.marcadorJogador(e, x.jog, 'poison', 1, false); e.agente = ag; continue; }
+          if (x.jog !== undefined) { const ag = e.agente; e.agente = j; for (const t of tiposJ(e.jogs[x.jog])) M.marcadorJogador(e, x.jog, t, 1, false); e.agente = ag; continue; }
           const o = e.objs[x.id];
           for (const t of Object.keys(o.marc)) if (o.marc[t] > 0) M.porMarcadores(e, o, t, 1);   // 701.34a: põe (as substituições valem, 614.1)
         }

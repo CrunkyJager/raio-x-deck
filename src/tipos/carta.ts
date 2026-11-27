@@ -291,6 +291,10 @@ export interface RxFiltro {
    */
   nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
+   * criatura com poder MAIOR que o de cada outra criatura no campo (estritamente; Selvala, Heart of the Wilds)
+   */
+  maiorPoder?: boolean;
+  /**
    * poder maior que o poder base
    */
   poderAcimaBase?: boolean;
@@ -1441,6 +1445,10 @@ export interface RxSubst {
       [k: string]: RxQtd;
     };
     para?: RxZona;
+    /**
+     * dano (jog voce): o dano que deixaria sua vida abaixo de 1 a deixa em 1 (Serra the Benevolent, Worship)
+     */
+    vidaMin?: 1;
     prevenir?: boolean;
     /**
      * o evento não acontece (não pode ser anulada)

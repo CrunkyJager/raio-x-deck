@@ -130,7 +130,8 @@ M.contar = (e, c, ctx: any = {}) => {
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);   // oponentesAtacados: corpo-a-corpo (702.121a)
     case 'atacado': {                                                       // o jogador defensor: do evento (ataca) ou de quem bloqueia (combate.ts)
-      const D = ctx.ev && ctx.ev.def !== undefined ? e.jogs[ctx.ev.def] : null; if (!D) return 0;
+      const dj = ctx.ev ? ctx.ev.def ?? (ctx.ev.ev === 'dano' ? ctx.ev.jog : undefined) : undefined;   // no dano a jogador: quem levou (Vexing Radgull: "that player")
+      const D = dj !== undefined ? e.jogs[dj] : null; if (!D) return 0;
       return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
     }
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;

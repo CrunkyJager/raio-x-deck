@@ -590,6 +590,10 @@
      ],
      "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
+    "maiorPoder": {
+     "type": "boolean",
+     "description": "criatura com poder MAIOR que o de cada outra criatura no campo (estritamente; Selvala, Heart of the Wilds)"
+    },
     "poderAcimaBase": {
      "type": "boolean",
      "description": "poder maior que o poder base"
@@ -2515,7 +2519,11 @@
       "para": {
        "$ref": "#/$defs/zona"
       },
-      "prevenir": {
+      "vidaMin": {
+         "const": 1,
+         "description": "dano (jog voce): o dano que deixaria sua vida abaixo de 1 a deixa em 1 (Serra the Benevolent, Worship)"
+        },
+        "prevenir": {
        "type": "boolean"
       },
       "impedir": {

@@ -973,7 +973,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['comX', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'maiorPoder', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -1026,6 +1026,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.topo !== undefined) { const g = e.jogs[o.dono].zonas.grimorio; if ((o.zona === 'grimorio' && g[g.length - 1] === o.id) !== !!f.topo) return false; }   // a carta do topo do grimório (o fim da lista)
   // CR 700.9: modificada = com marcador, equipada, ou encantada por Aura que o controlador dela controla
   // "power greater than its base power" (Kutzil): base = o P do dado (impresso ou fixado na 7b), sem 7c–d
+  if (f.maiorPoder && !(M.temTipo(e, o, 'Creature') && e.campo.every(id => id === o.id || !M.temTipo(e, e.objs[id], 'Creature') || M.poder(e, e.objs[id]) < M.poder(e, o)))) return false;   // "its power is greater than each other creature's power" (Selvala, Heart of the Wilds)
   if (f.poderAcimaBase && !(M.temTipo(e, o, 'Creature') && M.poder(e, o) > ((d.pt || [0])[0] || 0))) return false;
   // nome único: true = "doesn't have the same name as another permanent you control" (Yenna); 'criaturaOuCemiterio' =
   // "… as another creature you control or a creature card in your graveyard" (Guardian Project)

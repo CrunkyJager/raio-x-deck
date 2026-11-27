@@ -5839,6 +5839,55 @@ caso('615', "Selfless Squire: com o dano a você prevenido neste turno, dispara 
   e.pend = []; M.substDano(e, 2, { jog: 1 }); igual(e.pend.length, 0, 'dano no oponente: nada');
 });
 
+caso('208.1', "Selvala, Heart of the Wilds: quem controla a criatura que entrou compra só se o poder dela é maior que o de cada outra criatura (filtro maiorPoder)", () => {
+  const g = M.carta('Selvala, Heart of the Wilds').gat[0];
+  ok(M.gatOk(g), 'gatilho aceito');
+  const e = cena({ campo: [[0, 'Selvala, Heart of the Wilds'], [1, 'Ghalta, Primal Hunger'], [1, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  const s = objN(e, 0, 'Selvala, Heart of the Wilds'), gh = objN(e, 1, 'Ghalta, Primal Hunger'), b = objN(e, 1, 'Grizzly Bears');
+  const c = o => M.condicao(e, g.fx[0].se, { voce: 0, este: s.id, ev: { ev: 'zona', id: o.id, ts: o.ts, para: 'campo' } });
+  ok(c(gh) && !c(b), 'Ghalta 12: sim; urso 2: não (Selvala tem 2: empate não conta)');
+});
+
+caso('701.20', "Selvala, Explorer Returned (parley): cada um revela o topo; {G} e 1 de vida por não-terreno revelado (conta topo do grimório de todos), depois cada um compra", () => {
+  const a = M.carta('Selvala, Explorer Returned').atv[0];
+  ok(M.fxSuportado(a.fx, { topo: false }), 'aceito');
+  const e = cena({ campo: [[0, 'Selvala, Explorer Returned']] }), s = objN(e, 0, 'Selvala, Explorer Returned');
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' }); e.por(1, 'Forest', { zona: 'grimorio' });
+  const topo = j => e.objs[e.jogs[j].zonas.grimorio[e.jogs[j].zonas.grimorio.length - 1]].n;
+  igual([topo(0), topo(1)], ['Grizzly Bears', 'Forest'], 'topos: urso e floresta');
+  const ctx: any = { voce: 0, este: s.id, alvos: [], ilegal: {}, lki: {} };
+  for (const f of a.fx) M.executar(e, f, ctx, () => null);
+  igual([e.jogs[0].vida, e.jogs[0].reserva.G], [41, 1], '1 não-terreno: {G} e 1 de vida');
+});
+
+caso('615', "Serra the Benevolent −6: emblema — com uma criatura sua, dano que levaria sua vida abaixo de 1 a deixa em 1 (subst dano muda vidaMin)", () => {
+  const a = M.carta('Serra the Benevolent').atv[2];
+  ok(M.fxSuportado(a.fx, { topo: false }), 'aceito');
+  const e = cena({ campo: [[0, 'Serra the Benevolent'], [0, 'Grizzly Bears']] }), s = objN(e, 0, 'Serra the Benevolent');
+  M.executar(e, a.fx[0], { voce: 0, este: s.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, s) } }, () => null);
+  e.jogs[0].vida = 5;
+  igual([M.substDano(e, 10, { jog: 0 }), M.substDano(e, 3, { jog: 0 }), M.substDano(e, 10, { jog: 1 })], [4, 3, 10], 'fica em 1; dano menor passa; o oponente não');
+  M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio');
+  igual(M.substDano(e, 10, { jog: 0 }), 10, 'sem criatura: não vale');
+});
+
+caso('701.34', "Vexing Radgull: dano de combate no jogador sem rad → 2 rad; já com rad → proliferar (e não ganha mais 2)", () => {
+  const g = M.carta('Vexing Radgull').gat[0];
+  ok(M.gatOk(g), 'aceito');
+  const e = cena({ campo: [[0, 'Vexing Radgull']] }), r = objN(e, 0, 'Vexing Radgull');
+  const vai = () => { e.turno.combate = { atk: [{ id: r.id, ts: r.ts, alvo: { jog: 1 } }] }; const ctx: any = { voce: 0, este: r.id, ev: { ev: 'dano', fonte: r.id, combate: true, jog: 1, q: 1 }, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, r) } }; for (const f of g.fx) M.executar(e, f, ctx, (j, t, ops) => t === 'proliferar' ? (ops.find(o => o.jog === 1) || ops[0]) : ops[0]); };
+  vai(); igual((e.jogs[1].marc || {}).rad || 0, 2, 'sem rad: 2');
+  vai(); igual((e.jogs[1].marc || {}).rad || 0, 3, 'com rad: proliferou (+1), sem os 2');
+});
+
+caso('603.2d', "Veyran: conjurar OU copiar instantânea/feitiço faz o gatilho de permanente sua disparar uma vez a mais (o magecraft dela: 2 vezes nos dois casos)", () => {
+  const e = cena({ campo: [[0, 'Veyran, Voice of Duality']], mao: [[0, 'Lightning Bolt']] });
+  const v = objN(e, 0, 'Veyran, Voice of Duality'), b = naMao(e, 0, 'Lightning Bolt');
+  M.mover(e, b.id, 'pilha'); b.ctrl = 0;
+  e.pend = []; M.evento(e, { ev: 'conjura', id: b.id, j: 0 }); igual(e.pend.filter(p => p.fonte === v.id).length, 2, 'conjurar: 2');
+  e.pend = []; M.evento(e, { ev: 'copia', id: b.id, j: 0 }); igual(e.pend.filter(p => p.fonte === v.id).length, 2, 'copiar: 2');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
