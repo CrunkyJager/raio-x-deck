@@ -147,6 +147,10 @@ const basico = (e, p) => {
       return k >= 0 ? k : 0;
     }
     case 'escolha': {
+      if (p.ops.some(op => op.a === 'tipoCarta')) {   // "choose a card type": redução (Cloud Key) → o tipo mais comum nas suas mágicas; proteção (Serra's Emissary) → o mais comum nos oponentes
+        const F = p.ctx && o(p.ctx.id), red = !!F && (M.dadoDe(e, F).est || []).some(s => s.modo === 'reduzCusto');
+        return melhorOp(p.ops, op => Object.values<any>(e.objs).reduce((s, x) => s + (!x.hab && (red ? x.dono === p.j && x.zona !== 'campo' : x.dono !== p.j) && M.temTipo(e, x, op.v) ? (x.zona === 'campo' ? 2 : 1) : 0), 0));
+      }
       if (p.ops.some(op => op.a === 'tipo')) return melhorOp(p.ops, op => Object.values<any>(e.objs).reduce((s, x) => s + (x.dono === p.j && !x.hab && M.temTipo(e, x, 'Creature') && (M.dadoDe(e, x).sub || []).includes(op.v) ? (x.zona === 'campo' ? 2 : 1) : 0), 0));
       const k = p.ops.findIndex(op => op.a === 'cor' && J.ci.includes(op.v)); return k >= 0 ? k : 0;
     }

@@ -33,11 +33,13 @@ function protegeDe(e, alvo, fonteDado) {
     if (x.k !== 'protecao') continue;
     if (x.de === 'tudo' || x.de === 'everything') return true;
     if ((x.de === 'cadaCor' || x.de === 'each color') && cores) return true;
-    if (x.de && x.de.length === 1 && cores.includes(x.de)) return true;
+    if (x.de && M.protKwBate(x.de, fonteDado)) return true;
   }
   return false;
 }
 M.protegeDe = protegeDe;
+// "de" de uma proteção bate com a fonte? cor (W/U/B/R/G), tipo de carta (Serra's Emissary) ou subtipo (Dog, Rat)
+M.protKwBate = (de, fd) => de.length === 1 ? (fd.cores || '').includes(de) : (fd.tipos || []).includes(de) || (fd.sub || []).includes(de);
 
 // ---------- atacantes (CR 508.1) ----------
 function podeAtacar(e, o, a) {
@@ -281,7 +283,7 @@ function aplicarGolpes(e, golpes) {
     if (!(g.q > 0)) continue;
     const fd = M.dadoDe(e, g.fonte);
     if (g.alvo.jog !== undefined) {
-      if (M.protegeJog(e, g.alvo.jog)) continue;                                           // 702.16j: prevenido
+      if (M.protegeJog(e, g.alvo.jog, g.fonte)) continue;                                           // 702.16j: prevenido
       const J = e.jogs[g.alvo.jog];
       M.danoJogador(e, g.alvo.jog, g.q, M.kwDe(e, g.fonte));                               // 120.3a (infectar: veneno, 702.90b); 119.7
       if (g.fonte.cmd) J.danoCmd[g.fonte.id] = (J.danoCmd[g.fonte.id] || 0) + g.q;          // 903.10a

@@ -4452,6 +4452,25 @@ caso('709.3', 'lista colada com "A // B" (carta de duas faces/portas): acha pelo
   ok(Object.values<any>(e.objs).some(o => o.n === 'Dazzling Theater'), 'virou Dazzling Theater');
 });
 
+caso('205.2a', "escolher tipo de carta ao entrar: Cloud Key (instantânea custa 1 a menos, criatura não) e Serra's Emissary (proteção contra criatura: suas criaturas e você)", () => {
+  ok(M.carta('Cloud Key').subst.every(sb => M.substOk(sb)) && M.carta("Serra's Emissary").subst.every(sb => M.substOk(sb)), 'subst escolher/tipo aceita');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears']], mao: [[0, 'Lightning Bolt'], [0, 'Llanowar Elves'], [0, 'Shock']] });
+  const pega = v => (_j, t, ops) => t === 'escolha' ? ops.find(x => x.v === v) : ops[0];
+  const ck = e.por(0, 'Cloud Key', { zona: 'mao' }), ser = e.por(0, "Serra's Emissary", { zona: 'mao' });
+  M.entrarPermanente(e, ck.id, 0, {}, (j, t, ops) => { if (t === 'escolha') igual(ops.map(x => x.v), ['Artifact', 'Creature', 'Enchantment', 'Instant', 'Sorcery'], 'as 5 opções'); return pega('Instant')(j, t, ops); });
+  const custo = n => M.custoComImposto(e, e.objs[e.jogs[0].zonas.mao.find(id => e.objs[id].n === n)]);
+  igual([custo('Lightning Bolt').p.length + (custo('Lightning Bolt').g || 0), custo('Shock').g || 0, custo('Llanowar Elves').g || 0], [1, 0, 0], 'Bolt {R} (genérico não fica negativo), Elfo igual');
+  igual(M.TIPOS_DE_CARTA.length, 9, '9 tipos de carta');
+  M.entrarPermanente(e, ser.id, 0, {}, pega('Creature'));
+  const meu = objN(e, 0, 'Grizzly Bears'), dele = objN(e, 1, 'Grizzly Bears');
+  ok(M.protegeDe(e, meu, M.dadoDe(e, dele)) && M.protegeDe(e, objN(e, 0, "Serra's Emissary"), M.dadoDe(e, dele)), 'suas criaturas: proteção contra criatura');
+  ok(!M.protegeDe(e, dele, M.dadoDe(e, meu)), 'a do oponente não');
+  ok(!M.bloqueiaEste(e, dele, meu), 'criatura não bloqueia a sua');
+  const bolt = e.por(1, 'Lightning Bolt', { zona: 'mao' });
+  ok(M.protegeJog(e, 0, dele) && !M.protegeJog(e, 0, bolt) && !M.protegeJog(e, 1, meu), 'você: contra criatura sim, instantânea não; o oponente não');
+  ok(M.alvoLegal(e, { f: { tipo: ['Creature'] } }, { o: meu.id, ts: meu.ts }, { voce: 1, este: bolt.id }), 'Bolt pode mirar a sua criatura');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

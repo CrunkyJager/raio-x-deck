@@ -49,6 +49,8 @@ const ATV_BASICA = Object.fromEntries(Object.entries(MANA_BASICA).map(([t, c]) =
 // 'escolhido' no sub da estática de tipo (Metallic Mimic, Roaming Throne): o tipo escolhido ao entrar (o.escolha.tipo)
 const ESCOLHIDO = new WeakMap<object, Map<string, any>>();
 const comEscolhido = (s, t) => { let c = ESCOLHIDO.get(s); if (!c) ESCOLHIDO.set(s, (c = new Map())); let r = c.get(t); if (!r) c.set(t, (r = { ...s, sub: s.sub.map(x => x === 'escolhido' ? t : x) })); return r; };
+const KW_ESC = new WeakMap<object, Map<string, any>>();
+const kwEscolhido = (k, v) => { let c = KW_ESC.get(k); if (!c) KW_ESC.set(k, (c = new Map())); let r = c.get(v); if (!r) c.set(v, (r = { ...k, de: v })); return r; };
 const MISTO = new WeakMap<object, Map<any, any>>();
 const misto = (d, m) => {
   let c = MISTO.get(d); if (!c) MISTO.set(d, (c = new Map()));
@@ -286,7 +288,13 @@ M.desvirarObj = (e, o) => { if (!o || !o.virada) return; o.virada = false; if (M
 // "sua vida não pode mudar" (Teferi's Protection, Flare of Fortitude, Platinum Emperion): sem ganho, perda nem pagar vida (119.8)
 M.vidaFixa = (e, j) => estJog(e, j, s => s.modo === 'vidaNaoMuda');
 // "você tem proteção contra tudo" (702.16j, 702.16b): não é alvo, dano a você é prevenido. Só 'tudo' por ora.
-M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protTudo(s));
+M.protegeJog = (e, j, fonte?) => estJog(e, j, s => s.modo === 'protecaoJogador' && protTudo(s)) || (!!fonte && protJogDe(e, j, fonte));
+// "you have protection from the chosen card type" (Serra's Emissary, 702.16j): da fonte (objeto) com esse tipo/cor
+function protJogDe(e, j, fonte) {
+  const ks = (F, s) => s.modo === 'protecaoJogador' && s.afeta === 'voce' && !s.se ? (s.kw || []).filter(k => k.k === 'protecao' && k.de !== 'tudo').map(k => k.de === 'escolhido' ? (F.escolha && (F.escolha.tipoCarta || F.escolha.cor)) : k.de) : [];
+  for (const id of indice(e).est) { const F = e.objs[id]; if (F.ctrl !== j) continue; for (const s of M.dadoDe(e, F).est || []) for (const de of ks(F, s)) if (de && M.protKwBate(de, M.dadoDe(e, fonte))) return true; }
+  return false;
+}
 // "você tem antimagia" (702.11c): oponente não mira você (Dawn's Truce, Lazotep Plating, Metropolis Reformer)
 // "você não pode conjurar mágicas neste turno" (Conduit of Worlds, 101.2: o "não pode" vence)
 M.naoConjura = (e, j) => estJog(e, j, s => s.modo === 'naoPodeConjurar' && !s.f);
@@ -756,7 +764,7 @@ function camadas(e, o, lote?: any[]) {
       if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
       if (s.p !== undefined) p += qtdCamada(e, s, s.p, F, ctx);
       if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx);
-      for (const x of s.kw || []) kw.push(x);
+      for (const x of s.kw || []) { if (x.de !== 'escolhido') { kw.push(x); continue; } const v = F.escolha && (F.escolha.tipoCarta || F.escolha.cor); if (v) kw.push(kwEscolhido(x, v)); }   // "protection from the chosen card type/color" (Serra's Emissary): o que a fonte escolheu ao entrar
       if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
     const T = temp.length ? somaTemp(temp).get(o.id + ':' + o.ts) : undefined;
@@ -923,7 +931,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   // "exiled with this" (406.6, 607.2a): o exílio guarda quem exilou (o.exPor {id, ts}); vale para este objeto (mesmo ts, ou o lki se já saiu)
   if (f.exiladaPorEste && !(o.zona === 'exilio' && o.exPor && o.exPor.id === ctx.este && o.exPor.ts === ((ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (e.objs[ctx.este] || {}).ts))) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
-  if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
+  if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t === 'escolhido' ? tipoCartaEscolhido(e, ctx) : t)))) return false;   // escolhido: o tipo de carta escolhido pela fonte ao entrar (Cloud Key)
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha) || (t === 'escolhido' && ehEscolhido(e, o, ctx)))) return false;
   if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s) || (!SUB_NAO_CRIAT_TODOS.has(s) && tiposCriatura(e, o) === 'todos'))) return false;   // metamorfo/todosTipos: é de todo tipo de criatura (702.73a, 205.3m)   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
@@ -988,6 +996,7 @@ function tipoEmComum(e, o, ref, ctx) {
   else throw new Error('tipoEmComum sem suporte: ' + JSON.stringify(ref));
   return outros.some(x => x && comumCom(t, tiposCriatura(e, x)));
 }
+const tipoCartaEscolhido = (e, ctx) => { const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipoCarta || '\u0000'; };
 const escolhidoDe = (e, ctx) => { if (ctx.escolha && ctx.escolha.tipo) return ctx.escolha.tipo; const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };   // op escolher na resolução (ctx.escolha) antes da escolha ao entrar
 const ehEscolhido = (e, o, ctx) => { const v = escolhidoDe(e, ctx), t = tiposCriatura(e, o); return v !== '\u0000' && (t === 'todos' || t.includes(v)); };   // changeling é de todos os tipos (702.73a)
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));

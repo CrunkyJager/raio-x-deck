@@ -93,7 +93,7 @@ M.alvoLegal = (e, a, esc, ctx) => {
   const f = a.f, voce = ctx.voce;
   if (esc.jog !== undefined) {
     if (!vivo(e, esc.jog)) return false;
-    if (M.protegeJog(e, esc.jog)) return false;                    // 702.16b: proteção contra tudo, não é alvo
+    if (M.protegeJog(e, esc.jog, e.objs[ctx.este])) return false;                    // 702.16b: proteção contra tudo, não é alvo
     if (esc.jog !== voce && M.antimagiaJog(e, esc.jog)) return false;   // 702.11c: jogador com antimagia
     if (f === 'qualquerAlvo' || f === 'jogador' || a.jog === 'jogador') return true;
     if (f === 'oponente' || a.jog === 'oponente') return esc.jog !== voce;
@@ -103,6 +103,7 @@ M.alvoLegal = (e, a, esc, ctx) => {
   if (!o || o.ts !== esc.ts) return false;                         // mudou de zona: não é mais o mesmo objeto
   if (f === 'magica') return ehMagica(o);
   if (o.zona === 'campo' && !alcancavel(e, o, voce)) return false;
+  if (o.zona === 'campo' && e.objs[ctx.este] && M.protegeDe(e, o, M.dadoDe(e, e.objs[ctx.este]))) return false;   // 702.16b: proteção, não é alvo do que tem a qualidade
   if (f === 'qualquerAlvo') return o.zona === 'campo' && TIPOS_ALVO_OBJ.some(t => M.temTipo(e, o, t));
   if (typeof f === 'string') return false;
   if (o.hab) return false;

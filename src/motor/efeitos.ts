@@ -68,7 +68,7 @@ const SUBST: Record<string, (s) => boolean> = {
   entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
     // "as criaturas dos oponentes entram viradas" (Authority of the Consuls) / "seus terrenos entram desvirados" (Spelunking)
     || (!!s.muda && Object.keys(s.muda).length === 1 && typeof s.muda.virada === 'boolean' && !!s.quem && typeof s.quem === 'object' && !s.quem.este && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k)))
-    || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo')))
+    || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo' || (f.o === 'tipo' && (f.tipos === undefined || (Array.isArray(f.tipos) && f.tipos.length > 0 && f.tipos.every(t => TIPOS_DE_CARTA.includes(t))))))))
     // "você pode fazer esta entrar como cópia de [f] no campo (exceto que é [tipos] além dos outros)" (CR 707.5, 614.1c)
     || (!!s.emVez && s.emVez.length === 1 && s.emVez[0].op === 'copiarPermanente' && !!s.quem && s.quem.este && M.filtroOk(s.emVez[0].f || {})
       && Object.keys(s.emVez[0]).every(k => ['op', 'f', 'tipos'].includes(k)) && (s.emVez[0].tipos === undefined || Array.isArray(s.emVez[0].tipos)))
@@ -93,6 +93,9 @@ const SUBST: Record<string, (s) => boolean> = {
 };
 // "As this enters, you may sacrifice any number of Foods. It enters with three +1/+1 counters for each" (Feasting
 // Hobbit, 614.1c): emVez [sacrificar {f, qtd ate qualquer}, marcador {em este, qtd {conta resultado, mult}}]
+// tipos de carta (CR 205.2a; Kindred = o antigo Tribal) — as opções de "choose a card type"
+const TIPOS_DE_CARTA = ['Artifact', 'Battle', 'Creature', 'Enchantment', 'Instant', 'Kindred', 'Land', 'Planeswalker', 'Sorcery'];
+M.TIPOS_DE_CARTA = TIPOS_DE_CARTA;
 function sacEntraOk(s) {
   if (!s.emVez || s.emVez.length !== 2 || !s.quem || !s.quem.este) return false;
   const [a, b] = s.emVez;
@@ -450,9 +453,10 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
         } else if (fz.o === 'modo') {             // "As this enters, choose X or Y" (Mirrodin Besieged, Sieges): os modos são os nomes que as habilidades leem
           ops = M.modosDe(d).map(v => ({ a: 'modo', v }));
           if (!ops.length) continue;
-        } else continue;
+        } else if (fz.o === 'tipo') ops = (fz.tipos || TIPOS_DE_CARTA).map(v => ({ a: 'tipoCarta', v }));   // "choose a card type" (205.2a); Cloud Key dá a lista
+        else continue;
         const r = ask(ctrl, 'escolha', ops, { id, o: fz.o });
-        escolha = fz.o === 'cor' ? { cor: r.v } : fz.o === 'modo' ? { modo: r.v } : { tipo: r.v };
+        escolha = fz.o === 'cor' ? { cor: r.v } : fz.o === 'modo' ? { modo: r.v } : fz.o === 'tipo' ? { tipoCarta: r.v } : { tipo: r.v };
         break;
       }
     }
@@ -576,7 +580,7 @@ const H = {
       for (const o of objsDe(e, f, ctx)) { const v = M.substDano(e, parte(o), { fonte: fonte.o, o }); if (v > 0) { danoEm(e, o, v, fonte); total += v; evs.push({ o: o.id, q: v }); } }   // 615, 614.1a
       const js = f.em && typeof f.em.alvo === 'number' ? jogsAlvo(e, f.em.alvo, ctx) : [];
       const jq = f.quem ? jogsDe(e, f, ctx) : [];
-      for (const j of [...new Set([...js, ...jq])]) { const v = M.substDano(e, js.includes(j) ? parte(null, j) : q, { fonte: fonte.o, jog: j }); if (v <= 0 || M.protegeJog(e, j)) continue; M.danoJogador(e, j, v, fonte.kw); total += v; evs.push({ jog: j, q: v }); }   // CR 120.3a (infectar: veneno, 702.90b); 702.16j; 119.7
+      for (const j of [...new Set([...js, ...jq])]) { const v = M.substDano(e, js.includes(j) ? parte(null, j) : q, { fonte: fonte.o, jog: j }); if (v <= 0 || M.protegeJog(e, j, fonte.o)) continue; M.danoJogador(e, j, v, fonte.kw); total += v; evs.push({ jog: j, q: v }); }   // CR 120.3a (infectar: veneno, 702.90b); 702.16j; 119.7
       if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, fonte.ctrl, total);   // CR 702.15b: quem controla a fonte
       if (M.evento) for (const x of evs) M.evento(e, { ev: 'dano', fonte: fonte.o ? fonte.o.id : -1, combate: false, ...x });   // 120.3: dano fora do combate também é evento (enrage, Sanguine Bond é perda de vida)
     },
