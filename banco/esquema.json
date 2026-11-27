@@ -516,8 +516,8 @@
      "description": "equipada, encantada ou com marcador"
     },
     "conjurada": {
-     "type": "boolean",
-     "description": "foi conjurada (não só posta)"
+     "anyOf": [{"type": "boolean"}, {"enum": ["mao", "cemiterio", "exilio", "comando", "grimorio"]}],
+     "description": "foi conjurada (não só posta); com zona: conjurada DE lá ('if you cast it from your hand' = 'mao')"
     },
     "ouEste": {
      "type": "boolean",
@@ -639,7 +639,8 @@
         "qualquerAlvo",
         "jogador",
         "oponente",
-        "magica"
+        "magica",
+        "magicaOuHab"
        ]
       }
      ]
@@ -941,6 +942,7 @@
       "ficha",
       "copiarPermanente",
       "copiarMagica",
+      "trocarAlvos",
       "dano",
       "destruir",
       "sacrificar",
@@ -2022,6 +2024,7 @@
       "conjurarComLampejo",
       "desviraNoTurnoDeOutro",
       "vidaNaoMuda",
+      "naoPerdeJogo",
       "protecaoJogador",
       "ptDefinido",
       "danoNaoPrevenivel",
@@ -2030,8 +2033,10 @@
       "dobraGatilho",
       "ataqueCusta",
       "naoPodeAtivar",
+      "ganhaAtivadas",
       "deveBloquear",
       "darFuga",
+      "darRetrace",
       "darLoucura",
       "oponentesNaoProcuram"
      ],

@@ -247,9 +247,9 @@ export interface RxFiltro {
    */
   modificada?: boolean;
   /**
-   * foi conjurada (não só posta)
+   * foi conjurada (não só posta); com zona: conjurada DE lá ('if you cast it from your hand' = 'mao')
    */
-  conjurada?: boolean;
+  conjurada?: boolean | ('mao' | 'cemiterio' | 'exilio' | 'comando' | 'grimorio');
   /**
    * a própria carta também conta ("este ou outro X")
    */
@@ -321,7 +321,7 @@ export interface RxCompara {
 export type RxZona = 'campo' | 'mao' | 'grimorio' | 'cemiterio' | 'exilio' | 'pilha' | 'comando' | 'qualquer';
 
 export interface RxAlvo {
-  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica');
+  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'magicaOuHab');
   min?: number;
   max?: number | 'qualquer';
   /**
@@ -457,6 +457,7 @@ export interface RxFx {
     | 'ficha'
     | 'copiarPermanente'
     | 'copiarMagica'
+    | 'trocarAlvos'
     | 'dano'
     | 'destruir'
     | 'sacrificar'
@@ -1123,6 +1124,7 @@ export interface RxEst {
     | 'conjurarComLampejo'
     | 'desviraNoTurnoDeOutro'
     | 'vidaNaoMuda'
+    | 'naoPerdeJogo'
     | 'protecaoJogador'
     | 'ptDefinido'
     | 'danoNaoPrevenivel'
@@ -1131,8 +1133,10 @@ export interface RxEst {
     | 'dobraGatilho'
     | 'ataqueCusta'
     | 'naoPodeAtivar'
+    | 'ganhaAtivadas'
     | 'deveBloquear'
     | 'darFuga'
+    | 'darRetrace'
     | 'darLoucura'
     | 'oponentesNaoProcuram';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');

@@ -4382,6 +4382,61 @@ caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste t
   ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
 });
 
+caso('601.2', "Cyclone Summoner: só devolve as permanentes se foi conjurada DA MÃO (filtro conjurada:'mao'); do comando, não", () => {
+  for (const [de, volta] of [['mao', true], ['comando', false]] as const) {
+    const e = cena({ campo: [...terras(7, 'Island'), [1, 'Grizzly Bears']] });
+    const c = e.por(0, 'Cyclone Summoner', { zona: de, obj: de === 'comando' ? { cmd: true } : {} });
+    if (de === 'comando') { e.jogs[0].cmd.push(c.id); e.jogs[0].imposto[c.id] = 0; }
+    M.avancar(e); conj(e, 'Cyclone Summoner'); resolveCom(e);
+    ok(e.objs[c.id].zona === 'campo', de + ': entrou');
+    igual(e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), !volta, de + ': Bears ' + (volta ? 'volta' : 'fica'));
+  }
+});
+
+caso('104.3', "Darksteel Angel (naoPerdeJogo): com vida 0 não perde; o oponente não vence por efeito; sem o Anjo, perde", () => {
+  ok(M.carta('Darksteel Angel').est.some(s => s.modo === 'naoPerdeJogo' && s.afeta === 'voce'), 'escrito');
+  const e = cena({ campo: [[0, 'Darksteel Angel']] });
+  e.jogs[0].vida = 0; M.avancar(e);
+  ok(!e.jogs[0].saiu, 'vida 0: continua');
+  M.executar(e, { op: 'ganharJogo', quem: 'voce' }, { ...ctxDe(e), voce: 1 }, (j, t, ops) => ops[0]); ok(!e.fim, 'o oponente não vence');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }); f.jogs[0].vida = 0; M.avancar(f); ok(!!f.jogs[0].saiu, 'sem o Anjo: perde');
+});
+
+caso('702.81a', "Deeproot Historian (darRetrace): Elfo Druida do cemitério conjurado pagando o custo + descartando um terreno; sem terreno na mão, não", () => {
+  const e = cena({ campo: [[0, 'Deeproot Historian'], [0, 'Forest']], mao: [[0, 'Forest']] });
+  const d = e.por(0, 'Llanowar Elves', { zona: 'cemiterio' });
+  M.avancar(e); conj(e, 'Llanowar Elves'); resolveCom(e);
+  igual(e.objs[d.id].zona, 'campo', 'conjurado do cemitério');
+  igual(e.jogs[0].zonas.mao.length, 0, 'o terreno foi descartado');
+  const f = cena({ campo: [[0, 'Deeproot Historian'], [0, 'Forest']] });
+  f.por(0, 'Llanowar Elves', { zona: 'cemiterio' }); M.avancar(f);
+  ok(!M.opcoesPrioridade(f, 0).some(o => o.a === 'conjurar' && f.objs[o.id].n === 'Llanowar Elves'), 'sem terreno: não');
+});
+
+caso('115.7d', "Deflecting Swat (trocarAlvos): muda o alvo do Bolt do oponente para a criatura dele; alvo pode ser mágica ou habilidade", () => {
+  ok(M.fxSuportado(M.carta('Deflecting Swat').fx), 'aceito');
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Lightning Bolt'], [0, 'Deflecting Swat']] });
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && e.objs[o.id].n === 'Lightning Bolt'); alvoJog(e, 1);
+  conj(e, 'Deflecting Swat'); alvoObj(e, 'Lightning Bolt');
+  for (let i = 0; i < 40 && e.perg && (e.pilha.length || e.perg.tipo !== 'acao'); i++) {
+    const p = e.perg;
+    if (p.tipo === 'talvez') { respE(e, o => o.a === 'sim'); continue; }
+    if (p.tipo === 'alvo') { alvoObj(e, 'Grizzly Bears'); continue; }
+    respE(e, o => o.a === 'passar');
+  }
+  igual(e.jogs[1].vida, 40, 'o jogador não levou o Bolt');
+  ok(!e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), 'o Bolt foi no Bears');
+});
+
+caso('602.5', "Drana and Linvala: as criaturas do oponente não ativam; ela ganha as habilidades ativadas delas (Llanowar Elves: vira para G)", () => {
+  const e = cena({ campo: [[0, 'Drana and Linvala'], [1, 'Llanowar Elves']] });
+  const el = objN(e, 1, 'Llanowar Elves'), dr = objN(e, 0, 'Drana and Linvala');
+  dr.doente = false; el.doente = false;
+  ok(M.ativBloqueada(e, el), 'o Elfo do oponente não ativa');
+  igual(M.atvDe(e, dr).length, M.atvDe(e, el).length, 'Drana tem a do Elfo');
+  ok(!M.ativBloqueada(e, dr), 'a dela ativa');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
