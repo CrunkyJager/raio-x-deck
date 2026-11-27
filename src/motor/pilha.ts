@@ -141,7 +141,7 @@ const alvosUsadosDe = (d, fx) => {
 };
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
-const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'revelar']);
+const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'revelar', 'exilarDe']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
@@ -155,6 +155,9 @@ M.custoSuportado = c => {
   if (c && c.revelar !== undefined && !(c.revelar && typeof c.revelar === 'object' && M.filtroOk({ ...(c.revelar.f || {}), zona: undefined })
     && (c.revelar.qtd === undefined || Number.isInteger(c.revelar.qtd)) && Object.keys(c.revelar).every(k => k === 'f' || k === 'qtd'))) return false;
   if (c && c.mana !== undefined && !(c.mana && typeof c.mana === 'object')) return false;
+  // "exile três cartas de criatura do seu cemitério" (Drivnod) / "exile uma carta azul da sua mão" (Force of Will): {zona, f, qtd}
+  if (c && c.exilarDe !== undefined && !(c.exilarDe && typeof c.exilarDe === 'object' && ['cemiterio', 'mao'].includes(c.exilarDe.zona) && M.filtroOk(c.exilarDe.f || {})
+    && (c.exilarDe.qtd === undefined || Number.isInteger(c.exilarDe.qtd)) && Object.keys(c.exilarDe).every(k => ['f', 'qtd', 'zona'].includes(k)))) return false;
   return true;
 };
 // candidatos a sacrificar/descartar de um custo
@@ -163,6 +166,7 @@ const candDev = (e, j, c, fonte) => M.objetosQue(e, { ...(c.devolver.f || {}), c
 const candVir = (e, j, c, fonte) => M.objetosQue(e, { ...(c.virarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => !o.virada && o.id !== fonte);
 M.candVir = candVir;
 const candRev = (e, j, c, fora) => M.objetosQue(e, { ...(c.revelar.f || {}), zona: 'mao' }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas.mao.includes(o.id));
+const candExi = (e, j, c, fora) => M.objetosQue(e, { ...(c.exilarDe.f || {}), zona: c.exilarDe.zona }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas[c.exilarDe.zona].includes(o.id));
 const candDesc = (e, j, fora) => e.jogs[j].zonas.mao.filter(id => id !== fora);
 // custo fora da mana dá para pagar agora? (antes da mana: o que sai daqui não paga mana)
 function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
@@ -182,6 +186,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
   if (c.virarOutros && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
   if (c.revelar && candRev(e, j, c, daMao).length < (c.revelar.qtd || 1)) return false;
+  if (c.exilarDe && candExi(e, j, c, daMao || (o && o.id)).length < (c.exilarDe.qtd || 1)) return false;
   return true;
 }
 
@@ -635,7 +640,13 @@ function escolherAd(e, j, o, c, ask) {
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
-  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], rev: [] as any[] };
+  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], rev: [] as any[], exi: [] as any[] };
+  if (c.exilarDe) {
+    for (let i = 0; i < (c.exilarDe.qtd || 1); i++) {
+      const ops = candExi(e, j, c, daMao || fonte).filter(o => !r.exi.includes(o.id)).map(o => ({ a: 'exilar', id: o.id }));
+      r.exi.push(ask(j, 'custo', ops, { o: 'exilar' }).id);
+    }
+  }
   if (c.revelar) {
     for (let i = 0; i < (c.revelar.qtd || 1); i++) {
       const ops = candRev(e, j, c, daMao).filter(o => !r.rev.includes(o.id)).map(o => ({ a: 'revelar', id: o.id }));
@@ -673,6 +684,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.virar) o.virada = true;
   if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
+  for (const id of esc.exi || []) M.mover(e, id, 'exilio');        // exilarDe (CR 406)
   if ((esc.rev || []).length) M.log(e, J.nome, 'revela', esc.rev.map(id => e.objs[id].n).join(', '));   // CR 701.20: só mostra
   if (c.vida) M.perderVida(e, j, c.vida);
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
