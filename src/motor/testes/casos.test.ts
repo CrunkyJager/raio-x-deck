@@ -2191,6 +2191,31 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('613.1b', "Hellkite Tyrant: só os artefatos do jogador que levou o dano (filtro ctrl 'doEvento'), não os de todos", () => {
+  const H = M.carta('Hellkite Tyrant');
+  const e = cena({ jogs: 3, campo: [[0, 'Hellkite Tyrant'], [1, 'Sol Ring'], [2, 'Sol Ring']], passo: 'principal2' }); e.pend = [];
+  const [ht, a1, a2] = e.campo;
+  for (const f of H.gat[0].fx) M.executar(e, f, { voce: 0, este: ht, alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'dano', fonte: ht, combate: true, q: 6, jog: 1 } }, null);
+  igual([e.objs[a1].ctrl, e.objs[a2].ctrl], [0, 2], 'pega só o do jogador 1');
+});
+caso('613.1b', "ganhar o controle (camada 2): Zealous Conscripts até o fim do turno (desvira, ímpeto, volta na limpeza); Roil Elemental enquanto você o controlar", () => {
+  const Z = M.carta('Zealous Conscripts'), R = M.carta('Roil Elemental');
+  ok(M.gatOk(Z.gat[0]) && M.gatOk(R.gat[0]), 'gatilhos aceitos');
+  const e = cena({ campo: [[0, 'Zealous Conscripts'], [0, 'Roil Elemental'], [1, 'Grizzly Bears', { virada: true }], [1, 'Hill Giant']], passo: 'principal2' }); e.pend = [];
+  const [zc, re, gb, hg] = e.campo;
+  const ctx = (este, alvo): any => ({ voce: 0, este, alvos: [[{ o: alvo, ts: e.objs[alvo].ts }]], ilegal: {}, lki: { alvos: [] } });
+  for (const f of Z.gat[0].fx) M.executar(e, f, ctx(zc, gb), null);
+  const o = e.objs[gb];
+  igual([o.ctrl, o.virada, M.temKw(e, o, 'pressa')], [0, false, true], 'é seu, desvirado e com ímpeto');
+  ok(M.bate(e, o, { ctrl: 'voce' }, { voce: 0 }), 'filtro ctrl voce vê o novo controlador');
+  M.executar(e, R.gat[0].fx[0], ctx(re, hg), null);
+  igual(e.objs[hg].ctrl, 0, 'Roil: Hill Giant é seu');
+  passarAte(e, 'principal1');
+  igual([e.objs[gb].ctrl, e.objs[hg].ctrl], [1, 0], 'na limpeza o Urso volta; o Gigante fica');
+  M.mover(e, re, 'cemiterio');
+  igual(e.objs[hg].ctrl, 1, 'Roil saiu: o Gigante volta ao dono');
+  M.mover(e, hg, 'mao'); M.mover(e, hg, 'campo'); igual(e.objs[hg].ctrl0, undefined, 'objeto novo (400.7)');
+});
 caso('601.3', "jogar do topo do grimório com permissão (Courser of Kruphix: terreno; Emperor Mihail II: Merfolk); só a carta do topo, só com a fonte no campo", () => {
   const e = cena({ campo: [[0, 'Courser of Kruphix'], [0, 'Emperor Mihail II'], [0, 'Island'], [0, 'Island']], passo: 'principal1' });
   const noTopo = n => { const o = e.por(0, n, { zona: 'mao' }); const J = e.jogs[0]; J.zonas.mao.splice(J.zonas.mao.indexOf(o.id), 1); J.zonas.grimorio.push(o.id); o.zona = 'grimorio'; return o; };

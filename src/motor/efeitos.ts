@@ -548,6 +548,21 @@ const H = {
       (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: f.kw || [], ...(est.length ? { est } : {}), ...(f.dura !== 'fimDoTurno' ? { sempre: true } : {}), ...(f.dura === 'proximoTurnoSeu' ? { ate: ctx.voce } : {}), ts: ++e.ts });   // sempre/enquantoNoCampo: preso ao objeto (ts); até o seu próximo turno: sai no desvirar (masmorras.ts)
     },
   },
+  // CR 613.1b / 800.4: ganhar o controle (camada 2, M.recalcCtrl em estado.ts). Sem dura = para sempre (611.2a).
+  // enquantoNoCampo = "enquanto você controlar [a fonte]": se a fonte já saiu, não faz nada (611.2b).
+  ganharControle: {
+    campos: ['dura'],
+    qtd: q => q === undefined,
+    ok: f => (f.quem === undefined || f.quem === 'voce') && [undefined, 'sempre', 'fimDoTurno', 'enquantoNoCampo'].includes(f.dura)
+      && !!f.em && (typeof f.em.alvo === 'number' || (!!f.em.todos && M.filtroOk(f.em.todos))),
+    fx(e, f, ctx) {
+      const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'), F = e.objs[ctx.este];
+      const fonte = F && F.zona === 'campo' && F.ctrl === ctx.voce ? { id: F.id, ts: F.ts, j: ctx.voce } : null;
+      if (!os.length || (f.dura === 'enquantoNoCampo' && !fonte)) return;
+      for (const o of os) { if (o.ctrl0 === undefined) o.ctrl0 = o.ctrl; (e.ctrlEf || (e.ctrlEf = [])).push({ id: o.id, ts: o.ts, j: ctx.voce, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'enquantoNoCampo' ? fonte : 'nunca' }); }
+      M.recalcCtrl(e);
+    },
+  },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
   efeitoTemporario: {
     campos: ['dura', 'est', 'subst', 'emblema', 'gat'],

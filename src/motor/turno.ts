@@ -125,6 +125,7 @@ function limpar(e) {                                                // CR 514.2:
   e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== 'turno' && e.objs[p.id] && e.objs[p.id].ts === p.ts);   // jogar até o fim do turno
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== 'turno');   // efeitoTemporario até o fim do turno
+  if (e.ctrlEf && e.ctrlEf.some(c => c.fim === 'turno')) { e.ctrlEf = e.ctrlEf.filter(c => c.fim !== 'turno'); M.recalcCtrl(e); }   // controle até o fim do turno volta (Zealous Conscripts)
 }
 // tamanho máximo de mão (CR 402.2: 7) — Reliquary Tower e cia. (est maoMax) lidos aqui até as camadas da T18
 function maoMax(e, j) {
