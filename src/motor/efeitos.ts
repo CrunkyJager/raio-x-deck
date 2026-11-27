@@ -42,6 +42,7 @@ const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['q
   && (a.custo.mana ? Object.keys(a.custo.mana).every(k => k === 'g' || k === 'x' || /^[WUBRGC]$/.test(k) || k === 'p') && (!a.custo.mana.x || (a.qtd !== undefined && qtdOk(a.qtd)))
     : a.custo.vida ? Number.isInteger(a.custo.vida)
     : a.custo.descartar ? Number.isInteger(a.custo.descartar) && a.custo.descartar > 0   // "you may discard a card. When you do…" (Awaken the Honored Dead)
+    : a.custo.virarOutros ? typeof a.custo.virarOutros === 'object' && M.filtroOk(a.custo.virarOutros.f || {}) && Object.keys(a.custo.virarOutros).every(k => k === 'f' || k === 'qtd') && Number.isInteger(a.custo.virarOutros.qtd) && a.custo.virarOutros.qtd > 0   // "you may tap five untapped artifacts… If you do" (Thousand Moons Smithy)
     : a.custo.sacrificar === 'este' ? true                                         // "unless you sacrifice this" (Withercrown dá à encantada)
     : a.custo.sacrificar ? typeof a.custo.sacrificar === 'object' && M.filtroOk(a.custo.sacrificar.f || {}) && Object.keys(a.custo.sacrificar).every(k => k === 'f' || k === 'qtd') && (a.custo.sacrificar.qtd === undefined || Number.isInteger(a.custo.sacrificar.qtd))
     : false)
@@ -345,6 +346,7 @@ function tempEstOk(s, f) {
 }
 // "a menos que [quem] pague": cada jogador de quem (em geral um só), na ordem do turno, escolhe pagar ou não; o primeiro
 // que paga impede o efeito. Mana paga na hora (pode ativar habilidade de mana, 608.2g); X da conta qtd (Esper Sentinel).
+const desviradas = (e, v, j, ctx) => M.objetosQue(e, { ...(v.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }).filter(o => !o.virada);
 function pagouParaImpedir(e, f, ctx, ask) {
   const a = f.aMenosQue, c = a.custo;
   for (const j of jogsDe(e, { ...f, quem: a.quem }, ctx)) {
@@ -353,6 +355,7 @@ function pagouParaImpedir(e, f, ctx, ask) {
     if (c.mana) { mana = { ...c.mana }; if (mana.x) { x = qtdDe(e, a.qtd, ctx); } if (M.planoMana(e, j, mana, { x }) && (!c.vida || (J.vida >= c.vida && !M.vidaFixa(e, j)))) ops.push({ a: 'pagar' }); }
     else if (c.vida) { if (J.vida >= c.vida && !M.vidaFixa(e, j)) ops.push({ a: 'pagar' }); }   // CR 119.4, 119.8
     else if (c.sacrificar === 'este') { const o = e.objs[ctx.este]; if (o && o.zona === 'campo' && o.ctrl === j) ops.push({ a: 'pagar' }); }
+    else if (c.virarOutros) { if (desviradas(e, c.virarOutros, j, ctx).length >= c.virarOutros.qtd) ops.push({ a: 'pagar' }); }
     else if (c.descartar) { if (J.zonas.mao.length >= c.descartar) ops.push({ a: 'pagar' }); }
     else if (c.sacrificar) { if (M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }, c.sacrificar.qtd || 1)) ops.push({ a: 'pagar' }); }
     const fo = e.objs[ctx.item] || e.objs[ctx.este];
@@ -361,6 +364,10 @@ function pagouParaImpedir(e, f, ctx, ask) {
     if (mana) { M.pagarComPlano(e, j, mana, { x }); if (c.vida) M.perderVida(e, j, c.vida); }
     else if (c.vida) M.perderVida(e, j, c.vida);                                                      // CR 119.4
     else if (c.sacrificar === 'este') M.mover(e, ctx.este, 'cemiterio', { sac: true });
+    else if (c.virarOutros) {                                                                        // CR 701.26a: vira as escolhidas (dispara 'vira')
+      const ids = escolherN(ask, j, 'virar', desviradas(e, c.virarOutros, j, ctx).map(o => o.id), c.virarOutros.qtd, { ctx: { op: 'virar' } });
+      for (const id of ids) M.virarObj(e, e.objs[id]);
+    }
     else if (c.descartar) {                                                                           // CR 701.9: quem descarta escolhe
       const ids = escolherN(ask, j, 'descartar', J.zonas.mao.slice(), c.descartar, { ctx: { op: 'descartar' } });
       M.descartar(e, j, ids, { ask, efeito: true });

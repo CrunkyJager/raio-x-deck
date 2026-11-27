@@ -323,7 +323,10 @@ export type RxZona = 'campo' | 'mao' | 'grimorio' | 'cemiterio' | 'exilio' | 'pi
 export interface RxAlvo {
   f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica');
   min?: number;
-  max?: number | 'qualquer';
+  /**
+   * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman)
+   */
+  max?: number | 'qualquer' | RxQtd;
   /**
    * true = quem conjura divide; 'igual' = dividido igualmente, arredondado para baixo (Fireball)
    */
@@ -955,6 +958,10 @@ export interface RxKw {
   comMarc?: {
     [k: string]: number;
   };
+  /**
+   * chute com {X}: o X anunciado com chute é pelo menos isto ("X can't be 0": Thieving Skydiver)
+   */
+  xMin?: number;
 }
 
 export interface RxAtv {

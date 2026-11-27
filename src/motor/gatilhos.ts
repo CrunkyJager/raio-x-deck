@@ -371,7 +371,7 @@ M.PROC.gatilhos = (e, P, ask) => {
       if (ops.length > 1 && ordemIndiferente(e, ops.map(o => e.pend[o.i]))) ops = ops.slice(0, 1);   // ordem não muda o resultado: não pergunta
       const op = ask(j, 'ordemGatilho', ops);
       const p = e.pend[op.i], g = M.gatilhoDe(p);
-      const ctx = { voce: j, este: p.fonte };
+      const ctx = { voce: j, este: p.fonte, ev: p.ev };                 // ev: "up to X targets" com X do evento (Mothman)
       const dg = { alvos: g.alvos || [], fx: g.fx };
       const modal = g.fx.length === 1 && g.fx[0].op === 'modal';
       const modos = modal ? M.escolherModos(e, j, dg, g.fx[0], ask, p.fonte) : null;              // 603.3c

@@ -540,7 +540,14 @@
      "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"
     },
     "semMarcador": {
-     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "string"
+      }
+     ],
      "description": "true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')"
     },
     "kw": {
@@ -551,7 +558,14 @@
      "description": "tem estas palavras-chave"
     },
     "nomeUnico": {
-     "anyOf": [{"type": "boolean"}, {"const": "criaturaOuCemiterio"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "criaturaOuCemiterio"
+      }
+     ],
      "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
     "poderAcimaBase": {
@@ -654,8 +668,16 @@
       },
       {
        "const": "qualquer"
+      },
+      {
+       "type": "object",
+       "required": [
+        "conta"
+       ],
+       "$ref": "#/$defs/qtd"
       }
-     ]
+     ],
+     "description": "N, 'qualquer' ou uma contagem (\"up to X targets\", X = as não-terreno moídas: The Wise Mothman)"
     },
     "dividir": {
      "oneOf": [
@@ -1773,6 +1795,11 @@
       "type": "integer"
      },
      "description": "fuga: 'foge com' esses marcadores (702.138c)"
+    },
+    "xMin": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "chute com {X}: o X anunciado com chute é pelo menos isto (\"X can't be 0\": Thieving Skydiver)"
     }
    }
   },

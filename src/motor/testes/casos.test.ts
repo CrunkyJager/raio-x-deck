@@ -4463,6 +4463,54 @@ caso('709.3', 'lista colada com "A // B" (carta de duas faces/portas): acha pelo
   ok(Object.values<any>(e.objs).some(o => o.n === 'Dazzling Theater'), 'virou Dazzling Theater');
 });
 
+caso('115.1d', "The Wise Mothman: moer 3 com 2 não-terreno → um gatilho com até 2 alvos (max contado do evento); +1/+1 em cada", () => {
+  ok(M.carta('The Wise Mothman').gat.every(g => M.gatOk(g)) && M.carta('The Wise Mothman').gat[2].alvos.every(a => M.alvoSuportado(a)), 'aceita');
+  const e = cena({ campo: [[0, 'The Wise Mothman'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Serra Angel']], grimorio: 0 }); e.pend = [];
+  for (const n of ['Grizzly Bears', 'Forest', 'Serra Angel']) e.por(1, n, { zona: 'grimorio' });
+  M.executar(e, { op: 'moer', quem: 'cadaOponente', qtd: 3 }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.pend.filter(p => p.n === 'The Wise Mothman').length, 1, 'um gatilho (grupo)');
+  let vistos = 0;
+  M.avancar(e); resolveCom(e, p => { if (p.tipo !== 'alvo') return -1; vistos = Math.max(vistos, p.ops.filter(o => o.a === 'alvo').length); return p.ops.findIndex(o => o.a === 'alvo'); });
+  const c = e.campo.map(id => e.objs[id]).filter(o => o.ctrl === 0 && (o.marc['+1/+1'] || 0) > 0);
+  igual(c.length, 2, 'dois alvos (e parou no 2): ' + vistos + JSON.stringify(e.log.slice(-5)));
+});
+
+caso('603.4', "Thickest in the Thicket: compra 2 no final só se a maior criatura (ou empatada) é sua", () => {
+  const g = M.carta('Thickest in the Thicket').gat[1]; ok(M.gatOk(g), 'aceita');
+  const e = cena({ campo: [[0, 'Thickest in the Thicket'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const cx = { voce: 0, este: e.campo[0] };
+  ok(M.condicao(e, g.se, cx), '2 > 1: sim');
+  e.por(1, 'Grizzly Bears'); ok(M.condicao(e, g.se, cx), 'empatada: sim');
+  e.por(1, 'Serra Angel'); ok(!M.condicao(e, g.se, cx), 'Anjo 4 do oponente: não');
+  const f = cena({ campo: [[0, 'Thickest in the Thicket']] }); ok(!M.condicao(f, g.se, { voce: 0, este: f.campo[0] }), 'sem criatura: não');
+});
+
+caso('702.33d', "Thieving Skydiver: chute {X} com X mínimo 1 — com 2 terrenos não oferece o chute; com 3, o X começa em 1", () => {
+  const e = cena({ campo: terras(2, 'Island'), mao: [[0, 'Thieving Skydiver']] });
+  M.avancar(e); conj(e, 'Thieving Skydiver');
+  ok(!(e.perg && e.perg.tipo === 'opcao'), 'sem escolha de chute');
+  const f = cena({ campo: terras(3, 'Island'), mao: [[0, 'Thieving Skydiver']] });
+  M.avancar(f); M.responder(f, f.perg.ops.findIndex(o => o.a === 'conjurar' && f.objs[o.id].n === 'Thieving Skydiver'));
+  igual(f.perg.tipo, 'opcao'); M.responder(f, f.perg.ops.findIndex(o => o.v && o.v.chute));
+  ok(f.campo.some(id => f.objs[id].n === 'Thieving Skydiver'), 'resolveu');
+  igual(f.campo.filter(id => f.objs[id].n === 'Island' && f.objs[id].virada).length, 3, 'pagou {1}{U} + X=1 (o X do chute entra no custo)');
+});
+
+caso('701.26a', "Thousand Moons Smithy: na principal pode virar 5 artefatos/criaturas desviradas suas (pagando virarOutros) e transforma; com 4, não", () => {
+  const c = M.carta('Thousand Moons Smithy'); ok(c.gat.every(g => M.gatOk(g)) && c.faces[0].gat.every(g => M.gatOk(g)), 'aceita');
+  const fx = c.gat[1].fx[0];
+  const e = cena({ campo: [[0, 'Thousand Moons Smithy'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Sol Ring'], [0, 'Llanowar Elves']] });
+  const s = objN(e, 0, 'Thousand Moons Smithy');
+  const sim = (j, t, ops) => ops.find(o => o.a === 'pagar') || ops[0];
+  M.executar(e, fx, { voce: 0, este: s.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, sim);
+  igual(s.face, 0, 'transformou (Smithy + 2 Ursos + Sol Ring + Elfo = 5)');
+  igual(e.campo.filter(id => e.objs[id].virada).length, 5, 'virou as 5');
+  const f = cena({ campo: [[0, 'Thousand Moons Smithy'], [0, 'Grizzly Bears'], [0, 'Sol Ring'], [0, 'Llanowar Elves'], [0, 'Forest']] });
+  const t = objN(f, 0, 'Thousand Moons Smithy');
+  M.executar(f, fx, { voce: 0, este: t.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, sim);
+  ok(t.face == null, 'só 4 (terreno não conta): não transforma'); igual(f.campo.filter(id => f.objs[id].virada).length, 0);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

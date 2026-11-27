@@ -244,6 +244,7 @@ M.somaCusto = (c, extra, vezes = 1) => {
   const r = { ...c };
   if (extra.g) r.g = (r.g || 0) + extra.g * vezes;
   if (extra.p && extra.p.length) r.p = [...(r.p || []), ...Array.from({ length: vezes }, () => extra.p).flat()];
+  if (extra.x) r.x = (r.x || 0) + extra.x * vezes;                  // chute {X} (Thieving Skydiver): o X entra no custo e é anunciado
   return r;
 };
 // base: um custo alternativo no lugar do custo de mana (loucura, CR 702.35b); imposto e reduções valem igual (601.2f)
