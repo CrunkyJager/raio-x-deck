@@ -2,6 +2,21 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.74.0 — 27/11/2026 · Mecânicas novas: virada para baixo (metamorfose, disfarce), velocidade, estação, copiar habilidade, cifrar, soulbond (lotes A, B, C, D, F, H, I, rodada 7)
+Testes: check 0 erros · Vitest 707 passaram · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1756/1756**.
+- Mecânicas novas na Mesa: carta virada para baixo no campo (metamorfose, disfarce; o oponente não vê qual é), velocidade ("Start your engines!") e estação, copiar habilidade, cifrar, soulbond, desenterrar pago com energia (Salvation Colossus).
+- Cartas acertadas: Valgavoth (as cartas do oponente vão para o exílio e você conjura pagando vida), Call the Spirit Dragons (cinco Dragões vence), Ruthless Technomancer, Sanctum of All, Sanctum of Shattered Heights, Breena, Brutal Hordechief, Gollum, Grim Haruspex, Howlsquad Heavy.
+- O jogador automático testado nas escolhas novas (dragar, suspender, desaparecer, concessão); custo para atacar não é mais pago sempre.
+- Duplicatas: Drana and Linvala fica a do G (o C tinha refeito); Spiteful Sliver fica a que já estava.
+- Para testar: aba Mesa → deck com Grim Haruspex, Valgavoth ou Call the Spirit Dragons.
+
+## v0.73.0 — 27/11/2026 · Mecânicas novas: suspender, desaparecer, Room (portas), perder todas as habilidades, replicar, More Than Meets the Eye (lotes A, B, C, D, F, G, I, rodada 6)
+Testes: check 0 erros · Vitest 677 passaram · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1756/1756**.
+- Mecânicas novas na Mesa: suspender (Resurgent Belief: exila com marcadores de tempo e conjura de graça no último), Room/portas (Funeral Room, Dazzling Theater: cada porta destranca separado), perder todas as habilidades (Tishana's Tidebinder, Poppet Stitcher), replicar (Hatchery Sliver), More Than Meets the Eye (Ratchet, Arcee: conjurar convertida), combate (atacar sozinha, "não bloqueada", Master of Cruelties), ataques por criatura no turno (Moraug), laço falso (só termina empatado se o estado se repete).
+- Cartas acertadas: Shigeki (exatamente X alvos), Drana and Linvala (mana de qualquer cor nas habilidades ganhas), Spiteful Sliver, Starfield of Nyx, Strong (radiação vira ganho de vida), Illusionist's Gambit, Lobelia.
+- Onde dois adeptos fizeram a mesma coisa ficou uma só: radiação (a do A, com o Strong do I), desaparecer (a que já estava; Dreamtide Whale), Sink into Stupor (a do C). Ruthless Technomancer e os Sanctums do H ficam para a próxima (o commit refazia Shigeki e Liberator).
+- Para testar: aba Mesa → deck com Resurgent Belief, Funeral Room, Tishana's Tidebinder ou Moraug; o registro mostra a suspensão, as portas e o "(replicar ×N)".
+
 ## v0.72.0 — 27/11/2026 · Mecânicas novas: concessão, dragar, desanexar, custo para atacar (lotes A, B, C, D, F, G, H, I, rodada 5)
 Testes: check 0 erros · Vitest 655 passaram · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1756/1756**.
 - Mecânicas novas na Mesa: concessão (bestow: Indebted Spirit vira Aura numa criatura), dragar (Life from the Loam volta para a mão no lugar da compra), desanexar, custo para atacar/bloquear, imortal (Mikaeus), lampejo para incolor e "mana gasta para conjurar" (Liberator, Boromir).

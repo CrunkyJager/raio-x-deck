@@ -183,7 +183,10 @@ M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
 M.esvaziarReservas = e => {
   for (const J of e.jogs) {
     const F = J.fica && J.fica.t === e.turno.n && e.turno.passo !== 'limpeza' ? J.fica : null, r = M.zeroMana();
-    if (F) for (const c of TIPOS) { r[c] = Math.min(J.reserva[c], F.m[c]); F.m[c] = r[c]; }
+    // ficaNoCombate (firebending): até o fim do combate — fica ao fim das etapas de combate, menos a do fim do combate
+    const C = J.ficaC && J.ficaC.t === e.turno.n && ['inicioCombate', 'atacantes', 'bloqueadores', 'dano'].includes(e.turno.passo) ? J.ficaC : null;
+    if (F || C) for (const c of TIPOS) { const f = F ? F.m[c] : 0; r[c] = Math.min(J.reserva[c], f + (C ? C.m[c] : 0)); if (F) F.m[c] = Math.min(f, r[c]); if (C) C.m[c] = r[c] - (F ? F.m[c] : 0); }
+    if (!C) J.ficaC = null;
     J.reserva = r; J.restrita = (J.restrita || []).filter(x => x.fica === e.turno.n && e.turno.passo !== 'limpeza');   // restrita com ficaNoTurno (Klauth)
   }
 };
@@ -225,6 +228,7 @@ const simbolos = (custo, x = 0) => {
     else if (/^2\/[WUBRG]$/.test(p)) s.dois.push(p[2]);                     // CR 107.4e: cor ou {2}
     else if (/^[WUBRGC]\/[WUBRG]$/.test(p)) s.hib.push([p[0], p[2]]);       // CR 107.4e híbrido
     else if (/^[WUBRG]\/[WUBRG]\/P$/.test(p)) s.hib.push([p[0], p[2], 'P']); // híbrido phyrexiano
+    else if (p === '*') s.hib.push([...CORES]);                             // interno: mana de qualquer cor paga (609.4b; Drana and Linvala)
     else throw new Error('símbolo de mana desconhecido: ' + p);
   }
   return s;
@@ -279,11 +283,15 @@ M.custoComImposto = (e, o, base?) => {
 };
 // custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
 // a.reduz: "This ability costs {1} less to activate for each …" (Voldaren Estate, Otawara) — redução da própria habilidade
-M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : comoQualquerCor(e, o, reduz({ ...a.custo.mana }, reducaoAtv(e, o, a, reducoes(e, o.ctrl, o, true))));
+M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : comoQualquerCor(e, o, reduz({ ...a.custo.mana }, reducaoAtv(e, o, a, reducoes(e, o.ctrl, o, true))), a);
 const reducaoAtv = (e, o, a, r) => { if (a.reduz !== undefined) r.g += Math.max(0, M.qtdEst(e, a.reduz, { voce: o.ctrl, este: o.id })); return r; };
 // "you may spend blue mana as though it were mana of any color to pay the activation costs of this creature's abilities"
 // (Quicksilver Elemental, CR 609.4b): cada símbolo de outra cor vira híbrido com a cor (R → R/U); incolor {C} e phyrexiano ficam
-const comoQualquerCor = (e, o, c) => {
+const comoQualquerCor = (e, o, c, a?) => {
+  if (a && a._qualquerCor && c.p && c.p.length) {   // qualquer mana paga a cor (Drana and Linvala): símbolo colorido/híbrido vira genérico; {C} e phyrexiano ficam
+    const fica = c.p.filter(p => !/^[WUBRG](\/[WUBRG])?$/.test(p));
+    return { ...c, g: (c.g || 0) + c.p.length - fica.length, p: fica };
+  }
   const s = (M.dadoDe(e, o).est || []).find(x => x.modo === 'manaComoQualquerCor' && x.afeta === 'este' && /^[WUBRG]$/.test(x.corMana || ''));
   if (!s || !c.p || !c.p.length) return c;
   return { ...c, p: c.p.map(p => /^[WUBRG]$/.test(p) && p !== s.corMana ? p + '/' + s.corMana : p) };
