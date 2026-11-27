@@ -690,7 +690,7 @@ M.qtdEst = (e, q, ctx) => {
       : os.reduce((m, o) => Math.max(m, M.poder(e, o)), 0);      // maiorPoder (sem criatura: 0)
     return v * (q.mult || 1) + (q.soma || 0);
   }
-  if (typeof q.conta === 'object') return M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
+  if (typeof q.conta === 'object') return (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
   const J = e.jogs[ctx.voce], este = e.objs[ctx.este];
   const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'cartasNoGrimorio' ? J.zonas.grimorio.length : q.conta === 'magiasNoTurno' ? magiasT(e, ctx) : q.conta === 'suaVida' ? J.vida
     : q.conta === 'oponentes' ? M.vivos(e).filter(j => j !== ctx.voce).length : q.conta === 'jogadores' ? M.vivos(e).length
@@ -859,6 +859,7 @@ const tiposCriatura = (e, o) => {
   if ((d.kw || []).some(x => x.k === 'metamorfo')) return 'todos';
   return (d.tipos || []).some(t => t === 'Creature' || t === 'Kindred' || t === 'Tribal') ? d.sub || [] : [];
 };
+M.tiposCriatura = tiposCriatura;
 const comumCom = (a, b) => a === 'todos' ? (b === 'todos' || b.length > 0) : b === 'todos' ? a.length > 0 : a.some(t => b.includes(t));
 // tipoEmComum: 'este' (a fonte), 'doEvento' (o objeto do evento: ctx.ev), 'comandante' (os seus) ou um filtro (alguma que bate)
 function tipoEmComum(e, o, ref, ctx) {
@@ -913,7 +914,7 @@ M.contaAtaque = (e, conta, voce) => {
 M.qtd = (e, q, ctx: any = {}) => {
   if (typeof q === 'number') return q;
   if (q === 'X') return ctx.x || 0;
-  if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
+  if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
   if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
   if (q && CONTA_ATK.has(q.conta)) return M.contaAtaque(e, q.conta, ctx.voce) * (q.mult || 1) + (q.soma || 0);
   if (q && CONTA_EST.has(q.conta) && qtdEstOk(q)) return M.qtdEst(e, q, ctx);   // marcadoresNoEste (de), mão, vida, devoção…

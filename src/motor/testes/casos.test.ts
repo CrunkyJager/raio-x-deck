@@ -3506,6 +3506,45 @@ caso('613.1d', "tiraTipo: deus de Theros não é criatura com devoção < 5 (Pur
   for (const c of ['Athreos, God of Passage', 'Iroas, God of Victory', 'Nylea, God of the Hunt']) ok(M.carta(c).est.filter(s => s.tiraTipo).every(s => M.estContOk(s)), c);
 });
 
+caso('701.47', "amassar: sem Armada cria a ficha 0/0 com o tipo e põe os marcadores; com Armada, só marca a que existe e dá o tipo", () => {
+  ok(M.fxSuportado([{ op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }]), 'amassar aceito');
+  const e = cena({ campo: [] });
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: {} });
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }, cx(), () => ({ a: 'nao' }));
+  const ars = () => e.campo.map(id => e.objs[id]).filter(o => (M.dadoDe(e, o).sub || []).includes('Army'));
+  igual(ars().length, 1, 'criou uma Armada');
+  const a = ars()[0];
+  igual([M.poder(e, a), M.resistencia(e, a)], [1, 1], 'Armada 1/1');
+  ok(M.dadoDe(e, a).sub.includes('Orc'), 'é Orc');
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Zombie'], qtd: 2 }, cx(), () => ({ a: 'nao' }));
+  igual(ars().length, 1, 'não cria outra');
+  igual(M.poder(e, a), 3, '+2 na mesma');
+  ok(M.dadoDe(e, a).sub.includes('Zombie'), 'virou Zombie também');
+});
+
+caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores de experiência seus, poder e marcadores da que morreu (LKI)", () => {
+  for (const c of ['Chasm Skulker', 'Elenda, the Dusk Rose', "Elenda's Hierophant", 'Endless Ranks of the Dead', "Otharri, Suns' Glory"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: {} });
+  const zumbi = { pt: [2, 2], cores: 'B', tipos: ['Creature'], sub: ['Zombie'] };
+  const e = cena({ campo: [] });
+  M.criarFichas(e, 0, zumbi, 5);
+  M.executar(e, M.carta('Endless Ranks of the Dead').gat[0].fx[0], cx(), () => ({ a: 'nao' }));
+  igual(e.campo.length, 7, '5 Zumbis → +2');
+  e.jogs[0].marc = { experience: 3 };
+  igual(M.qtdDe(e, { conta: 'marcadoresSeus', de: 'experience' }, cx()), 3, '3 de experiência');
+  const f = cena({ campo: [[0, 'Chasm Skulker'], [0, 'Elenda, the Dusk Rose']] });
+  const sk = f.campo.map(id => f.objs[id]).find(o => o.n === 'Chasm Skulker'), el = f.campo.map(id => f.objs[id]).find(o => o.n === 'Elenda, the Dusk Rose');
+  sk.marc['+1/+1'] = 3; el.marc['+1/+1'] = 2;
+  const lk = o => ({ voce: 0, alvos: [], ilegal: {}, lki: { este: M.lkiDe(f, o) }, este: o.id });
+  const ls = lk(sk), le = lk(el);
+  M.mover(f, sk.id, 'cemiterio'); M.mover(f, el.id, 'cemiterio');
+  const antes = f.campo.length;
+  M.executar(f, M.carta('Chasm Skulker').gat[1].fx[0], ls, () => ({ a: 'nao' }));
+  igual(f.campo.length - antes, 3, 'Skulker: 3 Lulas');
+  M.executar(f, M.carta('Elenda, the Dusk Rose').gat[1].fx[0], le, () => ({ a: 'nao' }));
+  igual(f.campo.length - antes, 3 + 3, 'Elenda 1/1 com +2: 3 Vampiros');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
