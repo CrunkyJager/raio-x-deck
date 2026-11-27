@@ -65,7 +65,8 @@ try {
         }
       }
       for (const a of d.atv || []) {
-        if (a.se && !M.seOk(a.se)) anota('atv.se', n);              // "ative só se …" que o motor não lê: não ativa
+        if (a.se && !M.seOk(a.se)) anota('atv.se', n);
+        if (a.reduz !== undefined && !M.qtdEstOk(a.reduz)) anota('atv.reduz', n);   // "costs {1} less to activate for each …" (mana.ts custoAtv)              // "ative só se …" que o motor não lê: não ativa
         if (a.deMana) { if (a.custo && !M.custoManaOk(a.custo) && !M.manaEscSuportada(a)) for (const k of Object.keys(a.custo)) if (!M.custoManaOk({ [k]: a.custo[k] })) anota(`custoMana.${k}`, n); continue; }   // mana.ts: o que a habilidade de mana sabe pagar
         if (a.custo && !M.custoSuportado(a.custo)) for (const k of Object.keys(a.custo)) if (!M.custoSuportado({ [k]: a.custo[k] })) anota(`custoAtv.${k}`, n);
         if (!M.fxSuportado(a.fx, { topo: false })) fxMotivos(a.fx, false, n, 'atv');
@@ -77,7 +78,7 @@ try {
           const extra = Object.keys(s).filter(k => !['modo', 'afeta', 'p', 'r', 'kw', 'se'].includes(k) && !k.startsWith('_'));
           for (const m of ms) anota(m !== 'est continuo' ? m : s.afeta && typeof s.afeta !== 'object' && s.afeta !== 'este' ? `est continuo afeta ${s.afeta}` : extra.length ? `est continuo ${extra.join('+')}` : m, n);
         } else if (s.modo === 'reduzCusto' && M.estReduzOk) {   // mana.ts: o motor diz o que lê
-          if (M.estReduzOk(s)) continue;
+          if (M.estReduzOk(s) || (M.estReduzMiraOk && M.estReduzMiraOk(s))) continue;   // aoMirar: pilha.ts (Professor Hojo)
           const q = s.qtd && typeof s.qtd === 'object' && !M.qtdEstOk(s.qtd) ? s.qtd : null;
           const det = q ? Object.keys(q).filter(k => !['conta', 'mult', 'soma'].includes(k)).concat(q.conta && typeof q.conta === 'object' ? Object.keys(q.conta).filter(k => !M.filtroOk({ [k]: 1 })) : []) : [];
           anota(`est reduzCusto${det.length ? ' qtd ' + det.join('+') : ''}`, n);

@@ -56,6 +56,9 @@ const basico = (e, p) => {
         const ke = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._equipar && !M.anexadoA(e, o(op.id))
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));   // já na pilha: espera resolver
         if (ke >= 0) return ke;
+        // selar (702.171a): antes do combate, se ainda não está selada
+        const ks = e.turno.passo === 'principal1' ? p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._selar && !M.selada(e, o(op.id))) : -1;
+        if (ks >= 0) return ks;
         // Classe (716.2a): sobe de nível com a mana que sobrou depois das mágicas (o nível só soma habilidade)
         const kn = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._nivel
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));

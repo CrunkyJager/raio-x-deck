@@ -212,7 +212,10 @@ export interface RxFiltro {
    * cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)
    */
   cor?: string | string[];
-  zona?: RxZona;
+  /**
+   * lista = em alguma destas zonas (Visions of Glory: comandante no campo ou na zona de comando)
+   */
+  zona?: RxZona | [RxZona, RxZona, ...RxZona[]];
   virada?: boolean;
   /**
    * 'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)
@@ -252,7 +255,7 @@ export interface RxFiltro {
    */
   modificada?: boolean;
   /**
-   * foi conjurada (não só posta); com zona: conjurada DE lá ('if you cast it from your hand' = 'mao')
+   * foi conjurada (não só posta); com zona: conjurada DE lá ("if you cast it from your hand" = 'mao'; Cyclone Summoner, Wakening Sun's Avatar)
    */
   conjurada?: boolean | ('mao' | 'cemiterio' | 'exilio' | 'comando' | 'grimorio');
   /**
@@ -320,9 +323,9 @@ export interface RxFiltro {
    */
   comX?: boolean;
   /**
-   * tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)
+   * tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este); "sacrificada" = a primeira permanente sacrificada por este efeito (Braids, Arisen Nightmare)
    */
-  tipoCartaEmComum?: 'este' | RxFiltro;
+  tipoCartaEmComum?: 'este' | 'sacrificada' | RxFiltro;
   /**
    * não é o objeto escolhido como alvo N desta mágica/habilidade ("each other creature" depois de mirar uma: Chandra's Ignition)
    */
@@ -331,6 +334,24 @@ export interface RxFiltro {
    * não tem este nome ("not named Tiamat")
    */
   naoNome?: string;
+  /**
+   * Montaria selada neste turno (702.171b)
+   */
+  selada?: boolean;
+  /**
+   * bate em ao menos um destes (junto com os outros campos): "a Human or artifact card" = ou [{sub:[Human]}, {tipo:[Artifact]}] (Boromir, Gondor's Hope)
+   *
+   * @minItems 2
+   */
+  ou?: [RxFiltro, RxFiltro, ...RxFiltro[]];
+  /**
+   * posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')
+   */
+  postaPorEste?: boolean;
+  /**
+   * mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um ("a spell that targets only Zada")
+   */
+  soMiraEste?: true;
 }
 
 export interface RxCompara {
@@ -342,7 +363,10 @@ export interface RxCompara {
 export type RxZona = 'campo' | 'mao' | 'grimorio' | 'cemiterio' | 'exilio' | 'pilha' | 'comando' | 'qualquer';
 
 export interface RxAlvo {
-  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'magicaOuHab');
+  /**
+   * filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)
+   */
+  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'habilidade' | 'magicaOuHab');
   min?: number;
   /**
    * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman)
@@ -368,6 +392,10 @@ export interface RxAlvo {
    * um alvo para cada oponente (até 1 de cada)
    */
   porOponente?: boolean;
+  /**
+   * "with total mana value N or less": a soma do valor de mana dos escolhidos neste alvo não passa de N (Rampaging Yao Guai; CR 601.2c)
+   */
+  vmTotal?: RxQtd;
   /**
    * "another target": não pode ser o escolhido no alvo N
    */
@@ -439,9 +467,20 @@ export interface RxCustoAtv {
         f?: RxFiltro;
         qtd?: number;
         /**
+         * uma permanente para cada filtro, todas diferentes (Jarad: 'Sacrifice a Swamp and a Forest'); no lugar de f/qtd
+         */
+        e?: RxFiltro[];
+        /**
          * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
          */
         comEste?: boolean;
+        /**
+         * outro grupo sacrificado junto, com objetos diferentes (Jarad: 'Sacrifice a Swamp and a Forest')
+         */
+        tambem?: {
+          f?: RxFiltro;
+          qtd?: number;
+        };
       };
   descartar?: number;
   revelar?: {
@@ -491,6 +530,21 @@ export interface RxCustoAtv {
    * pôr esta no fundo do grimório do dono como custo (Timestream Navigator)
    */
   fundoEste?: boolean;
+  /**
+   * desvirar N permanentes viradas suas que batem em f (Halo Fountain: 'Untap two tapped creatures you control')
+   */
+  desvirarOutros?: {
+    f?: RxFiltro;
+    qtd?: number;
+  };
+  /**
+   * exercer (CR 701.43a): a fonte não desvira no próximo passo de desvirar do controlador
+   */
+  exercer?: boolean;
+  /**
+   * com descartar: só cartas que batem neste filtro ("Discard a creature card": Tortured Existence)
+   */
+  descartarF?: RxFiltro;
 }
 
 export type RxDura =
@@ -503,7 +557,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4) | fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
    */
   op:
     | 'mana'
@@ -565,7 +619,10 @@ export interface RxFx {
     | 'tomarIniciativa'
     | 'aventurar'
     | 'monstruosidade'
-    | 'olharMao';
+    | 'olharMao'
+    | 'resolverCaso'
+    | 'selar'
+    | 'tirarDoCombate';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -655,7 +712,12 @@ export interface RxFx {
     };
   };
   modos?: RxFxs[];
-  cada?: RxJogador | RxFiltro;
+  cada?:
+    | RxJogador
+    | RxFiltro
+    | {
+        alvo: number;
+      };
   /**
    * repetirCada / sub-efeito
    */
@@ -782,6 +844,14 @@ export interface RxFx {
      * N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)
      */
     porTipo?: string[];
+    /**
+     * põe 1 marcador deste tipo em cada uma que fica (Promise of Loyalty: 'vow')
+     */
+    marcaFicam?: string;
+    /**
+     * as que ficam não podem atacar você (quem resolve) nem seus planeswalkers enquanto tiverem o marcador de marcaFicam (Promise of Loyalty)
+     */
+    votoContra?: boolean;
   };
   /**
    * op ficha: cria qtd fichas PARA CADA jogador atacado, cada grupo atacando aquele jogador (Adeline, Ainok Strike Leader, Soaring Lightbringer)
@@ -792,7 +862,7 @@ export interface RxFx {
    */
   naoDesvira?: boolean;
   /**
-   * op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
+   * copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
    */
   fonte?: RxObjeto;
   /**
@@ -824,9 +894,41 @@ export interface RxFx {
    */
   soSub?: boolean;
   /**
+   * cavar: no máximo uma carta de cada subtipo do f.sub ("an Angel card, a Demon card, and/or a Dragon card": Kaalia, Zenith Seeker)
+   */
+  umDeCada?: boolean;
+  /**
    * buscar: as cartas pegas têm nomes diferentes entre si ("that each have different names": Tiamat)
    */
   nomesDiferentes?: boolean;
+  /**
+   * animar: supertipos a mais ("becomes a legendary 6/6…", Cacophony Unleashed) | copiarPermanente: supertipos além dos copiados ("it's legendary in addition to its other types": Sarkhan)
+   */
+  super?: string[];
+  /**
+   * com pagando {mana:{x:1}}: "you may pay {X}, where X is less than or equal to N" — você escolhe o X (0…N); o efeito lê o X pago (qtd 'X'; Well of Lost Dreams)
+   */
+  xAte?: RxQtd;
+  /**
+   * copiarPermanente: "except its name is [este]" (707.9b; Sunfrill Imitator, Sarkhan Soul Aflame)
+   */
+  mantemNome?: boolean;
+  /**
+   * copiarPermanente: "and it has this ability" — fica com as habilidades desencadeadas impressas dela (Sunfrill Imitator)
+   */
+  mantemGat?: boolean;
+  /**
+   * cavar: pega até UM de cada subtipo da lista (Kaalia, Zenith Seeker: 'an Angel, a Demon, and/or a Dragon')
+   */
+  umPorSub?: string[];
+  /**
+   * op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)
+   */
+  habilDe?: RxObjeto;
+  /**
+   * copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)
+   */
+  cadaOutroAlvo?: true;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -877,7 +979,10 @@ export interface RxCond {
     min?: number;
   };
   esteEm?: RxZona[];
-  turno?: 'seu' | 'deOutro';
+  /**
+   * doEvento: é o turno do jogador do evento ("draws a card during their turn": Wedding Ring)
+   */
+  turno?: 'seu' | 'deOutro' | 'doEvento';
   /**
    * o 'se fizer' / 'se não fizer' do efeito anterior
    */
@@ -893,7 +998,7 @@ export interface RxCond {
    */
   vidaOponenteMax?: number;
   conjuradaCom?:
-    'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke' | 'alternativo' | 'impending';
+    'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'exilio' | 'madness' | 'evoke' | 'alternativo' | 'impending';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -925,13 +1030,17 @@ export interface RxCond {
     nao?: boolean;
   };
   /**
-   * condição nomeada: metalcraft, blessing, maxspeed…
+   * condição nomeada: metalcraft, blessing, maxspeed…; solved (este Caso está resolvido, 719.3)
    */
   palavra?: string;
   /**
    * você é o monarca
    */
   monarca?: boolean;
+  /**
+   * existe um monarca na partida (false = "if there is no monarch": Crown of Gondor)
+   */
+  haMonarca?: boolean;
   /**
    * true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)
    */
@@ -980,11 +1089,15 @@ export interface RxCond {
    * o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)
    */
   eventoMais?: 'mao' | 'terrenos' | 'vida';
+  /**
+   * a condição de dentro NÃO vale ("unless you have the city's blessing": {nao:{palavra:'blessing'}}; Wayward Swordtooth)
+   */
+  nao?: RxCond;
 }
 
 export interface RxKw {
   /**
-   * sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
+   * comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
    */
   k:
     | 'voar'
@@ -1034,6 +1147,8 @@ export interface RxKw {
     | 'mentor'
     | 'proeza'
     | 'tripular'
+    | 'selar'
+    | 'investida'
     | 'fabricar'
     | 'posVida'
     | 'cascata'
@@ -1063,8 +1178,16 @@ export interface RxKw {
     | 'intimidar'
     | 'decaida'
     | 'infectar'
-    | 'fuga';
+    | 'fuga'
+    | 'prototipo'
+    | 'comecaNoCampo'
+    | 'converter';
   custo?: RxMana;
+  /**
+   * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
+   */
+  pt?: number[];
+  cores?: string;
   n?: number;
   /**
    * proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
@@ -1108,9 +1231,16 @@ export interface RxAtv {
    * "Activate only if …"
    */
   se?: RxCond;
+  /**
+   * "This ability costs {1} less to activate for each …": tira N do genérico desta habilidade (CR 601.2f/602.2b; Voldaren Estate, Otawara)
+   */
+  reduz?: RxQtd;
 }
 
 export interface RxGat {
+  /**
+   * portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)
+   */
   ev:
     | 'cicla'
     | 'desvira'
@@ -1148,7 +1278,10 @@ export interface RxGat {
     | 'sala'
     | 'tomaIniciativa'
     | 'nivel'
-    | 'monstruosa';
+    | 'monstruosa'
+    | 'portador'
+    | 'ativa'
+    | 'gasta';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1208,7 +1341,7 @@ export interface RxGat {
    */
   nesteTurno?: boolean;
   /**
-   * capitulo: número do capítulo da saga
+   * capitulo: número do capítulo da saga; gasta: N de "whenever you expend N" (a N-ésima mana gasta em mágicas no turno; Wandertale Mentor)
    */
   n?: number;
   /**
@@ -1251,11 +1384,15 @@ export interface RxGat {
    * ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)
    */
   naoPrimeira?: boolean;
+  /**
+   * ev alvoDe: só quando o que mira é uma habilidade ATIVADA ("becomes the target of an activated ability", Professor Hojo)
+   */
+  porAtivada?: boolean;
 }
 
 export interface RxEst {
   /**
-   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
    */
   modo:
     | 'continuo'
@@ -1292,7 +1429,9 @@ export interface RxEst {
     | 'custoProibido'
     | 'naoGanhaVida'
     | 'equiparComoInstantanea'
-    | 'primeiroEquiparGratis';
+    | 'primeiroEquiparGratis'
+    | 'darRondar'
+    | 'manaComoQualquerCor';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1314,6 +1453,10 @@ export interface RxEst {
    */
   camada?: string;
   de?: RxZona;
+  /**
+   * podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage) | podeJogar: a mágica conjurada assim vai para o exílio em vez do cemitério (Kess: 'If a spell cast this way would be put into your graveyard, exile it instead')
+   */
+  exilaAoSair?: boolean;
   limite?: number;
   gratis?: boolean;
   /**
@@ -1357,7 +1500,7 @@ export interface RxEst {
     f?: RxFiltro;
   };
   /**
-   * aumentaCusto: só mágicas/habilidades que miram o afetado
+   * aumentaCusto/reduzCusto: só mágicas/habilidades que miram o afetado (reduzCusto aoMirar: só com deHabil, Professor Hojo)
    */
   aoMirar?: boolean;
   /**
@@ -1400,6 +1543,14 @@ export interface RxEst {
    * reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')
    */
   minimo?: number;
+  /**
+   * manaComoQualquerCor: a cor da mana que vale por qualquer cor ("spend blue mana as though it were mana of any color")
+   */
+  corMana?: 'W' | 'U' | 'B' | 'R' | 'G';
+  /**
+   * reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)
+   */
+  primeiraNoSeuTurno?: boolean;
 }
 
 /**
@@ -1407,7 +1558,7 @@ export interface RxEst {
  */
 export interface RxSubst {
   /**
-   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal)
+   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal) · explorar: quem (a criatura que exploraria) + muda.mult: explora N vezes (Topography Tracker)
    */
   ev:
     | 'entra'
@@ -1420,7 +1571,8 @@ export interface RxSubst {
     | 'anulada'
     | 'vidaMuda'
     | 'ganhaVida'
-    | 'moer';
+    | 'moer'
+    | 'explorar';
   quem?: RxFiltro;
   muda?: {
     virada?: boolean;
@@ -1455,6 +1607,10 @@ export interface RxSubst {
      */
     teto?: number;
     /**
+     * com prevenir: cria uma desta ficha para cada 1 de dano prevenido assim (Inkshield, CR 615)
+     */
+    fichaPorDano?: RxToken;
+    /**
      * quantas fichas a mais (padrão 1)
      */
     maisQtd?: number;
@@ -1480,6 +1636,10 @@ export interface RxSubst {
    * compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)
    */
   naoPrimeira?: boolean;
+  /**
+   * dano com muda.prevenir: efeitos da própria substituição depois de prevenir; conta resultado = o dano prevenido (Bloatfly Swarm)
+   */
+  depois?: RxFxs;
 }
 
 /**
@@ -1580,7 +1740,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)
    */
   o?:
     | 'quantos'
@@ -1617,8 +1777,12 @@ export interface RxContagem {
     | 'dano'
     | 'nome'
     | 'tipos'
+    | 'poderAcimaDeste'
     | 'tentacoes'
-    | 'cemiterio';
+    | 'cemiterio'
+    | 'jogadores'
+    | 'excesso'
+    | 'aoCemiterio';
   /**
    * só os que batem — turno/entraram (Éowyn, Shieldmaiden: outro Humano seu); turno/sacrificadas ("if you sacrificed a Food this turn": {sub:['Food']})
    */

@@ -464,7 +464,19 @@
      "description": "cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)"
     },
     "zona": {
-     "$ref": "#/$defs/zona"
+     "oneOf": [
+      {
+       "$ref": "#/$defs/zona"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/zona"
+       },
+       "minItems": 2
+      }
+     ],
+     "description": "lista = em alguma destas zonas (Visions of Glory: comandante no campo ou na zona de comando)"
     },
     "virada": {
      "type": "boolean"
@@ -526,8 +538,21 @@
      "description": "equipada, encantada ou com marcador"
     },
     "conjurada": {
-     "anyOf": [{"type": "boolean"}, {"enum": ["mao", "cemiterio", "exilio", "comando", "grimorio"]}],
-     "description": "foi conjurada (não só posta); com zona: conjurada DE lá ('if you cast it from your hand' = 'mao')"
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "enum": [
+        "mao",
+        "cemiterio",
+        "exilio",
+        "comando",
+        "grimorio"
+       ]
+      }
+     ],
+     "description": "foi conjurada (não só posta); com zona: conjurada DE lá (\"if you cast it from your hand\" = 'mao'; Cyclone Summoner, Wakening Sun's Avatar)"
     },
     "ouEste": {
      "type": "boolean",
@@ -538,7 +563,14 @@
      "description": "atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)"
     },
     "comMarcador": {
-     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "string"
+      }
+     ],
      "description": "texto = tem ao menos 1 marcador deste tipo; true = tem algum marcador (Mutational Advantage)"
     },
     "feridaPorEsteNoTurno": {
@@ -627,10 +659,13 @@
        "const": "este"
       },
       {
+       "const": "sacrificada"
+      },
+      {
        "$ref": "#/$defs/filtro"
       }
      ],
-     "description": "tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)"
+     "description": "tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este); \"sacrificada\" = a primeira permanente sacrificada por este efeito (Braids, Arisen Nightmare)"
     },
     "naoAlvo": {
      "type": "integer",
@@ -639,6 +674,26 @@
     "naoNome": {
      "type": "string",
      "description": "não tem este nome (\"not named Tiamat\")"
+    },
+    "selada": {
+     "type": "boolean",
+     "description": "Montaria selada neste turno (702.171b)"
+    },
+    "ou": {
+     "type": "array",
+     "minItems": 2,
+     "items": {
+      "$ref": "#/$defs/filtro"
+     },
+     "description": "bate em ao menos um destes (junto com os outros campos): \"a Human or artifact card\" = ou [{sub:[Human]}, {tipo:[Artifact]}] (Boromir, Gondor's Hope)"
+    },
+    "postaPorEste": {
+     "type": "boolean",
+     "description": "posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')"
+    },
+    "soMiraEste": {
+     "const": true,
+     "description": "mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um (\"a spell that targets only Zada\")"
     }
    }
   },
@@ -687,10 +742,12 @@
         "jogador",
         "oponente",
         "magica",
+        "habilidade",
         "magicaOuHab"
        ]
       }
-     ]
+     ],
+     "description": "filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)"
     },
     "min": {
      "type": "integer"
@@ -742,6 +799,10 @@
     "porOponente": {
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
+    },
+    "vmTotal": {
+     "$ref": "#/$defs/qtd",
+     "description": "\"with total mana value N or less\": a soma do valor de mana dos escolhidos neste alvo não passa de N (Rampaging Yao Guai; CR 601.2c)"
     },
     "diferenteDe": {
      "type": "integer",
@@ -873,9 +934,29 @@
         "qtd": {
          "type": "integer"
         },
+        "e": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/filtro"
+         },
+         "description": "uma permanente para cada filtro, todas diferentes (Jarad: 'Sacrifice a Swamp and a Forest'); no lugar de f/qtd"
+        },
         "comEste": {
          "type": "boolean",
          "description": "sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')"
+        },
+        "tambem": {
+         "type": "object",
+         "additionalProperties": false,
+         "properties": {
+          "f": {
+           "$ref": "#/$defs/filtro"
+          },
+          "qtd": {
+           "type": "integer"
+          }
+         },
+         "description": "outro grupo sacrificado junto, com objetos diferentes (Jarad: 'Sacrifice a Swamp and a Forest')"
         }
        }
       }
@@ -995,6 +1076,27 @@
     "fundoEste": {
      "type": "boolean",
      "description": "pôr esta no fundo do grimório do dono como custo (Timestream Navigator)"
+    },
+    "desvirarOutros": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "qtd": {
+       "type": "integer"
+      }
+     },
+     "description": "desvirar N permanentes viradas suas que batem em f (Halo Fountain: 'Untap two tapped creatures you control')"
+    },
+    "exercer": {
+     "type": "boolean",
+     "description": "exercer (CR 701.43a): a fonte não desvira no próximo passo de desvirar do controlador"
+    },
+    "descartarF": {
+     "$ref": "#/$defs/filtro",
+     "description": "com descartar: só cartas que batem neste filtro (\"Discard a creature card\": Tortured Existence)"
     }
    }
   },
@@ -1082,9 +1184,12 @@
       "tomarIniciativa",
       "aventurar",
       "monstruosidade",
-      "olharMao"
+      "olharMao",
+      "resolverCaso",
+      "selar",
+      "tirarDoCombate"
      ],
-     "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)"
+     "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4) | fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)"
     },
     "talvez": {
      "type": "boolean"
@@ -1122,8 +1227,14 @@
       {
        "type": "object",
        "additionalProperties": false,
-       "required": ["coresEntre"],
-       "properties": {"coresEntre": {"$ref": "#/$defs/filtro"}}
+       "required": [
+        "coresEntre"
+       ],
+       "properties": {
+        "coresEntre": {
+         "$ref": "#/$defs/filtro"
+        }
+       }
       },
       {
        "enum": [
@@ -1306,12 +1417,25 @@
      }
     },
     "cada": {
-     "oneOf": [
+     "anyOf": [
       {
        "$ref": "#/$defs/jogador"
       },
       {
        "$ref": "#/$defs/filtro"
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "alvo"
+       ],
+       "properties": {
+        "alvo": {
+         "type": "integer"
+        }
+       },
+       "description": "repetirCada: cada alvo legal do grupo N (Twinflame: uma cópia para cada)"
       }
      ]
     },
@@ -1504,6 +1628,14 @@
         "type": "string"
        },
        "description": "N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)"
+      },
+      "marcaFicam": {
+       "type": "string",
+       "description": "põe 1 marcador deste tipo em cada uma que fica (Promise of Loyalty: 'vow')"
+      },
+      "votoContra": {
+       "type": "boolean",
+       "description": "as que ficam não podem atacar você (quem resolve) nem seus planeswalkers enquanto tiverem o marcador de marcaFicam (Promise of Loyalty)"
       }
      },
      "description": "op sacrificar: cada jogador escolhe N que ficam e sacrifica o resto do filtro (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty)"
@@ -1518,7 +1650,7 @@
     },
     "fonte": {
      "$ref": "#/$defs/objeto",
-     "description": "op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
+     "description": "copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
     },
     "noDe": {
      "$ref": "#/$defs/objeto",
@@ -1548,9 +1680,47 @@
      "type": "boolean",
      "description": "animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: \"It's a green Mutant… loses its other creature types\" — The Master, Transcendent)"
     },
+    "umDeCada": {
+     "type": "boolean",
+     "description": "cavar: no máximo uma carta de cada subtipo do f.sub (\"an Angel card, a Demon card, and/or a Dragon card\": Kaalia, Zenith Seeker)"
+    },
     "nomesDiferentes": {
      "type": "boolean",
      "description": "buscar: as cartas pegas têm nomes diferentes entre si (\"that each have different names\": Tiamat)"
+    },
+    "super": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "animar: supertipos a mais (\"becomes a legendary 6/6…\", Cacophony Unleashed) | copiarPermanente: supertipos além dos copiados (\"it's legendary in addition to its other types\": Sarkhan)"
+    },
+    "xAte": {
+     "$ref": "#/$defs/qtd",
+     "description": "com pagando {mana:{x:1}}: \"you may pay {X}, where X is less than or equal to N\" — você escolhe o X (0…N); o efeito lê o X pago (qtd 'X'; Well of Lost Dreams)"
+    },
+    "mantemNome": {
+     "type": "boolean",
+     "description": "copiarPermanente: \"except its name is [este]\" (707.9b; Sunfrill Imitator, Sarkhan Soul Aflame)"
+    },
+    "mantemGat": {
+     "type": "boolean",
+     "description": "copiarPermanente: \"and it has this ability\" — fica com as habilidades desencadeadas impressas dela (Sunfrill Imitator)"
+    },
+    "umPorSub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "cavar: pega até UM de cada subtipo da lista (Kaalia, Zenith Seeker: 'an Angel, a Demon, and/or a Dragon')"
+    },
+    "habilDe": {
+     "$ref": "#/$defs/objeto",
+     "description": "op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)"
+    },
+    "cadaOutroAlvo": {
+     "const": true,
+     "description": "copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)"
     }
    },
    "additionalProperties": false,
@@ -1669,8 +1839,10 @@
     "turno": {
      "enum": [
       "seu",
-      "deOutro"
-     ]
+      "deOutro",
+      "doEvento"
+     ],
+     "description": "doEvento: é o turno do jogador do evento (\"draws a card during their turn\": Wedding Ring)"
     },
     "pagou": {
      "type": "boolean",
@@ -1696,6 +1868,7 @@
       "kicker",
       "flashback",
       "cemiterio",
+      "exilio",
       "madness",
       "evoke",
       "alternativo",
@@ -1768,11 +1941,15 @@
     },
     "palavra": {
      "type": "string",
-     "description": "condição nomeada: metalcraft, blessing, maxspeed…"
+     "description": "condição nomeada: metalcraft, blessing, maxspeed…; solved (este Caso está resolvido, 719.3)"
     },
     "monarca": {
      "type": "boolean",
      "description": "você é o monarca"
+    },
+    "haMonarca": {
+     "type": "boolean",
+     "description": "existe um monarca na partida (false = \"if there is no monarch\": Crown of Gondor)"
     },
     "portadorDoAnel": {
      "oneOf": [
@@ -1847,6 +2024,10 @@
       "vida"
      ],
      "description": "o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)"
+    },
+    "nao": {
+     "$ref": "#/$defs/cond",
+     "description": "a condição de dentro NÃO vale (\"unless you have the city's blessing\": {nao:{palavra:'blessing'}}; Wayward Swordtooth)"
     }
    }
   },
@@ -1906,6 +2087,8 @@
       "mentor",
       "proeza",
       "tripular",
+      "selar",
+      "investida",
       "fabricar",
       "posVida",
       "cascata",
@@ -1937,12 +2120,25 @@
       "intimidar",
       "decaida",
       "infectar",
-      "fuga"
+      "fuga",
+      "prototipo",
+      "comecaNoCampo",
+      "converter"
      ],
-     "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
+     "description": "comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
     "custo": {
      "$ref": "#/$defs/mana"
+    },
+    "pt": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     },
+     "description": "prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')"
+    },
+    "cores": {
+     "type": "string"
     },
     "n": {
      "type": "integer"
@@ -2024,6 +2220,10 @@
     "se": {
      "$ref": "#/$defs/cond",
      "description": "\"Activate only if …\""
+    },
+    "reduz": {
+     "$ref": "#/$defs/qtd",
+     "description": "\"This ability costs {1} less to activate for each …\": tira N do genérico desta habilidade (CR 601.2f/602.2b; Voldaren Estate, Otawara)"
     }
    }
   },
@@ -2072,8 +2272,12 @@
       "sala",
       "tomaIniciativa",
       "nivel",
-      "monstruosa"
-     ]
+      "monstruosa",
+      "portador",
+      "ativa",
+      "gasta"
+     ],
+     "description": "portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)"
     },
     "naoMorre": {
      "type": "boolean",
@@ -2169,7 +2373,7 @@
     },
     "n": {
      "type": "integer",
-     "description": "capitulo: número do capítulo da saga"
+     "description": "capitulo: número do capítulo da saga; gasta: N de \"whenever you expend N\" (a N-ésima mana gasta em mágicas no turno; Wandertale Mentor)"
     },
     "umAlvo": {
      "type": "boolean",
@@ -2185,7 +2389,7 @@
     },
     "primeiraNoTurno": {
      "type": "boolean",
-     "description": "conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)"
+     "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
     },
     "de": {
      "$ref": "#/$defs/zona",
@@ -2211,9 +2415,9 @@
      "type": "boolean",
      "description": "ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)"
     },
-    "primeiraNoTurno": {
+    "porAtivada": {
      "type": "boolean",
-     "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
+     "description": "ev alvoDe: só quando o que mira é uma habilidade ATIVADA (\"becomes the target of an activated ability\", Professor Hojo)"
     }
    }
   },
@@ -2261,9 +2465,11 @@
       "naoGanhaVida",
       "equiparComoInstantanea",
       "primeiroEquiparGratis",
-      "naoPerdeJogo"
+      "naoPerdeJogo",
+      "darRondar",
+      "manaComoQualquerCor"
      ],
-     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
+     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
     "afeta": {
      "oneOf": [
@@ -2330,6 +2536,10 @@
     "de": {
      "$ref": "#/$defs/zona"
     },
+    "exilaAoSair": {
+     "type": "boolean",
+     "description": "podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage) | podeJogar: a mágica conjurada assim vai para o exílio em vez do cemitério (Kess: 'If a spell cast this way would be put into your graveyard, exile it instead')"
+    },
     "limite": {
      "type": "integer"
     },
@@ -2395,7 +2605,7 @@
     },
     "aoMirar": {
      "type": "boolean",
-     "description": "aumentaCusto: só mágicas/habilidades que miram o afetado"
+     "description": "aumentaCusto/reduzCusto: só mágicas/habilidades que miram o afetado (reduzCusto aoMirar: só com deHabil, Professor Hojo)"
     },
     "quem": {
      "$ref": "#/$defs/jogador",
@@ -2449,6 +2659,20 @@
      "type": "integer",
      "minimum": 1,
      "description": "reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')"
+    },
+    "corMana": {
+     "enum": [
+      "W",
+      "U",
+      "B",
+      "R",
+      "G"
+     ],
+     "description": "manaComoQualquerCor: a cor da mana que vale por qualquer cor (\"spend blue mana as though it were mana of any color\")"
+    },
+    "primeiraNoSeuTurno": {
+     "type": "boolean",
+     "description": "reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)"
     }
    }
   },
@@ -2472,9 +2696,10 @@
       "anulada",
       "vidaMuda",
       "ganhaVida",
-      "moer"
+      "moer",
+      "explorar"
      ],
-     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal)"
+     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal) · explorar: quem (a criatura que exploraria) + muda.mult: explora N vezes (Topography Tracker)"
     },
     "quem": {
      "$ref": "#/$defs/filtro"
@@ -2527,6 +2752,10 @@
        "type": "integer",
        "description": "no máximo N (previne todo menos N)"
       },
+      "fichaPorDano": {
+       "$ref": "#/$defs/token",
+       "description": "com prevenir: cria uma desta ficha para cada 1 de dano prevenido assim (Inkshield, CR 615)"
+      },
       "maisQtd": {
        "type": "integer",
        "description": "quantas fichas a mais (padrão 1)"
@@ -2570,6 +2799,10 @@
     "naoPrimeira": {
      "type": "boolean",
      "description": "compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)"
+    },
+    "depois": {
+     "$ref": "#/$defs/fxs",
+     "description": "dano com muda.prevenir: efeitos da própria substituição depois de prevenir; conta resultado = o dano prevenido (Bloatfly Swarm)"
     }
    }
   },
@@ -2733,7 +2966,7 @@
       {
        "enum": [
         "atacado",
-         "este",
+        "este",
         "voce",
         "turno",
         "combate",
@@ -2815,10 +3048,14 @@
       "dano",
       "nome",
       "tipos",
+      "poderAcimaDeste",
       "tentacoes",
-      "cemiterio"
+      "cemiterio",
+      "jogadores",
+      "excesso",
+      "aoCemiterio"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)"
     },
     "f": {
      "$ref": "#/$defs/filtro",
