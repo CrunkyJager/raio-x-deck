@@ -3462,6 +3462,16 @@ caso('602.2b', "Devoted Druid: pôr um marcador −1/−1 nela é custo — desv
   igual(d.zona, 'cemiterio', '0/0 morre');
 });
 
+caso('613.4c', "Conqueror's Flail: a equipada ganha +1/+1 por cor entre as suas permanentes (Urso verde + Krenko vermelho = +2/+2)", () => {
+  ok(M.carta("Conqueror's Flail").est.every(s => s.modo !== 'continuo' || M.estContOk(s)), 'estática aceita');
+  const e = cena({ campo: [[0, "Conqueror's Flail"], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Sol Ring'], [1, 'Lightning Greaves']] });
+  const fl = objN(e, 0, "Conqueror's Flail"), b = objN(e, 0, 'Grizzly Bears');
+  fl.anexo = { id: b.id, ts: b.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  igual([M.poder(e, b), M.resistencia(e, b)], [3, 3], 'uma cor (verde): +1/+1');
+  e.por(0, 'Krenko, Mob Boss'); e.vCamada++;
+  igual([M.poder(e, b), M.resistencia(e, b)], [4, 4], 'verde e vermelho: +2/+2');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

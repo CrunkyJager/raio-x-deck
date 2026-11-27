@@ -462,7 +462,7 @@ M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
 const CONTA_EST = new Set(['cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste', 'devocao']);
 // prop: em vez de quantos, soma/maior de uma característica dos que batem (Ghalta, The Great Henge, Metalwork Colossus, Excalibur)
-const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm']);
+const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm', 'cores']);   // cores: "for each color among permanents you control" (Conqueror's Flail, CR 105.2)
 M.PROP_EST = PROP_EST;
 const qtdEstOk = q => q === undefined || typeof q === 'number'
   || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de', 'prop'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste' || (q.conta === 'devocao' && /^[WUBRG]+$/.test(q.de)))
@@ -666,7 +666,8 @@ M.qtdEst = (e, q, ctx) => {
   if (typeof q === 'number') return q;
   if (typeof q.conta === 'object' && q.prop) {
     const os = M.objetosQue(e, q.conta, ctx);
-    const v = q.prop === 'somaVm' ? os.reduce((s, o) => s + (M.dadoDe(e, o).vm || 0), 0)
+    const v = q.prop === 'cores' ? new Set(os.flatMap(o => (M.dadoDe(e, o).cores || '').replace(/[^WUBRG]/g, '').split('')).filter(Boolean)).size
+      : q.prop === 'somaVm' ? os.reduce((s, o) => s + (M.dadoDe(e, o).vm || 0), 0)
       : q.prop === 'somaPoder' ? os.reduce((s, o) => s + Math.max(0, M.poder(e, o)), 0)
       : os.reduce((m, o) => Math.max(m, M.poder(e, o)), 0);      // maiorPoder (sem criatura: 0)
     return v * (q.mult || 1) + (q.soma || 0);
