@@ -86,18 +86,25 @@ M.PROC.atacar = (e, P, ask) => {
   // declarações ficam no próprio processo (P.decl) e cada resposta fecha uma etapa: com centenas de fichas, refazer
   // tudo a cada resposta ficaria cúbico. Nada muda no estado até o "pronto".
   const decl = P.decl = P.decl || {};                                                     // id → alvo
+  // incitada (701.38b): ataca quem não a incitou, se puder (só sobra o incitador se não houver outro alvo)
+  const alvosDe = id => {
+    const inc = M.tempDe(e, 'incitado').filter(({ s, t }) => M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);
+    if (!inc.length) return alvos;
+    const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
+    return fora.length ? fora : alvos;
+  };
   for (;;) {
     const livres = aptos.filter(id => !decl[id]);
     // 508.1d: quem "ataca se puder" tem que atacar (qualquer alvo cumpre); só então dá para fechar
     const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false));
     const ops = devem.length ? [] : [{ a: 'pronto' }];
     if (livres.length > 1) for (const t of alvos) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
-    for (const id of livres) for (const t of alvos) ops.push({ a: 'atacar', id, ...t });
+    for (const id of livres) for (const t of alvosDe(id)) ops.push({ a: 'atacar', id, ...t });
     if (!ops.length) break;
     const op = ask(a, 'atacar', ops, { declarados: Object.keys(decl).length });
     if (op.a === 'pronto') break;
     const t = op.jog !== undefined ? { jog: op.jog } : { o: op.o };
-    if (op.a === 'todos') for (const id of livres) decl[id] = t; else decl[op.id] = t;
+    if (op.a === 'todos') { for (const id of livres) if (alvosDe(id).some(x => x.jog === t.jog && x.o === t.o)) decl[id] = t; } else decl[op.id] = t;
     ask.etapa();
   }
   e.proc = null;

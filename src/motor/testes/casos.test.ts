@@ -3893,6 +3893,18 @@ caso('701.44a', "explorar: terreno no topo vai para a mão; não-terreno dá +1/
   for (const c of ['Path of Discovery', 'Hakbal of the Surging Soul']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c);
 });
 
+caso('701.38a', "incitar: a criatura do oponente tem que atacar e ataca outro jogador, não quem incitou; acaba no próximo turno de quem incitou", () => {
+  const e = cena({ jogs: 3, campo: [[1, 'Grizzly Bears']] });
+  const b = e.objs[e.campo[0]]; b.doente = false;
+  M.executar(e, M.carta('Taunt from the Rampart').fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  e.turno.ativo = 1; e.turno.combate = { atk: [], etapa: 0, duas: false, deu1: {} };
+  const ops: any[] = []; const ask: any = (j, t, o) => { ops.push(o); return o.find(x => x.a === 'atacar') || o[0]; }; ask.etapa = () => {};
+  M.PROC.atacar(e, { j: 1 }, ask);
+  ok(!ops[0].some(o => o.a === 'pronto'), 'tem que atacar');
+  ok(ops[0].filter(o => o.a === 'atacar').every(o => o.jog === 2 || (o.o !== undefined && e.objs[o.o].ctrl === 2)), 'só o jogador 2: ' + JSON.stringify(ops[0]));
+  ok(M.carta('Marisi, Breaker of the Coil').gat.every(g => M.gatOk(g)), 'Marisi');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

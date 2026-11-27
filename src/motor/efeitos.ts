@@ -820,6 +820,15 @@ const H = {
       }
     },
   },
+  // incitar (CR 701.38a): até o próximo turno de quem incitou, a criatura ataca em cada combate se puder e ataca um
+  // jogador que não seja quem a incitou, se puder (701.38b; combate.ts PROC.atacar). Vários incitadores somam (701.38c).
+  incitar: {
+    fx(e, f, ctx) {
+      const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo' && M.temTipo(e, o, 'Creature')); if (!os.length) return;
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: [{ modo: 'deveAtacar' }, { modo: 'incitado' }], este: null, ids: os.map(o => ({ id: o.id, ts: o.ts })), fim: ctx.voce, ts: ++e.ts });
+      M.log(e, e.jogs[ctx.voce].nome, 'incita', os.map(o => o.n).join(', '));
+    },
+  },
   // CR 603.12: gatilho reflexo ("when you do, …"): criado na resolução, dispara na hora; vai à pilha da próxima vez que
   // alguém receberia prioridade, e os alvos dele são escolhidos só então (Inti: o alvo vem depois do descarte)
   reflexo: {
