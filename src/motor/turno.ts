@@ -168,7 +168,7 @@ function proximoPasso(e) {
   // próximo turno: próximo jogador na ordem que ainda está no jogo (CR 800.4k)
   const n = e.jogs.length;
   let p = T.ativo;
-  // CR 500.7: turno extra — o criado por último vem primeiro (pilha); quem saiu do jogo perde o dele (800.4)
+  // turno extra (CR 500.7): o último criado vem primeiro; de quem saiu do jogo é pulado (800.4k)
   while (e.turnosExtra && e.turnosExtra.length && e.jogs[e.turnosExtra[e.turnosExtra.length - 1]].saiu) e.turnosExtra.pop();
   if (e.turnosExtra && e.turnosExtra.length) p = e.turnosExtra.pop();
   else do p = (p + 1) % n; while (e.jogs[p].saiu);

@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.69.0 — 27/11/2026 · Motor joga 1751 das 1756 cartas inteiras (lotes A, B, C, D, F, G + contagens)
+Testes: check 0 erros · Vitest 482/482 · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1751/1756** (eram 1714). Selo ⓘ da Mesa atualizado.
+- Cartas que tinham "falta" completadas pelos adeptos (A, G, F): custo alternativo com parte física (Force of Will, Sephara, Flare of Fortitude), tumulto (Rhythm of the Wild), intimidar, mana de "cada cor entre suas permanentes" (Faeburrow Elder, Bloom Tender), monstruosidade, Portador do Anel nas condições, "cartas compradas / vida perdida no turno", Omnath (resoluções da habilidade no turno), delve não exila os alvos.
+- Onde dois adeptos fizeram a mesma coisa ficou uma versão só (miríade, corpo-a-corpo, explorar, resoluções no turno).
+- Para testar: aba Mesa → qualquer deck; o selo ⓘ deve mostrar 1751/1756.
+
 ## v0.68.0 — 27/11/2026 · Motor: mais ~40 mecânicas e formato único de contagem (adeptos A, B, C + coordenador)
 Testes: check 0 erros · Vitest 423/423 · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1714/1756** (eram 1619). Selo ⓘ da Mesa atualizado.
 - **Contagens numa conta só** ("de onde + o quê + como junta"), pedido do Felipe: cada carta nova não cria mais um nome de contagem.

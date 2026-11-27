@@ -468,7 +468,15 @@
      "type": "boolean"
     },
     "atacando": {
-     "type": "boolean"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "oponente"
+      }
+     ],
+     "description": "'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)"
     },
     "equipada": {
      "type": "boolean",
@@ -707,6 +715,10 @@
      "type": "integer",
      "description": "alvo só existe se o modo N (fx modal) for escolhido"
     },
+    "porJogador": {
+      "type": "boolean",
+      "description": "um alvo para cada jogador (até 1 de cada; permanente = de quem controla, carta fora do campo = do dono): Afterlife from the Loam"
+    },
     "porOponente": {
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
@@ -762,7 +774,8 @@
       "escolhida",
       "anterior",
       "cadaAtual",
-      "descartadaCusto"
+      "descartadaCusto",
+      "sacrificada"
      ]
     }
    ]
@@ -1018,7 +1031,8 @@
       "incitar",
       "fundir",
       "tomarIniciativa",
-      "aventurar"
+      "aventurar",
+      "monstruosidade"
      ],
      "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)"
     },
@@ -1053,7 +1067,7 @@
      }
     },
     "prod": {
-     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)",
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)",
      "oneOf": [
       {
        "enum": [
@@ -1061,7 +1075,8 @@
         "comandante",
         "refletida",
         "escolhida",
-        "deSeusTerrenos"
+        "deSeusTerrenos",
+        "cadaCorSuas"
        ]
       },
       {
@@ -1069,6 +1084,19 @@
        "items": {
         "type": "string"
        }
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "cadaCor"
+       ],
+       "properties": {
+        "cadaCor": {
+         "$ref": "#/$defs/filtro"
+        }
+       },
+       "description": "uma mana de CADA cor entre os objetos que batem (Faeburrow Elder, Bloom Tender: 'for each color among permanents you control, add one mana of that color'); qtd multiplica cada uma"
       }
      ]
     },
@@ -1275,6 +1303,10 @@
     "emblema": {
      "type": "boolean"
     },
+    "proximaMagica": {
+     "type": "boolean",
+     "description": "efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)"
+    },
     "novoAlvo": {
      "type": "boolean",
      "description": "copiarMagica: pode escolher novos alvos"
@@ -1422,6 +1454,10 @@
     "nomesDiferentes": {
      "type": "boolean",
      "description": "buscar: as cartas pegas têm nomes diferentes entre si (\"that each have different names\": Tiamat)"
+    },
+    "trocaCor": {
+     "type": "boolean",
+     "description": "modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)"
     }
    },
    "additionalProperties": false,
@@ -1566,6 +1602,7 @@
       "sobrecarga",
       "kicker",
       "flashback",
+      "cemiterio",
       "madness",
       "evoke"
      ]
@@ -1643,8 +1680,15 @@
      "description": "você é o monarca"
     },
     "portadorDoAnel": {
-     "type": "boolean",
-     "description": "você tem um Portador do Anel (o Anel te tentou)"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "este"
+      }
+     ],
+     "description": "true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)"
     },
     "maisTerrenosOponente": {
      "enum": [
@@ -1735,7 +1779,7 @@
       "flashback",
       "afinidade",
       "convocar",
-      "improvisar",
+      "improvisar", "delve",
       "loucura",
       "milagre",
       "reconfigurar",
@@ -1901,6 +1945,7 @@
       "marcadorPosto",
       "alvoDe",
       "vira",
+      "ficaMonstruosa",
       "zonaVarios",
       "capitulo",
       "saiCemiterio",
@@ -1925,7 +1970,7 @@
     },
     "jog": {
      "$ref": "#/$defs/jogador",
-     "description": "jogador do evento (quem conjura/compra/perde vida; quem leva dano)"
+     "description": "jogador do evento (quem conjura/compra/perde vida; quem leva dano; marcadorPosto: quem pôs)"
     },
     "passo": {
      "enum": [
@@ -1943,9 +1988,10 @@
      "enum": [
       "voce",
       "cadaJogador",
-      "oponente"
+      "oponente",
+      "oponenteEscolhido"
      ],
-     "description": "ev fase: no turno de quem"
+     "description": "ev fase: no turno de quem; oponenteEscolhido (só gatilho atrasado): o oponente escolhido quando o atrasado foi criado (Faramir)"
     },
     "combate": {
      "type": "boolean"
@@ -2045,6 +2091,10 @@
     "naoPrimeira": {
      "type": "boolean",
      "description": "ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)"
+    },
+    "primeiraNoTurno": {
+     "type": "boolean",
+     "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
     }
    }
   },
@@ -2084,9 +2134,11 @@
       "darFuga",
       "darLoucura",
       "oponentesNaoProcuram",
+      "equiparComoInstantanea",
+      "primeiroEquiparGratis",
       "naoPerdeJogo"
      ],
-     "description": "naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
+     "description": "naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
     "afeta": {
      "oneOf": [
@@ -2239,6 +2291,11 @@
     "exilar": {
      "type": "integer",
      "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
+    },
+    "minimo": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')"
     }
    }
   },
@@ -2603,9 +2660,10 @@
       "dano",
       "nome",
       "tipos",
-      "cemiterio"
+      "cemiterio",
+      "tentacoes"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
     "junta": {
      "enum": [
@@ -2626,9 +2684,10 @@
     },
     "quem": {
      "enum": [
-      "oponentes"
+      "oponentes",
+      "cadaAtual"
      ],
-     "description": "de: turno — de quem (padrão: você)"
+     "description": "de: turno — de quem (padrão: você; cadaAtual = o jogador da vez no repetirCada)"
     },
     "cond": {
      "type": "string",
