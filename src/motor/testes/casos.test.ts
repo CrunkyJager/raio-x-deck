@@ -3500,6 +3500,19 @@ caso('613.1d', "Skyknight Squire: com 3 marcadores +1/+1 voa e é Cavaleiro (tip
   igual(M.poder(e, k), 4);
 });
 
+caso('118.9', "Flare of Fortitude: sem mana, conjura sacrificando uma criatura branca não-ficha (custo alternativo); sem branca, não dá", () => {
+  ok(M.carta('Flare of Fortitude').est.every(s => s.modo !== 'custoAlternativo' || M.estAltOk(s)), 'custo aceito');
+  const e = cena({ campo: [[0, 'Serra Angel'], [0, 'Grizzly Bears']], mao: [[0, 'Flare of Fortitude']] });
+  M.avancar(e);
+  ok(opsDe(e, 'conjurar').some(o => e.objs[o.id].n === 'Flare of Fortitude'), 'oferecida sem mana');
+  conj(e, 'Flare of Fortitude'); if (e.perg && e.perg.tipo === 'custo') respE(e, o => o.id === objN(e, 0, 'Serra Angel').id);
+  resolvePilha(e);
+  ok(e.jogs[0].zonas.cemiterio.map(id => e.objs[id].n).includes('Serra Angel'), 'sacrificou o Anjo');
+  const b = objN(e, 0, 'Grizzly Bears'); ok(M.temKw(e, b, 'indestrutivel') && M.temKw(e, b, 'antimagia'), 'indestrutível e antimagia');
+  const f = cena({ campo: [[0, 'Grizzly Bears']], mao: [[0, 'Flare of Fortitude']] });
+  M.avancar(f); ok(!opsDe(f, 'conjurar').length, 'sem criatura branca e sem mana: não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
