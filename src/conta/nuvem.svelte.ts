@@ -19,6 +19,7 @@ const MARCA = 'raiox:logado';
 const marca = (v: boolean) => { try { v ? localStorage.setItem(MARCA, '1') : localStorage.removeItem(MARCA); } catch (e) {} };
 
 let base: Promise<any> | null = null;
+let ja: any = null;   // o SDK já carregado (para abrir o popup do Google sem nenhum await antes: ver entrarGoogle)
 function sdk() {
   return base ??= (async () => {
     conta.carregando = true;
@@ -32,7 +33,7 @@ function sdk() {
         if (u) await listar();
       });
     });
-    return { A, F, auth, db };
+    return ja = { A, F, auth, db };
   })();
 }
 
@@ -49,12 +50,20 @@ const msgErro = (e: any) => {
 };
 async function tenta(f: () => Promise<any>) { conta.erro = ''; try { return await f(); } catch (e) { conta.erro = msgErro(e); } }
 
-export async function entrarGoogle() {
-  return tenta(async () => {
-    const { A, auth } = await sdk(), p = new A.GoogleAuthProvider();
-    try { await A.signInWithPopup(auth, p); }
-    catch (e: any) { if (/popup-blocked/.test(String(e && e.code))) { marca(true); await A.signInWithRedirect(auth, p); } else throw e; }   // a marca faz a volta do redirect carregar o SDK
+// Conserto 27/11 (o Felipe não conseguia entrar): o popup do Google tem que abrir DENTRO do clique. Antes o clique esperava
+// baixar o SDK e só depois abria o popup; Safari/celular bloqueiam o popup nesse caso, e a reserva (signInWithRedirect) não
+// funciona com o authDomain em outro domínio (firebaseapp.com x github.io: o navegador separa o armazenamento). Agora o SDK
+// é pré-carregado quando o bloco aparece na tela (preCarregar) e o popup abre sem await antes; se ainda assim bloquear, avisa.
+export function preCarregar() { sdk(); }
+export function entrarGoogle() {
+  conta.erro = '';
+  const abre = (S: any) => S.A.signInWithPopup(S.auth, new S.A.GoogleAuthProvider()).catch((e: any) => {
+    conta.erro = /popup-blocked/.test(String(e && e.code))
+      ? 'O navegador bloqueou a janela do Google. Clique de novo em "Entrar com Google" (ou libere pop-ups para este site).'
+      : msgErro(e);
   });
+  if (ja) return abre(ja);                                  // caminho normal: nenhum await entre o clique e o popup
+  return sdk().then(abre, (e: any) => { conta.erro = msgErro(e); });   // SDK ainda não chegou: tenta (Chrome no PC costuma deixar)
 }
 export async function entrarEmail(email: string, senha: string, criar: boolean) {
   return tenta(async () => {
