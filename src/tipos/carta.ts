@@ -779,7 +779,7 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke' | 'alternativo';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -858,6 +858,10 @@ export interface RxCond {
          */
         nao?: boolean;
       };
+  /**
+   * o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)
+   */
+  eventoMais?: 'mao' | 'terrenos' | 'vida';
 }
 
 export interface RxKw {
@@ -1143,7 +1147,8 @@ export interface RxEst {
     | 'darFuga'
     | 'darLoucura'
     | 'oponentesNaoProcuram'
-    | 'custoProibido';
+    | 'custoProibido'
+    | 'naoGanhaVida';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;

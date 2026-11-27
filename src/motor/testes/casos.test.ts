@@ -4014,6 +4014,39 @@ caso('101.2', "Angelic Arbiter: o oponente que conjurou mágica no turno não at
   ok(!M.podeConjurar(e, 1, bolt), 'atacou: não conjura');
 });
 
+caso('118.9', "Baleful Mastery: pelo custo alternativo {1}{B} o oponente compra; pelo custo normal, não", () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [1, 'Grizzly Bears']], mao: [[0, 'Baleful Mastery']] });
+  const m0 = e.jogs[1].zonas.mao.length;
+  M.avancar(e); conj(e, 'Baleful Mastery'); alvoObj(e, 'Grizzly Bears');
+  while (e.pilha.length && e.perg) M.responder(e, 0);
+  igual(naZona(e, 1, 'cemiterio').length + naZona(e, 1, 'exilio').length, 1, 'exilou'); igual(e.jogs[1].zonas.mao.length, m0 + 1, 'o oponente comprou');
+  const f = M.carta('Baleful Mastery').fx[1];
+  ok(!M.condicao(e, f.se, { voce: 0, opc: {} }) && M.condicao(e, f.se, { voce: 0, opc: { alt: true } }), 'só com o alternativo');
+});
+
+caso('119.7', "Archfiend of Despair: oponente não ganha vida (você ganha); no fim, cada oponente perde o que ELE perdeu no turno", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Archfiend of Despair']] });
+  igual(M.ganharVida(e, 1, 5), 0); igual(e.jogs[1].vida, 40, 'oponente não ganha');
+  ok(M.ganharVida(e, 0, 2) > 0, 'você ganha');
+  M.danoJogador(e, 1, 3); M.perderVida(e, 2, 1); M.perderVida(e, 0, 4);
+  const g = M.carta('Archfiend of Despair').gat[0];
+  for (const f of g.fx) M.executar(e, f, { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, o) => o[0]);
+  igual([e.jogs[1].vida, e.jogs[2].vida], [34, 38]);
+  ok(M.gatOk(g), 'gatOk');
+});
+
+caso('608.2c', "Battle Angels of Tyr: cada parte só se o jogador que levou o dano tem mais (mão / terrenos / vida) que cada outro", () => {
+  const e = cena({ campo: [[0, 'Battle Angels of Tyr'], [1, 'Forest'], [1, 'Forest']] });
+  const g = M.carta('Battle Angels of Tyr').gat[0], ctx: any = { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'dano', jog: 1, q: 4 } };
+  e.jogs[0].zonas.mao.length = 0; e.jogs[1].vida = 30;
+  const m0 = e.jogs[0].zonas.mao.length;
+  for (const f of g.fx) M.executar(e, f, ctx, (j, t, o) => o[0]);
+  igual(e.jogs[0].zonas.mao.length, m0 + (e.jogs[1].zonas.mao.length > m0 ? 1 : 0), 'compra se ele tem mais na mão');
+  ok(e.campo.some(id => e.objs[id].n === 'Treasure' || (e.objs[id].ficha && e.objs[id].ctrl === 0)), 'tesouro: ele tem mais terrenos');
+  igual(e.jogs[0].vida, 40, 'não ganha 3: ele tem menos vida');
+  ok(M.gatOk(g), 'gatOk');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

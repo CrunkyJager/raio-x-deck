@@ -42,7 +42,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
     case 'evento': return ['quantos', 'vida', 'dano', 'marcadores', 'resist', 'vm', 'cores'].includes(o) && chaves(c, []);
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
-    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
+    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'vidaPerdida'].includes(o) && chaves(c, []);
   }
   return false;
 }
@@ -127,6 +127,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'sacrificadas': return (ctx.sac || []).reduce((s, l) => s + (o === 'poder' ? Math.max(0, l.poder) : l.vm || 0), 0);   // LKI, 608.2h
     case 'cada':
       if (o === 'vida') return ctx.cadaAtual !== undefined ? e.jogs[ctx.cadaAtual].vida : 0;   // o jogador da vez (Dire Fleet Ravager)
+      if (o === 'vidaPerdida') { const P = ctx.cadaAtual !== undefined && e.jogs[ctx.cadaAtual].perdT; return P && P.t === e.turno.n ? P.n : 0; }   // a vida que o jogador da vez perdeu neste turno (Archfiend of Despair)
       { const cc = ctx.cadaObj, ob = cc && e.objs[cc.id]; return !ob || ob.ts !== cc.ts ? 0 : ob.marc[c.marc] || 0; }   // o objeto da vez
   }
   throw new Error('conta sem suporte: ' + JSON.stringify(c));

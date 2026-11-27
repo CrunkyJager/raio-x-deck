@@ -1538,7 +1538,8 @@
       "kicker",
       "flashback",
       "madness",
-      "evoke"
+      "evoke",
+      "alternativo"
      ]
     },
     "conjuradaNaPrincipal": {
@@ -1667,6 +1668,14 @@
       }
      ],
      "description": "você completou uma masmorra (309.7) nesta partida; {nome} = aquela masmorra (Tomb of Annihilation)"
+    },
+    "eventoMais": {
+     "enum": [
+      "mao",
+      "terrenos",
+      "vida"
+     ],
+     "description": "o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)"
     }
    }
   },
@@ -2047,7 +2056,8 @@
       "darFuga",
       "darLoucura",
       "oponentesNaoProcuram",
-      "custoProibido"
+      "custoProibido",
+      "naoGanhaVida"
      ],
      "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
     },

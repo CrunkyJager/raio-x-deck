@@ -745,6 +745,8 @@ const PROC = {
     const viaveis = opcoesConj(e, j, d).filter(op => opcOk(e, j, d, usados, custo0, op, o));
     let opc: any = viaveis.length > 1 ? ask(j, 'opcao', viaveis.map(v => ({ a: 'opcao', v })), { id: o.id }).v : viaveis[0] || {};   // 601.2b
     if (opc.presente) opc = { ...opc, jog: ask(j, 'presente', M.vivos(e).filter(x => x !== j).map(x => ({ a: 'jogador', jog: x })), { id: o.id }).jog };   // 702.174a: um oponente
+    { const cb = custoBase(e, j, o, P), a0 = altDe(e, j, o);                              // pagou o custo alternativo? ("if the {1}{B} cost was paid", Baleful Mastery)
+      if (a0 && !opc.altSac && !opc.sobrecarga && (cb === a0 || (M.vmDe(a0) === 0 && M.vmDe(cb) === 0 && !P.gratis))) opc = { ...opc, alt: true }; }
     let custo = custoOpc(d, custo0, opc, e, o);
     let x = 0;
     if (custo.x && !(P.gratis || (M.permJogar(e, j, o) || {}).gratis)) {             // CR 601.2b: anuncia o X (grátis: X = 0, 107.3b)
