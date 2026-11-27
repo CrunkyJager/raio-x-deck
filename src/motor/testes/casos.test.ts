@@ -3489,6 +3489,17 @@ caso('305.7', "tipo dado por filtro (613.1d): Dryad faz seus terrenos de todo ti
   ok(!M.temTipo(f, tk, 'Land'), 'ficha não');
 });
 
+caso('613.1d', "Skyknight Squire: com 3 marcadores +1/+1 voa e é Cavaleiro (tipo e palavra-chave na mesma estática); com 2, não", () => {
+  ok(M.carta('Skyknight Squire').est.every(s => M.estContOk(s)), 'estática aceita');
+  const e = cena({ campo: [[0, 'Skyknight Squire']] });
+  const k = objN(e, 0, 'Skyknight Squire');
+  k.marc['+1/+1'] = 2; e.vCamada = (e.vCamada || 0) + 1;
+  ok(!M.temKw(e, k, 'voar') && !M.dadoDe(e, k).sub.includes('Knight'), 'com 2: nada');
+  k.marc['+1/+1'] = 3; e.vCamada++;
+  ok(M.temKw(e, k, 'voar'), 'voa'); ok(M.dadoDe(e, k).sub.includes('Knight'), 'é Cavaleiro');
+  igual(M.poder(e, k), 4);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -26,7 +26,9 @@ M.dadoBase = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dad
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
 // que muda é guardado por dado base + mudança (WeakMap), então ler continua sem alocar.
 const TIPO_ESTE = new WeakMap<object, any[]>();
-const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if (!l) TIPO_ESTE.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub) && !s.p && !s.r && !s.kw && !s.habil))); return l as any[]; };
+// (com kw/P/R junto — Skyknight Squire "has flying and is a Knight" — fica só a parte de tipo; o resto vai pelas camadas)
+const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if (!l) TIPO_ESTE.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub))
+  .map(s => !s.p && !s.r && !s.kw && !s.habil ? s : { modo: s.modo, afeta: s.afeta, tipo: s.tipo, sub: s.sub, se: s.se }))); return l as any[]; };
 // a parte de tipo das estáticas que dão tipo/sub à 'equipada' (só {tipo, sub, se}: a kw vai pelas camadas)
 const TIPO_EQUIP = new WeakMap<object, any[]>();
 const tipoEquip = (d): any[] => { let l: any[] | undefined = TIPO_EQUIP.get(d); if (!l) TIPO_EQUIP.set(d, (l = (d.est || []).filter(s => M.estTipoEquipOk(s)).map(s => ({ tipo: s.tipo, sub: s.sub, se: s.se })))); return l as any[]; };
@@ -504,7 +506,9 @@ M.estTipoFiltroOk = s => !!s && s.modo === 'continuo' && !!s.afeta && typeof s.a
   && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
 const SEM_TIPO = new WeakMap<object, any>();
 const semTipo = s => { let r = SEM_TIPO.get(s); if (!r) { const { tipo, sub, ...x } = s; SEM_TIPO.set(s, (r = x)); } return r; };
-M.estContOk = s => M.estTipoOk(s) || M.estTipoFiltroOk(s) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
+const soTipo = s => { const r: any = { modo: s.modo, afeta: s.afeta }; for (const k of ['tipo', 'sub', 'se']) if (s[k] !== undefined) r[k] = s[k]; return r; };
+M.estContOk = s => M.estTipoOk(s) || M.estTipoFiltroOk(s)
+  || (!!s && s.afeta === 'este' && !!(s.tipo || s.sub) && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || s.habil !== undefined) && M.estTipoOk(soTipo(s)) && contOk(semTipo(s))) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
   ? M.estTipoEquipOk(s) && (!(s.p !== undefined || s.r !== undefined || (s.kw || []).length || s.habil) || contOk(semTipo(s)))
   : contOk(s));
 const contOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
