@@ -372,16 +372,18 @@ const ptCda = (e, o, i) => {
 M.ptCda = ptCda;
 // P/R (CR 613.4): 7a base ou CDA, 7c somas das camadas (estáticas 'continuo' e 'modificar' até o fim do turno), 7d marcadores.
 // A CDA vale mesmo com P/R numérico no dado: a ficha do banco escreve pt [0,0] + est ptDefinido (Gnome Soldier, token.est).
-// 7b (P/R fixado) ainda não existe: carta com ele não é lida (estContOk).
+// 7b: P/R base fixado até o fim do turno (efeitoTemporario ptDefinido, Sephiroth) vence a 7a (camadas().base).
 M.resistencia = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = ptCda(e, o, 1) ?? (typeof pt[1] === 'number' ? pt[1] : 0);
-  return b + camadas(e, o).r + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
+  const C: any = camadas(e, o);
+  const b = C.base ? C.base[1] : ptCda(e, o, 1) ?? (typeof pt[1] === 'number' ? pt[1] : 0);
+  return b + C.r + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 M.poder = (e, o) => {
   const pt = M.dadoDe(e, o).pt; if (!pt) return 0;
-  const b = ptCda(e, o, 0) ?? (typeof pt[0] === 'number' ? pt[0] : 0);
-  return b + camadas(e, o).p + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
+  const C: any = camadas(e, o);
+  const b = C.base ? C.base[0] : ptCda(e, o, 0) ?? (typeof pt[0] === 'number' ? pt[0] : 0);
+  return b + C.p + (o.marc['+1/+1'] || 0) - (o.marc['-1/-1'] || 0);
 };
 
 // ---- anexar (CR 301.5 Equipamento, 303.4 Aura, 701.3): o.anexo = {id, ts} do objeto a que está preso ----
@@ -567,7 +569,7 @@ M.tempTem = (t, o) => {
 };
 // soma dos 'modificar' até o fim do turno por objeto (id:ts). e.temp só cresce no turno (e vira [] novo na virada),
 // então o índice só acrescenta as entradas novas.
-const SOMA_T = new WeakMap<any[], { n: number; m: Map<string, { p: number; r: number; kw: any[] }> }>();
+const SOMA_T = new WeakMap<any[], { n: number; m: Map<string, { p: number; r: number; kw: any[]; base?: number[] }> }>();
 function somaTemp(temp: any[]) {
   let I = SOMA_T.get(temp);
   if (!I || I.n > temp.length) SOMA_T.set(temp, I = { n: 0, m: new Map() });
@@ -576,6 +578,7 @@ function somaTemp(temp: any[]) {
     for (const x of t.ids) {
       const k = x.id + ':' + x.ts; let v = I.m.get(k); if (!v) I.m.set(k, v = { p: 0, r: 0, kw: [] });
       v.p += t.p || 0; v.r += t.r || 0; for (const w of t.kw || []) v.kw.push(w);
+      if (t.base) v.base = t.base;   // 7b: o mais novo vale (613.7, ordem de ts = ordem do e.temp)
     }
   }
   return I.m;
@@ -622,7 +625,7 @@ function camadas(e, o, lote?: any[]) {
     }
     const T = temp.length ? somaTemp(temp).get(o.id + ':' + o.ts) : undefined;
     if (T) { p += T.p; r += T.r; for (const x of T.kw) kw.push(x); }
-    return { p, r, kw, gat, atv };
+    return { p, r, kw, gat, atv, ...(T && T.base ? { base: T.base } : {}) };
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
@@ -727,7 +730,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -769,6 +772,9 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.equipada !== undefined) { const F = e.objs[ctx.este], A = F && F.anexo; if ((!!A && A.id === o.id && A.ts === o.ts) !== !!f.equipada) return false; }
   if (f.anexadoA === 'este') { const F = e.objs[ctx.este]; if (!F || !o.anexo || o.anexo.id !== F.id || o.anexo.ts !== F.ts) return false; }
   if (f.encantada !== undefined && M.anexosDe(e, o).some(x => M.temTipo(e, x, 'Enchantment') && (M.dadoDe(e, x).sub || []).includes('Aura')) !== !!f.encantada) return false;
+  // CR 700.9: modificada = com marcador, equipada, ou encantada por Aura que o controlador dela controla
+  if (f.modificada !== undefined && (Object.values(o.marc || {}).some((n: any) => n > 0) || M.anexosDe(e, o).some(x => (M.dadoDe(e, x).sub || []).includes('Equipment')
+    || (M.temTipo(e, x, 'Enchantment') && (M.dadoDe(e, x).sub || []).includes('Aura') && x.ctrl === o.ctrl))) !== !!f.modificada) return false;
   if (f.comEquipamento !== undefined && M.anexosDe(e, o).some(x => (M.dadoDe(e, x).sub || []).includes('Equipment')) !== !!f.comEquipamento) return false;
   if (f.tipoEmComum !== undefined && !tipoEmComum(e, o, f.tipoEmComum, ctx)) return false;
   return true;

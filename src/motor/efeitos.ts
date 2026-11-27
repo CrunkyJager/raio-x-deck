@@ -314,6 +314,8 @@ function tempEstOk(s, f) {
     case 'terraExtra': return s.afeta === 'voce' && so('qtd') && Number.isInteger(s.qtd) && s.qtd > 0;               // lido em turno.ts
     case 'maoMax': return s.afeta === 'voce' && so('qtd') && (s.qtd === 'tudo' || Number.isInteger(s.qtd));
     case 'danoNaoPrevenivel': return s.afeta === 'cadaJogador' && so();                                             // efeitos.ts M.substDano
+    case 'ptDefinido': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && so('pBase', 'rBase')   // 7b (Sephiroth): e.temp.base
+      && Number.isInteger(s.pBase) && Number.isInteger(s.rBase) && f.dura === 'fimDoTurno';
     case 'naoPodeConjurar': return s.afeta === 'voce' && so();                                                         // lido em pilha.ts (M.naoConjura)
     case 'conjurarComLampejo': return s.afeta === 'voce' && so('f') && (!s.f || M.filtroOk(s.f));                   // lido em pilha.ts (M.lampejoDado)
     case 'continuo': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)        // emblema do Sorin: lido nas camadas (estado.ts)
@@ -561,7 +563,12 @@ const H = {
       // gat: habilidade disparada do emblema (114.4) ou "neste turno, sempre que…" (603.7a, Forth Eorlingas): M.evento (gatilhos.ts) a dispara sem objeto
       const D = F || e.objs[ctx.item], n = f.emblema ? 'Emblema (' + (D ? D.n : '?') + ')' : D ? D.n : '?';
       const subst = (f.subst || []).map(x => x.jog === 'doEvento' ? { ...x, _j: ctx.ev && ctx.ev.jog } : x).filter(x => !(x.jog === 'doEvento' && x._j === undefined));
-      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: f.est || [], subst, gat: f.gat || [], n, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
+      for (const s of (f.est || []).filter(x => x.modo === 'ptDefinido')) {   // 611.2c: o conjunto fica preso na resolução
+        const os = M.objetosQue(e, { zona: 'campo', ...s.afeta }, ctx).filter(o => o.zona === 'campo');
+        if (os.length) (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p: 0, r: 0, kw: [], base: [s.pBase, s.rBase], ts: ++e.ts });
+      }
+      if (!(f.est || []).some(x => x.modo !== 'ptDefinido') && !subst.length && !(f.gat || []).length) return;
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: (f.est || []).filter(x => x.modo !== 'ptDefinido'), subst, gat: f.gat || [], n, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
     },
   },
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);

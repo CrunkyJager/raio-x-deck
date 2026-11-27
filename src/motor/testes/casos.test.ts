@@ -2191,6 +2191,22 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('613.4b', "Sephiroth: criaturas modificadas (700.9) viram 7/5 base até o fim do turno (7b), o +X da 7c soma por cima; só modificada paga o custo do cemitério", () => {
+  const S = M.carta('Sephiroth, Fallen Hero');
+  ok(M.gatOk(S.gat[0]) && M.custoSuportado(S.atv[0].custo), 'gatilho e custo aceitos');
+  const e = cena({ campo: [[0, 'Sephiroth, Fallen Hero'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears']], passo: 'principal2' }); e.pend = [];
+  const [sp, u, v, w] = e.campo;
+  ok(!M.bate(e, e.objs[u], { modificada: true }, { voce: 0 }), 'sem marcador: não modificada');
+  const ctx: any = { voce: 0, este: sp, alvos: [[{ o: u, ts: e.objs[u].ts }]], ilegal: {}, lki: { alvos: [] } };
+  for (const f of S.gat[0].fx) M.executar(e, f, ctx, () => ({ a: 'sim' }));
+  const pt = id => [M.poder(e, e.objs[id]), M.resistencia(e, e.objs[id])];
+  igual([e.objs[u].marc.cell, pt(u), pt(v), pt(w)], [1, [7, 5], [2, 2], [2, 2]], 'só a com marcador vira 7/5');
+  M.executar(e, { op: 'modificar', em: 'este', p: 3, r: 3, dura: 'fimDoTurno' }, { ...ctx, este: u }, null);
+  igual(pt(u), [10, 8], '7c depois da 7b');
+  e.objs[v].marc.cell = 1; igual(pt(v), [2, 2], 'modificada depois da resolução não entra (611.2c)');
+  ok(M.objetosQue(e, { ...S.atv[0].custo.sacrificar.f }, { voce: 0 }).map(o => o.id).sort().join() === [u, v].sort().join(), 'candidatas ao sacrifício: as modificadas');
+  passarAte(e, 'principal1'); igual(pt(u), [2, 2], 'acabou na limpeza');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');
