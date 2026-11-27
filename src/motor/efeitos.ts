@@ -484,7 +484,7 @@ function criarFicha(e, j, tok0, { virada = false }: any = {}) {
   e.objs[id] = o; e.campo.push(id);
   M.campoEntra(e, id);
   if (tok.leal) o.marc.lealdade = tok.leal;
-  if (M.evento) M.evento(e, { ev: 'zona', id, de: null, para: 'campo' });
+  if (M.evento) { M.evento(e, { ev: 'zona', id, de: null, para: 'campo' }); M.evento(e, { ev: 'fichaCriada', id, j, ts: o.ts }); }   // CR 111.2: "whenever you create a token"
   return o;
 }
 M.criarFicha = criarFicha;

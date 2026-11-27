@@ -3523,6 +3523,15 @@ caso('613.1d', "modificar: subtipo e cor além dos outros, sem prazo (Liliana �
   ok(gb.zona === 'exilio', 'morreu e o gatilho ganho o exilou: ' + gb.zona);
 });
 
+caso('111.2', "gatilho de criar ficha: Mirkwood Bats (cada ficha criada: oponentes perdem 1); a do oponente não dispara; Rosie aceita", () => {
+  const e = cena({ campo: [[0, 'Mirkwood Bats']] }); e.pend = [];
+  M.criarFichas(e, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' }, 2);
+  igual(e.pend.filter(p => p.n === 'Mirkwood Bats').length, 2, 'uma por ficha');
+  e.pend = []; M.criarFichas(e, 1, { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' }, 1);
+  igual(e.pend.filter(p => p.n === 'Mirkwood Bats').length, 0, 'ficha do oponente: não');
+  for (const c of ['Rosie Cotton of South Lane', 'Mirkwood Bats', "Caretaker's Talent"]) ok(M.carta(c).gat.filter(g => g.ev === 'fichaCriada').every(g => M.gatOk(g)), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
