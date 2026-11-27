@@ -60,6 +60,8 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
 // dano (substDano), anulada (pilha.ts), morre/vaiCemiterio (estado.ts, M.destinoSaida).
 const SUBST: Record<string, (s) => boolean> = {
   entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
+    // "as criaturas dos oponentes entram viradas" (Authority of the Consuls) / "seus terrenos entram desvirados" (Spelunking)
+    || (!!s.muda && Object.keys(s.muda).length === 1 && typeof s.muda.virada === 'boolean' && !!s.quem && typeof s.quem === 'object' && !s.quem.este && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k)))
     || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo'))),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
@@ -91,7 +93,7 @@ M.SUBST = SUBST;
 // as substituições de um tipo que estão no campo, com a permanente que as tem (F)
 function substsDe(e, tipo) {
   const r: any[] = [];
-  for (const id of e.campo) { const F = e.objs[id]; if (!F) continue; for (const s of M.dadoDe(e, F).subst || []) if (tipoSubst(s) === tipo && M.substOk(s)) r.push({ F, s }); }
+  for (const id of M.indiceCampo(e).sb) { const F = e.objs[id]; if (!F) continue; for (const s of M.dadoDe(e, F).subst || []) if (tipoSubst(s) === tipo && M.substOk(s)) r.push({ F, s }); }   // índice: só quem tem substituição
   // efeitoTemporario com substituição (Spore Frog, Riot Control, Selfless Squire): vale mesmo que a fonte já tenha saído
   // (611.2b); o "você" é quem resolveu o efeito
   for (const t of e.efTemp || []) for (const s of t.subst || []) if (tipoSubst(s) === tipo) r.push({ F: { id: t.este ? t.este.id : -1, ctrl: t.ctrl }, s });
@@ -391,10 +393,20 @@ M.executar = (e, f, ctx, ask) => {
 // Em duas metades: decidirEntrada só pergunta (pode rodar de novo), aplicarEntrada mexe no estado.
 M.entrarPermanente = (e, id, ctrl, opc, ask) => M.aplicarEntrada(e, M.decidirEntrada(e, id, ctrl, opc, ask));
 // face: a face que vai entrar para cima quando não é a de agora (terreno modal, 712.9); sem ela, a do objeto
+// entra virada/desvirada pelas substituições de outras permanentes: true, false (desvirada ganha: 616.1) ou null
+function viradaPorOutras(e, ob) {
+  const fora = substsDe(e, 'entra').filter(({ F, s: x }) => x.quem && !x.quem.este && x.muda && typeof x.muda.virada === 'boolean' && F.id !== ob.id && substQuem(e, F, x, ob) && substSe(e, F, x));
+  return fora.some(r => r.s.muda.virada === false) ? false : fora.length ? true : null;
+}
 M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {}, ask) => {
   const o = e.objs[id], d = face === undefined ? M.dadoDe(e, o) : M.dadoFace(M.carta(o.n), face), ctx = { voce: ctrl, este: id };
   let vir = virada, pagaVida = 0;
-  const s = (d.subst || []).find(x => x.ev === 'entra' && x.muda && x.muda.virada && x.quem && x.quem.este);
+  // as de outras permanentes (614.12: vê a permanente como vai entrar, sob ctrl). Desvirada e virada juntas: quem controla
+  // a que entra escolhe a ordem (616.1) e aplica a desvirada por último → entra desvirada (e nem paga o "a menos que").
+  const vo = viradaPorOutras(e, { ...o, ctrl }), desv = vo === false;
+  if (vo === true) vir = true;
+  const s = desv ? null : (d.subst || []).find(x => x.ev === 'entra' && x.muda && x.muda.virada && x.quem && x.quem.este);
+  if (desv) vir = false;
   if (s && M.condicao(e, s.se, ctx)) {
     if (s.aMenosQue && ask) {
       const ops: any[] = [{ a: 'naoPagar' }], c = s.aMenosQue.custo;
@@ -479,6 +491,7 @@ function criarFicha(e, j, tok0, { virada = false }: any = {}) {
   const id = e.prox++, tok = M.fichaDe(tok0);
   const n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim();
   const o = { id, n, dono: j, ctrl: j, zona: 'campo', ts: ++e.ts, tEntrou: e.turno.n, virada, dano: 0, marc: {} as any, doente: true, cmd: false, ficha: { ...tok, n } };
+  { const vo = viradaPorOutras(e, o); if (vo !== null) o.virada = vo; }   // 614.12: Authority of the Consuls vale para ficha
   e.objs[id] = o; e.campo.push(id);
   M.campoEntra(e, id);
   if (tok.leal) o.marc.lealdade = tok.leal;

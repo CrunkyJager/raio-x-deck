@@ -3607,6 +3607,18 @@ caso('701.21', "sacrificar todas menos N (Promise of Loyalty) e \"uma de cada ti
   igual(noCampo(f).length, 3);
 });
 
+caso('614.12', "entra virada/desvirada por outra permanente: Authority of the Consuls vira a criatura do oponente; Spelunking desvira seu terreno que entraria virado", () => {
+  for (const c of ['Authority of the Consuls', "Kinjalli's Sunwing", 'Spelunking']) ok(M.carta(c).subst.every(s => M.substOk(s)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Authority of the Consuls']] });
+  const ent = (x, j, n) => { const o = x.por(j, n, { zona: 'mao' }); M.entrarPermanente(x, o.id, j, {}, (_j, _t, ops) => ops[0]); return o; };
+  const b1 = ent(e, 1, 'Grizzly Bears'), b0 = ent(e, 0, 'Hill Giant');
+  ok(b1.virada && !b0.virada, 'só a do oponente entra virada');
+  ok(M.criarFichas(e, 1, { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' }, 1)[0].virada, 'ficha do oponente também');
+  const f = cena({ campo: [[0, 'Spelunking']] });
+  const g = ent(f, 0, 'Dimir Guildgate'), h = ent(f, 1, 'Dimir Guildgate');
+  ok(!g.virada && h.virada, 'meu Guildgate desvirado; o do oponente virado');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
