@@ -2191,6 +2191,22 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('724', "Éomer: 'target player becomes the monarch' — a IA escolhe a si mesma; Faramir: na sua etapa final, se você é o monarca (603.4), 2 fichas", () => {
+  const Eo = M.carta('Éomer, King of Rohan'), Fa = M.carta('Faramir, Steward of Gondor');
+  ok(M.gatOk(Eo.gat[0]) && M.gatOk(Fa.gat[1]), 'gatilhos aceitos');
+  const e = cena({ campo: [[0, 'Faramir, Steward of Gondor']], passo: 'principal2' }); e.pend = [];
+  const IA = M.agenteBasico();
+  const r = IA(e, { j: 0, tipo: 'alvo', ops: [{ a: 'alvo', jog: 1 }, { a: 'alvo', jog: 0 }], ctx: { i: 0, de: -1, paraSi: true } });
+  igual(r, 1, 'IA escolhe ela mesma para virar monarca');
+  M.executar(e, Eo.gat[0].fx[0], { voce: 0, este: -1, alvos: [[{ jog: 1 }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.monarca, 1, 'o jogador-alvo virou o monarca');
+  const fichas = x => x.campo.filter(id => x.objs[id].ficha && x.objs[id].ctrl === 0).length;
+  passarAte(e, 'final'); M.avancar(e); resolveCom(e);
+  igual(fichas(e), 0, 'não é o monarca: sem fichas');
+  const e2 = cena({ campo: [[0, 'Faramir, Steward of Gondor']], passo: 'principal2' }); e2.pend = [];   // na principal2: o combate não trava o passarAte
+  M.virarMonarca(e2, 0); passarAte(e2, 'final'); M.avancar(e2); resolveCom(e2);
+  igual(fichas(e2), 2, 'monarca na sua etapa final: 2 fichas');
+});
 caso('613.4b', "Sephiroth: criaturas modificadas (700.9) viram 7/5 base até o fim do turno (7b), o +X da 7c soma por cima; só modificada paga o custo do cemitério", () => {
   const S = M.carta('Sephiroth, Fallen Hero');
   ok(M.gatOk(S.gat[0]) && M.custoSuportado(S.atv[0].custo), 'gatilho e custo aceitos');

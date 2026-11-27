@@ -74,7 +74,7 @@ const basico = (e, p) => {
       p.ops.forEach((op, i) => {
         let v;
         if (op.a === 'pronto') v = -1;
-        else if (op.jog !== undefined) v = op.jog === p.j ? -5 : 100 - e.jogs[op.jog].vida;
+        else if (op.jog !== undefined) v = p.ctx && p.ctx.paraSi ? (op.jog === p.j ? 1000 : 0) : op.jog === p.j ? -5 : 100 - e.jogs[op.jog].vida;   // paraSi: virar monarca (Éomer)
         else { const x = o(op.o); v = (x.ctrl === p.j ? -10 : 10) + (M.dadoDe(e, x).vm || 0); }
         if (v > bv) { bv = v; b = i; }
       });
