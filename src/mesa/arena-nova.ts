@@ -95,6 +95,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
   let rodada = 0, ultAtivo = -1, ultTurno = -1, venc = -1, fimTipo = 'mesa';
   const iDe = (o: any) => (!o || o.ficha ? -1 : idx[o.dono] && idx[o.dono].has(o.n) ? idx[o.dono].get(o.n)! : -1);
   const nomeJ = (j: number) => NOM[j] || 'J' + (j + 1);
+  // Room no campo (709.5): o nome é o das portas destrancadas; trancadas ficam marcadas
+  const trancadas = (o: any) => { const c = M.carta(o.n); return [o.portas.e ? '' : c.n, o.portas.d ? '' : c.faces[0].n].filter(Boolean).join(' e ') + ' trancada'; };
 
   // ---------- foto do estado (o quadro que a tela desenha) ----------
   let piDe = new Map<number, number>();
@@ -118,6 +120,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         const an = M.anexosDe(e, o);
         if (an.length) x.an = an.map((a: any) => ({ n: a.n, i: iDe(a), de: a.ctrl !== j ? a.ctrl : undefined }));
         if ((d.sub || []).includes('Equipment') && !M.anexadoA(e, o)) x.solto = 1;
+        if (o.portas && !(o.portas.e && o.portas.d)) x.port = trancadas(o);
         if (HS.includes(j)) piDe.set(o.id, x.pi);
         perm.push(x);
       }
@@ -154,6 +157,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
     }
     return o;
   }
+  // exilada virada para baixo (406.3): o humano só vê se pode olhar (quem olhou ao exilar: Lobelia, esconderijo, prever); sem humano, a Mesa mostra tudo
+  const veVirada = (x: any) => !HS.length || HS.some(h => (x.olham || []).includes(h));
   // fatos: {k: jogador a quem o fato pertence, tp, txt, c: índice da carta (imagem no centro), a: jogador alvo}
   function fatos(A: any, B: any) {
     const r: any[] = [];
@@ -186,7 +191,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       if (para === 'comando' && de) r.push({ k: x.dono, tp: 'efeito', txt: `${x.n} volta à zona de comando`, c: iDe(x) });
       else if (de === 'mao' && para === 'cemiterio') r.push({ k: x.dono, tp: 'efeito', txt: `${nomeJ(x.dono)} descarta ${x.n}`, c: iDe(x) });
       else if (de === 'cemiterio' && para === 'mao') r.push({ k: x.dono, tp: 'tutor', txt: `${x.n} volta do cemitério para a mão`, c: iDe(x) });
-      else if (de === 'grimorio' && para === 'exilio') r.push({ k: x.dono, tp: 'efeito', txt: `${x.n} é exilado do grimório`, c: iDe(x) });
+      else if (de === 'grimorio' && para === 'exilio') r.push(x.faceBaixo && !veVirada(x) ? { k: x.dono, tp: 'efeito', txt: `uma carta de ${nomeJ(x.dono)} é exilada virada para baixo` }
+        : { k: x.dono, tp: 'efeito', txt: `${x.n} é exilado do grimório${x.faceBaixo ? ' (virado para baixo)' : ''}`, c: iDe(x) });
     }
     for (const [, g] of entram) r.push(g.terra ? { k: g.k, tp: 'terreno', txt: `${nomeJ(g.k)} baixa ${g.nome}`, c: g.c }
       : { k: g.k, tp: g.tok ? 'efeito' : 'magia', txt: g.tok ? `${nomeJ(g.k)} cria ${g.n > 1 ? g.n + ' fichas' : 'a ficha'} ${g.nome}` : `${g.nome} entra no campo${g.n > 1 ? ' (×' + g.n + ')' : ''}`, c: g.c });
@@ -402,7 +408,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
           if (o.a === 'terreno' && o.face === undefined && ob.zona === 'mao' && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a });
           else if (o.a === 'conjurar' && ob.cmd && ob.zona === 'comando' && !ops.some(x => x.v === 'cmd')) ops.push({ v: 'cmd', n: ob.n, k });
           else if (o.a === 'conjurar' && ob.zona === 'mao' && o.face === undefined && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a, lac: !!(lacs[HK][i] && lacs[HK][i]!.length) });
-          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'suspender' ? `Suspender ${ob.n} (${(M.suspenderDe(e, ob) || {}).n} marcadores de tempo)` : o.a === 'prever' ? `Prever ${ob.n} (exila virada por {2})` : o.a === 'terreno' ? `Baixar ${ob.n} (${o.face != null ? 'outra face' : DE_ZONA[ob.zona] || ob.zona})` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + (DE_ZONA[ob.zona] || ob.zona) + ')' : ''}`, k });
+          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'destrancar' ? `Destrancar ${(o.porta === 'e' ? M.carta(ob.n) : M.carta(ob.n).faces[0]).n} (porta de ${ob.n})` : o.a === 'suspender' ? `Suspender ${ob.n} (${(M.suspenderDe(e, ob) || {}).n} marcadores de tempo)` : o.a === 'prever' ? `Prever ${ob.n} (exila virada por {2})` : o.a === 'terreno' ? `Baixar ${ob.n} (${o.face != null ? 'outra face' : DE_ZONA[ob.zona] || ob.zona})` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + (DE_ZONA[ob.zona] || ob.zona) + ')' : ''}`, k });
         });
         const mana = M.somaMana(J.reserva) + M.fontesDeMana(e, HK).length;
         const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha, reserva: M.somaMana(J.reserva) ? M.fmtMana(J.reserva) : '', passo: e.turno.passo });

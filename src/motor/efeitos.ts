@@ -1095,7 +1095,7 @@ const H = {
     },
   },
   mover: {
-    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio', 'exilaAoSair', 'tiraTipo', 'posicao'],
+    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'faceBaixo', 'aleatorio', 'exilaAoSair', 'tiraTipo', 'posicao'],
     qtd: q => qtdOk(q) || ateOk(q),
     ok: f => (['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) || (f.para === 'comando' && f.em !== undefined)) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
@@ -1125,6 +1125,7 @@ const H = {
       // vale durante a entrada (o gatilho de entrar olha na hora, 603.4); depois fica no objeto (id+ts)
       if (f.para === 'campo') ent.forEach((p, k) => { e.postoAgora = { fonte: ctx.este, id: p.id }; let o; try { o = M.aplicarEntrada(e, f.tiraTipo ? { ...p, anim: [{ tiraTipo: f.tiraTipo }] } : p); } finally { e.postoAgora = null; } if (o) o.postoPor = { fonte: ctx.este, ts: o.ts }; if (atk[k]) M.porAtacando(e, o, atk[k]); if (f.exilaAoSair && o && o.zona === 'campo') o.exilaAoSair = true; });   // desenterrar (702.84a)
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo, pos: f.posicao });
+      if (f.faceBaixo && f.para === 'exilio') for (const id of ids) { const X = e.objs[id]; if (X.zona === 'exilio') { X.faceBaixo = true; X.olham = []; } }   // 406.3: exilada virada para baixo, ninguém vê
       if (f.comEste && f.para === 'exilio') { const F = e.objs[ctx.este]; if (F) for (const id of ids) if (e.objs[id].zona === 'exilio') e.objs[id].exPor = { id: F.id, ts: (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? F.ts }; }   // "exiled with this" (607.2a)
       ctx.movidos = movidos(e, ids);
     },
@@ -1674,7 +1675,7 @@ const H = {
     },
   },
   cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
-    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'comEste', 'umDeCada'],
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'comEste', 'umDeCada', 'faceBaixo'],
     talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
     ok: f => {
       const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
@@ -1724,6 +1725,7 @@ const H = {
       const ent = plano.map(p => p.para === 'campo' ? M.decidirEntrada(e, p.id, f.sobControle === 'voce' ? ctx.voce : p.j, { virada: p.virada }, ask) : null);
       plano.forEach((p, k) => { if (p.para === 'grimorio') return; if (ent[k]) M.aplicarEntrada(e, ent[k]); else M.mover(e, p.id, p.para); });
       ctx.movidos = movidos(e, plano.map(p => p.id));
+      if (f.faceBaixo && f.para === 'exilio') for (const p of plano) { const X = e.objs[p.id]; if (X.zona === 'exilio') { X.faceBaixo = true; X.olham = [ctx.voce]; } }   // 406.3: olhou e exilou virada: só quem olhou continua vendo
       if (f.comEste && f.para === 'exilio') { const F = e.objs[ctx.este]; if (F) for (const p of plano) if (e.objs[p.id].zona === 'exilio') e.objs[p.id].exPor = { id: F.id, ts: (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? F.ts }; }   // "exile those cards" ... "a card exiled with Lobelia" (607.2a)
       if (f.resto) {                                                // de volta ao topo: na mesma ordem (uma das ordens que a regra deixa)
         const r = f.resto === 'grimorio' && !f.fundo ? resto.slice().reverse() : resto;
@@ -1788,7 +1790,7 @@ const H = {
       if (!top.length) return;
       const [esc] = escolherN(ask, ctx.voce, 'escolherCarta', top, 1, { ctx: { op: 'esconder' } });   // pergunta antes de mexer
       const F = e.objs[ctx.este], ts = (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (F && F.ts);
-      const x = M.mover(e, esc, 'exilio'); x.exPor = { id: ctx.este, ts }; x.faceBaixo = true;
+      const x = M.mover(e, esc, 'exilio'); x.exPor = { id: ctx.este, ts }; x.faceBaixo = true; x.olham = [ctx.voce];   // 702.75a: você pode olhar
       const resto = top.filter(id => id !== esc); M.embaralhar(e, resto);
       for (const id of resto) M.mover(e, id, 'grimorio', { topo: false });
       M.log(e, J.nome, 'esconde 1 de', top.length);

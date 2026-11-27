@@ -181,6 +181,15 @@ M.dadoFace = (c, face) => {
   const { faces, ...frente } = c, f = faces[0] || {};
   let d;
   if (face === 'esq') d = { ...frente, vm: M.vmDe(c.custo || {}), cores: coresDoCusto(c.custo) };   // 709.3b
+  else if (face === 'portas') {                                                                     // Room com as duas portas destrancadas (709.5): o texto das duas
+    const jun = k => [...(c[k] || []), ...(f[k] || [])];
+    d = { ...frente, custo: M.somaCusto(c.custo || {}, f.custo || {}), vm: M.vmDe(c.custo || {}) + M.vmDe(f.custo || {}), cores: coresDoCusto(M.somaCusto(c.custo || {}, f.custo || {})),
+      est: jun('est'), gat: jun('gat'), atv: jun('atv'), subst: jun('subst'), kw: jun('kw') };
+    for (const k of ['est', 'gat', 'atv', 'subst', 'kw']) if (!d[k].length) delete d[k];
+  } else if (face === 'trancada') {                                                                 // Room com as duas trancadas: sem nome, custo nem texto (709.5); fica o tipo
+    const { est, gat, atv, subst, kw, fx, alvos, ...resto } = frente;
+    d = { ...resto, custo: {}, vm: 0, cores: '' };
+  }
   else if (face === 'fundida') {                                                                   // 702.102b–d
     const n = (c.alvos || []).length;
     d = { ...frente, custo: M.somaCusto(c.custo || {}, f.custo || {}), alvos: [...(c.alvos || []), ...(f.alvos || [])],
@@ -194,6 +203,10 @@ M.dadoFace = (c, face) => {
   return d;
 };
 M.formaDe = (e, o) => (o.ficha ? null : M.carta(o.n).forma) || null;
+// Room (709.5): carta dividida com uma linha de tipo só (subtipo Room). No campo cada metade (porta) está trancada ou
+// destrancada (o.portas {e, d}); a face lida é a das portas destrancadas: 'esq', 0 (direita), 'portas' (as duas) ou 'trancada'.
+M.ehRoom = c => !!c && c.forma === 'split' && !!c.faces && (c.sub || []).includes('Room');
+M.facePortas = P => P.e && P.d ? 'portas' : P.e ? 'esq' : P.d ? 0 : 'trancada';
 
 // ---- sorteio determinístico (mulberry32; o estado guarda a semente, clone repete a sorte) ----
 M.aleat = e => {
@@ -406,8 +419,11 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   if (zona === 'cemiterio' && (zDe === 'mao' || zDe === 'grimorio') && !o.ficha) { const J = e.jogs[o.dono]; J.cemT = { t: e.turno.n, n: (J.cemT && J.cemT.t === e.turno.n ? J.cemT.n : 0) + 1 }; }   // "cards put into your graveyard from your hand or library this turn" (Welcome the Dead)
-  const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { clone: zona === 'campo' ? clone : null, clone0: null, cloneFim: null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && (!!conjDe || !!conjurada), conjDe: zona === 'campo' ? conjDe : null, xConj: 0, voto: null, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, suspensa: false, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  let faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
+  // 709.5d: a Room entra com a porta conjurada destrancada; posta no campo sem ser conjurada, com as duas trancadas
+  const portas = zona === 'campo' && !o.ficha && !clone && M.ehRoom(M.carta(o.n)) ? { e: zDe === 'pilha' && faceNova === 'esq', d: zDe === 'pilha' && faceNova === 0 } : null;
+  if (portas) faceNova = M.facePortas(portas);
+  Object.assign(o, { clone: zona === 'campo' ? clone : null, clone0: null, cloneFim: null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && (!!conjDe || !!conjurada), conjDe: zona === 'campo' ? conjDe : null, xConj: 0, voto: null, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, suspensa: false, faceBaixo: false, olham: null, portas, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole || conj.iminente) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole, iminente: !!conj.iminente } : null,
     proto: zona === 'campo' && !!conj && !!conj.prototipo });   // 702.160: conjurada como protótipo, entra com o custo/cor/P-R dele   // como foi conjurada (702.33d)
   if (zona === 'campo' && anim) o.anim = anim.map(a => ({ ...a, ts: o.ts, fim: null }));   // entra já mudada ("It's an enchantment. It's not a creature", Enduring Courage): antes dos gatilhos de entrar
@@ -424,6 +440,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
   if (zDe === 'campo' && e.ctrlEf && e.ctrlEf.length) M.recalcCtrl(e);   // a fonte do "enquanto você controlar" saiu (Roil Elemental)
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio' || zDe === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap, ...(sac && zDe === 'campo' ? { sac: true } : {}), ...(snapCem ? { snapCem } : {}) });   // snapCem: a carta como era no cemitério (saiCemiterio)   // gatilhos.js
+  if (portas && M.evento) for (const k of ['e', 'd']) if (portas[k]) M.evento(e, { ev: 'destranca', id, ts: o.ts, porta: k, j: o.ctrl });   // 709.5h: entrar destrancada também é destrancar
   if (zona === 'campo' && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1);   // CR 714.3a: a saga entra com 1 marcador de história
   if (zDe === 'campo' && e.volta && e.volta.length && snap) {        // CR 610.3: o exilado "até esta sair" volta agora (sob o dono, 610.3c)
     const vai = e.volta.filter(v => v.id === id && v.ts === snap.ts); e.volta = e.volta.filter(v => !vai.includes(v));

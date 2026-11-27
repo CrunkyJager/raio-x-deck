@@ -6735,6 +6735,54 @@ caso('702.63a', 'desaparecer 2 (Dreamtide Whale): entra com 2 de tempo; tira 1 s
   ateTurno(e, 6); igual(e.objs[w].zona, 'cemiterio', 'tirou o último: sacrificada');
 });
 
+caso('709.5d', "Room (Funeral Room // Awakening Hall): conjurada a porta da esquerda, entra só com ela destrancada; destrancar a outra é ação especial (116.2m) pagando o custo dela; 'when you unlock this door' dispara (709.5h)", () => {
+  const e = cena({ campo: terras(11, 'Swamp'), mao: [[0, 'Funeral Room']] }); e.pend = [];
+  const fr = e.jogs[0].zonas.mao[0];
+  for (const nm of ['Grizzly Bears', 'Llanowar Elves']) { const g = e.jogs[0].zonas.grimorio, id = g[0]; e.objs[id].n = nm; M.mover(e, id, 'cemiterio'); }
+  ok(!M.opcoesPrioridade(e, 0).some(o => o.a === 'destrancar'), 'na mão: nada a destrancar');
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === fr && o.face === 'esq'); resolveCom(e);
+  const o = e.objs[fr];
+  igual([o.zona, o.portas.e, o.portas.d, M.dadoDe(e, o).vm], ['campo', true, false, 3], 'entrou com a esquerda destrancada (vm 3: só a destrancada)');
+  igual((M.dadoDe(e, o).gat || []).length, 1, 'só o texto do Funeral Room');
+  ok(e.jogs[0].zonas.cemiterio.length === 2, 'nada voltou ao entrar');
+  ok(M.opcoesPrioridade(e, 0).some(op => op.a === 'destrancar' && op.id === fr && op.porta === 'd'), 'pode destrancar a direita');
+  respE(e, op => op.a === 'destrancar' && op.porta === 'd');
+  igual([o.portas.d, M.dadoDe(e, o).vm, (M.dadoDe(e, o).gat || []).length], [true, 11, 2], 'as duas destrancadas: vm somado, os dois textos');
+  igual(e.campo.filter(id => e.objs[id].virada).length, 11, 'pagou {6}{B}{B} além do {2}{B}');
+  resolveCom(e);
+  ok(['Grizzly Bears', 'Llanowar Elves'].every(n => noCampo(e).includes(n)), 'Awakening Hall: as criaturas do cemitério voltaram');
+  ok(!M.opcoesPrioridade(e, 0).some(op => op.a === 'destrancar'), 'nada mais trancado');
+});
+caso('709.5e', "Room: destrancar só com pilha vazia na principal do próprio turno; posta no campo sem conjurar entra com as duas trancadas e sem texto; conjurar a direita direto dispara o gatilho dela (709.5h)", () => {
+  const e = cena({ campo: terras(8, 'Swamp') }); e.pend = [];
+  const x = e.por(0, 'Funeral Room', { zona: 'mao' }); M.mover(e, x.id, 'campo');
+  const o = e.objs[x.id];
+  igual([o.portas.e, o.portas.d, M.dadoDe(e, o).vm, (M.dadoDe(e, o).gat || []).length], [false, false, 0, 0], 'duas trancadas: vm 0, sem texto');
+  ok(M.temTipo(e, o, 'Enchantment') && (M.dadoDe(e, o).sub || []).includes('Room'), 'fica o tipo (709.5a)');
+  ok(M.podeDestrancar(e, 0, o, 'e') && M.podeDestrancar(e, 0, o, 'd'), 'na principal: as duas');
+  e.turno.ativo = 1; ok(!M.podeDestrancar(e, 0, o, 'e'), 'turno do oponente: não'); e.turno.ativo = 0;
+  e.turno.passo = 'combate'; ok(!M.podeDestrancar(e, 0, o, 'e'), 'fora da principal: não'); e.turno.passo = 'principal1';
+  const f = cena({ campo: terras(8, 'Swamp'), mao: [[0, 'Funeral Room']] }); f.pend = [];
+  const g = f.jogs[0].zonas.grimorio, gid = g[0]; f.objs[gid].n = 'Grizzly Bears'; M.mover(f, gid, 'cemiterio');
+  M.avancar(f); respE(f, op => op.a === 'conjurar' && op.face === 0); resolveCom(f);
+  const r = f.objs[f.campo.find(id => f.objs[id].n === 'Funeral Room')];
+  igual([r.portas.e, r.portas.d], [false, true], 'entrou com a direita');
+  ok(noCampo(f).includes('Grizzly Bears'), 'entrar destrancada também é destrancar');
+});
+caso('406.3', "Lobelia: exila o topo de cada oponente virado para baixo (faceBaixo); quem olhou (o controlador) continua vendo, o oponente não; prever também exila virada", () => {
+  const e = cena({ mao: [[0, 'Lobelia, Defender of Bag End']] }); e.pend = [];
+  const lb = e.jogs[0].zonas.mao[0];
+  M.aplicarEntrada(e, { id: lb, ctrl: 0 }); M.avancar(e); resolveCom(e);
+  const ex = e.jogs[1].zonas.exilio.map(id => e.objs[id]);
+  igual(ex.length, 1, 'o topo do oponente exilado');
+  ok(ex[0].faceBaixo && ex[0].olham.includes(0) && !ex[0].olham.includes(1), 'virado; só o controlador da Lobelia olha');
+  ok(ex[0].exPor && ex[0].exPor.id === lb, 'ligado à Lobelia (607.2a)');
+  M.mover(e, ex[0].id, 'cemiterio'); ok(!e.objs[ex[0].id].faceBaixo, 'saiu do exílio: não está mais virado');
+  const sr = cena({ campo: terras(2, 'Swamp'), mao: [[0, 'Skull Raid']] }); sr.pend = [];
+  const k = sr.jogs[0].zonas.mao[0]; M.avancar(sr); respE(sr, op => op.a === 'prever');
+  ok(sr.objs[k].faceBaixo && sr.objs[k].olham.join() === '0', 'prever: virada, o dono olha (702.143a)');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;
