@@ -1317,9 +1317,16 @@
      "$ref": "#/$defs/objeto",
      "description": "moverMarcador: o objeto que recebe os marcadores (o `em` é de onde saem; Forgotten Ancient)"
     },
+    "tiraTipo": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "mover para o campo: entra sem estes tipos (\"It's an enchantment. (It's not a creature.)\", Enduring Courage)"
+    },
     "aleatorio": {
      "type": "boolean",
-     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment)"
+     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Empty the Laboratory)"
     },
     "ficaNoTurno": {
      "type": "boolean",
@@ -1717,6 +1724,7 @@
       "rondar",
       "evoluir",
       "persistir",
+      "desaparecer",
       "eternizar",
       "agregar",
       "miriade",
@@ -2548,6 +2556,7 @@
       "vidaPerdida",
       "resolucoesDestaHab",
       "oponentesAtacados",
+      "sacrificadas",
       "entraram",
       "atacantes",
       "atacantesEmVoce",
@@ -2557,6 +2566,10 @@
       "tipos"
      ],
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
+    },
+    "f": {
+     "$ref": "#/$defs/filtro",
+     "description": "turno/sacrificadas: só as que batem (\"if you sacrificed a Food this turn\": {sub:['Food']})"
     },
     "junta": {
      "enum": [

@@ -465,10 +465,10 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
   }
   return { id, ctrl, vir, pagaVida, escolha, face, clone, ...(sacEntra ? { sacEntra } : {}) };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, x = 0, marc = null, clone = null, sacEntra = null }: any) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, anim = null, x = 0, marc = null, clone = null, sacEntra = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   if (sacEntra) for (const sid of sacEntra.ids) if (e.objs[sid] && e.objs[sid].zona === 'campo') M.mover(e, sid, 'cemiterio', { sac: true });   // 701.21, antes de entrar
-  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, clone });
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, anim, clone });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
@@ -807,6 +807,14 @@ const H = {
     },
   },
   // persistir (CR 702.79a): a carta que morreu (mesmo objeto no cemitério: ev.tsCem) volta ao campo do dono com um -1/-1
+  desaparecer: {                                                    // 702.63a (vanishing), só do gatilho da palavra-chave: tira um marcador de tempo; tirou o último, sacrifica
+    ok: () => false,
+    fx(e, f, ctx) {
+      const o = e.objs[ctx.este]; if (!o || o.zona !== 'campo' || (ctx.lki.este && o.ts !== ctx.lki.este.ts) || !(o.marc.time > 0)) return;
+      o.marc.time--; M.log(e, o.n, 'perde um marcador de tempo (' + o.marc.time + ')');
+      if (o.marc.time === 0) M.mover(e, o.id, 'cemiterio', { sac: true });   // 701.21
+    },
+  },
   persistir: {
     ok: () => false,
     fx(e, f, ctx, ask) {
@@ -906,7 +914,7 @@ const H = {
     },
   },
   mover: {
-    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio'],
+    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio', 'tiraTipo'],
     qtd: q => qtdOk(q) || ateOk(q),
     ok: f => (['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) || (f.para === 'comando' && f.em !== undefined)) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
@@ -930,7 +938,7 @@ const H = {
       const ent = f.para === 'campo' ? ids.map(id => M.decidirEntrada(e, id, f.sobControle === 'voce' ? ctx.voce : e.objs[id].dono, { virada: !!f.virada, ...(f.transformada ? { face: 0 } : {}) }, ask)) : [];
       // CR 508.4: entra atacando (sem declarar: não dispara "ataca"); quem controla escolhe quem ela ataca, entre os que poderia atacar
       const atk = f.atacando && e.turno.combate ? ent.map(p => M.escolherAtacado(e, p.ctrl, ask)) : [];
-      if (f.para === 'campo') ent.forEach((p, k) => { const o = M.aplicarEntrada(e, p); if (atk[k]) M.porAtacando(e, o, atk[k]); });
+      if (f.para === 'campo') ent.forEach((p, k) => { const o = M.aplicarEntrada(e, f.tiraTipo ? { ...p, anim: [{ tiraTipo: f.tiraTipo }] } : p); if (atk[k]) M.porAtacando(e, o, atk[k]); });
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
       if (f.comEste && f.para === 'exilio') { const F = e.objs[ctx.este]; if (F) for (const id of ids) if (e.objs[id].zona === 'exilio') e.objs[id].exPor = { id: F.id, ts: (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? F.ts }; }   // "exiled with this" (607.2a)
       ctx.movidos = movidos(e, ids);
@@ -1306,7 +1314,7 @@ const H = {
     },
   },
   cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
-    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle'],
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio'],
     talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
     ok: f => {
       const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
@@ -1355,7 +1363,8 @@ const H = {
       plano.forEach((p, k) => { if (p.para === 'grimorio') return; if (ent[k]) M.aplicarEntrada(e, ent[k]); else M.mover(e, p.id, p.para); });
       ctx.movidos = movidos(e, plano.map(p => p.id));
       if (f.resto) {                                                // de volta ao topo: na mesma ordem (uma das ordens que a regra deixa)
-        const r = f.resto === 'grimorio' && !f.fundo ? resto.slice().reverse() : resto;
+        const r = f.resto === 'grimorio' && !f.fundo ? resto.slice().reverse() : resto.slice();
+        if (f.aleatorio) for (let i = r.length - 1; i > 0; i--) { const k = Math.floor(M.aleat(e) * (i + 1)); [r[i], r[k]] = [r[k], r[i]]; }   // "in a random order" (Empty the Laboratory)
         for (const id of r) M.mover(e, id, f.resto, { topo: !f.fundo });
       }
       for (const p of plano) if (p.para === 'grimorio') { const g = e.jogs[p.j].zonas.grimorio, k = g.indexOf(p.id); if (k >= 0) { g.splice(k, 1); g.push(p.id); } }   // destino grimório = fica no topo (fim da lista), depois do resto ir ao fundo

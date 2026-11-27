@@ -4437,6 +4437,60 @@ caso('602.5', "Drana and Linvala: as criaturas do oponente não ativam; ela ganh
   ok(!M.ativBloqueada(e, dr), 'a dela ativa');
 });
 
+caso('702.63a', "desaparecer 2 (Dreamtide Whale): entra com 2 de tempo; cada manutenção sua tira 1; tirou o último, sacrifica", () => {
+  const e = cena({ campo: [[0, 'Island']] });
+  const w = e.por(0, 'Dreamtide Whale', { zona: 'mao' }); M.mover(e, w.id, 'campo');
+  igual(w.marc.time, 2, 'entra com 2');
+  e.pend = []; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 1 }); igual(e.pend.length, 0, 'a do oponente: não');
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(w.marc.time, 1, 'tira 1'); igual(w.zona, 'campo', 'fica');
+  e.perg = null; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(w.zona, 'cemiterio', 'o último: sacrificada');
+});
+
+caso('701.21', "contagem {de:'turno', o:'sacrificadas', f}: Elanor Gardner só busca terreno no fim do turno se você sacrificou uma Comida neste turno", () => {
+  ok(M.carta('Elanor Gardner').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Elanor Gardner'], [0, 'Grizzly Bears']] });
+  const q = { conta: { de: 'turno', o: 'sacrificadas', f: { sub: ['Food'] } } };
+  igual(M.qtd(e, q, { voce: 0 }), 0, 'nada ainda');
+  M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio', { sac: true }); igual(M.qtd(e, q, { voce: 0 }), 0, 'Bears não é Comida');
+  const [fd] = M.criarFichas(e, 0, { nome: 'Food' }, 1); M.mover(e, fd.id, 'cemiterio', { sac: true });
+  igual(M.qtd(e, q, { voce: 0 }), 1, 'a Comida conta'); igual(M.qtd(e, q, { voce: 1 }), 0, 'do outro não');
+  e.pend = []; M.evento(e, { ev: 'fase', passo: 'final', ativo: 0 }); igual(e.pend.filter(p => p.n === 'Elanor Gardner').length, 1, 'dispara');
+  const f = cena({ campo: [[0, 'Elanor Gardner']] }); f.pend = []; M.evento(f, { ev: 'fase', passo: 'final', ativo: 0 });
+  igual(f.pend.filter(p => p.n === 'Elanor Gardner').length, 0, 'sem Comida sacrificada: não');
+});
+
+caso('701.20', "cavar aleatorio (Empty the Laboratory): os Zumbis revelados entram; o resto vai ao fundo em ordem aleatória", () => {
+  ok(M.fxSuportado(M.carta('Empty the Laboratory').fx), 'aceito');
+  const e = cena({});
+  for (const n of ['Forest', 'Island', 'Gravecrawler', 'Mountain', 'Swamp']) e.por(0, n, { zona: 'grimorio' });
+  const g0 = e.jogs[0].zonas.grimorio.length;
+  M.executar(e, { op: 'cavar', quem: 'voce', ateAchar: { f: { tipo: ['Creature'], sub: ['Zombie'] }, qtd: 1 }, pega: 'tudo', revelar: true, f: { tipo: ['Creature'], sub: ['Zombie'] }, para: 'campo', resto: 'grimorio', fundo: true, aleatorio: true }, ctxDe(e), (j, t, ops) => ops[0]);
+  ok(e.campo.some(id => e.objs[id].n === 'Gravecrawler'), 'o Zumbi entrou');
+  igual(e.jogs[0].zonas.grimorio.length, g0 - 1, 'o resto voltou ao grimório');
+});
+
+caso('601.3', "Emry: vira e escolhe artefato do cemitério; pode conjurá-lo neste turno (permissão até o fim do turno, não na hora)", () => {
+  ok(M.fxSuportado(M.carta('Emry, Lurker of the Loch').atv[0].fx), 'aceito');
+  const e = cena({ campo: [[0, 'Emry, Lurker of the Loch'], [0, 'Island']] });
+  const em = objN(e, 0, 'Emry, Lurker of the Loch'); em.doente = false;
+  const sr = e.por(0, 'Sol Ring', { zona: 'cemiterio' });
+  M.avancar(e); ativa(e, 'Emry, Lurker of the Loch'); if (e.perg && e.perg.tipo === 'alvo') alvoObj(e, 'Sol Ring'); resolveCom(e);
+  igual(sr.zona, 'cemiterio', 'ainda no cemitério');
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === sr.id), 'pode conjurar o Sol Ring');
+});
+
+caso('613.1d', "Enduring Courage/Vitality: morre e volta ao campo como encantamento, sem ser criatura (mover tiraTipo), já ao entrar", () => {
+  for (const n of ['Enduring Courage', 'Enduring Vitality']) {
+    ok(M.carta(n).gat.every(g => M.gatOk(g)), n + ' aceito');
+    const e = cena({ campo: [[0, n]] });
+    const c = objN(e, 0, n); M.mover(e, c.id, 'cemiterio'); M.avancar(e); resolvePilha(e);
+    igual(c.zona, 'campo', n + ': voltou');
+    ok(!M.temTipo(e, c, 'Creature') && M.temTipo(e, c, 'Enchantment'), n + ': só encantamento');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

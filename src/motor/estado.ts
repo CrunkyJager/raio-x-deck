@@ -332,7 +332,7 @@ function substCemiterio(e, o, opc: any = {}) {
   }
   return null;
 }
-M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, conjDe = null, ask = null, efeito = false, sac = false, clone = null }: any = {}) => {   // sac: sacrifício (701.21), vai no evento
+M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, conjDe = null, anim = null, ask = null, efeito = false, sac = false, clone = null }: any = {}) => {   // sac: sacrifício (701.21), vai no evento
   const o = e.objs[id];
   if (o.copia && zona !== 'pilha') {                                // cópia de mágica fora da pilha deixa de existir (704.5e)
     const l = M.listaDe(e, o), k = l.lastIndexOf(id); if (k >= 0) l.splice(k, 1);
@@ -347,13 +347,16 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
   const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
   const snapCem = zDe === 'cemiterio' ? { ...o } : null;
+  if (sac && snap) { const J = e.jogs[snap.ctrl]; if (J) J.sacT = { t: e.turno.n, l: [...(J.sacT && J.sacT.t === e.turno.n ? J.sacT.l : []), snap] }; }   // "if you sacrificed a Food this turn" (Elanor Gardner): o LKI das sacrificadas no turno
   const de = M.listaDe(e, o), k = de.lastIndexOf(id);   // id único na lista; o fim (topo, ficha nova) é o mais comum
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
   Object.assign(o, { clone: zona === 'campo' ? clone : null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && !!conjDe, conjDe: zona === 'campo' ? conjDe : null, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole } : null });   // como foi conjurada (702.33d)
-  if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
+  if (zona === 'campo' && anim) o.anim = anim.map(a => ({ ...a, ts: o.ts, fim: null }));   // entra já mudada ("It's an enchantment. It's not a creature", Enduring Courage): antes dos gatilhos de entrar
+  if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;
+  if (zona === 'campo') for (const x of M.dadoDe(e, o).kw || []) if (x.k === 'desaparecer' && Number.isInteger(x.n)) o.marc.time = (o.marc.time || 0) + x.n;   // 702.63a: entra com N marcadores de tempo   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
   const para = M.listaDe(e, o);
   if (zona === 'grimorio' && !topo) para.unshift(id); else para.push(id);   // grimório: fim do array = topo

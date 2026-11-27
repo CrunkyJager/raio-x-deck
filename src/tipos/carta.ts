@@ -656,7 +656,11 @@ export interface RxFx {
    */
   paraObj?: RxObjeto;
   /**
-   * descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment)
+   * mover para o campo: entra sem estes tipos ("It's an enchantment. (It's not a creature.)", Enduring Courage)
+   */
+  tiraTipo?: string[];
+  /**
+   * descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Empty the Laboratory)
    */
   aleatorio?: boolean;
   /**
@@ -909,6 +913,7 @@ export interface RxKw {
     | 'corpo-a-corpo'
     | 'evoluir'
     | 'persistir'
+    | 'desaparecer'
     | 'eternizar'
     | 'agregar'
     | 'miriade'
@@ -1432,6 +1437,7 @@ export interface RxContagem {
     | 'vidaPerdida'
     | 'resolucoesDestaHab'
     | 'oponentesAtacados'
+    | 'sacrificadas'
     | 'entraram'
     | 'atacantes'
     | 'atacantesEmVoce'
@@ -1439,6 +1445,10 @@ export interface RxContagem {
     | 'dano'
     | 'nome'
     | 'tipos';
+  /**
+   * turno/sacrificadas: só as que batem ("if you sacrificed a Food this turn": {sub:['Food']})
+   */
+  f?: RxFiltro;
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */

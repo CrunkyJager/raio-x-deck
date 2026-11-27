@@ -173,6 +173,7 @@ function extras(e, F, g, ev) {
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
 const GAT_PERSISTIR = { ev: 'morre', fx: [{ op: 'persistir' }] };
+const GAT_DESAPARECER = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'desaparecer' }] };   // 702.63a
 const GAT_MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
 const ESPIRITO = { pt: [1, 1], cores: 'WB', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] };
 // esconderijo N (CR 702.75a): idem, um gatilho por instância (702.75b não junta)
@@ -282,6 +283,10 @@ M.evento = (e, ev) => {
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
   if (ev.ev === 'fase' && ev.passo === 'manutencao') {
+    for (const id of e.campo) {   // desaparecer (702.63a): "if there's a time counter on it" (603.4)
+      const F = e.objs[id]; if (!F || F.ctrl !== ev.ativo || !(F.marc.time > 0)) continue;
+      for (const x of M.kwDe(e, F)) if (x.k === 'desaparecer') e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'desaparecer', g: GAT_DESAPARECER, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } });
+    }
     for (const id of e.campo) {
       const F = e.objs[id]; if (!F || !F.eco || F.ctrl !== ev.ativo) continue;
       delete F.eco;
