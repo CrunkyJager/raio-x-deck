@@ -359,7 +359,9 @@
       "doEvento",
       "atacado",
       "proximo",
-      "cadaAtual"
+      "cadaAtual",
+      "atacadosPorEste",
+      "umJogador"
      ]
     },
     {
@@ -376,7 +378,7 @@
      "description": "o jogador que é o alvo N (vários alvos)"
     }
    ],
-   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots)"
+   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = \"choose a player\": você escolhe qualquer jogador ao resolver (Gluntch)"
   },
   "filtro": {
    "type": "object",
@@ -524,8 +526,8 @@
      "description": "equipada, encantada ou com marcador"
     },
     "conjurada": {
-     "type": "boolean",
-     "description": "foi conjurada (não só posta)"
+     "anyOf": [{"type": "boolean"}, {"enum": ["mao", "cemiterio", "exilio", "comando", "grimorio"]}],
+     "description": "foi conjurada (não só posta); com zona: conjurada DE lá ('if you cast it from your hand' = 'mao')"
     },
     "ouEste": {
      "type": "boolean",
@@ -536,8 +538,8 @@
      "description": "atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)"
     },
     "comMarcador": {
-     "type": "string",
-     "description": "tem ao menos 1 marcador deste tipo"
+     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "description": "texto = tem ao menos 1 marcador deste tipo; true = tem algum marcador (Mutational Advantage)"
     },
     "feridaPorEsteNoTurno": {
      "type": "boolean",
@@ -622,6 +624,25 @@
     "postaPorEste": {
      "type": "boolean",
      "description": "posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')"
+    },
+    "tipoCartaEmComum": {
+     "oneOf": [
+      {
+       "const": "este"
+      },
+      {
+       "$ref": "#/$defs/filtro"
+      }
+     ],
+     "description": "tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)"
+    },
+    "naoAlvo": {
+     "type": "integer",
+     "description": "não é o objeto escolhido como alvo N desta mágica/habilidade (\"each other creature\" depois de mirar uma: Chandra's Ignition)"
+    },
+    "naoNome": {
+     "type": "string",
+     "description": "não tem este nome (\"not named Tiamat\")"
     }
    }
   },
@@ -669,7 +690,8 @@
         "qualquerAlvo",
         "jogador",
         "oponente",
-        "magica"
+        "magica",
+        "magicaOuHab"
        ]
       }
      ]
@@ -684,8 +706,16 @@
       },
       {
        "const": "qualquer"
+      },
+      {
+       "type": "object",
+       "required": [
+        "conta"
+       ],
+       "$ref": "#/$defs/qtd"
       }
-     ]
+     ],
+     "description": "N, 'qualquer' ou uma contagem (\"up to X targets\", X = as não-terreno moídas: The Wise Mothman)"
     },
     "dividir": {
      "oneOf": [
@@ -721,6 +751,10 @@
      "type": "integer",
      "description": "\"another target\": não pode ser o escolhido no alvo N"
     },
+    "ctrlDiferentes": {
+     "const": true,
+     "description": "\"with different controllers\": cada alvo escolhido tem um controlador diferente (Blade Beam)"
+    },
     "opcao": {
      "enum": [
       "chute",
@@ -729,6 +763,10 @@
       "semPresente"
      ],
      "description": "o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)"
+    },
+    "ouZona": {
+     "$ref": "#/$defs/zona",
+     "description": "o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)"
     }
    }
   },
@@ -760,6 +798,19 @@
      }
     },
     {
+     "type": "object",
+     "required": [
+      "um"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "um": {
+       "$ref": "#/$defs/filtro"
+      }
+     },
+     "description": "\"a creature you control\" sem alvo: quem faz o efeito (quem; padrão você) escolhe uma que bate no filtro ao resolver"
+    },
+    {
      "enum": [
       "este",
       "equipada",
@@ -769,8 +820,8 @@
       "anterior",
       "cadaAtual",
       "descartadaCusto",
-      "danificado",
-      "sacrificada"
+      "sacrificada",
+      "danificado"
      ]
     }
    ]
@@ -966,6 +1017,10 @@
       }
      },
      "description": "desvirar N permanentes viradas suas que batem em f (Halo Fountain: 'Untap two tapped creatures you control')"
+    },
+    "fundoEste": {
+     "type": "boolean",
+     "description": "pôr esta no fundo do grimório do dono como custo (Timestream Navigator)"
     }
    }
   },
@@ -1007,6 +1062,7 @@
       "ficha",
       "copiarPermanente",
       "copiarMagica",
+      "trocarAlvos",
       "dano",
       "destruir",
       "sacrificar",
@@ -1085,8 +1141,14 @@
      }
     },
     "prod": {
-     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)",
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)",
      "oneOf": [
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": ["coresEntre"],
+       "properties": {"coresEntre": {"$ref": "#/$defs/filtro"}}
+      },
       {
        "enum": [
         "qualquer",
@@ -1218,9 +1280,10 @@
       "numero",
       "carta",
       "modo",
-      "tipo"
+      "tipo",
+      "tipoCarta"
      ],
-     "description": "escolher: o quê"
+     "description": "escolher: o quê; tipoCarta = um tipo de card, ao entrar (subst emVez; opções em 'tipos', padrão artefato/criatura/encantamento/instantânea/feitiço: Cloud Key), lido no filtro tipo ['escolhido']"
     },
     "escolhe": {
      "type": "object",
@@ -1234,6 +1297,17 @@
       "naoRepeteNoTurno": {
        "type": "boolean",
        "description": "só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)"
+      },
+      "custoModos": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/mana"
+       },
+       "description": "custo a mais de cada modo escolhido, na ordem dos modos (Tiered: Cloud's Limit Break; Spree) — CR 601.2f"
+      },
+      "escalar": {
+       "$ref": "#/$defs/mana",
+       "description": "Escalate: este custo a mais por modo escolhido além do primeiro (CR 702.120a; Collective Resistance)"
       },
       "maxSe": {
        "type": "object",
@@ -1377,6 +1451,18 @@
      "type": "boolean",
      "description": "op mana: a mágica paga com esta mana não pode ser anulada (Cavern of Souls)"
     },
+    "exilaAoSair": {
+     "type": "boolean",
+     "description": "op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)"
+    },
+    "tipoTerrenoComum": {
+     "type": "boolean",
+     "description": "op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: \"that share a land type\")"
+    },
+    "copia": {
+     "type": "boolean",
+     "description": "op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está"
+    },
     "soConjurar": {
      "type": "boolean",
      "description": "op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)"
@@ -1403,7 +1489,7 @@
     },
     "aleatorio": {
      "type": "boolean",
-     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment)"
+     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Thassa's Oracle)"
     },
     "ficaNoTurno": {
      "type": "boolean",
@@ -1471,6 +1557,18 @@
       "type": "string"
      },
      "description": "cavar: pega até UM de cada subtipo da lista (Kaalia, Zenith Seeker: 'an Angel, a Demon, and/or a Dragon')"
+    },
+    "cascata": {
+     "type": "boolean",
+     "description": "descobrir: é a cascata (702.85a): qtd = valor de mana − 1 e a não conjurada vai ao fundo com as outras, em ordem aleatória (não vai à mão)"
+    },
+    "soSub": {
+     "type": "boolean",
+     "description": "animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: \"It's a green Mutant… loses its other creature types\" — The Master, Transcendent)"
+    },
+    "nomesDiferentes": {
+     "type": "boolean",
+     "description": "buscar: as cartas pegas têm nomes diferentes entre si (\"that each have different names\": Tiamat)"
     }
    },
    "additionalProperties": false,
@@ -1617,7 +1715,9 @@
       "flashback",
       "cemiterio",
       "madness",
-      "evoke"
+      "evoke",
+      "alternativo",
+      "impending"
      ]
     },
     "conjuradaNaPrincipal": {
@@ -1753,6 +1853,14 @@
       }
      ],
      "description": "você completou uma masmorra (309.7) nesta partida; {nome} = aquela masmorra (Tomb of Annihilation)"
+    },
+    "eventoMais": {
+     "enum": [
+      "mao",
+      "terrenos",
+      "vida"
+     ],
+     "description": "o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)"
     }
    }
   },
@@ -1814,6 +1922,7 @@
       "tripular",
       "fabricar",
       "posVida",
+      "cascata",
       "caminhadaTerreno",
       "armaduraUmbra",
       "corpo-a-corpo",
@@ -1828,6 +1937,7 @@
       "eco",
       "bis",
       "prole",
+      "iminente",
       "capitulo",
       "classe",
       "entraComMarcador",
@@ -1848,7 +1958,7 @@
     },
     "de": {
      "type": "string",
-     "description": "proteção de/resguardo: cor (W/U/B/R/G), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo"
+     "description": "proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo"
     },
     "tipo": {
      "type": "string"
@@ -1870,6 +1980,11 @@
       "type": "integer"
      },
      "description": "fuga: 'foge com' esses marcadores (702.138c)"
+    },
+    "xMin": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "chute com {X}: o X anunciado com chute é pelo menos isto (\"X can't be 0\": Thieving Skydiver)"
     }
    }
   },
@@ -2092,6 +2207,10 @@
      "const": "este",
      "description": "conjura: só se a mana desta fonte pagou a mágica (\"using mana produced by\", Tecutlan)"
     },
+    "revelaTerreno": {
+     "type": "boolean",
+     "description": "ev explora: true = revelou terreno (\"explores a land card\"), false = revelou não-terreno (Nicanzil); grimório vazio não dispara nenhum dos dois"
+    },
     "recebe": {
      "$ref": "#/$defs/filtro",
      "description": "ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)"
@@ -2126,6 +2245,7 @@
       "conjurarComLampejo",
       "desviraNoTurnoDeOutro",
       "vidaNaoMuda",
+      "naoPerdeJogo",
       "protecaoJogador",
       "ptDefinido",
       "danoNaoPrevenivel",
@@ -2134,13 +2254,18 @@
       "dobraGatilho",
       "ataqueCusta",
       "naoPodeAtivar",
+      "ganhaAtivadas",
       "deveBloquear",
       "darFuga",
+      "darRetrace",
       "darLoucura",
       "oponentesNaoProcuram",
+      "custoProibido",
+      "naoGanhaVida",
       "equiparComoInstantanea",
       "primeiroEquiparGratis",
-      "darRondar"
+      "darRondar",
+      "naoPerdeJogo"
      ],
      "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor)"
     },
@@ -2248,6 +2373,17 @@
      },
      "description": "continuo: perde estes tipos (deus com devoção baixa)"
     },
+    "tiraKw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     },
+     "description": "continuo: os afetados perdem estas palavras-chave (Colossus Hammer: \"and loses flying\")"
+    },
+    "trocaSub": {
+     "type": "boolean",
+     "description": "continuo afeta equipada: os tipos de criatura viram só os de sub (\"is a black Zombie\", Nim Deathmantle; CR 205.1b)"
+    },
     "contra": {
      "type": "object",
      "additionalProperties": false,
@@ -2296,6 +2432,23 @@
      "type": "integer",
      "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
     },
+    "proibe": {
+     "type": "array",
+     "items": {
+      "enum": [
+       "vida",
+       "sacrificarCriatura"
+      ]
+     },
+     "description": "custoProibido: o que nenhum jogador pode pagar para conjurar mágicas ou ativar habilidades (Angel of Jubilation: vida e sacrificar criatura; inclui a vida do mana phyrexiano)"
+    },
+    "seJog": {
+     "enum": [
+      "atacouNoTurno",
+      "conjurouNoTurno"
+     ],
+     "description": "condição do jogador afetado (naoPodeConjurar: o jogador; naoPodeAtacar: o controlador da criatura) — Angelic Arbiter: 'each opponent who cast a spell / attacked with a creature this turn'"
+    },
     "minimo": {
      "type": "integer",
      "minimum": 1,
@@ -2326,9 +2479,10 @@
       "compra",
       "anulada",
       "vidaMuda",
-      "ganhaVida"
+      "ganhaVida",
+      "moer"
      ],
-     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda"
+     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal)"
     },
     "quem": {
      "$ref": "#/$defs/filtro"
@@ -2586,7 +2740,8 @@
      "oneOf": [
       {
        "enum": [
-        "este",
+        "atacado",
+         "este",
         "voce",
         "turno",
         "combate",
@@ -2666,11 +2821,16 @@
       "dano",
       "nome",
       "tipos",
-      "tentacoes"
+      "tentacoes",
+      "cemiterio"
      ],
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
-    "junta": {
+    "f": {
+       "$ref": "#/$defs/filtro",
+       "description": "de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)"
+      },
+      "junta": {
      "enum": [
       "soma",
       "maior",
@@ -2703,6 +2863,10 @@
     },
     "nao": {
      "type": "integer"
+    },
+    "min": {
+     "type": "integer",
+     "description": "de: jogadores, o: cemiterio — quantos jogadores têm pelo menos min cartas no cemitério (Master of Lake-town)"
     }
    }
   }
