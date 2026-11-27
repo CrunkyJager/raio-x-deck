@@ -24,7 +24,9 @@ const basico = (e, p) => {
       p.ops.forEach((op, k2) => { if (op.a !== 'descartar') return; const v = terra(op.id) ? 0.5 : (M.dadoDe(e, o(op.id)).vm || 0); if (v > bv) { bv = v; b = k2; } });
       return b;
     }
+    case 'pilha': { const S = (p.ctx && p.ctx.somas) || [0, 0]; return S[0] <= S[1] ? 0 : 1; }   // separar: na pilha mais leve; escolher a sacrificada: a mais leve (Liliana of the Veil)
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
+      if (p.ctx && p.ctx.op === 'entraVirada') return 1;   // "you may have this enter tapped": desvirada (o "se fizer" é o preço, Mariposa)
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
       if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || !!M.loucuraDe(e, o(p.ctx.id)) ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
       return 0;
@@ -54,6 +56,9 @@ const basico = (e, p) => {
         const ke = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._equipar && !M.anexadoA(e, o(op.id))
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));   // já na pilha: espera resolver
         if (ke >= 0) return ke;
+        // selar (702.171a): antes do combate, se ainda não está selada
+        const ks = e.turno.passo === 'principal1' ? p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._selar && !M.selada(e, o(op.id))) : -1;
+        if (ks >= 0) return ks;
         // Classe (716.2a): sobe de nível com a mana que sobrou depois das mágicas (o nível só soma habilidade)
         const kn = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._nivel
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));

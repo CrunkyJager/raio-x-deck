@@ -131,7 +131,7 @@ function acaoDoTurno(e) {
   }
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
-  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; o.regen = null; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
+  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; o.regen = null; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.cloneFim === 'turno') { o.clone = o.clone0 || null; o.clone0 = null; o.cloneFim = null; e.vCamada = (e.vCamada || 0) + 1; } if (o.ganhos && o.ganhos.atvT) o.ganhos = { ...o.ganhos, atvT: undefined }; if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
   // 'modificar' até o fim do turno (efeitos.ts) sai; o de dura 'sempre' (Witch's Mark: +1/+1 sem prazo, 611.2a) fica
   // enquanto o objeto (mesmo ts) estiver no campo. Array novo: o índice do somaTemp refaz.
   e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
@@ -176,7 +176,7 @@ function proximoPasso(e) {
   while (e.turnosExtra && e.turnosExtra.length && e.jogs[e.turnosExtra[e.turnosExtra.length - 1]].saiu) e.turnosExtra.pop();
   if (e.turnosExtra && e.turnosExtra.length) p = e.turnosExtra.pop();
   else do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.radFeito = false; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
   M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
