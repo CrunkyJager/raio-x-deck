@@ -185,7 +185,7 @@ const kwEntraDe = d => {
 // Simplificação: troca de controle não remarca.
 const ECO = new WeakMap<object, any>();
 const ecoDe = kw => { let g = ECO.get(kw); if (!g) ECO.set(kw, (g = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'sacrificar', em: 'este', aMenosQue: { quem: 'voce', custo: { mana: kw.custo } } }] })); return g; };
-const MELEE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'modificar', em: 'este', p: { conta: 'oponentesAtacados' }, dura: 'fimDoTurno' }] };
+const MELEE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'modificar', em: 'este', p: { conta: { de: 'combate', o: 'oponentesAtacados' } }, dura: 'fimDoTurno' }] };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
 M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];
 
