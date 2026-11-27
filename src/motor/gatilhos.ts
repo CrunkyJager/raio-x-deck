@@ -4,7 +4,7 @@
 // Gatilho com campo/efeito/filtro que o núcleo não lê NÃO dispara (nada joga errado em silêncio).
 import { M } from './nucleo';
 
-const EV_OK = new Set(['danoPrevenido', 'gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
+const EV_OK = new Set(['danoPrevenido', 'gasta', 'destranca', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa']);
 const CAMPOS_OK = new Set(['naoPorEste', 'ouConjurada', 'comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
@@ -47,6 +47,11 @@ function bateEv(e, g, ev, F) {
   const ctx = { voce: F.ctrl, este: F.id, movidos: F.movidos }, q = o => !g.quem || (o && bate(e, o, g.quem, ctx));   // movidos: os afetados do efeito temporário (filtro lembrada: Tamiyo +1)
   switch (g.ev) {
     case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && (!g.de || ev.de === g.de || (g.ouConjurada && ev.de === 'pilha' && !!e.objs[ev.id] && e.objs[ev.id].conjDe === g.de)) && (!g.naoDe || ev.de !== g.naoDe) && (!g.naoPorEste || ev.porFx !== F.id) && q(e.objs[ev.id]);   // naoPorEste: "if it wasn't put onto the battlefield with this ability" (Kodama of the East Tree); ouConjurada: "entered from a graveyard or was cast from a graveyard" (Kotis)   // de: "enters from a graveyard" (River Kelpie, Kotis)
+    case 'destranca': {                                                                // 709.5h: "when you unlock this door": o gatilho é o da porta destrancada
+      if (ev.ev !== 'destranca' || ev.id !== F.id || ev.ts !== F.ts || F.ficha) return false;
+      const lado = M.dadoFace(M.carta(F.n), ev.porta === 'e' ? 'esq' : 0);
+      return (lado.gat || []).includes(g);
+    }
     case 'ficaMonstruosa': return ev.ev === 'ficaMonstruosa' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.37b
     case 'vira': return ev.ev === 'vira' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.26a
     case 'fichaCriada': return ev.ev === 'fichaCriada' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 111.2: quem cria = ev.j

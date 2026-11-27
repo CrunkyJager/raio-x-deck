@@ -85,6 +85,9 @@ const basico = (e, p) => {
         const kn = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._nivel
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));
         if (kn >= 0) return kn;
+        // Room (709.5e): destranca a outra porta com a mana que sobrou das mágicas
+        const kd = p.ops.findIndex(op => op.a === 'destrancar');
+        if (kd >= 0) return kd;
       }
       if (meu) {
         const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());

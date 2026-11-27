@@ -508,7 +508,7 @@ M.podePrever = (e, j, o) => o.zona === 'mao' && o.dono === j && e.turno.ativo ==
 M.prever = (e, j, id) => {
   const o = e.objs[id], pl = M.podePrever(e, j, o) && plano(e, j, { g: 2 }, 0, null, o); if (!pl) return;
   pagarMana(e, j, pl, { g: 2 }, 0);
-  M.mover(e, id, 'exilio'); o.previsto = e.turno.n;
+  M.mover(e, id, 'exilio'); o.previsto = e.turno.n; o.faceBaixo = true; o.olham = [j];   // 702.143a: virada para baixo; o dono pode olhar
   M.log(e, e.jogs[j].nome, 'prevê uma carta (exila virada)');
   M.agiu(e, j);
 };
@@ -527,6 +527,26 @@ M.suspender = (e, j, id) => {
   M.mover(e, id, 'exilio'); o.marc.time = k.n; o.suspensa = true;
   M.log(e, e.jogs[j].nome, 'suspende', o.n, `(${k.n} marcadores de tempo)`);
   M.agiu(e, j);
+};
+// destrancar (116.2m, 709.5e): ação especial de quem controla a Room, com prioridade, pilha vazia, na fase principal do
+// próprio turno: paga o custo de mana da porta trancada e ela fica destrancada (gatilho "when you unlock this door", 709.5h)
+M.custoPorta = (o, k) => { const c = M.carta(o.n); return (k === 'e' ? c.custo : c.faces[0].custo) || {}; };
+M.podeDestrancar = (e, j, o, k) => !!o && o.zona === 'campo' && o.ctrl === j && !!o.portas && !o.portas[k] && M.velFeitico(e, j) && !!plano(e, j, M.custoPorta(o, k), 0, null, o);
+M.destrancar = (e, j, id, k) => {
+  const o = e.objs[id]; if (!M.podeDestrancar(e, j, o, k)) return;
+  const custo = M.custoPorta(o, k), pl = plano(e, j, custo, 0, null, o); if (!pl) return;
+  pagarMana(e, j, pl, custo, 0);
+  M.porPorta(e, o, k, true);
+  M.agiu(e, j);
+};
+// dá (ou tira, 709.5g) a designação de destrancada da porta k; destrancar dispara o gatilho da porta (709.5h)
+M.porPorta = (e, o, k, aberta) => {
+  if (!o.portas || !!o.portas[k] === aberta) return;
+  o.portas = { ...o.portas, [k]: aberta }; o.face = M.facePortas(o.portas);
+  e.vCamada = (e.vCamada || 0) + 1; M.idxSujo && M.idxSujo(e);
+  const c = M.carta(o.n);
+  M.log(e, e.jogs[o.ctrl].nome, aberta ? 'destranca' : 'tranca', k === 'e' ? c.n : c.faces[0].n, '(' + o.n + ')');
+  if (aberta) M.evento(e, { ev: 'destranca', id: o.id, ts: o.ts, porta: k, j: o.ctrl });
 };
 // cópia da mágica de preparo no exílio: só o controlador da criatura preparada (regras do preparar)
 const porPreparo = (e, j, o) => !!o.copiaPrep && o.zona === 'exilio' && M.prepValida(e, o) && e.objs[o.copiaPrep.id].ctrl === j;
@@ -687,7 +707,8 @@ function opcoes(e, j) {
   const doCem = M.temPermissaoCemiterio(e, j) ? J.zonas.cemiterio : [];
   const G = J.zonas.grimorio, doTopo = G.length && permTopo(e, j) && M.podeJogarDe(e, j, e.objs[G[G.length - 1]]) ? [G[G.length - 1]] : [];   // Courser, Oracle of Mul Daya
   for (const id of J.zonas.mao) if (M.podePrever(e, j, e.objs[id])) ops.push({ a: 'prever', id });   // 702.143a: no seu turno, com prioridade
-  for (const id of J.zonas.mao) if (M.podeSuspender(e, j, e.objs[id])) ops.push({ a: 'suspender', id });   // 702.62a: quando poderia conjurá-la
+  for (const id of J.zonas.mao) if (M.podeSuspender(e, j, e.objs[id])) ops.push({ a: 'suspender', id });
+  for (const id of e.campo) { const o = e.objs[id]; if (o.portas && o.ctrl === j) for (const k of ['e', 'd']) if (M.podeDestrancar(e, j, o, k)) ops.push({ a: 'destrancar', id, porta: k }); }   // 116.2m   // 702.62a: quando poderia conjurá-la
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
     for (const id of [...doCem, ...doTopo]) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
   const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]) || porPreparo(e, j, e.objs[id]) || porPrevisao(e, j, e.objs[id]));
