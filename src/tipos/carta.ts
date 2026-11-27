@@ -410,6 +410,13 @@ export interface RxCustoAtv {
          * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
          */
         comEste?: boolean;
+        /**
+         * outro grupo sacrificado junto, com objetos diferentes (Jarad: 'Sacrifice a Swamp and a Forest')
+         */
+        tambem?: {
+          f?: RxFiltro;
+          qtd?: number;
+        };
       };
   descartar?: number;
   revelar?: {
@@ -1155,7 +1162,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor)
    */
   modo:
     | 'continuo'
@@ -1186,7 +1193,8 @@ export interface RxEst {
     | 'darLoucura'
     | 'oponentesNaoProcuram'
     | 'equiparComoInstantanea'
-    | 'primeiroEquiparGratis';
+    | 'primeiroEquiparGratis'
+    | 'darRondar';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1278,6 +1286,10 @@ export interface RxEst {
    * reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')
    */
   minimo?: number;
+  /**
+   * podeJogar: a mágica conjurada assim vai para o exílio em vez do cemitério (Kess: 'If a spell cast this way would be put into your graveyard, exile it instead')
+   */
+  exilaAoSair?: boolean;
 }
 
 /**

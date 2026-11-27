@@ -5017,6 +5017,39 @@ caso('509.1b', "Hei Bai: a ficha Espírito não bloqueia nem é bloqueada por n�
   ok(M.podeBloquear(e, s1, 1), 'pode bloquear em geral');
 });
 
+caso('702.76a', "Hunting Velociraptor: mágica de Dinossauro tem rondar {2}{R} (darRondar) depois de dano de combate por um Dinossauro", () => {
+  const e = cena({ campo: [[0, 'Hunting Velociraptor']], mao: [[0, 'Colossal Dreadmaw'], [0, 'Grizzly Bears']] });
+  const d = naMao(e, 0, 'Colossal Dreadmaw');
+  igual(M.altDe(e, 0, d), undefined, 'sem dano: sem rondar');
+  e.jogs[0].danoCombT = { t: e.turno.n, sub: ['Dinosaur'] };
+  igual(M.altDe(e, 0, d), { g: 2, p: ['R'] }, 'com dano de Dinossauro: {2}{R}');
+  igual(M.altDe(e, 0, naMao(e, 0, 'Grizzly Bears')), undefined, 'o urso não é Dinossauro');
+});
+
+caso('601.3', "Kess: uma mágica do cemitério por turno seu, e ela vai para o exílio depois (podeJogar limite + exilaAoSair)", () => {
+  const e = cena({ campo: [[0, 'Kess, Dissident Mage'], ...enche(4, 'Mountain').map(n => [0, n])] });
+  const b1 = e.por(0, 'Lightning Bolt', { zona: 'cemiterio' }), b2 = e.por(0, 'Shock', { zona: 'cemiterio' });
+  M.avancar(e);
+  ok(opsDe(e, 'conjurar').some(o => o.id === b1.id) && opsDe(e, 'conjurar').some(o => o.id === b2.id), 'as duas oferecidas');
+  respE(e, o => o.a === 'conjurar' && o.id === b1.id);
+  for (let i = 0; i < 5 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, 0);
+  resolvePilha(e);
+  igual(b1.zona, 'exilio', 'o Bolt foi para o exílio');
+  ok(!opsDe(e, 'conjurar').some(o => o.id === b2.id), 'a 2ª no mesmo turno: não');
+});
+
+caso('118.3', "Jarad: do cemitério, sacrifica um Pântano E uma Floresta (sacrificar.tambem); dois Pântanos não pagam", () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp']] });
+  const j = e.por(0, 'Jarad, Golgari Lich Lord', { zona: 'cemiterio' }); M.avancar(e);
+  ok(!M.podeAtivar(e, 0, j, 1), 'dois Pântanos: não');
+  const g = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Forest']] }), jj = g.por(0, 'Jarad, Golgari Lich Lord', { zona: 'cemiterio' }), f = objN(g, 0, 'Forest');
+  M.avancar(g);
+  ok(M.podeAtivar(g, 0, jj, 1), 'Pântano + Floresta: sim');
+  respE(g, o => o.a === 'ativar' && o.id === jj.id && o.k === 1);
+  for (let i = 0; i < 5 && g.perg && g.perg.tipo === 'custo'; i++) M.responder(g, 0);
+  igual(f.zona, 'cemiterio', 'a Floresta foi'); igual(g.campo.filter(id => g.objs[id].n === 'Swamp').length, 1, 'um Pântano ficou');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

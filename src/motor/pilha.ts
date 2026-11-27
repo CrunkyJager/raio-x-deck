@@ -158,6 +158,7 @@ M.custoSuportado = c => {
   if (c && c.porMarcador !== undefined && !(c.porMarcador && typeof c.porMarcador.tipo === 'string' && (c.porMarcador.qtd === undefined || Number.isInteger(c.porMarcador.qtd))
     && Object.keys(c.porMarcador).every(k => k === 'tipo' || k === 'qtd'))) return false;
   if (c && c.sacrificar && c.sacrificar !== 'este' && !M.filtroOk(c.sacrificar.f || {})) return false;
+  if (c && c.sacrificar && c.sacrificar.tambem && !(M.filtroOk(c.sacrificar.tambem.f || {}) && Object.keys(c.sacrificar.tambem).every(k => k === 'f' || k === 'qtd'))) return false;   // "a Swamp and a Forest" (Jarad)
   if (c && c.devolver !== undefined && c.devolver !== 'este' && !(c.devolver && typeof c.devolver === 'object' && M.filtroOk(c.devolver.f || {})
     && (c.devolver.qtd === undefined || Number.isInteger(c.devolver.qtd)) && Object.keys(c.devolver).every(k => k === 'f' || k === 'qtd'))) return false;
   // "vire uma criatura lendária desvirada que você controla" (Dungeon Descent): {f, qtd}; não é o {T} dela, enjoo não importa (302.6)
@@ -197,6 +198,10 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.descartarEste && (!o || o.zona !== 'mao')) return false;
   if (c.porMarcador && (!o || o.zona !== 'campo')) return false;   // canalizar: só da mão (CR 602.2, a habilidade diz a zona)
   if (c.sacrificar && c.sacrificar !== 'este' && !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1)) return false;
+  if (c.sacrificar && c.sacrificar.tambem) {   // os dois grupos com objetos diferentes (uma Floresta-Pântano conta para um só)
+    const t = c.sacrificar.tambem, a = candSac(e, j, c, o && o.id), b = candSac(e, j, { sacrificar: t }, o && o.id), qa = c.sacrificar.qtd || 1, qb = t.qtd || 1;
+    if (b.length < qb || new Set([...a, ...b].map(x => x.id)).size < qa + qb) return false;   // Hall para dois grupos: cada um tem o bastante e a união cobre os dois
+  }
   if (c.descartar && candDesc(e, j, daMao).length < c.descartar) return false;
   if (c.devolver === 'este' && (!o || o.zona !== 'campo')) return false;
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
@@ -302,6 +307,7 @@ function permissoes(e, j) {
       if (s.modo !== 'podeJogar' || (s.de !== 'cemiterio' && s.de !== 'grimorio') || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
       if (s.de === 'grimorio' && (zonaFonte !== 'campo' || !s.afeta.topo)) continue;   // do grimório: só a do topo, com a fonte no campo
       if (zonaFonte === 'cemiterio' && !s.afeta.este) continue;      // no cemitério só vale a permissão para si mesma
+      if (s.limite && S.permUso && S.permUso.t === e.turno.n && S.permUso.ts === S.ts) continue;   // "once during each of your turns" (Kess): já usou
       r.push({ s, ctx: { voce: j, este: S.id } });
     }
   };
@@ -383,6 +389,12 @@ const altDados = (e, j, o) => {
   }
   return r;
 };
+// "Dinosaur spells you cast have prowl {2}{R}" (Hunting Velociraptor): est darRondar {afeta: filtro da mágica, custo} de permanente sua
+const rondarDado = (e, j, o) => {
+  for (const id of e.campo) { const F = e.objs[id]; if (F.ctrl !== j) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRondar' && s.custo && s.afeta && typeof s.afeta === 'object' && M.bate(e, o, { ...s.afeta, zona: o.zona }, { voce: j, este: F.id })) return { k: 'rondar', custo: s.custo }; }
+  return null;
+};
 const altDe = (e, j, o) => altInfo(e, j, o)?.custo;
 const altInfo = (e, j, o) => {
   let melhor: any = null, info: any = null;
@@ -394,7 +406,7 @@ const altInfo = (e, j, o) => {
   }
   for (const a of altDados(e, j, o)) if (!melhor || M.vmDe(a.custo) < M.vmDe(melhor) || (M.vmDe(a.custo) === M.vmDe(melhor) && info && a.vida < info.vida)) { melhor = a.custo; info = a; }
   // rondar (702.76a): custo alternativo se neste turno você causou dano de combate a um jogador com uma fonte que tem um tipo de criatura desta
-  const D = e.jogs[j].danoCombT, ro = (M.dadoDe(e, o).kw || []).find(x => x.k === 'rondar' && x.custo);
+  const D = e.jogs[j].danoCombT, ro = (M.dadoDe(e, o).kw || []).find(x => x.k === 'rondar' && x.custo) || rondarDado(e, j, o);
   if (ro && D && D.t === e.turno.n && (M.dadoDe(e, o).sub || []).some(s => D.sub.includes(s)) && (!melhor || M.vmDe(ro.custo) < M.vmDe(melhor))) { melhor = ro.custo; info = null; }
   if (!melhor) return undefined;
   if (info && info.custo !== melhor) info = null;
@@ -404,6 +416,11 @@ M.altDe = (e, j, o) => altDe(e, j, o);
 // o custo alternativo que o custoBase usa (o mesmo encadeamento): para pagar a vida e marcar o limite na conjuração
 const altUsado = (e, j, o, opts) => opts.loucura || opts.milagre || (porFlash(e, j, o) && !opts.gratis) || (porFuga(e, j, o) && !opts.gratis) || (porPrevisao(e, j, o) && !opts.gratis) || opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? undefined : altInfo(e, j, o);
 const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
+// a permissão (podeJogar do cemitério/grimório) que deixa conjurar o: para marcar o limite e o exílio ao sair (Kess)
+const permDe = (e, j, o) => (o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j ? permissoes(e, j).find(({ s, ctx }) => {
+  if (s.de !== o.zona) return false;
+  try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
+}) || null : null;
 M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || (o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
   if (s.de !== o.zona) return false;
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
@@ -499,6 +516,7 @@ const modalTopo = d => d.fx && d.fx.length === 1 && d.fx[0].op === 'modal';
 // ---------- o que pode ser ativado (CR 602.2; lealdade CR 606) ----------
 // atv.se = "ative só se …" (602.5b; também na de mana: Mox Opal, Sarevok's Tome). Condição que o motor não lê: não ativa.
 M.atvSeOk = (e, a, o) => { if (!a.se) return true; if (!M.seOk(a.se)) return false; try { return M.condicao(e, a.se, { voce: o.ctrl, este: o.id }); } catch (_) { return false; } };
+const saiDoCem = a => (a.fx || []).some(f => f.op === 'mover' && f.em === 'este' && f.para && f.para !== 'cemiterio');
 M.podeAtivar = (e, j, o, k) => {
   const d = M.dadoDe(e, o), a = M.atvDe(e, o)[k];
   if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
@@ -599,10 +617,11 @@ function opcoes(e, j) {
     // só a que tira a carta da mão no custo: sem isso (banco antes da correção 15) ativaria de graça sem parar ninjutsu: a carta sai da mão ao resolver (e o custo devolve um atacante)
     for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste || l[k]._ninjutsu) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
-  // do cemitério: só a que exila a própria carta no custo (eternizar, Kheru Goldkeeper, bis 702.141a) — não repete sem parar
+  // do cemitério: só a que exila a própria carta no custo (eternizar, Kheru Goldkeeper, bis 702.141a) ou cujo efeito a tira
+  // de lá (Jarad: volta para a mão) — não repete sem parar
   for (const id of J.zonas.cemiterio) {
     const o = e.objs[id], l = M.atvDe(e, o);
-    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && l[k].custo.exilarEste && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
+    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && (l[k].custo.exilarEste || saiDoCem(l[k])) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   ops.push(...M.manaEscOps(e, j));
@@ -764,6 +783,11 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
       const ops = candSac(e, j, c, fonte).filter(o => !r.sac.includes(o.id)).map(o => ({ a: 'sacrificar', id: o.id }));
       r.sac.push(ask(j, 'custo', ops, { o: 'sacrificar' }).id);
     }
+    const t = c.sacrificar.tambem;
+    if (t) for (let i = 0; i < (t.qtd || 1); i++) {
+      const ops = candSac(e, j, { sacrificar: t }, fonte).filter(o => !r.sac.includes(o.id)).map(o => ({ a: 'sacrificar', id: o.id }));
+      r.sac.push(ask(j, 'custo', ops, { o: 'sacrificar' }).id);
+    }
   }
   if (c.devolver && c.devolver !== 'este') {
     for (let i = 0; i < (c.devolver.qtd || 1); i++) {
@@ -867,9 +891,11 @@ const PROC = {
     e.proc = null;
     if (!pl) { o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(custo não fecha)'); return; }   // CR 727: volta atrás
     const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;
+    const pj = !flash && !fuga && !M.permJogar(e, j, o) ? permDe(e, j, o) : null;   // conjurada pela permissão de uma permanente (Kess)
+    if (pj && pj.s.limite) { const F = e.objs[pj.ctx.este]; if (F) F.permUso = { t: e.turno.n, ts: F.ts }; }
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
     if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
-    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
+    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash || (pj && pj.s.exilaAoSair)) o.flash = true; o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
     o.pil = { x, alvos, modos, ctrl: j, opc, ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}) };
     { const J = e.jogs[j]; J.conjT = { t: e.turno.n, n: (J.conjT && J.conjT.t === e.turno.n ? J.conjT.n : 0) + 1 };
       J.conjH = { t: e.turno.n, l: [...(J.conjH && J.conjH.t === e.turno.n ? J.conjH.l : []), { ...o }] }; }   // as mágicas do turno (cópia rasa na pilha): "a primeira mágica não-criatura" (Esper Sentinel)   // conta magiasNoTurno (Aetherflux, Dreamtide Whale)
