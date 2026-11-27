@@ -1473,6 +1473,10 @@
     "soNaoDesvira": {
      "type": "boolean",
      "description": "op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)"
+    },
+    "trocaCor": {
+     "type": "boolean",
+     "description": "modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)"
     }
    },
    "additionalProperties": false,
