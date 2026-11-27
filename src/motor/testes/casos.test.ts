@@ -3876,6 +3876,14 @@ caso('106.6', "Klauth atacando: mana igual ao poder total dos atacantes, só par
   e.turno.passo = 'limpeza'; M.esvaziarReservas(e); igual(J.restrita.length, 0, 'some na limpeza');
 });
 
+caso('122.1', "Wave Goodbye: volta para a mão cada criatura sem marcador +1/+1 (a com marcador fica; com outro marcador, volta)", () => {
+  ok(M.fxSuportado(M.carta('Wave Goodbye').fx), 'aceito');
+  const e = cena({ campo: [...terras(4, 'Island'), [0, 'Grizzly Bears'], [1, 'Llanowar Elves'], [1, 'Serra Angel']], mao: [[0, 'Wave Goodbye']] });
+  objN(e, 1, 'Serra Angel').marc['+1/+1'] = 1; objN(e, 0, 'Grizzly Bears').marc['-1/-1'] = 1;
+  M.avancar(e); conj(e, 'Wave Goodbye'); resolveCom(e);
+  igual(e.campo.filter(id => M.temTipo(e, e.objs[id], 'Creature')).map(id => e.objs[id].n), ['Serra Angel']);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
