@@ -3779,6 +3779,17 @@ caso('205.3m', "Mirror Entity (X=4): as suas criaturas viram 4/4 e de todos os t
   ok(!M.bate(e, u, { sub: ['Forest'] }, ctxDe(e)), 'não ganha tipo de terreno');
 });
 
+caso('702.34a', "Increasing Devotion: da mão cria 5 Humanos; conjurada do cemitério (flashback) cria 10 e vai ao exílio", () => {
+  const e = cena({ campo: terras(9, 'Plains'), mao: [[0, 'Increasing Devotion']] }); e.pend = [];
+  const [id] = e.jogs[0].zonas.mao;
+  const humanos = () => e.campo.filter(x => e.objs[x].ficha && e.objs[x].ctrl === 0).length;
+  M.avancar(e); conj(e, 'Increasing Devotion'); resolveCom(e);
+  igual([humanos(), e.objs[id].zona], [5, 'cemiterio'], 'da mão: 5');
+  for (const x of e.campo) e.objs[x].virada = false;
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === id); resolveCom(e);
+  igual([humanos(), e.objs[id].zona], [15, 'exilio'], 'do cemitério: mais 10');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
