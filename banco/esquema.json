@@ -720,6 +720,10 @@
       "type": "string"
      },
      "description": "não tem nenhuma destas palavras-chave (\"if it didn't have decayed\": Wilhelt)"
+    },
+    "miraUm": {
+     "$ref": "#/$defs/filtro",
+     "description": "mágica/habilidade na pilha com ao menos um alvo que bate neste filtro (\"a spell that targets one or more creatures you control\", Arcee)"
     }
    }
   },
@@ -776,7 +780,15 @@
      "description": "filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)"
     },
     "min": {
-     "type": "integer"
+     "oneOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "const": "X"
+      }
+     ],
+     "description": "mínimo de alvos (padrão 1); 'X' = exatamente X (\"return X target cards\", Shigeki): o X escolhido não passa do número de alvos possíveis"
     },
     "max": {
      "oneOf": [
@@ -1064,6 +1076,10 @@
       },
       "qtd": {
        "type": "integer"
+      },
+      "umOuMais": {
+       "type": "boolean",
+       "description": "\"remove one or more\": quem ativa escolhe quantos (≥ qtd); o número vai em {conta:{de:'custo',o:'marcadores'}} (Arcee)"
       }
      }
     },
@@ -3051,7 +3067,8 @@
         "sacrificadas",
         "cada",
         "tipoMaisComum",
-        "se"
+        "se",
+        "custo"
        ]
       },
       {
@@ -3124,9 +3141,10 @@
       "cemiterio",
       "jogadores",
       "excesso",
-      "aoCemiterio"
+      "aoCemiterio",
+      "alvos"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room) | o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); manaGasta (de evento conjura): a mana gasta para conjurar (Liberator); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room) | o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); manaGasta (de evento conjura): a mana gasta para conjurar (Liberator); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; alvos (de evento, com f): quantos alvos distintos da mágica do evento batem no filtro f (Arcee: \"put that many +1/+1 counters\"); marcadores (de custo): os tirados no custo \"remove one or more\" (Arcee)"
     },
     "f": {
      "$ref": "#/$defs/filtro",
