@@ -3985,6 +3985,16 @@ caso('506.2', "Soaring Lightbringer: quando você ataca, uma ficha Glimmer 1/1 v
   ok(gl.every(r => e.objs[r.id].virada && M.temKw(e, e.objs[r.id], 'voar')), 'viradas e com voar (é encantamento criatura)');
 });
 
+caso('122.1', "Finality: pode pôr dois +1/+1 numa criatura sua (escolhida, sem alvo) e depois todas as criaturas levam -4/-4", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Vampire Nighthawk'], [1, 'Llanowar Elves']] });
+  const fx = M.carta('Find').faces[0].fx;
+  ok(M.fxSuportado(fx), 'lido');
+  const vn = objN(e, 0, 'Vampire Nighthawk');
+  M.executar(e, fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => t === 'talvez' ? ops.find(o => o.a === 'sim') : ops.find(o => o.id === vn.id));
+  igual(vn.marc['+1/+1'], 2, 'no Nighthawk');
+  igual(objN(e, 0, 'Grizzly Bears').marc['+1/+1'] || 0, 0);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

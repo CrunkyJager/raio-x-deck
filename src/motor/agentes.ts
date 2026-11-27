@@ -86,6 +86,10 @@ const basico = (e, p) => {
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
     }
+    case 'escolherCarta': {           // marcadores numa criatura escolhida (Finality): a de maior resistência
+      if (!(p.ctx && p.ctx.op === 'marcador')) return 0;
+      return melhorOp(p.ops, op => op.id === undefined ? -99 : M.resistencia(e, o(op.id)));
+    }
     case 'desvirar': {                // "desvire até N": as suas primeiro (o núcleo já põe as suas na frente)
       const k = p.ops.findIndex(op => op.id !== undefined && o(op.id).ctrl === p.j);
       return k >= 0 ? k : 0;

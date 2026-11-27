@@ -979,10 +979,18 @@ const H = {
       }
     },
   },
+  // f (sem em): "ponha N marcadores numa criatura que você controla" — escolhida na resolução, sem alvo (Finality), como o sacrificar
   marcador: {                                                       // CR 122
-    campos: ['tipoMarc', 'tirar'],
-    fx(e, f, ctx) {
+    campos: ['tipoMarc', 'tirar', 'f'],
+    ok: f => f.f === undefined || (f.em === undefined && f.quem === undefined && M.filtroOk(f.f)),
+    fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx);
+      if (f.f) {
+        const cand = M.objetosQue(e, { ...f.f, zona: f.f.zona || 'campo' }, ctx).map(o => o.id);
+        const [id] = escolherN(ask || ((_j, _t, ops) => ops[0]), ctx.voce, 'escolherCarta', cand, Math.min(1, cand.length), { ctx: { op: 'marcador' } });
+        if (id !== undefined) { if (f.tirar) e.objs[id].marc[f.tipoMarc] = Math.max(0, (e.objs[id].marc[f.tipoMarc] || 0) - q); else M.porMarcadores(e, e.objs[id], f.tipoMarc, q); }
+        return;
+      }
       if (f.em === undefined && f.quem !== undefined) { for (const j of jogsDe(e, f, ctx)) M.marcadorJogador(e, j, f.tipoMarc, q, !!f.tirar); return; }   // no jogador (122.1: poison, rad, experience)
       for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) - q1); }
     },
