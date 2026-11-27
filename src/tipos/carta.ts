@@ -344,6 +344,10 @@ export interface RxFiltro {
    * @minItems 2
    */
   ou?: [RxFiltro, RxFiltro, ...RxFiltro[]];
+  /**
+   * posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')
+   */
+  postaPorEste?: boolean;
 }
 
 export interface RxCompara {
@@ -455,6 +459,13 @@ export interface RxCustoAtv {
          * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
          */
         comEste?: boolean;
+        /**
+         * outro grupo sacrificado junto, com objetos diferentes (Jarad: 'Sacrifice a Swamp and a Forest')
+         */
+        tambem?: {
+          f?: RxFiltro;
+          qtd?: number;
+        };
       };
   descartar?: number;
   revelar?: {
@@ -504,6 +515,13 @@ export interface RxCustoAtv {
    * pôr esta no fundo do grimório do dono como custo (Timestream Navigator)
    */
   fundoEste?: boolean;
+  /**
+   * desvirar N permanentes viradas suas que batem em f (Halo Fountain: 'Untap two tapped creatures you control')
+   */
+  desvirarOutros?: {
+    f?: RxFiltro;
+    qtd?: number;
+  };
 }
 
 export type RxDura =
@@ -516,7 +534,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4) | fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
    */
   op:
     | 'mana'
@@ -862,6 +880,10 @@ export interface RxFx {
    * copiarPermanente: "and it has this ability" — fica com as habilidades desencadeadas impressas dela (Sunfrill Imitator)
    */
   mantemGat?: boolean;
+  /**
+   * cavar: pega até UM de cada subtipo da lista (Kaalia, Zenith Seeker: 'an Angel, a Demon, and/or a Dragon')
+   */
+  umPorSub?: string[];
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -1314,7 +1336,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor)
    */
   modo:
     | 'continuo'
@@ -1374,7 +1396,7 @@ export interface RxEst {
   camada?: string;
   de?: RxZona;
   /**
-   * podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage)
+   * podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage) | podeJogar: a mágica conjurada assim vai para o exílio em vez do cemitério (Kess: 'If a spell cast this way would be put into your graveyard, exile it instead')
    */
   exilaAoSair?: boolean;
   limite?: number;

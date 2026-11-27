@@ -993,7 +993,7 @@ M.gatDe = (e, o, lote?) => {
 };
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
-const FILTRO_OK = new Set(['comX', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
+const FILTRO_OK = new Set(['comX', 'postaPorEste', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
   'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k)) && (!f || f.ou === undefined || (Array.isArray(f.ou) && f.ou.length > 1 && f.ou.every(g => !!g && typeof g === 'object' && M.filtroOk(g))));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
@@ -1033,6 +1033,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.vm && !compara(d.vm || 0, limites(e, f.vm, ctx))) return false;
   if (f.poder && !compara(M.poder(e, o), limites(e, f.poder, ctx))) return false;
   if (f.resist && !compara(M.resistencia(e, o), limites(e, f.resist, ctx))) return false;
+  if (f.postaPorEste !== undefined && ((!!e.postoAgora && e.postoAgora.fonte === ctx.este && e.postoAgora.id === o.id) || (!!o.postoPor && o.postoPor.fonte === ctx.este && o.postoPor.ts === o.ts)) !== !!f.postaPorEste) return false;   // Kodama of the East Tree
   if (f.comX !== undefined && ((d.custo && d.custo.x) > 0) !== !!f.comX) return false;   // "with {X} in its mana cost" (202.1, Frontline Medic)
   if (f.atacando === 'oponente') { const C = e.turno.combate, r = C && (C.atk || []).find(r => r.id === o.id && r.ts === o.ts); if (!r || r.alvo.jog === undefined || r.alvo.jog === voce) return false; }   // "attacking one of your opponents" (o jogador; Frontier Warmonger)
   else if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;
@@ -1117,7 +1118,7 @@ const limite = (e, q, ctx) => {
   const c = M.qn(q).conta, F = ctx && e.objs[ctx.este];
   if (c && c.de === 'este' && (c.o === 'poder' || c.o === 'resist') && Object.keys(c).length === 2)
     return F ? (c.o === 'poder' ? M.poder(e, F) : M.resistencia(e, F)) * (q.mult ?? 1) + (q.soma || 0) : NaN;
-  const v = M.qtd(e, q, ctx); return v === null ? NaN : v;
+  const v = ctx && ctx.lki && M.qtdDe ? M.qtdDe(e, q, ctx) : M.qtd(e, q, ctx); return v === null || v === undefined ? NaN : v;   // dentro de um efeito (lki): qualquer contagem (Kodama: VM do evento)
 };
 const limites = (e, c, ctx) => typeof c === 'number' || (typeof c.min !== 'object' && typeof c.max !== 'object' && typeof c.igual !== 'object') ? c
   : { min: limite(e, c.min, ctx), max: limite(e, c.max, ctx), igual: limite(e, c.igual, ctx) };

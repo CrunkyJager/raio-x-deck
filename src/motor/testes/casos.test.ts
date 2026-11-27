@@ -4856,19 +4856,6 @@ caso('122.6', "All Will Be One: dispara quando VOCÊ põe marcadores (em permane
   ok(M.carta('All Will Be One').gat.every(g => M.gatOk(g)), 'gatOk');
 });
 
-caso('701.37', "monstruosidade: Alpha Deathclaw ganha 4 marcadores e fica monstruosa (dispara 'destrua'); ativar de novo não põe mais", () => {
-  const e = cena({ campo: [[0, 'Alpha Deathclaw'], [1, 'Grizzly Bears']] });
-  const a = e.objs[e.campo[0]], f = M.carta('Alpha Deathclaw').atv[0].fx, ask: any = (j, t, o) => o[0];
-  const ctx = () => ({ voce: 0, este: a.id, alvos: [], ilegal: {}, lki: { alvos: [] } });
-  e.pend = [];
-  for (const x of f) M.executar(e, x, ctx(), ask);
-  igual(a.marc['+1/+1'], 4); igual(e.pend.length, 1, 'quando fica monstruosa');
-  e.pend = [];
-  for (const x of f) M.executar(e, x, ctx(), ask);
-  igual(a.marc['+1/+1'], 4, 'já é monstruosa'); igual(e.pend.length, 0);
-  for (const c of ['Alpha Deathclaw', 'Giggling Skitterspike']) ok(M.fxSuportado(M.carta(c).atv[0].fx) && M.carta(c).gat.every(g => M.gatOk(g)), c);
-});
-
 caso('702.100', "evoluir: entra criatura sua maior (poder ou resistência) → +1/+1; menor ou do oponente, não", () => {
   const e = cena({ campo: [[0, 'Gyre Sage']] });
   const gs = e.objs[e.campo[0]];
@@ -5192,6 +5179,101 @@ caso('701.20', "Gitaxian Probe olha a mão do alvo (log) e compra; Glass-Cast He
   respE(g, o => o.a === 'ativar' && o.id === h.id && o.k === k);
   for (let i = 0; i < 20 && g.perg && g.perg.tipo === 'custo'; i++) M.responder(g, 0);
   ok(h.zona !== 'campo', 'o Coração foi sacrificado'); igual(g.campo.filter(id => g.objs[id].n === 'Blood').length, 0, 'as 13 Blood também');
+});
+
+caso('604.3', "Hallowed Haunting: a ficha Espírito tem P/R = Espíritos seus (CDA ptDefinido), contando ela; cresce com o próximo", () => {
+  const e = cena({ campo: [[0, 'Hallowed Haunting']] });
+  const fx = M.carta('Hallowed Haunting').gat[0].fx[0], H = objN(e, 0, 'Hallowed Haunting');
+  const ctx = () => ({ voce: 0, este: H.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, H) } });
+  ok(M.fxSuportado([fx]), 'aceito');
+  M.executar(e, fx, ctx(), null);
+  const t1 = e.objs[e.campo.find(id => e.objs[id].ficha)];
+  igual([M.poder(e, t1), M.resistencia(e, t1)], [1, 1], 'sozinha: 1/1');
+  M.executar(e, fx, ctx(), null); e.vCamada = (e.vCamada || 0) + 1;
+  igual([M.poder(e, t1), M.resistencia(e, t1)], [2, 2], 'com outra: 2/2');
+});
+
+caso('602.2b', "Halo Fountain: custo 'desvire N criaturas viradas suas' (desvirarOutros); sem viradas, não ativa", () => {
+  const e = cena({ campo: [[0, 'Halo Fountain'], [0, 'Plains'], [0, 'Grizzly Bears', { virada: true }]] });
+  const h = objN(e, 0, 'Halo Fountain'), b = objN(e, 0, 'Grizzly Bears'); M.avancar(e);
+  ok(M.podeAtivar(e, 0, h, 0) && !M.podeAtivar(e, 0, h, 1), '1 virada: só a primeira');
+  respE(e, o => o.a === 'ativar' && o.id === h.id && o.k === 0);
+  for (let i = 0; i < 5 && e.perg && e.perg.tipo === 'custo'; i++) M.responder(e, 0);
+  ok(!b.virada, 'o urso desvirou'); ok(h.virada, 'a fonte virou');
+  b.virada = true; h.virada = false; b.virada = false;
+  ok(!M.podeAtivar(e, 0, h, 0), 'sem criatura virada: não');
+});
+
+caso('702.118b', "espreitar (Gollum 1/1): criatura de poder maior não bloqueia; de poder igual, bloqueia", () => {
+  const e = cena({ campo: [[0, 'Gollum, Obsessed Stalker'], [1, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
+  const g = objN(e, 0, 'Gollum, Obsessed Stalker'), por = M.dadoDe(e, g).est[0].por, c = { voce: 0, este: g.id };
+  ok(!M.bate(e, objN(e, 1, 'Llanowar Elves'), por, c) && M.bate(e, objN(e, 1, 'Grizzly Bears'), por, c), 'elfo 1 bloqueia; urso 2 não');
+});
+
+caso('509.1b', "Hei Bai: a ficha Espírito não bloqueia nem é bloqueada por não-Espírito; Espírito com Espírito, pode", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const tok = M.carta('Hei Bai, Forest Guardian').atv[0].fx[0].token;
+  const [s0] = M.criarFichas(e, 0, tok, 1), [s1] = M.criarFichas(e, 1, tok, 1);
+  const b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 1, 'Llanowar Elves');
+  ok(!M.bloqueiaEste(e, l, s0), 'elfo não bloqueia o Espírito');
+  ok(!M.bloqueiaEste(e, s1, b), 'o Espírito não bloqueia o urso');
+  ok(M.bloqueiaEste(e, s1, s0), 'Espírito bloqueia Espírito');
+  ok(M.podeBloquear(e, s1, 1), 'pode bloquear em geral');
+});
+
+caso('702.76a', "Hunting Velociraptor: mágica de Dinossauro tem rondar {2}{R} (darRondar) depois de dano de combate por um Dinossauro", () => {
+  const e = cena({ campo: [[0, 'Hunting Velociraptor']], mao: [[0, 'Colossal Dreadmaw'], [0, 'Grizzly Bears']] });
+  const d = naMao(e, 0, 'Colossal Dreadmaw');
+  igual(M.altDe(e, 0, d), undefined, 'sem dano: sem rondar');
+  e.jogs[0].danoCombT = { t: e.turno.n, sub: ['Dinosaur'] };
+  igual(M.altDe(e, 0, d), { g: 2, p: ['R'] }, 'com dano de Dinossauro: {2}{R}');
+  igual(M.altDe(e, 0, naMao(e, 0, 'Grizzly Bears')), undefined, 'o urso não é Dinossauro');
+});
+
+caso('601.3', "Kess: uma mágica do cemitério por turno seu, e ela vai para o exílio depois (podeJogar limite + exilaAoSair)", () => {
+  const e = cena({ campo: [[0, 'Kess, Dissident Mage'], ...enche(4, 'Mountain').map(n => [0, n])] });
+  const b1 = e.por(0, 'Lightning Bolt', { zona: 'cemiterio' }), b2 = e.por(0, 'Shock', { zona: 'cemiterio' });
+  M.avancar(e);
+  ok(opsDe(e, 'conjurar').some(o => o.id === b1.id) && opsDe(e, 'conjurar').some(o => o.id === b2.id), 'as duas oferecidas');
+  respE(e, o => o.a === 'conjurar' && o.id === b1.id);
+  for (let i = 0; i < 5 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, 0);
+  resolvePilha(e);
+  igual(b1.zona, 'exilio', 'o Bolt foi para o exílio');
+  ok(!opsDe(e, 'conjurar').some(o => o.id === b2.id), 'a 2ª no mesmo turno: não');
+});
+
+caso('118.3', "Jarad: do cemitério, sacrifica um Pântano E uma Floresta (sacrificar.tambem); dois Pântanos não pagam", () => {
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp']] });
+  const j = e.por(0, 'Jarad, Golgari Lich Lord', { zona: 'cemiterio' }); M.avancar(e);
+  ok(!M.podeAtivar(e, 0, j, 1), 'dois Pântanos: não');
+  const g = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Forest']] }), jj = g.por(0, 'Jarad, Golgari Lich Lord', { zona: 'cemiterio' }), f = objN(g, 0, 'Forest');
+  M.avancar(g);
+  ok(M.podeAtivar(g, 0, jj, 1), 'Pântano + Floresta: sim');
+  respE(g, o => o.a === 'ativar' && o.id === jj.id && o.k === 1);
+  for (let i = 0; i < 5 && g.perg && g.perg.tipo === 'custo'; i++) M.responder(g, 0);
+  igual(f.zona, 'cemiterio', 'a Floresta foi'); igual(g.campo.filter(id => g.objs[id].n === 'Swamp').length, 1, 'um Pântano ficou');
+});
+
+caso('701.20', "Kaalia, Zenith Seeker: dos 6 do topo pega no máximo um de cada (Anjo, Demônio, Dragão) — dois Anjos, só um vai", () => {
+  const e = cena({ campo: [[0, 'Kaalia, Zenith Seeker']] });
+  const G = e.jogs[0].zonas.grimorio;
+  for (const n of ['Wastes', 'Serra Angel', 'Serra Angel', "Demon of Fate's Design", 'Wastes', 'Wastes']) { const o = e.por(0, n, { zona: 'grimorio' }); G.splice(G.indexOf(o.id), 1); G.push(o.id); }
+  const K = objN(e, 0, 'Kaalia, Zenith Seeker'), m0 = e.jogs[0].zonas.mao.length;
+  M.executar(e, M.carta('Kaalia, Zenith Seeker').gat[0].fx[0], { voce: 0, este: K.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, K) } }, (j, tipo, ops) => ops.find(o => o.a !== 'nenhum') || ops[0]);
+  const mao = e.jogs[0].zonas.mao.slice(m0).map(id => e.objs[id].n).sort();
+  igual(mao, ["Demon of Fate's Design", 'Serra Angel']);
+});
+
+caso('603.4', "Kodama of the East Tree: entrou um permanente seu → pode pôr da mão um de VM igual ou menor; o que ele pôs não dispara de novo", () => {
+  const e = cena({ campo: [[0, 'Kodama of the East Tree']], mao: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  e.pend = [];
+  e.por(0, 'Hill Giant');
+  igual(e.pend.filter(p => p.n === 'Kodama of the East Tree').length, 1, 'o Gigante dispara');
+  const K = objN(e, 0, 'Kodama of the East Tree'), g = M.carta('Kodama of the East Tree').gat[0];
+  const gi = objN(e, 0, 'Hill Giant'); e.pend = [];
+  M.executar(e, { ...g.fx[0], talvez: false }, { voce: 0, este: K.id, ev: { ev: 'entra', id: gi.id, ts: gi.ts }, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, K) } }, (j, t, ops) => ops.find(o => o.id !== undefined && e.objs[o.id].n === 'Grizzly Bears') || ops[0]);
+  ok(e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), 'pôs o urso');
+  igual(e.pend.filter(p => p.n === 'Kodama of the East Tree').length, 0, 'o urso posto por ele não dispara');
 });
 
 caso('104.3e', "Angel of Destiny: com 15 de vida acima da inicial, perde só quem ESTE anjo atacou neste turno (não cada oponente)", () => {

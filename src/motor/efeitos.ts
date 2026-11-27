@@ -1097,7 +1097,9 @@ const H = {
       const ent = f.para === 'campo' ? ids.map(id => M.decidirEntrada(e, id, f.sobControle === 'voce' ? ctx.voce : e.objs[id].dono, { virada: !!f.virada, ...(f.transformada ? { face: 0 } : {}) }, ask)) : [];
       // CR 508.4: entra atacando (sem declarar: não dispara "ataca"); quem controla escolhe quem ela ataca, entre os que poderia atacar
       const atk = f.atacando && e.turno.combate ? ent.map(p => M.escolherAtacado(e, p.ctrl, ask)) : [];
-      if (f.para === 'campo') ent.forEach((p, k) => { const o = M.aplicarEntrada(e, f.tiraTipo ? { ...p, anim: [{ tiraTipo: f.tiraTipo }] } : p); if (atk[k]) M.porAtacando(e, o, atk[k]); if (f.exilaAoSair && o && o.zona === 'campo') o.exilaAoSair = true; });   // desenterrar (702.84a)
+      // posta no campo por esta habilidade (Kodama: "if it wasn't put onto the battlefield with this ability"): e.postoAgora
+      // vale durante a entrada (o gatilho de entrar olha na hora, 603.4); depois fica no objeto (id+ts)
+      if (f.para === 'campo') ent.forEach((p, k) => { e.postoAgora = { fonte: ctx.este, id: p.id }; let o; try { o = M.aplicarEntrada(e, f.tiraTipo ? { ...p, anim: [{ tiraTipo: f.tiraTipo }] } : p); } finally { e.postoAgora = null; } if (o) o.postoPor = { fonte: ctx.este, ts: o.ts }; if (atk[k]) M.porAtacando(e, o, atk[k]); if (f.exilaAoSair && o && o.zona === 'campo') o.exilaAoSair = true; });   // desenterrar (702.84a)
       else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo, pos: f.posicao });
       if (f.comEste && f.para === 'exilio') { const F = e.objs[ctx.este]; if (F) for (const id of ids) if (e.objs[id].zona === 'exilio') e.objs[id].exPor = { id: F.id, ts: (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? F.ts }; }   // "exiled with this" (607.2a)
       ctx.movidos = movidos(e, ids);

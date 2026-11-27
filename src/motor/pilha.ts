@@ -162,7 +162,7 @@ const alvosUsadosDe = (d, fx) => {
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
 M.CARTA_OK = new Set(['impostoPorAlvo']);
-const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste']);
+const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste', 'desvirarOutros']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number' && !(c.vida && typeof c.vida === 'object' && M.qtdEstOk(c.vida))) return false;   // contagem: lida ao pagar (War Room)
@@ -175,6 +175,9 @@ M.custoSuportado = c => {
   if (c && c.devolver !== undefined && c.devolver !== 'este' && !(c.devolver && typeof c.devolver === 'object' && M.filtroOk(c.devolver.f || {})
     && (c.devolver.qtd === undefined || Number.isInteger(c.devolver.qtd)) && Object.keys(c.devolver).every(k => k === 'f' || k === 'qtd'))) return false;
   // "vire uma criatura lendária desvirada que você controla" (Dungeon Descent): {f, qtd}; não é o {T} dela, enjoo não importa (302.6)
+  // "Untap N tapped creatures you control" como custo (Halo Fountain): {f, qtd}
+  if (c && c.desvirarOutros !== undefined && !(c.desvirarOutros && typeof c.desvirarOutros === 'object' && M.filtroOk(c.desvirarOutros.f || {})
+    && (c.desvirarOutros.qtd === undefined || Number.isInteger(c.desvirarOutros.qtd)) && Object.keys(c.desvirarOutros).every(k => k === 'f' || k === 'qtd'))) return false;
   if (c && c.virarOutros !== undefined && !(c.virarOutros && typeof c.virarOutros === 'object' && M.filtroOk(c.virarOutros.f || {})
     && (c.virarOutros.qtd === undefined || Number.isInteger(c.virarOutros.qtd)) && (c.virarOutros.poder === undefined || (Number.isInteger(c.virarOutros.poder) && c.virarOutros.qtd === undefined)) && Object.keys(c.virarOutros).every(k => k === 'f' || k === 'qtd' || k === 'poder'))) return false;
   // "revele uma carta de Dinossauro da sua mão" (Thunderherd Migration): {f, qtd}; revelar não muda zona (701.20)
@@ -195,6 +198,7 @@ const sacE = (e, j, c, fonte, usados: any[] = [], k = 0) => k >= c.sacrificar.e.
 const candDev = (e, j, c, fonte) => M.objetosQue(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });   // devolver à mão como custo (Master Transmuter)
 const candVir = (e, j, c, fonte) => M.objetosQue(e, { ...(c.virarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => !o.virada && o.id !== fonte);
 M.candVir = candVir;
+const candDesv = (e, j, c, fonte) => M.objetosQue(e, { ...(c.desvirarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => o.virada && o.id !== fonte);
 const candRev = (e, j, c, fora) => M.objetosQue(e, { ...(c.revelar.f || {}), zona: 'mao' }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas.mao.includes(o.id));
 const candExi = (e, j, c, fora) => M.objetosQue(e, { ...(c.exilarDe.f || {}), zona: c.exilarDe.zona }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas[c.exilarDe.zona].includes(o.id));
 const candDesc = (e, j, fora) => e.jogs[j].zonas.mao.filter(id => id !== fora);
@@ -222,6 +226,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
   if (c.virarOutros && c.virarOutros.poder === undefined && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
+  if (c.desvirarOutros && candDesv(e, j, c, o && o.id).length < (c.desvirarOutros.qtd || 1)) return false;
   if (c.virarOutros && c.virarOutros.poder !== undefined && candVir(e, j, c, o && o.id).reduce((s, x) => s + Math.max(0, M.poder(e, x)), 0) < c.virarOutros.poder) return false;   // tripular N (702.122a)
   if (c.revelar && candRev(e, j, c, daMao).length < (c.revelar.qtd || 1)) return false;
   if (c.exilarDe && candExi(e, j, c, daMao || (o && o.id)).length < (c.exilarDe.qtd || 1)) return false;
@@ -321,6 +326,7 @@ function permissoes(e, j) {
       if (s.modo !== 'podeJogar' || (s.de !== 'cemiterio' && s.de !== 'grimorio') || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
       if (s.de === 'grimorio' && (zonaFonte !== 'campo' || !s.afeta.topo)) continue;   // do grimório: só a do topo, com a fonte no campo
       if (zonaFonte === 'cemiterio' && !s.afeta.este) continue;      // no cemitério só vale a permissão para si mesma
+      if (s.limite && S.permUso && S.permUso.t === e.turno.n && S.permUso.ts === S.ts) continue;   // "once during each of your turns" (Kess): já usou
       r.push({ s, ctx: { voce: j, este: S.id } });
     }
   };
@@ -422,6 +428,12 @@ const altDados = (e, j, o) => {
     }
   }
   return r;
+};
+// "Dinosaur spells you cast have prowl {2}{R}" (Hunting Velociraptor): est darRondar {afeta: filtro da mágica, custo} de permanente sua
+const rondarDado = (e, j, o) => {
+  for (const id of e.campo) { const F = e.objs[id]; if (F.ctrl !== j) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRondar' && s.custo && s.afeta && typeof s.afeta === 'object' && M.bate(e, o, { ...s.afeta, zona: o.zona }, { voce: j, este: F.id })) return { k: 'rondar', custo: s.custo }; }
+  return null;
 };
 const altDe = (e, j, o) => altInfo(e, j, o)?.custo;
 const altInfo = (e, j, o) => {
@@ -547,6 +559,7 @@ const modalTopo = d => d.fx && d.fx.length === 1 && d.fx[0].op === 'modal';
 // ---------- o que pode ser ativado (CR 602.2; lealdade CR 606) ----------
 // atv.se = "ative só se …" (602.5b; também na de mana: Mox Opal, Sarevok's Tome). Condição que o motor não lê: não ativa.
 M.atvSeOk = (e, a, o) => { if (!a.se) return true; if (!M.seOk(a.se)) return false; try { return M.condicao(e, a.se, { voce: o.ctrl, este: o.id }); } catch (_) { return false; } };
+const saiDoCem = a => (a.fx || []).some(f => f.op === 'mover' && f.em === 'este' && f.para && f.para !== 'cemiterio');
 M.podeAtivar = (e, j, o, k) => {
   const d = M.dadoDe(e, o), a = M.atvDe(e, o)[k];
   if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
@@ -796,7 +809,7 @@ function escolherAd(e, j, o, c, ask, custo?, x = 0) {
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
-  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], rev: [] as any[], exi: [] as any[] };
+  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], desv: [] as any[], rev: [] as any[], exi: [] as any[] };
   if (c.exilarDe) {
     for (let i = 0; i < (c.exilarDe.qtd || 1); i++) {
       const ops = candExi(e, j, c, daMao || fonte).filter(o => !r.exi.includes(o.id)).map(o => ({ a: 'exilar', id: o.id }));
@@ -822,6 +835,10 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
       r.vir.push(ask(j, 'custo', ops, { o: 'virar' }).id);
     }
   }
+  if (c.desvirarOutros) for (let i = 0; i < (c.desvirarOutros.qtd || 1); i++) {
+    const ops = candDesv(e, j, c, fonte).filter(o => !r.desv.includes(o.id)).map(o => ({ a: 'desvirar', id: o.id }));
+    r.desv.push(ask(j, 'custo', ops, { o: 'desvirar' }).id);
+  }
   if (c.sacrificar && c.sacrificar.e) {
     c.sacrificar.e.forEach((f, k) => {   // um de cada filtro, sem travar os seguintes
       const ops = candSac(e, j, c, fonte, f).filter(o => !r.sac.includes(o.id) && sacE(e, j, { sacrificar: { e: c.sacrificar.e.slice(k + 1) } }, fonte, [...r.sac, o.id])).map(o => ({ a: 'sacrificar', id: o.id }));
@@ -830,6 +847,11 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
   } else if (c.sacrificar && c.sacrificar !== 'este') {
     for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
       const ops = candSac(e, j, c, fonte).filter(o => !r.sac.includes(o.id)).map(o => ({ a: 'sacrificar', id: o.id }));
+      r.sac.push(ask(j, 'custo', ops, { o: 'sacrificar' }).id);
+    }
+    const t = c.sacrificar.tambem;
+    if (t) for (let i = 0; i < (t.qtd || 1); i++) {
+      const ops = candSac(e, j, { sacrificar: t }, fonte).filter(o => !r.sac.includes(o.id)).map(o => ({ a: 'sacrificar', id: o.id }));
       r.sac.push(ask(j, 'custo', ops, { o: 'sacrificar' }).id);
     }
   }
@@ -852,6 +874,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.virar) M.virarObj(e, o);
   if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) M.virarObj(e, e.objs[id]);          // virarOutros
+  for (const id of esc.desv || []) M.desvirarObj(e, e.objs[id]);     // desvirarOutros (Halo Fountain)
   for (const id of esc.exi || []) M.mover(e, id, 'exilio');        // exilarDe (CR 406)
   if ((esc.rev || []).length) M.log(e, J.nome, 'revela', esc.rev.map(id => e.objs[id].n).join(', '));   // CR 701.20: só mostra
   if (c.vida) M.perderVida(e, j, vidaCusto(e, j, o, c));
