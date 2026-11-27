@@ -309,6 +309,19 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   return o;
 };
 
+// regenerar (CR 701.15): escudo "a próxima vez que seria destruída neste turno, em vez disso vire-a, tire todo o dano
+// dela e tire-a do combate" (614.8). o.regen = {ts, t, n}: vale para este objeto (ts), neste turno (t), n escudos.
+// Destruir (701.8) e dano letal/toque mortífero (704.5g–h) olham o escudo; resistência 0 (704.5f) e sacrificar não.
+M.porRegen = (e, o) => { const R = o.regen && o.regen.ts === o.ts && o.regen.t === e.turno.n ? o.regen.n : 0; o.regen = { ts: o.ts, t: e.turno.n, n: R + 1 }; };
+M.regenera = (e, o) => {
+  if (!o.regen || o.regen.ts !== o.ts || o.regen.t !== e.turno.n || o.regen.n <= 0) return false;
+  o.regen = { ...o.regen, n: o.regen.n - 1 };
+  o.virada = true; o.dano = 0; o.mortal = false;
+  const C = e.turno.combate;                                        // CR 506.4: o atacante que já foi bloqueado continua bloqueado
+  if (C) { C.atk = C.atk.filter(a => a.id !== o.id); for (const a of C.atk) if (a.bloq) a.bloq = a.bloq.filter(b => b.id !== o.id); }
+  M.log(e, o.n, 'regenera');
+  return true;
+};
 // descartar (CR 701.9): o único caminho do descarte (efeito, custo, limpeza). Cada carta dispara 'descarta' {id, j, ts}
 // e o lote todo 'descartaGrupo' {j, n, ids} (gatilho com grupo: "uma ou mais cartas", Marauding Mako).
 // Loucura (702.35a): a carta vai para o exílio em vez do cemitério e o gatilho da loucura vai para a pilha.

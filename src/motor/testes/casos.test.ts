@@ -3458,6 +3458,30 @@ caso('121.1', "comprar com conta: Windfall (o maior descarte), Peer into the Aby
   for (const c of ['Windfall', 'Peer into the Abyss', 'One with the Machine', "Jace's Archivist", 'Whispering Madness']) ok(M.fxSuportado(M.carta(c).fx || M.carta(c).atv[0].fx), c);
 });
 
+caso('701.15', "regenerar: o escudo troca destruir e dano letal por virar + tirar o dano + sair do combate; um por escudo; semRegenerar e resistência 0 não; acaba no turno", () => {
+  const e = cena({ campo: [[0, 'Nightscape Familiar'], [1, 'Grizzly Bears']] });
+  const nf = e.objs[e.campo.find(id => e.objs[id].n === 'Nightscape Familiar')];
+  const X = (f, ctx: any = {}) => M.executar(e, f, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: nf.id, ...ctx }, () => ({ a: 'nao' }));
+  ok(M.fxSuportado(M.carta('Nightscape Familiar').atv.find(a => a.fx.some(f => f.op === 'regenerar')).fx), 'aceito');
+  X({ op: 'regenerar', em: 'este' }); X({ op: 'regenerar', em: 'este' });
+  X({ op: 'destruir', em: 'este' });
+  ok(nf.zona === 'campo' && nf.virada, '1º destruir: regenera (vira)');
+  nf.dano = 5; M.abe(e);
+  ok(nf.zona === 'campo' && nf.dano === 0, 'dano letal: 2º escudo, tira o dano');
+  nf.dano = 5; M.abe(e);
+  ok(nf.zona === 'cemiterio', 'sem escudo: morre');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }); const gb = f.objs[f.campo[0]];
+  const Y = fx => M.executar(f, fx, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: gb.id }, () => ({ a: 'nao' }));
+  Y({ op: 'regenerar', em: 'este' }); Y({ op: 'destruir', em: 'este', semRegenerar: true });
+  ok(gb.zona === 'cemiterio', "can't be regenerated: vai");
+  const g = cena({ campo: [[0, 'Grizzly Bears']] }); const g2 = g.objs[g.campo[0]];
+  M.executar(g, { op: 'regenerar', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: g2.id }, () => ({ a: 'nao' }));
+  g.turno.n++;
+  M.executar(g, { op: 'destruir', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: g2.id }, () => ({ a: 'nao' }));
+  ok(g2.zona === 'cemiterio', 'o escudo é só deste turno');
+  for (const c of ['Asceticism', 'Crypt Sliver', 'Goblin Chirurgeon', 'Zombie Master']) ok(JSON.stringify(M.carta(c)).includes('regenerar'), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

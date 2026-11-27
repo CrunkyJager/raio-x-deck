@@ -766,9 +766,9 @@ const H = {
     },
   },
   fasear: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.fasearFora(e, o.id); } },   // CR 702.26
-  // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o motor ainda não tem escudo de regeneração
-  // (op regenerar trava), então destruir já é definitivo; quando regenerar entrar, ele tem que olhar f.semRegenerar.
-  destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel')) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
+  // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o escudo de regeneração não vale
+  destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel') && (f.semRegenerar || !M.regenera(e, o))) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
+  regenerar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo') M.porRegen(e, o); } },   // CR 701.15a
   exilar: { fx(e, f, ctx) { const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id)); } },
   mover: {
     campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste'],
