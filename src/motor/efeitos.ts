@@ -62,6 +62,7 @@ const SUBST: Record<string, (s) => boolean> = {
   entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
     || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo'))),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
+  compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
   entraMarc: s => !!s.muda && Object.keys(s.muda).length === 1 && !!s.muda.marcadores && typeof s.muda.marcadores === 'object'
     && Object.values<any>(s.muda.marcadores).every((q: any) => qtdOk(q === 'X' ? q : q && typeof q === 'object' && q.conta === 'X' ? 'X' : q)),
@@ -633,6 +634,7 @@ const H = {
         for (const o of cand()) (e.permJogar || (e.permJogar = [])).push({ j, id: o.id, ts: o.ts, gratis: !!f.gratis, soConjurar: !!f.soConjurar, fim });
         return;
       }
+      if (f.talvez) ctx.pagou = false;                              // "if you don't cast it" (Descendants' Path): {se:{pagou:false}} no efeito seguinte
       const feitos = ctx.jogo || (ctx.jogo = new Map()), max = typeof f.qtd === 'number' ? f.qtd : f.f ? 1 : Infinity;
       for (;;) {
         const n = feitos.get(f) || 0; if (n >= max) return;
@@ -644,7 +646,7 @@ const H = {
         const P0 = e.proc;
         M.PROC.conjurar(e, { j, id: r.id, agora: true, gratis: !!f.gratis, resp: [] }, ask);
         e.proc = P0;
-        feitos.set(f, n + 1);
+        feitos.set(f, n + 1); if (f.talvez) ctx.pagou = true;
         ask.etapa();                                                // o conjurar mexeu no estado: a próxima pergunta começa do zero
       }
     },
@@ -773,7 +775,7 @@ const H = {
   regenerar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo') M.porRegen(e, o); } },   // CR 701.15a
   exilar: { fx(e, f, ctx) { const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id)); } },
   mover: {
-    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste'],
+    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio'],
     qtd: q => qtdOk(q) || ateOk(q),
     ok: f => (['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) || (f.para === 'comando' && f.em !== undefined)) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
@@ -785,7 +787,9 @@ const H = {
         const j = jogsDe(e, f, ctx)[0]; if (j === undefined) return;
         const z = f.de || f.f.zona || 'mao';
         const cand = M.objetosQue(e, { ...f.f, zona: z, dono: f.f.dono || 'voce' }, { ...ctx, voce: j }).map(o => o.id);
-        ids = escolherN(ask, j, 'escolherCarta', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: ateOk(f.qtd), ctx: { op: 'mover', para: f.para } });
+        const nq = Math.min(qtdDe(e, f.qtd, ctx), cand.length);
+        if (f.aleatorio) { const c = [...cand]; ids = []; for (let i = 0; i < nq; i++) ids.push(c.splice(Math.floor(M.aleat(e) * c.length), 1)[0]); }   // "at random" (Tomb Tyrant): ninguém escolhe
+        else ids = escolherN(ask, j, 'escolherCarta', cand, nq, { podeMenos: ateOk(f.qtd), ctx: { op: 'mover', para: f.para } });
       }
       if (f.para === 'comando') ids = ids.filter(id => e.objs[id].cmd);   // só comandante vai para a zona de comando (Hellkite Courser, 903)
       // transformada (CR 712.14a): entra com a face de trás; carta que não é de transformar fica onde está
@@ -1013,6 +1017,7 @@ const H = {
       M.log(e, e.jogs[ctx.voce].nome, 'escolhe', r.v);
     },
   },
+  revelarTopo: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; const ids = g.slice(-q).reverse(); if (ids.length) M.log(e, e.jogs[j].nome, 'revela do topo', ids.map(id => e.objs[id].n).join(', ')); } } },   // CR 701.20: só mostra; quem pega é o efeito seguinte (topo: true)
   moer: { fx(e, f, ctx) {   // CR 701.13. Depois de mover: 'moe' por carta {id, j} e o lote 'moeGrupo' {ids, n} ("uma ou mais", Scorchbeast)
     const q = qtdDe(e, f.qtd, ctx), ids: any[] = [];
     for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída

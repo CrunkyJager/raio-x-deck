@@ -366,7 +366,25 @@ M.milagreDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 
 // comprar (CR 121; grimório vazio → perde nas ABE, CR 704.5b)
 M.comprar = (e, j, qtd = 1) => {
   const J = e.jogs[j];
+  let brutas = 0;
   for (let i = 0; i < qtd; i++) {
+    // CR 614.1a/614.5: "if you would draw a card, draw two instead" (Bard, King of Dale) vale uma vez por compra; naoPrimeira:
+    // fora a 1ª da sua etapa de compra (504.1). As compras a mais não são substituídas de novo.
+    const prim = e.turno.passo === 'compra' && e.turno.ativo === j && J.primPasso !== e.turno.n;
+    if (prim) J.primPasso = e.turno.n;
+    let mult = 1;
+    if (e.turno.passo !== 'mulligan') for (const id of indice(e).sb) {
+      const F = e.objs[id];
+      for (const sb of M.dadoDe(e, F).subst || []) {
+        if (sb.ev !== 'compra' || !sb.muda || !Number.isInteger(sb.muda.mult)) continue;
+        if (sb.jog === 'voce' ? j !== F.ctrl : sb.jog === 'oponente' ? j === F.ctrl : sb.jog !== undefined && sb.jog !== 'qualquer') continue;
+        if (sb.naoPrimeira && prim) continue;
+        mult *= sb.muda.mult;
+      }
+    }
+    brutas += mult;
+  }
+  for (let i = 0; i < brutas; i++) {
     const g = J.zonas.grimorio;
     if (!g.length) { J.comprouVazio = true; continue; }
     const id = g[g.length - 1];

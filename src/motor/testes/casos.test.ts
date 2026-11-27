@@ -3545,6 +3545,23 @@ caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores 
   igual(f.campo.length - antes, 3 + 3, 'Elenda 1/1 com +2: 3 Vampiros');
 });
 
+caso('614.1a', "Bard, King of Dale compra 2 no lugar de 1, menos a 1ª da etapa de compra; Tomb Tyrant volta um Zumbi aleatório; Descendants' Path revela o topo e, sem conjurar, põe no fundo", () => {
+  const e = cena({ campo: [[0, 'Bard, King of Dale']] });
+  const m0 = e.jogs[0].zonas.mao.length; M.comprar(e, 0, 1);
+  igual(e.jogs[0].zonas.mao.length - m0, 2, 'fora da etapa de compra: 2');
+  e.turno.passo = 'compra'; e.turno.n++; const m1 = e.jogs[0].zonas.mao.length; M.comprar(e, 0, 1); M.comprar(e, 0, 1);
+  igual(e.jogs[0].zonas.mao.length - m1, 3, 'na etapa: a 1ª é 1, a 2ª vira 2');
+  const f = cena({ campo: [[0, 'Tomb Tyrant']] });
+  const zs = ['Blackcleave Goblin', 'Blackcleave Goblin', 'Blackcleave Goblin'].map(n => f.por(0, n, { zona: 'cemiterio' }));
+  M.executar(f, M.carta('Tomb Tyrant').atv[0].fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  igual(zs.filter(o => o.zona === 'campo').length, 1, 'um Zumbi voltou');
+  const g = cena({ campo: [[0, "Descendants' Path"], [0, 'Grizzly Bears']] });
+  const topo = g.por(0, 'Sol Ring', { zona: 'grimorio' });
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: {} };
+  for (const fx of M.carta("Descendants' Path").gat[0].fx) M.executar(g, fx, ctx, () => ({ a: 'nenhum' }));
+  igual(g.jogs[0].zonas.grimorio[0], topo.id, 'Sol Ring (sem tipo em comum) foi para o fundo');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
