@@ -13,6 +13,10 @@ const basico = (e, p) => {
       const t = J.zonas.mao.filter(terra).length;
       return J.mulls < 2 && (t < 2 || t > 5) ? 1 : 0;
     }
+    case 'vigiar': {                  // vigiar: terreno com 5+ no campo vai ao cemitério; o resto fica
+      const id = p.ops[0].id, nT = e.campo.filter(x => o(x).ctrl === p.j && terra(x)).length;
+      return terra(id) && nT >= 5 ? 1 : 0;
+    }
     case 'descartar': {               // filtrar: loucura e terreno sobrando primeiro; descarte opcional só com ganho
       const k = escolheDescarte(e, p);
       if (k >= 0) return k;
@@ -81,6 +85,11 @@ const basico = (e, p) => {
       return b;
     }
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
+    case 'manter': {                  // a que fica: a de mais valor (não ficha, maior valor de mana)
+      let b = 0, bv = -Infinity;
+      p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : (M.dadoDe(e, o(op.id)).vm || 0)) : -9; if (v > bv) { bv = v; b = i; } });
+      return b;
+    }
     case 'sacrificar': if (p.ctx && p.ctx.entra) { const k = p.ops.findIndex(op => op.a === 'sacrificar'); return k >= 0 ? k : 0; }   // Feasting Hobbit: todas as Comidas
     // falls through
     case 'custo': {
@@ -262,6 +271,9 @@ function valorFx(e, j, f) {
     case '_comprarLembra': return 1.5 * q + 2;                       // e conjura uma de graça
     case 'ficha': { const t = f.token || {}; return q * (t.nome === 'Treasure' ? 1 : t.pt ? (t.pt[0] + t.pt[1]) / 2 + 0.5 * (t.kw || []).length : 0.5); }
     case 'videncia': return 0.25 * q;
+    case 'vigiar': return 0.25 * q;
+    case 'explorar': return 0.7;
+    case 'bis': return 1.5 * Math.max(1, nOp);
     case 'ganharVida': return (J.vida <= 15 ? 0.3 : 0.15) * q;
     case 'perderVida': return f.quem === 'cadaOponente' ? 0.35 * q * nOp : f.quem === 'cadaJogador' ? 0.35 * q * nOp - meuPonto * q : 0.5 * q;
     case 'marcador': return f.em && f.em.alvo !== undefined ? (temCriatura(e, j, true) ? 0.8 * q : 0) : 0;

@@ -271,17 +271,17 @@ export interface RxFiltro {
    */
   exiladaPorEste?: boolean;
   /**
-   * sem nenhum marcador (Damning Verdict)
+   * true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')
    */
-  semMarcador?: boolean;
+  semMarcador?: boolean | string;
   /**
    * tem estas palavras-chave
    */
   kw?: string[];
   /**
-   * não tem o mesmo nome de outra permanente que você controla
+   * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
-  nomeUnico?: boolean;
+  nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
    * poder maior que o poder base
    */
@@ -1077,6 +1077,10 @@ export interface RxGat {
    * conjura: também quando copia
    */
   ouCopia?: boolean;
+  /**
+   * ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: "their first noncreature spell each turn")
+   */
+  primeiraNoTurno?: boolean;
   /**
    * zona de origem do objeto que mudou de zona
    */

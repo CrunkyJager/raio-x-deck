@@ -115,8 +115,8 @@ M.podeCustoAtv = (e, o, c) => {
   return true;
 };
 const pagarCustoAtv = (e, o, c) => {
-  if (c.virarOutros) for (const x of virMana(e, o, c).slice(0, c.virarOutros.qtd || 1)) x.virada = true;
-  if (c.virar) o.virada = true;
+  if (c.virarOutros) for (const x of virMana(e, o, c).slice(0, c.virarOutros.qtd || 1)) M.virarObj(e, x);
+  if (c.virar) M.virarObj(e, o);
   if (c.mana) e.jogs[o.ctrl].reserva = M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana).resto;
   if (c.vida) M.perderVida(e, o.ctrl, c.vida);
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio', { sac: true });
@@ -130,7 +130,7 @@ M.fontesDeMana = (e, j, { soVirar = false, para = null }: any = {}) => {
   if (mk) M.memo[mk] = r;
   for (const id of e.campo) {
     const o = e.objs[id];
-    if (o.ctrl !== j) continue;
+    if (o.ctrl !== j || M.ativBloqueada(e, o)) continue;   // Linvala: nem as de mana (605.1a)
     M.atvDe(e, o).forEach((a, k) => {
       if (!a.deMana || !a.custo || !M.podeCustoAtv(e, o, a.custo) || !M.atvSeOk(e, a, o)) return;
       // soVirar: sem pagar mana nem vida ({T} e/ou sacrificar este: terreno, Lotus Petal, Treasure, Gold)

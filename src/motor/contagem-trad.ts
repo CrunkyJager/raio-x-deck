@@ -36,7 +36,7 @@ export const TRAD: Record<string, (q: any) => any> = {
   vidaPerdidaOpsNoTurno: () => ({ de: 'turno', o: 'vidaPerdida', quem: 'oponentes', junta: 'soma' }),
   maiorVidaPerdidaOpNoTurno: () => ({ de: 'turno', o: 'vidaPerdida', quem: 'oponentes', junta: 'maior' }),
   resolucoesDestaHabNoTurno: () => ({ de: 'turno', o: 'resolucoesDestaHab' }),
-  oponentesAtacados: () => ({ de: 'combate', o: 'oponentesAtacados' }),
+  oponentesAtacados: () => ({ de: 'turno', o: 'oponentesAtacados' }),
   entrouNoTurno: () => ({ de: 'turno', o: 'entraram' }),
   atacantes: () => ({ de: 'combate', o: 'atacantes' }),
   atacantesEmVoce: () => ({ de: 'combate', o: 'atacantesEmVoce' }),
