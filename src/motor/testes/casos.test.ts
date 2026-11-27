@@ -3566,6 +3566,23 @@ caso('702.122a', "tripular: Rolling Hamsphere (tripular 3) vira as criaturas com
   M.avancar(f); ok(!f.perg.ops.some(op => op.a === 'ativar' && op.id === f.campo[0]), 'poder 2 < 3: não');
 });
 
+caso('701.19', "buscar até uma contagem (Scapeshift: tantos terrenos quanto sacrificou; The World Tree: quantos God quiser); ganhar vida igual à resistência de quem entrou (Verdant Sun's Avatar)", () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest']] });
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  const sim = (j, t, ops) => ops.find(o => o.a !== 'pronto' && o.a !== 'nenhum') || ops[0];
+  for (const f of M.carta('Scapeshift').fx) M.executar(e, f, ctx, sim);
+  igual(e.campo.map(id => e.objs[id].n), ['Wastes', 'Wastes'], 'sacrificou as 2 Forest, buscou 2');
+  ok(['Scapeshift', 'Living Death', 'The World Tree', 'Kyoshi Island Plaza', "Verdant Sun's Avatar", 'Righteous Valkyrie'].every(c => { const d = M.carta(c); return M.fxSuportado(d.fx || []) && (d.atv || []).every(a => M.fxSuportado(a.fx, { topo: false })) && (d.gat || []).every(g => M.gatOk(g)); }), 'aceitas');
+  const lv = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears']] }); lv.por(1, 'Cold-Eyed Selkie', { zona: 'cemiterio' });
+  const cl: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const x of M.carta('Living Death').fx) M.executar(lv, x, cl, () => ({ a: 'nao' }));
+  igual(lv.campo.map(id => lv.objs[id].n), ['Cold-Eyed Selkie'], 'Living Death: todas sacrificadas, a do cemitério volta');
+  igual(lv.objs[lv.campo[0]].ctrl, 1, 'para o dono');
+  const f = cena({ campo: [[0, "Verdant Sun's Avatar"]] }); f.pend = [];
+  const b = f.por(0, 'Grizzly Bears'); M.avancar(f); resolveCom(f);
+  igual(f.jogs[0].vida, 42, '+2 da Bears');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

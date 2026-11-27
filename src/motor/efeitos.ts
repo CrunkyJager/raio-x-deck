@@ -11,7 +11,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 // dentro de um repetirCada com filtro de objetos (Kalonian Hydra): em/copiaDe 'cadaAtual' = o objeto da vez
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'maiorDescarte', 'grimorioDoAlvo', 'vidaDoAlvo']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'maiorDescarte', 'grimorioDoAlvo', 'vidaDoAlvo', 'resistDoEvento']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
 
@@ -21,6 +21,8 @@ const quemAlvo = q => !!q && typeof q === 'object' && typeof q.alvo === 'number'
 // {dado:N}: rola um dado de N lados (CR 706) com o RNG da partida; {ate:N|'X'|'qualquer'} ("up to") só onde o handler aceita
 const dadoOk = q => !!q && typeof q === 'object' && Number.isInteger(q.dado) && q.dado >= 2 && Object.keys(q).length === 1;
 const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && (Number.isInteger(q.ate) || q.ate === 'X' || q.ate === 'qualquer');
+// {ate: conta}: "up to that many / up to X onde X é uma contagem" (Scapeshift, Kyoshi Island Plaza) — só onde o handler aceita
+const ateContaOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && !!q.ate && typeof q.ate === 'object' && qtdOk(q.ate);
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
     && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop', 'de', 'divCima'].includes(k)) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1)) && (q.conta !== 'vidaDoAtual' || dentroCada > 0) && (q.de === undefined || ((q.conta === 'marcadoresNoEste' || q.conta === 'marcadoresNoCada' || q.conta === 'devocao') && typeof q.de === 'string')) && (q.conta !== 'marcadoresNoCada' || dentroObj > 0) && (q.conta !== 'devocao' || /^[WUBRG]+$/.test(q.de || '')) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
@@ -230,6 +232,7 @@ function jogsDe(e, f, ctx) {
 function qtdDe(e, q, ctx) {
   if (q === undefined) return 1;
   if (dadoOk(q)) { const v = 1 + Math.floor(M.aleat(e) * q.dado); M.log(e, 'd' + q.dado, 'deu', v); return v; }   // CR 706
+  if (ateContaOk(q)) return qtdDe(e, q.ate, ctx);
   if (ateOk(q)) return q.ate === 'qualquer' ? Infinity : q.ate === 'X' ? ctx.x || 0 : q.ate;   // o máximo; quem escolhe para antes
   if (q && typeof q === 'object' && typeof q.conta === 'string') {
     const L = ctx.lki, a = L.alvos && L.alvos[q.alvo || 0] && L.alvos[q.alvo || 0][0];
@@ -264,6 +267,7 @@ function qtdDe(e, q, ctx) {
       case 'evento': v = !ctx.ev ? 0 : vidaEv(ctx.ev) ? ctx.ev.q || 0 : ctx.ev.n ?? 1; break;   // no evento de vida: "that much" (Exquisite Blood, Prize Pig)
       case 'vidaGanha': v = ctx.ev && vidaEv(ctx.ev) ? ctx.ev.q || 0 : 0; break;               // "that much life" (Sanguine Bond, Vito)
       case 'danoCausado': v = ctx.ev && ctx.ev.ev === 'dano' ? ctx.ev.q || 0 : 0; break;   // "that much damage" (o dano do evento)
+      case 'resistDoEvento': { const o = ctx.ev && e.objs[ctx.ev.id]; v = o && o.zona === 'campo' ? M.resistencia(e, o) : ctx.ev && ctx.ev.snap ? M.resistencia(e, ctx.ev.snap) : 0; break; }   // "life equal to its toughness" (Verdant Sun's Avatar)
       case 'vmDoEvento': { const o = ctx.ev && e.objs[ctx.ev.id]; v = o ? M.dadoDe(e, o).vm || 0 : 0; break; }   // "that spell's mana value"
       case 'coresDoEvento': { const o = ctx.ev && e.objs[ctx.ev.id]; v = o ? new Set((M.dadoDe(e, o).cores || '').replace(/[^WUBRG]/g, '')).size : 0; break; }   // "for each of that spell's colors" (Ramos; 105.2)
       case 'poderDoSacrificado': v = (ctx.sac || []).reduce((s, l) => s + Math.max(0, l.poder), 0); break;   // custo adicional sacrificar (LKI, 608.2h)
@@ -1018,13 +1022,16 @@ const H = {
     for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
   } },
+  // qtd 'tudo' = "sacrifica todas" (Living Death, sem escolha); {ate:N|'qualquer'} = "quantas quiser" (Scapeshift)
   sacrificar: {                                                     // CR 701.21: quem sacrifica escolhe
     campos: ['f'],
+    qtd: q => qtdOk(q) || q === 'tudo' || (ateOk(q) && q.ate !== 'X'),
     fx(e, f, ctx, ask) {
       const esc: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
         const cand = M.objetosQue(e, { ...(f.f || {}), ctrl: 'voce', zona: 'campo' }, { ...ctx, voce: j }).map(o => o.id);
-        esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length)));
+        if (f.qtd === 'tudo') { esc.push(...cand); continue; }
+        esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: ateOk(f.qtd) }));
       }
       ctx.resultado = esc.length;                                   // "reveal … until X Zombies" (Empty the Laboratory)
       for (const id of esc) M.mover(e, id, 'cemiterio', { sac: true });
@@ -1033,7 +1040,7 @@ const H = {
   embaralhar: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.embaralhar(e, e.jogs[j].zonas.grimorio); } },
   buscar: {                                                         // CR 701.19 (pode não achar: 701.19b)
     campos: ['f', 'para', 'revelar', 'virada', 'destinos', 'noDe'],
-    qtd: q => qtdOk(q) || (ateOk(q) && q.ate !== 'X'),          // "any number of" (Ugin −11): {ate:'qualquer'}
+    qtd: q => qtdOk(q) || (ateOk(q) && q.ate !== 'X') || ateContaOk(q),   // "any number of" (Ugin −11): {ate:'qualquer'}
     ok: f => ['mao', 'campo', 'cemiterio', 'grimorio', 'exilio', undefined].includes(f.para) && (!f.destinos || f.destinos.every(d => ['mao', 'campo', 'cemiterio', 'grimorio'].includes(d.para))),
     fx(e, f, ctx, ask) {
       const plano: any[] = [];
