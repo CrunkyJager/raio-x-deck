@@ -380,7 +380,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { clone: zona === 'campo' ? clone : null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && !!conjurada, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { clone: zona === 'campo' ? clone : null, clone0: null, cloneFim: null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && !!conjurada, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
@@ -1132,7 +1132,8 @@ M.condicao = (e, se, ctx) => {
     if (c.min === undefined && c.max === undefined && c.igual === undefined ? n < 1 : !compara(n, c)) return false;
   }
   if (se.controla && M.objetosQue(e, { ...se.controla.f, ctrl: 'voce' }, ctx).length < (se.controla.min || 1)) return false;
-  if (se.turno && (se.turno === 'seu') !== (e.turno.ativo === ctx.voce)) return false;
+  if (se.turno === 'doEvento') { if (!ctx.ev || ctx.ev.j === undefined || e.turno.ativo !== ctx.ev.j) return false; }   // "during their turn" (Wedding Ring): o turno de quem compra/ganha
+  else if (se.turno && (se.turno === 'seu') !== (e.turno.ativo === ctx.voce)) return false;
   if (se.portadorDoAnel !== undefined) {   // 701.54: true = você tem um Portador do Anel; 'este' = esta é o seu Portador (Frodo)
     const A = e.jogs[ctx.voce] && e.jogs[ctx.voce].anel, E = e.objs[ctx.este];
     const tem = se.portadorDoAnel === 'este' ? !!E && M.ehPortador(e, E) && E.ctrl === ctx.voce : !!A && !!A.p && !!e.objs[A.p.id] && M.ehPortador(e, e.objs[A.p.id]);

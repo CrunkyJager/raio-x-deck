@@ -715,7 +715,7 @@ export interface RxFx {
    */
   naoDesvira?: boolean;
   /**
-   * op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
+   * copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
    */
   fonte?: RxObjeto;
   /**
@@ -738,6 +738,18 @@ export interface RxFx {
    * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
    */
   trocaCor?: boolean;
+  /**
+   * copiarPermanente: "except its name is [este]" (707.9b; Sunfrill Imitator, Sarkhan Soul Aflame)
+   */
+  mantemNome?: boolean;
+  /**
+   * copiarPermanente: "and it has this ability" — fica com as habilidades desencadeadas impressas dela (Sunfrill Imitator)
+   */
+  mantemGat?: boolean;
+  /**
+   * copiarPermanente: supertipos além dos copiados ("it's legendary in addition to its other types": Sarkhan)
+   */
+  super?: string[];
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -792,7 +804,10 @@ export interface RxCond {
     min?: number;
   };
   esteEm?: RxZona[];
-  turno?: 'seu' | 'deOutro';
+  /**
+   * doEvento: é o turno do jogador do evento ("draws a card during their turn": Wedding Ring)
+   */
+  turno?: 'seu' | 'deOutro' | 'doEvento';
   /**
    * o 'se fizer' / 'se não fizer' do efeito anterior
    */

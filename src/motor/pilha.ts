@@ -378,6 +378,15 @@ const altDados = (e, j, o) => {
       r.push({ custo: s.gratis ? {} : s.pagar.mana || {}, vida, F, s });
     }
   }
+  // emblema / efeito temporário seu (114.4): "You may cast spells from your hand without paying their mana costs" (Tamiyo −7)
+  for (const t of e.efTemp || []) {
+    if (t.ctrl !== j) continue;
+    for (const s of t.est || []) {
+      if (s.modo !== 'custoAlternativo' || !s.gratis || s.limite || !M.estAltOk(s) || typeof s.afeta !== 'object') continue;
+      try { if (!M.bate(e, o, s.afeta, { voce: j, este: -1 }) || (s.se && !M.condicao(e, s.se, { voce: j, este: -1 }))) continue; } catch (_) { continue; }
+      r.push({ custo: {}, vida: 0, F: null, s });
+    }
+  }
   return r;
 };
 const altDe = (e, j, o) => altInfo(e, j, o)?.custo;

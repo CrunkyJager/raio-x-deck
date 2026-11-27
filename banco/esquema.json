@@ -1422,7 +1422,7 @@
     },
     "fonte": {
      "$ref": "#/$defs/objeto",
-     "description": "op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
+     "description": "copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
     },
     "noDe": {
      "$ref": "#/$defs/objeto",
@@ -1443,6 +1443,21 @@
     "trocaCor": {
      "type": "boolean",
      "description": "modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)"
+    },
+    "mantemNome": {
+     "type": "boolean",
+     "description": "copiarPermanente: \"except its name is [este]\" (707.9b; Sunfrill Imitator, Sarkhan Soul Aflame)"
+    },
+    "mantemGat": {
+     "type": "boolean",
+     "description": "copiarPermanente: \"and it has this ability\" — fica com as habilidades desencadeadas impressas dela (Sunfrill Imitator)"
+    },
+    "super": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "copiarPermanente: supertipos além dos copiados (\"it's legendary in addition to its other types\": Sarkhan)"
     }
    },
    "additionalProperties": false,
@@ -1565,8 +1580,10 @@
     "turno": {
      "enum": [
       "seu",
-      "deOutro"
-     ]
+      "deOutro",
+      "doEvento"
+     ],
+     "description": "doEvento: é o turno do jogador do evento (\"draws a card during their turn\": Wedding Ring)"
     },
     "pagou": {
      "type": "boolean",

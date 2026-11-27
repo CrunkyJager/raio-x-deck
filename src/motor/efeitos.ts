@@ -337,6 +337,7 @@ function tempEstOk(s, f) {
     case 'danoNaoPrevenivel': return s.afeta === 'cadaJogador' && so();                                             // efeitos.ts M.substDano
     case 'ptDefinido': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && so('pBase', 'rBase')   // 7b (Sephiroth): e.temp.base
       && Number.isInteger(s.pBase) && Number.isInteger(s.rBase) && f.dura === 'fimDoTurno';
+    case 'custoAlternativo': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && s.gratis === true && !s.limite && M.estAltOk(s);   // emblema da Tamiyo: lido no altDados (pilha.ts)
     case 'naoPodeConjurar': return s.afeta === 'voce' && so();                                                         // lido em pilha.ts (M.naoConjura)
     case 'conjurarComLampejo': return s.afeta === 'voce' && so('f') && (!s.f || M.filtroOk(s.f));                   // lido em pilha.ts (M.lampejoDado)
     case 'continuo': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)        // emblema do Sorin: lido nas camadas (estado.ts)
@@ -690,7 +691,7 @@ const H = {
       && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length + (f.gat || []).length) > 0
       && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => f.proximaMagica ? s.ev === 'anulada' && M.substOk(s) && Object.keys(s.quem).length === 1 : tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este))
       && (!f.proximaMagica || (f.em === undefined && !(f.est || []).length && !(f.gat || []).length && f.dura === 'fimDoTurno'))
-      && (f.gat || []).every(g => f.em === undefined && M.gatOk(g) && !(g.quem && g.quem.este)),
+      && (f.gat || []).every(g => (f.em === undefined || (typeof f.em === 'object' && !!g.quem && g.quem.lembrada === true)) && M.gatOk(g) && !(g.quem && g.quem.este)),   // em alvo + quem lembrada: "sempre que uma delas…" (Tamiyo +1)
     fx(e, f, ctx) {
       const F = e.objs[ctx.este], este = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? { id: F.id, ts: F.ts } : null;
       const ids = f.em === undefined ? null : objsDe(e, f, ctx).map(o => ({ id: o.id, ts: o.ts }));
@@ -1041,6 +1042,27 @@ const H = {
       const planos: any[] = [];
       for (let k = 0; k < n; k++) planos.push(M.alvosDaCopia(e, o, ctx.voce, !!f.novoAlvo, ask));   // pergunta tudo antes de mexer
       for (const pl of planos) M.criarCopia(e, o, ctx.voce, pl);
+    },
+  },
+  // "you may have this become a copy of [fonte] (until end of turn), except its name is … (and it has this ability)"
+  // CR 707.2/707.9b: o objeto passa a ter os valores copiáveis da fonte (camada 1, o.clone); dura fimDoTurno volta ao
+  // que era (o.clone0) na limpeza (turno.ts). Só 'em: este' no campo, a fonte no campo (Sunfrill Imitator, Sarkhan).
+  copiarPermanente: {
+    campos: ['fonte', 'mantemNome', 'mantemGat', 'super', 'dura'],
+    ok: f => f.em === 'este' && f.fonte !== undefined && emOk(f.fonte) && (f.dura === undefined || f.dura === 'fimDoTurno')
+      && (f.super === undefined || (Array.isArray(f.super) && f.super.every(x => typeof x === 'string'))),
+    fx(e, f, ctx) {
+      const O = e.objs[ctx.este];
+      if (!O || O.zona !== 'campo' || (ctx.lki && ctx.lki.este && O.ts !== ctx.lki.este.ts)) return;
+      const S = objsDe(e, { em: f.fonte }, ctx).find(x => x.zona === 'campo' && x.id !== O.id);
+      if (!S) return;
+      const { faces, forma, ...base } = M.dadoBase(e, S), meu = O.ficha || M.carta(O.n);
+      const clone = { ...base, n: f.mantemNome ? O.n : base.n || S.n,
+        ...(f.super ? { super: [...new Set([...(base.super || []), ...f.super])] } : {}),
+        ...(f.mantemGat ? { gat: [...(base.gat || []), ...(meu.gat || [])] } : {}) };
+      if (f.dura === 'fimDoTurno') { if (O.cloneFim !== 'turno') O.clone0 = O.clone || null; O.cloneFim = 'turno'; } else { O.clone0 = null; O.cloneFim = null; }
+      O.clone = clone; e.vCamada = (e.vCamada || 0) + 1;
+      M.log(e, e.jogs[O.ctrl].nome, O.n, 'vira cópia de', S.n, f.dura === 'fimDoTurno' ? '(até o fim do turno)' : '');
     },
   },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6

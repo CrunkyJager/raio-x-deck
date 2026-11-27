@@ -5028,6 +5028,45 @@ caso('702.131', "Wayward Swordtooth: não ataca nem bloqueia a menos que você t
   ok(!M.condicao(e, se, { voce: 0, este: w.id }), 'com bênção: não vale');
 });
 
+caso('603.4', "Wedding Ring: o oponente com um Wedding Ring compra NO TURNO DELE → você compra; no turno de um terceiro, não (cond turno 'doEvento')", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Wedding Ring'], [1, 'Wedding Ring']] });
+  const g = M.carta('Wedding Ring').gat[1], W = objN(e, 0, 'Wedding Ring'), ctx = ev => ({ voce: 0, este: W.id, ev });
+  ok(M.seOk(g.se), 'condição aceita');
+  e.turno.ativo = 1; ok(M.condicao(e, g.se, ctx({ ev: 'compra', j: 1 })), 'turno do 1, o 1 compra: sim');
+  e.turno.ativo = 2; ok(!M.condicao(e, g.se, ctx({ ev: 'compra', j: 1 })), 'turno do 2, o 1 compra: não');
+  e.turno.ativo = 2; ok(!M.condicao(e, g.se, ctx({ ev: 'compra', j: 2 })), 'o 2 não tem Wedding Ring: não');
+});
+
+caso('707.9b', "copiarPermanente (fx): Sunfrill Imitator vira cópia do Dinossauro alvo mas fica com o nome e o gatilho; Sarkhan vira cópia do Dragão até o fim do turno, lendário", () => {
+  ok(M.fxSuportado(M.carta('Sunfrill Imitator').gat[0].fx) && M.gatOk(M.carta('Sarkhan, Soul Aflame').gat[0]), 'aceitos');
+  const e = cena({ campo: [[0, 'Sunfrill Imitator'], [0, 'Ghalta, Primal Hunger'], [0, 'Sarkhan, Soul Aflame'], [0, 'Savage Ventmaw']] });
+  const si = objN(e, 0, 'Sunfrill Imitator'), gh = objN(e, 0, 'Ghalta, Primal Hunger'), sk = objN(e, 0, 'Sarkhan, Soul Aflame'), sd = objN(e, 0, 'Savage Ventmaw');
+  const f = M.carta('Sunfrill Imitator').gat[0].fx[0];
+  M.executar(e, { ...f, talvez: false }, { voce: 0, este: si.id, alvos: [[{ o: gh.id, ts: gh.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, si) } }, () => null);
+  igual([M.poder(e, si), M.dadoDe(e, si).n, M.temKw(e, si, 'atropelar'), (M.dadoDe(e, si).gat || []).length], [12, 'Sunfrill Imitator', true, 1], 'Ghalta 12/12 com atropelar, nome e gatilho dela');
+  const g = M.carta('Sarkhan, Soul Aflame').gat[0];
+  M.executar(e, { ...g.fx[0], talvez: false }, { voce: 0, este: sk.id, ev: { ev: 'zona', id: sd.id, ts: sd.ts, para: 'campo' }, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, sk) } }, () => null);
+  igual([M.poder(e, sk), M.dadoDe(e, sk).n, (M.dadoDe(e, sk).super || []).includes('Legendary'), M.temKw(e, sk, 'voar')], [4, 'Sarkhan, Soul Aflame', true, true], 'Ventmaw 4/4 voando, nome Sarkhan, lendário');
+  e.turno.passo = 'final'; passarAte(e, 'principal1');
+  igual([M.poder(e, sk), M.poder(e, si)], [2, 12], 'no turno seguinte Sarkhan volta a 2/4; a do Imitator fica');
+});
+
+caso('114.4', "Tamiyo, Field Researcher: +1 — dano de combate das criaturas escolhidas faz VOCÊ comprar (mesmo a do oponente), até seu próximo turno; −7 — emblema: mágicas da mão sem pagar", () => {
+  const T = M.carta('Tamiyo, Field Researcher');
+  ok(T.atv.every(a => M.fxSuportado(a.fx, { topo: false })), 'as três aceitas');
+  const e = cena({ campo: [[0, 'Tamiyo, Field Researcher'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves'], [1, 'Grizzly Bears']], mao: [[0, 'Serra Angel']] });
+  const t = objN(e, 0, 'Tamiyo, Field Researcher'), l = objN(e, 1, 'Llanowar Elves'), b1 = e.campo.map(id => e.objs[id]).find(o => o.n === 'Grizzly Bears' && o.ctrl === 1);
+  M.executar(e, T.atv[0].fx[0], { voce: 0, este: t.id, alvos: [[{ o: l.id, ts: l.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, t) } }, () => null);
+  e.pend = []; M.evento(e, { ev: 'dano', fonte: l.id, combate: true, jog: 0, q: 1 }); M.evento(e, { ev: 'dano', fonte: b1.id, combate: true, jog: 0, q: 2 });
+  igual(e.pend.length, 1, 'só o elfo escolhido dispara');
+  igual(e.pend[0].ctrl, 0, 'quem controla o gatilho (e compra) é você');
+  e.pend = [];
+  M.executar(e, T.atv[2].fx[1], { voce: 0, este: t.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, t) } }, () => null);
+  const sa = e.objs[e.jogs[0].zonas.mao.find(id => e.objs[id].n === 'Serra Angel')];
+  igual(M.altDe(e, 0, sa), {}, 'emblema: Serra Angel da mão por {0}');
+  igual(M.altDe(e, 1, sa), undefined, 'o oponente não tem o emblema');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

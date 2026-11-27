@@ -27,7 +27,7 @@ const cond = (e, se, ctx) => { if (!se) return true; try { return M.condicao(e, 
 
 // o gatilho g da fonte F bate no evento ev?
 function bateEv(e, g, ev, F) {
-  const ctx = { voce: F.ctrl, este: F.id }, q = o => !g.quem || (o && bate(e, o, g.quem, ctx));
+  const ctx = { voce: F.ctrl, este: F.id, movidos: F.movidos }, q = o => !g.quem || (o && bate(e, o, g.quem, ctx));   // movidos: os afetados do efeito temporário (filtro lembrada: Tamiyo +1)
   switch (g.ev) {
     case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(e.objs[ev.id]);   // de: "enters from a graveyard" (River Kelpie, Kotis)
     case 'ficaMonstruosa': return ev.ev === 'ficaMonstruosa' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.37b
@@ -114,7 +114,7 @@ function temporarios(e, ev) {
   if (!e.efTemp || !e.efTemp.length) return;
   for (const t of e.efTemp) {
     if (!t.gat || !t.gat.length) continue;
-    const F = { id: -1, ctrl: t.ctrl, ts: t.ts };
+    const F = { id: -1, ctrl: t.ctrl, ts: t.ts, movidos: t.ids || undefined };
     for (const g of t.gat) {
       if (!bateEv(e, g, ev, F) || !cond(e, g.se, { voce: t.ctrl, este: -1, ev })) continue;
       e.pend.push({ fonte: -1, ts: t.ts, ctrl: t.ctrl, k: 'atrasado', g, n: t.n, face: null, ficha: null, lki: null, ev: { ...ev, snap: undefined } });
