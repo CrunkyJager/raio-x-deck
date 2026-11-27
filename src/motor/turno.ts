@@ -8,6 +8,14 @@ const PASSOS = ['desvirar', 'manutencao', 'compra', 'principal1', 'inicioCombate
   'dano', 'fimCombate', 'principal2', 'final', 'limpeza'];
 M.PASSOS = PASSOS;
 const PRINCIPAL = new Set(['principal1', 'principal2']);
+const COMBATE = new Set(['inicioCombate', 'atacantes', 'bloqueadores', 'dano', 'fimCombate']);
+const faseDe = (p?) => p === undefined ? 'fim' : COMBATE.has(p) ? 'combate' : PRINCIPAL.has(p) ? p : ['desvirar', 'manutencao', 'compra'].includes(p) ? 'inicial' : 'final';   // CR 500.1
+// "depois desta fase há uma fase de combate adicional [seguida de uma principal]" (500.8: a criada por último vem primeiro)
+M.faseExtra = (e, fase, chave) => {
+  const T = e.turno, l = T.extras = T.extras || [];
+  const k = T.extraUlt && T.extraUlt.chave === chave ? T.extraUlt.pos + 1 : 0;   // outro efeito: vai na frente; o mesmo: logo depois da anterior
+  l.splice(k, 0, fase); T.extraUlt = { chave, pos: k };
+};
 
 // ---------- laço ----------
 // parar(e) opcional: para antes de cada volta do laço quando der verdadeiro (testes, "jogar até a etapa X")
@@ -146,8 +154,14 @@ function proximoPasso(e) {
   const pula = M.depoisDoPasso(e, T.passo);                         // 508.8 sem atacantes → fim do combate; 510.4 2ª etapa
   let i = pula ? PASSOS.indexOf(pula) : PASSOS.indexOf(T.passo) + 1;
   T.feito = false; T.prio = null;
+  // fases extras (CR 500.8): a fase atual acabou → a próxima da fila; a fila vazia volta ao passo normal guardado
+  if (faseDe(T.passo) !== faseDe(PASSOS[i]) && (T.extras && T.extras.length || T.volta)) {
+    if (T.extras && T.extras.length) { if (!T.volta) T.volta = PASSOS[i] || 'fimTurno'; i = PASSOS.indexOf(T.extras.shift() === 'combate' ? 'inicioCombate' : 'principal2'); }
+    else { i = T.volta === 'fimTurno' ? PASSOS.length : PASSOS.indexOf(T.volta); T.volta = null; }
+  }
   if (i < PASSOS.length) {
     T.passo = PASSOS[i];
+    if (T.passo === 'inicioCombate') T.combates = (T.combates || 0) + 1;   // "primeiro combate do turno" (Karlach, Genji Glove, Tifa)
     if (T.passo === 'final' && e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => !(p.fim && p.fim.final === T.ativo));   // "até o seu próximo passo final" (Inti): acaba quando ele começa
     M.evento(e, { ev: 'fase', passo: T.passo, ativo: T.ativo }); return;
   }
@@ -155,7 +169,7 @@ function proximoPasso(e) {
   const n = e.jogs.length;
   let p = T.ativo;
   do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null; T.lim = null; T.disp = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
   M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)

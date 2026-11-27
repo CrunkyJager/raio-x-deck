@@ -3280,6 +3280,31 @@ caso('205.3m', "op escolher na resolução: Kindred Dominance destrói o que nã
   igual([M.protegeDe(e, e.objs[l1], bolt), M.protegeDe(e, e.objs[l2], bolt), M.protegeDe(e, e.objs[l1], { cores: 'G' })], [true, false, false], 'proteção do vermelho só no alvo');
 });
 
+caso('500.8', "fases extras: Aggravated Assault na 1ª principal põe combate + principal logo depois dela; a fase criada por último vem primeiro", () => {
+  const e = cena({ passo: 'desvirar' }); e.turno.feito = false;
+  const vistos: any[] = []; let feito = false;
+  for (let g = 0; g < 80 && e.turno.n === 2; g++) {
+    if (vistos[vistos.length - 1] !== e.turno.passo) vistos.push(e.turno.passo);
+    if (e.turno.passo === 'principal1' && !feito) { feito = true; const cx = { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }; for (const f of M.carta('Aggravated Assault').atv[0].fx) M.executar(e, f, cx, null); }   // um ctx: a mesma resolução
+    const p0 = e.turno.passo; const pr = x => x.turno.passo !== p0; M.avancar(e, pr); if (e.perg) M.responder(e, 0, pr);
+  }
+  const C = ['inicioCombate', 'atacantes', 'fimCombate'];
+  igual(vistos, ['desvirar', 'manutencao', 'compra', 'principal1', ...C, 'principal2', ...C, 'principal2', 'final', 'limpeza'], 'combate e principal extras antes do combate normal');
+  const t = cena({ passo: 'principal2' });
+  M.faseExtra(t, 'combate', 1); M.faseExtra(t, 'principal', 1); M.faseExtra(t, 'combate', 2);
+  igual(t.turno.extras, ['combate', 'combate', 'principal'], 'a de outro efeito vai na frente; as do mesmo ficam juntas');
+});
+caso('500.8', "Aurelia: ataca, desvira e ganha um 2º combate; no 2º ataque não dispara de novo (1ª vez no turno); primeiroCombate", () => {
+  ok(['Aurelia, the Warleader', 'Combat Celebrant', 'Genji Glove', 'Karlach, Fury of Avernus', 'Moraug, Fury of Akoum'].every(c => (M.carta(c).gat || []).every(g => M.gatOk(g))), 'gatilhos aceitos');
+  const e = combate([[0, 'Aurelia, the Warleader']]);
+  const au = objN(e, 0, 'Aurelia, the Warleader'), v0 = e.jogs[1].vida;
+  ok(M.condicao(e, { primeiroCombate: true }, { voce: 0 }) === true, 'antes de combater, conta como 1º');
+  ate(e, 'atacar'); atacaCom(e, au); fecha(e, 'atacar'); ateFimCombate(e);
+  igual([e.jogs[1].vida, au.virada, e.turno.passo, e.turno.combates], [v0 - 3, false, 'principal2', 2], 'bateu 3, desvirou e teve 2 combates');
+  igual(Object.keys(e.turno.disp || {}).filter(k => k.startsWith(au.id + ':')).map(k => e.turno.disp[k]), [1], 'dispara só no 1º ataque do turno');
+  ok(M.condicao(e, { primeiroCombate: false }, { voce: 0 }), 'depois do 2º combate não é mais o 1º');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

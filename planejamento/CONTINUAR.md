@@ -68,7 +68,8 @@ Atualizado em 27/11/2026 de manhã pelo coordenador (FARSEER). Quem retomar lê 
 - Hoje: pedido do Edigar feito (marcador +1/+1 separado do lorde; ordem de gatilhos indiferente não pergunta — CR 701.9a + 603.3b; falta mostrar a citação a ele); aviso "Saiu uma versão nova… Recarregar" (o ⚠ falso na mão era aba com o site de 25/11); motor: modo ao entrar, efeito temporário (substituição de dano, terra extra, mão máxima, lampejo, não conjurar, antimagia de jogador, gatilho e contínua em emblema), monarca (CR 724), dano não prevenível, Lightning, Past in Flames (flashback dado no cemitério), modificar até o seu próximo turno / enquanto no campo, Hellkite Courser (atrasado com 'anterior', mover para a zona de comando), Mortarpod (arma viva).
 - Fila automática: `~/.local/bin/raiox-fila` (worktree `~/raio-x-c`, ramo `fila-auto`); falta o Felipe pôr a linha no crontab (*/30).
 
-## Estado em 27/11 manhã — v0.54.0 na main
+## Estado em 27/11 manhã — v0.55.0 na main
+- v0.55.0: `M.faseExtra(e, fase, chave)` enche `turno.extras` (500.8); `proximoPasso` troca de fase pela fila e volta ao passo guardado (`turno.volta`); `turno.combates` conta os combates (se.primeiroCombate); se.fasePrincipal.
 - v0.54.0: op `escolher` (tipoCriatura/cor) grava `ctx.escolha`; filtro `sub`/`nao` 'escolhido' lê ctx.escolha antes da escolha ao entrar (`ehEscolhido`, changeling conta); modificar troca kw protecao de 'escolhido' pela cor; agente: tipo com mais criaturas suas.
 - v0.53.0: gat ev `sacrificado` — `M.mover(..., { sac: true })` põe `sac` no evento de zona; todos os pontos que sacrificam passam a flag (custo em pilha/mana, op sacrificar, aMenosQue, masmorra, saga 714.4); 'sacrificado' está em SAIDA (olha para trás).
 - **Motor joga inteiras 1477/1756** (eram 1444 na v0.50.0). Vitest 374 verde, check 0, Ivora e Masmorras 20 partidas 0 erros.
@@ -77,7 +78,7 @@ Atualizado em 27/11/2026 de manhã pelo coordenador (FARSEER). Quem retomar lê 
 - Tamiyo, Field Researcher ficou para depois: a carta precisa ser reescrita (o +1 é gatilho "até o seu próximo turno" com quem compra = você; o −7 é emblema de custo alternativo grátis da mão).
 
 ## Próximo passo (27/11 tarde, nesta ordem)
-1. T43 travas (`node ferramentas/motor-cobertura.mjs --por-carta /tmp/cob.json`): (gat ev sacrificado v0.53.0, op escolher v0.54.0), op faseExtra (7), gat ev saiCemiterio (6), gat.recebe (6), kw convocar (6), op copiarMagica (6), op destruir.semRegenerar (6). Depois Tamiyo.
+1. T43 travas (`node ferramentas/motor-cobertura.mjs --por-carta /tmp/cob.json`): (gat ev sacrificado v0.53.0, op escolher v0.54.0, op faseExtra v0.55.0), gat ev saiCemiterio (6), gat.recebe (6), kw convocar (6), op copiarMagica (6), op destruir.semRegenerar (6). Depois Tamiyo.
 2. Pendências do Felipe: lista do Ultra Magnus com nomes reais (`planejamento/decks/ultron.txt`); linha do cron da fila; ok para remover worktrees `~/raio-x-base`/`~/raio-x-b`.
 3. T44: medida dos 30 decks em lotes de 10 (arquivos no ramo `t44-medida`).
 
