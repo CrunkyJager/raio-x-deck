@@ -183,7 +183,10 @@ M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
 M.esvaziarReservas = e => {
   for (const J of e.jogs) {
     const F = J.fica && J.fica.t === e.turno.n && e.turno.passo !== 'limpeza' ? J.fica : null, r = M.zeroMana();
-    if (F) for (const c of TIPOS) { r[c] = Math.min(J.reserva[c], F.m[c]); F.m[c] = r[c]; }
+    // ficaNoCombate (firebending): até o fim do combate — fica ao fim das etapas de combate, menos a do fim do combate
+    const C = J.ficaC && J.ficaC.t === e.turno.n && ['inicioCombate', 'atacantes', 'bloqueadores', 'dano'].includes(e.turno.passo) ? J.ficaC : null;
+    if (F || C) for (const c of TIPOS) { const f = F ? F.m[c] : 0; r[c] = Math.min(J.reserva[c], f + (C ? C.m[c] : 0)); if (F) F.m[c] = Math.min(f, r[c]); if (C) C.m[c] = r[c] - (F ? F.m[c] : 0); }
+    if (!C) J.ficaC = null;
     J.reserva = r; J.restrita = (J.restrita || []).filter(x => x.fica === e.turno.n && e.turno.passo !== 'limpeza');   // restrita com ficaNoTurno (Klauth)
   }
 };
@@ -225,6 +228,7 @@ const simbolos = (custo, x = 0) => {
     else if (/^2\/[WUBRG]$/.test(p)) s.dois.push(p[2]);                     // CR 107.4e: cor ou {2}
     else if (/^[WUBRGC]\/[WUBRG]$/.test(p)) s.hib.push([p[0], p[2]]);       // CR 107.4e híbrido
     else if (/^[WUBRG]\/[WUBRG]\/P$/.test(p)) s.hib.push([p[0], p[2], 'P']); // híbrido phyrexiano
+    else if (p === '*') s.hib.push([...CORES]);                             // interno: mana de qualquer cor paga (609.4b; Drana and Linvala)
     else throw new Error('símbolo de mana desconhecido: ' + p);
   }
   return s;

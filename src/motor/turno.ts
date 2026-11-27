@@ -208,7 +208,7 @@ M.PROC.terreno = (e, P, ask) => {
   const j = P.j, o = e.objs[P.id];
   const terra = P.face === undefined ? M.temTipo(e, o, 'Land') : M.faceTerreno(e, o);
   const pj = M.permJogar(e, j, o);
-  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj) || !terra) throw new Error('terreno ilegal');
+  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj && !(o.zona === 'exilio' && M.podeJogarDe(e, j, o))) || !terra) throw new Error('terreno ilegal');
   const plano = M.decidirEntrada(e, P.id, j, P.face === undefined ? {} : { face: P.face }, ask);
   e.proc = null;
   e.jogs[j].terrenos++;
@@ -231,10 +231,11 @@ const RESP = {
     else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id, op.face);
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
     else if (op.a === 'manaEsc') M.manaEsc(e, p.j, op.id, op.k, op.escolha);          // CR 605.3a com escolha no custo
-    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
+    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face, op.baixo);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
     else if (op.a === 'prever') M.prever(e, p.j, op.id);
     else if (op.a === 'suspender') M.suspender(e, p.j, op.id);
+    else if (op.a === 'virarParaCima') M.virarParaCima(e, p.j, op.id);   // 116.2b
     else if (op.a === 'destrancar') M.destrancar(e, p.j, op.id, op.porta);
   },
   descartar(e, p, op) {

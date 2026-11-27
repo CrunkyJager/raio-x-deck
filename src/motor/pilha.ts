@@ -191,7 +191,7 @@ const alvosUsadosDe = (d, fx) => {
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
 M.CARTA_OK = new Set(['impostoPorAlvo', 'conjurarSo']);
-const CUSTO_OK = new Set(['mana', 'virar', 'exercer', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste', 'desvirarOutros', 'descartarF']);
+const CUSTO_OK = new Set(['mana', 'virar', 'exercer', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste', 'desvirarOutros', 'descartarF', 'energia']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number' && !(c.vida && typeof c.vida === 'object' && M.qtdEstOk(c.vida))) return false;   // contagem: lida ao pagar (War Room)
@@ -256,6 +256,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.fundoEste && (!o || o.zona !== 'campo')) return false;
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
+  if (c.energia && ((J.marc || {}).energy || 0) < c.energia) return false;   // pagar {E} = tirar marcadores de energia de você (107.14)
   if (c.virarOutros && c.virarOutros.poder === undefined && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
   if (c.desvirarOutros && candDesv(e, j, c, o && o.id).length < (c.desvirarOutros.qtd || 1)) return false;
   if (c.virarOutros && c.virarOutros.poder !== undefined && candVir(e, j, c, o && o.id).reduce((s, x) => s + Math.max(0, M.poder(e, x)), 0) < c.virarOutros.poder) return false;   // tripular N (702.122a)
@@ -354,8 +355,9 @@ function permissoes(e, j) {
   const r: any[] = [];
   const le = (S, zonaFonte) => {
     for (const s of M.dadoDe(e, S).est || []) {
-      if (s.modo !== 'podeJogar' || (s.de !== 'cemiterio' && s.de !== 'grimorio') || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
-      if (s.de === 'grimorio' && (zonaFonte !== 'campo' || !s.afeta.topo)) continue;   // do grimório: só a do topo, com a fonte no campo
+      if (s.modo !== 'podeJogar' || (s.de !== 'cemiterio' && s.de !== 'grimorio' && s.de !== 'exilio') || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
+      if (s.de === 'grimorio' && (zonaFonte !== 'campo' || !s.afeta.topo)) continue;
+      if (s.de === 'exilio' && zonaFonte !== 'campo') continue;         // "cards exiled with Valgavoth": a fonte no campo   // do grimório: só a do topo, com a fonte no campo
       if (zonaFonte === 'cemiterio' && !s.afeta.este) continue;      // no cemitério só vale a permissão para si mesma
       if (s.limite && S.permUso && S.permUso.t === e.turno.n && S.permUso.ts === S.ts) continue;   // "once during each of your turns" (Kess): já usou
       r.push({ s, ctx: { voce: j, este: S.id } });
@@ -502,29 +504,35 @@ const altInfo = (e, j, o) => {
 };
 M.altDe = (e, j, o) => altDe(e, j, o);
 // o custo alternativo que o custoBase usa (o mesmo encadeamento): para pagar a vida e marcar o limite na conjuração
-const altUsado = (e, j, o, opts) => opts.loucura || opts.milagre || (porFlash(e, j, o) && !opts.gratis) || (porFuga(e, j, o) && !opts.gratis) || (porPrevisao(e, j, o) && !opts.gratis) || opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? undefined : altInfo(e, j, o);
-const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
+const altUsado = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? (p => ({ custo: {}, vida: M.dadoDe(e, o).vm || 0, F: e.objs[p.ctx.este], s: p.s }))(permVida(e, j, o)) : opts.loucura || opts.milagre || (porFlash(e, j, o) && !opts.gratis) || (porFuga(e, j, o) && !opts.gratis) || (porPrevisao(e, j, o) && !opts.gratis) || opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? undefined : altInfo(e, j, o);
+const custoBase = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? {} : opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
 // a permissão (est podeJogar) que deixa jogar o daqui; limite 1 = "once during each of your turns" (Kess): a fonte guarda o turno do uso
-const permDe = (e, j, o) => (o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j ? permissoes(e, j).find(({ s, ctx }) => {
+const permDe = (e, j, o) => ((o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j) || (o.zona === 'exilio' && !o.ficha) ? permissoes(e, j).find(({ s, ctx }) => {   // do exílio: de qualquer dono (Valgavoth)
   if (s.de !== o.zona) return false;
   if (s.limite) { const F = e.objs[ctx.este]; if (F && F.pjUso && F.pjUso.t === e.turno.n && F.pjUso.ts === F.ts) return false; }
   if (Number.isInteger(s.exilar) && e.jogs[j].zonas.cemiterio.filter(id => id !== o.id).length < s.exilar) return false;   // o custo a mais de exilar N outras
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
 }) : undefined;
 M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || !!permDe(e, j, o);
+// "If you cast a spell this way, pay life equal to its mana value rather than pay its mana cost" (Valgavoth; 118.9, 119.4):
+// a permissão do exílio com pagarVida troca o custo de mana por vida = valor de mana (só quando não há outra permissão por cima)
+const permVida = (e, j, o) => { if (o.zona !== 'exilio' || M.permJogar(e, j, o)) return null; const p = permDe(e, j, o); return p && p.s.pagarVida ? p : null; };
 
 // ---------- o que pode ser conjurado ----------
 // Faces que dá para anunciar (a escolha vem antes de ir para a pilha: 709.3, 712.8b, 716.3, 702.102a):
 // modal, as duas; aventura, a criatura ou a Aventura (do exílio da aventura, só a criatura: 716.3d);
 // split, uma metade ou as duas fundidas (fusão só da mão, 702.102a); dupla face que transforma, só a frente (712.8).
 const temFusao = c => (c.kw || []).some(k => k.k === 'fusao');
+// aftermath (702.127): a metade de baixo (faces[0] com kw aftermath) só se conjura do cemitério e depois vai para o exílio
+const temAftermath = c => !!c && c.forma === 'split' && !!c.faces && (c.faces[0].kw || []).some(k => k.k === 'aftermath');
+const porAftermath = (e, j, o, face) => face === 0 && o.zona === 'cemiterio' && o.dono === j && !o.ficha && temAftermath(M.carta(o.n));
 M.facesParaConjurar = (e, j, o) => {
   if (o.copiaPrep) return [0];                                      // a cópia preparada é só a mágica
   const c = o.ficha ? null : M.carta(o.n);
   switch (c && c.faces && c.forma) {
     case 'modal': return [undefined, 0];
     case 'aventura': return o.zona === 'exilio' ? [undefined] : [undefined, 0];
-    case 'split': return o.zona === 'mao' && temFusao(c) ? ['esq', 0, 'fundida'] : ['esq', 0];
+    case 'split': return temAftermath(c) ? (o.zona === 'cemiterio' ? ['esq', 0] : ['esq']) : o.zona === 'mao' && temFusao(c) ? ['esq', 0, 'fundida'] : ['esq', 0];
     default: return [undefined];
   }
 };
@@ -568,6 +576,65 @@ M.destrancar = (e, j, id, k) => {
   M.porPorta(e, o, k, true);
   M.agiu(e, j);
 };
+// ---- virada para baixo no campo (CR 708) ----
+// metamorfose (702.37) e disfarce (702.168): pode conjurar a carta da mão virada para baixo como criatura 2/2 sem nada
+// (708.2a), pagando {3} em vez do custo de mana (702.37c, 702.168a; impostos e aumentos valem, 601.2f). Na pilha e no
+// campo a carta é o dado de M.dadoVirada; quem controla pode olhar (708.5). Desvirar (116.2b, 702.37e) é ação especial
+// a qualquer momento com prioridade: paga o custo de metamorfose/disfarce (ou, manifestada/oculta, o custo de mana da
+// carta de criatura, 701.40b/701.58b) e ela fica para cima — mesmo objeto, sem entrar de novo (708.8); dispara
+// "when this is turned face up" (ev viradaParaCima).
+const kwVirada = c => (c.kw || []).find(k => (k.k === 'metamorfose' || k.k === 'disfarce') && k.custo);
+M.podeConjurarVirada = (e, j, o) => {
+  if (!o || o.zona !== 'mao' || o.dono !== j || o.ficha) return null;
+  const c = M.carta(o.n), k = kwVirada(c); if (!k || c.faces) return null;
+  if (M.naoConjura(e, j) || !M.velFeitico(e, j)) return null;
+  return plano(e, j, M.custoComImposto(e, o, { g: 3 }), 0, null, o) ? k.k : null;
+};
+function conjurarVirada(e, P) {
+  const j = P.j, o = e.objs[P.id];
+  const custo = M.custoComImposto(e, o, { g: 3 }), pl = plano(e, j, custo, 0, null, o);
+  e.proc = null;
+  if (!pl) { M.log(e, e.jogs[j].nome, 'desiste da criatura virada para baixo (custo não fecha)'); return; }
+  const de = o.zona;
+  M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = null; o.faceBaixo = true; o.viradaComo = P.baixo; o.olham = [j];   // 708.4a: virada desde que é posta na pilha
+  o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);
+  o.pil = { x: 0, alvos: [], modos: null, ctrl: j, opc: { baixo: P.baixo }, de };
+  { const J = e.jogs[j]; J.conjT = { t: e.turno.n, n: (J.conjT && J.conjT.t === e.turno.n ? J.conjT.n : 0) + 1 };
+    J.conjH = { t: e.turno.n, l: [...(J.conjH && J.conjH.t === e.turno.n ? J.conjH.l : []), { ...o }] }; }
+  const antes = e.conjTodas && e.conjTodas.t === e.turno.n ? e.conjTodas.n : 0; e.conjTodas = { t: e.turno.n, n: antes + 1 };
+  o.manaGasta = M.manaDoCusto(custo, 0);
+  M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });   // 601.2i (é uma mágica de criatura 2/2)
+  gastar(e, j, pagarMana(e, j, pl, custo, 0, o));
+  if (o.pil) o.pil.manaGasta = M.vmDe(pl.custo || custo);
+  o.manaGasta ??= M.vmDe(custo);
+  e.turno.magias = (e.turno.magias || 0) + 1;
+  M.log(e, e.jogs[j].nome, 'conjura uma criatura virada para baixo', '(' + (P.baixo === 'disfarce' ? 'disfarce' : 'metamorfose') + ')');
+  M.agiu(e, j);
+}
+// o custo para desvirar: o da metamorfose/disfarce; manifestada/oculta (701.40b, 701.58b): também o custo de mana se é carta de criatura
+M.custoParaCima = (e, o) => {
+  if (!M.viradaBaixo(o) || o.zona !== 'campo' || o.ficha) return null;
+  const c = M.carta(o.n), k = kwVirada(c);
+  if (k) return k.custo;
+  if ((o.viradaComo === 'manifestar' || o.viradaComo === 'ocultar') && (c.tipos || []).includes('Creature') && c.custo) return c.custo;
+  return null;
+};
+M.podeVirarParaCima = (e, j, o) => { const c = M.custoParaCima(e, o); return !!c && o.ctrl === j && !!plano(e, j, c, 0, null, o); };
+M.virarParaCima = (e, j, id) => {
+  const o = e.objs[id]; if (!M.podeVirarParaCima(e, j, o)) return;
+  const custo = M.custoParaCima(e, o), pl = plano(e, j, custo, 0, null, o); if (!pl) return;
+  pagarMana(e, j, pl, custo, 0);
+  M.porParaCima(e, o);
+  M.agiu(e, j);
+};
+// fica para cima (708.8): mesmo objeto (o mesmo ts: efeitos e marcadores continuam), sem entrar de novo; dispara viradaParaCima
+M.porParaCima = (e, o) => {
+  if (!o || !o.faceBaixo) return;
+  o.faceBaixo = false; o.viradaComo = null; o.olham = null;
+  e.vCamada = (e.vCamada || 0) + 1; M.idxSujo && M.idxSujo(e);
+  M.log(e, e.jogs[o.ctrl].nome, 'desvira', o.n, '(estava virada para baixo)');
+  M.evento(e, { ev: 'viradaParaCima', id: o.id, ts: o.ts, j: o.ctrl });
+};
 // dá (ou tira, 709.5g) a designação de destrancada da porta k; destrancar dispara o gatilho da porta (709.5h)
 M.porPorta = (e, o, k, aberta) => {
   if (!o.portas || !!o.portas[k] === aberta) return;
@@ -605,11 +672,13 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const milag = !!opts.milagre && o.zona === 'mao' && !!M.milagreDe(e, o);   // milagre (702.94a): na resolução do gatilho, sem olhar a velocidade
   const agora = !!opts.agora && o.zona !== 'campo' && o.zona !== 'pilha';   // op jogar sem dura: na resolução, de onde estiver
   const d = M.dadoDe(e, o);
-  if (o.dono !== j && !agora && !M.permJogar(e, j, o)) return false;
+  if (o.dono !== j && !agora && !M.permJogar(e, j, o) && !(o.zona === 'exilio' && permDe(e, j, o))) return false;
+  if (!opts.gratis && permVida(e, j, o) && e.jogs[j].vida - (d.vm || 0) <= 10) return false;   // 119.4 pede vida ≥ vm; a IA não paga abaixo de 10 (como altDados)
   if (M.temTipo(e, o, 'Land') || (!d.custo && !opts.gratis)) return false;   // sem custo de mana: só "sem pagar" (suspender 702.62a, cascata)          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
   if (M.naoConjura(e, j)) return false;
   if (d.conjurarSo && !conjurarSoOk(e, j, d.conjurarSo)) return false;   // "cast this spell only during …" (307.5, Illusionist's Gambit)
-  if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o) || porPrevisao(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
+  if (face === 0 && !o.ficha && temAftermath(M.carta(o.n)) && o.zona !== 'cemiterio') return false;   // 702.127a
+  if (!(louc || agora || porAftermath(e, j, o, face) || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o) || porPrevisao(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo') || M.lampejoDado(e, j, o);
   if (!inst && !louc && !milag && !agora && !M.velFeitico(e, j)) return false;
@@ -740,17 +809,20 @@ function opcoes(e, j) {
   const G = J.zonas.grimorio, doTopo = G.length && permTopo(e, j) && M.podeJogarDe(e, j, e.objs[G[G.length - 1]]) ? [G[G.length - 1]] : [];   // Courser, Oracle of Mul Daya
   for (const id of J.zonas.mao) if (M.podePrever(e, j, e.objs[id])) ops.push({ a: 'prever', id });   // 702.143a: no seu turno, com prioridade
   for (const id of J.zonas.mao) if (M.podeSuspender(e, j, e.objs[id])) ops.push({ a: 'suspender', id });
+  for (const id of e.campo) { const o = e.objs[id]; if (o.faceBaixo && M.podeVirarParaCima(e, j, o)) ops.push({ a: 'virarParaCima', id }); }   // 116.2b: a qualquer momento com prioridade
+  for (const id of J.zonas.mao) { const k = M.podeConjurarVirada(e, j, e.objs[id]); if (k) ops.push({ a: 'conjurar', id, baixo: k }); }   // 702.37c / 702.168a: virada para baixo por {3}
   for (const id of e.campo) { const o = e.objs[id]; if (o.portas && o.ctrl === j) for (const k of ['e', 'd']) if (M.podeDestrancar(e, j, o, k)) ops.push({ a: 'destrancar', id, porta: k }); }   // 116.2m   // 702.62a: quando poderia conjurá-la
-  if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
-    for (const id of [...doCem, ...doTopo]) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
   const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]) || porPreparo(e, j, e.objs[id]) || porPrevisao(e, j, e.objs[id]));
-  const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]) || porFuga(e, j, e.objs[id]));   // recapitular (702.34), fuga (702.138)
+  const doExPerm = permissoes(e, j).some(p => p.s.de === 'exilio') ? e.jogs.flatMap(J2 => J2.zonas.exilio).filter(id => !doExilio.includes(id) && !M.permJogar(e, j, e.objs[id]) && !!permDe(e, j, e.objs[id])) : [];   // Valgavoth: as exiladas por ele, de qualquer exílio
+  if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
+    for (const id of [...doCem, ...doTopo, ...doExPerm]) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
+  const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]) || porFuga(e, j, e.objs[id]) || porAftermath(e, j, e.objs[id], 0));   // recapitular (702.34), fuga (702.138), aftermath (702.127)
   // permissões de efeito (op jogar): o que não está na mão/comando/cemitério já listados; terreno com permissão de jogar
-  const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doTopo, ...doExilio, ...doFlash]), doPerm: number[] = [];
+  const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doTopo, ...doExilio, ...doExPerm, ...doFlash]), doPerm: number[] = [];
   for (const p of e.permJogar || []) { const o = e.objs[p.id]; if (p.j === j && o && o.ts === p.ts && !ja.has(p.id) && o.zona !== 'campo' && o.zona !== 'pilha') { ja.add(p.id); doPerm.push(p.id); } }
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
     for (const id of doPerm) { const p = M.permJogar(e, j, e.objs[id]); if (p && !p.soConjurar && M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id }); }
-  for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doTopo, ...doExilio, ...doFlash, ...doPerm])
+  for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doTopo, ...doExilio, ...doExPerm, ...doFlash, ...doPerm])
     for (const face of M.facesParaConjurar(e, j, e.objs[id]))
       if (M.podeConjurar(e, j, e.objs[id], face)) ops.push(face === undefined ? { a: 'conjurar', id } : { a: 'conjurar', id, face });
   for (const id of e.campo) {
@@ -764,11 +836,11 @@ function opcoes(e, j) {
     for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste || l[k]._ninjutsu) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   // do cemitério (CR 602.2): a que exila a própria carta no custo (eternizar, Kheru Goldkeeper, bis 702.141a) ou, com custo de
-  // mana (ou de sacrificar outras: Jarad), a que tira a carta de lá ao resolver (desenterrar, Drownyard Temple) se não há outra dela na pilha — não repete sem parar
+  // mana (ou de sacrificar outras: Jarad; ou de energia: Salvation Colossus), a que tira a carta de lá ao resolver (desenterrar, Drownyard Temple) se não há outra dela na pilha — não repete sem parar
   for (const id of J.zonas.cemiterio) {
     const o = e.objs[id], l = M.atvDe(e, o);
     const naPilha = () => e.pilha.some(p => e.objs[p].hab && e.objs[p].hab.fonte === id);
-    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && (l[k].custo.exilarEste || ((l[k].custo.mana || (l[k].custo.sacrificar && l[k].custo.sacrificar !== 'este')) && !naPilha())) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
+    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && (l[k].custo.exilarEste || ((l[k].custo.mana || l[k].custo.energia || (l[k].custo.sacrificar && l[k].custo.sacrificar !== 'este')) && !naPilha())) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   ops.push(...M.manaEscOps(e, j));
@@ -1009,6 +1081,7 @@ function pagarFisico(e, j, o, c, esc) {
   if ((esc.rev || []).length) M.log(e, J.nome, 'revela', esc.rev.map(id => e.objs[id].n).join(', '));   // CR 701.20: só mostra
   if (c.vida) M.perderVida(e, j, vidaCusto(e, j, o, c));
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
+  if (c.energia) M.marcadorJogador(e, j, 'energy', c.energia, true);   // 107.14 (122.1: tirar não é 'pôr')
   if (c.porMarcador) M.porMarcadores(e, o, c.porMarcador.tipo, c.porMarcador.qtd || 1);   // 122.6: com as substituições de marcador
   for (const id of esc.sac) M.mover(e, id, 'cemiterio', { sac: true });            // CR 701.21
   if (esc.desc.length) M.descartar(e, j, esc.desc);
@@ -1079,6 +1152,7 @@ const reducaoAlvo = (e, j, alvos) => {
 
 const PROC = {
   conjurar(e, P, ask) {
+    if (P.baixo) return conjurarVirada(e, P);
     const j = P.j, o = e.objs[P.id], ctx = { voce: j, este: o.id };
     o.face = P.face ?? null;                                                          // 709.3, 712.8b, 716.3: a face vem antes
     const d = M.dadoDe(e, o);
@@ -1126,7 +1200,7 @@ const PROC = {
     const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
     if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
-    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; if (pjU) { const F = e.objs[pjU.ctx.este]; if (pjU.s.limite && F) F.pjUso = { t: e.turno.n, ts: F.ts }; if (pjU.s.exilaAoSair) o.exPerm = true; } o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
+    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; if (pjU) { const F = e.objs[pjU.ctx.este]; if (pjU.s.limite && F) F.pjUso = { t: e.turno.n, ts: F.ts }; if (pjU.s.exilaAoSair) o.exPerm = true; } if (de === 'cemiterio' && P.face === 0 && temAftermath(M.carta(o.n))) o.exPerm = true; o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
     o.pil = { x, alvos, modos, ctrl: j, opc, de, ...(conc ? { conc } : {}), ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}), ...(P.suspensa ? { susp: true } : {}) };
     { const J = e.jogs[j]; J.conjT = { t: e.turno.n, n: (J.conjT && J.conjT.t === e.turno.n ? J.conjT.n : 0) + 1 };
       J.conjH = { t: e.turno.n, l: [...(J.conjH && J.conjH.t === e.turno.n ? J.conjH.l : []), { ...o }] }; }   // as mágicas do turno (cópia rasa na pilha): "a primeira mágica não-criatura" (Esper Sentinel)   // conta magiasNoTurno (Aetherflux, Dreamtide Whale)
@@ -1185,7 +1259,7 @@ const PROC = {
     const id = e.prox++;
     const h = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
       hab: { fonte: o.id, fonteTs: o.ts, k: P.k, fx: a.fx, alvos: a.alvos || [], ficha: o.ficha || null },
-      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) }, ...(tir ? { tirados: tir } : {}), ...(fis.sac.length ? { sac: fis.sac.map(id => lkiDe(e, e.objs[id])) } : {}), ...((fis.vir || []).length ? { vir: fis.vir.map(id => lkiDe(e, e.objs[id])) } : {}) } };   // "a sacrificada" (custo, LKI 608.2h)
+      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) }, ...(tir ? { tirados: tir } : {}), ...(fis.sac.length ? { sac: fis.sac.map(id => lkiDe(e, e.objs[id])) } : {}), ...((fis.vir || []).length ? { vir: fis.vir.map(id => lkiDe(e, e.objs[id])) } : {}) } };   // "a sacrificada" / "a virada" (custo, LKI 608.2h)
     e.objs[id] = h; e.pilha.push(id);
     M.eventosAlvo(e, alvos, id);
     if (mana) pagarMana(e, j, pl, mana, x);
@@ -1275,10 +1349,11 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
   if (resolveu && M.ehPermanente(e, o)) {
     const plano = M.decidirEntrada(e, o.id, o.pil.ctrl, o.pil.opc && o.pil.opc.converter ? { face: 0 } : {}, ask);   // pergunta antes de mexer; convertida entra transformada (702.162b)
     const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga, deZ = o.pil.de, c0 = o.pil.conc, susp = o.pil.susp;
+    const baixo = o.faceBaixo ? o.viradaComo || 'metamorfose' : null;   // 708.4: a mágica virada entra virada
     const conc = c0 && M.alvoLegal(e, ALVO_CONC, c0, { voce: o.pil.ctrl, este: o.id }) ? c0 : null;   // 702.103e: alvo ilegal → resolve como criatura
     if (c0 && !conc) M.log(e, o.n, 'alvo da concessão ilegal: entra como criatura (702.103e)');
     o.pil = null;
-    const ent = M.aplicarEntrada(e, { ...plano, conj, x, conjDe: deZ || 'mao', conjurada: true, conc });   // conjurada já na entrada: o "if you cast it" do gatilho de entrar é lido aí (603.4)
+    const ent = M.aplicarEntrada(e, { ...plano, conj, x, conjDe: deZ || 'mao', conjurada: true, conc, baixo });   // conjurada já na entrada: o "if you cast it" do gatilho de entrar é lido aí (603.4)
     if (ent) { ent.conjurada = true; ent.conjDe = deZ || 'mao'; ent.xConj = x; }   // xConj: o X da mágica para o gatilho de entrada (CR 107.3m);     // conjDe: de que zona ("if you cast it from your hand", Cyclone Summoner); filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
     if (conj && conj.iminente && ent) { const k = iminenteDe(M.dadoBase(e, ent)); if (k) ent.marc.time = (ent.marc.time || 0) + k.n; }   // 702.176a: entra com N marcadores de tempo
     if (conj && conj.investida && ent) {   // 702.109a: pressa enquanto estiver no campo; no começo do próximo passo final volta à mão do dono
@@ -1358,7 +1433,7 @@ M.resolverTopo = e => {
   const id = e.pilha[e.pilha.length - 1];
   M.iniciarProc(e, { tp: 'resolver', id });
 };
-M.conjurar = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'conjurar', j, id } : { tp: 'conjurar', j, id, face });
+M.conjurar = (e, j, id, face?, baixo?) => M.iniciarProc(e, baixo ? { tp: 'conjurar', j, id, baixo } : face === undefined ? { tp: 'conjurar', j, id } : { tp: 'conjurar', j, id, face });
 // face de terreno de uma carta modal cuja frente não é terreno (Bala Ged Recovery → Bala Ged Sanctuary); 712.9
 M.faceTerreno = (e, o) => M.formaDe(e, o) === 'modal' && ((M.carta(o.n).faces[0] || {}).tipos || []).includes('Land');
 M.ativar = (e, j, id, k) => M.iniciarProc(e, { tp: 'ativar', j, id, k });

@@ -121,6 +121,10 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         if (an.length) x.an = an.map((a: any) => ({ n: a.n, i: iDe(a), de: a.ctrl !== j ? a.ctrl : undefined }));
         if ((d.sub || []).includes('Equipment') && !M.anexadoA(e, o)) x.solto = 1;
         if (o.portas && !(o.portas.e && o.portas.d)) x.port = trancadas(o);
+        if (o.faceBaixo) {                                   // virada para baixo (708.5): só quem controla olha; os outros veem uma 2/2 sem nome
+          x.baixo = 1;
+          if (HS.length && !HS.includes(o.ctrl)) { x.n = 'Virada para baixo'; x.i = -1; delete x.lac; }
+        }
         if (HS.includes(j)) piDe.set(o.id, x.pi);
         perm.push(x);
       }
@@ -178,7 +182,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       if (para === 'mao' && de === 'grimorio') { compras.set(x.dono, (compras.get(x.dono) || 0) + 1); continue; }
       if (para === 'campo') {
         const terra = de === 'mao' && M.temTipo(e, x, 'Land') && !resolvendo;           // jogar terreno (CR 305): não é efeito
-        const ch = x.ctrl + '|' + x.n + '|' + (de || 'novo'), g = entram.get(ch) || { k: x.ctrl, n: 0, c: iDe(x), tok: !!x.ficha, nome: x.n, terra };
+        const esc = x.faceBaixo && HS.length && !HS.includes(x.ctrl), nm = esc ? 'uma criatura virada para baixo' : x.n;   // 708.5: o oponente não vê qual é
+        const ch = x.ctrl + '|' + nm + '|' + (de || 'novo'), g = entram.get(ch) || { k: x.ctrl, n: 0, c: esc ? -1 : iDe(x), tok: !!x.ficha, nome: nm, terra };
         g.n++; entram.set(ch, g); continue;
       }
       if (de === 'campo') {
@@ -404,12 +409,12 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         p.ops.forEach((o: any, k: number) => {
           if (o.a === 'passar' || o.a === 'mana' || o.a === 'manaEsc') return;
           const ob = e.objs[o.id], i = iDe(ob);
-          if (ob.zona === 'mao' && o.face === undefined && i >= 0 && ops.some(x => x.v === i && x.a === o.a)) return;   // outra cópia da mesma carta
+          if (ob.zona === 'mao' && o.face === undefined && !o.baixo && i >= 0 && ops.some(x => x.v === i && x.a === o.a)) return;   // outra cópia da mesma carta
 
           if (o.a === 'terreno' && o.face === undefined && ob.zona === 'mao' && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a });
           else if (o.a === 'conjurar' && ob.cmd && ob.zona === 'comando' && !ops.some(x => x.v === 'cmd')) ops.push({ v: 'cmd', n: ob.n, k });
-          else if (o.a === 'conjurar' && ob.zona === 'mao' && o.face === undefined && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a, lac: !!(lacs[HK][i] && lacs[HK][i]!.length) });
-          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'destrancar' ? `Destrancar ${(o.porta === 'e' ? M.carta(ob.n) : M.carta(ob.n).faces[0]).n} (porta de ${ob.n})` : o.a === 'suspender' ? `Suspender ${ob.n} (${(M.suspenderDe(e, ob) || {}).n} marcadores de tempo)` : o.a === 'prever' ? `Prever ${ob.n} (exila virada por {2})` : o.a === 'terreno' ? `Baixar ${ob.n} (${o.face != null ? 'outra face' : DE_ZONA[ob.zona] || ob.zona})` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + (DE_ZONA[ob.zona] || ob.zona) + ')' : ''}`, k });
+          else if (o.a === 'conjurar' && ob.zona === 'mao' && o.face === undefined && !o.baixo && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a, lac: !!(lacs[HK][i] && lacs[HK][i]!.length) });
+          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.baixo ? `Conjurar ${ob.n} virada para baixo por {3} (${o.baixo === 'disfarce' ? 'disfarce' : 'metamorfose'})` : o.a === 'virarParaCima' ? `Desvirar ${ob.n} (paga ${((c: any) => (c.g ? '{' + c.g + '}' : '') + (c.p || []).map((s: string) => '{' + s + '}').join(''))(M.custoParaCima(e, ob) || {})})` : o.a === 'destrancar' ? `Destrancar ${(o.porta === 'e' ? M.carta(ob.n) : M.carta(ob.n).faces[0]).n} (porta de ${ob.n})` : o.a === 'suspender' ? `Suspender ${ob.n} (${(M.suspenderDe(e, ob) || {}).n} marcadores de tempo)` : o.a === 'prever' ? `Prever ${ob.n} (exila virada por {2})` : o.a === 'terreno' ? `Baixar ${ob.n} (${o.face != null ? 'outra face' : DE_ZONA[ob.zona] || ob.zona})` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + (DE_ZONA[ob.zona] || ob.zona) + ')' : ''}`, k });
         });
         const mana = M.somaMana(J.reserva) + M.fontesDeMana(e, HK).length;
         const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha, reserva: M.somaMana(J.reserva) ? M.fmtMana(J.reserva) : '', passo: e.turno.passo });
