@@ -3898,6 +3898,49 @@ caso('122.8', "moverMarcador: Forgotten Ancient divide os +1/+1 entre outras cri
   igual([fa.marc['+1/+1'], b.marc['+1/+1'], l.marc['+1/+1']], [1, 1, 1], '1 no urso, 1 no elfo, parou com 1');
 });
 
+// ---------- contagens num formato só (27/11): {conta:{de, o, junta}} ----------
+caso('107.3', 'contagens: todo nome velho traduz para o formato novo, e a tradução é estável', () => {
+  for (const n of M.NOMES_VELHOS) { const q = M.traduzQtd({ conta: n, de: 'lore', alvo: 0 }); ok(q.conta && q.conta.de !== undefined, n); igual(M.traduzQtd(q), q, n + ' estável'); }
+  for (const p of M.PROPS_VELHOS) ok(M.traduzQtd({ conta: { tipo: ['Creature'] }, prop: p }).conta.junta, p);
+  igual(M.traduzQtd({ conta: 'poderDoAlvo', alvo: 1, mult: 2 }), { conta: { de: { alvo: 1 }, o: 'poder' }, mult: 2 });
+  igual(M.traduzQtd({ conta: { tipo: ['Creature'] }, prop: 'somaPoder' }), { conta: { de: { f: { tipo: ['Creature'] } }, o: 'poder', junta: 'soma' } });
+});
+caso('107.3', 'contagens: o nome velho e o formato novo dão o mesmo número (mão, vida, oponentes, filtro, soma do poder)', () => {
+  const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Llanowar Elves'], [0, 'Forest']], mao: [[0, 'Forest'], [0, 'Sol Ring']] });
+  const ctx = { voce: 0 };
+  const pares: any[] = [[{ conta: 'cartasNaMao' }, { conta: { de: 'voce', o: 'mao' } }], [{ conta: 'suaVida' }, { conta: { de: 'voce', o: 'vida' } }],
+    [{ conta: 'oponentes' }, { conta: { de: 'oponentes', o: 'quantos' } }],
+    [{ conta: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } }, { conta: { de: { f: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } }, o: 'quantos' } }],
+    [{ conta: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' }, prop: 'somaPoder' }, { conta: { de: { f: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } }, o: 'poder', junta: 'soma' } }]];
+  for (const [v, n] of pares) igual(M.qtd(e, v, ctx), M.qtd(e, n, ctx), JSON.stringify(v));
+  igual(M.qtd(e, pares[4][1], ctx), 2, 'dois elfos 1/1');
+});
+caso('504.1', "contagens pedidas: cartas compradas e vida ganha neste turno (Fists of Flame, Gwaihir)", () => {
+  const e = cena({});
+  M.comprar(e, 0, 2); M.ganharVida(e, 0, 3); M.ganharVida(e, 0, 1);
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'compras' } }, { voce: 0 }), 2, 'compras');
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'vidaGanha' } }, { voce: 0 }), 4, 'vida ganha');
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'vidaGanha' } }, { voce: 1 }), 0, 'o outro não ganhou');
+});
+caso('700.x', 'contagens pedidas: tipos de card diferentes no cemitério (delirium, Demonic Counsel) e mão do jogador do evento (Fevered Visions)', () => {
+  const e = cena({ campo: [[0, 'Forest', { zona: 'cemiterio' }], [0, 'Forest', { zona: 'cemiterio' }], [0, 'Sol Ring', { zona: 'cemiterio' }], [0, 'Lightning Bolt', { zona: 'cemiterio' }], [1, 'Llanowar Elves', { zona: 'cemiterio' }]], mao: [[1, 'Forest'], [1, 'Forest']] });
+  igual(M.qtd(e, { conta: { de: { f: { tipo: ['Card'], dono: 'voce', zona: 'cemiterio' } }, o: 'tipos', junta: 'diferentes' } }, { voce: 0 }), 3, 'terreno, artefato, instantânea');
+  igual(M.qtdDe(e, { conta: { de: 'evento', o: 'mao' } }, { voce: 0, ev: { ev: 'fase', ativo: 1 }, lki: {} }), 2, 'mão do jogador da vez');
+});
+caso('603.4', 'Omnath, Locus of Creation: 1º terreno no turno ganha 4 de vida, 2º dá mana, 3º 4 de dano em cada oponente', () => {
+  const e = cena({ campo: [[0, 'Omnath, Locus of Creation']], mao: [[0, 'Forest'], [0, 'Forest'], [0, 'Forest']] }); e.cfg.log = true;
+  const v0 = e.jogs[0].vida, o0 = e.jogs[1].vida;
+  const entra = () => { e.perg = null; M.entrarPermanente(e, e.jogs[0].zonas.mao[0], 0); M.avancar(e); };
+  entra(); igual(e.jogs[0].vida, v0 + 4, '1ª vez: +4 de vida ' + e.log.slice(-4).join(' / '));
+  entra(); igual(e.jogs[0].vida, v0 + 4, '2ª vez: vida igual'); igual(e.jogs[1].vida, o0, '2ª vez: sem dano');
+  entra(); igual(e.jogs[1].vida, o0 - 4, '3ª vez: 4 de dano no oponente ' + e.log.slice(-4).join(' / '));
+  igual(e.jogs[0].vida, v0 + 4, 'vida não muda na 3ª');
+});
+caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste turno (Omnath) — vem do ctx da resolução', () => {
+  const e = cena({});
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'resolucoesDestaHab' } }, { voce: 0, resHab: 2 }), 2, 'a de agora');
+  ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
+});
 caso('603.6a', "entra vindo de uma zona: River Kelpie dispara com permanente que volta do cemitério, não com a que vem da mão", () => {
   const e = cena({ campo: [[0, 'River Kelpie']] }); e.pend = [];
   const b = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
@@ -4376,6 +4419,13 @@ caso('614.1c', "Feasting Hobbit: ao entrar sacrifica as Comidas que quiser e ent
   const f = cena({ campo: [[0, 'Forest'], [0, 'Forest']], mao: [[0, 'Feasting Hobbit']] });
   M.avancar(f); conj(f, 'Feasting Hobbit'); resolveCom(f);
   igual(M.poder(f, objN(f, 0, 'Feasting Hobbit')), 2, 'sem Comida: 2/2');
+});
+
+caso('709.3', 'lista colada com "A // B" (carta de duas faces/portas): acha pelo nome da 1ª face e o objeto fica com esse nome', () => {
+  igual(M.nomeBase('Dazzling Theater // Prop Room'), 'Dazzling Theater');
+  igual(M.nomeBase('Nome Que Nao Existe // Outro'), 'Nome Que Nao Existe // Outro', 'sem a 1ª face no banco: fica igual (o erro aparece)');
+  const e = M.novoJogo([{ cmd: [], cartas: ['Dazzling Theater // Prop Room', ...enche(59, 'Forest')] }, { cmd: [], cartas: enche(60, 'Forest') }], { semente: 1 });
+  ok(Object.values<any>(e.objs).some(o => o.n === 'Dazzling Theater'), 'virou Dazzling Theater');
 });
 
 // ---------- rodar ----------
