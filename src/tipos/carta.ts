@@ -314,6 +314,16 @@ export interface RxFiltro {
    * compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)
    */
   tipoEmComum?: ('este' | 'comandante' | 'doEvento') | RxFiltro;
+  /**
+   * tem ao menos um tipo de card em comum com: a primeira permanente sacrificada por este efeito (Braids, Arisen Nightmare)
+   */
+  tipoCartaEmComum?: 'sacrificada';
+  /**
+   * bate em ao menos um destes (junto com os outros campos): "a Human or artifact card" = ou [{sub:[Human]}, {tipo:[Artifact]}] (Boromir, Gondor's Hope)
+   *
+   * @minItems 2
+   */
+  ou?: [RxFiltro, RxFiltro, ...RxFiltro[]];
 }
 
 export interface RxCompara {
@@ -1359,6 +1369,10 @@ export interface RxSubst {
    * compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)
    */
   naoPrimeira?: boolean;
+  /**
+   * dano com muda.prevenir: efeitos da própria substituição depois de prevenir; conta resultado = o dano prevenido (Bloatfly Swarm)
+   */
+  depois?: RxFxs;
 }
 
 /**
