@@ -13,6 +13,12 @@ M.coresDeProd = (e, o, prod) => {
   if (prod === 'escolhida') return esc ? [esc] : [];
   if (prod === 'qualquer') return CORES;
   if (prod === 'comandante') return CORES.filter(c => e.jogs[o.ctrl].ci.includes(c));
+  // {cadaCor: filtro}: "for each color among permanents you control, add one mana of that color" (Faeburrow Elder, Bloom
+  // Tender): as cores do conjunto. pacotesDe dá TODAS juntas (um pacote só), não uma à escolha
+  if (prod && typeof prod === 'object' && prod.cadaCor) {
+    const s = new Set(M.objetosQue(e, prod.cadaCor, { voce: o.ctrl, este: o.id }).flatMap(x => (M.dadoDe(e, x).cores || '').split('')));
+    return CORES.filter(c => s.has(c));
+  }
   if (prod === 'refletida' || prod === 'deSeusTerrenos') {
     // refletida (Exotic Orchard): terrenos dos oponentes, só cores. deSeusTerrenos (Incubation Druid): "any TYPE that a
     // land you control could produce" — terrenos seus, incolor conta (CR 106.7, 106.1b)
@@ -86,6 +92,7 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
     const q = M.qtd(e, f.qtd, { voce: o.ctrl, este: o.id, x: ctx.x });
     if (!cs || q === null) return null;
     if (!cs.length || q <= 0) continue;
+    if (f.prod && f.prod.cadaCor) { pac = pac.map(p => { const n = { ...p }; for (const c of cs) n[c] += q; return n; }); continue; }
     const novo: any[] = [];
     for (const p of pac) for (const c of cs) { const n = { ...p }; n[c] += q; novo.push(n); }
     pac = novo;

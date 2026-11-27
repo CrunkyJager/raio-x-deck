@@ -1131,6 +1131,19 @@
        "items": {
         "type": "string"
        }
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "cadaCor"
+       ],
+       "properties": {
+        "cadaCor": {
+         "$ref": "#/$defs/filtro"
+        }
+       },
+       "description": "uma mana de CADA cor entre os objetos que batem (Faeburrow Elder, Bloom Tender: 'for each color among permanents you control, add one mana of that color'); qtd multiplica cada uma"
       }
      ]
     },

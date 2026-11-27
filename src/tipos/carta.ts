@@ -599,7 +599,12 @@ export interface RxFx {
   /**
    * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
    */
-  prod?: ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos') | string[];
+  prod?:
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos')
+    | string[]
+    | {
+        cadaCor: RxFiltro;
+      };
   de?: RxZona;
   para?: RxZona;
   /**

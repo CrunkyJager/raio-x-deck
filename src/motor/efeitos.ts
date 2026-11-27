@@ -816,8 +816,9 @@ const H = {
       const q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
       const F = e.objs[ctx.este] || { ctrl: ctx.voce, escolha: null };
       const cs = M.coresDeProd(e, { ...F, ctrl: ctx.voce }, f.prod); if (!cs || !cs.length) return;
-      const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
       const J = e.jogs[ctx.voce];
+      if (f.prod.cadaCor) { for (const c of cs) J.reserva[c] += q; M.log(e, J.nome, 'recebe', cs.map(c => c.repeat(q)).join('')); return; }   // uma de cada cor
+      const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
       J.reserva[c] += q;
       if (f.ficaNoTurno) { if (!J.fica || J.fica.t !== e.turno.n) J.fica = { t: e.turno.n, m: M.zeroMana() }; J.fica.m[c] += q; }
       M.log(e, J.nome, 'recebe', c.repeat(q));
