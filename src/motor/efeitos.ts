@@ -547,7 +547,7 @@ const H = {
       if (regra.length) (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: regra.map(s => ({ modo: s.modo })), este: null, ids: os.map(o => ({ id: o.id, ts: o.ts })), fim: 'turno', ts: ++e.ts });
       const est = (f.est || []).filter(s => s.modo === 'deveBloquear').map(s => ({ modo: s.modo, atk: s.atacante === 'doEvento' ? (at && at.zona === 'campo' ? { id: at.id, ts: at.ts } : { id: -1, ts: -1 }) : null }));
       if (f.p === undefined && f.r === undefined && !(f.kw || []).length && !est.length) return;
-      (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: f.kw || [], ...(est.length ? { est } : {}), ...(f.dura !== 'fimDoTurno' ? { sempre: true } : {}), ...(f.dura === 'proximoTurnoSeu' ? { ate: ctx.voce } : {}), ts: ++e.ts });   // sempre/enquantoNoCampo: preso ao objeto (ts); até o seu próximo turno: sai no desvirar (masmorras.ts)
+      (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p, r, kw: (f.kw || []).map(k => k.de === 'escolhido' && ctx.escolha && ctx.escolha.cor ? { ...k, de: ctx.escolha.cor } : k), ...(est.length ? { est } : {}), ...(f.dura !== 'fimDoTurno' ? { sempre: true } : {}), ...(f.dura === 'proximoTurnoSeu' ? { ate: ctx.voce } : {}), ts: ++e.ts });   // sempre/enquantoNoCampo: preso ao objeto (ts); até o seu próximo turno: sai no desvirar (masmorras.ts)
     },
   },
   // CR 613.1b / 800.4: ganhar o controle (camada 2, M.recalcCtrl em estado.ts). Sem dura = para sempre (611.2a).
@@ -943,6 +943,23 @@ const H = {
         e.proc = P0;
         if (o.zona === 'pilha') M.log(e, e.jogs[o.dono].nome, 'conjura', o.n, 'pelo milagre');
       }
+    },
+  },
+  escolher: {                                                       // "choose a creature type / a color" na resolução: vale para os efeitos seguintes (ctx.escolha)
+    campos: ['o'],
+    qtd: q => q === undefined,
+    ok: f => (f.o === 'tipoCriatura' || f.o === 'cor') && (f.quem === undefined || f.quem === 'voce'),
+    fx(e, f, ctx, ask) {
+      let ops;
+      if (f.o === 'cor') ops = 'WUBRG'.split('').map(v => ({ a: 'cor', v }));
+      else {                                                         // 205.3m: qualquer tipo; as opções são os tipos que existem na partida
+        const t = new Set<any>();
+        for (const x of Object.values<any>(e.objs)) if (!x.hab && x.zona !== 'fora' && M.temTipo(e, x, 'Creature')) (M.dadoDe(e, x).sub || []).forEach(s => t.add(s));
+        ops = [...(t.size ? t : new Set(['Human']))].sort().map(v => ({ a: 'tipo', v }));
+      }
+      const r = ask(ctx.voce, 'escolha', ops, { o: f.o, fonte: (e.objs[ctx.este] || {}).n });
+      ctx.escolha = { ...(ctx.escolha || {}), ...(f.o === 'cor' ? { cor: r.v } : { tipo: r.v }) };
+      M.log(e, e.jogs[ctx.voce].nome, 'escolhe', r.v);
     },
   },
   moer: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) M.mover(e, g[g.length - 1], 'cemiterio'); } } },   // CR 701.13

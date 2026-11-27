@@ -3258,6 +3258,28 @@ caso('714.4', "saga que termina é sacrificada: dispara 'sacrificado' (Carmen)",
   igual(e.objs[ca].marc['+1/+1'], 1, 'Carmen disparou com a saga sacrificada ' + JSON.stringify(e.log.slice(-6)));
 });
 
+caso('205.3m', "op escolher na resolução: Kindred Dominance destrói o que não é do tipo; Distant Melody conta; Mother of Runes dá proteção da cor; o agente guarda o tipo que mais tem", () => {
+  for (const c of ['Distant Melody', 'Kindred Dominance', 'Kindred Judgment', 'Mother of Runes', 'Pact of the Serpent', "Patriarch's Bidding", 'Raise the Palisade']) ok(M.fxSuportado(M.carta(c).fx || M.carta(c).atv[0].fx), c + ' aceito');
+  const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Llanowar Elves'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const [l1, l2, g0, g1, l3] = e.campo;
+  const ctx = (): any => ({ voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  const pede: any[] = [];
+  const escolhe = v => (_j, t, ops) => { pede.push([t, ops.map(o => o.v).join()]); return ops.find(o => o.v === v) || ops[0]; };
+  const m0 = e.jogs[0].zonas.mao.length;
+  const cm = ctx(); for (const f of M.carta('Distant Melody').fx) M.executar(e, f, cm, escolhe('Elf'));
+  igual(e.jogs[0].zonas.mao.length - m0, 2, 'Distant Melody: 2 Elfos meus');
+  igual(pede[0], ['escolha', 'Bear,Druid,Elf'], 'pergunta os tipos que existem na partida');
+  const ag = M.agenteBasico();
+  const k = ag(e, { tipo: 'escolha', j: 0, ops: [{ a: 'tipo', v: 'Bear' }, { a: 'tipo', v: 'Elf' }], ctx: {} });
+  igual(k, 1, 'o agente escolhe Elf (2 no campo contra 1 Urso)');
+  const cd = ctx(); for (const f of M.carta('Kindred Dominance').fx) M.executar(e, f, cd, escolhe('Elf'));
+  igual([l1, l2, l3, g0, g1].map(id => e.objs[id].zona), ['campo', 'campo', 'campo', 'cemiterio', 'cemiterio'], 'só os Elfos ficam (de todos)');
+  const mr = e.por(0, 'Mother of Runes'), bolt = { cores: 'R' };
+  const ca: any = { ...ctx(), este: mr.id, alvos: [[{ o: l1, ts: e.objs[l1].ts }]] };
+  for (const f of M.carta('Mother of Runes').atv[0].fx) M.executar(e, f, ca, escolhe('R'));
+  igual([M.protegeDe(e, e.objs[l1], bolt), M.protegeDe(e, e.objs[l2], bolt), M.protegeDe(e, e.objs[l1], { cores: 'G' })], [true, false, false], 'proteção do vermelho só no alvo');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

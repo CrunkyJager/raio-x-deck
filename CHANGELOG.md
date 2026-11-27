@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.54.0 — 27/11/2026 · Motor: "escolha um tipo de criatura / uma cor"
+Testes: check 0 erros · Vitest 377/377 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1490/1756 (eram 1483). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste com as 7 cartas: 20 partidas, 26 escolhas, 0 erros.
+- **Escolher na resolução** (op escolher): Kindred Dominance, Kindred Judgment, Raise the Palisade, Distant Melody, Pact of the Serpent, Patriarch's Bidding, Mother of Runes (proteção da cor escolhida). As opções de tipo são os tipos de criatura que existem na partida; a IA escolhe o tipo de que mais tem (no campo pesa 2).
+- Changeling conta como do tipo escolhido (também no Morophon/Herald's Horn).
+
 ## v0.53.0 — 27/11/2026 · Motor: gatilho "sacrificado"
 Testes: check 0 erros · Vitest 376/376 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1483/1756 (eram 1477). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste da Carmen: 20 partidas, 30 disparos de "sacrificado", 0 erros.
 - **Gatilho "sacrificado"** (CR 701.21): Tireless Tracker, Captain Lannery Storm, Carmen, Rapacious Guest, Nuka-Cola Vending Machine, The Sackville-Bagginses (Mirkwood Bats ainda falta o "ficha criada"). Vale para sacrifício como custo (Pista, Tesouro, Comida, altar), como efeito (édito), "a menos que sacrifique", masmorra e saga que termina (714.4). Olha para trás (603.10a): a Carmen sacrificada também dispara. Morrer sem sacrificar não conta.
