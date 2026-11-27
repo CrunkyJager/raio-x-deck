@@ -13,6 +13,10 @@ const basico = (e, p) => {
       const t = J.zonas.mao.filter(terra).length;
       return J.mulls < 2 && (t < 2 || t > 5) ? 1 : 0;
     }
+    case 'vigiar': {                  // vigiar: terreno com 5+ no campo vai ao cemitério; o resto fica
+      const id = p.ops[0].id, nT = e.campo.filter(x => o(x).ctrl === p.j && terra(x)).length;
+      return terra(id) && nT >= 5 ? 1 : 0;
+    }
     case 'descartar': {               // filtrar: loucura e terreno sobrando primeiro; descarte opcional só com ganho
       const k = escolheDescarte(e, p);
       if (k >= 0) return k;
@@ -81,10 +85,20 @@ const basico = (e, p) => {
       return b;
     }
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
-    case 'sacrificar': case 'custo': {
+    case 'manter': {                  // a que fica: a de mais valor (não ficha, maior valor de mana)
+      let b = 0, bv = -Infinity;
+      p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : (M.dadoDe(e, o(op.id)).vm || 0)) : -9; if (v > bv) { bv = v; b = i; } });
+      return b;
+    }
+    case 'sacrificar': if (p.ctx && p.ctx.entra) { const k = p.ops.findIndex(op => op.a === 'sacrificar'); return k >= 0 ? k : 0; }   // Feasting Hobbit: todas as Comidas
+    // falls through
+    case 'custo': {
       let b = 0, bv = Infinity;
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
+    }
+    case 'virar': case 'desvirar': {   // "vire/desvire até N" (Myr Battlesphere, Snap): todas as que der
+      const k = p.ops.findIndex(op => op.a === p.tipo); return k >= 0 ? k : 0;
     }
     case 'x': {                       // X de vida (Toxic Deluge): o menor que mata a maior criatura do oponente, sem morrer
       if (!(p.ctx && p.ctx.vida)) return 0;
@@ -110,7 +124,7 @@ const basico = (e, p) => {
       const k = p.ops.findIndex(op => op.a === 'pagar'); if (k < 0) return 0;   // vida com folga; sacrifício só quando o efeito é contra mim
       const c = p.ctx.custo, meu = p.ctx.de === p.j;
       if (p.ctx.op === 'anular' || p.ctx.op === 'resguardo') return k;   // a minha mágica/habilidade seria anulada
-      if (p.ctx.op === 'pagando') return c.mana ? k : c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : 0;   // "pode pagar; se pagar": mana sim; vida com folga
+      if (p.ctx.op === 'pagando') return c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : c.mana ? k : 0;   // com vida (mesmo junto de mana): com folga   // "pode pagar; se pagar": mana sim; vida com folga
       if (c.mana) return e.turno.ativo !== p.j || (c.mana.g || 0) + (p.ctx.x || 0) <= 1 ? k : 0;
       if (c.vida) return J.vida - c.vida > 10 ? k : 0;
       if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura
@@ -257,6 +271,9 @@ function valorFx(e, j, f) {
     case '_comprarLembra': return 1.5 * q + 2;                       // e conjura uma de graça
     case 'ficha': { const t = f.token || {}; return q * (t.nome === 'Treasure' ? 1 : t.pt ? (t.pt[0] + t.pt[1]) / 2 + 0.5 * (t.kw || []).length : 0.5); }
     case 'videncia': return 0.25 * q;
+    case 'vigiar': return 0.25 * q;
+    case 'explorar': return 0.7;
+    case 'bis': return 1.5 * Math.max(1, nOp);
     case 'ganharVida': return (J.vida <= 15 ? 0.3 : 0.15) * q;
     case 'perderVida': return f.quem === 'cadaOponente' ? 0.35 * q * nOp : f.quem === 'cadaJogador' ? 0.35 * q * nOp - meuPonto * q : 0.5 * q;
     case 'marcador': return f.em && f.em.alvo !== undefined ? (temCriatura(e, j, true) ? 0.8 * q : 0) : 0;

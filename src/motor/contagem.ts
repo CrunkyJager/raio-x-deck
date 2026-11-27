@@ -35,13 +35,14 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
-    case 'turno': return ['magias', 'descartes', 'ataques', 'vidaGanha'].includes(o) && chaves(c, []);
+    case 'turno': return ['magias', 'descartes', 'ataques', 'resolucoesDestaHab', 'oponentesAtacados', 'vidaGanha'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': return o === 'quantos' && chaves(c, []);
     case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' && chaves(c, ['min']) && Number.isInteger(c.min);   // "each graveyard with seven or more cards" (Master of Lake-town)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
-    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'resist', 'vm', 'cores'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
+    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
+    case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
   }
@@ -60,7 +61,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && ((c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && c.o === 'quantos') || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'vidaGanha')));
+  return onde === 'cond' && ((c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && c.o === 'quantos') || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -102,6 +103,9 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
       if (o === 'vidaGanha') { const V = J.vidaGT; return V && V.t === e.turno.n ? V.n : 0; }   // Book of Exalted Deeds, Assemble the Entmoot
+      if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
+      // corpo-a-corpo (702.121a): os oponentes que você atacou com criatura neste combate (jogador, não planeswalker), na resolução
+      if (o === 'oponentesAtacados') return new Set(((e.turno.combate || {}).atk || []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== ctx.voce && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog)).size;   // "the second time this ability has resolved this turn" (contando esta)
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
@@ -120,11 +124,18 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'vida') return vidaEv(ev) ? ev.q || 0 : 0;                    // "that much life" (Sanguine Bond)
       if (o === 'dano') return ev.ev === 'dano' ? ev.q || 0 : 0;              // "that much damage"
       if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;   // "that many" (Shalai and Hallar)
-      if (o === 'poder') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
+      if (o === 'poder' && c.junta === 'soma') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
       const ob = e.objs[ev.id];
+      if (o === 'poder') return !ob ? 0 : ob.zona === 'campo' || !ev.snap ? M.poder(e, ob) : M.poder(e, ev.snap);   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
       if (o === 'resist') return ob && ob.zona === 'campo' ? M.resistencia(e, ob) : ev.snap ? M.resistencia(e, ev.snap) : 0;   // Verdant Sun's Avatar
       if (!ob) return 0;
       return o === 'vm' ? M.dadoDe(e, ob).vm || 0 : coresN(M.dadoDe(e, ob).cores);   // "that spell's mana value / colors" (Ramos, 105.2)
+    }
+    case 'tipoMaisComum': {   // "the greatest number of creatures you control that have a creature type in common" (Basalt Ravager)
+      const cs = e.campo.map(id => e.objs[id]).filter(x => x.ctrl === ctx.voce && M.temTipo(e, x, 'Creature')).map(x => M.tiposCriatura(e, x));
+      const todos = cs.filter(t => t === 'todos').length, n: Record<string, number> = {};
+      for (const t of cs) if (t !== 'todos') for (const s of new Set<string>(t)) n[s] = (n[s] || 0) + 1;
+      return Math.max(0, ...Object.values(n)) + todos;   // metamorfo é de todos os tipos (702.73a)
     }
     case 'sacrificadas': return (ctx.sac || []).reduce((s, l) => s + (o === 'poder' ? Math.max(0, l.poder) : l.vm || 0), 0);   // LKI, 608.2h
     case 'cada':
