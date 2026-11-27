@@ -3394,6 +3394,24 @@ caso('702.96', "sobrecarga: Cyclonic Rift com 7 terrenos devolve TODA permanente
   igual(f.campo.filter(id => f.objs[id].ctrl === 1).length, 1, 'sem mana para sobrecarga: só um alvo volta');
 });
 
+caso('701.13', "gatilho de moer: Glowing One ganha 1 por carta não-terreno moída; Scorchbeast uma vez pelo lote com tantas fichas; Radroach volta do cemitério quando o oponente mói", () => {
+  for (const c of ['Glowing One', 'Infesting Radroach', 'Mirelurk Queen', 'Screeching Scorchbeast', 'The Wise Mothman']) ok(M.carta(c).gat.filter(g => g.ev === 'moe').every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Glowing One'], [0, 'Screeching Scorchbeast']] });
+  e.por(1, 'Grizzly Bears', { zona: 'grimorio' }); e.por(1, 'Sol Ring', { zona: 'grimorio' });   // topo: Sol Ring, Grizzly Bears, depois Wastes
+  const rr = e.por(0, 'Infesting Radroach', { zona: 'cemiterio' });
+  e.pend = [];
+  M.executar(e, { op: 'moer', quem: 'cadaOponente', qtd: 3 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  const n = nm => e.pend.filter(p => p.n === nm);
+  igual(e.jogs[1].zonas.cemiterio.length, 3, 'moeu 3');
+  igual(n('Glowing One').length, 2, 'Glowing One: 2 não-terreno');
+  igual(n('Screeching Scorchbeast').map(p => p.ev.n), [2], 'Scorchbeast: 1 disparo, 2 fichas');
+  igual(n('Infesting Radroach').length, 2, 'Radroach: dispara do cemitério');
+  ok(rr.zona === 'cemiterio');
+  const f = cena({ campo: [[0, 'Glowing One']] }); f.pend = [];
+  M.executar(f, { op: 'moer', quem: 'voce', qtd: 2 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  igual(f.pend.length, 0, 'só terreno moído: nada');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
