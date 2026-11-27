@@ -1946,7 +1946,8 @@
       "intimidar",
       "decaida",
       "infectar",
-      "fuga"
+      "fuga",
+      "dragar"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1954,7 +1955,8 @@
      "$ref": "#/$defs/mana"
     },
     "n": {
-     "type": "integer"
+     "type": "integer",
+     "description": "dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b)"
     },
     "de": {
      "type": "string",

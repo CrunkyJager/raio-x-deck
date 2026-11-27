@@ -472,14 +472,15 @@ const GAT_MILAGRE = { ev: 'compra', fx: [{ op: 'milagre' }] };
 M.milagreDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'milagre' && x.custo); return k ? k.custo : null; };
 
 // comprar (CR 121; grimório vazio → perde nas ABE, CR 704.5b)
-M.comprar = (e, j, qtd = 1) => {
+// Quantas compras de fato (CR 614.1a/614.5: "if you would draw a card, draw two instead", Bard, King of Dale) vale uma vez
+// por compra; naoPrimeira: fora a 1ª da sua etapa de compra (504.1). As compras a mais não são substituídas de novo.
+// Não mexe no estado (o processo com perguntas roda de novo): prim diz se a 1ª da etapa foi usada agora.
+const contarCompras = (e, j, qtd) => {
   const J = e.jogs[j];
-  let brutas = 0;
+  let brutas = 0, usou = false;
   for (let i = 0; i < qtd; i++) {
-    // CR 614.1a/614.5: "if you would draw a card, draw two instead" (Bard, King of Dale) vale uma vez por compra; naoPrimeira:
-    // fora a 1ª da sua etapa de compra (504.1). As compras a mais não são substituídas de novo.
-    const prim = e.turno.passo === 'compra' && e.turno.ativo === j && J.primPasso !== e.turno.n;
-    if (prim) J.primPasso = e.turno.n;
+    const prim = !usou && e.turno.passo === 'compra' && e.turno.ativo === j && J.primPasso !== e.turno.n;
+    if (prim) usou = true;
     let mult = 1;
     if (e.turno.passo !== 'mulligan') for (const id of indice(e).sb) {
       const F = e.objs[id];
@@ -492,8 +493,49 @@ M.comprar = (e, j, qtd = 1) => {
     }
     brutas += mult;
   }
+  return { brutas, usou };
+};
+
+// dragar (CR 702.52a): "se você fosse comprar uma carta, pode moer N cartas e devolver esta carta do cemitério à mão";
+// 702.52b: não dá com menos de N cartas no grimório. Cada compra (já multiplicada) é uma pergunta 'dragar'
+// ([comprar, dragar X…]). M.planoDragar pergunta TODAS antes de mexer no estado (regra do processo, pilha.ts): simula o
+// grimório e o cemitério (a carta com dragar moída agora pode dragar na compra seguinte). Sem ask (mulligan, presente,
+// masmorra): compra normal. Na execução a escolha é conferida de novo (moeu menos/outra zona: compra).
+M.dragarDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'dragar' && Number.isInteger(x.n) && x.n > 0); return k ? k.n : 0; };
+M.temDragar = (e, j) => e.jogs[j].zonas.cemiterio.some(id => M.dragarDe(e, e.objs[id]) > 0);
+M.planoDragar = (e, j, brutas, ask) => {
+  if (!ask || !brutas || e.turno.passo === 'mulligan' || !M.temDragar(e, j)) return null;
+  const J = e.jogs[j], g = J.zonas.grimorio, cem = J.zonas.cemiterio.filter(id => M.dragarDe(e, e.objs[id]) > 0), esc: any[] = [];
+  let topo = g.length;                                              // g[topo-1] = a carta de cima que sobra na simulação
   for (let i = 0; i < brutas; i++) {
-    const g = J.zonas.grimorio;
+    const ops: any[] = [{ a: 'comprar' }];
+    for (const id of cem) { const n = M.dragarDe(e, e.objs[id]); if (n <= topo) ops.push({ a: 'dragar', id, n }); }
+    const r = ops.length > 1 ? ask(j, 'dragar', ops, { i }) : ops[0];
+    if (r.a !== 'dragar') { esc.push(null); if (topo > 0) topo--; continue; }
+    esc.push(r.id); cem.splice(cem.indexOf(r.id), 1);
+    for (let k = 0; k < r.n; k++) { const id = g[topo - 1 - k]; if (M.dragarDe(e, e.objs[id]) > 0) cem.push(id); }
+    topo -= r.n;
+  }
+  return esc;
+};
+M.planoCompra = (e, j, qtd, ask) => M.planoDragar(e, j, contarCompras(e, j, qtd).brutas, ask);
+
+// opc.plano (M.planoCompra) ou opc.ask (pergunta aqui; opc.antes() roda depois das perguntas, antes de mexer: e.proc = null)
+M.comprar = (e, j, qtd = 1, opc: any = {}) => {
+  const J = e.jogs[j];
+  const { brutas, usou } = contarCompras(e, j, qtd);
+  const plano = opc.plano !== undefined ? opc.plano : M.planoDragar(e, j, brutas, opc.ask);
+  if (opc.antes) opc.antes();
+  if (usou) J.primPasso = e.turno.n;
+  for (let i = 0; i < brutas; i++) {
+    const g = J.zonas.grimorio, dr = plano && plano[i] !== null && plano[i] !== undefined ? e.objs[plano[i]] : null;
+    if (dr && dr.zona === 'cemiterio' && dr.dono === j && M.dragarDe(e, dr) > 0 && g.length >= M.dragarDe(e, dr)) {   // 702.52a/b
+      const n = M.dragarDe(e, dr);
+      M.log(e, J.nome, 'draga', dr.n, '(moe ' + n + ')');
+      M.EFEITOS.moer.fx(e, { op: 'moer', quem: 'voce', qtd: n }, { voce: j, este: dr.id });
+      if (dr.zona === 'cemiterio') M.mover(e, dr.id, 'mao');       // não é compra: não dispara 'compra' (702.52a)
+      continue;
+    }
     if (!g.length) { J.comprouVazio = true; continue; }
     const id = g[g.length - 1];
     M.mover(e, id, 'mao');
@@ -506,7 +548,6 @@ M.comprar = (e, j, qtd = 1) => {
     if (M.evento) M.evento(e, { ev: 'compra', j, ...(etapa && J.compEt.n === 1 ? { primeiraEtapa: true } : {}) });
   }
 };
-
 M.vivos = e => e.jogs.filter(j => !j.saiu).map(j => j.i);
 
 // ---------- controle (CR 613.1b, camada 2; 800.4) ----------
