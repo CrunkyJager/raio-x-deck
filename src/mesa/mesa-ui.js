@@ -561,7 +561,7 @@ function jaLugarHTML(k, p, c) {
         <button class="ja-fb" data-fundo="${k}" title="Escolher a imagem de fundo deste lugar${fundo ? ' (clique direito: tirar)' : ''}">fundo</button></div>
       ${cmdZ}
       ${zona('exi', 'Exílio', p.ex ?? 0)}
-      ${zona('gri', 'Grimório', p.lib)}
+      ${zona('gri', 'Grimório', p.lib, p.topo != null && p.topo >= 0 && G.Ms[k][p.topo] ? `<small title="Você pode olhar a carta do topo do seu grimório a qualquer momento">topo: ${esc(G.Ms[k][p.topo].frente || G.Ms[k][p.topo].nome)}</small>` : '')}
       ${zona('cem', 'Cemitério', p.gy, '', gyIm ? `background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),url('${esc(gyIm[2] || gyIm[0])}')` : '')}
     </div>
     ${p.vivo ? '' : '<div class="s-x">fora</div>'}

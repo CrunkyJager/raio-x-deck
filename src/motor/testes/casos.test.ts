@@ -2191,6 +2191,60 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('122.6', "gatilho 'marcador posto' (Simic Ascendancy: tantos de crescimento quantos +1/+1; Fathom Mage compra); proliferar também põe", () => {
+  for (const c of ['Simic Ascendancy', 'Fathom Mage', 'Exemplar of Light', 'Shalai and Hallar', 'All Will Be One', 'Benthic Biomancer', 'Evolution Witness']) ok(M.carta(c).gat.filter(g => g.ev === 'marcadorPosto').every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Simic Ascendancy'], [0, 'Fathom Mage'], [1, 'Grizzly Bears']], passo: 'principal2' }); e.pend = [];
+  const [sa, fm, gb] = e.campo, mao = () => e.jogs[0].zonas.mao.length, m0 = mao();
+  M.executar(e, { op: 'marcador', em: { alvo: 0 }, tipoMarc: '+1/+1', qtd: 2 }, { voce: 0, este: sa, alvos: [[{ o: fm, ts: e.objs[fm].ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  M.avancar(e); resolveCom(e, p => p.ops.findIndex(o => o.a === 'sim'));
+  igual([e.objs[sa].marc.growth, mao() - m0], [2, 1], '2 de crescimento e o Mago comprou 1');
+  M.porMarcadores(e, e.objs[gb], '+1/+1', 1); e.perg = null; M.avancar(e); resolveCom(e);
+  igual(e.objs[sa].marc.growth, 2, 'criatura do oponente não conta');
+  M.executar(e, { op: 'proliferar', quem: 'voce' }, { voce: 0, este: sa, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.id === fm) || ops.find(o => o.a === 'pronto'));
+  e.perg = null; M.avancar(e); resolveCom(e, p => p.ops.findIndex(o => o.a === 'sim'));
+  igual([e.objs[fm].marc['+1/+1'], e.objs[sa].marc.growth], [3, 3], 'proliferar no Mago: +1 e +1 de crescimento');
+});
+caso('613.1b', "Hellkite Tyrant: só os artefatos do jogador que levou o dano (filtro ctrl 'doEvento'), não os de todos", () => {
+  const H = M.carta('Hellkite Tyrant');
+  const e = cena({ jogs: 3, campo: [[0, 'Hellkite Tyrant'], [1, 'Sol Ring'], [2, 'Sol Ring']], passo: 'principal2' }); e.pend = [];
+  const [ht, a1, a2] = e.campo;
+  for (const f of H.gat[0].fx) M.executar(e, f, { voce: 0, este: ht, alvos: [], ilegal: {}, lki: { alvos: [] }, ev: { ev: 'dano', fonte: ht, combate: true, q: 6, jog: 1 } }, null);
+  igual([e.objs[a1].ctrl, e.objs[a2].ctrl], [0, 2], 'pega só o do jogador 1');
+});
+caso('613.1b', "ganhar o controle (camada 2): Zealous Conscripts até o fim do turno (desvira, ímpeto, volta na limpeza); Roil Elemental enquanto você o controlar", () => {
+  const Z = M.carta('Zealous Conscripts'), R = M.carta('Roil Elemental');
+  ok(M.gatOk(Z.gat[0]) && M.gatOk(R.gat[0]), 'gatilhos aceitos');
+  const e = cena({ campo: [[0, 'Zealous Conscripts'], [0, 'Roil Elemental'], [1, 'Grizzly Bears', { virada: true }], [1, 'Hill Giant']], passo: 'principal2' }); e.pend = [];
+  const [zc, re, gb, hg] = e.campo;
+  const ctx = (este, alvo): any => ({ voce: 0, este, alvos: [[{ o: alvo, ts: e.objs[alvo].ts }]], ilegal: {}, lki: { alvos: [] } });
+  for (const f of Z.gat[0].fx) M.executar(e, f, ctx(zc, gb), null);
+  const o = e.objs[gb];
+  igual([o.ctrl, o.virada, M.temKw(e, o, 'pressa')], [0, false, true], 'é seu, desvirado e com ímpeto');
+  ok(M.bate(e, o, { ctrl: 'voce' }, { voce: 0 }), 'filtro ctrl voce vê o novo controlador');
+  M.executar(e, R.gat[0].fx[0], ctx(re, hg), null);
+  igual(e.objs[hg].ctrl, 0, 'Roil: Hill Giant é seu');
+  passarAte(e, 'principal1');
+  igual([e.objs[gb].ctrl, e.objs[hg].ctrl], [1, 0], 'na limpeza o Urso volta; o Gigante fica');
+  M.mover(e, re, 'cemiterio');
+  igual(e.objs[hg].ctrl, 1, 'Roil saiu: o Gigante volta ao dono');
+  M.mover(e, hg, 'mao'); M.mover(e, hg, 'campo'); igual(e.objs[hg].ctrl0, undefined, 'objeto novo (400.7)');
+});
+caso('601.3', "jogar do topo do grimório com permissão (Courser of Kruphix: terreno; Emperor Mihail II: Merfolk); só a carta do topo, só com a fonte no campo", () => {
+  const e = cena({ campo: [[0, 'Courser of Kruphix'], [0, 'Emperor Mihail II'], [0, 'Island'], [0, 'Island']], passo: 'principal1' });
+  const noTopo = n => { const o = e.por(0, n, { zona: 'mao' }); const J = e.jogs[0]; J.zonas.mao.splice(J.zonas.mao.indexOf(o.id), 1); J.zonas.grimorio.push(o.id); o.zona = 'grimorio'; return o; };
+  ok(M.olhaTopo(e, 0) && !M.olhaTopo(e, 1), 'olha o topo: só quem controla o Courser');
+  const fo = noTopo('Forest');
+  const ops = () => M.opcoesPrioridade(e, 0);
+  ok(ops().some(o => o.a === 'terreno' && o.id === fo.id), 'Forest do topo: pode jogar');
+  const mf = noTopo('Benthic Biomancer');
+  ok(!ops().some(o => o.id === fo.id), 'a Forest não é mais o topo');
+  ok(ops().some(o => o.a === 'conjurar' && o.id === mf.id), 'Merfolk do topo: pode conjurar (Mihail)');
+  const gb = noTopo('Grizzly Bears');
+  ok(!ops().some(o => o.id === gb.id), 'Urso do topo: sem permissão');
+  M.mover(e, e.campo.find(id => e.objs[id].n === 'Courser of Kruphix'), 'cemiterio');
+  e.jogs[0].zonas.grimorio.push(e.jogs[0].zonas.grimorio.splice(e.jogs[0].zonas.grimorio.indexOf(fo.id), 1)[0]);
+  ok(!ops().some(o => o.id === fo.id), 'sem o Courser: não joga terreno do topo');
+});
 caso('605.1b', "gatilho de mana ao virar terreno (Wild Growth, Regal Behemoth): resolve na hora, o solver conta com ele; Behemoth só se for o monarca", () => {
   for (const c of ['Wild Growth', 'Fertile Ground', 'Regal Behemoth', "Mirari's Wake"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
   const e = cena({ campo: [[0, 'Forest'], [0, 'Wild Growth'], [0, 'Regal Behemoth']], passo: 'principal2' }); e.pend = [];

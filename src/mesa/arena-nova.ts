@@ -125,6 +125,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
         vida: J.vida, vivo: !J.saiu, terr: terras.length, tes: 0, mao: J.zonas.mao.map((id: number) => iDe(e.objs[id])), lib: J.zonas.grimorio.length,
         zona: J.cmd.some((id: number) => e.objs[id] && e.objs[id].zona === 'comando'), tax: J.cmd.reduce((s: number, id: number) => s + 2 * (J.imposto[id] || 0), 0), cmdD,
         perm, tl: terras.map((o: any) => ({ i: iDe(o), tap: o.virada ? 1 : 0 })), gy: J.zonas.cemiterio.length, ex: J.zonas.exilio.length, gyL: J.zonas.cemiterio.slice(-12).map((id: number) => iDe(e.objs[id])),
+        ...((HK < 0 || j === HK) && J.zonas.grimorio.length && M.olhaTopo(e, j) ? { topo: iDe(e.objs[J.zonas.grimorio[J.zonas.grimorio.length - 1]]) } : {}),   // podeOlhar (Courser): o dono vê o topo
       };
     });
     quadros.push({ t: rodada, k, log: log.length, j: ps });
@@ -345,6 +346,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       default: return ob ? `${op.a}: ${ob.n}` : op.a;
     }
   }
+  const DE_ZONA: Record<string, string> = { grimorio: 'do topo do grimório', cemiterio: 'do cemitério', exilio: 'do exílio', comando: 'da zona de comando', mao: 'da mão' };
   const TIPO_PT: Record<string, string> = { Creature: 'criatura', Artifact: 'artefato', Land: 'terreno', Enchantment: 'encantamento', Planeswalker: 'planeswalker', permanente: 'permanente' };
   const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
     ordemGatilho: 'Estes gatilhos dispararam juntos, pelo mesmo evento (CR 603.3b). Escolha qual vai para a pilha primeiro: ele resolve por ÚLTIMO.', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
@@ -395,7 +397,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
           if (o.a === 'terreno' && o.face === undefined && ob.zona === 'mao' && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a });
           else if (o.a === 'conjurar' && ob.cmd && ob.zona === 'comando' && !ops.some(x => x.v === 'cmd')) ops.push({ v: 'cmd', n: ob.n, k });
           else if (o.a === 'conjurar' && ob.zona === 'mao' && o.face === undefined && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a, lac: !!(lacs[HK][i] && lacs[HK][i]!.length) });
-          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'terreno' ? `Baixar ${ob.n} (outra face)` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + ob.zona + ')' : ''}`, k });
+          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'terreno' ? `Baixar ${ob.n} (${o.face != null ? 'outra face' : DE_ZONA[ob.zona] || ob.zona})` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + (DE_ZONA[ob.zona] || ob.zona) + ')' : ''}`, k });
         });
         const mana = M.somaMana(J.reserva) + M.fontesDeMana(e, HK).length;
         const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha, reserva: M.somaMana(J.reserva) ? M.fmtMana(J.reserva) : '', passo: e.turno.passo });

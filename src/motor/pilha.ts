@@ -204,16 +204,19 @@ function maxX(e, j, custo, excluir, para?, teto = 30) {
   return x;
 }
 
-// ---------- jogar de outra zona (est podeJogar, CR 601.3/305.1 com permissão): por ora só do cemitério ----------
-// Fontes: permanentes do jogador (Conduit of Worlds: terrenos do cemitério) e a própria carta no cemitério
-// (Gravecrawler, "as long as you control a Zombie" no 'se', lido com a fonte).
+// ---------- jogar de outra zona (est podeJogar, CR 601.3/305.1 com permissão): do cemitério e do topo do grimório ----------
+// Fontes: permanentes do jogador (Conduit of Worlds: terrenos do cemitério; Courser of Kruphix, Oracle of Mul Daya:
+// do topo, s.de 'grimorio' + afeta.topo) e a própria carta no cemitério (Gravecrawler, "as long as you control a
+// Zombie" no 'se', lido com a fonte). est podeOlhar ("you may look at the top card any time", 401.5): só informação —
+// o dono vê o topo (M.olhaTopo, a Mesa mostra), a IA não usa.
 function permissoes(e, j) {
   const mk = M.memo && 'pj' + j;
   if (mk && M.memo[mk]) return M.memo[mk];
   const r: any[] = [];
   const le = (S, zonaFonte) => {
     for (const s of M.dadoDe(e, S).est || []) {
-      if (s.modo !== 'podeJogar' || s.de !== 'cemiterio' || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
+      if (s.modo !== 'podeJogar' || (s.de !== 'cemiterio' && s.de !== 'grimorio') || !s.afeta || typeof s.afeta !== 'object' || !M.filtroOk(s.afeta)) continue;
+      if (s.de === 'grimorio' && (zonaFonte !== 'campo' || !s.afeta.topo)) continue;   // do grimório: só a do topo, com a fonte no campo
       if (zonaFonte === 'cemiterio' && !s.afeta.este) continue;      // no cemitério só vale a permissão para si mesma
       r.push({ s, ctx: { voce: j, este: S.id } });
     }
@@ -223,7 +226,10 @@ function permissoes(e, j) {
   if (mk) M.memo[mk] = r;
   return r;
 }
-M.temPermissaoCemiterio = (e, j) => permissoes(e, j).length > 0;
+M.temPermissaoCemiterio = (e, j) => permissoes(e, j).some(p => p.s.de === 'cemiterio');
+const permTopo = (e, j) => permissoes(e, j).some(p => p.s.de === 'grimorio');
+// "olhe a carta do topo do seu grimório a qualquer momento" (est podeOlhar, 401.5) com a fonte no campo
+M.olhaTopo = (e, j) => e.campo.some(id => { const S = e.objs[id]; return S.ctrl === j && (M.dadoDe(e, S).est || []).some(s => s.modo === 'podeOlhar' && s.afeta && s.afeta.topo && (() => { try { return M.condicao(e, s.se, { voce: j, este: id }); } catch (_) { return false; } })()); });
 // permissão dada por efeito (op jogar com dura): o mesmo objeto (id e ts, CR 400.7) em qualquer zona fora do campo
 M.permJogar = (e, j, o) => { const l = e.permJogar; if (!l || !l.length) return null; for (const p of l) if (p.j === j && p.id === o.id && p.ts === o.ts && o.zona !== 'campo' && o.zona !== 'pilha') return p; return null; };
 // recapitular (CR 702.34): conjurar do cemitério pelo custo de recapitular; ao sair da pilha vai para o exílio (702.34a)
@@ -274,7 +280,8 @@ const altDe = (e, j, o) => {
 };
 M.altDe = (e, j, o) => altDe(e, j, o);
 const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
-M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || o.zona === 'cemiterio' && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
+M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || (o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j && permissoes(e, j).some(({ s, ctx }) => {
+  if (s.de !== o.zona) return false;
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
 });
 
@@ -440,17 +447,18 @@ function opcoes(e, j) {
       if (M.faceTerreno(e, e.objs[id])) ops.push({ a: 'terreno', id, face: 0 });   // modal: joga a face de terreno (712.9)
     }
   const doCem = M.temPermissaoCemiterio(e, j) ? J.zonas.cemiterio : [];
+  const G = J.zonas.grimorio, doTopo = G.length && permTopo(e, j) && M.podeJogarDe(e, j, e.objs[G[G.length - 1]]) ? [G[G.length - 1]] : [];   // Courser, Oracle of Mul Daya
   for (const id of J.zonas.mao) if (M.podePrever(e, j, e.objs[id])) ops.push({ a: 'prever', id });   // 702.143a: no seu turno, com prioridade
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
-    for (const id of doCem) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
+    for (const id of [...doCem, ...doTopo]) if (M.temTipo(e, e.objs[id], 'Land') && M.podeJogarDe(e, j, e.objs[id])) ops.push({ a: 'terreno', id });
   const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]) || porPreparo(e, j, e.objs[id]) || porPrevisao(e, j, e.objs[id]));
   const doFlash = doCem.length ? [] : J.zonas.cemiterio.filter(id => flashDe(e, e.objs[id]) || porFuga(e, j, e.objs[id]));   // recapitular (702.34), fuga (702.138)
   // permissões de efeito (op jogar): o que não está na mão/comando/cemitério já listados; terreno com permissão de jogar
-  const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio, ...doFlash]), doPerm: number[] = [];
+  const ja = new Set([...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doTopo, ...doExilio, ...doFlash]), doPerm: number[] = [];
   for (const p of e.permJogar || []) { const o = e.objs[p.id]; if (p.j === j && o && o.ts === p.ts && !ja.has(p.id) && o.zona !== 'campo' && o.zona !== 'pilha') { ja.add(p.id); doPerm.push(p.id); } }
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
     for (const id of doPerm) { const p = M.permJogar(e, j, e.objs[id]); if (p && !p.soConjurar && M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id }); }
-  for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doExilio, ...doFlash, ...doPerm])
+  for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doTopo, ...doExilio, ...doFlash, ...doPerm])
     for (const face of M.facesParaConjurar(e, j, e.objs[id]))
       if (M.podeConjurar(e, j, e.objs[id], face)) ops.push(face === undefined ? { a: 'conjurar', id } : { a: 'conjurar', id, face });
   for (const id of e.campo) {
