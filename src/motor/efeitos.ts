@@ -27,7 +27,7 @@ const qtdOk = q0 => { const q = M.qn(q0); return q === undefined || typeof q ===
   || (!!q && typeof q === 'object' && M.contaOk(q.conta, 'efeito') && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'divCima', 'metade'].includes(k))
     && (q.metade === undefined || (q.metade === true && !(ehConj(q.conta) && q.conta.junta))) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1))
     && !(q.conta.de === 'cada' && q.conta.o === 'vida' && !(dentroCada > 0)) && !(q.conta.de === 'cada' && q.conta.o === 'marcadores' && !(dentroObj > 0))); };
-const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
+const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'danificado' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k)) && (se.portadorDoAnel === undefined || se.portadorDoAnel === true || se.portadorDoAnel === 'este')
   && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || (qtdOk(se.conta.q) && ['min', 'max', 'igual'].every(k => se.conta[k] === undefined || typeof se.conta[k] === 'number' || qtdOk(se.conta[k]))))
   && (!se.esteEm || (Array.isArray(se.esteEm) && se.esteEm.length > 0 && se.esteEm.every(z => ['campo', 'cemiterio', 'exilio', 'mao', 'comando', 'grimorio'].includes(z)))));
@@ -238,6 +238,10 @@ function objsDe(e, f, ctx) {
     return t ? [t] : [];
   }
   if (v.todos) return M.objetosQue(e, v.todos.zona ? v.todos : { ...v.todos, zona: 'campo' }, ctx);
+  if (v === 'danificado') {                                          // no gatilho de dano: a permanente que LEVOU o dano (Ghyrson Starn: "that permanent or player")
+    const ev = ctx.ev, o = ev && ev.ev === 'dano' && ev.o !== undefined ? e.objs[ev.o] : null;
+    return o && o.zona === 'campo' ? [o] : [];
+  }
   if (v === 'doEvento') {                                            // o objeto do evento do gatilho (no dano, a fonte)
     const ev = ctx.ev, o = ev ? e.objs[ev.ev === 'dano' ? ev.fonte : ev.id] : null;
     if (!o || (ev.ts !== undefined && o.ts !== ev.ts)) return [];   // mudou de zona depois do evento: outro objeto (400.7)
@@ -1178,6 +1182,12 @@ const H = {
       }
       if (f.em === undefined && f.quem !== undefined) { for (const j of jogsDe(e, f, ctx)) M.marcadorJogador(e, j, f.tipoMarc, q, !!f.tirar); return; }   // no jogador (122.1: poison, rad, experience)
       for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) - q1); }
+    },
+  },
+  // "look at target player's hand" (Gitaxian Probe, Peek): só informação; o log da Mesa mostra as cartas a quem olhou
+  olharMao: {
+    fx(e, f, ctx) {
+      for (const j of jogsDe(e, f, ctx)) { const J = e.jogs[j]; M.log(e, e.jogs[ctx.voce].nome, 'olha a mão de', J.nome + ':', J.zonas.mao.map(id => e.objs[id].n).join(', ') || '(vazia)'); }
     },
   },
   // naoDesvira: não desvira no próximo desvirar do controlador (Junk Winder); soNaoDesvira: só isso, sem virar (Fifty Feet of Rope)

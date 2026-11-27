@@ -313,6 +313,10 @@ export interface RxFiltro {
    * compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)
    */
   tipoEmComum?: ('este' | 'comandante' | 'doEvento') | RxFiltro;
+  /**
+   * com {X} no custo de mana (Frontline Medic)
+   */
+  comX?: boolean;
 }
 
 export interface RxCompara {
@@ -358,7 +362,7 @@ export interface RxAlvo {
 }
 
 /**
- * sobre o que o efeito age: alvo escolhido (índice em 'alvos'), todos que batem no filtro, ou referência
+ * sobre o que o efeito age: alvo escolhido (índice em 'alvos'), todos que batem no filtro, ou referência; danificado = no gatilho de dano, a permanente que levou o dano (Ghyrson Starn)
  */
 export type RxObjeto =
   | {
@@ -367,7 +371,17 @@ export type RxObjeto =
   | {
       todos: RxFiltro;
     }
-  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
+  | (
+      | 'este'
+      | 'equipada'
+      | 'doEvento'
+      | 'criadas'
+      | 'escolhida'
+      | 'anterior'
+      | 'cadaAtual'
+      | 'descartadaCusto'
+      | 'danificado'
+    );
 
 /**
  * custo de habilidade ativada / custo adicional / 'a menos que pague'
@@ -391,6 +405,10 @@ export interface RxCustoAtv {
     | {
         f?: RxFiltro;
         qtd?: number;
+        /**
+         * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
+         */
+        comEste?: boolean;
       };
   descartar?: number;
   revelar?: {
@@ -448,7 +466,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
    */
   op:
     | 'mana'
@@ -506,7 +524,8 @@ export interface RxFx {
     | 'fundir'
     | 'tomarIniciativa'
     | 'aventurar'
-    | 'monstruosidade';
+    | 'monstruosidade'
+    | 'olharMao';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -1017,7 +1036,8 @@ export interface RxGat {
     | 'completaMasmorra'
     | 'sala'
     | 'tomaIniciativa'
-    | 'nivel';
+    | 'nivel'
+    | 'monstruosa';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */

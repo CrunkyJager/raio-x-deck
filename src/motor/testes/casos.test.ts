@@ -4966,6 +4966,38 @@ caso('205.2a', "escolher tipo de carta ao entrar: Cloud Key (instantânea custa 
   ok(M.alvoLegal(e, { f: { tipo: ['Creature'] } }, { o: meu.id, ts: meu.ts }, { voce: 1, este: bolt.id }), 'Bolt pode mirar a sua criatura');
 });
 
+caso('202.1', "Frontline Medic: só mira mágica com {X} no custo de mana (filtro comX)", () => {
+  const e = cena({ mao: [[1, 'Fireball'], [1, 'Lightning Bolt']] });
+  const f = { zona: 'mao', comX: true }, fb = naMao(e, 1, 'Fireball'), lb = naMao(e, 1, 'Lightning Bolt');
+  ok(M.bate(e, fb, f, { voce: 0 }) && !M.bate(e, lb, f, { voce: 0 }), 'Fireball sim, Bolt não');
+});
+
+caso('120.3', "Ghyrson Starn: outra fonte sua causa exatamente 1 de dano numa criatura → Ghyrson causa 2 NELA (em 'danificado'); em jogador, no jogador", () => {
+  const e = cena({ campo: [[0, 'Ghyrson Starn, Kelermorph'], [0, 'Llanowar Elves'], [1, 'Hill Giant']] });
+  const gh = objN(e, 0, 'Ghyrson Starn, Kelermorph'), el = objN(e, 0, 'Llanowar Elves'), hg = objN(e, 1, 'Hill Giant');
+  const g = M.carta('Ghyrson Starn, Kelermorph').gat[0], v1 = e.jogs[1].vida;
+  const ctx = ev => ({ voce: 0, este: gh.id, ev, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, gh) } });
+  M.executar(e, g.fx[0], ctx({ ev: 'dano', fonte: el.id, o: hg.id, q: 1 }), null);
+  igual([hg.dano, e.jogs[1].vida], [2, v1], '2 no gigante, jogador intacto');
+  M.executar(e, g.fx[0], ctx({ ev: 'dano', fonte: el.id, jog: 1, q: 1 }), null);
+  igual([hg.dano, e.jogs[1].vida], [2, v1 - 2], '2 no jogador');
+});
+
+caso('701.20', "Gitaxian Probe olha a mão do alvo (log) e compra; Glass-Cast Heart: o custo sacrifica ele E as 13 Blood (sacrificar.comEste)", () => {
+  const e = cena({ mao: [[1, 'Lightning Bolt']] }); e.cfg.log = true;
+  const n0 = e.jogs[0].zonas.mao.length;
+  M.executar(e, { op: 'olharMao', quem: { alvo: 0 } }, { voce: 0, este: -1, alvos: [[{ jog: 1 }]], ilegal: {}, lki: {} }, null);
+  ok(e.log.some(l => String(l).includes('Lightning Bolt')), 'a mão no log');
+  igual(e.jogs[0].zonas.mao.length, n0);
+  const g = cena({ campo: [[0, 'Glass-Cast Heart'], [0, 'Swamp'], [0, 'Swamp']] });
+  M.criarFichas(g, 0, { nome: 'Blood' }, 13);
+  const h = objN(g, 0, 'Glass-Cast Heart'); M.avancar(g);
+  const k = 1; ok(M.podeAtivar(g, 0, h, k), 'pode com 13 Blood');
+  respE(g, o => o.a === 'ativar' && o.id === h.id && o.k === k);
+  for (let i = 0; i < 20 && g.perg && g.perg.tipo === 'custo'; i++) M.responder(g, 0);
+  ok(h.zona !== 'campo', 'o Coração foi sacrificado'); igual(g.campo.filter(id => g.objs[id].n === 'Blood').length, 0, 'as 13 Blood também');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
