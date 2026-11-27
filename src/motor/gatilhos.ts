@@ -266,8 +266,24 @@ M.evento = (e, ev) => {
       const vezes = 1 + extras(e, F, g, ev);
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'fabricar', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
+    // prole (CR 702.175a): pago o custo, "quando entra, cria uma ficha cópia dela, só que 1/1"; a ficha não tem o pago (não repete)
+    if (F.conjCom && F.conjCom.prole && (M.dadoDe(e, F).kw || []).some(x => x.k === 'prole')) {
+      const vezes = 1 + extras(e, F, PROLE, ev);
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'prole', g: PROLE, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+    }
+  }
+  // mentor (CR 702.134a): "quando ataca, põe um +1/+1 em uma criatura atacante alvo com poder menor"; uma por instância (702.134b).
+  // Simplificação: o "poder menor" fica o do momento do ataque (na resolução vale o de então, 608.2b).
+  if (ev.ev === 'ataca' && e.objs[ev.id]) {
+    const F = e.objs[ev.id], n = M.kwDe(e, F).filter(x => x.k === 'mentor').length;
+    if (n) {
+      const g = { ev: 'ataca', alvos: [{ f: { tipo: ['Creature'], atacando: true, poder: { max: M.poder(e, F) - 1 }, zona: 'campo' } }], fx: [{ op: 'marcador', em: { alvo: 0 }, tipoMarc: '+1/+1', qtd: 1 }] };
+      const vezes = n * (1 + extras(e, F, g, ev));
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'mentor', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+    }
   }
 };
+const PROLE = { ev: 'entra', quem: { este: true }, fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: { copiaDe: 'este', pt: [1, 1] } }] };
 
 // Ordem que não muda nada (Edigar 26/11, Ivora + Bag of Holding no mesmo descarte): pela regra a ordem é do jogador
 // (603.3b), mas se cada gatilho só soma algo que nenhum outro lê, qualquer ordem dá o mesmo jogo e a Mesa não pergunta.

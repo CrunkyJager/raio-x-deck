@@ -3522,6 +3522,32 @@ caso('707.10', "magecraft (\"conjura ou copia\"): Archmage Emeritus dispara ao c
   igual(e.pend.length, 0, 'cópia do oponente: não');
 });
 
+caso('702.134', "mentor: ao atacar, +1/+1 numa atacante com poder menor (Legion Warboss 2/2 → a 1/1); a de poder igual não serve", () => {
+  const e = cena({ campo: [[0, 'Legion Warboss'], [0, 'Llanowar Elves'], [0, 'Grizzly Bears']] });
+  const os = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  const W = os('Legion Warboss'), Gg = os('Llanowar Elves'), B = os('Grizzly Bears');
+  e.turno.combate = { atk: [W, Gg, B].map(o => ({ id: o.id, ts: o.ts, def: 1 })) };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: W.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'mentor'); ok(p, 'mentor disparou');
+  const f = p.g.alvos[0].f;
+  ok(M.bate(e, Gg, f, { voce: 0 }) && !M.bate(e, B, f, { voce: 0 }) && !M.bate(e, W, f, { voce: 0 }), 'só a de poder menor é alvo');
+});
+caso('702.175', "prole: pago o custo a mais, a criatura entra e cria uma ficha cópia 1/1 dela; sem pagar, não", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Agate Instigator']] });
+  M.avancar(e); respE(e, o => o.a === 'conjurar');
+  if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v && o.v.prole);
+  for (let g = 0; e.pilha.length + e.pend.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar');
+  const ags = e.campo.map(id => e.objs[id]).filter(o => M.dadoDe(e, o).n === 'Agate Instigator' || o.n === 'Agate Instigator');
+  igual(ags.length, 2, 'a carta e a ficha');
+  const fi = ags.find(o => o.ficha); ok(fi, 'uma é ficha');
+  igual([M.poder(e, fi), M.resistencia(e, fi)], [1, 1], 'a ficha é 1/1');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Agate Instigator']] });
+  M.avancar(f); respE(f, o => o.a === 'conjurar');
+  for (let g = 0; f.pilha.length + f.pend.length && f.perg && g < 10; g++) respE(f, o => o.a === 'passar');
+  igual(f.campo.filter(id => f.objs[id].n === 'Agate Instigator').length, 1, 'só 2 de mana: sem prole');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

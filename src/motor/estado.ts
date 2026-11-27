@@ -306,7 +306,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
   Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
-    conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
+    conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
   const para = M.listaDe(e, o);
