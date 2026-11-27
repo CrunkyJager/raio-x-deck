@@ -971,6 +971,7 @@ const H = {
       if (f.dura) { F = e.objs[ctx.este]; if (!F || F.zona !== 'campo' || (ctx.lki.este && ctx.lki.este.ts !== F.ts)) return; }
       const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id));
       if (F && os.length) (e.volta || (e.volta = [])).push({ id: F.id, ts: F.ts, ids: ctx.movidos.map(m => ({ id: m.id, ts: m.ts })) });
+      if (F) for (const m of ctx.movidos) if (e.objs[m.id].zona === 'exilio') e.objs[m.id].exPor = { id: F.id, ts: F.ts };   // "exiled with this" (607.2a: Bronzebeak Foragers {X}{W})
     },
   },
   mover: {
@@ -1049,7 +1050,7 @@ const H = {
   },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
-    campos: ['token', 'virada', 'atacando', 'porJogadorAtacado'],
+    campos: ['token', 'virada', 'atacando', 'porJogadorAtacado', 'bloqueando'],
     ok: f => ((f.porJogadorAtacado === undefined || (f.porJogadorAtacado === true && f.atacando === true)) && (f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || f.token.copiaDe === 'sacrificada' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'))
       && (!f.token || !f.token.gat || f.token.gat.every(g => M.gatOk(g))),   // a habilidade desencadeada da ficha também tem que ser lida (Munitions, Elemental do Wildfire Awakener)
     fx(e, f, ctx, ask) {
@@ -1067,6 +1068,8 @@ const H = {
         ctx.criadas.push({ id: o.id, ts: o.ts });
         // CR 508.4: "virada e atacando" — fora do combate só entra virada; no "para cada oponente", ataca aquele jogador
         if (f.atacando && e.turno.combate) { const t = M.escolherAtacado(e, o.ctrl, ask || ((_j, _t, ops) => ops[0]), ctx.cadaAtual); if (t) M.porAtacando(e, o, t); }
+        // "that's blocking that creature" (Brimaz, 506.3/509.1h): entra bloqueando o atacante do evento 'bloqueia' (não foi declarada: não dispara "bloqueia")
+        if (f.bloqueando && e.turno.combate && ctx.ev && ctx.ev.atk !== undefined) { const r = e.turno.combate.atk.find(x => x.id === ctx.ev.atk && e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'); if (r) { r.bloq.push({ id: o.id, ts: o.ts }); r.bloqueado = true; } }
       }
     },
   },

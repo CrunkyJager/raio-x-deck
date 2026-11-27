@@ -629,6 +629,10 @@
       "$ref": "#/$defs/filtro"
      },
      "description": "bate em ao menos um destes (junto com os outros campos): \"a Human or artifact card\" = ou [{sub:[Human]}, {tipo:[Artifact]}] (Boromir, Gondor's Hope)"
+    },
+    "manaGasta": {
+     "$ref": "#/$defs/compara",
+     "description": "mana gasta para conjurar esta mágica (na pilha): \"if no mana was spent to cast it\" = {max:0} (Boromir, Warden of the Tower)"
     }
    }
   },
@@ -1443,6 +1447,10 @@
     "trocaCor": {
      "type": "boolean",
      "description": "modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)"
+    },
+    "bloqueando": {
+     "type": "boolean",
+     "description": "ficha: entra bloqueando o atacante do evento 'bloqueia' (Brimaz: \"that's blocking that creature\")"
     }
    },
    "additionalProperties": false,

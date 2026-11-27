@@ -5137,6 +5137,45 @@ caso('109.2', "filtro ou: 'a Human or artifact card' (Boromir, Gondor's Hope) ba
   ok(M.carta('Battle at the Helvault').gat.filter(g => g.alvos).every(g => g.alvos[0].porJogador && M.gatOk(g)), 'Helvault: 1 alvo por jogador');
 });
 
+caso('601.2h', "Boromir, Warden of the Tower: anula mágica do oponente sem mana gasta (filtro manaGasta; o conjurar grava o.manaGasta)", () => {
+  const g = M.carta('Boromir, Warden of the Tower').gat[0]; ok(M.gatOk(g), 'aceito');
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Grizzly Bears'], [1, "Boromir, Warden of the Tower"]], mao: [[0, 'Fists of Flame']] });
+  M.avancar(e); conj(e, 'Fists of Flame'); if (e.perg && e.perg.tipo === 'alvo') alvoObj(e, 'Grizzly Bears');
+  const fi = e.objs[e.pilha.find(id => e.objs[id].n === 'Fists of Flame')];
+  igual(fi.manaGasta, 2, 'gastou {1}{R}');
+  const cx: any = { voce: 1, este: e.campo[3], alvos: [], ilegal: {}, lki: {}, ev: { ev: 'conjura', id: fi.id, j: 0 } };
+  ok(!M.condicao(e, g.se, cx), 'com mana: não anula');
+  fi.manaGasta = 0; ok(M.condicao(e, g.se, cx), 'sem mana: anula');
+});
+
+caso('107.3', "Bronzebeak Foragers {X}{W}: card exilado por ela com VM X vai para o cemitério do dono e você ganha X", () => {
+  const A = M.carta('Bronzebeak Foragers').atv[0]; ok(M.fxSuportado(A.fx) && M.filtroOk(A.alvos[0].f), 'aceito');
+  const e = cena({ campo: [[0, 'Bronzebeak Foragers'], [1, 'Hill Giant'], [1, 'Sol Ring']] });
+  const [bf, hg, sr] = e.campo.map(id => e.objs[id]);
+  const cx: any = { voce: 0, este: bf.id, alvos: [[{ o: hg.id, ts: hg.ts }, { o: sr.id, ts: sr.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, bf) } };
+  M.executar(e, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, cx, () => ({ a: 'nao' }));
+  ok(hg.zona === 'exilio' && sr.zona === 'exilio', 'exilou os dois');
+  const c4: any = { voce: 0, este: bf.id, x: 4, alvos: [], ilegal: {}, lki: {} };
+  ok(M.bate(e, hg, A.alvos[0].f, c4) && !M.bate(e, sr, A.alvos[0].f, c4), 'X=4: só o Hill Giant');
+  const v = e.jogs[0].vida;
+  c4.alvos = [[{ o: hg.id, ts: hg.ts }]];
+  for (const f of A.fx) M.executar(e, f, c4, () => ({ a: 'nao' }));
+  ok(hg.zona === 'cemiterio' && e.jogs[1].zonas.cemiterio.includes(hg.id), 'cemitério do dono'); igual(e.jogs[0].vida, v + 4, 'ganha 4');
+});
+
+caso('509.1h', "Brimaz bloqueia: cria um Gato 1/1 com vigilância que entra bloqueando aquela criatura (ficha bloqueando)", () => {
+  const g = M.carta('Brimaz, King of Oreskos').gat.find(x => x.ev === 'bloqueia'); ok(M.gatOk(g), 'aceito');
+  const e = cena({ campo: [[0, 'Brimaz, King of Oreskos'], [1, 'Hill Giant']] });
+  const [bz, hg] = e.campo.map(id => e.objs[id]);
+  e.turno.combate = { atk: [{ id: hg.id, ts: hg.ts, alvo: { jog: 0 }, def: 0, bloq: [{ id: bz.id, ts: bz.ts }], bloqueado: true }] };
+  const cx: any = { voce: 0, este: bz.id, alvos: [], ilegal: {}, lki: {}, ev: { ev: 'bloqueia', id: bz.id, atk: hg.id } };
+  for (const f of g.fx) M.executar(e, f, cx, (_j, _t, o) => o[0]);
+  const gato = e.campo.map(id => e.objs[id]).find(o => o.ficha && (o.ficha.sub || []).includes('Cat'));
+  ok(gato, 'criou o Gato');
+  igual(e.turno.combate.atk[0].bloq.length, 2, 'Brimaz e o Gato bloqueando o Hill Giant');
+  ok(e.turno.combate.atk[0].bloq.some(b => b.id === gato.id), 'o Gato está no bloqueio');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

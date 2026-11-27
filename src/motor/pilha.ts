@@ -875,6 +875,7 @@ const PROC = {
     M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
     pagarMana(e, j, pl, custo, x, o);                                                 // CR 601.2h
+    o.manaGasta = M.vmDe(custo) + x * (custo.x || 0);                                // "if no mana was spent to cast it" (Boromir, Warden; 601.2h). Firexiana paga com vida conta como mana (aproximação)
     if (imp.vida) M.perderVida(e, j, imp.vida);
     if (alt && alt.F) { if (alt.vida) M.perderVida(e, j, alt.vida); if (alt.s.limite) alt.F.altUso = { t: e.turno.n, ts: alt.F.ts }; }   // 119.4: vida paga; "uma vez por turno"
     if (cad) pagarFisico(e, j, o, cad, fis);

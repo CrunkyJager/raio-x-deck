@@ -324,6 +324,10 @@ export interface RxFiltro {
    * @minItems 2
    */
   ou?: [RxFiltro, RxFiltro, ...RxFiltro[]];
+  /**
+   * mana gasta para conjurar esta mágica (na pilha): "if no mana was spent to cast it" = {max:0} (Boromir, Warden of the Tower)
+   */
+  manaGasta?: RxCompara;
 }
 
 export interface RxCompara {
@@ -750,6 +754,10 @@ export interface RxFx {
    * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
    */
   trocaCor?: boolean;
+  /**
+   * ficha: entra bloqueando o atacante do evento 'bloqueia' (Brimaz: "that's blocking that creature")
+   */
+  bloqueando?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
