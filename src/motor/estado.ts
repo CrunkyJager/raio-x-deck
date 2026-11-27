@@ -10,8 +10,11 @@ M.CORES = CORES; M.ZONAS_JOG = ZONAS_JOG;
 // ---- base de cartas (fora do estado: o estado guarda só o nome) ----
 let DB = null;
 M.usarCartas = db => { DB = db; };
+// lista colada do Moxfield/EDHREC traz carta de duas faces/portas como "A // B" (Dazzling Theater // Prop Room, Find // Finality);
+// o banco guarda pelo nome da 1ª face (CR 709.3/712: o nome é o da face de cima). Sem isso a partida parava: "carta fora da base".
+M.nomeBase = n => !DB || DB[n] || typeof n !== 'string' || !n.includes(' // ') ? n : DB[n.split(' // ')[0]] ? n.split(' // ')[0] : n;
 M.carta = n => {
-  const c = DB && DB[n];
+  const c = DB && (DB[n] || DB[M.nomeBase(n)]);
   if (!c) throw new Error('carta fora da base RX: ' + n);
   return c;
 };
@@ -210,6 +213,7 @@ M.zeroMana = zeroMana;
 const uneCores = (a, b) => CORES.filter(c => a.includes(c) || b.includes(c)).join('');
 
 function novoObj(e, n, dono, zona) {
+  n = M.nomeBase(n);
   const o = { id: e.prox++, n, dono, ctrl: dono, zona, ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: true, cmd: false };
   e.objs[o.id] = o;
   return o;

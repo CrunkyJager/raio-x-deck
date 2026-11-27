@@ -4352,6 +4352,13 @@ caso('614.1c', "Feasting Hobbit: ao entrar sacrifica as Comidas que quiser e ent
   igual(M.poder(f, objN(f, 0, 'Feasting Hobbit')), 2, 'sem Comida: 2/2');
 });
 
+caso('709.3', 'lista colada com "A // B" (carta de duas faces/portas): acha pelo nome da 1ª face e o objeto fica com esse nome', () => {
+  igual(M.nomeBase('Dazzling Theater // Prop Room'), 'Dazzling Theater');
+  igual(M.nomeBase('Nome Que Nao Existe // Outro'), 'Nome Que Nao Existe // Outro', 'sem a 1ª face no banco: fica igual (o erro aparece)');
+  const e = M.novoJogo([{ cmd: [], cartas: ['Dazzling Theater // Prop Room', ...enche(59, 'Forest')] }, { cmd: [], cartas: enche(60, 'Forest') }], { semente: 1 });
+  ok(Object.values<any>(e.objs).some(o => o.n === 'Dazzling Theater'), 'virou Dazzling Theater');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
