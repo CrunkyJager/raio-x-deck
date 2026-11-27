@@ -3573,6 +3573,25 @@ caso('120.3', "dano igual ao poder da criatura do evento (Terror of the Peaks) e
   igual(M.qtdDe(e, { conta: 'poderDoEvento' }, cx({ ev: 'zona', id: hg.id, para: 'campo' })), 3, 'Hill Giant 3/3');
 });
 
+caso('122.5', "mover marcadores: Nesting Grounds tira um e põe no outro; Zack Fair sacrificado passa os +1/+1 que tinha; Forgotten Ancient um a um", () => {
+  for (const c of ['Forgotten Ancient']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  for (const c of ['Nesting Grounds', 'Zack Fair']) ok(M.carta(c).atv.every(a => M.fxSuportado(a.fx, { topo: false })), c + ' aceito');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Hill Giant']] });
+  const [gb, hg] = e.campo.map(id => e.objs[id]);
+  gb.marc['+1/+1'] = 2;
+  const cx: any = { voce: 0, alvos: [[{ o: gb.id, ts: gb.ts }], [{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: {} };
+  M.executar(e, M.carta('Nesting Grounds').atv[1].fx[0], cx, () => ({ a: 'nao' }));
+  igual([gb.marc['+1/+1'], hg.marc['+1/+1']], [1, 1], 'um passou');
+  const z = e.por(0, 'Zack Fair'); z.marc['+1/+1'] = 3;
+  const cz: any = { voce: 0, este: z.id, alvos: [[{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, z) } };
+  M.mover(e, z.id, 'cemiterio');
+  M.executar(e, M.carta('Zack Fair').atv[0].fx[1], cz, () => ({ a: 'nao' }));
+  igual(hg.marc['+1/+1'], 4, 'Zack passou os 3');
+  const fa = e.por(0, 'Forgotten Ancient'); fa.marc['+1/+1'] = 2;
+  M.executar(e, M.carta('Forgotten Ancient').gat[1].fx[0], { voce: 0, este: fa.id, alvos: [], ilegal: {}, lki: {} }, (_j, t, ops) => t === 'talvez' ? { a: 'sim' } : ops.find(o => o.id === gb.id) || ops[0]);
+  igual([fa.marc['+1/+1'], gb.marc['+1/+1']], [0, 3], 'Ancient passou os 2 para os Bears');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

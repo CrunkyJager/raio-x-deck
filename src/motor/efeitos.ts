@@ -876,6 +876,34 @@ const H = {
       M.log(e, 'amassar', sub || '', q, '→', a.n);
     },
   },
+  // CR 122.5: mover marcadores = tirar de um e pôr no outro (o pôr passa pelas substituições, 614.1). De quem já saiu do
+  // campo (Zack Fair sacrificado) não tira nada: põe o que ele tinha (LKI, qtd). Sem tipoMarc (Nesting Grounds): o tipo
+  // que houver (o primeiro). paraObj 'escolhida' (Forgotten Ancient): um a um, em outras criaturas, até o jogador parar.
+  moverMarcador: {
+    campos: ['paraObj', 'tipoMarc'],
+    qtd: q => qtdOk(q) || ateOk(q),                                 // "any number of" = {ate: 'qualquer'}
+    ok: f => f.em !== undefined && (f.paraObj === 'escolhida' ? f.tipoMarc !== undefined : f.paraObj !== undefined && f.paraObj !== 'escolhida' && emOk(f.paraObj)),
+    fx(e, f, ctx, ask) {
+      const de = objsDe(e, f, ctx)[0];
+      let q = qtdDe(e, f.qtd, ctx);
+      if (f.paraObj === 'escolhida') {
+        if (!de || de.zona !== 'campo') return;
+        const t = f.tipoMarc;
+        for (let n = 0; n < q && (de.marc[t] || 0) > 0; n++) {
+          const ops = [{ a: 'pronto' }, ...e.campo.filter(id => id !== de.id && M.temTipo(e, e.objs[id], 'Creature')).map(id => ({ a: 'objeto', id }))];
+          const x = ask(ctx.voce, 'moverMarcador', ops, { o: t }); if (x.a === 'pronto') break;
+          de.marc[t]--; M.porMarcadores(e, e.objs[x.id], t, 1);
+        }
+        return;
+      }
+      const para = objsDe(e, { em: f.paraObj }, ctx).find(o => o.zona === 'campo'); if (!para) return;
+      if (de && de.zona === 'campo' && de.id !== para.id) {
+        const t = f.tipoMarc || Object.keys(de.marc).find(k => de.marc[k] > 0); if (!t) return;
+        q = Math.min(q, de.marc[t] || 0); if (q <= 0) return;
+        de.marc[t] -= q; M.porMarcadores(e, para, t, q);
+      } else if (f.tipoMarc && (!de || de.zona !== 'campo') && q > 0) M.porMarcadores(e, para, f.tipoMarc, q);   // "move its counters" de quem saiu: os do LKI
+    },
+  },
   marcador: {                                                       // CR 122
     campos: ['tipoMarc', 'tirar'],
     fx(e, f, ctx) {
