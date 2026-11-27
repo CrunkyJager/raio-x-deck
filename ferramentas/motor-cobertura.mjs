@@ -17,7 +17,7 @@ try {
   const { M } = await srv.ssrLoadModule('/src/motor/index.ts');
   const { bancoProprio } = await srv.ssrLoadModule('/src/dados/cartas.ts');
   const codigo = readdirSync(path.join(raiz, 'src/motor')).filter(f => f.endsWith('.ts')).map(f => readFileSync(path.join(raiz, 'src/motor', f), 'utf8')).join('\n');
-  const citado = new Set([...codigo.matchAll(/'([a-zA-Z]+)'/g)].map(m => m[1]));
+  const citado = new Set([...codigo.matchAll(/'([a-zA-Z][a-zA-Z-]*)'/g)].map(m => m[1]));
 
   const motivos = new Map();          // motivo → Set(cartas)
   const anota = (m, n) => { if (!motivos.has(m)) motivos.set(m, new Set()); motivos.get(m).add(n); };

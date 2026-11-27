@@ -3538,6 +3538,21 @@ caso('603.2', "Esper Sentinel dispara só na 1ª mágica não-criatura do oponen
   f.turno.passo = 'principal1'; M.comprar(f, 1, 1); igual(f.pend.filter(p => p.n === 'Xyris, the Writhing Storm').length, 2, 'fora da etapa sim');
 });
 
+caso('702.121a', "corpo-a-corpo: atacando dois oponentes, cada um com corpo-a-corpo ganha +2/+0; Skyhunter dá a palavra-chave com o comandante no campo", () => {
+  const e = cena({ jogs: 3, cmd: ['Krenko, Mob Boss'], campo: [[0, 'Skyhunter Strike Force'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  M.mover(e, e.jogs[0].zonas.comando[0], 'campo'); e.abeNovo = []; e.pend = [];
+  const sk = objN(e, 0, 'Skyhunter Strike Force'), b = objN(e, 0, 'Grizzly Bears'), el = objN(e, 0, 'Llanowar Elves');
+  ok(M.temKw(e, b, 'corpo-a-corpo'), 'o Urso ganhou corpo-a-corpo');
+  ate(e, 'atacar'); atacaCom(e, sk, { jog: 1 }); atacaCom(e, b, { jog: 2 }); atacaCom(e, el, { jog: 1 }); fecha(e, 'atacar');
+  ateFimCombate(e);
+  igual([M.poder(e, sk), M.poder(e, b), M.poder(e, el)], [4, 4, 3], '+2 cada (Elfo: +2 também, é outro)');
+  const f = cena({ campo: [[0, 'Skyhunter Strike Force'], [0, 'Grizzly Bears']] });
+  const sk2 = objN(f, 0, 'Skyhunter Strike Force'), b2 = objN(f, 0, 'Grizzly Bears');
+  ok(!M.temKw(f, b2, 'corpo-a-corpo'), 'sem comandante: não dá');
+  ate(f, 'atacar'); atacaCom(f, sk2); atacaCom(f, b2); fecha(f, 'atacar'); ateFimCombate(f);
+  igual([M.poder(f, sk2), M.poder(f, b2)], [3, 2], 'um oponente: +1 só no Skyhunter');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

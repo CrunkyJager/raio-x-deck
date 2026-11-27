@@ -170,6 +170,8 @@ function extras(e, F, g, ev) {
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
 const fabricarDe = d => { const k = (d.kw || []).find(x => x.k === 'fabricar'); return k ? { ev: 'entra', quem: { este: true }, fx: [{ op: 'fabricar', qtd: k.n || 1 }] } : null; };
+// corpo-a-corpo (CR 702.121a): "sempre que atacar, +1/+0 por oponente que você atacou neste combate"; uma por instância (702.121b)
+const MELEE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'modificar', em: 'este', p: { conta: 'oponentesAtacados' }, dura: 'fimDoTurno' }] };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
 M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];
 
@@ -263,6 +265,10 @@ M.evento = (e, ev) => {
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
+  if (ev.ev === 'ataca' && e.objs[ev.id]) {
+    const F = e.objs[ev.id], n = M.kwDe(e, F).filter(x => x.k === 'corpo-a-corpo').length;
+    for (let v = 0; v < n * (1 + (n ? extras(e, F, MELEE, ev) : 0)); v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'corpoACorpo', g: MELEE, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+  }
   if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar
     const F = e.objs[ev.id], g = fabricarDe(M.dadoDe(e, F));
     if (g) {
@@ -277,7 +283,7 @@ M.evento = (e, ev) => {
 // Conservador: só gatilhos sem alvo, sem condição (603.4), sem "pode" e não modais, com efeitos da lista abaixo; o
 // "mover a carta do evento" (Bag) entra se a carta não é fonte de outro gatilho do lote. Qualquer outro (ex.: Kozilek,
 // que embaralha o cemitério) faz perguntar.
-const ADITIVO = fx => (fx.op === 'marcador' && fx.em === 'este' && !fx.x) || (fx.op === 'ficha' && fx.quem === 'voce') || (fx.op === 'ganharVida' && fx.quem === 'voce' && Number.isInteger(fx.qtd));
+const ADITIVO = fx => fx === MELEE.fx[0] || (fx.op === 'marcador' && fx.em === 'este' && !fx.x) || (fx.op === 'ficha' && fx.quem === 'voce') || (fx.op === 'ganharVida' && fx.quem === 'voce' && Number.isInteger(fx.qtd));
 const MOVE_EV = fx => fx.op === 'mover' && fx.em === 'doEvento' && (fx.de === 'cemiterio' || fx.de === 'mao') && fx.para === 'exilio';
 function ordemIndiferente(e, ps) {
   const fontes = new Set(ps.map(p => p.fonte));
