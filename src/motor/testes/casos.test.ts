@@ -3462,6 +3462,20 @@ caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores 
   igual(f.campo.length - antes, 3 + 3, 'Elenda 1/1 com +2: 3 Vampiros');
 });
 
+caso('305.7', "tipo dado por estática: Yavimaya faz todo terreno Floresta (e dá {T}: G); Metallic Mimic é do tipo escolhido", () => {
+  for (const c of ['Yavimaya, Cradle of Growth', 'Metallic Mimic', 'Roaming Throne']) ok(M.carta(c).est.filter(s => s.modo === 'continuo').every(s => M.estContOk(s)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Yavimaya, Cradle of Growth'], [1, 'Island'], [0, 'Metallic Mimic']] });
+  const ilha = e.campo.map(id => e.objs[id]).find(o => o.n === 'Island');
+  ok(M.dadoDe(e, ilha).sub.includes('Forest') && M.dadoDe(e, ilha).sub.includes('Island'), 'a Ilha do oponente é Floresta também');
+  ok(M.atvDe(e, ilha).some(a => a.deMana && a.fx[0].prod[0] === 'G'), 'e faz G');
+  const mm = e.campo.map(id => e.objs[id]).find(o => o.n === 'Metallic Mimic');
+  ok(!(M.dadoDe(e, mm).sub || []).includes('escolhido'), 'sem escolha: nada');
+  mm.escolha = { tipo: 'Elf' };
+  ok(M.dadoDe(e, mm).sub.includes('Elf'), 'escolheu Elf: é Elf');
+  const y = e.campo.find(id => e.objs[id].n === 'Yavimaya, Cradle of Growth'); M.mover(e, y, 'cemiterio');
+  ok(!M.dadoDe(e, ilha).sub.includes('Forest'), 'sem Yavimaya volta a ser só Ilha');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
