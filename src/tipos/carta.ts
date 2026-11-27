@@ -128,75 +128,9 @@ export type RxQtd =
   | number
   | ('X' | 'maoInteira' | 'tudo')
   | {
-      /**
-       * atacantesEmVoce: criaturas que atacaram você ou um planeswalker seu NESTE TURNO (no ev atacantesDeclarados = as deste ataque: Mangara, Firemane Commando, Struggle Enclave; no final do turno do oponente: Faramir)
-       */
-      conta:
-        | RxFiltro
-        | (
-            | 'vmDoAlvo'
-            | 'vmDoEvento'
-            | 'vmDoSacrificado'
-            | 'poderDoSacrificado'
-            | 'poderDoEste'
-            | 'poderDoEvento'
-            | 'resistDoEvento'
-            | 'poderDoAlvo'
-            | 'danoCausado'
-            | 'vidaGanha'
-            | 'cartasNaMao'
-            | 'oponentes'
-            | 'marcadoresNoEste'
-            | 'marcadoresNoCada'
-            | 'descartadasNoTurno'
-            | 'evento'
-            | 'X'
-            | 'jogadores'
-            | 'resistDoEste'
-            | 'vmDoEste'
-            | 'lembrados'
-            | 'suaVida'
-            | 'vidaInicial'
-            | 'cartasNoGrimorio'
-            | 'energia'
-            | 'convergir'
-            | 'dominio'
-            | 'devocao'
-            | 'impostoCmd'
-            | 'seusTurnos'
-            | 'resolvidasNoTurno'
-            | 'magiasNoTurno'
-            | 'coresDoEste'
-            | 'resistDoAlvo'
-            | 'marcadoresNoEvento'
-            | 'maoDoAlvo'
-            | 'vidaDoAlvo'
-            | 'tipoMaisComum'
-            | 'maiorEntreJogadores'
-            | 'entrouNoTurno'
-            | 'resultado'
-            | 'se'
-            | 'numeroEscolhido'
-            | 'vidaGanhaNoTurno'
-            | 'compradasNoTurno'
-            | 'atacantes'
-            | 'coresDoEvento'
-            | 'ataquesNoTurno'
-            | 'grimorioDoAlvo'
-            | 'marcadoresSeus'
-            | 'vezesKicker'
-            | 'maoDoEvento'
-            | 'vidaPerdidaOpsNoTurno'
-            | 'maiorVidaPerdidaOpNoTurno'
-            | 'vidaPerdidaNoTurno'
-            | 'maiorDescarte'
-            | 'resolucoesDestaHabNoTurno'
-            | 'atacantesEmVoce'
-            | 'vidaDoAtual'
-          );
+      conta: RxContagem;
       mult?: number;
       soma?: number;
-      alvo?: number;
       /**
        * divide por N arredondando para cima (Dire Fleet Ravager: um terço da vida = 3)
        */
@@ -205,28 +139,6 @@ export type RxQtd =
        * divide por 2 (arredonda p/ baixo)
        */
       metade?: boolean;
-      /**
-       * conta 'se': condição (kicked, promisedgift, morbid…)
-       */
-      cond?: string;
-      sim?: number;
-      nao?: number;
-      /**
-       * em vez de contar objetos: propriedade do conjunto
-       */
-      prop?:
-        | 'cores'
-        | 'somaPoder'
-        | 'maiorPoder'
-        | 'somaResist'
-        | 'somaVm'
-        | 'nomesDiferentes'
-        | 'tiposDiferentes'
-        | 'maiorVm';
-      /**
-       * devocao: cores (W U B R G); marcadores*: tipo do marcador
-       */
-      de?: string;
     }
   | {
       /**
@@ -1450,4 +1362,95 @@ export interface RxFace {
    * custo a mais para cada alvo além do primeiro (Fireball)
    */
   impostoPorAlvo?: RxMana;
+}
+
+/**
+ * UMA forma de contar (27/11, src/motor/contagem.ts): de = de quem/onde, o = o que se lê, junta = como junta vários. Ex.: poder deste = {de:'este', o:'poder'}; soma do poder das suas criaturas = {de:{f:{tipo:['Creature'],ctrl:'voce',zona:'campo'}}, o:'poder', junta:'soma'}; maior nº descartado por um jogador = {de:'lembradas', o:'quantos', junta:'maiorPorDono'}. Nunca criar nome novo: combinar de/o/junta.
+ */
+export interface RxContagem {
+  /**
+   * este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se
+   */
+  de:
+    | (
+        | 'este'
+        | 'voce'
+        | 'turno'
+        | 'combate'
+        | 'oponentes'
+        | 'jogadores'
+        | 'X'
+        | 'resultado'
+        | 'escolhido'
+        | 'lembradas'
+        | 'evento'
+        | 'sacrificadas'
+        | 'cada'
+        | 'tipoMaisComum'
+        | 'se'
+      )
+    | {
+        alvo: number;
+      }
+    | {
+        f: RxFiltro;
+      };
+  /**
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)
+   */
+  o?:
+    | 'quantos'
+    | 'poder'
+    | 'resist'
+    | 'vm'
+    | 'grimorio'
+    | 'vida'
+    | 'mao'
+    | 'cores'
+    | 'marcadores'
+    | 'kicker'
+    | 'coresPagas'
+    | 'vidaInicial'
+    | 'devocao'
+    | 'dominio'
+    | 'impostoCmd'
+    | 'turnos'
+    | 'magias'
+    | 'descartes'
+    | 'ataques'
+    | 'resolvidas'
+    | 'vidaGanha'
+    | 'compras'
+    | 'vidaPerdida'
+    | 'resolucoesDestaHab'
+    | 'oponentesAtacados'
+    | 'entraram'
+    | 'atacantes'
+    | 'atacantesEmVoce'
+    | 'maior'
+    | 'dano'
+    | 'nome'
+    | 'tipos';
+  /**
+   * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
+   */
+  junta?: 'soma' | 'maior' | 'maiorPorDono' | 'diferentes';
+  /**
+   * o: marcadores — tipo do marcador ('+1/+1', 'lore', 'energy', 'poison'…); sem marc = todos
+   */
+  marc?: string;
+  /**
+   * o: devocao — cores (W U B R G) ou 'escolhida'
+   */
+  cores?: string;
+  /**
+   * de: turno — de quem (padrão: você)
+   */
+  quem?: 'oponentes';
+  /**
+   * de: se — condição (kicked, promisedgift, morbid…)
+   */
+  cond?: string;
+  sim?: number;
+  nao?: number;
 }
