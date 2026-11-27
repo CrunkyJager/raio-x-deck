@@ -63,7 +63,7 @@ M.filtroSo = (o, so) => {
 M.gatManaOk = g => !!g && g.ev === 'viraParaMana' && Object.keys(g).every(k => ['ev', 'quem', 'se', 'fx'].includes(k)) && (!g.quem || M.filtroOk(g.quem))
   && (!g.se || (Object.keys(g.se).every(k => ['monarca', 'controla', 'existe'].includes(k)) && M.condValorOk(g.se))) && (g.fx || []).length > 0
   && g.fx.every(f => f.op === 'mana' && Object.keys(f).every(k => ['op', 'prod', 'qtd', 'quem'].includes(k)) && [undefined, 'voce', 'controlador'].includes(f.quem)
-    && (f.qtd === undefined || (Number.isInteger(f.qtd) && f.qtd > 0)) && (f.prod === 'qualquer' || f.prod === 'produzida' || (Array.isArray(f.prod) && f.prod.every(c => TIPOS.includes(c)))));
+    && (f.qtd === undefined || (Number.isInteger(f.qtd) && f.qtd > 0)) && (f.prod === 'qualquer' || f.prod === 'doTerreno' || (Array.isArray(f.prod) && f.prod.every(c => TIPOS.includes(c)))));
 // [fonte, fx, quem recebe] dos gatilhos de mana que olham para o terreno o
 const gatsMana = (e, o) => {
   const mk = M.memo && 'vpm';
@@ -107,16 +107,15 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
     for (const p of pac) for (const c of cs) { const n = { ...p }; n[c] += q; novo.push(n); }
     pac = novo;
   }
-  if (atv.custo && atv.custo.virar) {   // 605.1b: só "virado para mana"
-    const gs = gatsMana(e, o).filter(([, , quem]) => quem === o.ctrl);
-    // 'produzida' (Mirari's Wake, 106.7): um tipo que o terreno produziu nesta ativação — olha o pacote antes dos gatilhos
-    const base = pac.map(p => TIPOS.filter(c => p[c] > 0));
-    let orig = pac.map((_, k) => k);
-    for (const [F, f] of gs) {
-      const q = f.qtd ?? 1, novo: any[] = [], no: number[] = [];
-      pac.forEach((p, k) => { for (const c of (f.prod === 'produzida' ? base[orig[k]] : M.coresDeProd(e, F, f.prod))) { const n = { ...p }; n[c] += q; novo.push(n); no.push(orig[k]); } });
-      pac = novo; orig = no;
-    }
+  if (atv.custo && atv.custo.virar) {   // "add one mana of any type that land produced" (Mirari's Wake, 106.7): dos tipos do pacote do próprio terreno
+    const G = gatsMana(e, o).filter(([, f, quem]) => quem === o.ctrl && f.prod === 'doTerreno');
+    for (const [, f] of G) { const novo: any[] = []; for (const p of pac) for (const c of TIPOS) if (p[c] > 0) { const n = { ...p }; n[c] += f.qtd ?? 1; novo.push(n); } pac = novo; }
+  }
+  if (atv.custo && atv.custo.virar) for (const [F, f, quem] of gatsMana(e, o)) {   // 605.1b: só "virado para mana"
+    if (quem !== o.ctrl || f.prod === 'doTerreno') continue;
+    const cs = M.coresDeProd(e, F, f.prod), q = f.qtd ?? 1, novo: any[] = [];
+    for (const p of pac) for (const c of cs) { const n = { ...p }; n[c] += q; novo.push(n); }
+    pac = novo;
   }
   return pac;
 };
@@ -174,7 +173,8 @@ M.ativarMana = (e, j, id, k, escolha = 0, para = null) => {
   for (const c of TIPOS) R[c] += p[c];
   M.log(e, e.jogs[j].nome, 'mana de', o.n, fmt(p));
   if (a.custo.virar) for (const [F, f, quem] of gatsMana(e, o)) if (quem !== j && !e.jogs[quem].saiu) {   // gatilho de mana de outro jogador (Fertile Ground do oponente no seu terreno)
-    const c = (f.prod === 'produzida' ? TIPOS.filter(t => p[t] > 0) : M.coresDeProd(e, F, f.prod) || [])[0]; if (c) { e.jogs[quem].reserva[c] += f.qtd ?? 1; M.log(e, e.jogs[quem].nome, 'mana de', F.n, (f.qtd ?? 1) + c); }
+    if (f.prod === 'doTerreno') continue;   // só para quem virou (Mirari's Wake é "you tap")
+    const c = (M.coresDeProd(e, F, f.prod) || [])[0]; if (c) { e.jogs[quem].reserva[c] += f.qtd ?? 1; M.log(e, e.jogs[quem].nome, 'mana de', F.n, (f.qtd ?? 1) + c); }
   }
 };
 
@@ -231,6 +231,8 @@ const simbolos = (custo, x = 0) => {
 };
 M.simbolos = simbolos;
 M.vmDe = custo => { const s = simbolos(custo); return s.g + s.cor.length + s.hib.length + s.fir.length + s.neve + 2 * s.dois.length; };
+// a mana que pagar este custo gasta (com o X anunciado; o {2/W} conta 2 e o phyrexiano 1: antes de escolher vida)
+M.manaDoCusto = (custo, x = 0) => { const s = simbolos(custo || {}, x); return s.g + s.cor.length + s.hib.length + s.fir.length + s.neve + 2 * s.dois.length; };
 
 // Pagar da reserva. Retorna {resto, vida} ou null. vidaDisp = quanto de vida pode gastar em phyrexiano (0 = não).
 // Ordem: símbolo exato → híbridos (testa as opções) → phyrexiano → 2/cor → genérico (gasta incolor primeiro,
@@ -276,7 +278,9 @@ M.custoComImposto = (e, o, base?) => {
   return reduz(c, reducoes(e, o.dono, o, false));
 };
 // custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
-M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : comoQualquerCor(e, o, reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true)));
+// a.reduz: "This ability costs {1} less to activate for each …" (Voldaren Estate, Otawara) — redução da própria habilidade
+M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : comoQualquerCor(e, o, reduz({ ...a.custo.mana }, reducaoAtv(e, o, a, reducoes(e, o.ctrl, o, true))));
+const reducaoAtv = (e, o, a, r) => { if (a.reduz !== undefined) r.g += Math.max(0, M.qtdEst(e, a.reduz, { voce: o.ctrl, este: o.id })); return r; };
 // "you may spend blue mana as though it were mana of any color to pay the activation costs of this creature's abilities"
 // (Quicksilver Elemental, CR 609.4b): cada símbolo de outra cor vira híbrido com a cor (R → R/U); incolor {C} e phyrexiano ficam
 const comoQualquerCor = (e, o, c) => {
@@ -296,7 +300,7 @@ M.estSeu = (e, j, modo) => e.campo.some(id => { const F = e.objs[id]; return F.c
 const RED_OK = new Set(['modo', 'afeta', 'de', 'qtd', 'custo', 'deHabil', 'se', 'minimo']);
 M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => RED_OK.has(k) || k.startsWith('_'))
   && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
-  && (s.de === undefined || s.de === 'mao')
+  && (s.de === undefined || s.de === 'mao' || s.de === 'cemiterio')   // cemiterio: só conjurada do cemitério (flashback de Visions of Glory)
   && (s.custo === undefined ? s.qtd !== undefined && M.qtdEstOk(s.qtd)
     : s.qtd === undefined && Object.keys(s.custo).every(k => k === 'p') && Array.isArray(s.custo.p))
   && (!s.se || M.seOk(s.se));

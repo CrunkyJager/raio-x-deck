@@ -19,6 +19,7 @@ M.danoJogador = (e, j, q, kw) => {
 // 'veneno' fica aceito até a normalização do banco) em J.veneno; os outros (rad, experience…) em J.marc, que por ora só guarda.
 M.marcadorJogador = (e, j, tipo, q, tirar) => {
   const J = e.jogs[j]; if (!J || J.saiu || !(q > 0)) return;
+  if (!tirar && M.qtdMarcadorJogador) { q = M.qtdMarcadorJogador(e, j, tipo === 'veneno' ? 'poison' : tipo, q); if (!(q > 0)) return; }   // 614.1 (Winding Constrictor)
   if (tipo === 'poison' || tipo === 'veneno') { J.veneno = Math.max(0, (J.veneno || 0) + (tirar ? -q : q)); M.log(e, J.nome, tirar ? 'perde' : 'recebe', q, 'veneno'); }
   else { const m = J.marc || (J.marc = {}); m[tipo] = Math.max(0, (m[tipo] || 0) + (tirar ? -q : q)); }
   if (!tirar && M.evento) M.evento(e, { ev: 'marcadorPosto', jog: j, t: tipo === 'veneno' ? 'poison' : tipo, n: q, j: e.agente ?? j });   // marcador em jogador (122.1): o gatilho sem 'quem' vê (All Will Be One)
@@ -197,6 +198,11 @@ const MON = { n: 'Monarca', tipos: [] as any[], cores: '', kw: [] as any[], vm: 
 const G_MON_COMPRA = { ev: 'fase', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] };
 const G_MON_TOMA = { ev: 'dano', fx: [{ op: 'virarMonarca', quem: 'doEvento' }] };
 const pendMon = (e, j, k, g, ev) => e.pend.push({ fonte: -2000 - j, ts: 0, ctrl: j, k, g, n: 'Monarca', face: null, ficha: MON, lki: null, ev });
+// ---------- radiação (CR 729) ----------
+// Habilidade inerente sem fonte, controlada pelo jogador ativo (729.1): no começo da principal pré-combate de quem tem rad.
+const RAD = { n: 'Radiação', tipos: [] as any[], cores: '', kw: [] as any[], vm: 0 };
+const G_RAD = { ev: 'fase', fx: [{ op: 'radiacao' }] };
+const pendRad = (e, j) => e.pend.push({ fonte: -3000 - j, ts: 0, ctrl: j, k: 'radiacao', g: G_RAD, n: 'Radiação', face: null, ficha: RAD, lki: null, ev: { ev: 'fase', passo: 'principal1', j } });
 M.virarMonarca = (e, j) => {
   if (e.jogs[j].saiu || e.monarca === j) return;
   const de = e.monarca; e.monarca = j;
@@ -206,6 +212,7 @@ M.virarMonarca = (e, j) => {
 // eventos (chamado no fim do M.evento, gatilhos.ts)
 M.masmorrasEvento = (e, ev) => {
   if (ev.ev === 'fase') {
+    if (ev.passo === 'principal1' && ((e.jogs[ev.ativo].marc || {}).rad || 0) > 0 && !e.jogs[ev.ativo].saiu && !(e.turno && e.turno.radFeito)) { if (e.turno) e.turno.radFeito = true; pendRad(e, ev.ativo); }   // CR 729.1: só a 1ª principal pré-combate do turno
     if (ev.passo === 'final' && e.monarca === ev.ativo && !e.jogs[ev.ativo].saiu) pendMon(e, ev.ativo, 'monarca:final', G_MON_COMPRA, { ev: 'fase', passo: 'final', j: ev.ativo });
     if (ev.passo === 'manutencao' && e.iniciativa === ev.ativo && !e.jogs[ev.ativo].saiu) pendIni(e, ev.ativo, 'iniciativa:manutencao', G_AVENTURA, { ev: 'fase', passo: 'manutencao', j: ev.ativo });
     if (ev.passo === 'desvirar' && e.temp && e.temp.some(t => t.ate === ev.ativo)) e.temp = e.temp.filter(t => t.ate !== ev.ativo);   // "até o seu próximo turno"
@@ -230,13 +237,14 @@ M.morbido = e => e.morreuT === e.turno.n;
 
 // ---------- condições (temIniciativa, completouMasmorra) ----------
 // completouMasmorra: true = completou alguma; false = nenhuma; {nome} = aquela; {nome, nao: true} = não aquela (Acererak)
-M.condMasmorraOk = se => (se.monarca === undefined || typeof se.monarca === 'boolean') && (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean') && (se.desceu === undefined || typeof se.desceu === 'boolean')
+M.condMasmorraOk = se => (se.monarca === undefined || typeof se.monarca === 'boolean') && (se.haMonarca === undefined || typeof se.haMonarca === 'boolean') && (se.temIniciativa === undefined || typeof se.temIniciativa === 'boolean') && (se.desceu === undefined || typeof se.desceu === 'boolean')
   && (se.completouMasmorra === undefined || typeof se.completouMasmorra === 'boolean'
     || (!!se.completouMasmorra && typeof se.completouMasmorra === 'object' && typeof se.completouMasmorra.nome === 'string'
       && Object.keys(se.completouMasmorra).every(k => k === 'nome' || k === 'nao')));
 M.condMasmorra = (e, se, ctx) => {
   if (se.temIniciativa !== undefined && (e.iniciativa === ctx.voce) !== se.temIniciativa) return false;
   if (se.monarca !== undefined && (e.monarca === ctx.voce) !== se.monarca) return false;          // se você é o monarca
+  if (se.haMonarca !== undefined && (e.monarca !== undefined && e.monarca !== null && !(e.jogs[e.monarca] || {}).saiu) !== se.haMonarca) return false;   // "if there is no monarch" (Crown of Gondor)
   if (se.desceu !== undefined && (e.jogs[ctx.voce].desceuT === e.turno.n) !== se.desceu) return false;   // "if you descended this turn"
   const c = se.completouMasmorra;
   if (c !== undefined) {

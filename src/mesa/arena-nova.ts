@@ -307,6 +307,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'modo': { const fx = p.ctx && p.ctx.modos ? p.ctx.modos[op.m] : null, oq = fx ? [...new Set((Array.isArray(fx) ? fx : fx.fx || [fx]).map((x: any) => x && x.op).filter(Boolean))].join(', ') : ''; return 'Modo ' + (op.m + 1) + (oq ? ' — ' + oq : ''); }
       case 'x': return 'X = ' + op.v;
       case 'nenhum': return 'Nenhum';
+      case 'comprar': return 'Comprar normalmente';
+      case 'dragar': return `Dragar ${op.n}: moer ${op.n} e ${nomeOp(ob)} volta à mão`;
       case 'cor': return { W: 'Branco', U: 'Azul', B: 'Preto', R: 'Vermelho', G: 'Verde' }[op.v as string] || op.v;
       case 'tipo': return op.v;
       case 'modo': return op.v;
@@ -318,7 +320,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'comando': return 'Mandar de volta para a zona de comando (pode lançar de novo)';
       case 'ficar': { const z = p.ctx && e.objs[p.ctx.id] ? e.objs[p.ctx.id].zona : ''; return z === 'exilio' ? 'Deixar no exílio' : 'Deixar no cemitério'; }
       case 'marcadores': return `${op.q} marcadores nela`; case 'fichas': return `${op.q} Servos 1/1`;
-      case 'pagar': return 'Pagar a vida'; case 'naoPagar': return 'Não pagar (entra virado)'; case 'revelar': return 'Revelar ' + nomeOp(e.objs[op.rid]);
+      case 'pagar': if (p.tipo === 'custoCombate') { const c = p.ctx.custo; return `Pagar {${c.g}}${c.p.map((x: string) => '{' + x + '}').join('')} (${p.ctx.n} criatura${p.ctx.n > 1 ? 's' : ''})`; } return 'Pagar a vida';
+      case 'naoPagar': return p.tipo === 'custoCombate' ? (p.ctx.tipo === 'atacar' ? 'Não pagar (essas não atacam)' : 'Não pagar (essas não bloqueiam)') : 'Não pagar (entra virado)'; case 'revelar': return 'Revelar ' + nomeOp(e.objs[op.rid]);
       case 'proliferar': return op.jog !== undefined ? nomeJ(op.jog) : nomeOp(ob);
       case 'todos': return 'Todas as criaturas → ' + (op.jog !== undefined ? nomeJ(op.jog) : nomeOp(e.objs[op.o]));
       case 'atacar': return `${nomeOp(ob)} → ${op.jog !== undefined ? nomeJ(op.jog) : nomeOp(e.objs[op.o])}`;
@@ -326,6 +329,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'sala': return `Ir para a sala ${op.n} (o efeito dela acontece)`;
       case 'perder': return `Perder ${op.q} de vida`;
       case 'virar': return `Virar ${nomeOp(ob)} (custo)`;
+      case 'desvirar': return `Desvirar ${nomeOp(ob)} (custo)`;
       case 'descartar': case 'sacrificar': if (p.tipo === 'evitarPerda') return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)} (e não perde vida)`; return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)}`;
       case 'devolver': return `Devolver ${nomeOp(ob)} para a mão (custo)`;
       case 'custo': return p.ctx && p.ctx.o === 'exilar' ? `Exilar ${nomeOp(ob)} do cemitério` : nomeOp(ob);
@@ -335,7 +339,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'mao': return `Pôr ${nomeOp(ob)} na mão`;
       case 'primeiro': return `${nomeOp(ob)} recebe o dano primeiro`;
       case 'dividir': return String(op.v);
-      case 'opcao': { const v = op.v || {}; const l = [v.sobrecarga ? 'com sobrecarga (paga o custo de sobrecarga; vale para cada um, sem alvo)' : '', v.chute ? 'com chute (paga o custo extra)' : '', v.presente ? 'com presente para um oponente' : ''].filter(Boolean); return l.length ? 'Conjurar ' + l.join(' e ') : 'Conjurar normal'; }
+      case 'opcao': { const v = op.v || {}; const l = [v.sobrecarga ? 'com sobrecarga (paga o custo de sobrecarga; vale para cada um, sem alvo)' : '', v.chute ? 'com chute (paga o custo extra)' : '', v.presente ? 'com presente para um oponente' : '', v.concessao ? 'com concessão (Aura: encanta uma criatura)' : ''].filter(Boolean); return l.length ? 'Conjurar ' + l.join(' e ') : 'Conjurar normal'; }
       case 'custoOu': { const c = op.v || {}, l: string[] = [];
         if (c.sacrificar) l.push(c.sacrificar === 'este' ? 'sacrificar esta' : `sacrificar ${c.sacrificar.qtd || 1} ${((c.sacrificar.f || {}).tipo || ['permanente']).map((t: string) => TIPO_PT[t] || t).join(' ou ')}`);
         if (c.descartar) l.push(`descartar ${c.descartar} carta${c.descartar > 1 ? 's' : ''}`);
@@ -349,13 +353,13 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
   }
   const DE_ZONA: Record<string, string> = { grimorio: 'do topo do grimório', cemiterio: 'do cemitério', exilio: 'do exílio', comando: 'da zona de comando', mao: 'da mão' };
   const TIPO_PT: Record<string, string> = { Creature: 'criatura', Artifact: 'artefato', Land: 'terreno', Enchantment: 'encantamento', Planeswalker: 'planeswalker', permanente: 'permanente' };
-  const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', custo: 'Pague o custo',
+  const TITULO: Record<string, string> = { alvo: 'Escolha o alvo', modo: 'Escolha o modo', x: 'Quanto vale X?', talvez: 'Quer usar?', dragar: 'Comprar ou dragar?', custo: 'Pague o custo',
     ordemGatilho: 'Estes gatilhos dispararam juntos, pelo mesmo evento (CR 603.3b). Escolha qual vai para a pilha primeiro: ele resolve por ÚLTIMO.', bloquear: 'Bloqueio: quem bloqueia quem?', ordemDano: 'Ordem do dano', videncia: 'Vidência',
     buscar: 'Busca no grimório', escolherCarta: 'Escolha a carta', destino: 'Para onde vai?', sacrificar: 'Escolha o que sacrificar', lenda: 'Regra da lenda: qual fica?',
-    cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha',
+    cmdZona: 'Seu comandante saiu do campo. Para onde ele vai?', aMenosQue: 'Como entra?', aMenosQuePagar: 'Pagar para impedir?', custoCombate: 'Custo de combate (Ghostly Prison e afins): pagar?', escolha: 'Escolha', fabricar: 'Fabricar', proliferar: 'Proliferar: escolha',
     masmorra: 'Aventurar: em qual masmorra entrar?', sala: 'Aventurar: para qual sala seguir?', evitarPerda: 'Perder vida ou pagar para não perder?',
     atacado: 'Ela entra atacando: quem ela ataca?', custoOu: 'Qual custo adicional você paga?', dividir: 'Dividir: quanto vai para este alvo?', presente: 'Presente: para qual oponente?',
-    jogar: 'Pode conjurar uma destas agora', opcao: 'Como vai conjurar?', cavar: 'Escolha a carta' };
+    jogar: 'Pode conjurar uma destas agora', opcao: 'Como vai conjurar?', concessao: 'Qual criatura a concessão vai encantar?', cavar: 'Escolha a carta' };
   function humano(p: any) {
     const J = e.jogs[HK], opIdx = (pred: (o: any) => boolean) => p.ops.findIndex(pred);
     const mao = () => J.zonas.mao.map((id: number) => ({ v: iDe(e.objs[id]), n: e.objs[id].n }));

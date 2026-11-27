@@ -90,6 +90,10 @@ function passoMulligan(e) {
     return;
   }
   e.mull = null;
+  // CR 103.6a (Leylines): "se esta carta estiver na sua mão inicial, você pode começar o jogo com ela no campo" —
+  // na ordem do turno, depois dos mulligans. Simplificação: sempre começa (é o que todo mundo faz).
+  for (let i = 0; i < n; i++) { const j = (e.turno.primeiro + i) % n, J = e.jogs[j];
+    for (const id of J.zonas.mao.slice()) if ((M.dadoDe(e, e.objs[id]).kw || []).some(x => x.k === 'comecaNoCampo')) { M.mover(e, id, 'campo'); M.log(e, J.nome, 'começa o jogo com', e.objs[id].n, 'no campo'); } }
   Object.assign(e.turno, { n: 1, passo: 'desvirar', feito: false, passar: false });
 }
 
@@ -116,7 +120,10 @@ function acaoDoTurno(e) {
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
-      if (!(T.n === 1 && e.jogs.length === 2)) M.comprar(e, a, 1);
+      if (!(T.n === 1 && e.jogs.length === 2)) {
+        if (M.temDragar(e, a)) M.iniciarProc(e, { tp: 'compra', j: a, qtd: 1 });   // dragar (702.52a): pergunta antes de comprar
+        else M.comprar(e, a, 1);
+      }
       break;
     case 'limpeza': {                                               // CR 514.1 descarte até o máximo
       const sobra = J.zonas.mao.length - maoMax(e, a);
@@ -127,7 +134,7 @@ function acaoDoTurno(e) {
   }
 }
 function limpar(e) {                                                // CR 514.2: dano sai, "até o fim do turno" acaba
-  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; o.regen = null; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.ganhos && o.ganhos.atvT) o.ganhos = { ...o.ganhos, atvT: undefined }; if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
+  for (const id of e.campo) { const o = e.objs[id]; o.dano = 0; o.mortal = false; o.regen = null; if (o.ganhos && o.ganhos.gat) { o.ganhos = { ...o.ganhos, gat: undefined }; e.vCamada = (e.vCamada || 0) + 1; } if (o.cloneFim === 'turno') { o.clone = o.clone0 || null; o.clone0 = null; o.cloneFim = null; e.vCamada = (e.vCamada || 0) + 1; } if (o.ganhos && o.ganhos.atvT) o.ganhos = { ...o.ganhos, atvT: undefined }; if (o.anim && o.anim.some(a => a.fim === 'turno')) { o.anim = o.anim.filter(a => a.fim !== 'turno'); e.vCamada = (e.vCamada || 0) + 1; } }
   // 'modificar' até o fim do turno (efeitos.ts) sai; o de dura 'sempre' (Witch's Mark: +1/+1 sem prazo, 611.2a) fica
   // enquanto o objeto (mesmo ts) estiver no campo. Array novo: o índice do somaTemp refaz.
   e.temp = (e.temp || []).filter(t => t.sempre && t.ids.some(x => e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'));
@@ -172,7 +179,7 @@ function proximoPasso(e) {
   while (e.turnosExtra && e.turnosExtra.length && e.jogs[e.turnosExtra[e.turnosExtra.length - 1]].saiu) e.turnosExtra.pop();
   if (e.turnosExtra && e.turnosExtra.length) p = e.turnosExtra.pop();
   else do p = (p + 1) % n; while (e.jogs[p].saiu);
-  T.ativo = p; T.n++; T.passo = 'desvirar'; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
+  T.ativo = p; T.n++; T.passo = 'desvirar'; T.radFeito = false; T.entraram = null; T.ataques = null; T.lim = null; T.disp = null; T.extras = null; T.volta = null; T.combates = 0; T.extraUlt = null;
   if (e.permJogar && e.permJogar.length) e.permJogar = e.permJogar.filter(p => p.fim !== p0(p, T.ativo));   // "até o seu próximo turno"
   M.fimAtrasados(e);                                                // 603.7: "neste turno" que não disparou acaba
   if (e.efTemp && e.efTemp.length) e.efTemp = e.efTemp.filter(t => t.fim !== p);   // "até o seu próximo turno" (611.2b)
@@ -210,6 +217,8 @@ M.PROC.terreno = (e, P, ask) => {
   M.evento(e, { ev: 'jogaTerreno', id: o.id, j, de });            // CR 305.1: "jogar um terreno" (de: de onde; Shadow of the Goblin)
   M.agiu(e, j);                                                     // CR 117.3c
 };
+// etapa de compra com carta de dragar no cemitério: a compra é processo (todas as perguntas antes de mexer)
+M.PROC.compra = (e, P, ask) => M.comprar(e, P.j, P.qtd, { ask, antes: () => { e.proc = null; } });
 const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });
 M.jogarTerreno = jogarTerreno;
 
@@ -264,6 +273,9 @@ M.abe = e => {
     for (const id of e.campo) {
       const o = e.objs[id]; if (!o.anexo) continue;
       const t = M.anexadoA(e, o), aura = (M.dadoDe(e, o).sub || []).includes('Aura');
+      if (o.concedida && (!t || !M.temTipo(e, t, 'Creature'))) {     // 702.103f: concedida solta (ou em ilegal) fica no campo e volta a ser criatura
+        o.anexo = null; o.concedida = false; e.vCamada = (e.vCamada || 0) + 1; mudou = true; M.log(e, o.n, 'solta: volta a ser criatura (702.103f)'); continue;
+      }
       if (aura ? !t : !t || !M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }
@@ -304,7 +316,12 @@ M.abe = e => {
       const d = M.dadoDe(e, o), nm = o.clone ? d.n || o.n : o.n;      // o clone tem o nome copiado (707.2)
       if ((d.super || []).includes('Legendary')) (lend[o.ctrl + '|' + nm] = lend[o.ctrl + '|' + nm] || []).push(id);
     }
-    const dup = Object.values<any>(lend).find(l => l.length > 1);
+    let dup = Object.values<any>(lend).find(l => l.length > 1);
+    if (dup) {                                                        // "the legend rule doesn't apply to Slivers you control" (Sliver Gravemother): tira os isentos
+      const isento = id => { const o = e.objs[id]; return M.indiceCampo(e).est.some(fid => { const F = e.objs[fid];
+        return F.ctrl === o.ctrl && (M.dadoDe(e, F).est || []).some(s => s.modo === 'semRegraLenda' && s.afeta && M.bate(e, o, { ...s.afeta, zona: 'campo' }, { voce: F.ctrl, este: F.id })); }); };
+      dup = Object.values<any>(lend).map(l => l.filter(id => !isento(id))).find(l => l.length > 1);
+    }
     if (dup) { e.perg = { j: e.objs[dup[0]].ctrl, tipo: 'lenda', ops: dup.map(id => ({ a: 'fica', id })), ctx: { ids: dup } }; return; }
     // comandante no cemitério/exílio desde a última checagem (CR 903.9a): o dono pode mandar ao comando
     while (e.abeNovo.length) {
