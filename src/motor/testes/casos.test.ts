@@ -7647,6 +7647,82 @@ caso('702.37', "Grim Haruspex: metamorfose — da mão por {3} virada para baixo
   ok(!f.objs[h2.id].faceBaixo, 'na mão: revelada, sem a virada (708.9)');
 });
 
+
+
+// ---------- escolhas do agente básico nas mecânicas novas (T43 mecânica: dragar, suspender, desaparecer, concessão,
+// custo para atacar/bloquear, replicar, More Than Meets the Eye, perder habilidades) ----------
+const escolha = e => { const p = e.perg; return p.ops[M.agenteBasico()(e, p)]; };
+caso('702.52a', 'agente: draga o Life from the Loam com 2+ terrenos no cemitério; grimório curto (sobrariam < 10) ou sem terreno para voltar, compra', () => {
+  const mk = (terrasCem, grim) => { const e = cena({ passo: 'manutencao', grimorio: grim, campo: [[0, 'Life from the Loam', { zona: 'cemiterio' }], ...Array.from({ length: terrasCem }, () => [0, 'Forest', { zona: 'cemiterio' }])] }); ate(e, 'dragar'); return e; };
+  igual(escolha(mk(2, 30)).a, 'dragar', '2 terrenos no cemitério, grimório cheio: draga');
+  igual(escolha(mk(2, 12)).a, 'comprar', 'grimório 12: moer 3 deixa 9, compra');
+  igual(escolha(mk(0, 30)).a, 'comprar', 'sem terreno no cemitério: o Loam não faz nada, compra');
+});
+caso('702.62a', 'agente: suspende a carta sem custo de mana (Resurgent Belief) com a mana que tem; sem mana para o custo de suspender, nem tem a opção', () => {
+  const e = cena({ campo: terras(2, 'Plains'), mao: [[0, 'Resurgent Belief']] }); e.pend = [];
+  M.avancar(e); igual(e.perg.tipo, 'acao');
+  const op = escolha(e); igual([op.a, e.objs[op.id].n], ['suspender', 'Resurgent Belief'], 'suspende');
+  const f = cena({ campo: terras(1, 'Plains'), mao: [[0, 'Resurgent Belief']] }); f.pend = [];
+  M.avancar(f); ok(!opsDe(f, 'suspender').length, 'com 1 terreno não paga {1}{W}: ' + JSON.stringify(f.perg.ops)); ok(escolha(f).a !== 'suspender');
+  const g = cena({ campo: terras(2, 'Plains'), mao: [[0, 'Resurgent Belief']] }); g.pend = [];
+  const rb = g.jogs[0].zonas.mao[0];
+  M.avancar(g); respE(g, o => o.a === 'suspender'); igual(g.objs[rb].zona, 'exilio');
+  ok(!opsDe(g, 'suspender').length && !opsDe(g, 'conjurar').some(o => o.id === rb), 'suspensa: não volta a ser opção');
+});
+caso('702.63a', 'agente: Dreamtide Whale (desaparecer) é conjurada como criatura comum; o desaparecer não pergunta nada', () => {
+  const e = cena({ campo: terras(3, 'Island'), mao: [[0, 'Dreamtide Whale']] }); e.pend = [];
+  M.avancar(e); const op = escolha(e); igual([op.a, e.objs[op.id].n], ['conjurar', 'Dreamtide Whale']);
+  M.responder(e, M.agenteBasico()(e, e.perg)); resolveCom(e);
+  const w = objN(e, 0, 'Dreamtide Whale'); ok(w && w.marc.time === 2, 'entrou com 2 de tempo');
+});
+caso('702.103', 'agente: concessão só com criatura minha de poder 2+ (Grizzly Bears); com Llanowar Elves (1/1) ou só a do oponente, conjura normal', () => {
+  const mk = minha => { const e = cena({ campo: [...terras(3, 'Plains'), ...(minha ? [[0, minha]] : []), [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] }); M.avancar(e); conj(e, 'Indebted Spirit'); return e; };
+  const e = mk('Grizzly Bears'); igual(e.perg.tipo, 'opcao'); ok(escolha(e).v.concessao, 'Bears: concede');
+  respE(e, o => o.a === 'opcao' && o.v.concessao); igual(e.objs[escolha(e).o].n, 'Grizzly Bears', 'na minha, não no Hill Giant');
+  const f = mk('Llanowar Elves'); ok(!f.perg || f.perg.tipo !== 'opcao' || !escolha(f).v.concessao, 'Elves 1/1: normal (dois corpos valem mais)');
+  const g = mk(null); ok(!g.perg || g.perg.tipo !== 'opcao' || !escolha(g).v.concessao, 'só criatura do oponente: normal');
+});
+caso('508.1h', 'agente: paga o Ghostly Prison com a mana que sobrou; não paga se a mana é a de uma mágica da mão para a principal 2 (salvo ataque letal)', () => {
+  const mk = n => { const e = cena({ campo: [[0, 'Mountain'], [1, 'Ghostly Prison'], [0, 'Grizzly Bears'], ...terras(n)] }); e.campo.forEach(id => { if (e.objs[id].ctrl === 0 && e.objs[id].n === 'Mountain') e.objs[id].virada = false; }); return e; };
+  const e = mk(1); ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears')); fecha(e, 'atacar');
+  igual(e.perg.tipo, 'custoCombate'); igual(escolha(e).a, 'pagar', 'sobra mana: paga');
+  const f = mk(1); ate(f, 'atacar'); f.por(0, 'Hill Giant', { zona: 'mao' }); atacaCom(f, objN(f, 0, 'Grizzly Bears')); fecha(f, 'atacar');
+  ok(f.perg && f.perg.tipo === 'custoCombate'); igual(escolha(f).a, 'pagar', 'Hill Giant {3}{R} não cabe nem sem pagar: paga');
+  const g = mk(1); ate(g, 'atacar'); g.por(0, 'Sol Ring', { zona: 'mao' }); atacaCom(g, objN(g, 0, 'Grizzly Bears')); fecha(g, 'atacar');
+  igual(escolha(g).a, 'naoPagar', 'Sol Ring {1} na mão: pagar {2} das 2 terras mata a principal 2');
+  const h = mk(1); h.jogs[1].vida = 2; ate(h, 'atacar'); h.por(0, 'Sol Ring', { zona: 'mao' }); atacaCom(h, objN(h, 0, 'Grizzly Bears')); fecha(h, 'atacar');
+  igual(escolha(h).a, 'pagar', 'o ataque mata: paga');
+});
+caso('509.1d', 'agente: bloquear com taxa (Archangel of Tithes) — o defensor paga no turno do outro (a mana dele sobraria)', () => {
+  const e = combate([[0, 'Archangel of Tithes'], [1, 'Giant Spider'], [1, 'Forest']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Archangel of Tithes')); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Giant Spider'), objN(e, 0, 'Archangel of Tithes')); fecha(e, 'bloquear');
+  igual(e.perg.tipo, 'custoCombate'); igual(escolha(e).a, 'pagar');
+});
+caso('702.56a', 'agente: replicar — paga quantas cópias a mana deixa (4 Forests: 1 cópia; 2 Forests: nenhuma)', () => {
+  const run = n => { const e = cena({ campo: enche(n, 'Forest').map(x => [0, x]), mao: [[0, 'Hatchery Sliver']] }); const ag = M.agenteBasico();
+    M.avancar(e); conj(e, 'Hatchery Sliver'); for (let i = 0; i < 20 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, ag(e, e.perg)); resolvePilha(e);
+    return e.campo.filter(id => e.objs[id].n === 'Hatchery Sliver').length; };
+  igual(run(4), 2, '4 terrenos: a carta + 1 cópia'); igual(run(2), 1, '2 terrenos: só a carta');
+});
+caso('702.162a', 'agente: Ratchet — com {2}{W} conjura pela frente; com só {1}{W}, convertida (a opção que fecha)', () => {
+  const run = n => { const e = cena({ campo: terras(n, 'Plains'), mao: [[0, 'Ratchet, Field Medic']] }); M.avancar(e); conj(e, 'Ratchet, Field Medic'); resolveCom(e); return objN(e, 0, 'Ratchet, Field Medic'); };
+  const a = run(3); ok(a && a.face == null, '3 terrenos: frente');
+  const b = run(2); ok(b && b.face === 0, '2 terrenos: convertida');
+});
+caso('613.1f', "agente: Tishana's Tidebinder mira a habilidade do oponente; a minha, não (\"up to one\": nenhuma)", () => {
+  const g = M.carta("Tishana's Tidebinder").gat[0];
+  const mk = dono => {
+    const e = cena({ campo: [[0, "Tishana's Tidebinder"], [dono, 'Llanowar Elves']] });
+    const h = { id: e.prox++, n: 'Llanowar Elves', dono, ctrl: dono, zona: 'pilha', ts: ++e.ts, hab: { fonte: e.campo[1], fonteTs: 0, k: 0, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], alvos: [] }, marc: {} };
+    e.objs[h.id] = h; e.pilha.push(h.id);
+    const ops = [...M.alvosPossiveis(e, g.alvos[0], { voce: 0, este: e.campo[0] }).map(x => ({ a: 'alvo', ...x })), { a: 'pronto' }];
+    e.perg = { tipo: 'alvo', j: 0, ops, ctx: { de: e.campo[0] } };
+    return [e, h];
+  };
+  const [e, h] = mk(1); igual(escolha(e).o, h.id, 'a do oponente');
+  const [f] = mk(0); igual(escolha(f).a, 'pronto', 'só a minha: não anula');
+});
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;

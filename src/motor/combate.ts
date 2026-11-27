@@ -133,7 +133,7 @@ function cobrarCombate(e, j, tx, ask, tipo) {                     // tx: [{k, c}
   while (fica.length && !M.planoMana(e, j, somaCusto(fica.map(x => x.c)))) sai.push(fica.pop().k);
   if (!fica.length) return sai;
   const total = somaCusto(fica.map(x => x.c));
-  const op = ask(j, 'custoCombate', [{ a: 'pagar' }, { a: 'naoPagar' }], { tipo, custo: total, n: fica.length });
+  const op = ask(j, 'custoCombate', [{ a: 'pagar' }, { a: 'naoPagar' }], { tipo, custo: total, n: fica.length, ids: fica.map(x => x.k) });
   if (op.a === 'pagar') { M.pagarComPlano(e, j, total); M.log(e, e.jogs[j].nome, 'paga', '{' + total.g + '}' + total.p.map(c => '{' + c + '}').join(''), 'para', tipo === 'atacar' ? 'atacar' : 'bloquear'); return sai; }
   return sai.concat(fica.map(x => x.k));
 }
