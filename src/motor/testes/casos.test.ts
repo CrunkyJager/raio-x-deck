@@ -3999,6 +3999,17 @@ caso('702.121', "corpo a corpo: atacando dois oponentes, Tifa ganha +2/+2; ataca
   igual(e.pend.find(x => x.k === 'corpo-a-corpo').g.fx[0].p, 1, 'um oponente: +1/+1');
 });
 
+caso('702.100', "evoluir: entra criatura sua maior (poder ou resistência) → +1/+1; menor ou do oponente, não", () => {
+  const e = cena({ campo: [[0, 'Gyre Sage']] });
+  const gs = e.objs[e.campo[0]];
+  e.pend = []; e.por(0, 'Grizzly Bears');
+  igual(e.pend.filter(p => p.k === 'evoluir').length, 1, 'Bears 2/2 > Sage 1/2: evolui');
+  e.pend = []; e.por(1, 'Hill Giant');
+  igual(e.pend.filter(p => p.k === 'evoluir').length, 0, 'do oponente: não');
+  gs.marc['+1/+1'] = 2; e.pend = []; e.por(0, 'Llanowar Elves');
+  igual(e.pend.filter(p => p.k === 'evoluir').length, 0, 'menor: não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -283,6 +283,14 @@ M.evento = (e, ev) => {
       const vezes = 1 + extras(e, F, g, ev);
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: g._k, g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
+    // evoluir (CR 702.100a): "sempre que uma criatura entra sob seu controle, se ela tem poder ou resistência maior que
+    // esta, +1/+1 nesta". Simplificação: a condição (603.4) é vista só ao disparar, não de novo ao resolver.
+    if (M.temTipo(e, F, 'Creature')) for (const id of e.campo) {
+      const X = e.objs[id]; if (!X || X.id === F.id || X.ctrl !== F.ctrl || !M.temTipo(e, X, 'Creature')) continue;
+      const n = M.kwDe(e, X).filter(x => x.k === 'evoluir').length; if (!n) continue;
+      if (!(M.poder(e, F) > M.poder(e, X) || M.resistencia(e, F) > M.resistencia(e, X))) continue;
+      for (let v = 0; v < n * (1 + extras(e, X, EVOLUIR, ev)); v++) e.pend.push({ fonte: X.id, ts: X.ts, ctrl: X.ctrl, k: 'evoluir', g: EVOLUIR, n: X.n, ficha: X.ficha || null, lki: M.lkiDe(e, X), ev: { ...ev, snap: undefined } });
+    }
     // prole (CR 702.175a): pago o custo, "quando entra, cria uma ficha cópia dela, só que 1/1"; a ficha não tem o pago (não repete)
     if (F.conjCom && F.conjCom.prole && (M.dadoDe(e, F).kw || []).some(x => x.k === 'prole')) {
       const vezes = 1 + extras(e, F, PROLE, ev);
@@ -309,6 +317,7 @@ M.evento = (e, ev) => {
     }
   }
 };
+const EVOLUIR = { ev: 'entra', fx: [{ op: 'marcador', em: 'este', tipoMarc: '+1/+1', qtd: 1 }] };
 const PROLE = { ev: 'entra', quem: { este: true }, fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: { copiaDe: 'este', pt: [1, 1] } }] };
 
 // Ordem que não muda nada (Edigar 26/11, Ivora + Bag of Holding no mesmo descarte): pela regra a ordem é do jogador
