@@ -115,8 +115,8 @@ M.podeCustoAtv = (e, o, c) => {
   return true;
 };
 const pagarCustoAtv = (e, o, c) => {
-  if (c.virarOutros) for (const x of virMana(e, o, c).slice(0, c.virarOutros.qtd || 1)) x.virada = true;
-  if (c.virar) o.virada = true;
+  if (c.virarOutros) for (const x of virMana(e, o, c).slice(0, c.virarOutros.qtd || 1)) M.virarObj(e, x);
+  if (c.virar) M.virarObj(e, o);
   if (c.mana) e.jogs[o.ctrl].reserva = M.pagarDaReserva(e.jogs[o.ctrl].reserva, c.mana).resto;
   if (c.vida) M.perderVida(e, o.ctrl, c.vida);
   if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio', { sac: true });

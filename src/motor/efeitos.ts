@@ -931,7 +931,7 @@ const H = {
   virar: {
     campos: ['naoDesvira', 'soNaoDesvira'],
     ok: f => !f.soNaoDesvira || f.naoDesvira === true,
-    fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) { if (!f.soNaoDesvira) o.virada = true; if (f.naoDesvira) o.naoDesv = o.ts; } },
+    fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) { if (!f.soNaoDesvira) M.virarObj(e, o); if (f.naoDesvira) o.naoDesv = o.ts; } },
   },
   // CR 701.27: vira para a outra face. Não é objeto novo (701.27c): ts, marcadores, dano e virada ficam.
   // Só carta de dupla face (701.27d), nunca para uma face de instantânea/feitiço (701.27e), e a habilidade da própria

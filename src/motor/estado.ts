@@ -248,6 +248,8 @@ function estJog(e, j, ok) {
   }
   return false;
 }
+// virar (CR 701.26a): dispara 'vira' ("whenever … becomes tapped": Dionus, Deeproot Pilgrimage). Entrar virado não é virar.
+M.virarObj = (e, o) => { if (!o || o.virada) return; o.virada = true; if (M.evento) M.evento(e, { ev: 'vira', id: o.id, ts: o.ts, j: o.ctrl }); };
 // desvirar um permanente (CR 701.26b): dispara 'desvira' ("whenever this becomes untapped", Key to the City)
 M.desvirarObj = (e, o) => { if (!o || !o.virada) return; o.virada = false; if (M.evento) M.evento(e, { ev: 'desvira', id: o.id, ts: o.ts }); };
 // "sua vida não pode mudar" (Teferi's Protection, Flare of Fortitude, Platinum Emperion): sem ganho, perda nem pagar vida (119.8)
@@ -351,7 +353,7 @@ M.porRegen = (e, o) => { const R = o.regen && o.regen.ts === o.ts && o.regen.t =
 M.regenera = (e, o) => {
   if (!o.regen || o.regen.ts !== o.ts || o.regen.t !== e.turno.n || o.regen.n <= 0) return false;
   o.regen = { ...o.regen, n: o.regen.n - 1 };
-  o.virada = true; o.dano = 0; o.mortal = false;
+  M.virarObj(e, o); o.dano = 0; o.mortal = false;
   const C = e.turno.combate;                                        // CR 506.4: o atacante que já foi bloqueado continua bloqueado
   if (C) { C.atk = C.atk.filter(a => a.id !== o.id); for (const a of C.atk) if (a.bloq) a.bloq = a.bloq.filter(b => b.id !== o.id); }
   M.log(e, o.n, 'regenera');

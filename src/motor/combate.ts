@@ -105,7 +105,7 @@ M.PROC.atacar = (e, P, ask) => {
   for (const k of aptos) {
     const alvo = decl[k]; if (!alvo) continue;
     const id = k, o = e.objs[id];
-    if (!kw(e, o, 'vigilancia')) o.virada = true;                                          // 508.1f
+    if (!kw(e, o, 'vigilancia')) M.virarObj(e, o);                                          // 508.1f
     C.atk.push({ id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
   }
   // quem atacou quem neste turno (contas ataquesNoTurno/atacantesEmVoce; o combate some no fim do combate)

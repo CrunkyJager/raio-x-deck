@@ -3647,6 +3647,17 @@ caso('610.3', "exilar até a fonte sair (Battle at the Helvault, Grasp of Fate):
   ok(h.jogs[0].zonas.mao.length === 1 && h.objs[h.jogs[0].zonas.mao[0]].n === 'Grizzly Bears', 'descartou a Forest e a Bears voltou para a mão');
 });
 
+caso('701.26a', "gatilho de virar: Dionus no seu turno desvira e ganha +1/+1 (uma vez por turno); Deeproot Pilgrimage uma vez pelo lote de Merfolk; entrar virado não conta", () => {
+  const e = cena({ campo: [[0, 'Dionus, Elvish Archdruid']] }); e.pend = [];
+  const d = e.objs[e.campo[0]];
+  M.virarObj(e, d); igual(e.pend.filter(p => p.n === d.n).length, 1, 'virou: dispara');
+  const f = cena({ campo: [[0, 'Deeproot Pilgrimage'], [0, 'Cold-Eyed Selkie'], [0, 'Cold-Eyed Selkie']] }); f.pend = [];
+  for (const id of f.campo.slice(1)) M.virarObj(f, f.objs[id]);
+  igual(f.pend.filter(p => p.n === 'Deeproot Pilgrimage').length, 1, 'um disparo pelos dois');
+  f.pend = []; f.por(0, 'Cold-Eyed Selkie', { virada: true }); igual(f.pend.filter(p => p.n === 'Deeproot Pilgrimage').length, 0, 'entrou virada: não');
+  for (const c of ['Dionus, Elvish Archdruid', 'Deeproot Pilgrimage']) ok(JSON.stringify(M.carta(c)).includes('"vira"'), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

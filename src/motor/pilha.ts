@@ -667,9 +667,9 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
 }
 function pagarFisico(e, j, o, c, esc) {
   const J = e.jogs[j];
-  if (c.virar) o.virada = true;
+  if (c.virar) M.virarObj(e, o);
   if (c.desvirar) M.desvirarObj(e, o);
-  for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
+  for (const id of esc.vir || []) M.virarObj(e, e.objs[id]);          // virarOutros
   if (c.vida) M.perderVida(e, j, c.vida);
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   for (const id of esc.sac) M.mover(e, id, 'cemiterio', { sac: true });            // CR 701.21
@@ -682,7 +682,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.devolver === 'este') M.mover(e, o.id, 'mao');              // Shigeki
 }
 function pagarMana(e, j, pl, custo, x, para?) {
-  if (pl.improv) { for (const id of pl.improv) e.objs[id].virada = true; custo = pl.custo; }   // improvisar (702.126a) e convocar (702.51a)
+  if (pl.improv) { for (const id of pl.improv) M.virarObj(e, e.objs[id]); custo = pl.custo; }   // improvisar (702.126a) e convocar (702.51a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(M.reservaCom(e, j, para), custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
