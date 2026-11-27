@@ -521,6 +521,10 @@
      "type": "boolean",
      "description": "carta do topo do grimório"
     },
+    "convocou": {
+     "type": "boolean",
+     "description": "criatura que convocou a mágica que resolve (\"each creature that convoked this spell\": Lethal Scheme, CR 702.51c)"
+    },
     "lembrada": {
      "type": "boolean",
      "description": "objeto lembrado pelo efeito"
@@ -2147,6 +2151,7 @@
       "agregar",
       "miriade",
       "mobilizar",
+      "aflicao",
       "eco",
       "bis",
       "prole",
@@ -2437,6 +2442,14 @@
      "$ref": "#/$defs/zona",
      "description": "zona de origem do objeto que mudou de zona"
     },
+    "naoPorEste": {
+     "type": "boolean",
+     "description": "entra: não vale para o que um efeito desta permanente pôs no campo (\"if it wasn't put onto the battlefield with this ability\": Kodama of the East Tree)"
+    },
+    "ouConjurada": {
+     "type": "boolean",
+     "description": "entra com de: vale também a que foi conjurada daquela zona (\"entered from a graveyard or was cast from a graveyard\": Kotis)"
+    },
     "naoDe": {
      "$ref": "#/$defs/zona",
      "description": "\"from anywhere other than …\""
@@ -2681,7 +2694,7 @@
     },
     "exilar": {
      "type": "integer",
-     "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
+     "description": "darFuga: exilar N outras do cemitério (Underworld Breach) · podeJogar: custo a mais de exilar N outras do cemitério (Kotis)"
     },
     "proibe": {
      "type": "array",

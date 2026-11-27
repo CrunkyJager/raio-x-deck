@@ -472,6 +472,7 @@ const custoBase = (e, j, o, opts) => opts.loucura ? custoLoucura(e, o) : opts.mi
 const permDe = (e, j, o) => (o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j ? permissoes(e, j).find(({ s, ctx }) => {
   if (s.de !== o.zona) return false;
   if (s.limite) { const F = e.objs[ctx.este]; if (F && F.pjUso && F.pjUso.t === e.turno.n && F.pjUso.ts === F.ts) return false; }
+  if (Number.isInteger(s.exilar) && e.jogs[j].zonas.cemiterio.filter(id => id !== o.id).length < s.exilar) return false;   // o custo a mais de exilar N outras
   try { return M.bate(e, o, s.afeta, ctx) && M.condicao(e, s.se, ctx); } catch (_) { return false; }
 }) : undefined;
 M.podeJogarDe = (e, j, o) => !!M.permJogar(e, j, o) || !!permDe(e, j, o);
@@ -918,6 +919,7 @@ function pagarFisico(e, j, o, c, esc) {
 }
 function pagarMana(e, j, pl, custo, x, para?, mag = false) {
   if (pl.improv) { for (const id of pl.improv) M.virarObj(e, e.objs[id]); custo = pl.custo; }   // improvisar (702.126a) e convocar (702.51a)
+  if (para && M.temKw(e, para, 'convocar')) para.convocou = (pl.improv || []).map(id => ({ id, ts: e.objs[id].ts }));   // "each creature that convoked this spell" (Lethal Scheme, 702.51c)
   if (pl.delve) { for (const id of pl.delve) M.mover(e, id, 'exilio'); custo = pl.custo; }       // delve (702.66a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const R0 = M.reservaCom(e, j, para), pg = M.pagarDaReserva(R0, custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
@@ -1007,15 +1009,16 @@ const PROC = {
     const fis = cad ? escolherCustoFisico(e, j, cad, null, o.id, ask) : { sac: [] as any[], desc: [] as any[], dev: [] as any[] };
     if (cad && cad.mana) custo = M.somaCusto(custo, cad.mana);
     const fisA = opc.alt !== undefined ? escolherCustoFisico(e, j, fisAlt(d, opc), null, o.id, ask) : null;   // alternativo físico (601.2f)                      // "ou pague {1}" (Thunderherd Migration): soma ao total (601.2f)
+    const pjU = !(porFlash(e, j, o) && !P.gratis) && !M.permJogar(e, j, o) ? permDe(e, j, o) : undefined;   // conjurada pela permissão de uma permanente (Kess, Kotis)
     const fuga = !porFlash(e, j, o) && !P.gratis && porFuga(e, j, o) ? fugaDe(e, j, o) : null;   // 702.138: as N outras do cemitério (601.2f)
-    const exFuga = fuga ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), fuga.exilar, { ctx: { o: 'exilar' } }) : [];
+    const exN = fuga ? fuga.exilar : pjU && pjU.s.exilar || 0;   // fuga (702.138) ou "by exiling three other cards from your graveyard in addition" (Kotis, 601.2f)
+    const exFuga = exN ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), exN, { ctx: { o: 'exilar' } }) : [];
     const descRetr = fuga && fuga.descTerreno ? ask(j, 'custo', terrasNaMao(e, j).map(id => ({ a: 'descartar', id })), { o: 'descartar' }).id : null;   // 702.81a
     const alvoIds = alvos.flatMap(l => (l || []).filter(a => a.o !== undefined).map(a => a.o));   // delve não exila os alvos
     const pl = plano(e, j, custo, x, [...fis.sac, ...(fisA ? [...fisA.sac, ...fisA.vir] : []), ...exFuga, ...alvoIds], o);   // CR 601.2g: mana antes de pagar
     e.proc = null;
     if (!pl) { o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(custo não fecha)'); return; }   // CR 727: volta atrás
     const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;
-    const pjU = !flash && !M.permJogar(e, j, o) ? permDe(e, j, o) : undefined;   // conjurada pela permissão de uma permanente (Kess)
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
     if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
     M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; if (pjU) { const F = e.objs[pjU.ctx.este]; if (pjU.s.limite && F) F.pjUso = { t: e.turno.n, ts: F.ts }; if (pjU.s.exilaAoSair) o.exPerm = true; } o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada

@@ -6891,6 +6891,59 @@ caso('702.81a', "Six (darRetrace se turno seu): permanente não-terreno do cemit
   e.turno.ativo = 1; ok(!M.porFuga(e, 0, b), 'no do oponente: não');
 });
 
+caso('603.4', "Kodama of the East Tree: entra outra permanente, põe da mão uma de VM menor ou igual (conta evento vm no filtro); a que ele pôs não dispara de novo (naoPorEste)", () => {
+  const e = cena({ campo: [...terras(2, 'Forest'), [0, 'Kodama of the East Tree']], mao: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Sol Ring']] }); e.pend = [];
+  M.avancar(e); conj(e, 'Grizzly Bears');
+  resolveCom(e, p => { const k = p.ops.findIndex(o => o.a === 'sim'); return k >= 0 ? k : p.ops.findIndex(o => o.id !== undefined && e.objs[o.id] && e.objs[o.id].n === 'Llanowar Elves'); });
+  ok(noCampo(e).includes('Llanowar Elves'), 'pôs o Elfo (VM 1 ≤ 2)');
+  ok(naZona(e, 0, 'mao').includes('Sol Ring'), 'o Elfo posto pelo Kodama não dispara: Sol Ring fica na mão');
+});
+
+caso('601.2f', "Kotis, Sibsig Champion: conjura criatura do cemitério exilando 3 OUTRAS de lá (com 2 não dá); conjurada do cemitério conta para os +1/+1 (ouConjurada)", () => {
+  for (const n of [2, 3]) {
+    const e = cena({ campo: [...terras(2, 'Forest'), [0, 'Kotis, Sibsig Champion']] }); e.pend = [];
+    e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
+    for (let i = 0; i < n; i++) e.por(0, 'Island', { zona: 'cemiterio' });
+    const pode = M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && e.objs[o.id].n === 'Grizzly Bears');
+    igual(pode, n === 3, n + ' outras no cemitério');
+    if (!pode) continue;
+    M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+    igual([noCampo(e).includes('Grizzly Bears'), naZona(e, 0, 'exilio').length, naZona(e, 0, 'cemiterio').length], [true, 3, 0], 'pagou exilando as 3');
+    igual(objN(e, 0, 'Kotis, Sibsig Champion').marc['+1/+1'] || 0, 2, 'dois marcadores');
+  }
+});
+
+caso('702.130a', "aflição 2 (Lazotep Sliver dá aos Slivers): o atacante bloqueado faz o defensor perder 2; sem bloqueio, só o dano", () => {
+  for (const nb of [0, 2]) {
+    const e = combate([[0, 'Lazotep Sliver'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']]);
+    const L = objN(e, 0, 'Lazotep Sliver');
+    ok(M.kwDe(e, L).some(k => k.k === 'aflicao' && k.n === 2), 'tem aflição 2');
+    ate(e, 'atacar'); atacaCom(e, L); fecha(e, 'atacar');
+    ate(e, 'bloquear');
+    if (nb) bloqueia(e, objN(e, 1, 'Grizzly Bears'), L);
+    fecha(e, 'bloquear'); ateFimCombate(e);
+    igual(e.jogs[1].vida, nb ? 38 : 36, nb ? 'bloqueada: perde 2' : 'sem bloqueio: 4 de dano');
+  }
+});
+
+caso('701.50a', "Lethal Scheme: destrói o alvo; cada criatura que convocou conive (compra, descarta; descartou não-terreno → +1/+1)", () => {
+  const e = cena({ campo: [...terras(2, 'Swamp'), [0, 'Grizzly Bears'], [0, 'Hill Giant'], [1, 'Gray Ogre']], mao: [[0, 'Lethal Scheme'], [0, 'Sol Ring'], [0, 'Forest']] }); e.pend = [];
+  M.avancar(e); conj(e, 'Lethal Scheme');
+  let desc = 0;
+  resolveCom(e, p => {
+    if (p.tipo === 'alvo' || p.tipo === 'alvos') return p.ops.findIndex(o => o.id !== undefined && e.objs[o.id] && e.objs[o.id].n === 'Gray Ogre');
+    if (p.tipo === 'descartar') { const n = desc++ === 0 ? 'Sol Ring' : 'Forest'; return p.ops.findIndex(o => o.id !== undefined && e.objs[o.id].n === n); }
+    return -1;
+  });
+  ok(!noCampo(e).includes('Gray Ogre'), 'destruiu');
+  const S = M.carta('Lethal Scheme');
+  igual(desc, 2, 'as duas conivem');
+  const m = ['Grizzly Bears', 'Hill Giant'].map(n => objN(e, 0, n).marc['+1/+1'] || 0).sort();
+  igual(m, [0, 1], 'só a que descartou não-terreno ganha +1/+1');
+  ok(naZona(e, 0, 'cemiterio').includes('Sol Ring') && naZona(e, 0, 'cemiterio').includes('Forest'), 'descartou as duas');
+  ok(!!S, 'carta');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
