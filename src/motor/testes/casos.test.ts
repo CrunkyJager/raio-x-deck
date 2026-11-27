@@ -3482,6 +3482,16 @@ caso('701.15', "regenerar: o escudo troca destruir e dano letal por virar + tira
   for (const c of ['Asceticism', 'Crypt Sliver', 'Goblin Chirurgeon', 'Zombie Master']) ok(JSON.stringify(M.carta(c)).includes('regenerar'), c);
 });
 
+caso('613.1d', "tiraTipo: deus de Theros não é criatura com devoção < 5 (Purphoros); com 5 é criatura de novo; perde o subtipo God junto", () => {
+  const e = cena({ campo: [[0, 'Purphoros, God of the Forge']] });
+  const p = e.objs[e.campo[0]];
+  ok(!M.temTipo(e, p, 'Creature') && M.temTipo(e, p, 'Enchantment'), 'devoção 1: só encantamento');
+  ok(!(M.dadoDe(e, p).sub || []).includes('God'), 'sem o subtipo de criatura');
+  e.por(0, 'Krenko, Mob Boss'); ok(!M.temTipo(e, p, 'Creature'), 'devoção 3: ainda não');
+  e.por(0, 'Krenko, Mob Boss'); ok(M.temTipo(e, p, 'Creature') && M.poder(e, p) === 6, 'devoção 5: criatura 6/5');
+  for (const c of ['Athreos, God of Passage', 'Iroas, God of Victory', 'Nylea, God of the Hunt']) ok(M.carta(c).est.filter(s => s.tiraTipo).every(s => M.estContOk(s)), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
