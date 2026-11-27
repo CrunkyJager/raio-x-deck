@@ -19,6 +19,7 @@ function estEste(e, o, modo, seNaoLe) {
     if (!s.se) return true;
     try { if (M.condicao(e, s.se, { voce: F.ctrl, este: F.id })) return true; } catch (_) { if (seNaoLe) return true; }
   }
+  if (modo === 'naoPodeAtacar') return M.tempDe(e, modo).some(({ s, t }) => !s.contra && M.tempAfeta(e, o, s, t));   // com contra: só não ataca aquele jogador (alvosDe)
   return M.tempNoObj(e, o, modo);                                                           // efeitoTemporario (Taunt from the Rampart, Bident)
 }
 // continua em combate? (CR 506.4: sai do campo ou muda de controle → sai do combate)
@@ -65,7 +66,7 @@ function podeAtacar(e, o, a) {
 function alvosAtaque(e, a) {
   const cobra = new Set<any>();
   for (const id of e.campo) { const o = e.objs[id]; if ((M.dadoDe(e, o).est || []).some(s => s.modo === 'ataqueCusta')) cobra.add(o.ctrl); }
-  const r: any[] = [], semAtaque = new Set(M.tempDe(e, 'naoPodeAtacar').filter(({ s }) => s.contra && s.contra.jog === 'voce').map(({ t }) => t.ctrl));   // "não podem atacar você" (efeito temporário)
+  const r: any[] = [], semAtaque = new Set(M.tempDe(e, 'naoPodeAtacar').filter(({ s, t }) => s.contra && s.contra.jog === 'voce' && !t.ids).map(({ t }) => t.ctrl));   // "não podem atacar você" (efeito temporário)
   for (const j of M.vivos(e)) {
     if (j === a || cobra.has(j)) continue;
     if (!semAtaque.has(j)) r.push({ jog: j });
@@ -105,23 +106,32 @@ M.PROC.atacar = (e, P, ask) => {
   // incitada (701.38b): ataca quem não a incitou, se puder (só sobra o incitador se não houver outro alvo)
   const alvosDe = id => {
     const inc = M.tempDe(e, 'incitado').filter(({ s, t }) => M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);
+    const nao = M.tempDe(e, 'naoPodeAtacar').filter(({ s, t }) => s.contra && t.ids && M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);   // "they can't attack you or planeswalkers you control" (Illusionist's Gambit)
+    if (nao.length) return alvos.filter(t => !nao.includes(defDe(e, t)));
     const v = votoDe(e.objs[id]); if (v.length) { const ok = alvos.filter(t => !v.includes(defDe(e, t))); return ok; }   // voto (Promise of Loyalty): não ataca aquele jogador nem os planeswalkers dele
     if (!inc.length) return alvos;
     const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
     return fora.length ? fora : alvos;
   };
+  // "só pode atacar sozinha" (506.5, 508.1c): declarada uma dessas, nenhuma outra; com outra declarada, ela não entra
+  const sozinha = id => estEste(e, e.objs[id], 'atacaSozinha', true);
   for (;;) {
-    const livres = aptos.filter(id => !decl[id]);
+    const ja = Object.keys(decl), soloJa = ja.some(id => sozinha(+id));
+    const livres = soloJa ? [] : aptos.filter(id => !decl[id]);
     // 508.1d: quem "ataca se puder" tem que atacar (qualquer alvo cumpre); só então dá para fechar
     const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false));
     const ops = devem.length ? [] : [{ a: 'pronto' }];
-    if (livres.length > 1) for (const t of alvos) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
-    for (const id of livres) for (const t of alvosDe(id)) ops.push({ a: 'atacar', id, ...t });
+    const juntas = livres.filter(id => !sozinha(id));
+    if (juntas.length > 1) for (const t of alvos) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
+    for (const id of livres) {
+      if (sozinha(id) && (ja.length || devem.some(x => x !== id))) continue;               // 508.1d: não troca requisito por restrição
+      for (const t of alvosDe(id)) ops.push({ a: 'atacar', id, ...t });
+    }
     if (!ops.length) break;
     const op = ask(a, 'atacar', ops, { declarados: Object.keys(decl).length });
     if (op.a === 'pronto') break;
     const t = op.jog !== undefined ? { jog: op.jog } : { o: op.o };
-    if (op.a === 'todos') { for (const id of livres) if (alvosDe(id).some(x => x.jog === t.jog && x.o === t.o)) decl[id] = t; } else decl[op.id] = t;
+    if (op.a === 'todos') { for (const id of juntas) if (alvosDe(id).some(x => x.jog === t.jog && x.o === t.o)) decl[id] = t; } else decl[op.id] = t;
     ask.etapa();
   }
   e.proc = null;
@@ -218,6 +228,10 @@ M.PROC.bloquear = (e, P, ask) => {
   const pares = cands.filter(id => bl[id] !== undefined).map(id => [id, bl[id]]);
   for (const [id, i] of pares) M.evento(e, { ev: 'bloqueia', id, atk: C.atk[i].id });   // 509.3
   for (const i of new Set<number>(pares.map(([, i]) => i as number))) if (!C.atk[i].bloqueado) M.evento(e, { ev: 'bloqueada', id: C.atk[i].id, j: C.atk[i].def });   // 509.3c: "becomes blocked", uma vez por atacante (aflição)
+  const bloqs = new Set<number>(pares.map(([, i]) => i as number));
+  for (const i of meus) if (!bloqs.has(i) && !C.atk[i].bloqueado && !C.atk[i].naoBloq) {   // 509.3g: "attacks and isn't blocked" (nenhum bloqueador declarado para ela)
+    C.atk[i].naoBloq = true; M.evento(e, { ev: 'naoBloqueada', id: C.atk[i].id, j: C.atk[i].def, ...(C.atk[i].alvo.jog !== undefined ? { jog: C.atk[i].alvo.jog } : {}) });
+  }
   for (const [id, i] of pares) { C.atk[i].bloq.push({ id, ts: e.objs[id].ts }); C.atk[i].bloqueado = true; }   // 509.1h
   C.bloqueou = C.bloqueou || {}; C.bloqueou[d] = true;
   if (pares.length) M.log(e, e.jogs[d].nome, 'bloqueia:', pares.map(([id, i]) => e.objs[id].n + '×' + e.objs[C.atk[i].id].n).join(', '));
@@ -258,7 +272,7 @@ M.PROC.dano = (e, P, ask) => {
   for (const r of C.atk) {
     if (!emCombate(e, r, a)) continue;
     const at = e.objs[r.id];
-    if (!causaAgora(e, at, C)) continue;
+    if (!causaAgora(e, at, C) || (C.semDano && C.semDano[r.id] === r.ts)) continue;   // "assigns no combat damage this combat" (Master of Cruelties)
     let q = M.poder(e, at); if (q <= 0) continue;
     const alvoDef = r.alvo.jog !== undefined ? (e.jogs[r.alvo.jog].saiu ? null : { jog: r.alvo.jog })
       : (e.objs[r.alvo.o] && e.objs[r.alvo.o].zona === 'campo' ? { o: r.alvo.o } : null);

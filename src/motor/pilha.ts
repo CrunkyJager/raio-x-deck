@@ -165,7 +165,7 @@ const alvosUsadosDe = (d, fx) => {
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
-M.CARTA_OK = new Set(['impostoPorAlvo']);
+M.CARTA_OK = new Set(['impostoPorAlvo', 'conjurarSo']);
 const CUSTO_OK = new Set(['mana', 'virar', 'exercer', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste', 'desvirarOutros', 'descartarF']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
@@ -523,6 +523,8 @@ M.loucuraDe = (e, o) => {
   return null;
 };
 const custoLoucura = (e, o) => M.loucuraDe(e, o);
+// restrição de quando conjurar (CR 601.3): passo do turno e/ou de quem é o turno
+const conjurarSoOk = (e, j, c) => (!c.passo || e.turno.passo === c.passo) && (!c.turno || (c.turno === 'seu') === (e.turno.ativo === j));
 function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const louc = !!opts.loucura && o.zona === 'exilio' && o.loucura && !!custoLoucura(e, o);
   const milag = !!opts.milagre && o.zona === 'mao' && !!M.milagreDe(e, o);   // milagre (702.94a): na resolução do gatilho, sem olhar a velocidade
@@ -531,6 +533,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   if (o.dono !== j && !agora && !M.permJogar(e, j, o)) return false;
   if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
   if (M.naoConjura(e, j)) return false;
+  if (d.conjurarSo && !conjurarSoOk(e, j, d.conjurarSo)) return false;   // "cast this spell only during …" (307.5, Illusionist's Gambit)
   if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o) || porPrevisao(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo') || M.lampejoDado(e, j, o);

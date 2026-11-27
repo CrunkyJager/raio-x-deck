@@ -6680,6 +6680,53 @@ caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste t
   ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
 });
 
+caso('508.1c', "Master of Cruelties: só pode atacar sozinha (506.5); atacou um jogador e não foi bloqueada (509.3g) → a vida dele vira 1 (119.5) e ela não causa dano de combate", () => {
+  const M0 = M.carta('Master of Cruelties'); ok(M0.gat.every(g => M.gatOk(g)), 'gatilho aceito');
+  {
+    const e = combate([[0, 'Master of Cruelties'], [0, 'Grizzly Bears']]);
+    ate(e, 'atacar');
+    const mc = objN(e, 0, 'Master of Cruelties'), g = objN(e, 0, 'Grizzly Bears');
+    ok(!opsDe(e, 'todos').length, 'sem o atalho de todas juntas');
+    atacaCom(e, g);
+    ok(!opsDe(e, 'atacar').some(o => o.id === mc.id), 'com o Urso declarado, a Master não entra');
+  }
+  for (const bloq of [false, true]) {
+    const e = combate([[0, 'Master of Cruelties'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']]);
+    ate(e, 'atacar');
+    const mc = objN(e, 0, 'Master of Cruelties');
+    atacaCom(e, mc);
+    ok(!opsDe(e, 'atacar').length, 'declarada a Master, mais nenhuma');
+    fecha(e, 'atacar');
+    ate(e, 'bloquear');
+    if (bloq) bloqueia(e, objN(e, 1, 'Llanowar Elves'), mc);
+    fecha(e, 'bloquear'); ateFimCombate(e);
+    if (bloq) { igual(e.jogs[1].vida, 40, 'bloqueada: nada'); ok(!objN(e, 1, 'Llanowar Elves'), 'o Elfo morreu'); }
+    else igual(e.jogs[1].vida, 1, 'não bloqueada: vida vira 1, sem os 1 de dano');
+  }
+});
+
+caso('506.4', "Illusionist's Gambit: só nos bloqueadores do turno de um oponente; tira os atacantes do combate e desvira; combate extra (500.8) em que atacam se puderem, mas não você (508.1d)", () => {
+  const e = cena({ jogs: 3, campo: [...terras(4, 'Island'), [1, 'Grizzly Bears'], [1, 'Hill Giant']], mao: [[0, "Illusionist's Gambit"]] });
+  const gb = e.objs[e.jogs[0].zonas.mao[0]], u = objN(e, 1, 'Grizzly Bears'), h = objN(e, 1, 'Hill Giant');
+  ok(!M.podeConjurar(e, 0, gb), 'no meu turno, não');
+  e.turno.ativo = 1; e.turno.passo = 'principal1'; e.turno.feito = true;
+  ate(e, 'atacar'); igual(e.perg.j, 1);
+  const noDano = x => x.turno.passo === 'dano';
+  atacaCom(e, u, { jog: 0 }); M.responder(e, e.perg.ops.findIndex(o => o.a === 'atacar' && o.id === h.id && o.jog === 0), noDano);   // a última: o núcleo fecha sozinho
+  let g = 0;   // sem bloqueador possível o núcleo fecha a declaração sozinho; passa até a minha prioridade nos bloqueadores
+  while (!(e.perg && e.perg.j === 0 && e.perg.tipo === 'acao' && e.turno.passo === 'bloqueadores')) { ok(e.perg && e.perg.tipo === 'acao' && !noDano(e) && ++g < 50, 'pergunta inesperada'); M.responder(e, e.perg.ops.findIndex(o => o.a === 'passar'), noDano); }
+  ok(M.podeConjurar(e, 0, gb), 'nos bloqueadores do oponente, sim');
+  respE(e, o => o.a === 'conjurar' && o.id === gb.id); resolveCom(e);
+  igual([e.turno.combate ? e.turno.combate.atk.length : 0, u.virada, h.virada], [0, false, false], 'fora do combate e desviradas');
+  igual(e.jogs[0].vida, 40, 'sem dano neste combate');
+  ate(e, 'atacar'); igual([e.perg.j, e.turno.n], [1, 2], 'combate extra no mesmo turno');
+  ok(!e.perg.ops.some(o => o.a === 'pronto'), 'tem que atacar');
+  ok(e.perg.ops.filter(o => o.a === 'atacar').every(o => o.jog === 2), 'só o outro jogador');
+  atacaCom(e, u, { jog: 2 }); if (e.perg && e.perg.tipo === 'atacar') atacaCom(e, h, { jog: 2 });   // a última opção o núcleo escolhe sozinho
+  ateFimCombate(e);
+  igual([e.jogs[0].vida, e.jogs[2].vida], [40, 35], 'o 3º jogador leva 5');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;
