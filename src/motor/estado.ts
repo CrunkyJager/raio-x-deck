@@ -68,6 +68,7 @@ const misto = (d, m) => {
   // trocaSub: "is a black Zombie" (Nim Deathmantle, 205.1b): os tipos de criatura viram só estes (os de outro tipo ficam)
   // tiraTipo (camada 4): "isn't a creature" (deuses de Theros com pouca devoção). Sem o tipo Criatura, perde os
   // subtipos de criatura (205.1b; fica o de Equipamento/Aura etc. que é de outro tipo) e o P/R
+  if (m.soSub) r.sub = [...(d.sub || []).filter(x => SUB_NAO_CRIATURA.has(x)), ...m.sub];   // "loses its other creature types" (205.1b; The Master, Transcendent)
   if (m.tiraTipo) { r.tipos = (r.tipos || []).filter(t => !m.tiraTipo.includes(t)); if (m.tiraTipo.includes('Creature')) { r.sub = (r.sub || []).filter(x => SUB_NAO_CRIATURA.has(x)); r.pt = undefined; } }
   if (m.super) r.super = un(d.super, m.super);
   const novas = (m.sub || []).filter(t => ATV_BASICA[t] && !(d.sub || []).includes(t));
@@ -297,8 +298,11 @@ function estJog(e, j, ok) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     for (const s of M.dadoDe(e, o).est || []) if (s.afeta === 'voce' && !s.se && ok(s)) return true;
   }
+  for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === j && o.ganhos && o.ganhos.est && o.ganhos.est.some(s => s.afeta === 'voce' && ok(s))) return true; }   // ganhas por efeito (modificar dura sempre)
   return false;
 }
+// "você não pode perder o jogo e seus oponentes não podem vencer" (Platinum Angel; CR 104.3b): as ABE e os efeitos não o tiram
+M.naoPerde = (e, j) => estJog(e, j, s => s.modo === 'naoPerdeJogo');
 // virar (CR 701.26a): dispara 'vira' ("whenever … becomes tapped": Dionus, Deeproot Pilgrimage). Entrar virado não é virar.
 M.virarObj = (e, o) => { if (!o || o.virada) return; o.virada = true; if (M.evento) M.evento(e, { ev: 'vira', id: o.id, ts: o.ts, j: o.ctrl }); };
 // desvirar um permanente (CR 701.26b): dispara 'desvira' ("whenever this becomes untapped", Key to the City)
@@ -966,7 +970,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['comX', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -974,6 +978,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   const d = M.dadoDe(e, o), voce = ctx.voce;
   if (f.este && o.id !== ctx.este) return false;
   if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
+  if (f.naoNome !== undefined && (o.n === f.naoNome || d.n === f.naoNome)) return false;   // "not named Tiamat"
   if (f.outro && o.id === ctx.este) return false;
   if (f.naoAlvo !== undefined && ((ctx.alvos || [])[f.naoAlvo] || []).some(x => x && x.o === o.id)) return false;   // "each other creature" = menos o alvo N (Chandra's Ignition)
   if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;

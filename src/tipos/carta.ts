@@ -327,6 +327,10 @@ export interface RxFiltro {
    * não é o objeto escolhido como alvo N desta mágica/habilidade ("each other creature" depois de mirar uma: Chandra's Ignition)
    */
   naoAlvo?: number;
+  /**
+   * não tem este nome ("not named Tiamat")
+   */
+  naoNome?: string;
 }
 
 export interface RxCompara {
@@ -340,7 +344,10 @@ export type RxZona = 'campo' | 'mao' | 'grimorio' | 'cemiterio' | 'exilio' | 'pi
 export interface RxAlvo {
   f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'magicaOuHab');
   min?: number;
-  max?: number | 'qualquer';
+  /**
+   * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman)
+   */
+  max?: number | 'qualquer' | RxQtd;
   /**
    * true = quem conjura divide; 'igual' = dividido igualmente, arredondado para baixo (Fireball)
    */
@@ -476,6 +483,10 @@ export interface RxCustoAtv {
         f?: RxFiltro;
         qtd?: number;
       };
+  /**
+   * pôr esta no fundo do grimório do dono como custo (Timestream Navigator)
+   */
+  fundoEste?: boolean;
 }
 
 export type RxDura =
@@ -737,7 +748,7 @@ export interface RxFx {
    */
   paraObj?: RxObjeto;
   /**
-   * descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment)
+   * descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Thassa's Oracle)
    */
   aleatorio?: boolean;
   /**
@@ -790,6 +801,18 @@ export interface RxFx {
    * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
    */
   trocaCor?: boolean;
+  /**
+   * descobrir: é a cascata (702.85a): qtd = valor de mana − 1 e a não conjurada vai ao fundo com as outras, em ordem aleatória (não vai à mão)
+   */
+  cascata?: boolean;
+  /**
+   * animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: "It's a green Mutant… loses its other creature types" — The Master, Transcendent)
+   */
+  soSub?: boolean;
+  /**
+   * buscar: as cartas pegas têm nomes diferentes entre si ("that each have different names": Tiamat)
+   */
+  nomesDiferentes?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -994,6 +1017,7 @@ export interface RxKw {
     | 'tripular'
     | 'fabricar'
     | 'posVida'
+    | 'cascata'
     | 'caminhadaTerreno'
     | 'armaduraUmbra'
     | 'corpo-a-corpo'
@@ -1038,6 +1062,10 @@ export interface RxKw {
   comMarc?: {
     [k: string]: number;
   };
+  /**
+   * chute com {X}: o X anunciado com chute é pelo menos isto ("X can't be 0": Thieving Skydiver)
+   */
+  xMin?: number;
 }
 
 export interface RxAtv {
@@ -1239,7 +1267,8 @@ export interface RxEst {
     | 'custoProibido'
     | 'naoGanhaVida'
     | 'equiparComoInstantanea'
-    | 'primeiroEquiparGratis';
+    | 'primeiroEquiparGratis'
+    | 'naoPerdeJogo';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1354,7 +1383,7 @@ export interface RxEst {
  */
 export interface RxSubst {
   /**
-   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda
+   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal)
    */
   ev:
     | 'entra'
@@ -1366,7 +1395,8 @@ export interface RxSubst {
     | 'compra'
     | 'anulada'
     | 'vidaMuda'
-    | 'ganhaVida';
+    | 'ganhaVida'
+    | 'moer';
   quem?: RxFiltro;
   muda?: {
     virada?: boolean;
@@ -1561,7 +1591,8 @@ export interface RxContagem {
     | 'dano'
     | 'nome'
     | 'tipos'
-    | 'tentacoes';
+    | 'tentacoes'
+    | 'cemiterio';
   /**
    * de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)
    */
@@ -1588,4 +1619,8 @@ export interface RxContagem {
   cond?: string;
   sim?: number;
   nao?: number;
+  /**
+   * de: jogadores, o: cemiterio — quantos jogadores têm pelo menos min cartas no cemitério (Master of Lake-town)
+   */
+  min?: number;
 }

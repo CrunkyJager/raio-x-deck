@@ -635,6 +635,10 @@
     "naoAlvo": {
      "type": "integer",
      "description": "não é o objeto escolhido como alvo N desta mágica/habilidade (\"each other creature\" depois de mirar uma: Chandra's Ignition)"
+    },
+    "naoNome": {
+     "type": "string",
+     "description": "não tem este nome (\"not named Tiamat\")"
     }
    }
   },
@@ -698,8 +702,16 @@
       },
       {
        "const": "qualquer"
+      },
+      {
+       "type": "object",
+       "required": [
+        "conta"
+       ],
+       "$ref": "#/$defs/qtd"
       }
-     ]
+     ],
+     "description": "N, 'qualquer' ou uma contagem (\"up to X targets\", X = as não-terreno moídas: The Wise Mothman)"
     },
     "dividir": {
      "oneOf": [
@@ -975,6 +987,10 @@
       }
      ],
      "description": "devolver à mão do dono como custo: 'este' (Shigeki) ou {f, qtd} uma permanente sua que bate no filtro (Master Transmuter, Mina and Denn)"
+    },
+    "fundoEste": {
+     "type": "boolean",
+     "description": "pôr esta no fundo do grimório do dono como custo (Timestream Navigator)"
     }
    }
   },
@@ -1443,7 +1459,7 @@
     },
     "aleatorio": {
      "type": "boolean",
-     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment)"
+     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Thassa's Oracle)"
     },
     "ficaNoTurno": {
      "type": "boolean",
@@ -1504,6 +1520,18 @@
     "trocaCor": {
      "type": "boolean",
      "description": "modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)"
+    },
+    "cascata": {
+     "type": "boolean",
+     "description": "descobrir: é a cascata (702.85a): qtd = valor de mana − 1 e a não conjurada vai ao fundo com as outras, em ordem aleatória (não vai à mão)"
+    },
+    "soSub": {
+     "type": "boolean",
+     "description": "animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: \"It's a green Mutant… loses its other creature types\" — The Master, Transcendent)"
+    },
+    "nomesDiferentes": {
+     "type": "boolean",
+     "description": "buscar: as cartas pegas têm nomes diferentes entre si (\"that each have different names\": Tiamat)"
     }
    },
    "additionalProperties": false,
@@ -1857,6 +1885,7 @@
       "tripular",
       "fabricar",
       "posVida",
+      "cascata",
       "caminhadaTerreno",
       "armaduraUmbra",
       "corpo-a-corpo",
@@ -1914,6 +1943,11 @@
       "type": "integer"
      },
      "description": "fuga: 'foge com' esses marcadores (702.138c)"
+    },
+    "xMin": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "chute com {X}: o X anunciado com chute é pelo menos isto (\"X can't be 0\": Thieving Skydiver)"
     }
    }
   },
@@ -2197,7 +2231,8 @@
       "custoProibido",
       "naoGanhaVida",
       "equiparComoInstantanea",
-      "primeiroEquiparGratis"
+      "primeiroEquiparGratis",
+      "naoPerdeJogo"
      ],
      "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
@@ -2407,9 +2442,10 @@
       "compra",
       "anulada",
       "vidaMuda",
-      "ganhaVida"
+      "ganhaVida",
+      "moer"
      ],
-     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda"
+     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal)"
     },
     "quem": {
      "$ref": "#/$defs/filtro"
@@ -2748,7 +2784,8 @@
       "dano",
       "nome",
       "tipos",
-      "tentacoes"
+      "tentacoes",
+      "cemiterio"
      ],
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
@@ -2789,6 +2826,10 @@
     },
     "nao": {
      "type": "integer"
+    },
+    "min": {
+     "type": "integer",
+     "description": "de: jogadores, o: cemiterio — quantos jogadores têm pelo menos min cartas no cemitério (Master of Lake-town)"
     }
    }
   }
