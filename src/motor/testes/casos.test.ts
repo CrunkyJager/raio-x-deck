@@ -4604,6 +4604,32 @@ caso('709.3', 'lista colada com "A // B" (carta de duas faces/portas): acha pelo
   ok(Object.values<any>(e.objs).some(o => o.n === 'Dazzling Theater'), 'virou Dazzling Theater');
 });
 
+caso('205.2a', "Demonic Counsel: sem delirium busca um Demônio; com 4+ tipos de card no cemitério (delirium) busca qualquer card", () => {
+  for (const tem of [false, true]) {
+    const e = cena({});
+    for (const n of ['Grizzly Bears', 'Lightning Bolt', 'Sol Ring', ...(tem ? ['Forest'] : [])]) e.por(0, n, { zona: 'cemiterio' });
+    e.por(0, 'Archfiend of Despair', { zona: 'grimorio' }); e.por(0, 'Counterspell', { zona: 'grimorio' });
+    const fx = M.carta('Demonic Counsel').fx;
+    ok(M.fxSuportado(fx), 'lido');
+    const quer = tem ? 'Counterspell' : 'Archfiend of Despair';
+    for (const x of fx) M.executar(e, x, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => ops.find(o => o.id !== undefined && e.objs[o.id] && e.objs[o.id].n === quer) || ops[0]);
+    igual(naZona(e, 0, 'mao'), [quer], tem ? 'com delirium' : 'sem delirium');
+  }
+});
+
+caso('603.2', "Omnath, Locus of Creation: terreno entra → 1ª vez no turno ganha 4, 2ª ganha RGWU, 3ª 4 de dano em cada oponente; 4ª nada", () => {
+  const e = cena({ campo: [[0, 'Omnath, Locus of Creation']], mao: [[0, 'Forest'], [0, 'Mountain'], [0, 'Plains'], [0, 'Island']] }); e.pend = [];
+  M.avancar(e);
+  const vida0 = [e.jogs[0].vida, e.jogs[1].vida];
+  for (const id of [...e.jogs[0].zonas.mao]) M.mover(e, id, 'campo');   // 4 terrenos ao mesmo tempo: 4 gatilhos (1ª a 4ª vez)
+  M.porGatilhos(e);
+  for (let g = 0; g < 40 && e.perg && (e.pilha.length || e.perg.tipo !== 'acao'); g++) {
+    const p = e.perg; M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p), x => !x.pilha.length);
+  }
+  const R = e.jogs[0].reserva;
+  igual([e.pilha.length, e.jogs[0].vida - vida0[0], e.jogs[1].vida - vida0[1], [R.R, R.G, R.W, R.U]], [0, 4, -4, [1, 1, 1, 1]], 'uma vez cada efeito');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
