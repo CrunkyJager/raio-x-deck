@@ -361,6 +361,7 @@ function painelVivo() {
         <input type="checkbox" id="v-novo" ${motorNovo() ? 'checked' : ''}> Motor novo <small>(beta)</small></label>
       <button class="btn" id="v-sort">Sortear oponentes</button>
       <button class="btn" id="v-eu" title="Você decide mulligan, terreno, o que lançar, ataques, bloqueios e descartes; o resto o motor faz por você">${JG ? 'Recomeçar jogando' : 'Jogar você mesmo'}</button>
+      <button class="btn" id="v-x1" title="X1 contra um amigo, cada um no seu PC: cria um link de sala para mandar a ele">${new URLSearchParams(location.search).get('sala') ? 'Entrar na sala do amigo' : 'Jogar com amigo'}</button>
       <button class="btn primary" id="v-go">${JOGO ? 'Jogar outra partida' : 'Jogar uma partida'}</button>
     </div>
   </section>
@@ -373,6 +374,7 @@ function painelVivo() {
   const vt = $('#v-tro'); if (vt) vt.onchange = () => store.set('vivoTrocas', vt.value);
   $('#v-go').onclick = () => { JG = null; jogaPartida(); };
   $('#v-eu').onclick = jogaEu;
+  { const b = $('#v-x1'); if (b) b.onclick = () => { const sala = new URLSearchParams(location.search).get('sala'); sala ? x1Entrar(sala) : x1Criar(); }; }
   if (JG) { avancaEu(); return; }
   if (JOGO) { ligaControles(); vaiPara(PASSO); }
   if (window.RAIOX_VIVO_JA) { window.RAIOX_VIVO_JA = false; setTimeout(() => { const g = $('#v-go'); if (g && !g.disabled) g.click(); }, 60); }
@@ -403,7 +405,7 @@ let JG = null;
 let X1EU = 0;                                                         // T47: o lugar desta tela no X1 (o convidado é o 1); fora do X1, 0
 const MEU_LUGAR = () => (JG && JG.eu !== undefined ? JG.eu : X1EU);
 async function jogaEu() {
-  await pronto; parar(); JOGO = null;
+  await pronto; parar(); JOGO = null; X1EU = 0; X1 = null;
   const ops = listaOps(); const ids = $$('[data-vop]').map(x => x.value); store.set('vivoOps', ids);
   const Ops = ids.map(id => opDe(ops.find(o => o.id === id)));
   NOMES = [meuCmd(), ...ids.map(id => ops.find(o => o.id === id).nome)];
@@ -430,6 +432,9 @@ async function avancaEu() {
     if (q.nq) JG.visto = q.nq;
     if (ps.length) { JG.resumo = ps.map(p => p.ev); await mostraPassos(ps); }
     if (!JG || JG.q !== q) return;
+    if (JG.rede && q.j !== JG.eu) {                                   // T47: a pergunta é do amigo; espera a escolha dele chegar
+      JG.q = null; $('#v-mesa').innerHTML = `<div class="verdict">Vez de ${esc(NOMES[q.j] || 'seu amigo')}… esperando a escolha dele.</div>` + mesaEuHTML(q.quadro, { q: null }); return;
+    }
     desenhaEu(); rolaMesa(); JG.antes = contaPerm(q.quadro); return;
   }
   // acabou: vira a Mesa ao vivo normal, para rever a partida inteira lance a lance
@@ -465,10 +470,62 @@ function resumoHTML() { const R0 = (JG.resumo || []).filter(e => e.tp !== 'turno
   if (!R.length) return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span><ul>${semTipo}</ul></div>`;
   const por = new Map(); R.forEach(e => { if (!por.has(e.k)) por.set(e.k, []); por.get(e.k).push(e); });
   return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span>${[...por].map(([k, es]) => `<div><b>${esc(k === MEU_LUGAR() ? 'Você' : NOMES[k] || '')}</b><ul>${es.map(e => `<li><span class="vt ${esc(e.tp)}">${TP[e.tp] || '•'}</span>${esc(e.txt)}</li>`).join('')}</ul></div>`).join('')}</div>`; }
+// ---------- T47: X1 com amigo, cada um no seu PC ----------
+// Lockstep: os dois navegadores rodam o mesmo motor (mesma semente, mesmos decks, humanos nos lugares 0 e 1) e só
+// trocam a lista de escolhas (ferramentas/mesa-nova.mjs --x1 confere que dá o mesmo jogo). Sala por PeerJS (WebRTC,
+// sem conta; o servidor público deles só apresenta os dois navegadores). Anfitrião = lugar 0, convidado = lugar 1.
+const PEERJS = 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/+esm';
+let X1 = null;
+const x1Peer = async () => { const m = await import(/* @vite-ignore */ PEERJS); return new m.Peer(); };
+const x1Aviso = (txt, mau) => { const box = $('#v-mesa'); if (box) box.innerHTML = `<div class="verdict ${mau ? 'v-bad' : ''}">${txt}</div>`; };
+async function x1Criar() {
+  await pronto; parar(); JOGO = null; JG = null; X1EU = 0;
+  if (!meuCmd()) { x1Aviso('Cole o seu deck na aba Lista antes de criar a sala.', 1); return; }
+  x1Aviso('Criando a sala…');
+  let peer; try { peer = await x1Peer(); } catch (er) { x1Aviso('Não deu para carregar a conexão (PeerJS): ' + esc(String(er.message || er)), 1); return; }
+  X1 = { peer, eu: 0 };
+  peer.on('open', id => {
+    const url = location.origin + location.pathname + '?sala=' + id;
+    x1Aviso(`Sala criada. Mande este link para o seu amigo (ele abre, cola o deck dele e clica em <b>Entrar na sala do amigo</b>):<br><input readonly value="${esc(url)}" style="width:100%" onclick="this.select()"> <button class="btn" id="x1-cp">Copiar link</button><br>Esperando ele entrar…`);
+    const b = $('#x1-cp'); if (b) b.onclick = () => { try { navigator.clipboard.writeText(url); b.textContent = 'Copiado'; } catch (_) {} };
+  });
+  peer.on('connection', c => { X1.c = c; c.on('data', x1Recebe); c.on('close', () => x1Aviso('O amigo saiu da sala.', 1)); });
+  peer.on('error', er => x1Aviso('A sala falhou: ' + esc(String(er.type || er)), 1));
+}
+async function x1Entrar(id) {
+  await pronto; parar(); JOGO = null; JG = null; X1EU = 1;
+  if (!meuCmd()) { x1Aviso('Cole o seu deck na aba Lista e depois clique em Entrar na sala do amigo.', 1); return; }
+  x1Aviso('Entrando na sala…');
+  let peer; try { peer = await x1Peer(); } catch (er) { x1Aviso('Não deu para carregar a conexão (PeerJS): ' + esc(String(er.message || er)), 1); return; }
+  X1 = { peer, eu: 1 };
+  peer.on('open', () => {
+    const c = peer.connect(id, { reliable: true }); X1.c = c;
+    c.on('open', () => { c.send({ tp: 'deck', Dv: deckVivo(), nome: meuCmd() }); x1Aviso('Na sala. Esperando o anfitrião começar…'); });
+    c.on('data', x1Recebe); c.on('close', () => x1Aviso('O anfitrião fechou a sala.', 1));
+  });
+  peer.on('error', er => x1Aviso('Não deu para entrar na sala: ' + esc(String(er.type || er)), 1));
+}
+function x1Recebe(d) {
+  if (!X1 || !d) return;
+  if (d.tp === 'deck' && X1.eu === 0) {
+    const msg = { Dv: deckVivo(), Ops: [d.Dv], seed: (Math.random() * 4294967296) >>> 0, T: 20, vida: +store.get('vivoVida', 40), nomes: [meuCmd(), d.nome || 'Amigo'], ks: [0, 1] };
+    X1.c.send({ tp: 'inicio', msg }); x1Comeca(msg, 0);
+  } else if (d.tp === 'inicio' && X1.eu === 1) x1Comeca(d.msg, 1);
+  else if (d.tp === 'esc' && JG && JG.rede && d.n === JG.esc.length) { JG.esc.push(d.v); avancaEu(); }
+}
+async function x1Comeca(msg, eu) {
+  NOMES = msg.nomes.slice(); JOGO_TROCAS = 0;
+  const Ds = [msg.Dv, ...msg.Ops], Ms = Ds.map(D => D.M);
+  const cmdNome = Ms.map((M, k) => (Ds[k].cmd ? (M[Ds[k].cmd.i].frente || M[Ds[k].cmd.i].nome) : ''));
+  JG = { msg, esc: [], Ms, cmdNome, q: null, visto: 0, sel: new Set(), alvo: null, eu, rede: true };
+  x1Aviso('Buscando as cartas…');
+  await Promise.race([buscaImagens(Ms.flatMap(M => M.map(m => m.nome))), new Promise(r => setTimeout(r, 6000))]);
+  avancaEu();
+}
 function desenhaEu() { $('#v-mesa').innerHTML = mesaEuHTML(JG.q.quadro, { q: JG.q }); ligaMesaEu(); }
 // no começo da partida a mesa rola para a tela inteira, longe do cabeçalho
 function rolaMesa() { const m = $('.ja'); if (m && !JG.rolou) { JG.rolou = true; const nav = document.querySelector('nav, .tabs'), h = nav ? nav.getBoundingClientRect().height : 0; window.scrollTo({ top: m.getBoundingClientRect().top + scrollY - h - 16, behavior: 'smooth' }); } }
-function responde(v) { if (!JG) return; JG.esc.push(v); JG.q = null; $$('.ja button').forEach(b => b.disabled = true); avancaEu(); }
+function responde(v) { if (!JG) return; JG.esc.push(v); if (JG.rede && X1 && X1.c) X1.c.send({ tp: 'esc', v, n: JG.esc.length - 1 }); JG.q = null; $$('.ja button').forEach(b => b.disabled = true); avancaEu(); }
 
 const PERG = {
   mulligan: (q) => `Sua mão inicial${q.nm ? ` (depois de ${q.nm} mulligan${q.nm > 1 ? 's' : ''})` : ''}. Fica com ela?`,
