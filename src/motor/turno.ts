@@ -89,12 +89,6 @@ function passoMulligan(e) {
     e.perg = { j, tipo: 'fundo', ops: e.jogs[j].zonas.mao.map(id => ({ a: 'fundo', id })) };
     return;
   }
-  // CR 103.6: "if this card is in your opening hand, you may begin the game with it on the battlefield" (Leylines), na ordem
-  // do turno a partir do primeiro (103.6a). O "may" é sempre sim: pôr de graça no campo antes do 1º turno não tem lado ruim
-  for (let i = 0; i < n; i++) {
-    const j = (e.turno.primeiro + i) % n;
-    for (const id of e.jogs[j].zonas.mao.slice()) if (M.temKw(e, e.objs[id], 'comecaNoCampo')) { M.aplicarEntrada(e, { id, ctrl: j }); M.log(e, e.jogs[j].nome, 'começa com', e.objs[id].n, 'no campo (103.6)'); }
-  }
   e.mull = null;
   // CR 103.6a (Leylines): "se esta carta estiver na sua mão inicial, você pode começar o jogo com ela no campo" —
   // na ordem do turno, depois dos mulligans. Simplificação: sempre começa (é o que todo mundo faz).
@@ -126,7 +120,10 @@ function acaoDoTurno(e) {
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
-      if (!(T.n === 1 && e.jogs.length === 2)) M.comprar(e, a, 1);
+      if (!(T.n === 1 && e.jogs.length === 2)) {
+        if (M.temDragar(e, a)) M.iniciarProc(e, { tp: 'compra', j: a, qtd: 1 });   // dragar (702.52a): pergunta antes de comprar
+        else M.comprar(e, a, 1);
+      }
       break;
     case 'limpeza': {                                               // CR 514.1 descarte até o máximo
       const sobra = J.zonas.mao.length - maoMax(e, a);
@@ -220,6 +217,8 @@ M.PROC.terreno = (e, P, ask) => {
   M.evento(e, { ev: 'jogaTerreno', id: o.id, j, de });            // CR 305.1: "jogar um terreno" (de: de onde; Shadow of the Goblin)
   M.agiu(e, j);                                                     // CR 117.3c
 };
+// etapa de compra com carta de dragar no cemitério: a compra é processo (todas as perguntas antes de mexer)
+M.PROC.compra = (e, P, ask) => M.comprar(e, P.j, P.qtd, { ask, antes: () => { e.proc = null; } });
 const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });
 M.jogarTerreno = jogarTerreno;
 
@@ -317,7 +316,12 @@ M.abe = e => {
       const d = M.dadoDe(e, o), nm = o.clone ? d.n || o.n : o.n;      // o clone tem o nome copiado (707.2)
       if ((d.super || []).includes('Legendary')) (lend[o.ctrl + '|' + nm] = lend[o.ctrl + '|' + nm] || []).push(id);
     }
-    const dup = Object.values<any>(lend).find(l => l.length > 1);
+    let dup = Object.values<any>(lend).find(l => l.length > 1);
+    if (dup) {                                                        // "the legend rule doesn't apply to Slivers you control" (Sliver Gravemother): tira os isentos
+      const isento = id => { const o = e.objs[id]; return M.indiceCampo(e).est.some(fid => { const F = e.objs[fid];
+        return F.ctrl === o.ctrl && (M.dadoDe(e, F).est || []).some(s => s.modo === 'semRegraLenda' && s.afeta && M.bate(e, o, { ...s.afeta, zona: 'campo' }, { voce: F.ctrl, este: F.id })); }); };
+      dup = Object.values<any>(lend).map(l => l.filter(id => !isento(id))).find(l => l.length > 1);
+    }
     if (dup) { e.perg = { j: e.objs[dup[0]].ctrl, tipo: 'lenda', ops: dup.map(id => ({ a: 'fica', id })), ctx: { ids: dup } }; return; }
     // comandante no cemitério/exílio desde a última checagem (CR 903.9a): o dono pode mandar ao comando
     while (e.abeNovo.length) {

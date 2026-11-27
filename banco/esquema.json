@@ -390,8 +390,15 @@
      "description": "a própria carta"
     },
     "outro": {
-     "type": "boolean",
-     "description": "exceto a própria carta"
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "doEvento"
+      }
+     ],
+     "description": "exceto a própria carta; 'doEvento' = exceto o objeto do evento (\"each other attacking creature\" que compartilha tipo com ela, Shared Animosity)"
     },
     "tipo": {
      "type": "array",
@@ -521,6 +528,10 @@
      "type": "boolean",
      "description": "carta do topo do grimório"
     },
+    "convocou": {
+     "type": "boolean",
+     "description": "criatura que convocou a mágica que resolve (\"each creature that convoked this spell\": Lethal Scheme, CR 702.51c)"
+    },
     "lembrada": {
      "type": "boolean",
      "description": "objeto lembrado pelo efeito"
@@ -610,6 +621,10 @@
      ],
      "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
+    "maiorPoder": {
+     "type": "boolean",
+     "description": "criatura com poder MAIOR que o de cada outra criatura no campo (estritamente; Selvala, Heart of the Wilds)"
+    },
     "poderAcimaBase": {
      "type": "boolean",
      "description": "poder maior que o poder base"
@@ -694,6 +709,17 @@
     "soMiraEste": {
      "const": true,
      "description": "mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um (\"a spell that targets only Zada\")"
+    },
+    "manaGasta": {
+     "$ref": "#/$defs/compara",
+     "description": "mana gasta para conjurar esta mágica (na pilha): \"if no mana was spent to cast it\" = {max:0} (Boromir, Warden of the Tower)"
+    },
+    "semKw": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "não tem nenhuma destas palavras-chave (\"if it didn't have decayed\": Wilhelt)"
     }
    }
   },
@@ -821,6 +847,10 @@
      ],
      "description": "o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)"
     },
+    "ou": {
+     "$ref": "#/$defs/filtro",
+     "description": "o alvo pode bater este outro filtro em vez do f (Sink into Stupor: magia de oponente na pilha OU permanente não-terreno dele)"
+    },
     "ouZona": {
      "$ref": "#/$defs/zona",
      "description": "o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)"
@@ -877,7 +907,6 @@
       "anterior",
       "cadaAtual",
       "descartadaCusto",
-      "convocaram",
       "sacrificada",
       "danificado"
      ]
@@ -1137,6 +1166,7 @@
       "copiarMagica",
       "trocarAlvos",
       "duasPilhas",
+      "limitarBloqueio",
       "dano",
       "destruir",
       "sacrificar",
@@ -1152,6 +1182,7 @@
       "animar",
       "ganharControle",
       "anexar",
+      "desanexar",
       "fasear",
       "transformar",
       "efeitoTemporario",
@@ -1173,7 +1204,6 @@
       "moverMarcador",
       "tentarAnel",
       "explorar",
-      "conivir",
       "amassar",
       "popular",
       "incitar",
@@ -1219,7 +1249,7 @@
      }
     },
     "prod": {
-     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)",
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); 'doTerreno' (gatilho viraParaMana) = um tipo que aquele terreno produziu (Mirari's Wake); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)",
      "oneOf": [
       {
        "type": "object",
@@ -1240,7 +1270,8 @@
         "refletida",
         "escolhida",
         "deSeusTerrenos",
-        "cadaCorSuas"
+        "cadaCorSuas",
+        "doTerreno"
        ]
       },
       {
@@ -1648,6 +1679,10 @@
      "$ref": "#/$defs/objeto",
      "description": "copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
     },
+    "presaA": {
+     "$ref": "#/$defs/filtro",
+     "description": "op desanexar sem em: solta um anexo (f, padrão Equipamento) de uma permanente que bate neste filtro; quem faz escolhe ao resolver (Akiri). Depois, em anterior = de quem soltou (CR 701.3d)"
+    },
     "noDe": {
      "$ref": "#/$defs/objeto",
      "description": "op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)"
@@ -1717,6 +1752,10 @@
     "cadaOutroAlvo": {
      "const": true,
      "description": "copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)"
+    },
+    "bloqueando": {
+     "type": "boolean",
+     "description": "ficha: entra bloqueando o atacante do evento 'bloqueia' (Brimaz: \"that's blocking that creature\")"
     }
    },
    "additionalProperties": false,
@@ -1789,6 +1828,20 @@
       "criadas",
       "este"
      ]
+    },
+    "maisTipos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "com copiaDe: tipos de carta além dos da cópia (707.9b: \"a 1/1 Soldier creature in addition to its other types\")"
+    },
+    "maisSub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "com copiaDe: subtipos além dos da cópia (707.9b)"
     },
     "naoLendaria": {
      "type": "boolean",
@@ -1969,6 +2022,10 @@
      "type": "boolean",
      "description": "é a primeira fase de combate do turno (Genji Glove, Karlach)"
     },
+    "emCombate": {
+     "type": "boolean",
+     "description": "é a fase de combate, de qualquer jogador (Marisi: 'can't cast spells during combat')"
+    },
     "fasePrincipal": {
      "type": "boolean",
      "description": "é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno"
@@ -2051,7 +2108,6 @@
       "manto",
       "metamorfo",
       "defensor",
-      "comecaNoCampo",
       "equipar",
       "encantar",
       "ciclar",
@@ -2066,6 +2122,7 @@
       "milagre",
       "reconfigurar",
       "entraPreparada",
+      "segundoDividido",
       "ninjutsu",
       "prever",
       "rondar",
@@ -2092,6 +2149,8 @@
       "rondar",
       "evoluir",
       "persistir",
+      "imortal",
+      "segundoDividido",
       "desaparecer",
       "rebote",
       "dobra",
@@ -2099,6 +2158,7 @@
       "agregar",
       "miriade",
       "mobilizar",
+      "aflicao",
       "eco",
       "bis",
       "prole",
@@ -2116,7 +2176,8 @@
       "fuga",
       "prototipo",
       "comecaNoCampo",
-      "converter"
+      "converter",
+      "dragar"
      ],
      "description": "replicar {custo}: custo adicional pago N vezes ao conjurar; ao conjurar, copia N vezes (CR 702.56); comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -2134,7 +2195,8 @@
      "type": "string"
     },
     "n": {
-     "type": "integer"
+     "type": "integer",
+     "description": "dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b)"
     },
     "de": {
      "type": "string",
@@ -2253,7 +2315,6 @@
       "alvoDe",
       "vira",
       "ficaMonstruosa",
-      "ficaBloqueada",
       "zonaVarios",
       "capitulo",
       "saiCemiterio",
@@ -2269,7 +2330,8 @@
       "monstruosa",
       "portador",
       "ativa",
-      "gasta"
+      "gasta",
+      "danoPrevenido"
      ],
      "description": "portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)"
     },
@@ -2389,6 +2451,14 @@
      "$ref": "#/$defs/zona",
      "description": "zona de origem do objeto que mudou de zona"
     },
+    "naoPorEste": {
+     "type": "boolean",
+     "description": "entra: não vale para o que um efeito desta permanente pôs no campo (\"if it wasn't put onto the battlefield with this ability\": Kodama of the East Tree)"
+    },
+    "ouConjurada": {
+     "type": "boolean",
+     "description": "entra com de: vale também a que foi conjurada daquela zona (\"entered from a graveyard or was cast from a graveyard\": Kotis)"
+    },
     "naoDe": {
      "$ref": "#/$defs/zona",
      "description": "\"from anywhere other than …\""
@@ -2440,6 +2510,7 @@
       "desviraNoTurnoDeOutro",
       "vidaNaoMuda",
       "naoPerdeJogo",
+      "maxAtacantes",
       "protecaoJogador",
       "ptDefinido",
       "danoNaoPrevenivel",
@@ -2447,11 +2518,14 @@
       "podeOlhar",
       "dobraGatilho",
       "ataqueCusta",
+      "bloqueioCusta",
       "naoPodeAtivar",
       "ganhaAtivadas",
       "deveBloquear",
       "darFuga",
       "darRetrace",
+      "darBis",
+      "semRegraLenda",
       "darLoucura",
       "oponentesNaoProcuram",
       "custoProibido",
@@ -2518,7 +2592,7 @@
     },
     "custo": {
      "$ref": "#/$defs/mana",
-     "description": "ataqueCusta: quanto paga por criatura atacante (+ qtd se for {X})"
+     "description": "ataqueCusta/bloqueioCusta: quanto o controlador paga por criatura atacante/bloqueadora (vezes qtd, se houver: Sphere of Safety). Pago ao fechar a declaração (CR 508.1d/h, 509.1d/f); quem não paga não ataca/bloqueia"
     },
     "se": {
      "$ref": "#/$defs/cond"
@@ -2630,7 +2704,7 @@
     },
     "exilar": {
      "type": "integer",
-     "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
+     "description": "darFuga: exilar N outras do cemitério (Underworld Breach) · podeJogar: custo a mais de exilar N outras do cemitério (Kotis)"
     },
     "proibe": {
      "type": "array",
@@ -2719,6 +2793,10 @@
       },
       "para": {
        "$ref": "#/$defs/zona"
+      },
+      "vidaMin": {
+       "const": 1,
+       "description": "dano (jog voce): o dano que deixaria sua vida abaixo de 1 a deixa em 1 (Serra the Benevolent, Worship)"
       },
       "prevenir": {
        "type": "boolean"
@@ -3049,7 +3127,7 @@
       "excesso",
       "aoCemiterio"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room) | o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); manaGasta (de evento conjura): a mana gasta para conjurar (Liberator); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
     "f": {
      "$ref": "#/$defs/filtro",

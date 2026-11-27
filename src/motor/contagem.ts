@@ -5,7 +5,7 @@
 //           | 'voce' | 'oponentes' | 'jogadores' | 'turno' | 'combate' | 'X' | 'resultado' | 'se' | 'escolhido'
 //   o     = O QUE se lê: 'quantos' | 'poder' | 'resist' | 'vm' | 'cores' | 'marcadores' (marc = tipo) | 'vida' | 'mao'
 //           | 'grimorio' | 'devocao' (cores) | 'magias' | 'descartes' | 'ataques' | 'atacantes' | 'atacantesEmVoce' | 'dano'
-//           | 'manaGasta' (de 'evento': mana gasta para conjurar a mágica) | 'tipos' (tipos de card, com junta 'diferentes': delirium) | 'resolucoesDestaHab' (de 'turno': Omnath)
+//           | 'tipos' (tipos de card, com junta 'diferentes': delirium) | 'resolucoesDestaHab' (de 'turno': Omnath)
 //           | 'poderAcimaDeste' (de {alvo:N}: quanto o poder do alvo passa o deste, 0 se não passa: Conformer Shuriken) …
 //   junta = como junta vários: 'soma' | 'maior' | 'diferentes' | 'maiorPorDono' (sem junta = quantos / o valor do único)
 // Os nomes velhos continuam entrando por traduzQtd() (o cartas-rx.js de reserva, até a T45, usa os nomes velhos);
@@ -46,7 +46,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'atacado': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : o === 'vida' && chaves(c, []);   // o jogador defensor (Nightkin Ambusher: rad; Preacher: vida)
     case 'oponentes': return o === 'quantos' && chaves(c, []);
-    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' ? chaves(c, ['min']) && Number.isInteger(c.min)   // "each graveyard with seven or more cards" (Master of Lake-town)
+    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'marcadores' ? chaves(c, ['marc', 'junta']) && typeof c.marc === 'string' && !!c.marc && c.junta === 'soma' : o === 'cemiterio' ? chaves(c, ['min']) && Number.isInteger(c.min)   // "each graveyard with seven or more cards" (Master of Lake-town)
       : o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return (o === 'quantos' && (j === undefined || j === 'maiorPorDono') || (o === 'vm' && j === 'soma')) && chaves(c, ['junta']);
@@ -71,7 +71,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || c.o === 'manaGasta' || (c.o === 'marcadores' && !!c.marc))) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -109,6 +109,7 @@ M.contar = (e, c, ctx: any = {}) => {
       const este = !L ? ob : ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : L.este;
       if (!este) return 0;
       if (o === 'marcadores') return c.marc ? este.marc[c.marc] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0);
+      if (!L && (o === 'poder' || o === 'resist')) return o === 'poder' ? M.poder(e, ob) : M.resistencia(e, ob);   // fora da resolução (condição do gatilho): o de agora
       return este[o];
     }
     case 'voce':
@@ -143,12 +144,14 @@ M.contar = (e, c, ctx: any = {}) => {
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);   // oponentesAtacados: corpo-a-corpo (702.121a)
     case 'atacado': {                                                       // o jogador defensor: do evento (ataca) ou de quem bloqueia (combate.ts)
-      const D = ctx.ev && ctx.ev.def !== undefined ? e.jogs[ctx.ev.def] : null; if (!D) return 0;
+      const dj = ctx.ev ? ctx.ev.def ?? (ctx.ev.ev === 'dano' ? ctx.ev.jog : undefined) : undefined;   // no dano a jogador: quem levou (Vexing Radgull: "that player")
+      const D = dj !== undefined ? e.jogs[dj] : null; if (!D) return 0;
       if (o === 'vida') return D.vida;
       return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
     }
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
-    case 'jogadores': return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
+    case 'jogadores': if (o === 'marcadores') return M.vivos(e).reduce((t, jj) => { const J = e.jogs[jj]; return t + (c.marc === 'poison' ? J.veneno || 0 : (J.marc || {})[c.marc] || 0); }, 0);   // "the total number of rad counters among players" (Vault 12)
+      return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
     case 'X': return ctx.x || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {
@@ -164,14 +167,14 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'quantos') return vidaEv(ev) ? ev.q || 0 : ev.n ?? 1;        // no evento de vida: "that much" (Exquisite Blood)
       if (o === 'vida') return vidaEv(ev) ? ev.q || 0 : 0;                    // "that much life" (Sanguine Bond)
       if (o === 'jogadores') return ev.jogs ? ev.jogs.length : ev.jog !== undefined ? 1 : 0;   // danoUmaVez: os jogadores feridos na etapa (Hordewing Skaab)
-      if (o === 'dano') return ev.ev === 'dano' ? ev.q || 0 : 0;              // "that much damage"
+      if (o === 'dano') return ev.ev === 'dano' || ev.ev === 'danoPrevenido' ? ev.q || 0 : 0;   // danoPrevenido: "that many" (Selfless Squire)              // "that much damage"
       const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo, JJ = jj !== undefined ? e.jogs[jj] : undefined;   // o jogador do evento
       if (o === 'marcadores' && c.marc) return !JJ ? 0 : c.marc === 'poison' ? JJ.veneno || 0 : (JJ.marc || {})[c.marc] || 0;   // "if they don't have any rad counters" (Vexing Radgull, 122.1)
-      if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;   // "that many" (Shalai and Hallar)
+      if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;
+      if (o === 'manaGasta') return ev.ev === 'conjura' ? (e.objs[ev.id] || {}).manaGasta || 0 : 0;   // "the amount of mana spent to cast that spell" (Liberator): o pagarMana grava na mágica (paga depois do evento, 601.2h)   // "that many" (Shalai and Hallar)
       if (o === 'poder' && c.junta === 'soma') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
       if (o === 'mao') return JJ ? JJ.zonas.mao.length : 0;   // "if that player has four or more cards in hand" (Fevered Visions)
       const ob = e.objs[ev.id];
-      if (o === 'manaGasta') return ob && ob.manaGasta || 0;   // "the amount of mana spent to cast that spell" (Liberator; 601.2h, guardado no pagarMana)
       if (o === 'poder') return !ob ? 0 : ob.zona === 'campo' || !ev.snap ? M.poder(e, ob) : M.poder(e, ev.snap);   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
       if (o === 'resist') return ob && ob.zona === 'campo' ? M.resistencia(e, ob) : ev.snap ? M.resistencia(e, ev.snap) : 0;   // Verdant Sun's Avatar
       if (o === 'poder') return ob && ob.zona === 'campo' ? M.poder(e, ob) : ev.snap ? M.poder(e, ev.snap) : ob ? M.poder(e, ob) : 0;   // "that creature's power" (Terror of the Peaks)
