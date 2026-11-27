@@ -1,5 +1,1 @@
-{"Baleful Mastery":["op comprar.quem"],
-"Cloud Key":["subst entra escolher/tipo"],
-"Gluntch, the Bestower":["op comprar.quem"],
-"Serra's Emissary":["subst entra escolher/tipo"],
-"Tamiyo, Field Researcher":["op efeitoTemporario","op modificar"]}
+{"Tamiyo, Field Researcher":["op efeitoTemporario","op modificar"]}
