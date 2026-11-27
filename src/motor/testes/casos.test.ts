@@ -3489,6 +3489,16 @@ caso('118.9', "custo alternativo dado por permanente: Dracogenesis conjura Drag�
   igual(opsDe(f, 'conjurar').length, 0, 'a segunda não: uma vez por turno');
 });
 
+caso('603.2', "\"a segunda vez que esta habilidade resolve neste turno\": Tannuk compra só na 2ª entrada de terreno", () => {
+  for (const c of ['Belladonna Took', 'Ms. Bumbleflower', 'Tannuk, Memorial Ensign']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Tannuk, Memorial Ensign']] });
+  const mao0 = e.jogs[0].zonas.mao.length;
+  const entra = () => { e.por(0, 'Mountain'); const fim = x => !x.pilha.length && !x.pend.length; M.avancar(e, fim); for (let g = 0; !fim(e) && e.perg && g < 10; g++) M.responder(e, e.perg.ops.findIndex(o => o.a === 'passar'), fim); };
+  entra(); igual(e.jogs[0].zonas.mao.length, mao0, '1ª: não compra'); igual(e.jogs[1].vida, 39);
+  entra(); igual(e.jogs[0].zonas.mao.length, mao0 + 1, '2ª: compra');
+  entra(); igual(e.jogs[0].zonas.mao.length, mao0 + 1, '3ª: não'); igual(e.jogs[1].vida, 37);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

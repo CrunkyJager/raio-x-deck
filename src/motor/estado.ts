@@ -892,7 +892,7 @@ M.qtd = (e, q, ctx: any = {}) => {
   if (typeof q === 'number') return q;
   if (q === 'X') return ctx.x || 0;
   if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
-  if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
+  if (q && (q.conta === 'lembrados' || q.conta === 'evento' || q.conta === 'resolucoesDestaHabNoTurno')) return M.qtdDe(e, q, { lki: {}, ...ctx });
   if (q && CONTA_ATK.has(q.conta)) return M.contaAtaque(e, q.conta, ctx.voce) * (q.mult || 1) + (q.soma || 0);
   if (q && CONTA_EST.has(q.conta) && qtdEstOk(q)) return M.qtdEst(e, q, ctx);   // marcadoresNoEste (de), mão, vida, devoção…
   return null;      // contagem que o núcleo ainda não sabe → quem chama não oferece a habilidade
