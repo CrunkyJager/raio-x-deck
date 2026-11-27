@@ -14,7 +14,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 // contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
-const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -985,7 +985,7 @@ const H = {
     ok: () => false,
     fx(e, f, ctx, ask) {
       const o = e.objs[ctx.este]; if (!o || o.zona !== 'cemiterio' || !ctx.ev || o.ts !== ctx.ev.tsCem) return;
-      M.aplicarEntrada(e, { ...M.decidirEntrada(e, o.id, o.dono, {}, ask), marc: { '-1/-1': 1 } });
+      M.aplicarEntrada(e, { ...M.decidirEntrada(e, o.id, o.dono, {}, ask), marc: { [f.marc || '-1/-1']: 1 } });   // imortal: marc '+1/+1'
     },
   },
   // explorar (CR 701.44a): revela o topo; terreno vai para a mão; senão, +1/+1 na criatura e o controlador pode pôr a
@@ -1586,6 +1586,13 @@ const H = {
     for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio, qj = q + mais(j); for (let i = 0; i < qj && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
     ctx.movidos = movidos(e, ids);                                   // "put a card from among them" (Ripples of Undeath: f.lembrada)
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
+  } },
+
+  // "each opponent can't block with more than one creature this combat" (Mirri, Weatherlight Duelist; 509.1c): no combate atual
+  limitarBloqueio: { fx(e, f, ctx) {
+    const C = e.turno.combate; if (!C) return;
+    const q = qtdDe(e, f.qtd, ctx); C.limBloq = C.limBloq || {};
+    for (const j of jogsDe(e, f, ctx)) C.limBloq[j] = Math.min(C.limBloq[j] ?? Infinity, q);
   } },
   // "separate all permanents target player controls into two piles; that player sacrifices all permanents in the pile of
   // their choice" (Liliana of the Veil −6): quem resolve separa (uma pergunta por permanente), o jogador escolhe a pilha

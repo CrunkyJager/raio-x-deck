@@ -150,13 +150,16 @@ M.PROC.atacar = (e, P, ask) => {
     const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
     return fora.length ? fora : alvos;
   };
+  // "no more than one creature can attack you each combat" (Mirri, Weatherlight Duelist, 506.6): limite por jogador atacado
+  const limAtk = t => t.jog === undefined ? Infinity : M.maxAtacantes(e, t.jog);
+  const cabeAtk = t => Object.values<any>(decl).filter(x => x.jog !== undefined && x.jog === t.jog).length < limAtk(t);
   for (;;) {
     const livres = aptos.filter(id => !decl[id]);
     // 508.1d: quem "ataca se puder" tem que atacar (qualquer alvo cumpre); só então dá para fechar
     const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false));
     const ops = devem.length ? [] : [{ a: 'pronto' }];
-    if (livres.length > 1) for (const t of alvos) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
-    for (const id of livres) for (const t of alvosDe(id)) ops.push({ a: 'atacar', id, ...t });
+    if (livres.length > 1) for (const t of alvos) if (limAtk(t) === Infinity) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
+    for (const id of livres) for (const t of alvosDe(id)) if (cabeAtk(t)) ops.push({ a: 'atacar', id, ...t });
     if (!ops.length) break;
     const op = ask(a, 'atacar', ops, { declarados: Object.keys(decl).length });
     if (op.a === 'pronto') break;
@@ -211,6 +214,16 @@ function bloqueiaEste(e, b, at) {                                               
   return true;
 }
 M.podeBloquear = podeBloquear; M.bloqueiaEste = bloqueiaEste;
+// est maxAtacantes {afeta 'voce', qtd, se}: no máximo qtd criaturas atacam o controlador por combate (Mirri: enquanto virada)
+M.maxAtacantes = (e, j) => {
+  let m = Infinity;
+  for (const id of e.campo) { const F = e.objs[id]; if (F.ctrl !== j) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'maxAtacantes' && s.afeta === 'voce' && Number.isInteger(s.qtd)) {
+      let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, { voce: j, este: F.id }); } catch (_) { ok = false; } }
+      if (ok) m = Math.min(m, s.qtd);
+    } }
+  return m;
+};
 // 509.1c: requisitos de bloqueio ("bloqueia neste turno se puder", "bloqueia aquela criatura se puder"). Fontes: est
 // deveBloquear afeta 'este' da carta e as do modificar até o fim do turno (e.temp: atk = o atacante preso na resolução).
 // Devolve null (sem requisito), 'qualquer' ou a lista de atacantes (índices em meus) que cumprem.
@@ -247,6 +260,8 @@ M.PROC.bloquear = (e, P, ask) => {
       if (rq) devem.push(id);
       for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
     } });
+    const lim = (C.limBloq || {})[d];                                                    // "can't block with more than one creature this combat" (Mirri, 509.1c)
+    if (lim !== undefined && Object.keys(bl).length >= lim) { ops.length = 0; devem.length = 0; }
     if (!presa.length && !devem.length) ops.unshift({ a: 'pronto' });
     if (presa.length) for (const k in bl) if (presa.includes(bl[k])) ops.push({ a: 'desfazer', id: +k });
     const op = ask(d, 'bloquear', ops, { atacantes: meus.map(i => C.atk[i].id), bl: Object.keys(bl).map(k => [+k, C.atk[bl[k]].id]), devem });

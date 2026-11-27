@@ -583,6 +583,7 @@ export interface RxFx {
     | 'copiarMagica'
     | 'trocarAlvos'
     | 'duasPilhas'
+    | 'limitarBloqueio'
     | 'dano'
     | 'destruir'
     | 'sacrificar'
@@ -641,13 +642,13 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); 'doTerreno' (gatilho viraParaMana) = um tipo que aquele terreno produziu (Mirari's Wake); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
    */
   prod?:
     | {
         coresEntre: RxFiltro;
       }
-    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas' | 'doTerreno')
     | string[]
     | {
         cadaCor: RxFiltro;
@@ -1078,6 +1079,10 @@ export interface RxCond {
    */
   primeiroCombate?: boolean;
   /**
+   * é a fase de combate, de qualquer jogador (Marisi: 'can't cast spells during combat')
+   */
+  emCombate?: boolean;
+  /**
    * é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno
    */
   fasePrincipal?: boolean;
@@ -1178,6 +1183,7 @@ export interface RxKw {
     | 'corpo-a-corpo'
     | 'evoluir'
     | 'persistir'
+    | 'imortal'
     | 'desaparecer'
     | 'rebote'
     | 'dobra'
@@ -1435,6 +1441,7 @@ export interface RxEst {
     | 'desviraNoTurnoDeOutro'
     | 'vidaNaoMuda'
     | 'naoPerdeJogo'
+    | 'maxAtacantes'
     | 'protecaoJogador'
     | 'ptDefinido'
     | 'danoNaoPrevenivel'
