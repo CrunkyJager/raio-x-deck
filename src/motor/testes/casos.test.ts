@@ -6678,6 +6678,22 @@ caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste t
   ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
 });
 
+caso('508.1', "Moraug, Fury of Akoum: suas criaturas +1/+0 por vez que atacaram neste turno (conta {de:'cada', o:'ataques'}); entrar atacando não conta (508.4)", () => {
+  const s = M.carta('Moraug, Fury of Akoum').est[0];
+  ok(M.estContOk(s), 'estática aceita'); ok(!M.carta('Moraug, Fury of Akoum').falta, 'saiu do falta');
+  const e = combate([[0, 'Moraug, Fury of Akoum'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Hill Giant']]);
+  const mo = objN(e, 0, 'Moraug, Fury of Akoum'), gb = objN(e, 0, 'Grizzly Bears'), le = objN(e, 0, 'Llanowar Elves'), hg = objN(e, 1, 'Hill Giant');
+  igual([M.poder(e, mo), M.poder(e, gb)], [6, 2], 'antes de atacar: nada');
+  ate(e, 'atacar'); atacaCom(e, gb); fecha(e, 'atacar');
+  igual([M.poder(e, gb), M.resistencia(e, gb), M.poder(e, mo), M.poder(e, le)], [3, 2, 6, 1], 'o Urso atacou 1 vez: +1/+0; quem não atacou, nada');
+  e.turno.ataques = e.turno.ataques.concat([{ id: gb.id, ts: gb.ts, j: 0, def: 1 }, { id: le.id, ts: le.ts, j: 0, def: 1, entrou: true }]);   // 2º combate; o Elfo entrou atacando
+  igual([M.poder(e, gb), M.poder(e, le)], [4, 1], '2 ataques: +2/+0; entrou atacando: não atacou');
+  e.turno.ataques = e.turno.ataques.concat([{ id: hg.id, ts: hg.ts, j: 1, def: 0 }]);
+  igual(M.poder(e, hg), 3, 'criatura do oponente não ganha');
+  M.lote(() => igual([M.poder(e, gb), M.poder(e, le), M.poder(e, mo)], [4, 1, 6], 'no lote a conta é por objeto'));
+});
+
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;
