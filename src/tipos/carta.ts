@@ -1596,7 +1596,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); manaGasta (de evento conjura): a mana gasta para conjurar (Liberator); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
    */
   o?:
     | 'quantos'
@@ -1632,6 +1632,7 @@ export interface RxContagem {
     | 'nome'
     | 'tipos'
     | 'poderAcimaDeste'
+    | 'manaGasta'
     | 'tentacoes'
     | 'cemiterio';
   /**

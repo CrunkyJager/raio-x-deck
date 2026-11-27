@@ -5819,6 +5819,19 @@ caso('701.50a', "Lethal Scheme: destrói o alvo; cada criatura que convocou coni
   ok(!!S, 'carta');
 });
 
+caso('601.2h', "Liberator, Urza's Battlethopter: mágica incolor ou artefato com lampejo; +1/+1 só se a mana gasta passa o poder dele (Sol Ring 1 não, Grizzly 2 sim)", () => {
+  const e = cena({ campo: [...terras(4, 'Forest'), [0, "Liberator, Urza's Battlethopter"]], mao: [[0, 'Sol Ring'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const L = objN(e, 0, "Liberator, Urza's Battlethopter");
+  e.turno.ativo = 1;
+  const pode = n => M.podeConjurar(e, 0, e.objs[e.jogs[0].zonas.mao.find(x => e.objs[x].n === n)]);
+  igual([pode('Sol Ring'), pode('Grizzly Bears')], [true, false], 'turno do oponente: o artefato sim, a criatura verde não');
+  e.turno.ativo = 0;
+  M.avancar(e); conj(e, 'Sol Ring'); resolveCom(e);
+  igual(L.marc['+1/+1'] || 0, 0, 'Sol Ring: 1 de mana, não passa o poder 1');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(L.marc['+1/+1'] || 0, 1, 'Grizzly: 2 > 1');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

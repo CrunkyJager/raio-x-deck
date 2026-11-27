@@ -48,7 +48,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' && chaves(c, ['min']) && Number.isInteger(c.min);   // "each graveyard with seven or more cards" (Master of Lake-town)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
-    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
+    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao', 'manaGasta'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
@@ -68,7 +68,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || c.o === 'vm')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -106,6 +106,7 @@ M.contar = (e, c, ctx: any = {}) => {
       const este = !L ? ob : ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : L.este;
       if (!este) return 0;
       if (o === 'marcadores') return c.marc ? este.marc[c.marc] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0);
+      if (!L && (o === 'poder' || o === 'resist')) return o === 'poder' ? M.poder(e, ob) : M.resistencia(e, ob);   // fora da resolução (condição do gatilho): o de agora
       return este[o];
     }
     case 'voce':
@@ -151,7 +152,8 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'quantos') return vidaEv(ev) ? ev.q || 0 : ev.n ?? 1;        // no evento de vida: "that much" (Exquisite Blood)
       if (o === 'vida') return vidaEv(ev) ? ev.q || 0 : 0;                    // "that much life" (Sanguine Bond)
       if (o === 'dano') return ev.ev === 'dano' ? ev.q || 0 : 0;              // "that much damage"
-      if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;   // "that many" (Shalai and Hallar)
+      if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;
+      if (o === 'manaGasta') return ev.ev === 'conjura' ? (e.objs[ev.id] || {}).manaGasta || 0 : 0;   // "the amount of mana spent to cast that spell" (Liberator): o pagarMana grava na mágica (paga depois do evento, 601.2h)   // "that many" (Shalai and Hallar)
       if (o === 'poder' && c.junta === 'soma') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
       if (o === 'mao') { const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo; return jj !== undefined && e.jogs[jj] ? e.jogs[jj].zonas.mao.length : 0; }   // "if that player has four or more cards in hand" (Fevered Visions)
       const ob = e.objs[ev.id];
