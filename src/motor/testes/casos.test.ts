@@ -3986,6 +3986,19 @@ caso('702.141', "bis: do cemitério, exila a carta e cria uma ficha cópia por o
   igual(e.campo.filter(id => e.objs[id].n === 'Mist Dancer').length, 0, 'sacrificadas');
 });
 
+caso('702.121', "corpo a corpo: atacando dois oponentes, Tifa ganha +2/+2; atacar só um dá +1/+1", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Tifa, Martial Artist'], [0, 'Grizzly Bears']] });
+  const [t, b] = e.campo.map(id => e.objs[id]);
+  e.turno.combate = { atk: [{ id: t.id, ts: t.ts, alvo: { jog: 1 }, def: 1 }, { id: b.id, ts: b.ts, alvo: { jog: 2 }, def: 2 }] };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: t.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'corpo-a-corpo'); ok(p, 'disparou');
+  igual(p.g.fx[0].p, 2, '+2/+2');
+  e.turno.combate.atk[1].alvo = { jog: 1 }; e.pend = [];
+  M.evento(e, { ev: 'ataca', id: t.id, def: 1 });
+  igual(e.pend.find(x => x.k === 'corpo-a-corpo').g.fx[0].p, 1, 'um oponente: +1/+1');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

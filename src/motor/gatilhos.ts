@@ -298,6 +298,15 @@ M.evento = (e, ev) => {
       const vezes = n * (1 + extras(e, F, g, ev));
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'mentor', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
+    // corpo a corpo (CR 702.121a): "quando ataca, +1/+1 até o fim do turno por oponente que você atacou com criatura neste
+    // combate" — o número de jogadores atacados (planeswalker não conta) é conhecido na declaração (508.1)
+    const nm = M.kwDe(e, F).filter(x => x.k === 'corpo-a-corpo').length, C = e.turno.combate;
+    if (nm && C) {
+      const ops = new Set(C.atk.filter(r => e.objs[r.id] && e.objs[r.id].ctrl === F.ctrl && r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== F.ctrl).map(r => r.alvo.jog)).size;
+      const g = { ev: 'ataca', fx: [{ op: 'modificar', em: 'este', p: ops, r: ops, dura: 'fimDoTurno' }] };
+      const vezes = nm * (1 + extras(e, F, g, ev));
+      if (ops) for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'corpo-a-corpo', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+    }
   }
 };
 const PROLE = { ev: 'entra', quem: { este: true }, fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: { copiaDe: 'este', pt: [1, 1] } }] };
