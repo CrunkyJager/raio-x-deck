@@ -300,6 +300,8 @@ const modTipoOk = f => f.dura === 'sempre' && f.em !== undefined && f.gat === un
   && (f.cores === undefined || (typeof f.cores === 'string' && /^[WUBRG]+$/.test(f.cores)))
   && (f.habil === undefined || (gatSempre(f) && Object.keys(f.habil).length === 1 && f.habil.gat.length > 0 && f.habil.gat.every(g => M.gatOk(g))))
   && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw);
+// "ganha 'você não pode perder o jogo e seus oponentes não podem vencer'" para sempre (lido por M.naoPerde em estado.ts)
+const naoPerdeGanho = f => f.dura === 'sempre' && Array.isArray(f.est) && f.est.length === 1 && f.est[0].modo === 'naoPerdeJogo' && f.est[0].afeta === 'voce' && Object.keys(f.est[0]).length === 2;
 // estáticas de regra que o modificar entrega ao e.efTemp (lidas por M.tempNoObj em combate.ts)
 const EST_REGRA = ['naoPodeSerBloqueada', 'naoPodeBloquear', 'deveAtacar'];
 // estática dada por efeitoTemporario que algum leitor conhece (estado.ts: M.tempNoObj, M.vidaFixa, M.protegeJog)
@@ -529,12 +531,17 @@ const H = {
   modificar: {
     campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat', 'sub', 'cores'],
     qtd: q => q === undefined,
-    ok: f => f.sub !== undefined || f.cores !== undefined || gatSempre(f) ? modTipoOk(f) : (f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
+    ok: f => naoPerdeGanho(f) ? f.em !== undefined && Object.keys(f).every(k => ['op', 'em', 'dura', 'est'].includes(k))
+      : f.sub !== undefined || f.cores !== undefined || gatSempre(f) ? modTipoOk(f) : (f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
       && (f.gat === undefined || (Array.isArray(f.gat) && f.gat.every(g => M.gatOk(g))))   // "ganha 'quando morrer, …'" até o fim do turno (Demonic Gifts)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
       && (f.est || []).every(s => s.afeta === 'este' && (s.modo === 'deveBloquear' ? Object.keys(s).every(k => ['modo', 'afeta', 'atacante'].includes(k)) && (s.atacante === undefined || s.atacante === 'doEvento')
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k))))),
     fx(e, f, ctx) {
+      if (naoPerdeGanho(f)) {                                       // "It gains 'You can't lose the game…'" (Book of Exalted Deeds): sem prazo, o mover zera
+        for (const o of objsDe(e, f, ctx).filter(o => o.zona === 'campo')) o.ganhos = { ...(o.ganhos || {}), est: [...((o.ganhos && o.ganhos.est) || []), ...f.est] };
+        return;
+      }
       if (gatSempre(f) && f.em === 'doEvento' && ctx.ev) for (const o of [e.objs[ctx.ev.id]]) if (o && o.zona === 'pilha' && !o.hab && (ctx.ev.ts === undefined || o.ts === ctx.ev.ts)) o.gatPilha = [...(o.gatPilha || []), ...f.habil.gat];   // a mágica: a permanente que ela vira tem (Rivaz)
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
       if (f.sub !== undefined || f.cores !== undefined || gatSempre(f)) {
@@ -827,11 +834,11 @@ const H = {
   ganharJogo: { fx(e, f, ctx) {                                     // CR 104.2b: o efeito diz que ele vence; no multijogador os outros perdem juntos (104.3h)
     if (e.fim) return;
     const j = jogsDe(e, f, ctx).find(x => !e.jogs[x].saiu);
-    if (j === undefined) return;
+    if (j === undefined || M.vivos(e).some(x => x !== j && M.naoPerde(e, x))) return;   // "your opponents can't win the game" (104.3b/800.4: o efeito não faz nada)
     M.log(e, e.jogs[j].nome, 'vence o jogo por efeito');
     e.fim = { vencedor: j, motivo: 'efeito: vence o jogo', turno: e.turno.n };
   } },
-  perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
+  perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu && !M.naoPerde(e, j)) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) if (!M.vidaFixa(e, j)) M.perderVida(e, j, q); } },   // 119.7
   copiarMagica: {                                                   // CR 707.10: "copy that spell" (pilha.ts: M.alvosDaCopia/M.criarCopia)
     campos: ['novoAlvo'],
@@ -1080,10 +1087,11 @@ const H = {
     },
   },
   cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
-    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle'],
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio'],
     talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
     ok: f => {
       const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
+      if (f.aleatorio !== undefined && (f.aleatorio !== true || !f.resto)) return false;
       if (f.ateAchar ? f.olha !== undefined || !M.filtroOk(f.ateAchar.f) || !qtdOk(f.ateAchar.qtd) || Object.keys(f.ateAchar).some(k => k !== 'f' && k !== 'qtd') : !qtdOk(f.olha) || f.olha === undefined) return false;
       if (!(f.pega === 'tudo' || Number.isInteger(f.pega) || (ateOk(f.pega) && Number.isInteger(f.pega.ate)))) return false;
       if (f.destinos ? !f.destinos.every(d => (Z.includes(d.para) || d.para === 'grimorio') && Object.keys(d).every(k => ['para', 'qtd', 'virada'].includes(k))) || f.para !== undefined : f.pega !== 0 && !Z.includes(f.para)) return false;
@@ -1130,6 +1138,7 @@ const H = {
       ctx.movidos = movidos(e, plano.map(p => p.id));
       if (f.resto) {                                                // de volta ao topo: na mesma ordem (uma das ordens que a regra deixa)
         const r = f.resto === 'grimorio' && !f.fundo ? resto.slice().reverse() : resto;
+        if (f.aleatorio) M.embaralhar(e, r);                        // "in a random order" (Thassa's Oracle)
         for (const id of r) M.mover(e, id, f.resto, { topo: !f.fundo });
       }
       for (const p of plano) if (p.para === 'grimorio') { const g = e.jogs[p.j].zonas.grimorio, k = g.indexOf(p.id); if (k >= 0) { g.splice(k, 1); g.push(p.id); } }   // destino grimório = fica no topo (fim da lista), depois do resto ir ao fundo

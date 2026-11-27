@@ -3765,6 +3765,32 @@ caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispar
   igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
 });
 
+caso('701.16', "Thassa's Oracle: o resto vai ao fundo em ordem aleatória (aleatorio no cavar); sem resto, aleatorio é recusado", () => {
+  ok(M.carta("Thassa's Oracle").gat.every(g => M.gatOk(g)), 'aceita');
+  ok(!M.fxSuportado([{ op: 'cavar', olha: 3, pega: 1, para: 'mao', aleatorio: true }]), 'aleatorio sem resto: não');
+  const e = cena({ grimorio: 0 });
+  for (const n of ['Forest', 'Island', 'Swamp', 'Mountain', 'Plains', 'Grizzly Bears']) e.por(0, n, { zona: 'grimorio' });
+  M.executar(e, { op: 'cavar', quem: 'voce', olha: 5, pega: 0, resto: 'grimorio', fundo: true, aleatorio: true }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  const g = e.jogs[0].zonas.grimorio.map(id => e.objs[id].n);
+  igual(g.length, 6); igual(g[5], 'Forest', 'a de baixo da pilha vista fica no topo');
+  igual(g.slice(0, 5).sort(), ['Grizzly Bears', 'Island', 'Mountain', 'Plains', 'Swamp'], 'as 5 vistas no fundo');
+});
+
+caso('104.3b', "não pode perder o jogo: The Book of Exalted Deeds dá ao Anjo 'você não pode perder e seus oponentes não podem vencer' — vida 0 não tira, perderJogo não tira, ganharJogo do oponente não vence; o Anjo sai e a ABE tira", () => {
+  const d = M.carta('The Book of Exalted Deeds');
+  ok(d.atv.every(a => M.fxSuportado(a.fx, { topo: false })), 'ativada aceita');
+  const e = cena({ campo: [[0, 'Serra Angel']] });
+  const an = objN(e, 0, 'Serra Angel');
+  const cx: any = { voce: 0, alvos: [[{ o: an.id, ts: an.ts }]], ilegal: {}, lki: { alvos: [] } };
+  for (const f of d.atv[0].fx) M.executar(e, f, cx, (j, t, ops) => ops[0]);
+  igual(an.marc.enlightened, 1, 'marcador');
+  ok(M.naoPerde(e, 0) && !M.naoPerde(e, 1), 'só o controlador do Anjo');
+  e.jogs[0].vida = 0; M.abe(e); ok(!e.jogs[0].saiu, 'vida 0: fica');
+  M.executar(e, { op: 'perderJogo', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null); ok(!e.jogs[0].saiu, 'perde o jogo: não');
+  M.executar(e, { op: 'ganharJogo', quem: 'voce' }, { voce: 1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null); ok(!e.fim, 'o oponente não vence');
+  M.mover(e, an.id, 'cemiterio'); M.abe(e); ok(e.jogs[0].saiu, 'sem o Anjo: perde');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

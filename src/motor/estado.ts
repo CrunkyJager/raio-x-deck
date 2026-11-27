@@ -255,8 +255,11 @@ function estJog(e, j, ok) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     for (const s of M.dadoDe(e, o).est || []) if (s.afeta === 'voce' && !s.se && ok(s)) return true;
   }
+  for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === j && o.ganhos && o.ganhos.est && o.ganhos.est.some(s => s.afeta === 'voce' && ok(s))) return true; }   // ganhas por efeito (modificar dura sempre)
   return false;
 }
+// "você não pode perder o jogo e seus oponentes não podem vencer" (Platinum Angel; CR 104.3b): as ABE e os efeitos não o tiram
+M.naoPerde = (e, j) => estJog(e, j, s => s.modo === 'naoPerdeJogo');
 // desvirar um permanente (CR 701.26b): dispara 'desvira' ("whenever this becomes untapped", Key to the City)
 M.desvirarObj = (e, o) => { if (!o || !o.virada) return; o.virada = false; if (M.evento) M.evento(e, { ev: 'desvira', id: o.id, ts: o.ts }); };
 // "sua vida não pode mudar" (Teferi's Protection, Flare of Fortitude, Platinum Emperion): sem ganho, perda nem pagar vida (119.8)
