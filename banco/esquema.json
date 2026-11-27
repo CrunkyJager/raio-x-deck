@@ -528,8 +528,8 @@
      "description": "atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)"
     },
     "comMarcador": {
-     "type": "string",
-     "description": "tem ao menos 1 marcador deste tipo"
+     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "description": "texto = tem ao menos 1 marcador deste tipo; true = tem algum marcador (Mutational Advantage)"
     },
     "feridaPorEsteNoTurno": {
      "type": "boolean",
@@ -1017,8 +1017,14 @@
      }
     },
     "prod": {
-     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)",
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)",
      "oneOf": [
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": ["coresEntre"],
+       "properties": {"coresEntre": {"$ref": "#/$defs/filtro"}}
+      },
       {
        "enum": [
         "qualquer",
@@ -1294,6 +1300,10 @@
     "exilaAoSair": {
      "type": "boolean",
      "description": "op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)"
+    },
+    "tipoTerrenoComum": {
+     "type": "boolean",
+     "description": "op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: \"that share a land type\")"
     },
     "copia": {
      "type": "boolean",
@@ -1992,6 +2002,10 @@
      "const": "este",
      "description": "conjura: só se a mana desta fonte pagou a mágica (\"using mana produced by\", Tecutlan)"
     },
+    "revelaTerreno": {
+     "type": "boolean",
+     "description": "ev explora: true = revelou terreno (\"explores a land card\"), false = revelou não-terreno (Nicanzil); grimório vazio não dispara nenhum dos dois"
+    },
     "recebe": {
      "$ref": "#/$defs/filtro",
      "description": "ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)"
@@ -2474,7 +2488,8 @@
      "oneOf": [
       {
        "enum": [
-        "este",
+        "atacado",
+         "este",
         "voce",
         "turno",
         "combate",

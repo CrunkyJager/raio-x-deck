@@ -4401,6 +4401,60 @@ caso('614.1c', "Feasting Hobbit: ao entrar sacrifica as Comidas que quiser e ent
   igual(M.poder(f, objN(f, 0, 'Feasting Hobbit')), 2, 'sem Comida: 2/2');
 });
 
+caso('106.1', "Mox Amber: mana de uma cor entre as das suas criaturas/planeswalkers lendários; sem lendário, nada", () => {
+  const e = cena({ campo: [[0, 'Mox Amber'], [0, 'Krenko, Mob Boss'], [1, 'Lathril, Blade of the Elves']] });
+  const mx = objN(e, 0, 'Mox Amber');
+  igual(M.coresDeProd(e, mx, M.atvDe(e, mx)[0].fx[0].prod), ['R'], 'só o vermelho do Krenko (Lathril é do oponente)');
+  ok(M.fontesDeMana(e, 0).some(f => f.id === mx.id), 'vira fonte');
+  const f = cena({ campo: [[0, 'Mox Amber'], [0, 'Grizzly Bears']] });
+  const m2 = objN(f, 0, 'Mox Amber');
+  ok(!M.fontesDeMana(f, 0).some(x => x.id === m2.id), 'sem lendário: não faz mana');
+});
+
+caso('122.1', "Mutational Advantage: 'with counters on them' = marcador de qualquer tipo (comMarcador true)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Forest']] });
+  const b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 0, 'Llanowar Elves');
+  b.marc.oil = 1;
+  ok(M.bate(e, b, { comMarcador: true }, { voce: 0 }) && !M.bate(e, l, { comMarcador: true }, { voce: 0 }), 'com marcador de óleo sim; sem, não');
+  ok(M.bate(e, b, { comMarcador: 'oil' }, { voce: 0 }) && !M.bate(e, b, { comMarcador: '+1/+1' }, { voce: 0 }), 'por tipo continua');
+});
+
+caso('701.19', "Myriad Landscape: busca até duas básicas que têm um tipo de terreno em comum (Floresta + Floresta, não Floresta + Ilha)", () => {
+  const e = cena({ campo: [[0, 'Myriad Landscape'], [0, 'Wastes'], [0, 'Wastes']] });
+  const ml = objN(e, 0, 'Myriad Landscape');
+  const f1 = e.por(0, 'Forest', { zona: 'grimorio' }), f2 = e.por(0, 'Forest', { zona: 'grimorio' }), il = e.por(0, 'Island', { zona: 'grimorio' });
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === ml.id && o.k === 1);
+  for (let g = 0; g < 10 && e.perg && e.perg.tipo !== 'buscar'; g++) respE(e, o => o.a === 'passar');
+  ok(e.perg && e.perg.tipo === 'buscar', 'pergunta a busca');
+  respE(e, o => o.id === f1.id);
+  ok(e.perg && e.perg.tipo === 'buscar', 'segunda escolha');
+  ok(!e.perg.ops.some(o => o.id === il.id) && e.perg.ops.some(o => o.id === f2.id), 'só Floresta na segunda');
+  respE(e, o => o.id === f2.id);
+  ok(f1.zona === 'campo' && f2.zona === 'campo' && f1.virada && il.zona === 'grimorio', 'duas Florestas viradas');
+});
+
+caso('701.44c', "Nicanzil: explorar terreno dispara só o 1º gatilho (pôr terreno da mão); não-terreno, só o 2º (+1/+1 nela)", () => {
+  const e = cena({ campo: [[0, 'Nicanzil, Current Conductor'], [0, 'Grizzly Bears']] }); const b = objN(e, 0, 'Grizzly Bears');
+  const X = (ask) => M.executar(e, { op: 'explorar', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: b.id }, ask);
+  const gs = () => e.pend.filter(p => p.n === 'Nicanzil, Current Conductor').map(p => M.carta('Nicanzil, Current Conductor').gat[p.k].revelaTerreno);
+  e.por(0, 'Forest', { zona: 'grimorio' }); e.pend = []; X(() => ({ a: 'nao' }));
+  igual(gs(), [true], 'terreno: só o de terreno');
+  e.por(0, 'Sol Ring', { zona: 'grimorio' }); e.pend = []; X(() => ({ a: 'nao' }));
+  igual(gs(), [false], 'não-terreno: só o do marcador');
+});
+
+caso('509.1b', "Nightkin Ambusher: não pode ser bloqueada enquanto o jogador defensor tiver marcador rad (conta de: 'atacado')", () => {
+  ok(M.carta('Nightkin Ambusher').est.every(s => M.seOk(s.se)), 'condição aceita');
+  const e = cena({ campo: [[0, 'Nightkin Ambusher'], [1, 'Grizzly Bears']] });
+  const n = objN(e, 0, 'Nightkin Ambusher'), b = objN(e, 1, 'Grizzly Bears');
+  const pode = () => M.bloqueiaEste(e, b, n);
+  ok(!M.condicao(e, M.carta('Nightkin Ambusher').est[0].se, { voce: 0, este: n.id, ev: { def: 1 } }), 'sem rad: pode bloquear');
+  M.marcadorJogador(e, 1, 'rad', 2);
+  ok(M.condicao(e, M.carta('Nightkin Ambusher').est[0].se, { voce: 0, este: n.id, ev: { def: 1 } }), 'com rad: não pode');
+  ok(!M.condicao(e, M.carta('Nightkin Ambusher').est[0].se, { voce: 0, este: n.id, ev: { def: 0 } }), 'conta o defensor, não você');
+  ok(!pode(), 'no combate (bloqueiaEste)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

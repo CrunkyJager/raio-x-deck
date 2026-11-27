@@ -129,7 +129,7 @@ function podeBloquear(e, b, d) {
 function bloqueiaEste(e, b, at) {                                                          // 509.1b: restrições do atacante
   for (const s of M.dadoDe(e, at).est || []) {                                             // "não pode ser bloqueada (por X)"
     if (s.modo !== 'naoPodeSerBloqueada' || s.afeta !== 'este') continue;
-    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id }); } catch (_) { vale = false; }
+    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id, ev: { def: b.ctrl } }); } catch (_) { vale = false; }   // ev.def: "as long as defending player…" (Nightkin)
     if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, { voce: at.ctrl, este: at.id })))) return false;
   }
   for (const [F, s] of M.estDaEquipada(e, at, 'naoPodeSerBloqueada')) {                   // Equipamento/Aura (Brotherhood Regalia)

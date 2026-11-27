@@ -259,9 +259,9 @@ export interface RxFiltro {
    */
   naoBloqueada?: boolean;
   /**
-   * tem ao menos 1 marcador deste tipo
+   * texto = tem ao menos 1 marcador deste tipo; true = tem algum marcador (Mutational Advantage)
    */
-  comMarcador?: string;
+  comMarcador?: boolean | string;
   /**
    * recebeu dano deste objeto neste turno (Markov Enforcer: 'a creature dealt damage by this creature this turn dies')
    */
@@ -271,17 +271,17 @@ export interface RxFiltro {
    */
   exiladaPorEste?: boolean;
   /**
-   * sem nenhum marcador (Damning Verdict)
+   * true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')
    */
-  semMarcador?: boolean;
+  semMarcador?: boolean | string;
   /**
    * tem estas palavras-chave
    */
   kw?: string[];
   /**
-   * não tem o mesmo nome de outra permanente que você controla
+   * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
-  nomeUnico?: boolean;
+  nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
    * poder maior que o poder base
    */
@@ -509,9 +509,14 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
    */
-  prod?: ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos') | string[];
+  prod?:
+    | {
+        coresEntre: RxFiltro;
+      }
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos')
+    | string[];
   de?: RxZona;
   para?: RxZona;
   /**
@@ -643,6 +648,10 @@ export interface RxFx {
    * op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)
    */
   exilaAoSair?: boolean;
+  /**
+   * op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: "that share a land type")
+   */
+  tipoTerrenoComum?: boolean;
   /**
    * op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está
    */
@@ -1086,6 +1095,10 @@ export interface RxGat {
    */
   ouCopia?: boolean;
   /**
+   * conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)
+   */
+  primeiraNoTurno?: boolean;
+  /**
    * zona de origem do objeto que mudou de zona
    */
   de?: RxZona;
@@ -1097,6 +1110,10 @@ export interface RxGat {
    * conjura: só se a mana desta fonte pagou a mágica ("using mana produced by", Tecutlan)
    */
   comManaDe?: 'este';
+  /**
+   * ev explora: true = revelou terreno ("explores a land card"), false = revelou não-terreno (Nicanzil); grimório vazio não dispara nenhum dos dois
+   */
+  revelaTerreno?: boolean;
   /**
    * ev dano: quem RECEBE o dano ('quem' = a fonte). Enrage/'é causado dano a esta' → recebe {este: true} (Apex Altisaur, Metropolis Reformer)
    */
@@ -1381,6 +1398,7 @@ export interface RxContagem {
    */
   de:
     | (
+        | 'atacado'
         | 'este'
         | 'voce'
         | 'turno'

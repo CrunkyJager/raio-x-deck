@@ -1,7 +1,7 @@
 // src/motor/contagem.ts — UMA forma de contar (Felipe 27/11: "reestruturar as contagens numa só").
 // Antes: um nome por combinação (poderDoAlvo, vmDoEvento, maiorDescarte, somaPoder…), cada carta nova criava outro.
 // Agora a quantidade é  {conta: {de, o, junta?, marc?, cores?}, mult?, soma?, divCima?, metade?}:
-//   de    = DE QUEM/ONDE se conta: 'este' | {alvo:N} | 'evento' | 'sacrificadas' | 'lembradas' | 'cada' | {f: filtro}
+//   de    = DE QUEM/ONDE se conta: 'este' | {alvo:N} | 'evento' | 'sacrificadas' | 'lembradas' | 'cada' | {f: filtro} | 'atacado'
 //           | 'voce' | 'oponentes' | 'jogadores' | 'turno' | 'combate' | 'X' | 'resultado' | 'se' | 'escolhido'
 //   o     = O QUE se lê: 'quantos' | 'poder' | 'resist' | 'vm' | 'cores' | 'marcadores' (marc = tipo) | 'vida' | 'mao'
 //           | 'grimorio' | 'devocao' (cores) | 'magias' | 'descartes' | 'ataques' | 'atacantes' | 'atacantesEmVoce' | 'dano' …
@@ -39,6 +39,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
     case 'turno': return ['magias', 'descartes', 'ataques', 'compras', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
+    case 'atacado': return o === 'marcadores' && chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc;   // o jogador defensor (Nightkin Ambusher: rad)
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
@@ -62,7 +63,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && ((c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab')));
+  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -114,6 +115,10 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'oponentesAtacados') return new Set(((e.turno.combate || {}).atk || []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== ctx.voce && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog)).size;   // "the second time this ability has resolved this turn" (contando esta)
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);
+    case 'atacado': {                                                       // o jogador defensor: do evento (ataca) ou de quem bloqueia (combate.ts)
+      const D = ctx.ev && ctx.ev.def !== undefined ? e.jogs[ctx.ev.def] : null; if (!D) return 0;
+      return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
+    }
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
     case 'jogadores': return M.vivos(e).length;
     case 'X': return ctx.x || 0;
