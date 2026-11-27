@@ -35,7 +35,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
-    case 'turno': return ['magias', 'descartes', 'ataques'].includes(o) && chaves(c, []);
+    case 'turno': return ['magias', 'descartes', 'ataques', 'resolucoesDestaHab'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
@@ -59,7 +59,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && ((c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && c.o === 'quantos') || c.de === 'combate' || (c.de === 'turno' && c.o === 'ataques'));
+  return onde === 'cond' && ((c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && c.o === 'quantos') || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -100,6 +100,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'turno':
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
+      if (o === 'resolucoesDestaHab') return ctx.resHab || 0;   // quantas vezes esta habilidade resolveu no turno, contando esta (pilha.ts)
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;

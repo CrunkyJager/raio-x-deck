@@ -3807,6 +3807,28 @@ caso('701.26a', "Myr Battlesphere ataca: vira 2 dos 3 Myr desvirados (escolhe), 
   igual(e.jogs[1].vida, 40 - 2 - 6, '2 do gatilho + 6 do combate (4+2)');
 });
 
+caso('603.4', "Belladonna Took: 3 fichas entram; 1ª resolução ganha 1, 2ª compra 1, 3ª põe +1/+1 em cada criatura sua; no turno seguinte recomeça", () => {
+  ok(M.fxSuportado(M.carta('Belladonna Took').gat[0].fx), 'contagem turno/resolucoesDestaHab aceita');
+  const e = cena({ campo: [[0, 'Belladonna Took']] }); e.pend = [];
+  const bt = objN(e, 0, 'Belladonna Took'), mao0 = e.jogs[0].zonas.mao.length;
+  M.criarFichas(e, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Human'] }, 3, {});
+  M.avancar(e); resolveCom(e);
+  igual([e.jogs[0].vida, e.jogs[0].zonas.mao.length - mao0, bt.marc['+1/+1'] || 0], [41, 1, 1], 'vida, compra, marcador');
+  e.turno.n++; M.criarFichas(e, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Human'] }, 1, {});
+  e.perg = null; M.avancar(e); resolveCom(e);
+  igual(e.jogs[0].vida, 42, 'turno novo: de novo a 1ª (ganha 1)');
+});
+caso('601.2', "Unbreakable Formation (Addendum): na sua principal dá indestrutível, +1/+1 e vigilância; fora da principal só indestrutível", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], ...terras(3, 'Plains')], mao: [[0, 'Unbreakable Formation']] }); e.pend = [];
+  const gb = objN(e, 0, 'Grizzly Bears');
+  M.avancar(e); conj(e, 'Unbreakable Formation'); resolveCom(e);
+  ok(M.temKw(e, gb, 'indestrutivel') && M.temKw(e, gb, 'vigilancia') && gb.marc['+1/+1'] === 1, 'na principal: tudo');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }), uf = f.por(0, 'Unbreakable Formation', { zona: 'mao' });
+  M.mover(f, uf.id, 'pilha'); uf.conjPrinc = false;
+  ok(!M.condicao(f, { conjuradaNaPrincipal: true }, { voce: 0, este: uf.id }), 'fora da principal: não');
+  uf.conjPrinc = true; ok(M.condicao(f, { conjuradaNaPrincipal: true }, { voce: 0, este: uf.id }), 'na principal: sim');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

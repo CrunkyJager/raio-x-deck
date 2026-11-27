@@ -736,7 +736,7 @@ const PROC = {
     const doComando = o.zona === 'comando', de = o.zona, flash = porFlash(e, j, o) && !P.gratis;
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
     if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
-    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; o.conjDe = de;   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
+    M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
     o.pil = { x, alvos, modos, ctrl: j, opc, ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}) };
     { const J = e.jogs[j]; J.conjT = { t: e.turno.n, n: (J.conjT && J.conjT.t === e.turno.n ? J.conjT.n : 0) + 1 }; }   // conta magiasNoTurno (Aetherflux, Dreamtide Whale)
     const antes = e.conjTodas && e.conjTodas.t === e.turno.n ? e.conjTodas.n : 0; e.conjTodas = { t: e.turno.n, n: antes + 1 };   // de todos os jogadores (tempestade, 702.40a)
@@ -825,7 +825,12 @@ const PROC = {
       if (pil.opc && pil.opc.presente && !e.jogs[pil.opc.jog].saiu) { M.comprar(e, pil.opc.jog, 1); M.log(e, e.jogs[pil.opc.jog].nome, 'recebe o presente (compra 1)'); }   // 702.174b: antes dos efeitos
     }
     // o ctx fica no processo: o que um efeito deixa (pagou, resultado, lembrados, criadas) vale no seguinte mesmo depois de uma pergunta
-    const ctx = P.ctx = P.ctx || { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, ...(pil.mem || {}) };
+    if (!P.ctx && o.hab) {                                           // "the first/second/third time this ability has resolved this turn" (Belladonna Took): conta esta resolução; habilidade = fonte (id+ts) + qual
+      const R = e.resHabT && e.resHabT.t === e.turno.n ? e.resHabT : (e.resHabT = { t: e.turno.n, m: {} });
+      const ch = o.hab.fonte + ':' + o.hab.fonteTs + ':' + (o.hab.gat !== undefined ? 'g' + o.hab.gat : 'a' + o.hab.k);
+      pil.resHab = R.m[ch] = (R.m[ch] || 0) + 1;
+    }
+    const ctx = P.ctx = P.ctx || { voce: j, resHab: pil.resHab, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, ...(pil.mem || {}) };
     if (o.hab && o.hab.talvez && !P.talvez) {                      // CR 603.5: "you may" do gatilho inteiro, escolhido ao resolver
       if (ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'gatilho', id: o.hab.fonte, n: o.n }).a === 'nao') { e.proc = null; M.log(e, o.n, 'gatilho: escolheu não fazer'); tirarDaPilha(e, o); return; }
       P.talvez = true; ask.etapa();
