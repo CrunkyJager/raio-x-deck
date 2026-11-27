@@ -169,7 +169,14 @@ function extras(e, F, g, ev) {
   return n;
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
-const fabricarDe = d => { const k = (d.kw || []).find(x => x.k === 'fabricar'); return k ? { ev: 'entra', quem: { este: true }, fx: [{ op: 'fabricar', qtd: k.n || 1 }] } : null; };
+// esconderijo N (CR 702.75a): idem, um gatilho por instância (702.75b não junta)
+const KW_ENTRA = new WeakMap<object, any[]>();
+const kwEntraDe = d => {
+  let l = KW_ENTRA.get(d);
+  if (!l) KW_ENTRA.set(d, (l = (d.kw || []).flatMap(x => x.k === 'fabricar' ? [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'fabricar', qtd: x.n || 1 }], _k: 'fabricar' }]
+    : x.k === 'esconderijo' && Number.isInteger(x.n) ? [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'esconder', qtd: x.n }], _k: 'esconderijo' }] : [])));
+  return l;
+};
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
 M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];
 
@@ -260,11 +267,11 @@ M.evento = (e, ev) => {
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
-  if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar
-    const F = e.objs[ev.id], g = fabricarDe(M.dadoDe(e, F));
-    if (g) {
+  if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar, esconderijo
+    const F = e.objs[ev.id];
+    for (const g of kwEntraDe(M.dadoDe(e, F))) {
       const vezes = 1 + extras(e, F, g, ev);
-      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'fabricar', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: g._k, g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
   }
 };

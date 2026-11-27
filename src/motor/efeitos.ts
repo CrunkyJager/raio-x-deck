@@ -1128,6 +1128,22 @@ const H = {
       }
     },
   },
+  // esconderijo N (CR 702.75a): gatilho de entrar da palavra-chave (gatilhos.ts). Olha os N do topo, exila um virado
+  // para baixo ligado a esta permanente (exPor: "the exiled card" das outras habilidades dela, 607.2a → filtro
+  // exiladaPorEste) e o resto vai para o fundo em ordem aleatória. Só o gatilho que o motor cria.
+  esconder: {
+    ok: () => false,
+    fx(e, f, ctx, ask) {
+      const J = e.jogs[ctx.voce], g = J.zonas.grimorio, top = g.slice(Math.max(0, g.length - (f.qtd || 0))).reverse();
+      if (!top.length) return;
+      const [esc] = escolherN(ask, ctx.voce, 'escolherCarta', top, 1, { ctx: { op: 'esconder' } });   // pergunta antes de mexer
+      const F = e.objs[ctx.este], ts = (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (F && F.ts);
+      const x = M.mover(e, esc, 'exilio'); x.exPor = { id: ctx.este, ts }; x.faceBaixo = true;
+      const resto = top.filter(id => id !== esc); M.embaralhar(e, resto);
+      for (const id of resto) M.mover(e, id, 'grimorio', { topo: false });
+      M.log(e, J.nome, 'esconde 1 de', top.length);
+    },
+  },
   fabricar: {                                                       // CR 702.123a: N marcadores +1/+1 nela, ou N Servos 1/1
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx), o = e.objs[ctx.este];

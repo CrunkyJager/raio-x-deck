@@ -3492,6 +3492,20 @@ caso('613.1d', "tiraTipo: deus de Theros não é criatura com devoção < 5 (Pur
   for (const c of ['Athreos, God of Passage', 'Iroas, God of Victory', 'Nylea, God of the Hunt']) ok(M.carta(c).est.filter(s => s.tiraTipo).every(s => M.estContOk(s)), c);
 });
 
+caso('702.75a', "esconderijo: ao entrar olha 4, exila 1 ligado a ela e o resto vai para o fundo; Watcher for Tomorrow devolve o exilado à mão quando sai", () => {
+  const e = cena({ mao: [[0, 'Watcher for Tomorrow']], campo: [...terras(2, 'Island')] });
+  const g = e.jogs[0].zonas.grimorio, n0 = g.length, top = g.slice(-4);
+  const w = e.objs[e.jogs[0].zonas.mao[0]];
+  e.pend = []; M.avancar(e); conj(e, 'Watcher for Tomorrow'); resolveCom(e);
+  ok(w.zona === 'campo', 'entrou');
+  const ex = e.jogs[0].zonas.exilio.map(id => e.objs[id]);
+  igual(ex.length, 1, 'um exilado'); ok(top.includes(ex[0].id) && ex[0].exPor && ex[0].exPor.id === w.id, 'dos 4 do topo, ligado ao Watcher');
+  igual(g.length, n0 - 1); ok(g.slice(0, 3).every(id => top.includes(id)), 'os outros 3 no fundo');
+  M.mover(e, w.id, 'cemiterio'); M.avancar(e); resolveCom(e);
+  ok(e.jogs[0].zonas.mao.includes(ex[0].id), 'saiu: o exilado vai para a mão');
+  for (const c of ['Cemetery Tampering', 'Mosswort Bridge', 'Windbrisk Heights']) ok(JSON.stringify(M.carta(c)).includes('exiladaPorEste'), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
