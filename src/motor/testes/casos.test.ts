@@ -4764,6 +4764,41 @@ caso('611.2', "Mistrise Village: a próxima mágica que você conjurar neste tur
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
+caso('122.1', "filtro semMarcador: true = sem nenhum marcador (Damning Verdict); com tipo = sem marcador daquele tipo (Wave Goodbye)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Serra Angel']] });
+  objN(e, 0, 'Grizzly Bears').marc['-1/-1'] = 1; objN(e, 0, 'Serra Angel').marc['+1/+1'] = 1;
+  const nomes = f => M.objetosQue(e, { tipo: ['Creature'], zona: 'campo', ...f }, { voce: 0 }).map(o => o.n).sort();
+  igual(nomes({ semMarcador: true }), ['Llanowar Elves']);
+  igual(nomes({ semMarcador: '+1/+1' }), ['Grizzly Bears', 'Llanowar Elves']);
+});
+
+caso('121.1', "Fists of Flame: compra 1 e a criatura ganha +1/+0 por carta que você comprou no turno (conta {de:'turno', o:'compras'})", () => {
+  ok(M.fxSuportado(M.carta('Fists of Flame').fx), 'aceito');
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Grizzly Bears']], mao: [[0, 'Fists of Flame']] });
+  M.comprar(e, 0, 2);
+  M.avancar(e); conj(e, 'Fists of Flame'); if (e.perg && e.perg.tipo === 'alvo') alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  const b = objN(e, 0, 'Grizzly Bears');
+  igual(M.poder(e, b), 2 + 3, '2 compradas antes + a do Fists'); ok(M.temKw(e, b, 'atropelar'));
+});
+
+caso('603.4', "Nissa, Resurgent Animist: só na 2ª resolução do gatilho de terreno no turno revela até achar Elfo/Elemental e põe na mão (conta {de:'turno', o:'resolucoesDestaHab'})", () => {
+  const e = cena({ campo: [[0, 'Nissa, Resurgent Animist']] });
+  e.por(0, 'Llanowar Elves', { zona: 'grimorio' }); e.por(0, 'Sol Ring', { zona: 'grimorio' });   // topo: Sol Ring, depois o Elfo
+  const naMao = () => e.jogs[0].zonas.mao.filter(id => e.objs[id].n === 'Llanowar Elves').length;
+  e.por(0, 'Forest'); M.avancar(e); resolveCom(e);
+  igual(naMao(), 0, '1ª resolução: só a mana');
+  e.por(0, 'Forest'); M.avancar(e); resolveCom(e);
+  igual(naMao(), 1, '2ª: o Elfo foi para a mão');
+  ok(e.jogs[0].zonas.grimorio.map(id => e.objs[id].n).indexOf('Sol Ring') === 0, 'o Sol Ring revelado foi para o fundo');
+});
+
+caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste turno (Omnath) — conta por fonte e por habilidade', () => {
+  const e = cena({});
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'resolucoesDestaHab' } }, { voce: 0, resHab: 2 }), 2, 'a habilidade a');
+  igual(M.qtd(e, { conta: { de: 'turno', o: 'resolucoesDestaHab' } }, { voce: 0 }), 0, 'outra habilidade');
+  ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;

@@ -111,10 +111,12 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'compras') { const D = J.compT; return D && D.t === e.turno.n ? D.n : 0; }      // "cards you've drawn this turn" (Fists of Flame)
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
+      if (o === 'compras') { const C = J.compT; return C && C.t === e.turno.n ? C.n : 0; }   // "for each card you've drawn this turn" (Fists of Flame, 121.1)
+      if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       // corpo-a-corpo (702.121a): os oponentes que você atacou com criatura neste combate (jogador, não planeswalker), na resolução
       if (o === 'oponentesAtacados') return new Set(((e.turno.combate || {}).atk || []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== ctx.voce && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog)).size;   // "the second time this ability has resolved this turn" (contando esta)
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
-    case 'combate': return M.contaAtaque(e, o, ctx.voce);
+    case 'combate': return M.contaAtaque(e, o, ctx.voce);   // oponentesAtacados: corpo-a-corpo (702.121a)
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
     case 'jogadores': return M.vivos(e).length;
     case 'X': return ctx.x || 0;

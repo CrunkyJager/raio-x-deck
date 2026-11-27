@@ -1045,6 +1045,8 @@ M.contaAtaque = (e, conta, voce) => {
   const C = e.turno.combate, hist = (e.turno.ataques || []).filter(r => !r.entrou);   // quem entrou atacando não "atacou" (508.4)
   if (conta === 'atacantes') return C ? C.atk.filter(r => M.emCombate(e, r)).length : 0;
   if (conta === 'atacantesEmVoce') return (C ? C.atk : hist).filter(r => r.def === voce).length;
+  // os oponentes que você atacou neste combate (jogador, não planeswalker): corpo-a-corpo (702.121a), lido na resolução
+  if (conta === 'oponentesAtacados') return new Set((C ? C.atk : []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== voce && e.objs[r.id] && e.objs[r.id].ctrl === voce).map(r => r.alvo.jog)).size;
   return hist.filter(r => r.j === voce).length;
 };
 

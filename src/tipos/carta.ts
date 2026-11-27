@@ -271,9 +271,9 @@ export interface RxFiltro {
    */
   exiladaPorEste?: boolean;
   /**
-   * sem nenhum marcador (Damning Verdict)
+   * true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')
    */
-  semMarcador?: boolean;
+  semMarcador?: boolean | string;
   /**
    * tem estas palavras-chave
    */
@@ -1084,6 +1084,10 @@ export interface RxGat {
    * conjura: também quando copia
    */
   ouCopia?: boolean;
+  /**
+   * ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: "their first noncreature spell each turn")
+   */
+  primeiraNoTurno?: boolean;
   /**
    * zona de origem do objeto que mudou de zona
    */

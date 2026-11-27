@@ -2007,6 +2007,10 @@
     "naoPrimeira": {
      "type": "boolean",
      "description": "ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)"
+    },
+    "primeiraNoTurno": {
+     "type": "boolean",
+     "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
     }
    }
   },
