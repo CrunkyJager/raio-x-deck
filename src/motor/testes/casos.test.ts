@@ -4977,6 +4977,46 @@ caso('701.20', "Gitaxian Probe olha a mão do alvo (log) e compra; Glass-Cast He
   ok(h.zona !== 'campo', 'o Coração foi sacrificado'); igual(g.campo.filter(id => g.objs[id].n === 'Blood').length, 0, 'as 13 Blood também');
 });
 
+caso('604.3', "Hallowed Haunting: a ficha Espírito tem P/R = Espíritos seus (CDA ptDefinido), contando ela; cresce com o próximo", () => {
+  const e = cena({ campo: [[0, 'Hallowed Haunting']] });
+  const fx = M.carta('Hallowed Haunting').gat[0].fx[0], H = objN(e, 0, 'Hallowed Haunting');
+  const ctx = () => ({ voce: 0, este: H.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, H) } });
+  ok(M.fxSuportado([fx]), 'aceito');
+  M.executar(e, fx, ctx(), null);
+  const t1 = e.objs[e.campo.find(id => e.objs[id].ficha)];
+  igual([M.poder(e, t1), M.resistencia(e, t1)], [1, 1], 'sozinha: 1/1');
+  M.executar(e, fx, ctx(), null); e.vCamada = (e.vCamada || 0) + 1;
+  igual([M.poder(e, t1), M.resistencia(e, t1)], [2, 2], 'com outra: 2/2');
+});
+
+caso('602.2b', "Halo Fountain: custo 'desvire N criaturas viradas suas' (desvirarOutros); sem viradas, não ativa", () => {
+  const e = cena({ campo: [[0, 'Halo Fountain'], [0, 'Plains'], [0, 'Grizzly Bears', { virada: true }]] });
+  const h = objN(e, 0, 'Halo Fountain'), b = objN(e, 0, 'Grizzly Bears'); M.avancar(e);
+  ok(M.podeAtivar(e, 0, h, 0) && !M.podeAtivar(e, 0, h, 1), '1 virada: só a primeira');
+  respE(e, o => o.a === 'ativar' && o.id === h.id && o.k === 0);
+  for (let i = 0; i < 5 && e.perg && e.perg.tipo === 'custo'; i++) M.responder(e, 0);
+  ok(!b.virada, 'o urso desvirou'); ok(h.virada, 'a fonte virou');
+  b.virada = true; h.virada = false; b.virada = false;
+  ok(!M.podeAtivar(e, 0, h, 0), 'sem criatura virada: não');
+});
+
+caso('702.118b', "espreitar (Gollum 1/1): criatura de poder maior não bloqueia; de poder igual, bloqueia", () => {
+  const e = cena({ campo: [[0, 'Gollum, Obsessed Stalker'], [1, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
+  const g = objN(e, 0, 'Gollum, Obsessed Stalker'), por = M.dadoDe(e, g).est[0].por, c = { voce: 0, este: g.id };
+  ok(!M.bate(e, objN(e, 1, 'Llanowar Elves'), por, c) && M.bate(e, objN(e, 1, 'Grizzly Bears'), por, c), 'elfo 1 bloqueia; urso 2 não');
+});
+
+caso('509.1b', "Hei Bai: a ficha Espírito não bloqueia nem é bloqueada por não-Espírito; Espírito com Espírito, pode", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const tok = M.carta('Hei Bai, Forest Guardian').atv[0].fx[0].token;
+  const [s0] = M.criarFichas(e, 0, tok, 1), [s1] = M.criarFichas(e, 1, tok, 1);
+  const b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 1, 'Llanowar Elves');
+  ok(!M.bloqueiaEste(e, l, s0), 'elfo não bloqueia o Espírito');
+  ok(!M.bloqueiaEste(e, s1, b), 'o Espírito não bloqueia o urso');
+  ok(M.bloqueiaEste(e, s1, s0), 'Espírito bloqueia Espírito');
+  ok(M.podeBloquear(e, s1, 1), 'pode bloquear em geral');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

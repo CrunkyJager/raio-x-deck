@@ -455,6 +455,13 @@ export interface RxCustoAtv {
         f?: RxFiltro;
         qtd?: number;
       };
+  /**
+   * desvirar N permanentes viradas suas que batem em f (Halo Fountain: 'Untap two tapped creatures you control')
+   */
+  desvirarOutros?: {
+    f?: RxFiltro;
+    qtd?: number;
+  };
 }
 
 export type RxDura =

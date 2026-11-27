@@ -150,7 +150,7 @@ const alvosUsadosDe = (d, fx) => {
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
 M.CARTA_OK = new Set(['impostoPorAlvo']);
-const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe']);
+const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'desvirarOutros', 'porMarcador', 'revelar', 'exilarDe']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
@@ -161,6 +161,9 @@ M.custoSuportado = c => {
   if (c && c.devolver !== undefined && c.devolver !== 'este' && !(c.devolver && typeof c.devolver === 'object' && M.filtroOk(c.devolver.f || {})
     && (c.devolver.qtd === undefined || Number.isInteger(c.devolver.qtd)) && Object.keys(c.devolver).every(k => k === 'f' || k === 'qtd'))) return false;
   // "vire uma criatura lendária desvirada que você controla" (Dungeon Descent): {f, qtd}; não é o {T} dela, enjoo não importa (302.6)
+  // "Untap N tapped creatures you control" como custo (Halo Fountain): {f, qtd}
+  if (c && c.desvirarOutros !== undefined && !(c.desvirarOutros && typeof c.desvirarOutros === 'object' && M.filtroOk(c.desvirarOutros.f || {})
+    && (c.desvirarOutros.qtd === undefined || Number.isInteger(c.desvirarOutros.qtd)) && Object.keys(c.desvirarOutros).every(k => k === 'f' || k === 'qtd'))) return false;
   if (c && c.virarOutros !== undefined && !(c.virarOutros && typeof c.virarOutros === 'object' && M.filtroOk(c.virarOutros.f || {})
     && (c.virarOutros.qtd === undefined || Number.isInteger(c.virarOutros.qtd)) && (c.virarOutros.poder === undefined || (Number.isInteger(c.virarOutros.poder) && c.virarOutros.qtd === undefined)) && Object.keys(c.virarOutros).every(k => k === 'f' || k === 'qtd' || k === 'poder'))) return false;
   // "revele uma carta de Dinossauro da sua mão" (Thunderherd Migration): {f, qtd}; revelar não muda zona (701.20)
@@ -177,6 +180,7 @@ const candSac = (e, j, c, fonte) => M.objetosQue(e, { ...(c.sacrificar.f || {}),
 const candDev = (e, j, c, fonte) => M.objetosQue(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });   // devolver à mão como custo (Master Transmuter)
 const candVir = (e, j, c, fonte) => M.objetosQue(e, { ...(c.virarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => !o.virada && o.id !== fonte);
 M.candVir = candVir;
+const candDesv = (e, j, c, fonte) => M.objetosQue(e, { ...(c.desvirarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => o.virada && o.id !== fonte);
 const candRev = (e, j, c, fora) => M.objetosQue(e, { ...(c.revelar.f || {}), zona: 'mao' }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas.mao.includes(o.id));
 const candExi = (e, j, c, fora) => M.objetosQue(e, { ...(c.exilarDe.f || {}), zona: c.exilarDe.zona }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas[c.exilarDe.zona].includes(o.id));
 const candDesc = (e, j, fora) => e.jogs[j].zonas.mao.filter(id => id !== fora);
@@ -198,6 +202,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
   if (c.virarOutros && c.virarOutros.poder === undefined && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
+  if (c.desvirarOutros && candDesv(e, j, c, o && o.id).length < (c.desvirarOutros.qtd || 1)) return false;
   if (c.virarOutros && c.virarOutros.poder !== undefined && candVir(e, j, c, o && o.id).reduce((s, x) => s + Math.max(0, M.poder(e, x)), 0) < c.virarOutros.poder) return false;   // tripular N (702.122a)
   if (c.revelar && candRev(e, j, c, daMao).length < (c.revelar.qtd || 1)) return false;
   if (c.exilarDe && candExi(e, j, c, daMao || (o && o.id)).length < (c.exilarDe.qtd || 1)) return false;
@@ -724,7 +729,7 @@ function escolherAd(e, j, o, c, ask) {
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
-  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], rev: [] as any[], exi: [] as any[] };
+  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], desv: [] as any[], rev: [] as any[], exi: [] as any[] };
   if (c.exilarDe) {
     for (let i = 0; i < (c.exilarDe.qtd || 1); i++) {
       const ops = candExi(e, j, c, daMao || fonte).filter(o => !r.exi.includes(o.id)).map(o => ({ a: 'exilar', id: o.id }));
@@ -749,6 +754,10 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id)).map(o => ({ a: 'virar', id: o.id }));
       r.vir.push(ask(j, 'custo', ops, { o: 'virar' }).id);
     }
+  }
+  if (c.desvirarOutros) for (let i = 0; i < (c.desvirarOutros.qtd || 1); i++) {
+    const ops = candDesv(e, j, c, fonte).filter(o => !r.desv.includes(o.id)).map(o => ({ a: 'desvirar', id: o.id }));
+    r.desv.push(ask(j, 'custo', ops, { o: 'desvirar' }).id);
   }
   if (c.sacrificar && c.sacrificar !== 'este') {
     for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
@@ -775,6 +784,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.virar) M.virarObj(e, o);
   if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) M.virarObj(e, e.objs[id]);          // virarOutros
+  for (const id of esc.desv || []) M.desvirarObj(e, e.objs[id]);     // desvirarOutros (Halo Fountain)
   for (const id of esc.exi || []) M.mover(e, id, 'exilio');        // exilarDe (CR 406)
   if ((esc.rev || []).length) M.log(e, J.nome, 'revela', esc.rev.map(id => e.objs[id].n).join(', '));   // CR 701.20: só mostra
   if (c.vida) M.perderVida(e, j, c.vida);

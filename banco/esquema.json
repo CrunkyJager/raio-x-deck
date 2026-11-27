@@ -936,6 +936,19 @@
       }
      ],
      "description": "devolver à mão do dono como custo: 'este' (Shigeki) ou {f, qtd} uma permanente sua que bate no filtro (Master Transmuter, Mina and Denn)"
+    },
+    "desvirarOutros": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "f": {
+       "$ref": "#/$defs/filtro"
+      },
+      "qtd": {
+       "type": "integer"
+      }
+     },
+     "description": "desvirar N permanentes viradas suas que batem em f (Halo Fountain: 'Untap two tapped creatures you control')"
     }
    }
   },
