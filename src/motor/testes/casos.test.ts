@@ -3532,6 +3532,17 @@ caso('111.2', "gatilho de criar ficha: Mirkwood Bats (cada ficha criada: oponent
   for (const c of ['Rosie Cotton of South Lane', 'Mirkwood Bats', "Caretaker's Talent"]) ok(M.carta(c).gat.filter(g => g.ev === 'fichaCriada').every(g => M.gatOk(g)), c);
 });
 
+caso('702.14c', "caminhada de terreno: Cold-Eyed Selkie não pode ser bloqueada por quem tem Island; sem Island, pode; Lord of Atlantis dá aos Merfolk", () => {
+  const e = cena({ campo: [[0, 'Cold-Eyed Selkie'], [1, 'Grizzly Bears'], [1, 'Island']] });
+  const o = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  ok(!M.bloqueiaEste(e, o('Grizzly Bears'), o('Cold-Eyed Selkie')), 'defensor com Island: não bloqueia');
+  const f = cena({ campo: [[0, 'Cold-Eyed Selkie'], [1, 'Grizzly Bears'], [1, 'Forest']] });
+  const p = n => f.objs[f.campo.find(id => f.objs[id].n === n)];
+  ok(M.bloqueiaEste(f, p('Grizzly Bears'), p('Cold-Eyed Selkie')), 'sem Island: bloqueia');
+  const g = cena({ campo: [[0, 'Lord of Atlantis'], [0, 'Cold-Eyed Selkie'], [1, 'Island']] });
+  ok(M.kwDe(g, g.objs[g.campo[1]]).filter(x => x.k === 'caminhadaTerreno').length >= 1, 'Lord dá islandwalk');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
