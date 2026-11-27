@@ -657,10 +657,12 @@
         "qualquerAlvo",
         "jogador",
         "oponente",
-        "magica"
+        "magica",
+        "habilidade"
        ]
       }
-     ]
+     ],
+     "description": "filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)"
     },
     "min": {
      "type": "integer"
@@ -930,6 +932,10 @@
     "fundoEste": {
      "type": "boolean",
      "description": "pôr esta no fundo do grimório do dono como custo (Timestream Navigator)"
+    },
+    "descartarF": {
+     "$ref": "#/$defs/filtro",
+     "description": "com descartar: só cartas que batem neste filtro (\"Discard a creature card\": Tortured Existence)"
     }
    }
   },
@@ -2256,9 +2262,10 @@
       "anulada",
       "vidaMuda",
       "ganhaVida",
-      "moer"
+      "moer",
+      "explorar"
      ],
-     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal)"
+     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal) · explorar: quem (a criatura que exploraria) + muda.mult: explora N vezes (Topography Tracker)"
     },
     "quem": {
      "$ref": "#/$defs/filtro"

@@ -4547,6 +4547,58 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+caso('701.6b', "Tishana's Tidebinder: anula uma habilidade desencadeada na pilha (alvo 'habilidade'); magia não é alvo", () => {
+  const g = M.carta("Tishana's Tidebinder").gat[0]; ok(M.gatOk(g) && g.alvos.every(a => M.alvoSuportado(a)), 'aceita');
+  const e = cena({ campo: [[1, 'Llanowar Elves']], mao: [[0, 'Grizzly Bears']] });
+  e.pilha.push(...[]);
+  const h = { id: e.prox++, n: 'teste', dono: 1, ctrl: 1, zona: 'pilha', ts: ++e.ts, hab: { fonte: e.campo[0], fonteTs: 0, k: 0, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], alvos: [] }, marc: {} };
+  e.objs[h.id] = h; e.pilha.push(h.id);
+  const cx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  igual(M.alvosPossiveis(e, g.alvos[0], cx).map(x => x.o), [h.id], 'a habilidade é alvo');
+  M.executar(e, g.fx[0], { ...cx, alvos: [[{ o: h.id, ts: h.ts }]] }, null);
+  igual(e.pilha.length, 0, 'anulada'); ok(!e.objs[h.id], 'sumiu (113.7)');
+});
+
+caso('508.1', "Tolsimir: o Lobo que ataca dispara só se Tolsimir atacou neste combate (atacouNoTurno); Lobo sozinho, não", () => {
+  ok(M.carta("Tolsimir, Midnight's Light").gat.every(g => M.gatOk(g)), 'aceita');
+  const e = cena({ campo: [[0, "Tolsimir, Midnight's Light"], [1, 'Grizzly Bears']] });
+  M.criarFichas(e, 0, { pt: [5, 5], cores: 'GW', tipos: ['Creature'], sub: ['Wolf'] }, 1); e.pend = [];
+  const t = objN(e, 0, "Tolsimir, Midnight's Light"), w = e.objs[e.campo.find(id => e.objs[id].ficha)];
+  w.doente = false;
+  ate(e, 'atacar'); atacaCom(e, t); atacaCom(e, w); fecha(e, 'atacar');
+  const f = cena({ campo: [[0, "Tolsimir, Midnight's Light"], [1, 'Grizzly Bears']] });
+  M.criarFichas(f, 0, { pt: [5, 5], cores: 'GW', tipos: ['Creature'], sub: ['Wolf'] }, 1); f.pend = [];
+  const w2 = f.objs[f.campo.find(id => f.objs[id].ficha)];
+  const g = M.carta("Tolsimir, Midnight's Light").gat[1];
+  ok(!M.condicao(f, g.se, { voce: 0, este: objN(f, 0, "Tolsimir, Midnight's Light").id }), 'Tolsimir não atacou: não');
+  ok(M.condicao(e, g.se, { voce: 0, este: t.id }), 'atacou: sim');
+});
+
+caso('701.44', "Topography Tracker: a criatura minha que exploraria explora duas vezes (2 marcadores com 2 não-terrenos no topo); a do oponente, uma", () => {
+  ok(M.carta('Topography Tracker').subst.every(s => M.substOk(s)), 'aceita');
+  const e = cena({ campo: [[0, 'Topography Tracker'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']], grimorio: 0 });
+  for (const n of ['Serra Angel', 'Serra Angel']) { e.por(0, n, { zona: 'grimorio' }); e.por(1, n, { zona: 'grimorio' }); }
+  const b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 1, 'Llanowar Elves');
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Grizzly Bears', zona: 'campo' } } }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(b.marc['+1/+1'], 2, 'duas vezes');
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Llanowar Elves', zona: 'campo' } } }, { voce: 1, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(l.marc['+1/+1'], 1, 'do oponente: uma');
+});
+
+caso('118.3', "Tortured Existence: o descarte do custo tem que ser carta de criatura (descartarF); só terreno na mão, não ativa", () => {
+  const a = M.carta('Tortured Existence').atv[0]; ok(M.custoSuportado(a.custo), 'aceita');
+  const e = cena({ campo: [[0, 'Tortured Existence'], [0, 'Swamp']], mao: [[0, 'Forest']] });
+  e.por(0, 'Serra Angel', { zona: 'cemiterio' });
+  const t = objN(e, 0, 'Tortured Existence');
+  M.avancar(e); ok(!e.perg.ops.some(o => o.a === 'ativar' && o.id === t.id), 'só Forest: não');
+  const f = cena({ campo: [[0, 'Tortured Existence'], [0, 'Swamp']], mao: [[0, 'Forest'], [0, 'Grizzly Bears']] });
+  f.por(0, 'Serra Angel', { zona: 'cemiterio' });
+  const t2 = objN(f, 0, 'Tortured Existence');
+  M.avancar(f); ok(f.perg.ops.some(o => o.a === 'ativar' && o.id === t2.id), 'com Urso: sim');
+  respE(f, o => o.a === 'ativar' && o.id === t2.id); resolveCom(f);
+  igual(f.jogs[0].zonas.mao.map(id => f.objs[id].n).sort(), ['Forest', 'Serra Angel'], 'descartou o Urso, voltou o Anjo');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

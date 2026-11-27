@@ -75,6 +75,7 @@ const SUBST: Record<string, (s) => boolean> = {
       && Object.keys(s.emVez[0]).every(k => ['op', 'f', 'tipos'].includes(k)) && (s.emVez[0].tipos === undefined || Array.isArray(s.emVez[0].tipos)))
     || sacEntraOk(s),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
+  explorar: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && s.muda.mult > 1 && Object.keys(s).every(k => ['ev', 'quem', 'muda'].includes(k)),   // efeitos.ts explorar
   moer: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.soma) && Object.keys(s).every(k => ['ev', 'jog', 'muda'].includes(k)) && [undefined, 'voce', 'oponente', 'qualquer'].includes(s.jog),   // efeitos.ts moer (The Water Crystal)
   compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
@@ -840,7 +841,8 @@ const H = {
   explorar: {
     fx(e, f, ctx, ask) {
       const feitos = ctx.expl || (ctx.expl = new Map());           // o processo roda de novo a cada pergunta: quem já explorou não repete
-      const lista = feitos.get(f) || (feitos.set(f, { ids: objsDe(e, f, ctx).map(o => o.id), n: 0 }), feitos.get(f));
+      const vezes = o => substsDe(e, 'explorar').reduce((m, { F, s }) => substSe(e, F, s) && substQuem(e, F, s, o) ? m * s.muda.mult : m, 1);   // 614.1a: "instead it explores, then it explores again" (Topography Tracker)
+      const lista = feitos.get(f) || (feitos.set(f, { ids: objsDe(e, f, ctx).flatMap(o => Array(vezes(o)).fill(o.id)), n: 0 }), feitos.get(f));
       for (; lista.n < lista.ids.length; lista.n++) {
         const o = e.objs[lista.ids[lista.n]], j = o.ctrl, g = e.jogs[j].zonas.grimorio, top = g[g.length - 1];
         if (top === undefined) { if (o.zona === 'campo') M.porMarcadores(e, o, '+1/+1', 1); M.evento(e, { ev: 'explora', id: o.id, j }); continue; }   // grimório vazio: nada revelado, não é terreno

@@ -325,7 +325,10 @@ export interface RxCompara {
 export type RxZona = 'campo' | 'mao' | 'grimorio' | 'cemiterio' | 'exilio' | 'pilha' | 'comando' | 'qualquer';
 
 export interface RxAlvo {
-  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica');
+  /**
+   * filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)
+   */
+  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'habilidade');
   min?: number;
   /**
    * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman)
@@ -440,6 +443,10 @@ export interface RxCustoAtv {
    * pôr esta no fundo do grimório do dono como custo (Timestream Navigator)
    */
   fundoEste?: boolean;
+  /**
+   * com descartar: só cartas que batem neste filtro ("Discard a creature card": Tortured Existence)
+   */
+  descartarF?: RxFiltro;
 }
 
 export type RxDura =
@@ -1258,7 +1265,7 @@ export interface RxEst {
  */
 export interface RxSubst {
   /**
-   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal)
+   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal) · explorar: quem (a criatura que exploraria) + muda.mult: explora N vezes (Topography Tracker)
    */
   ev:
     | 'entra'
@@ -1271,7 +1278,8 @@ export interface RxSubst {
     | 'anulada'
     | 'vidaMuda'
     | 'ganhaVida'
-    | 'moer';
+    | 'moer'
+    | 'explorar';
   quem?: RxFiltro;
   muda?: {
     virada?: boolean;
