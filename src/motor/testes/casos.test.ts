@@ -4370,6 +4370,25 @@ caso('614.1c', "Feasting Hobbit: ao entrar sacrifica as Comidas que quiser e ent
   igual(M.poder(f, objN(f, 0, 'Feasting Hobbit')), 2, 'sem Comida: 2/2');
 });
 
+caso('119.3', "Archfiend of Despair: no final, cada oponente perde o que ELE perdeu no turno (3 jogadores: um perdeu 5, outro 0; o seu dano não conta)", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Archfiend of Despair']] });
+  const af = objN(e, 0, 'Archfiend of Despair');
+  M.perderVida(e, 1, 5); M.perderVida(e, 0, 4);
+  M.executar(e, M.carta('Archfiend of Despair').gat[0].fx[0], { ...ctxDe(e), este: af.id, item: af.id }, (j, t, ops) => ops[0]);
+  igual(e.jogs.map(j => j.vida), [36, 30, 40], 'o 1 perde mais 5; o 2 nada; você não');
+  e.turno.n++; M.executar(e, M.carta('Archfiend of Despair').gat[0].fx[0], { ...ctxDe(e), este: af.id, item: af.id }, (j, t, ops) => ops[0]);
+  igual(e.jogs[1].vida, 30, 'turno novo: zera');
+});
+caso('120.3', "Molten Psyche: cada um embaralha a mão e compra o mesmo tanto; com metalcraft, dano a cada oponente = o que ele comprou no turno", () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [0, 'Arcane Signet']], mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears']] });
+  for (let i = 0; i < 3; i++) e.por(1, 'Forest', { zona: 'mao' });
+  const fx = M.carta('Molten Psyche').fx;
+  ok(M.fxSuportado(fx), 'aceito');
+  for (const f of fx) M.executar(e, f, ctxDe(e), (j, t, ops) => ops[0]);
+  igual([e.jogs[0].zonas.mao.length, e.jogs[1].zonas.mao.length], [2, 3], 'mesmo tanto na mão');
+  igual(e.jogs[1].vida, 37, '3 de dano (comprou 3)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

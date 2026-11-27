@@ -653,7 +653,8 @@ M.ganharVida = (e, j, q) => {
 // por aqui e soltam o evento 'perdeVida' (Mindcrank, Exquisite Blood, Vilis). Quem chama já olhou a vida fixa (119.8).
 M.perderVida = (e, j, q) => {
   if (!(q > 0)) return 0;
-  e.jogs[j].vida -= q;
+  const J = e.jogs[j]; J.vida -= q;
+  J.perdT = { t: e.turno.n, n: (J.perdT && J.perdT.t === e.turno.n ? J.perdT.n : 0) + q };   // "the life that player lost this turn"
   M.evento(e, { ev: 'perdeVida', j, q });
   return q;
 };
