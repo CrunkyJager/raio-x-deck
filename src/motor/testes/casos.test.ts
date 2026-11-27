@@ -3423,6 +3423,20 @@ caso('702.131', "ascender: com 10 permanentes e uma com ascender ganha a bênç�
   ok(!f.jogs[0].bencao && !M.condicao(f, { palavra: 'blessing' }, { voce: 0 }), 'sem permanente com ascender: nada');
 });
 
+caso('702.40', "tempestade: Grapeshot depois de 2 mágicas no turno causa 3 de dano (a original + 2 cópias); primeira do turno não copia", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Shock'], [0, 'Shock'], [0, 'Grapeshot']] });
+  M.avancar(e);
+  for (let i = 0; i < 2; i++) { conj(e, 'Shock'); alvoJog(e, 1); M.avancar(e); }
+  igual(e.jogs[1].vida, 40 - 4, 'dois Shock');
+  conj(e, 'Grapeshot'); alvoJog(e, 1);
+  M.avancar(e);
+  for (let i = 0; i < 20 && e.perg && e.perg.tipo === 'talvez' && e.perg.ctx.op === 'novoAlvo'; i++) { respE(e, o => o.a === 'nao'); M.avancar(e); }   // as cópias ficam com o mesmo alvo
+  igual(e.jogs[1].vida, 40 - 4 - 3, 'Grapeshot + 2 cópias');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Grapeshot']] });
+  M.avancar(f); conj(f, 'Grapeshot'); alvoJog(f, 1); M.avancar(f);
+  igual(f.jogs[1].vida, 39, 'primeira mágica do turno: sem cópia');
+});
+
 caso('702.29e', "ciclo de tipo: Step Through (ciclo de Wizard {2}) procura um Wizard e embaralha; Homing Sliver dá ciclo de Sliver aos Slivers da mão", () => {
   const e = cena({ campo: [...terras(2, 'Wastes')], mao: [[0, 'Step Through']] });
   e.por(0, 'Vedalken Aethermage', { zona: 'grimorio' }); e.pend = [];
@@ -3490,6 +3504,62 @@ caso('613.1d', "tiraTipo: deus de Theros não é criatura com devoção < 5 (Pur
   e.por(0, 'Krenko, Mob Boss'); ok(!M.temTipo(e, p, 'Creature'), 'devoção 3: ainda não');
   e.por(0, 'Krenko, Mob Boss'); ok(M.temTipo(e, p, 'Creature') && M.poder(e, p) === 6, 'devoção 5: criatura 6/5');
   for (const c of ['Athreos, God of Passage', 'Iroas, God of Victory', 'Nylea, God of the Hunt']) ok(M.carta(c).est.filter(s => s.tiraTipo).every(s => M.estContOk(s)), c);
+});
+
+caso('701.47', "amassar: sem Armada cria a ficha 0/0 com o tipo e põe os marcadores; com Armada, só marca a que existe e dá o tipo", () => {
+  ok(M.fxSuportado([{ op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }]), 'amassar aceito');
+  const e = cena({ campo: [] });
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: {} });
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }, cx(), () => ({ a: 'nao' }));
+  const ars = () => e.campo.map(id => e.objs[id]).filter(o => (M.dadoDe(e, o).sub || []).includes('Army'));
+  igual(ars().length, 1, 'criou uma Armada');
+  const a = ars()[0];
+  igual([M.poder(e, a), M.resistencia(e, a)], [1, 1], 'Armada 1/1');
+  ok(M.dadoDe(e, a).sub.includes('Orc'), 'é Orc');
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Zombie'], qtd: 2 }, cx(), () => ({ a: 'nao' }));
+  igual(ars().length, 1, 'não cria outra');
+  igual(M.poder(e, a), 3, '+2 na mesma');
+  ok(M.dadoDe(e, a).sub.includes('Zombie'), 'virou Zombie também');
+});
+
+caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores de experiência seus, poder e marcadores da que morreu (LKI)", () => {
+  for (const c of ['Chasm Skulker', 'Elenda, the Dusk Rose', "Elenda's Hierophant", 'Endless Ranks of the Dead', "Otharri, Suns' Glory"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: {} });
+  const zumbi = { pt: [2, 2], cores: 'B', tipos: ['Creature'], sub: ['Zombie'] };
+  const e = cena({ campo: [] });
+  M.criarFichas(e, 0, zumbi, 5);
+  M.executar(e, M.carta('Endless Ranks of the Dead').gat[0].fx[0], cx(), () => ({ a: 'nao' }));
+  igual(e.campo.length, 7, '5 Zumbis → +2');
+  e.jogs[0].marc = { experience: 3 };
+  igual(M.qtdDe(e, { conta: 'marcadoresSeus', de: 'experience' }, cx()), 3, '3 de experiência');
+  const f = cena({ campo: [[0, 'Chasm Skulker'], [0, 'Elenda, the Dusk Rose']] });
+  const sk = f.campo.map(id => f.objs[id]).find(o => o.n === 'Chasm Skulker'), el = f.campo.map(id => f.objs[id]).find(o => o.n === 'Elenda, the Dusk Rose');
+  sk.marc['+1/+1'] = 3; el.marc['+1/+1'] = 2;
+  const lk = o => ({ voce: 0, alvos: [], ilegal: {}, lki: { este: M.lkiDe(f, o) }, este: o.id });
+  const ls = lk(sk), le = lk(el);
+  M.mover(f, sk.id, 'cemiterio'); M.mover(f, el.id, 'cemiterio');
+  const antes = f.campo.length;
+  M.executar(f, M.carta('Chasm Skulker').gat[1].fx[0], ls, () => ({ a: 'nao' }));
+  igual(f.campo.length - antes, 3, 'Skulker: 3 Lulas');
+  M.executar(f, M.carta('Elenda, the Dusk Rose').gat[1].fx[0], le, () => ({ a: 'nao' }));
+  igual(f.campo.length - antes, 3 + 3, 'Elenda 1/1 com +2: 3 Vampiros');
+});
+
+caso('614.1a', "Bard, King of Dale compra 2 no lugar de 1, menos a 1ª da etapa de compra; Tomb Tyrant volta um Zumbi aleatório; Descendants' Path revela o topo e, sem conjurar, põe no fundo", () => {
+  const e = cena({ campo: [[0, 'Bard, King of Dale']] });
+  const m0 = e.jogs[0].zonas.mao.length; M.comprar(e, 0, 1);
+  igual(e.jogs[0].zonas.mao.length - m0, 2, 'fora da etapa de compra: 2');
+  e.turno.passo = 'compra'; e.turno.n++; const m1 = e.jogs[0].zonas.mao.length; M.comprar(e, 0, 1); M.comprar(e, 0, 1);
+  igual(e.jogs[0].zonas.mao.length - m1, 3, 'na etapa: a 1ª é 1, a 2ª vira 2');
+  const f = cena({ campo: [[0, 'Tomb Tyrant']] });
+  const zs = ['Blackcleave Goblin', 'Blackcleave Goblin', 'Blackcleave Goblin'].map(n => f.por(0, n, { zona: 'cemiterio' }));
+  M.executar(f, M.carta('Tomb Tyrant').atv[0].fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  igual(zs.filter(o => o.zona === 'campo').length, 1, 'um Zumbi voltou');
+  const g = cena({ campo: [[0, "Descendants' Path"], [0, 'Grizzly Bears']] });
+  const topo = g.por(0, 'Sol Ring', { zona: 'grimorio' });
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: {} };
+  for (const fx of M.carta("Descendants' Path").gat[0].fx) M.executar(g, fx, ctx, () => ({ a: 'nenhum' }));
+  igual(g.jogs[0].zonas.grimorio[0], topo.id, 'Sol Ring (sem tipo em comum) foi para o fundo');
 });
 
 caso('702.75a', "esconderijo: ao entrar olha 4, exila 1 ligado a ela e o resto vai para o fundo; Watcher for Tomorrow devolve o exilado à mão quando sai", () => {
@@ -3656,6 +3726,106 @@ caso('701.26a', "gatilho de virar: Dionus no seu turno desvira e ganha +1/+1 (um
   igual(f.pend.filter(p => p.n === 'Deeproot Pilgrimage').length, 1, 'um disparo pelos dois');
   f.pend = []; f.por(0, 'Cold-Eyed Selkie', { virada: true }); igual(f.pend.filter(p => p.n === 'Deeproot Pilgrimage').length, 0, 'entrou virada: não');
   for (const c of ['Dionus, Elvish Archdruid', 'Deeproot Pilgrimage']) ok(JSON.stringify(M.carta(c)).includes('"vira"'), c);
+});
+
+caso('614.1a', "troca de ficha: Academy Manufactor faz Pista+Comida+Tesouro (×2 com Doubling Season); Jinnie Fay troca o Servo 1/1 por Gato 2/2 e deixa o Tesouro", () => {
+  for (const c of ['Academy Manufactor', "Jinnie Fay, Jetmir's Second"]) ok(M.carta(c).subst.every(s => M.substOk(s)), c + ' aceita');
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  const conta = (e, n) => e.campo.filter(id => e.objs[id].n === n && e.objs[id].ctrl === 0).length;
+  const e = cena({ campo: [[0, 'Academy Manufactor'], [0, 'Doubling Season']] });
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual([conta(e, 'Clue'), conta(e, 'Food'), conta(e, 'Treasure')], [2, 2, 2], 'um de cada, ×2 com Doubling Season');
+  M.executar(e, { op: 'ficha', quem: 'cadaOponente', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual(e.campo.filter(id => e.objs[id].ctrl === 1).length, 1, 'do oponente não troca');
+  const f = cena({ campo: [[0, "Jinnie Fay, Jetmir's Second"]] });
+  M.executar(f, { op: 'ficha', quem: 'voce', qtd: 2, token: { pt: [1, 1], tipos: ['Artifact', 'Creature'], sub: ['Servo'] } }, cx(), null);
+  igual(conta(f, 'Cat Token'), 2, 'dois Gatos no lugar dos Servos'); igual(conta(f, 'Servo Token'), 0);
+  ok(f.campo.filter(id => f.objs[id].n === 'Cat Token').every(id => M.temKw(f, f.objs[id], 'pressa')), 'Gato com pressa');
+  M.executar(f, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual(conta(f, 'Treasure'), 1, 'Tesouro fica (talvez)');
+});
+
+caso('601.2b', "Toxic Deluge: anuncia X, paga X de vida (custo adicional) e todas as criaturas ganham −X/−X; o agente escolhe o X que mata a maior do oponente", () => {
+  ok(M.custoAdSuportado(M.carta('Toxic Deluge').custoAd), 'custo aceito');
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Swamp'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']], mao: [[0, 'Toxic Deluge']] });
+  M.avancar(e); conj(e, 'Toxic Deluge');
+  igual(e.perg.tipo, 'x'); igual(e.perg.ops.length, 41, 'X de 0 a 40');
+  igual(e.perg.ops[M.agenteBasico()(e, e.perg)].v, 2, 'agente: X = 2 (o Urso)');
+  respE(e, o => o.v === 2); M.avancar(e);
+  igual(e.jogs[0].vida, 38, 'pagou 2 de vida');
+  igual(e.campo.filter(id => e.objs[id].ctrl === 1).length, 0, 'as duas morreram');
+});
+
+caso('602.2b', "Devoted Druid: pôr um marcador −1/−1 nela é custo — desvira; na segunda vez morre (0/0) pela ação de estado", () => {
+  ok(M.carta('Devoted Druid').atv.every(a => M.custoSuportado(a.custo)), 'custos aceitos');
+  const e = cena({ campo: [[0, 'Devoted Druid', { virada: true }]] });
+  const d = e.campo.map(id => e.objs[id]).find(o => o.n === 'Devoted Druid');
+  M.avancar(e);
+  respE(e, o => o.a === 'ativar' && o.id === d.id && o.k === 1); resolvePilha(e);
+  ok(!d.virada, 'desvirou'); igual(d.marc['-1/-1'], 1); igual(M.resistencia(e, d), 1);
+  respE(e, o => o.a === 'ativar' && o.id === d.id && o.k === 1); resolvePilha(e);
+  igual(d.zona, 'cemiterio', '0/0 morre');
+});
+
+caso('613.4c', "Conqueror's Flail: a equipada ganha +1/+1 por cor entre as suas permanentes (Urso verde + Krenko vermelho = +2/+2)", () => {
+  ok(M.carta("Conqueror's Flail").est.every(s => s.modo !== 'continuo' || M.estContOk(s)), 'estática aceita');
+  const e = cena({ campo: [[0, "Conqueror's Flail"], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Sol Ring'], [1, 'Lightning Greaves']] });
+  const fl = objN(e, 0, "Conqueror's Flail"), b = objN(e, 0, 'Grizzly Bears');
+  fl.anexo = { id: b.id, ts: b.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  igual([M.poder(e, b), M.resistencia(e, b)], [3, 3], 'uma cor (verde): +1/+1');
+  e.por(0, 'Krenko, Mob Boss'); e.vCamada++;
+  igual([M.poder(e, b), M.resistencia(e, b)], [4, 4], 'verde e vermelho: +2/+2');
+});
+
+caso('305.7', "tipo dado por filtro (613.1d): Dryad faz seus terrenos de todo tipo básico (Forest dá as 5 cores, 305.6); Ashaya faz suas criaturas não-ficha Florestas (viram para {G})", () => {
+  for (const c of ['Dryad of the Ilysian Grove', 'Ashaya, Soul of the Wild']) ok(M.carta(c).est.every(s => s.modo !== 'continuo' || M.estContOk(s)), c + ' aceita');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Dryad of the Ilysian Grove'], [1, 'Island']] });
+  const fo = objN(e, 0, 'Forest'), il = objN(e, 1, 'Island');
+  igual(M.dadoDe(e, fo).sub.slice().sort(), ['Forest', 'Island', 'Mountain', 'Plains', 'Swamp']);
+  igual(M.atvDe(e, fo).filter(a => a.deMana).flatMap(a => a.fx[0].prod).sort(), ['B', 'G', 'R', 'U', 'W'], 'mana das 5 cores');
+  igual(M.dadoDe(e, il).sub, ['Island'], 'do oponente não');
+  const f = cena({ campo: [[0, 'Ashaya, Soul of the Wild'], [0, 'Grizzly Bears'], [0, 'Forest']] });
+  const b = objN(f, 0, 'Grizzly Bears'), a = objN(f, 0, 'Ashaya, Soul of the Wild');
+  ok(M.temTipo(f, b, 'Land') && M.temTipo(f, b, 'Creature'), 'o Urso é terreno e criatura');
+  ok(M.fontesDeMana(f, 0).some(x => x.id === b.id), 'o Urso vira para mana');
+  igual(M.poder(f, a), 3, 'Ashaya conta 3 terrenos (ela, o Urso e a Floresta)');
+  M.criarFichas(f, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Elf'] }, 1);
+  const tk = f.campo.map(id => f.objs[id]).find(o => o.ficha);
+  ok(!M.temTipo(f, tk, 'Land'), 'ficha não');
+});
+
+caso('613.1d', "Skyknight Squire: com 3 marcadores +1/+1 voa e é Cavaleiro (tipo e palavra-chave na mesma estática); com 2, não", () => {
+  ok(M.carta('Skyknight Squire').est.every(s => M.estContOk(s)), 'estática aceita');
+  const e = cena({ campo: [[0, 'Skyknight Squire']] });
+  const k = objN(e, 0, 'Skyknight Squire');
+  k.marc['+1/+1'] = 2; e.vCamada = (e.vCamada || 0) + 1;
+  ok(!M.temKw(e, k, 'voar') && !M.dadoDe(e, k).sub.includes('Knight'), 'com 2: nada');
+  k.marc['+1/+1'] = 3; e.vCamada++;
+  ok(M.temKw(e, k, 'voar'), 'voa'); ok(M.dadoDe(e, k).sub.includes('Knight'), 'é Cavaleiro');
+  igual(M.poder(e, k), 4);
+});
+
+caso('118.9', "Flare of Fortitude: sem mana, conjura sacrificando uma criatura branca não-ficha (custo alternativo); sem branca, não dá", () => {
+  ok(M.carta('Flare of Fortitude').est.every(s => s.modo !== 'custoAlternativo' || M.estAltOk(s)), 'custo aceito');
+  const e = cena({ campo: [[0, 'Serra Angel'], [0, 'Grizzly Bears']], mao: [[0, 'Flare of Fortitude']] });
+  M.avancar(e);
+  ok(opsDe(e, 'conjurar').some(o => e.objs[o.id].n === 'Flare of Fortitude'), 'oferecida sem mana');
+  conj(e, 'Flare of Fortitude'); if (e.perg && e.perg.tipo === 'custo') respE(e, o => o.id === objN(e, 0, 'Serra Angel').id);
+  resolvePilha(e);
+  ok(e.jogs[0].zonas.cemiterio.map(id => e.objs[id].n).includes('Serra Angel'), 'sacrificou o Anjo');
+  const b = objN(e, 0, 'Grizzly Bears'); ok(M.temKw(e, b, 'indestrutivel') && M.temKw(e, b, 'antimagia'), 'indestrutível e antimagia');
+  const f = cena({ campo: [[0, 'Grizzly Bears']], mao: [[0, 'Flare of Fortitude']] });
+  M.avancar(f); ok(!opsDe(f, 'conjurar').length, 'sem criatura branca e sem mana: não');
+});
+
+caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispara uma vez a mais; sem ele, uma", () => {
+  ok(M.carta('Ancient Greenwarden').est.some(s => s.modo === 'dobraGatilho'), 'como dobraGatilho (evs entra, causa terreno)');
+  const e = cena({ campo: [[0, 'Ancient Greenwarden'], [0, 'Aesi, Tyrant of Gyre Strait']] }); e.pend = [];
+  e.por(0, 'Forest');
+  igual(e.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 2, 'Aesi 2 vezes');
+  const f = cena({ campo: [[0, 'Aesi, Tyrant of Gyre Strait']] }); f.pend = [];
+  f.por(0, 'Forest');
+  igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
 });
 
 // ---------- rodar ----------

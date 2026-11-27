@@ -178,7 +178,7 @@ const kwEntraDe = d => {
   let l = KW_ENTRA.get(d);
   if (!l) KW_ENTRA.set(d, (l = (d.kw || []).flatMap(x => x.k === 'fabricar' ? [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'fabricar', qtd: x.n || 1 }], _k: 'fabricar' }]
     : x.k === 'esconderijo' && Number.isInteger(x.n) ? [{ ev: 'entra', quem: { este: true }, fx: [{ op: 'esconder', qtd: x.n }], _k: 'esconderijo' }] : [])));
-  return l;
+  return l as any[];
 };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
 M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];

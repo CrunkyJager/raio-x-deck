@@ -11,7 +11,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 // dentro de um repetirCada com filtro de objetos (Kalonian Hydra): em/copiaDe 'cadaAtual' = o objeto da vez
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'maiorDescarte', 'grimorioDoAlvo', 'vidaDoAlvo', 'resistDoEvento']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'maiorDescarte', 'grimorioDoAlvo', 'vidaDoAlvo', 'marcadoresSeus', 'resistDoEvento']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
 
@@ -25,7 +25,7 @@ const ateOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 &
 const ateContaOk = q => !!q && typeof q === 'object' && Object.keys(q).length === 1 && !!q.ate && typeof q.ate === 'object' && qtdOk(q.ate);
 const qtdOk = q => q === undefined || typeof q === 'number' || q === 'X' || dadoOk(q)
   || (q && typeof q === 'object' && (typeof q.conta === 'string' ? CONTA_OK.has(q.conta) : M.filtroOk(q.conta))
-    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop', 'de', 'divCima'].includes(k)) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1)) && (q.conta !== 'vidaDoAtual' || dentroCada > 0) && (q.de === undefined || ((q.conta === 'marcadoresNoEste' || q.conta === 'marcadoresNoCada' || q.conta === 'devocao') && typeof q.de === 'string')) && (q.conta !== 'marcadoresNoCada' || dentroObj > 0) && (q.conta !== 'devocao' || /^[WUBRG]+$/.test(q.de || '')) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
+    && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'alvo', 'prop', 'de', 'divCima', 'metade'].includes(k)) && (q.metade === undefined || (q.metade === true && q.prop === undefined)) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1)) && (q.conta !== 'vidaDoAtual' || dentroCada > 0) && (q.de === undefined || ((q.conta === 'marcadoresNoEste' || q.conta === 'marcadoresNoCada' || q.conta === 'devocao' || q.conta === 'marcadoresSeus') && typeof q.de === 'string')) && (q.conta !== 'marcadoresNoCada' || dentroObj > 0) && (q.conta !== 'devocao' || /^[WUBRG]+$/.test(q.de || '')) && (q.conta !== 'marcadoresSeus' || !!q.de) && (q.prop === undefined || (M.PROP_EST.has(q.prop) && typeof q.conta === 'object')));
 const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
 const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
   && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || (qtdOk(se.conta.q) && ['min', 'max', 'igual'].every(k => se.conta[k] === undefined || typeof se.conta[k] === 'number' || qtdOk(se.conta[k]))))
@@ -65,10 +65,13 @@ const SUBST: Record<string, (s) => boolean> = {
   entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
     || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo'))),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
+  compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
   entraMarc: s => !!s.muda && Object.keys(s.muda).length === 1 && !!s.muda.marcadores && typeof s.muda.marcadores === 'object'
     && Object.values<any>(s.muda.marcadores).every((q: any) => qtdOk(q === 'X' ? q : q && typeof q === 'object' && q.conta === 'X' ? 'X' : q)),
-  ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')),
+  ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')
+    || (Array.isArray(s.muda.trocaPor) && s.muda.trocaPor.length > 0 && s.muda.trocaPor.every(t => !!t && typeof t === 'object')))
+    && (s.talvez === undefined || (s.talvez === true && !!s.muda.trocaPor)),
   marcador: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || Number.isInteger(s.muda.soma) || s.muda.impedir === true)
     && Object.keys(s).every(k => ['ev', 'quem', 'marc', 'muda', 'se'].includes(k)),
   // morre / vaiCemiterio (CR 614.1a, lido no M.mover): muda.para (Liesa), "exile com marcador" (Ravenloft), "embaralhe no grimório" (Blightsteel)
@@ -133,19 +136,37 @@ function entraComMarcadores(e, o, x) {
     }
   }
 }
-// criar fichas (CR 111) com as substituições 'ficha' (Parallel Lives, Doubling Season, Queen Allenal, Bilbo): a 1ª ficha
-// serve de amostra para o filtro; "mais uma" antes de multiplicar (a ordem boa para o controlador, 616.1).
+// criar fichas (CR 111) com as substituições 'ficha' (Parallel Lives, Doubling Season, Queen Allenal, Bilbo, Academy
+// Manufactor, Jinnie Fay). Primeiro as trocas ("instead create", 614.1a: cada molde que bate vira os de trocaPor; cada fonte
+// vale uma vez por ficha, 614.5), depois "mais uma" e multiplicar (a ordem boa para o controlador, 616.1). O filtro de
+// cada substituição olha uma amostra do molde (sem entrar no campo).
+const amostraFicha = (j, tok0) => { const tok = M.fichaDe(tok0), n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim(); return { id: -1, n, dono: j, ctrl: j, zona: 'pilha', ts: 0, dano: 0, marc: {}, ficha: { ...tok, n } }; };
+// "you may instead" (Jinnie Fay): a IA troca só ficha de criatura por uma criatura maior (P+R, depois nº de palavras-chave);
+// Tesouro/Pista/Comida ficam (simplificação da escolha, não da regra)
+const valorFicha = t => { const x = M.fichaDe(t) || {}; return (x.tipos || []).includes('Creature') && x.pt ? (+x.pt[0] || 0) + (+x.pt[1] || 0) + (x.kw || []).length / 10 : -1; };
 M.criarFichas = (e, j, tok, q, opc: any = {}) => {
   const out: any[] = [];
   if (!(q > 0)) return out;
-  out.push(criarFicha(e, j, tok, opc));
-  let mult = 1; const extras: any[] = [];
-  for (const { F, s } of substsDe(e, 'ficha')) {
-    if (!substQuem(e, F, s, out[0]) || !substSe(e, F, s)) continue;
-    if (s.muda.mult) mult *= s.muda.mult; else extras.push(s.muda.maisFicha);
+  const lista = substsDe(e, 'ficha').filter(({ F, s }) => substSe(e, F, s));
+  const bateM = ({ F, s }, t) => { try { return substQuem(e, F, s, amostraFicha(j, t)); } catch (_) { return false; } };
+  let moldes = [tok];
+  const fontes = [...new Set(lista.filter(r => r.s.muda.trocaPor).map(r => r.F.id))];
+  for (const fid of fontes) {
+    const grupo = lista.filter(r => r.F.id === fid && r.s.muda.trocaPor);
+    moldes = moldes.flatMap(t => {
+      const ok = grupo.filter(r => bateM(r, t));
+      const obrig = ok.find(r => !r.s.talvez);
+      if (obrig) return obrig.s.muda.trocaPor;
+      let melhor: any = null, v = valorFicha(t);
+      for (const r of ok) { const w = Math.min(...r.s.muda.trocaPor.map(valorFicha)); if (v >= 0 && w > v) { v = w; melhor = r; } }
+      return melhor ? melhor.s.muda.trocaPor : [t];
+    });
   }
-  for (let i = 1; i < q * mult; i++) out.push(criarFicha(e, j, tok, opc));
-  for (const x of extras) for (let i = 0; i < mult; i++) out.push(criarFicha(e, j, x, {}));
+  const multDe = t => lista.reduce((m, r) => r.s.muda.mult && bateM(r, t) ? m * r.s.muda.mult : m, 1);
+  for (const t of moldes) { const m = multDe(t); for (let i = 0; i < q * m; i++) out.push(criarFicha(e, j, t, opc)); }
+  // "those tokens plus an additional" (Queen Allenal, Bilbo): uma a mais por evento, multiplicada pelo dobro do primeiro molde
+  const extras = lista.filter(r => r.s.muda.maisFicha && moldes.some(t => bateM(r, t))).map(r => r.s.muda.maisFicha);
+  for (const x of extras) for (let i = 0; i < multDe(moldes[0]); i++) out.push(criarFicha(e, j, x, {}));
   return out;
 };
 // dano (CR 615, 614.1a): dobrar (mult), metade arredondada para cima, prevenir, "todo menos N" (teto). jog = o jogador
@@ -264,6 +285,7 @@ function qtdDe(e, q, ctx) {
       // do jogador alvo N (Peer into the Abyss: "half the cards in their library / half their life, rounded up" com divCima 2)
       case 'grimorioDoAlvo': case 'vidaDoAlvo': { const jj = jogsAlvo(e, q.alvo || 0, ctx)[0];
         v = jj === undefined ? 0 : q.conta === 'vidaDoAlvo' ? e.jogs[jj].vida : e.jogs[jj].zonas.grimorio.length; break; }
+      case 'marcadoresSeus': { const J = e.jogs[ctx.voce]; v = q.de === 'poison' ? J.veneno || 0 : (J.marc || {})[q.de] || 0; break; }   // "for each experience counter you have" (122.1)
       case 'marcadoresNoEvento': v = ctx.ev && ctx.ev.ev === 'marcadorPosto' ? ctx.ev.n || 0 : 0; break;   // "that many" (Shalai and Hallar)
       case 'evento': v = !ctx.ev ? 0 : vidaEv(ctx.ev) ? ctx.ev.q || 0 : ctx.ev.n ?? 1; break;   // no evento de vida: "that much" (Exquisite Blood, Prize Pig)
       case 'vidaGanha': v = ctx.ev && vidaEv(ctx.ev) ? ctx.ev.q || 0 : 0; break;               // "that much life" (Sanguine Bond, Vito)
@@ -276,7 +298,8 @@ function qtdDe(e, q, ctx) {
       case 'atacantes': case 'atacantesEmVoce': case 'ataquesNoTurno': v = M.contaAtaque(e, q.conta, ctx.voce); break;
       default: throw new Error('conta sem suporte: ' + q.conta);
     }
-    if (q.divCima) v = Math.ceil(v / q.divCima);                    // "a third of their life, rounded up"
+    if (q.divCima) v = Math.ceil(v / q.divCima);
+    if (q.metade) v = Math.floor(v / 2);                             // "half …, rounded down" (Endless Ranks of the Dead)                    // "a third of their life, rounded up"
     return Math.max(0, v * (q.mult || 1) + (q.soma || 0));
   }
   const v = M.qtd(e, q, ctx);
@@ -574,7 +597,8 @@ const H = {
         for (const o of os) o.ganhos = { atv: [...((o.ganhos && o.ganhos.atv) || []), ...f.habil.atv] };
         return;
       }
-      const n = q => q === undefined ? 0 : typeof q === 'number' ? q : qtdDe(e, q, ctx);   // número direto: −4/−4 não vira 0
+      // número direto: −4/−4 não vira 0; {conta, mult:-1} = −X/−X (Toxic Deluge, Olivia's Wrath): conta positiva, sinal depois
+      const n = q => q === undefined ? 0 : typeof q === 'number' ? q : q && q.mult < 0 && !q.soma ? -qtdDe(e, { ...q, mult: -q.mult }, ctx) : qtdDe(e, q, ctx);
       const p = n(f.p), r = n(f.r);
       const ev = ctx.ev, at = ev && e.objs[ev.id];
       if ((f.gat || []).length) { for (const o of os) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.gat] }; e.vCamada = (e.vCamada || 0) + 1; }   // sai na limpeza (514.2) ou ao mudar de zona
@@ -660,6 +684,7 @@ const H = {
         for (const o of cand()) (e.permJogar || (e.permJogar = [])).push({ j, id: o.id, ts: o.ts, gratis: !!f.gratis, soConjurar: !!f.soConjurar, fim });
         return;
       }
+      if (f.talvez) ctx.pagou = false;                              // "if you don't cast it" (Descendants' Path): {se:{pagou:false}} no efeito seguinte
       const feitos = ctx.jogo || (ctx.jogo = new Map()), max = typeof f.qtd === 'number' ? f.qtd : f.f ? 1 : Infinity;
       for (;;) {
         const n = feitos.get(f) || 0; if (n >= max) return;
@@ -671,7 +696,7 @@ const H = {
         const P0 = e.proc;
         M.PROC.conjurar(e, { j, id: r.id, agora: true, gratis: !!f.gratis, resp: [] }, ask);
         e.proc = P0;
-        feitos.set(f, n + 1);
+        feitos.set(f, n + 1); if (f.talvez) ctx.pagou = true;
         ask.etapa();                                                // o conjurar mexeu no estado: a próxima pergunta começa do zero
       }
     },
@@ -811,7 +836,7 @@ const H = {
     },
   },
   mover: {
-    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste'],
+    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio'],
     qtd: q => qtdOk(q) || ateOk(q),
     ok: f => (['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) || (f.para === 'comando' && f.em !== undefined)) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
@@ -823,7 +848,9 @@ const H = {
         const j = jogsDe(e, f, ctx)[0]; if (j === undefined) return;
         const z = f.de || f.f.zona || 'mao';
         const cand = M.objetosQue(e, { ...f.f, zona: z, dono: f.f.dono || 'voce' }, { ...ctx, voce: j }).map(o => o.id);
-        ids = escolherN(ask, j, 'escolherCarta', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: ateOk(f.qtd), ctx: { op: 'mover', para: f.para } });
+        const nq = Math.min(qtdDe(e, f.qtd, ctx), cand.length);
+        if (f.aleatorio) { const c = [...cand]; ids = []; for (let i = 0; i < nq; i++) ids.push(c.splice(Math.floor(M.aleat(e) * c.length), 1)[0]); }   // "at random" (Tomb Tyrant): ninguém escolhe
+        else ids = escolherN(ask, j, 'escolherCarta', cand, nq, { podeMenos: ateOk(f.qtd), ctx: { op: 'mover', para: f.para } });
       }
       if (f.para === 'comando') ids = ids.filter(id => e.objs[id].cmd);   // só comandante vai para a zona de comando (Hellkite Courser, 903)
       // transformada (CR 712.14a): entra com a face de trás; carta que não é de transformar fica onde está
@@ -905,6 +932,23 @@ const H = {
         e.vCamada = (e.vCamada || 0) + 1;
         M.log(e, J.nome, 'é tentado pelo Anel (' + A.n + ')', A.p ? '→ ' + e.objs[A.p.id].n : '');
       }
+    },
+  },
+  // CR 701.47: amassar [tipo] N. Sem Armada (criatura Army) sua, cria uma ficha 0/0 preta [tipo] Army; depois escolhe
+  // uma Armada sua (a maior), põe N marcadores +1/+1 e, se não for do [tipo], ela passa a ser também (701.47a).
+  // Simplificação: o tipo a mais vai para os valores da ficha (fica numa cópia dela); Armada que não é ficha não ganha o tipo.
+  amassar: {
+    campos: ['sub'],
+    ok: f => (f.quem === undefined || f.quem === 'voce') && Array.isArray(f.sub) && f.sub.length <= 1 && f.sub.every(x => typeof x === 'string') && f.em === undefined,
+    fx(e, f, ctx) {
+      const q = qtdDe(e, f.qtd, ctx), j = ctx.voce, sub = (f.sub || [])[0];
+      const armadas = () => e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && M.temTipo(e, o, 'Creature') && (t => t === 'todos' || t.includes('Army'))(M.tiposCriatura(e, o)));
+      if (!armadas().length) M.criarFichas(e, j, { tipos: ['Creature'], sub: sub ? [sub, 'Army'] : ['Army'], cores: 'B', pt: [0, 0] }, 1);
+      const a = armadas().sort((x, y) => M.poder(e, y) + M.resistencia(e, y) - M.poder(e, x) - M.resistencia(e, x))[0];
+      if (!a) return;                                               // a ficha pode ter sido trocada (substituição) ou morrido antes: nada a escolher
+      if (q > 0) M.porMarcadores(e, a, '+1/+1', q);
+      if (sub && a.ficha && !(a.ficha.sub || []).includes(sub)) a.ficha.sub = [...(a.ficha.sub || []), sub];
+      M.log(e, 'amassar', sub || '', q, '→', a.n);
     },
   },
   // popular (CR 701.36a): escolha uma ficha de criatura que você controla e crie uma ficha que é cópia dela (sem ficha: nada, 701.36b)
@@ -1059,6 +1103,7 @@ const H = {
       M.log(e, e.jogs[ctx.voce].nome, 'escolhe', r.v);
     },
   },
+  revelarTopo: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; const ids = g.slice(-q).reverse(); if (ids.length) M.log(e, e.jogs[j].nome, 'revela do topo', ids.map(id => e.objs[id].n).join(', ')); } } },   // CR 701.20: só mostra; quem pega é o efeito seguinte (topo: true)
   moer: { fx(e, f, ctx) {   // CR 701.13. Depois de mover: 'moe' por carta {id, j} e o lote 'moeGrupo' {ids, n} ("uma ou mais", Scorchbeast)
     const q = qtdDe(e, f.qtd, ctx), ids: any[] = [];
     for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
