@@ -3809,6 +3809,17 @@ caso('702.135a', "pós-vida: Indebted Spirit morre e cria 1 Espírito 1/1 voador
   igual(f.pend.filter(p => p.k === 'posVida').length, 1, 'o Urso dispara pós-vida');
 });
 
+caso('702.30a', "eco: Mogg War Marshal dispara na 1ª manutenção de quem controla (sacrifique a menos que pague {1}{R}); na seguinte, não; sem pagar, vai para o cemitério", () => {
+  const e = cena({ campo: [[0, 'Mogg War Marshal']] }); e.pend = [];
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 1 }); igual(e.pend.filter(p => p.k === 'eco').length, 0, 'manutenção do oponente: não');
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); igual(e.pend.filter(p => p.k === 'eco').length, 1, 'a sua: dispara');
+  e.pend = []; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); igual(e.pend.length, 0, 'a próxima: não');
+  const f = cena({ campo: [[0, 'Mogg War Marshal']] }); f.pend = [];
+  const m2 = objN(f, 0, 'Mogg War Marshal');
+  M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolvePilha(f);
+  igual(m2.zona, 'cemiterio', 'sem mana: sacrificado');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

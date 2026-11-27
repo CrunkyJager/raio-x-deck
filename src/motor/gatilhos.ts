@@ -180,6 +180,11 @@ const kwEntraDe = d => {
   return l as any[];
 };
 // corpo-a-corpo (CR 702.121a): "sempre que atacar, +1/+0 por oponente que você atacou neste combate"; uma por instância (702.121b)
+// eco (CR 702.30a): "no começo da sua manutenção, se veio para o seu controle desde a sua última manutenção, sacrifique
+// a menos que pague o eco". o.eco marca a entrada no campo; a 1ª manutenção de quem controla dispara e apaga a marca.
+// Simplificação: troca de controle não remarca.
+const ECO = new WeakMap<object, any>();
+const ecoDe = kw => { let g = ECO.get(kw); if (!g) ECO.set(kw, (g = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'sacrificar', em: 'este', aMenosQue: { quem: 'voce', custo: { mana: kw.custo } } }] })); return g; };
 const MELEE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'modificar', em: 'este', p: { conta: 'oponentesAtacados' }, dura: 'fimDoTurno' }] };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
 M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];
@@ -274,6 +279,13 @@ M.evento = (e, ev) => {
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
+  if (ev.ev === 'fase' && ev.passo === 'manutencao') {
+    for (const id of e.campo) {
+      const F = e.objs[id]; if (!F || !F.eco || F.ctrl !== ev.ativo) continue;
+      delete F.eco;
+      for (const x of M.kwDe(e, F)) if (x.k === 'eco' && x.custo) { const g = ecoDe(x); e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'eco', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } }); }
+    }
+  }
   if (ev.ev === 'ataca' && e.objs[ev.id]) {
     const F = e.objs[ev.id], n = M.kwDe(e, F).filter(x => x.k === 'corpo-a-corpo').length;
     for (let v = 0; v < n * (1 + (n ? extras(e, F, MELEE, ev) : 0)); v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'corpoACorpo', g: MELEE, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
@@ -287,6 +299,7 @@ M.evento = (e, ev) => {
   }
   if (ev.ev === 'zona' && ev.para === 'campo' && e.objs[ev.id]) {                      // fabricar, esconderijo
     const F = e.objs[ev.id];
+    if ((M.dadoDe(e, F).kw || []).some(x => x.k === 'eco')) F.eco = true;
     for (const g of kwEntraDe(M.dadoDe(e, F))) {
       const vezes = 1 + extras(e, F, g, ev);
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: g._k, g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
