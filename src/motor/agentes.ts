@@ -90,6 +90,12 @@ const basico = (e, p) => {
       const atacaJa = e.turno.ativo === p.j && ['principal1', 'inicioCombate'].includes(e.turno.passo);
       return p.ops.findIndex(op => op.a === (atacaJa ? 'pressa' : 'marcador'));
     }
+    case 'x': {                       // X de vida (Toxic Deluge): o menor que mata a maior criatura do oponente, sem morrer
+      if (!(p.ctx && p.ctx.vida)) return 0;
+      const r = Math.max(0, ...e.campo.map(o).filter(x => x.ctrl !== p.j && M.temTipo(e, x, 'Creature')).map(x => M.resistencia(e, x)));
+      const v = Math.min(r, J.vida - 1);
+      return Math.max(0, p.ops.findIndex(op => op.v === v));
+    }
     case 'custoOu': {                 // custo adicional com "ou": a opção que perde menos (ficha < descartar o que sobra < o resto)
       const perda = c => {
         let v = 0;

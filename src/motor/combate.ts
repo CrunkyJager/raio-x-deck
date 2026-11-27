@@ -142,6 +142,9 @@ function bloqueiaEste(e, b, at) {                                               
     const ca = M.dadoDe(e, at).cores || '', cb = M.dadoDe(e, b).cores || '';
     if (![...ca].some(c => cb.includes(c))) return false;
   }
+  // caminhada de terreno (702.14c): não pode ser bloqueada enquanto o defensor controla terreno daquele tipo
+  for (const x of M.kwDe(e, at)) if (x.k === 'caminhadaTerreno' && typeof x.tipo === 'string'
+    && M.objetosQue(e, { tipo: ['Land'], sub: [x.tipo], ctrl: 'voce', zona: 'campo' }, { voce: b.ctrl }).length) return false;
   if (protegeDe(e, at, M.dadoDe(e, b))) return false;                                     // 702.16b
   return true;
 }

@@ -26,15 +26,25 @@ M.dadoBase = (e, o) => o.ficha ? o.ficha : o.face == null ? M.carta(o.n) : M.dad
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
 // que muda é guardado por dado base + mudança (WeakMap), então ler continua sem alocar.
 const TIPO_ESTE = new WeakMap<object, any[]>();
-const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if (!l) TIPO_ESTE.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub) && !s.p && !s.r && !s.kw && !s.habil))); return l as any[]; };
+// (com kw/P/R junto — Skyknight Squire "has flying and is a Knight" — fica só a parte de tipo; o resto vai pelas camadas)
+const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if (!l) TIPO_ESTE.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub || s.tiraTipo))
+  .map(s => !s.p && !s.r && !s.kw && !s.habil ? s : { modo: s.modo, afeta: s.afeta, tipo: s.tipo, sub: s.sub, tiraTipo: s.tiraTipo, se: s.se }))); return l as any[]; };
 // a parte de tipo das estáticas que dão tipo/sub à 'equipada' (só {tipo, sub, se}: a kw vai pelas camadas)
 const TIPO_EQUIP = new WeakMap<object, any[]>();
 const tipoEquip = (d): any[] => { let l: any[] | undefined = TIPO_EQUIP.get(d); if (!l) TIPO_EQUIP.set(d, (l = (d.est || []).filter(s => M.estTipoEquipOk(s)).map(s => ({ tipo: s.tipo, sub: s.sub, se: s.se })))); return l as any[]; };
+const SUB_NAO_CRIATURA = new Set(['Equipment', 'Aura', 'Vehicle', 'Saga', 'Class', 'Shrine', 'Cartouche', 'Curse', 'Role', 'Fortification']);
+// a parte de tipo das estáticas que dão tipo/sub a quem bate um filtro (Ashaya: "nontoken creatures you control are
+// Forest lands"; Dryad: "lands you control are every basic land type", CR 613.1d, 305.7 "in addition")
+const TIPO_FILTRO = new WeakMap<object, any[]>();
+const tipoFiltro = (d): any[] => { let l: any[] | undefined = TIPO_FILTRO.get(d); if (!l) TIPO_FILTRO.set(d, (l = (d.est || []).filter(s => M.estTipoFiltroOk(s)))); return l as any[]; };
+// tipo básico de terreno ganho (CR 305.6): "{T}: Add [cor]" intrínseca; objetos fixos para o cache de atv
+const MANA_BASICA = { Plains: 'W', Island: 'U', Swamp: 'B', Mountain: 'R', Forest: 'G' };
+const ATV_BASICA = Object.fromEntries(Object.entries(MANA_BASICA).map(([t, c]) => [t, { custo: { virar: true }, deMana: true, fx: [{ op: 'mana', prod: [c], qtd: 1 }] }]));
 // camada 5 (cor, CR 613.1e): estática 'continuo' com cores ("é preto", Nim Deathmantle; "são de todas as cores",
 // Leyline of the Guildpact) e camadas 4/7b com filtro (Bello: "cada artefato … é uma criatura 4/4"). Lidas no M.dadoDe
 // pelo índice I.cor; quem ela afeta é decidido sem o que ela dá (613.8 simplificado: o filtro lê o tipo/cor de antes).
 const COR_EST = new WeakMap<object, any[]>();
-const corEst = (d): any[] => { let l: any[] | undefined = COR_EST.get(d); if (!l) COR_EST.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && (typeof s.cores === 'string' || estTipoFiltro(s)) && M.estContOk(s)))); return l as any[]; };
+const corEst = (d): any[] => { let l: any[] | undefined = COR_EST.get(d); if (!l) COR_EST.set(d, (l = (d.est || []).filter(s => s.modo === 'continuo' && (typeof s.cores === 'string' || (estTipoFiltro(s) && !M.estTipoFiltroOk(s))) && M.estContOk(s)))); return l as any[]; };
 const COR_M = new WeakMap<object, any>();
 const corM = s => { let m = COR_M.get(s); if (!m) COR_M.set(s, (m = estTipoFiltro(s) ? { tipo: s.tipo, sub: s.sub, pt: s.pt, cores: s.cores } : { cores: s.cores })); return m; };
 const estTipoFiltro = s => !!s && !!s.afeta && typeof s.afeta === 'object' && !!(s.tipo || s.sub || s.pt);
@@ -44,9 +54,15 @@ const misto = (d, m) => {
   let r = c.get(m); if (r) return r;
   const un = (a, b) => b && b.length ? [...new Set([...(a || []), ...b])] : a;
   r = { ...d, tipos: un(d.tipos, m.tipos || m.tipo), sub: un(d.sub, m.sub) };   // animar escreve tipos; a estática, tipo
+  // tiraTipo (camada 4): "isn't a creature" (deuses de Theros com pouca devoção). Sem o tipo Criatura, perde os
+  // subtipos de criatura (205.1b; fica o de Equipamento/Aura etc. que é de outro tipo) e o P/R
+  if (m.tiraTipo) { r.tipos = (r.tipos || []).filter(t => !m.tiraTipo.includes(t)); if (m.tiraTipo.includes('Creature')) { r.sub = (r.sub || []).filter(x => SUB_NAO_CRIATURA.has(x)); r.pt = undefined; } }
+  const novas = (m.sub || []).filter(t => ATV_BASICA[t] && !(d.sub || []).includes(t));
+  if (novas.length && (r.tipos || []).includes('Land')) r.atv = [...(d.atv || []), ...novas.map(t => ATV_BASICA[t])];
   if (m.pt) r.pt = m.pt;
   if (m.kw && m.kw.length) r.kw = [...(d.kw || []), ...m.kw];
   if (m.cores !== undefined) r.cores = m.cores;
+  if (m.maisCores) r.cores = [...new Set([...(r.cores || ''), ...m.maisCores])].join('');   // "in addition to its other colors" (105.3)
   c.set(m, r);
   return r;
 };
@@ -90,6 +106,16 @@ M.dadoDe = (e, o) => {
           if (!afeta(e, F, s, o, ctx)) continue;
           let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } }
           if (ok) d = misto(d, corM(s));
+        }
+      }
+      // com filtro: o filtro lê o objeto sem as mudanças de tipo (dependência 613.8 não tratada: Dryad não vê as
+      // criaturas que a Ashaya fez terreno — simplificação)
+      for (const id of indice(e).tf) {
+        const F = e.objs[id]; if (!F) continue;
+        for (const s of tipoFiltro(M.dadoDe(e, F))) {
+          const cx = { voce: F.ctrl, este: F.id };
+          let ok = false; try { ok = M.bate(e, o, s.afeta, cx) && (!s.se || M.condicao(e, s.se, cx)); } catch (_) { ok = false; }
+          if (ok) d = misto(d, s);
         }
       }
     } finally { lendoTipo--; }
@@ -308,7 +334,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
@@ -326,6 +352,19 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   return o;
 };
 
+// regenerar (CR 701.15): escudo "a próxima vez que seria destruída neste turno, em vez disso vire-a, tire todo o dano
+// dela e tire-a do combate" (614.8). o.regen = {ts, t, n}: vale para este objeto (ts), neste turno (t), n escudos.
+// Destruir (701.8) e dano letal/toque mortífero (704.5g–h) olham o escudo; resistência 0 (704.5f) e sacrificar não.
+M.porRegen = (e, o) => { const R = o.regen && o.regen.ts === o.ts && o.regen.t === e.turno.n ? o.regen.n : 0; o.regen = { ts: o.ts, t: e.turno.n, n: R + 1 }; };
+M.regenera = (e, o) => {
+  if (!o.regen || o.regen.ts !== o.ts || o.regen.t !== e.turno.n || o.regen.n <= 0) return false;
+  o.regen = { ...o.regen, n: o.regen.n - 1 };
+  o.virada = true; o.dano = 0; o.mortal = false;
+  const C = e.turno.combate;                                        // CR 506.4: o atacante que já foi bloqueado continua bloqueado
+  if (C) { C.atk = C.atk.filter(a => a.id !== o.id); for (const a of C.atk) if (a.bloq) a.bloq = a.bloq.filter(b => b.id !== o.id); }
+  M.log(e, o.n, 'regenera');
+  return true;
+};
 // descartar (CR 701.9): o único caminho do descarte (efeito, custo, limpeza). Cada carta dispara 'descarta' {id, j, ts}
 // e o lote todo 'descartaGrupo' {j, n, ids} (gatilho com grupo: "uma ou mais cartas", Marauding Mako).
 // Loucura (702.35a): a carta vai para o exílio em vez do cemitério e o gatilho da loucura vai para a pilha.
@@ -366,7 +405,25 @@ M.milagreDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 
 // comprar (CR 121; grimório vazio → perde nas ABE, CR 704.5b)
 M.comprar = (e, j, qtd = 1) => {
   const J = e.jogs[j];
+  let brutas = 0;
   for (let i = 0; i < qtd; i++) {
+    // CR 614.1a/614.5: "if you would draw a card, draw two instead" (Bard, King of Dale) vale uma vez por compra; naoPrimeira:
+    // fora a 1ª da sua etapa de compra (504.1). As compras a mais não são substituídas de novo.
+    const prim = e.turno.passo === 'compra' && e.turno.ativo === j && J.primPasso !== e.turno.n;
+    if (prim) J.primPasso = e.turno.n;
+    let mult = 1;
+    if (e.turno.passo !== 'mulligan') for (const id of indice(e).sb) {
+      const F = e.objs[id];
+      for (const sb of M.dadoDe(e, F).subst || []) {
+        if (sb.ev !== 'compra' || !sb.muda || !Number.isInteger(sb.muda.mult)) continue;
+        if (sb.jog === 'voce' ? j !== F.ctrl : sb.jog === 'oponente' ? j === F.ctrl : sb.jog !== undefined && sb.jog !== 'qualquer') continue;
+        if (sb.naoPrimeira && prim) continue;
+        mult *= sb.muda.mult;
+      }
+    }
+    brutas += mult;
+  }
+  for (let i = 0; i < brutas; i++) {
     const g = J.zonas.grimorio;
     if (!g.length) { J.comprouVazio = true; continue; }
     const id = g[g.length - 1];
@@ -475,11 +532,12 @@ const equiparDe = kw => {
 const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se', 'habil', 'cores']);
 const TIPOS_CARTA = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle']);
 // tipo/sub dado a 'este' (camada 4): lido no M.dadoDe; com filtro (Ashaya, Bello, Dryad, Leyline) ainda não
-M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'se'].includes(k))
+M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub || s.tiraTipo) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'tiraTipo', 'se'].includes(k))
+  && (s.tiraTipo === undefined || (Array.isArray(s.tiraTipo) && s.tiraTipo.every(t => TIPOS_CARTA.has(t))))
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
 const CONTA_EST = new Set(['cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste', 'devocao']);
 // prop: em vez de quantos, soma/maior de uma característica dos que batem (Ghalta, The Great Henge, Metalwork Colossus, Excalibur)
-const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm', 'cores']);   // cores: quantas cores entre eles (Faeburrow Elder, CR 105.2)
+const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm', 'maiorVm', 'cores']);   // cores: "for each color among permanents you control" (Conqueror's Flail, CR 105.2)
 M.PROP_EST = PROP_EST;
 const qtdEstOk = q => q === undefined || typeof q === 'number'
   || (q && typeof q === 'object' && Object.keys(q).every(k => ['conta', 'mult', 'soma', 'de', 'prop'].includes(k)) && (q.de === undefined || q.conta === 'marcadoresNoEste' || (q.conta === 'devocao' && /^[WUBRG]+$/.test(q.de)))
@@ -499,16 +557,18 @@ M.estTipoEquipOk = s => !!s && s.modo === 'continuo' && s.afeta === 'equipada' &
   && Object.keys(s).every(k => CONT_OK.has(k) || k === 'tipo' || k === 'sub' || k.startsWith('_')) && (!s.se || M.seOk(s.se));
 // tipo/sub/P-R base dados a quem bate um filtro (Bello, Bard of the Brambles): a parte de tipo e P/R no M.dadoDe
 // (camadas 4 e 7b), a de kw/habil nas camadas. Subtipo de terreno básico fica de fora (como na equipada).
-const estTipoFiltroOk = s => s.modo === 'continuo' && estTipoFiltro(s) && M.filtroOk(s.afeta)
+const estAnimFiltroOk = s => s.modo === 'continuo' && estTipoFiltro(s) && M.filtroOk(s.afeta)
   && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).some(x => x === 'escolhido' || TERRA_BASICA.has(x))
   && (s.pt === undefined || (Array.isArray(s.pt) && s.pt.length === 2 && s.pt.every(n => Number.isInteger(n))))
   && Object.keys(s).every(k => CONT_OK.has(k) || k === 'tipo' || k === 'sub' || k === 'pt' || k.startsWith('_')) && (!s.se || M.seOk(s.se))
-  && (!(s.p !== undefined || s.r !== undefined || (s.kw || []).length || s.habil || s.cores !== undefined) || contOk(semTipoPt(s)));
-const SEM_TPT = new WeakMap<object, any>();
-const semTipoPt = s => { let r = SEM_TPT.get(s); if (!r) { const { tipo, sub, pt, ...x } = s; SEM_TPT.set(s, (r = x)); } return r; };
+M.estTipoFiltroOk = s => !!s && s.modo === 'continuo' && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && !!(s.tipo || s.sub)
+  && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'se'].includes(k)) && (s.tipo || []).every(t => TIPOS_CARTA.has(t))
+  && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
 const SEM_TIPO = new WeakMap<object, any>();
 const semTipo = s => { let r = SEM_TIPO.get(s); if (!r) { const { tipo, sub, ...x } = s; SEM_TIPO.set(s, (r = x)); } return r; };
-M.estContOk = s => M.estTipoOk(s) || (!!s && estTipoFiltro(s) ? estTipoFiltroOk(s) : false) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
+const soTipo = s => { const r: any = { modo: s.modo, afeta: s.afeta }; for (const k of ['tipo', 'sub', 'se']) if (s[k] !== undefined) r[k] = s[k]; return r; };
+M.estContOk = s => M.estTipoOk(s) || M.estTipoFiltroOk(s) || (!!s && estTipoFiltro(s) && estAnimFiltroOk(s))
+  || (!!s && s.afeta === 'este' && !!(s.tipo || s.sub) && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || s.habil !== undefined) && M.estTipoOk(soTipo(s)) && contOk(semTipo(s))) || (!!s && s.afeta === 'equipada' && !!(s.tipo || s.sub)
   ? M.estTipoEquipOk(s) && (!(s.p !== undefined || s.r !== undefined || (s.kw || []).length || s.habil) || contOk(semTipo(s)))
   : contOk(s));
 const contOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
@@ -523,14 +583,14 @@ let lendoCamada = 0;
 // O mover e o criarFicha avisam quem entra e sai (M.campoEntra/M.campoSai); e.vCamada (transformar, trocar de
 // controle, anexar) ou o tamanho do campo fora do esperado refazem tudo. Antes a chave era e.ts: cada ficha nova
 // refazia a varredura, e com milhares de Goblins do Krenko cada evento era O(campo) — O(n²) na partida.
-type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; tp: number[]; cor: number[]; l: [any, any][] | null; hab: boolean };
+type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; tp: number[]; tf: number[]; cor: number[]; l: [any, any][] | null; hab: boolean };
 const IDX = new WeakMap<any, Idx>();
 function indice(e): Idx {
   let I = IDX.get(e);
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
-  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], cor: [], l: null, hab: false };
+  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], tf: [], cor: [], l: null, hab: false };
   lendoTipo++;   // o dadoDe daqui não lê o tipo dado pela equipada (é o próprio índice que ele usa)
-  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && o.ganhos.gat)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); if (corEst(d).length) I.cor.push(id); } }
+  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && (o.ganhos.gat || o.ganhos.gatS))) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); if (tipoFiltro(d).length) I.tf.push(id); if (corEst(d).length) I.cor.push(id); } }
   finally { lendoTipo--; }
   IDX.set(e, I);
   return I;
@@ -541,7 +601,7 @@ M.campoEntra = (e, id) => {
   const I = IDX.get(e); if (!I) return;
   if (I.v !== (e.vCamada || 0) || I.n + 1 !== e.campo.length) { IDX.delete(e); return; }
   let d; lendoTipo++; try { d = M.dadoDe(e, e.objs[id]); } finally { lendoTipo--; }
-  if (tipoEquip(d).length || corEst(d).length) { IDX.delete(e); return; }   // raro (Equipamento que dá tipo): refaz tudo, a equipada pode mudar de tipo
+  if (tipoEquip(d).length || tipoFiltro(d).length || corEst(d).length) { IDX.delete(e); return; }   // raro (Equipamento que dá tipo): refaz tudo, a equipada pode mudar de tipo
   I.n++;
   if (d.gat) I.gat.push(id);
   if (d.est) { I.est.push(id); I.l = null; }
@@ -555,6 +615,7 @@ M.campoSai = (e, id) => {
   k = I.est.indexOf(id); if (k >= 0) { I.est.splice(k, 1); I.l = null; }
   k = I.sb.indexOf(id); if (k >= 0) I.sb.splice(k, 1);
   k = I.tp.indexOf(id); if (k >= 0) I.tp.splice(k, 1);
+  k = I.tf.indexOf(id); if (k >= 0) I.tf.splice(k, 1);
 };
 // ganho de vida (CR 119.3) com as substituições 'ganhaVida' do campo (CR 614.1a): Angel of Vitality/Bilbo (soma),
 // The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
@@ -590,7 +651,7 @@ function fontesCont(e): Idx & { l: [any, any][] } {
   const I = indice(e);
   if (I.l) return I as Idx & { l: [any, any][] };
   const l: [any, any][] = [];
-  for (const id of I.est) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s)) l.push([id, s]);
+  for (const id of I.est) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s) && !M.estTipoFiltroOk(s)) l.push([id, s]);   // tipo com filtro: no dadoDe
   I.l = l; I.hab = l.some(([, s]) => s.habil);
   return I as Idx & { l: [any, any][] };
 }
@@ -695,13 +756,14 @@ M.qtdEst = (e, q, ctx) => {
   if (typeof q === 'number') return q;
   if (typeof q.conta === 'object' && q.prop) {
     const os = M.objetosQue(e, q.conta, ctx);
-    const v = q.prop === 'cores' ? M.coresEntre(e, os).length
+    const v = q.prop === 'cores' ? new Set(os.flatMap(o => (M.dadoDe(e, o).cores || '').replace(/[^WUBRG]/g, '').split('')).filter(Boolean)).size
       : q.prop === 'somaVm' ? os.reduce((s, o) => s + (M.dadoDe(e, o).vm || 0), 0)
+      : q.prop === 'maiorVm' ? os.reduce((m, o) => Math.max(m, M.dadoDe(e, o).vm || 0), 0)   // "greatest mana value among" (One with the Machine)
       : q.prop === 'somaPoder' ? os.reduce((s, o) => s + Math.max(0, M.poder(e, o)), 0)
       : os.reduce((m, o) => Math.max(m, M.poder(e, o)), 0);      // maiorPoder (sem criatura: 0)
     return v * (q.mult || 1) + (q.soma || 0);
   }
-  if (typeof q.conta === 'object') return M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
+  if (typeof q.conta === 'object') return (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
   const J = e.jogs[ctx.voce], este = e.objs[ctx.este];
   const v = q.conta === 'cartasNaMao' ? J.zonas.mao.length : q.conta === 'cartasNoGrimorio' ? J.zonas.grimorio.length : q.conta === 'magiasNoTurno' ? magiasT(e, ctx) : q.conta === 'suaVida' ? J.vida
     : q.conta === 'oponentes' ? M.vivos(e).filter(j => j !== ctx.voce).length : q.conta === 'jogadores' ? M.vivos(e).length
@@ -720,6 +782,17 @@ M.kwDe = (e, o) => {
   if (o.zona === 'campo' && o.marc) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
   return b;
 };
+// "cada card de Sliver na sua mão tem ciclo de Sliver {3}" (Homing Sliver): as camadas só olham o campo, então a
+// palavra-chave de ciclo dada à mão (afeta.zona 'mao') vira a ativada aqui, só para os cards do controlador da fonte
+const cicloNaMao = (e, o) => {
+  const r: any[] = [];
+  for (const [id, s] of fontesCont(e).l) {
+    if (!s.afeta || typeof s.afeta !== 'object' || s.afeta.zona !== 'mao' || !(s.kw || []).some(ehCiclo)) continue;
+    const F = e.objs[id]; if (!F || F.ctrl !== o.dono || !M.bate(e, o, s.afeta, { voce: F.ctrl, este: id })) continue;
+    for (const x of s.kw) if (ehCiclo(x)) r.push(cicloDe(x));
+  }
+  return r;
+};
 /** habilidades ativadas: as da carta, as de equipar (palavra-chave) e as dadas pelas camadas, nessa ordem (k estável) */
 const ATV_CARTA = new WeakMap<object, any[]>();   // atv da carta + equipar, por dado (não muda na partida)
 // ciclar N (CR 702.29a): "[custo], descarte esta carta: compre um card", ativada da mão. O descarte dispara 'descarta'.
@@ -729,20 +802,25 @@ const ciclarDe = kw => {
   if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }));
   return a;
 };
-// ciclagem de tipo (702.29e): "[custo], descarte esta carta: procure um card de [tipo], revele, ponha na mão, embaralhe".
-// É ciclar (702.29e): dispara "quando você ciclar". tipo = tipo de carta, 'Basic' (ciclagem de terreno básico) ou subtipo.
-const TIPO_CARTA_CICLO = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Instant', 'Sorcery', 'Battle']);
-const CICLO_T = new WeakMap<object, any>();
+// ciclo de tipo (CR 702.29e/f): "[custo], descarte esta carta: procure no grimório um card [tipo], revele, ponha na mão,
+// embaralhe". É ciclar (dispara 'cicla'). tipo é tipo de card (Creature…) ou subtipo (Plains, Wizard, Sliver).
+const TIPO_DE_CARD = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle', 'Instant', 'Sorcery']);
 const cicloTipoDe = kw => {
-  let a = CICLO_T.get(kw);
-  if (!a) {
-    const f = TIPO_CARTA_CICLO.has(kw.tipo) ? { tipo: [kw.tipo] } : kw.tipo === 'Basic' ? { tipo: ['Land'], super: ['Basic'] } : { sub: [kw.tipo] };
-    CICLO_T.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'buscar', f, qtd: 1, para: 'mao' }, { op: 'embaralhar', quem: 'voce' }] }));
-  }
+  let a = CICLAR.get(kw);
+  if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true,
+    fx: [{ op: 'buscar', f: TIPO_DE_CARD.has(kw.tipo) ? { tipo: [kw.tipo] } : kw.tipo === 'Basic' ? { tipo: ['Land'], super: ['Basic'] } : { sub: [kw.tipo] }, qtd: 1, para: 'mao', revelar: true }, { op: 'embaralhar', quem: 'voce' }] }));
   return a;
 };
-const cicloOk = x => (x.k === 'ciclar' && x.custo && Object.keys(x).length === 2) || (x.k === 'cicloTipo' && x.custo && typeof x.tipo === 'string' && Object.keys(x).length === 3);
-const cicloAtv = x => x.k === 'ciclar' ? ciclarDe(x) : cicloTipoDe(x);
+// tripular N (CR 702.122a): "vire criaturas desviradas que você controla com poder total N ou mais: este Veículo vira
+// criatura artefato até o fim do turno" (velocidade de instantâneo)
+const TRIP = new WeakMap<object, any>();
+const tripularDe = kw => {
+  let a = TRIP.get(kw);
+  if (!a) TRIP.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, _tripular: true, fx: [{ op: 'animar', em: 'este', tipos: ['Artifact', 'Creature'], dura: 'fimDoTurno' }] }));
+  return a;
+};
+const ehCiclo = x => (x.k === 'ciclar' && x.custo && Object.keys(x).length === 2) || (x.k === 'cicloTipo' && x.custo && typeof x.tipo === 'string' && Object.keys(x).length === 3);
+const cicloDe = x => x.k === 'ciclar' ? ciclarDe(x) : cicloTipoDe(x);
 // subir de nível (CR 716.2a): "[custo]: Nível N" — ativada como feitiço, só com a Classe no nível N−1 (pilha.ts podeAtivar)
 const SUBIR = new WeakMap<object, any>();
 const subirDe = l => {
@@ -777,31 +855,19 @@ const atvCarta = d => {
   if (!l) {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
-    const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(cicloOk);
+    const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
+    const tp = (d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe);
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
-    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloAtv), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length || tp.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj, ...tp] : d.atv || NADA.atv));
   }
   return l as any[];
 };
 // ganhas por efeito de resolução enquanto no campo (o.ganhos.atv: Urza's Saga) vêm logo depois das da carta: só crescem, k estável
-// ciclar dado na mão (Homing Sliver: "cartas de Sliver na sua mão têm ciclagem de Sliver {3}"): estática 'continuo' com
-// afeta.zona 'mao' de uma permanente do dono da carta (as camadas só olham o campo)
-const CICLO_DADO = new WeakMap<object, any[]>();
-const cicloDado = s => { let l = CICLO_DADO.get(s); if (!l) CICLO_DADO.set(s, (l = (s.kw || []).filter(cicloOk).map(cicloAtv))); return l as any[]; };
-function ciclosNaMao(e, o) {
-  const r: any[] = [];
-  for (const [id, s] of fontesCont(e).l) {
-    if (!s.afeta || typeof s.afeta !== 'object' || s.afeta.zona !== 'mao' || !cicloDado(s).length) continue;
-    const F = e.objs[id]; if (!F || F.ctrl !== o.dono) continue;
-    if (M.bate(e, o, s.afeta, { voce: F.ctrl, este: F.id })) for (const a of cicloDado(s)) r.push(a);
-  }
-  return r;
-}
 M.atvDe = (e, o) => {
   let b = atvCarta(M.dadoDe(e, o));
-  if (o.zona === 'mao') { const c = ciclosNaMao(e, o); if (c.length) b = b.concat(c); }
   if (o.ganhos && o.ganhos.atv) b = b.concat(o.ganhos.atv);
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
+  if (o.zona === 'mao') b = b.concat(cicloNaMao(e, o));
   return h.length ? b.concat(h) : b;
 };
 /** alguém no campo dá habilidade (habil)? sem isso gatDe/atvDe são só os da carta */
@@ -811,6 +877,7 @@ M.temHabil = e => fontesCont(e).hab;
 M.loteHabil = (e, lote) => (lote || []).filter(S => (M.dadoDe(e, S).est || []).some(s => s.modo === 'continuo' && s.habil));
 M.gatDe = (e, o, lote?) => {
   let b = M.dadoDe(e, o).gat || [];
+  if (o.ganhos && o.ganhos.gatS) b = b.concat(o.ganhos.gatS);   // ganho sem prazo (Rivaz): antes do de fim de turno, que sai na limpeza
   if (o.ganhos && o.ganhos.gat) b = b.concat(o.ganhos.gat);   // ganho por resolução até o fim do turno (Demonic Gifts); o mover zera
   if (!fontesCont(e).hab && !(lote && lote.length)) return b;
   const h = camadas(e, o, lote).gat;
@@ -875,6 +942,7 @@ const tiposCriatura = (e, o) => {
   if ((d.kw || []).some(x => x.k === 'metamorfo')) return 'todos';
   return (d.tipos || []).some(t => t === 'Creature' || t === 'Kindred' || t === 'Tribal') ? d.sub || [] : [];
 };
+M.tiposCriatura = tiposCriatura;
 const comumCom = (a, b) => a === 'todos' ? (b === 'todos' || b.length > 0) : b === 'todos' ? a.length > 0 : a.some(t => b.includes(t));
 // tipoEmComum: 'este' (a fonte), 'doEvento' (o objeto do evento: ctx.ev), 'comandante' (os seus) ou um filtro (alguma que bate)
 function tipoEmComum(e, o, ref, ctx) {
@@ -929,7 +997,7 @@ M.contaAtaque = (e, conta, voce) => {
 M.qtd = (e, q, ctx: any = {}) => {
   if (typeof q === 'number') return q;
   if (q === 'X') return ctx.x || 0;
-  if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : M.objetosQue(e, q.conta, ctx).length * (q.mult || 1) + (q.soma || 0);
+  if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
   if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
   if (q && CONTA_ATK.has(q.conta)) return M.contaAtaque(e, q.conta, ctx.voce) * (q.mult || 1) + (q.soma || 0);
   if (q && CONTA_EST.has(q.conta) && qtdEstOk(q)) return M.qtdEst(e, q, ctx);   // marcadoresNoEste (de), mão, vida, devoção…
