@@ -1,9 +1,17 @@
 <script lang="ts">
   // T48: "Meus decks" na aba Lista. Entrar com Google ou e-mail; salvar a lista da caixa; abrir em qualquer PC.
-  import { conta, entrarGoogle, entrarEmail, sair, salvar, apagar, iniciar } from './nuvem.svelte';
+  import { conta, entrarGoogle, entrarEmail, sair, salvar, apagar, iniciar, preCarregar } from './nuvem.svelte';
+  import { onMount } from 'svelte';
   let { analisa }: { analisa: () => void } = $props();
   let porEmail = $state(false), email = $state(''), senha = $state(''), nome = $state(''), aviso = $state('');
   iniciar();
+  // pré-carrega o SDK quando o bloco aparece na tela (o popup do Google precisa abrir direto no clique)
+  let caixaMd: HTMLDivElement;
+  onMount(() => {
+    if (!('IntersectionObserver' in window)) { preCarregar(); return; }
+    const o = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { o.disconnect(); preCarregar(); } });
+    o.observe(caixaMd); return () => o.disconnect();
+  });
   // nome sugerido = comandante(s) do último deck analisado
   document.addEventListener('raiox:deck', (e: any) => { const c = (e.detail?.cmds || []).map((x: any) => x.name).join(' + '); if (c && !nome) nome = c; });
   const caixa = () => document.getElementById('deck-in') as HTMLTextAreaElement;
@@ -17,7 +25,7 @@
   const quando = (t: number) => new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 </script>
 
-<div class="meus" id="meus-decks">
+<div class="meus" id="meus-decks" bind:this={caixaMd}>
   <h3>Meus decks</h3>
   {#if conta.uid}
     <p class="note">Conectado como <b>{conta.nome}</b> · <button class="btn small" onclick={sair}>Sair</button></p>
