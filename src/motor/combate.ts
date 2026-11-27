@@ -259,6 +259,8 @@ M.PROC.bloquear = (e, P, ask) => {
   const meus = C.atk.map((r, i) => i).filter(i => C.atk[i].def === d && emCombate(e, C.atk[i]));
   const cands = M.lote(() => e.campo.filter(id => podeBloquear(e, e.objs[id], d)));
   const bl = P.bl = P.bl || {};                                                           // bloqueador → índice do atacante
+  // 509.1b: "can't be blocked by more than one creature" (est bloqueadaPorUmSo, da própria ou da Aura/Equipamento: Alpha Authority)
+  const umSo = i => estEste(e, e.objs[C.atk[i].id], 'bloqueadaPorUmSo', false);
   for (;;) {
     const conta: any = {}; for (const k in bl) conta[bl[k]] = (conta[bl[k]] || 0) + 1;
     // 702.110b: ameaça precisa de dois ou mais; fechar só quando nenhuma está com um só
@@ -268,7 +270,7 @@ M.PROC.bloquear = (e, P, ask) => {
       if (bl[id] !== undefined) continue;
       const rq = requisitoBloqueio(e, e.objs[id], meus, C);
       if (rq) devem.push(id);
-      for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
+      for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && !(conta[i] >= 1 && umSo(i)) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
     } });
     const lim = (C.limBloq || {})[d];                                                    // "can't block with more than one creature this combat" (Mirri, 509.1c)
     if (lim !== undefined && Object.keys(bl).length >= lim) { ops.length = 0; devem.length = 0; }

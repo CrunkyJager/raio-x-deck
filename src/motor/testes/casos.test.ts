@@ -7439,6 +7439,48 @@ caso('117.3', "Springheart Nantuko: concedida, terreno entra → pode pagar {1}{
   igual(conta(e3, 'Insect'), 1, 'solta (criatura): Inseto, sem pergunta de pagar');
 });
 
+caso('613.4c', "Coat of Arms: cada criatura ganha +1/+1 por OUTRA criatura no campo (de qualquer jogador) que divide um tipo de criatura com ela; sem tipo em comum, nada", () => {
+  const e = cena({ campo: [[0, 'Coat of Arms'], [0, 'Krenko, Mob Boss'], [0, 'Goblin Guide'], [1, 'Goblin Guide'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const kr = objN(e, 0, 'Krenko, Mob Boss'), gg = objN(e, 1, 'Goblin Guide'), gb = objN(e, 0, 'Grizzly Bears'), le = objN(e, 1, 'Llanowar Elves');
+  igual([M.poder(e, kr), M.resistencia(e, kr)], [5, 5], 'Krenko 3/3 + 2 Goblins (um é do oponente)');
+  igual(M.poder(e, gg), 4, 'o Goblin Guide do oponente também ganha +2');
+  igual([M.poder(e, gb), M.poder(e, le)], [2, 1], 'Urso e Elfo sozinhos no tipo: nada');
+  M.lote(() => igual([M.poder(e, kr), M.poder(e, gg), M.poder(e, gb)], [5, 4, 2], 'no lote (contagem por assinatura de tipos) dá o mesmo'));
+});
+
+caso('509.1b', "Alpha Authority: a encantada tem resguardo total (702.11) e não pode ser bloqueada por mais de uma criatura; sem a Aura, dois bloqueiam", () => {
+  for (const comAura of [true, false]) {
+    const e = combate([[0, 'Grizzly Bears'], [0, 'Alpha Authority'], [1, 'Hill Giant'], [1, 'Llanowar Elves']]);
+    const u = objN(e, 0, 'Grizzly Bears'), aa = objN(e, 0, 'Alpha Authority');
+    if (comAura) { aa.anexo = { id: u.id, ts: u.ts }; e.vCamada = (e.vCamada || 0) + 1; } else M.mover(e, aa.id, 'cemiterio');
+    igual(M.alvosPossiveis(e, { f: 'qualquerAlvo' }, { voce: 1 }).some(a => a.o === u.id), !comAura, comAura ? 'o oponente não mira (hexproof)' : 'sem a Aura, mira');
+    ate(e, 'atacar'); atacaCom(e, u); fecha(e, 'atacar'); ate(e, 'bloquear');
+    bloqueia(e, objN(e, 1, 'Hill Giant'), u);
+    const segundo = opsDe(e, 'bloquear').some(o => o.id === objN(e, 1, 'Llanowar Elves').id && o.atk === u.id);
+    igual(segundo, !comAura, comAura ? 'com 1 bloqueador, o 2º não entra' : 'sem a Aura, o 2º pode');
+  }
+});
+
+caso('604.3', "Abomination of Llanowar: P/R = Elfos que você controla + cartas de Elfo no seu cemitério (CDA); o Elfo do oponente não conta; vigilância e ameaça (702.110b)", () => {
+  const e = cena({ campo: [[0, 'Abomination of Llanowar'], [0, 'Llanowar Elves'], [1, 'Elvish Mystic']] });
+  e.por(0, 'Elvish Archdruid', { zona: 'cemiterio' }); e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }); e.por(1, 'Elvish Mystic', { zona: 'cemiterio' });
+  e.vCamada = (e.vCamada || 0) + 1;
+  const ab = objN(e, 0, 'Abomination of Llanowar');
+  igual([M.poder(e, ab), M.resistencia(e, ab)], [3, 3], 'ela + Llanowar Elves + Archdruid no cemitério');
+  ok(M.temKw(e, ab, 'ameaca') && M.temKw(e, ab, 'vigilancia'), 'ameaça e vigilância');
+});
+
+caso('120.3', "agente: dano em qualquer alvo vai na criatura do oponente que morre e vale mais; se nenhuma morre, no oponente com menos vida", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [1, 'Hill Giant'], [1, 'Llanowar Elves'], [1, 'Goblin Guide']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt');
+  ok(e.perg && e.perg.tipo === 'alvo' && e.perg.ctx.dano === 3, 'a pergunta diz o dano: ' + JSON.stringify(e.perg && e.perg.ctx));
+  igual(e.objs[e.perg.ops[M.agenteBasico()(e, e.perg)].o].n, 'Hill Giant', 'o Gigante (3/3, vm 4) morre com 3 e vale mais');
+  const f = cena({ jogs: 3, campo: [[0, 'Mountain'], [1, 'Wall of Stone']], mao: [[0, 'Lightning Bolt']] });
+  f.jogs[2].vida = 12;
+  M.avancar(f); conj(f, 'Lightning Bolt');
+  igual(f.perg.ops[M.agenteBasico()(f, f.perg)].jog, 2, 'nada morre com 3: o oponente com menos vida');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;

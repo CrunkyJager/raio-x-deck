@@ -108,6 +108,7 @@ const basico = (e, p) => {
     }
     case 'alvo': {                    // jogador: o oponente com menos vida; objeto: o mais caro de um oponente
       if (p.ctx && p.ctx.de < 0) { const k = alvoSala(e, p); if (k >= 0) return k; }   // sala de masmorra (fonte = a masmorra)
+      if (p.ctx && p.ctx.dano) { const k = alvoDano(e, p); if (k >= 0) return k; }   // dano: a do oponente que morre e vale mais
       let b = 0, bv = -Infinity;
       p.ops.forEach((op, i) => {
         let v;
@@ -371,6 +372,22 @@ function taxaCaminho(e, j, nome, i) {
   const anda = (k, soma, n) => { const s = soma + valorSala(e, j, nome, k); if (!S[k].vai.length) { melhor = Math.max(melhor, (s + bonus) / (n + 1)); return; } for (const x of S[k].vai) anda(x, s, n + 1); };
   anda(i, 0, 0);
   return melhor;
+}
+// alvo de dano (ctx.dano = quanto): a criatura ou planeswalker de um oponente que o dano destrói (704.5g/h, 704.5i) e
+// vale mais (valor de mana, depois poder); se nenhuma morre, -1 (cai no geral: o oponente com menos vida)
+function alvoDano(e, p) {
+  const n = p.ctx.dano, F = e.objs[p.ctx.de], mortal = !!F && M.temKw(e, F, 'toqueMortifero');
+  let b = -1, bv = -Infinity;
+  p.ops.forEach((op, i) => {
+    if (op.o === undefined) return; const x = e.objs[op.o]; if (!x || x.ctrl === p.j) return;
+    let morre = false;
+    if (M.temTipo(e, x, 'Creature') && !M.temKw(e, x, 'indestrutivel')) morre = mortal || M.resistencia(e, x) - (x.dano || 0) <= n;
+    if (!morre && M.temTipo(e, x, 'Planeswalker')) morre = (x.marc.lealdade || 0) <= n;
+    if (!morre) return;
+    const v = (M.dadoDe(e, x).vm || 0) * 10 + Math.max(0, M.poder(e, x) || 0);
+    if (v > bv) { bv = v; b = i; }
+  });
+  return b;
 }
 // alvo de sala: +1/+1 na sua criatura de maior poder; −4/−0, "não ataca" e incitar na do oponente de maior poder
 function alvoSala(e, p) {
