@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.55.0 — 27/11/2026 · Motor: fases de combate extras
+Testes: check 0 erros · Vitest 379/379 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1496/1756 (eram 1490). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste da Aurelia: 20 partidas, 45 fases extras, 0 erros.
+- **Fase extra** (CR 500.8): Aurelia, Combat Celebrant, Genji Glove, Karlach, Moraug, Aggravated Assault (combate + principal logo depois da principal em que foi ativada). Várias na fila: a criada por último vem primeiro.
+- Condições "se for o primeiro combate do turno" e "se for a sua fase principal". Tifa ainda falta o "corpo-a-corpo".
+
 ## v0.54.0 — 27/11/2026 · Motor: "escolha um tipo de criatura / uma cor"
 Testes: check 0 erros · Vitest 377/377 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1490/1756 (eram 1483). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste com as 7 cartas: 20 partidas, 26 escolhas, 0 erros.
 - **Escolher na resolução** (op escolher): Kindred Dominance, Kindred Judgment, Raise the Palisade, Distant Melody, Pact of the Serpent, Patriarch's Bidding, Mother of Runes (proteção da cor escolhida). As opções de tipo são os tipos de criatura que existem na partida; a IA escolhe o tipo de que mais tem (no campo pesa 2).
