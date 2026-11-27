@@ -182,7 +182,8 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       if (para === 'mao' && de === 'grimorio') { compras.set(x.dono, (compras.get(x.dono) || 0) + 1); continue; }
       if (para === 'campo') {
         const terra = de === 'mao' && M.temTipo(e, x, 'Land') && !resolvendo;           // jogar terreno (CR 305): não é efeito
-        const ch = x.ctrl + '|' + x.n + '|' + (de || 'novo'), g = entram.get(ch) || { k: x.ctrl, n: 0, c: iDe(x), tok: !!x.ficha, nome: x.n, terra };
+        const esc = x.faceBaixo && HS.length && !HS.includes(x.ctrl), nm = esc ? 'uma criatura virada para baixo' : x.n;   // 708.5: o oponente não vê qual é
+        const ch = x.ctrl + '|' + nm + '|' + (de || 'novo'), g = entram.get(ch) || { k: x.ctrl, n: 0, c: esc ? -1 : iDe(x), tok: !!x.ficha, nome: nm, terra };
         g.n++; entram.set(ch, g); continue;
       }
       if (de === 'campo') {
