@@ -890,10 +890,13 @@ function somaTemp(temp: any[]) {
 // Staff of Domination). Fora do lote nada é guardado.
 let LOTE: Map<any, Map<string, number>> | null = null;
 M.lote = fn => { if (LOTE) return fn(); LOTE = new Map(); try { return fn(); } finally { LOTE = null; } };
-function qtdCamada(e, s, q, F, ctx) {
+// conta de 'cada' (o objeto afetado: Moraug) muda por objeto: a chave do lote leva o afetado
+const porObj = q => { const c = q && typeof q === 'object' && M.qn(q).conta; return !!c && c.de === 'cada'; };
+function qtdCamada(e, s, q, F, ctx, o) {
+  if (porObj(q)) ctx = { ...ctx, cadaObj: { id: o.id, ts: o.ts } };
   if (!LOTE || typeof q === 'number') return M.qtdEst(e, q, ctx);
   let m = LOTE.get(q); if (!m) LOTE.set(q, m = new Map());
-  const k = F.id + ':' + F.ts + ':' + F.ctrl;
+  const k = F.id + ':' + F.ts + ':' + F.ctrl + (ctx.cadaObj ? ':' + o.id + ':' + o.ts : '');
   let v = m.get(k); if (v === undefined) m.set(k, v = M.qtdEst(e, q, ctx));
   return v;
 }
@@ -922,8 +925,8 @@ function camadas(e, o, lote?: any[]) {
       if (!afeta(e, F, s, o, ctx)) continue;
       if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
       if (s.modo === 'ptDefinido') { base = [s.pBase, s.rBase]; continue; }   // 7b: em ordem de campo, o mais novo vale (613.7)
-      if (s.p !== undefined) p += qtdCamada(e, s, s.p, F, ctx);
-      if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx);
+      if (s.p !== undefined) p += qtdCamada(e, s, s.p, F, ctx, o);
+      if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx, o);
       if (P && (F.ts || 0) < P) continue;   // camada 6 mais velha que a perda
       for (const x of s.kw || []) { if (x.de !== 'escolhido') { kw.push(x); continue; } const v = F.escolha && (F.escolha.tipoCarta || F.escolha.cor); if (v) kw.push(kwEscolhido(x, v)); }   // "protection from the chosen card type/color" (Serra's Emissary): o que a fonte escolheu ao entrar
       for (const x of s.tiraKw || []) tira.push(x.k);
