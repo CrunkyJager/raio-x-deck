@@ -342,14 +342,14 @@ function pagouParaImpedir(e, f, ctx, ask) {
     if (r.a !== 'pagar') continue;
     if (mana) M.pagarComPlano(e, j, mana, { x });
     else if (c.vida) M.perderVida(e, j, c.vida);                                                      // CR 119.4
-    else if (c.sacrificar === 'este') M.mover(e, ctx.este, 'cemiterio');
+    else if (c.sacrificar === 'este') M.mover(e, ctx.este, 'cemiterio', { sac: true });
     else {
       const sac: any[] = [];
       for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
         const cand = M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }).filter(o => !sac.includes(o.id));
         sac.push(ask(j, 'custo', cand.map(o => ({ a: 'sacrificar', id: o.id })), { o: 'sacrificar' }).id);
       }
-      for (const id of sac) M.mover(e, id, 'cemiterio');
+      for (const id of sac) M.mover(e, id, 'cemiterio', { sac: true });
     }
     M.log(e, J.nome, 'paga para impedir', fo ? fo.n : '');
     return true;
@@ -955,7 +955,7 @@ const H = {
         esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length)));
       }
       ctx.resultado = esc.length;                                   // "reveal … until X Zombies" (Empty the Laboratory)
-      for (const id of esc) M.mover(e, id, 'cemiterio');
+      for (const id of esc) M.mover(e, id, 'cemiterio', { sac: true });
     },
   },
   embaralhar: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.embaralhar(e, e.jogs[j].zonas.grimorio); } },

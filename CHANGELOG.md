@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.53.0 — 27/11/2026 · Motor: gatilho "sacrificado"
+Testes: check 0 erros · Vitest 376/376 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1483/1756 (eram 1477). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste da Carmen: 20 partidas, 30 disparos de "sacrificado", 0 erros.
+- **Gatilho "sacrificado"** (CR 701.21): Tireless Tracker, Captain Lannery Storm, Carmen, Rapacious Guest, Nuka-Cola Vending Machine, The Sackville-Bagginses (Mirkwood Bats ainda falta o "ficha criada"). Vale para sacrifício como custo (Pista, Tesouro, Comida, altar), como efeito (édito), "a menos que sacrifique", masmorra e saga que termina (714.4). Olha para trás (603.10a): a Carmen sacrificada também dispara. Morrer sem sacrificar não conta.
+- **Mesa:** selo ⓘ das cartas que o motor não joga inteiras em dia (estava atrasado desde a v0.52.0).
+
 ## v0.52.0 — 27/11/2026 · Motor: jogar do topo, ganhar o controle, marcador posto
 Testes: check 0 erros · Vitest 374/374 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1477/1756 (eram 1453). Ivora e Masmorras: 20 partidas cada, 0 erros.
 - **Jogar do topo do grimório** com permissão (Courser of Kruphix, Oracle of Mul Daya, Mihail, Realmwalker, Verge Rangers, Mystic Forge, Summoning Materia, Case of the Locked Hothouse): antes a cobertura contava como lido e o motor não jogava. A Mesa mostra "topo: carta" no seu grimório quando você pode olhar.

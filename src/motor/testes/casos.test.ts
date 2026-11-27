@@ -3230,6 +3230,34 @@ caso('704.5a', 'Sanguine Bond + Exquisite Blood: um Bolt no oponente vira laço,
   ok(e.jogs[0].vida >= 77, 'eu com ' + e.jogs[0].vida);
 });
 
+caso('701.21', "gatilho 'sacrificado': Tracker cresce com a Pista quebrada (custo); Carmen vê qualquer sacrifício, até o dela (603.10a); morrer não é sacrificar; Bats só com ficha sua", () => {
+  for (const c of ['Captain Lannery Storm', 'Carmen, Cruel Skymarcher', 'Mirkwood Bats', 'Nuka-Cola Vending Machine', 'Rapacious Guest', 'The Sackville-Bagginses', 'Tireless Tracker']) ok(M.carta(c).gat.filter(g => g.ev === 'sacrificado').every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Wastes'], [0, 'Wastes'], [0, 'Tireless Tracker'], [0, 'Mirkwood Bats'], [0, 'Carmen, Cruel Skymarcher'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const [, , tt, mb, ca, gb, le] = e.campo;
+  ficha(e, 0, 'Clue'); e.pend = [];
+  const v1 = e.jogs[1].vida;
+  M.avancar(e); ativaFicha(e, 'Clue'); resolveCom(e);
+  igual([e.objs[tt].marc['+1/+1'], e.objs[ca].marc['+1/+1'], e.jogs[1].vida], [1, 1, v1 - 1], 'Pista sacrificada: Tracker +1, Carmen +1, Bats drena 1');
+  e.pend = []; M.mover(e, gb, 'cemiterio');
+  igual(e.pend.length, 0, 'morrer sem sacrificar não dispara');
+  const sacr = (j, nome) => M.executar(e, { op: 'sacrificar', quem: 'voce', qtd: 1, f: { nome } }, { voce: j, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, (_j, _t, ops) => ops[0]);
+  sacr(1, 'Llanowar Elves');
+  igual(e.pend.map(p => p.n), ['Carmen, Cruel Skymarcher'], 'o oponente sacrificou: só a Carmen (Bats pede ficha sua; Tracker, Pista)');
+  e.pend = []; const vida = e.jogs[0].vida;
+  sacr(0, 'Carmen, Cruel Skymarcher');
+  igual(e.pend.map(p => p.n), ['Carmen, Cruel Skymarcher'], 'a Carmen se vê sacrificada (olha para trás)');
+  seguir(e); resolveCom(e);
+  igual(e.jogs[0].vida, vida + 1, 'e ganha 1 de vida');
+});
+caso('714.4', "saga que termina é sacrificada: dispara 'sacrificado' (Carmen)", () => {
+  const e = cena({ campo: [[0, 'Carmen, Cruel Skymarcher'], [0, 'The Eldest Reborn']], passo: 'principal2' });
+  const [ca, sg] = e.campo; e.objs[sg].marc.lore = 3; e.pend = [];
+  seguir(e);
+  ok(e.objs[sg].zona !== 'campo', 'a saga saiu');
+  resolveCom(e);
+  igual(e.objs[ca].marc['+1/+1'], 1, 'Carmen disparou com a saga sacrificada ' + JSON.stringify(e.log.slice(-6)));
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -624,10 +624,10 @@ function pagarFisico(e, j, o, c, esc) {
   for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
   if (c.vida) M.perderVida(e, j, c.vida);
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
-  for (const id of esc.sac) M.mover(e, id, 'cemiterio');            // CR 701.21
+  for (const id of esc.sac) M.mover(e, id, 'cemiterio', { sac: true });            // CR 701.21
   if (esc.desc.length) M.descartar(e, j, esc.desc);
   if (esc.desc.length) o.descCusto = esc.desc.map(id => ({ id, ts: e.objs[id].ts })); else delete o.descCusto;   // em 'descartadaCusto' (Grab the Prize)
-  if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio');
+  if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio', { sac: true });
   if (c.exilarEste) M.mover(e, o.id, 'exilio');
   if (c.descartarEste) M.descartar(e, j, [o.id]);                  // CR 701.9 (Otawara, Trumpeting Carnosaur)
   for (const id of esc.dev || []) M.mover(e, id, 'mao');            // à mão do dono (Master Transmuter, Mina and Denn)
