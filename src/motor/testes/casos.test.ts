@@ -7025,6 +7025,46 @@ caso('702.52b', 'dragar: com menos de N cartas no grimório não dá; carta com 
   igual(naZona(e2, 0, 'mao').filter(n => n === 'Life from the Loam').length, 2, 'as duas na mão');
 });
 
+caso('702.103', "Indebted Spirit: concessão {2}{W} vira Aura na Grizzly Bears (+1/+1 e pós-vida); a encantada sai e o Spirit volta a ser criatura (702.103f); alvo ilegal ao resolver entra como criatura (702.103e)", () => {
+  ok(M.carta('Indebted Spirit').est.every(s => M.estContOk(s)), 'estática aceita');
+  const mesa = () => cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Grizzly Bears'], [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] });
+  const concede = (e, alvo) => {                     // conjura com concessão e para com a mágica na pilha
+    M.avancar(e); conj(e, 'Indebted Spirit');
+    respE(e, o => o.a === 'opcao' && o.v.concessao);
+    M.responder(e, e.perg.ops.findIndex(o => o.o === alvo.id), x => x.pilha.length > 0);
+  };
+  const e = mesa(), ursos = objN(e, 0, 'Grizzly Bears');
+  concede(e, ursos);
+  const sp = e.objs[e.pilha[e.pilha.length - 1]];
+  ok(sp.n === 'Indebted Spirit' && !M.temTipo(e, sp, 'Creature') && (M.dadoDe(e, sp).sub || []).includes('Aura'), 'na pilha: mágica de Aura, não de criatura (702.103b)');
+  M.avancar(e, x => !x.pilha.length);
+  const s = objN(e, 0, 'Indebted Spirit');
+  ok(s && M.anexadoA(e, s) === ursos, 'entrou anexada à Grizzly Bears');
+  ok(!M.temTipo(e, s, 'Creature'), 'concedida não é criatura');
+  igual([M.poder(e, ursos), M.resistencia(e, ursos)], [3, 3], '+1/+1');
+  ok(M.temKw(e, ursos, 'posVida'), 'a encantada tem pós-vida');
+  M.mover(e, ursos.id, 'cemiterio'); M.abe(e);
+  const s2 = objN(e, 0, 'Indebted Spirit');
+  ok(s2 && s2.id === s.id && !s2.anexo, 'ficou no campo, solta (exceção ao 704.5m)');
+  ok(M.temTipo(e, s2, 'Creature') && M.poder(e, s2) === 1, 'voltou a ser criatura 1/1');
+  // 702.103e: o alvo sai antes de resolver → resolve como criatura
+  const f = mesa(), u2 = objN(f, 0, 'Grizzly Bears');
+  concede(f, u2);
+  M.mover(f, u2.id, 'cemiterio');
+  M.avancar(f, x => !x.pilha.length);
+  const s3 = objN(f, 0, 'Indebted Spirit');
+  ok(s3 && !s3.anexo && M.temTipo(f, s3, 'Creature'), 'entrou como criatura');
+  // agente básico: com criatura boa, concede (na minha); sem ela, conjura normal
+  const g = mesa();
+  M.avancar(g); conj(g, 'Indebted Spirit');
+  ok(g.perg.ops[M.agenteBasico()(g, g.perg)].v.concessao, 'agente concede tendo a Grizzly Bears');
+  respE(g, o => o.a === 'opcao' && o.v.concessao);
+  igual(g.perg.ops[M.agenteBasico()(g, g.perg)].o, objN(g, 0, 'Grizzly Bears').id, 'na própria criatura, não na do oponente');
+  const h = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] });
+  M.avancar(h); conj(h, 'Indebted Spirit');
+  ok(!h.perg || h.perg.tipo !== 'opcao' || !h.perg.ops[M.agenteBasico()(h, h.perg)].v.concessao, 'sem criatura minha: normal');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;
@@ -7032,3 +7072,4 @@ for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   if (banco.faltas.size) return ctx.skip(`faltam no banco/cartas: ${[...banco.faltas].sort().join(', ')}`);
   if (erro) throw erro;
 });
+

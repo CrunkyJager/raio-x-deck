@@ -564,17 +564,17 @@ function temTumulto(e, o, d, ctrl) {
   }
   return false;
 }
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, anim = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null, conjurada = false }: any) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, anim = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null, conjurada = false, conc = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   if (sacEntra) for (const sid of sacEntra.ids) if (e.objs[sid] && e.objs[sid].zona === 'campo') M.mover(e, sid, 'cemiterio', { sac: true });   // 701.21, antes de entrar
-  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, anim, clone, conjurada });   // conjurada: marcada ANTES do evento (603.4: "if you cast it" é visto ao disparar)
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, anim, clone, conjurada, conc });   // conjurada: marcada ANTES do evento (603.4: "if you cast it" é visto ao disparar)   // conc: entra já anexada como Aura (702.103b)
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
   if (sacEntra && sacEntra.q > 0) M.porMarcadores(e, o, sacEntra.t, sacEntra.q);
   if (tumulto === 'marcador') M.porMarcadores(e, o, '+1/+1', 1);
   else if (tumulto === 'pressa') (o.anim || (o.anim = [])).push({ ts: o.ts, kw: [{ k: 'pressa' }], fim: null });   // 702.136a: pressa enquanto estiver no campo
-  M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
+  M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '', conc && e.objs[conc.o] ? '(Aura em ' + e.objs[conc.o].n + ')' : '');
   return o;
 };
 
