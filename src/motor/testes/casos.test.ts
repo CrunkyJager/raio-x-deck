@@ -3820,6 +3820,20 @@ caso('702.30a', "eco: Mogg War Marshal dispara na 1ª manutenção de quem contr
   igual(m2.zona, 'cemiterio', 'sem mana: sacrificado');
 });
 
+caso('613.1f', "animar: Shadowspear tira antimagia e indestrutível das permanentes do oponente até o fim do turno; Mirror Entity X=3 faz as suas 3/3 com todos os tipos de criatura", () => {
+  for (const c of ['Shadowspear', 'Mirror Entity']) ok(M.carta(c).atv.every(a => M.fxSuportado(a.fx)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Shadowspear'], [1, 'Swiftfoot Boots'], [1, 'Darksteel Myr']] });
+  const sb = objN(e, 1, 'Swiftfoot Boots'), b = objN(e, 1, 'Darksteel Myr'); sb.anexo = { id: b.id, ts: b.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  ok(M.temKw(e, b, 'antimagia') && M.temKw(e, b, 'indestrutivel'), 'antes: antimagia (Botas) e indestrutível (Myr)');
+  const cx = { voce: 0, este: objN(e, 0, 'Shadowspear').id, alvos: [], ilegal: {}, lki: {} };
+  M.executar(e, M.carta('Shadowspear').atv[0].fx[0], cx, null);
+  ok(!M.temKw(e, b, 'antimagia') && !M.temKw(e, b, 'indestrutivel'), 'perdeu as duas');
+  const f = cena({ campo: [[0, 'Mirror Entity'], [0, 'Grizzly Bears']] });
+  M.executar(f, M.carta('Mirror Entity').atv[0].fx[0], { voce: 0, este: objN(f, 0, 'Mirror Entity').id, x: 3, alvos: [], ilegal: {}, lki: {} }, null);
+  const b2 = objN(f, 0, 'Grizzly Bears');
+  igual([M.poder(f, b2), M.resistencia(f, b2)], [3, 3]); igual(M.tiposCriatura(f, b2), 'todos', 'todos os tipos');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

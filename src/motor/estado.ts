@@ -757,6 +757,9 @@ M.kwDe = (e, o) => {
   let b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw;
   if (c.length) b = b.concat(c);
   if (o.zona === 'campo' && o.marc) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
+  // "perde antimagia e indestrutível até o fim do turno" (Shadowspear, 613.1f): o.anim.tiraKw. Simplificação: tira também a
+  // palavra-chave ganha depois (613.7 diria que a mais nova vale)
+  if (o.anim && o.zona === 'campo') for (const a of o.anim) if (a.ts === o.ts && a.tiraKw) b = b.filter(x => !a.tiraKw.includes(x.k));
   return b;
 };
 // "cada card de Sliver na sua mão tem ciclo de Sliver {3}" (Homing Sliver): as camadas só olham o campo, então a
