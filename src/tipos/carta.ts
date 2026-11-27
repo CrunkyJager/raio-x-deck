@@ -186,9 +186,9 @@ export interface RxFiltro {
    */
   este?: boolean;
   /**
-   * exceto a própria carta
+   * exceto a própria carta; 'doEvento' = exceto o objeto do evento ("each other attacking creature" que compartilha tipo com ela, Shared Animosity)
    */
-  outro?: boolean;
+  outro?: boolean | 'doEvento';
   /**
    * algum destes tipos (Creature, Land, Permanent, Card, Spell, Token…)
    */
@@ -238,6 +238,10 @@ export interface RxFiltro {
    * carta do topo do grimório
    */
   topo?: boolean;
+  /**
+   * criatura que convocou a mágica que resolve ("each creature that convoked this spell": Lethal Scheme, CR 702.51c)
+   */
+  convocou?: boolean;
   /**
    * objeto lembrado pelo efeito
    */
@@ -291,6 +295,10 @@ export interface RxFiltro {
    */
   nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
+   * criatura com poder MAIOR que o de cada outra criatura no campo (estritamente; Selvala, Heart of the Wilds)
+   */
+  maiorPoder?: boolean;
+  /**
    * poder maior que o poder base
    */
   poderAcimaBase?: boolean;
@@ -339,10 +347,6 @@ export interface RxFiltro {
    */
   selada?: boolean;
   /**
-   * não tem nenhuma destas palavras-chave ("if it didn't have decayed": Wilhelt)
-   */
-  semKw?: string[];
-  /**
    * bate em ao menos um destes (junto com os outros campos): "a Human or artifact card" = ou [{sub:[Human]}, {tipo:[Artifact]}] (Boromir, Gondor's Hope)
    *
    * @minItems 2
@@ -356,6 +360,14 @@ export interface RxFiltro {
    * mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um ("a spell that targets only Zada")
    */
   soMiraEste?: true;
+  /**
+   * mana gasta para conjurar esta mágica (na pilha): "if no mana was spent to cast it" = {max:0} (Boromir, Warden of the Tower)
+   */
+  manaGasta?: RxCompara;
+  /**
+   * não tem nenhuma destas palavras-chave ("if it didn't have decayed": Wilhelt)
+   */
+  semKw?: string[];
 }
 
 export interface RxCompara {
@@ -412,6 +424,10 @@ export interface RxAlvo {
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
   opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
+  /**
+   * o alvo pode bater este outro filtro em vez do f (Sink into Stupor: magia de oponente na pilha OU permanente não-terreno dele)
+   */
+  ou?: RxFiltro;
   /**
    * o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)
    */
@@ -575,6 +591,7 @@ export interface RxFx {
     | 'copiarMagica'
     | 'trocarAlvos'
     | 'duasPilhas'
+    | 'limitarBloqueio'
     | 'dano'
     | 'destruir'
     | 'sacrificar'
@@ -590,6 +607,7 @@ export interface RxFx {
     | 'animar'
     | 'ganharControle'
     | 'anexar'
+    | 'desanexar'
     | 'fasear'
     | 'transformar'
     | 'efeitoTemporario'
@@ -632,13 +650,13 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder); 'doTerreno' (gatilho viraParaMana) = um tipo que aquele terreno produziu (Mirari's Wake); {coresEntre: filtro} = uma cor entre as das permanentes do filtro (Mox Amber)
    */
   prod?:
     | {
         coresEntre: RxFiltro;
       }
-    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas' | 'doTerreno')
     | string[]
     | {
         cadaCor: RxFiltro;
@@ -865,6 +883,10 @@ export interface RxFx {
    */
   fonte?: RxObjeto;
   /**
+   * op desanexar sem em: solta um anexo (f, padrão Equipamento) de uma permanente que bate neste filtro; quem faz escolhe ao resolver (Akiri). Depois, em anterior = de quem soltou (CR 701.3d)
+   */
+  presaA?: RxFiltro;
+  /**
    * op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)
    */
   noDe?: RxObjeto;
@@ -872,6 +894,10 @@ export interface RxFx {
    * op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois
    */
   comEste?: boolean;
+  /**
+   * exila virada para baixo (406.3): ninguém vê, só quem olhou ao exilar (cavar: 'look at ... and exile face down', Lobelia) ou quem o efeito deixa; sem características no exílio (406.3a)
+   */
+  faceBaixo?: true;
   /**
    * op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)
    */
@@ -928,6 +954,10 @@ export interface RxFx {
    * copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)
    */
   cadaOutroAlvo?: true;
+  /**
+   * ficha: entra bloqueando o atacante do evento 'bloqueia' (Brimaz: "that's blocking that creature")
+   */
+  bloqueando?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -1061,6 +1091,10 @@ export interface RxCond {
    */
   primeiroCombate?: boolean;
   /**
+   * é a fase de combate, de qualquer jogador (Marisi: 'can't cast spells during combat')
+   */
+  emCombate?: boolean;
+  /**
    * é a fase principal (1 ou 2) do controlador (Moraug); só 'turno seu' = cond turno
    */
   fasePrincipal?: boolean;
@@ -1136,6 +1170,7 @@ export interface RxKw {
     | 'milagre'
     | 'reconfigurar'
     | 'entraPreparada'
+    | 'segundoDividido'
     | 'ninjutsu'
     | 'prever'
     | 'rondar'
@@ -1160,6 +1195,7 @@ export interface RxKw {
     | 'corpo-a-corpo'
     | 'evoluir'
     | 'persistir'
+    | 'imortal'
     | 'desaparecer'
     | 'rebote'
     | 'dobra'
@@ -1167,10 +1203,12 @@ export interface RxKw {
     | 'agregar'
     | 'miriade'
     | 'mobilizar'
+    | 'aflicao'
     | 'eco'
     | 'bis'
     | 'prole'
     | 'iminente'
+    | 'concessao'
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
@@ -1245,9 +1283,10 @@ export interface RxAtv {
 
 export interface RxGat {
   /**
-   * portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)
+   * destranca: "when you unlock this door" — no texto da porta (face) de uma Room; dispara quando essa porta fica destrancada, ao entrar ou pagando o custo (709.5h); portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)
    */
   ev:
+    | 'destranca'
     | 'cicla'
     | 'desvira'
     | 'jogaTerreno'
@@ -1287,7 +1326,8 @@ export interface RxGat {
     | 'monstruosa'
     | 'portador'
     | 'ativa'
-    | 'gasta';
+    | 'gasta'
+    | 'danoPrevenido';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1371,6 +1411,14 @@ export interface RxGat {
    */
   de?: RxZona;
   /**
+   * entra: não vale para o que um efeito desta permanente pôs no campo ("if it wasn't put onto the battlefield with this ability": Kodama of the East Tree)
+   */
+  naoPorEste?: boolean;
+  /**
+   * entra com de: vale também a que foi conjurada daquela zona ("entered from a graveyard or was cast from a graveyard": Kotis)
+   */
+  ouConjurada?: boolean;
+  /**
    * "from anywhere other than …"
    */
   naoDe?: RxZona;
@@ -1417,6 +1465,7 @@ export interface RxEst {
     | 'desviraNoTurnoDeOutro'
     | 'vidaNaoMuda'
     | 'naoPerdeJogo'
+    | 'maxAtacantes'
     | 'protecaoJogador'
     | 'ptDefinido'
     | 'danoNaoPrevenivel'
@@ -1424,11 +1473,14 @@ export interface RxEst {
     | 'podeOlhar'
     | 'dobraGatilho'
     | 'ataqueCusta'
+    | 'bloqueioCusta'
     | 'naoPodeAtivar'
     | 'ganhaAtivadas'
     | 'deveBloquear'
     | 'darFuga'
     | 'darRetrace'
+    | 'darBis'
+    | 'semRegraLenda'
     | 'darLoucura'
     | 'oponentesNaoProcuram'
     | 'custoProibido'
@@ -1449,7 +1501,7 @@ export interface RxEst {
   };
   qtd?: RxQtd;
   /**
-   * ataqueCusta: quanto paga por criatura atacante (+ qtd se for {X})
+   * ataqueCusta/bloqueioCusta: quanto o controlador paga por criatura atacante/bloqueadora (vezes qtd, se houver: Sphere of Safety). Pago ao fechar a declaração (CR 508.1d/h, 509.1d/f); quem não paga não ataca/bloqueia
    */
   custo?: RxMana;
   se?: RxCond;
@@ -1533,7 +1585,7 @@ export interface RxEst {
    */
   atacante?: RxObjeto;
   /**
-   * darFuga: exilar N outras do cemitério (Underworld Breach)
+   * darFuga: exilar N outras do cemitério (Underworld Breach) · podeJogar: custo a mais de exilar N outras do cemitério (Kotis)
    */
   exilar?: number;
   /**
@@ -1590,6 +1642,10 @@ export interface RxSubst {
       [k: string]: RxQtd;
     };
     para?: RxZona;
+    /**
+     * dano (jog voce): o dano que deixaria sua vida abaixo de 1 a deixa em 1 (Serra the Benevolent, Worship)
+     */
+    vidaMin?: 1;
     prevenir?: boolean;
     /**
      * o evento não acontece (não pode ser anulada)
@@ -1745,7 +1801,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room) | o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); manaGasta (de evento conjura): a mana gasta para conjurar (Liberator); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
    */
   o?:
     | 'quantos'

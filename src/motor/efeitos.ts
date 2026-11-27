@@ -14,7 +14,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 // contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
-const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -95,7 +95,7 @@ const SUBST: Record<string, (s) => boolean> = {
   vaiCemiterio: s => saidaOk(s),
   anulada: s => !!s.muda && Object.keys(s.muda).length === 1 && s.muda.impedir === true && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k))
     && !!s.quem && s.quem.zona === 'pilha',   // "não pode ser anulada" (M.anular, pilha.ts)
-  dano: s => !!s.muda && ((Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto)))
+  dano: s => !!s.muda && ((Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto) || (s.muda.vidaMin === 1 && s.jog === 'voce' && s.quem === undefined)))
     || (Object.keys(s.muda).length === 2 && s.muda.prevenir === true && !!s.muda.fichaPorDano && typeof s.muda.fichaPorDano === 'object'))
     && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se', 'depois'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento')
     && (s.depois === undefined || (s.muda.prevenir === true && Array.isArray(s.depois) && s.depois.every(f => f.op === 'marcador') && M.fxSuportado(s.depois))),
@@ -227,6 +227,7 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
     return substSe(e, F, s);
   });
   if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) {   // Bonecrusher Giant: prevenir não vale (615.12)
+    if (jog !== undefined && M.evento) M.evento(e, { ev: 'danoPrevenido', jog, q, combate });   // "whenever damage that would be dealt to you is prevented" (Selfless Squire)
     const r = lista.find(r => r.s.muda.prevenir && r.s.muda.fichaPorDano);   // "for each 1 damage prevented this way, create…" (Inkshield): um escudo só leva o crédito
     if (r) M.criarFichas(e, r.F.ctrl, r.s.muda.fichaPorDano, q);
     // "prevent that damage, remove that many +1/+1 counters…, then give each player a rad counter for each removed" (Bloatfly
@@ -237,6 +238,7 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
   for (const r of lista) if (r.s.muda.teto !== undefined) q = Math.min(q, r.s.muda.teto);
   for (const r of lista) if (r.s.muda.mult) q *= r.s.muda.mult;
   for (const r of lista) if (r.s.muda.metade) q = Math.ceil(q / 2);
+  if (jog !== undefined && lista.some(r => r.s.muda.vidaMin === 1)) q = Math.max(0, Math.min(q, e.jogs[jog].vida - 1));   // "damage that would reduce your life total to less than 1 reduces it to 1 instead" (Serra the Benevolent, Worship)
   return q;
 };
 
@@ -472,7 +474,8 @@ M.executar = (e, f, ctx, ask) => {
   if (f.talvez) ctx.pagou = true;                                    // "se fizer" (se.pagou) do efeito seguinte
   const ag = e.agente; e.agente = ctx.voce;                          // quem faz o efeito (o "you put counters" de All Will Be One)
   const a0 = askAtual; askAtual = ask;
-  try { h.fx(e, f, ctx, ask); } finally { e.agente = ag; askAtual = a0; }
+  const ff = e.fxFonte; e.fxFonte = ctx.este;                        // de quem é o efeito que move ("put onto the battlefield with this ability", Kodama)
+  try { h.fx(e, f, ctx, ask); } finally { e.agente = ag; askAtual = a0; e.fxFonte = ff; }
 };
 
 // entrar no campo (CR 110.2: sob o controle de quem conjurou/pôs; 614.1c "entra virado"; 614.12 escolha ao entrar)
@@ -561,17 +564,17 @@ function temTumulto(e, o, d, ctrl) {
   }
   return false;
 }
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, anim = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null, conjurada = false }: any) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, anim = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null, conjurada = false, conc = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   if (sacEntra) for (const sid of sacEntra.ids) if (e.objs[sid] && e.objs[sid].zona === 'campo') M.mover(e, sid, 'cemiterio', { sac: true });   // 701.21, antes de entrar
-  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, anim, clone, conjurada });   // conjurada: marcada ANTES do evento (603.4: "if you cast it" é visto ao disparar)
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, anim, clone, conjurada, conc });   // conjurada: marcada ANTES do evento (603.4: "if you cast it" é visto ao disparar)   // conc: entra já anexada como Aura (702.103b)
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
   if (sacEntra && sacEntra.q > 0) M.porMarcadores(e, o, sacEntra.t, sacEntra.q);
   if (tumulto === 'marcador') M.porMarcadores(e, o, '+1/+1', 1);
   else if (tumulto === 'pressa') (o.anim || (o.anim = [])).push({ ts: o.ts, kw: [{ k: 'pressa' }], fim: null });   // 702.136a: pressa enquanto estiver no campo
-  M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
+  M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '', conc && e.objs[conc.o] ? '(Aura em ' + e.objs[conc.o].n + ')' : '');
   return o;
 };
 
@@ -983,7 +986,7 @@ const H = {
     ok: () => false,
     fx(e, f, ctx, ask) {
       const o = e.objs[ctx.este]; if (!o || o.zona !== 'cemiterio' || !ctx.ev || o.ts !== ctx.ev.tsCem) return;
-      M.aplicarEntrada(e, { ...M.decidirEntrada(e, o.id, o.dono, {}, ask), marc: { '-1/-1': 1 } });
+      M.aplicarEntrada(e, { ...M.decidirEntrada(e, o.id, o.dono, {}, ask), marc: { [f.marc || '-1/-1']: 1 } });   // imortal: marc '+1/+1'
     },
   },
   // explorar (CR 701.44a): revela o topo; terreno vai para a mão; senão, +1/+1 na criatura e o controlador pode pôr a
@@ -1092,6 +1095,7 @@ const H = {
       if (f.dura) { F = e.objs[ctx.este]; if (!F || F.zona !== 'campo' || (ctx.lki.este && ctx.lki.este.ts !== F.ts)) return; }
       const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id));
       if (F && os.length) (e.volta || (e.volta = [])).push({ id: F.id, ts: F.ts, ids: ctx.movidos.map(m => ({ id: m.id, ts: m.ts })) });
+      if (F) for (const m of ctx.movidos) if (e.objs[m.id].zona === 'exilio') e.objs[m.id].exPor = { id: F.id, ts: F.ts };   // "exiled with this" (607.2a: Bronzebeak Foragers {X}{W})
     },
   },
   mover: {
@@ -1216,7 +1220,7 @@ const H = {
   },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
-    campos: ['token', 'virada', 'atacando', 'porJogadorAtacado'],
+    campos: ['token', 'virada', 'atacando', 'porJogadorAtacado', 'bloqueando'],
     ok: f => (!f.token || !Array.isArray(f.token.pt) || f.token.pt.every(x => typeof x === 'number' || qtdOk(x))) && ((f.porJogadorAtacado === undefined || (f.porJogadorAtacado === true && f.atacando === true)) && (f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || f.token.copiaDe === 'sacrificada' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && (typeof f.token.copiaDe.alvo === 'number' || (!!f.token.copiaDe.um && Object.keys(f.token.copiaDe).length === 1 && M.filtroOk(f.token.copiaDe.um)))))
       && (!f.token || !f.token.gat || f.token.gat.every(g => M.gatOk(g))),   // a habilidade desencadeada da ficha também tem que ser lida (Munitions, Elemental do Wildfire Awakener)
     fx(e, f, ctx, ask) {
@@ -1235,6 +1239,8 @@ const H = {
         ctx.criadas.push({ id: o.id, ts: o.ts });
         // CR 508.4: "virada e atacando" — fora do combate só entra virada; no "para cada oponente", ataca aquele jogador
         if (f.atacando && e.turno.combate) { const t = M.escolherAtacado(e, o.ctrl, ask || ((_j, _t, ops) => ops[0]), ctx.cadaAtual); if (t) M.porAtacando(e, o, t); }
+        // "that's blocking that creature" (Brimaz, 506.3/509.1h): entra bloqueando o atacante do evento 'bloqueia' (não foi declarada: não dispara "bloqueia")
+        if (f.bloqueando && e.turno.combate && ctx.ev && ctx.ev.atk !== undefined) { const r = e.turno.combate.atk.find(x => x.id === ctx.ev.atk && e.objs[x.id] && e.objs[x.id].ts === x.ts && e.objs[x.id].zona === 'campo'); if (r) { r.bloq.push({ id: o.id, ts: o.ts }); r.bloqueado = true; } }
       }
     },
   },
@@ -1444,6 +1450,26 @@ const H = {
     },
   },
   soltar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.anexo) { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'solta (volta a ser criatura)'); } } },   // reconfigurar (702.151a)
+  // CR 701.3d: desanexar ("unattach") — o Equipamento/Aura fica no campo, solto de quem o levava (301.5c: Equipamento
+  // solto continua no campo). em: os anexos a soltar; ou f (o que solta, padrão Equipamento) + presaA (filtro de quem
+  // o leva), e quem faz escolhe um ao resolver, sem alvo (Akiri, Fearless Voyager). Depois: em 'anterior' = as
+  // permanentes de que soltou ("tap that creature"); com talvez, se.pagou = soltou algum ("if you do").
+  desanexar: {
+    campos: ['f', 'presaA'],
+    ok: f => f.em !== undefined ? f.f === undefined && f.presaA === undefined
+      : !!f.presaA && typeof f.presaA === 'object' && M.filtroOk(f.presaA) && (f.qtd === undefined || f.qtd === 1),
+    fx(e, f, ctx, ask) {
+      const preso = o => o.zona === 'campo' && !!M.anexadoA(e, o);
+      let os = f.em !== undefined ? objsDe(e, f, ctx).filter(preso)
+        : M.objetosQue(e, { ...(f.f || { sub: ['Equipment'] }), zona: 'campo' }, ctx).filter(o => preso(o) && M.bate(e, M.anexadoA(e, o), { ...f.presaA, zona: 'campo' }, ctx));
+      if (f.em === undefined && os.length > 1) { const id = ask(ctx.voce, 'um', os.map(o => ({ a: 'um', id: o.id })), { op: 'desanexar' }).id; os = os.filter(o => o.id === id); }
+      else if (f.em === undefined) os = os.slice(0, 1);
+      const de: any[] = [];
+      for (const o of os) { const t = M.anexadoA(e, o); o.anexo = null; de.push(t.id); e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'desanexado de', t.n); }
+      ctx.movidos = movidos(e, [...new Set(de)]);
+      if (!de.length && f.talvez) ctx.pagou = false;
+    },
+  },
   anexar: {
     campos: ['a', 'reconf'],
     ok: f => f.em !== undefined && emOk(f.a) && f.a !== undefined && (f.a === 'este' || f.a === 'criadas' || f.a === 'doEvento' || typeof f.a.alvo === 'number'),   // criadas: arma viva (702.92a); doEvento: a criatura que entrou/voltou (Hero's Blade, Nim Deathmantle)
@@ -1480,7 +1506,7 @@ const H = {
       }
       const feitas: any[] = [];
       for (const [j, ids] of por) feitas.push(...M.descartar(e, j, ids, { ask, efeito: true }));
-      ctx.lembrados = feitas; ctx.pagou = feitas.length > 0;
+      ctx.lembrados = feitas; ctx.pagou = feitas.length > 0; ctx.movidos = movidos(e, feitas);   // em 'anterior': as descartadas ("if you discarded a nonland card", conivir 701.50a)
     },
   },
   // loucura (CR 702.35): o gatilho da carta exilada pela loucura. O dono pode conjurá-la pagando o custo de loucura
@@ -1588,6 +1614,13 @@ const H = {
     for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio, qj = q + mais(j); for (let i = 0; i < qj && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
     ctx.movidos = movidos(e, ids);                                   // "put a card from among them" (Ripples of Undeath: f.lembrada)
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
+  } },
+
+  // "each opponent can't block with more than one creature this combat" (Mirri, Weatherlight Duelist; 509.1c): no combate atual
+  limitarBloqueio: { fx(e, f, ctx) {
+    const C = e.turno.combate; if (!C) return;
+    const q = qtdDe(e, f.qtd, ctx); C.limBloq = C.limBloq || {};
+    for (const j of jogsDe(e, f, ctx)) C.limBloq[j] = Math.min(C.limBloq[j] ?? Infinity, q);
   } },
   // "separate all permanents target player controls into two piles; that player sacrifices all permanents in the pile of
   // their choice" (Liliana of the Veil −6): quem resolve separa (uma pergunta por permanente), o jogador escolhe a pilha

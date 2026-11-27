@@ -42,8 +42,8 @@ const basico = (e, p) => {
       p.ops.forEach((op, k2) => { if (op.a !== 'descartar') return; const v = terra(op.id) ? 0.5 : (M.dadoDe(e, o(op.id)).vm || 0); if (v > bv) { bv = v; b = k2; } });
       return b;
     }
-    case 'dragar': return escolheDragar(e, p);
     case 'pilha': { const S = (p.ctx && p.ctx.somas) || [0, 0]; return S[0] <= S[1] ? 0 : 1; }   // separar: na pilha mais leve; escolher a sacrificada: a mais leve (Liliana of the Veil)
+    case 'dragar': return escolheDragar(e, p);
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
       if (p.ctx && p.ctx.op === 'entraVirada') return 1;   // "you may have this enter tapped": desvirada (o "se fizer" é o preço, Mariposa)
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
@@ -114,6 +114,14 @@ const basico = (e, p) => {
       });
       return b;
     }
+    // concessão (702.103): vira Aura só se já tenho criatura boa (poder ≥ 2) e a carta dá bônus à encantada; senão conjura normal
+    case 'opcao': {
+      const k = p.ops.findIndex(op => op.v && op.v.concessao); if (k < 0) return 0;
+      const F = p.ctx && o(p.ctx.id), da = !!F && (M.dadoDe(e, F).est || []).some(s => s.afeta === 'equipada');
+      const boa = e.campo.some(id => { const x = o(id); return x.ctrl === p.j && x.id !== p.ctx.id && M.temTipo(e, x, 'Creature') && M.poder(e, x) >= 2; });
+      return da && boa ? k : k === 0 ? 1 : 0;
+    }
+    case 'concessao': return melhorOp(p.ops, op => { const x = o(op.o); return (x.ctrl === p.j ? 100 : -100) + M.poder(e, x) + M.resistencia(e, x); });   // a minha maior
     // "choose a player"/"an opponent" sem alvo (Gluntch, Baleful Mastery): o que é bom fica comigo; entre oponentes, o de menos vida
     case 'jogador': { const k = p.ops.findIndex(op => op.jog === p.j); return k >= 0 ? k : melhorOp(p.ops, op => -e.jogs[op.jog].vida); }
     case 'um': return melhorOp(p.ops, op => M.poder(e, o(op.id)));   // "a creature you control" sem alvo: a de mais poder
@@ -178,6 +186,7 @@ const basico = (e, p) => {
       if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura
       return meu ? k : 0;
     }
+    case 'custoCombate': return 0;   // custo para atacar/bloquear (Ghostly Prison, Archangel of Tithes): já escolheu atacar/bloquear, paga
     case 'atacar': return atacarBasico(e, p);
     case 'bloquear': return bloquearBasico(e, p);
     case 'ordemDano': {               // o mais caro leva o letal primeiro
