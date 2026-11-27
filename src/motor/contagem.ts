@@ -44,9 +44,10 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
       return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
       : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados', 'aoCemiterio'].includes(o) && chaves(c, []);   // aoCemiterio: cartas suas que foram da mão/grimório ao cemitério (Welcome the Dead)
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
-    case 'atacado': return o === 'marcadores' && chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc;   // o jogador defensor (Nightkin Ambusher: rad)
+    case 'atacado': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : o === 'vida' && chaves(c, []);   // o jogador defensor (Nightkin Ambusher: rad; Preacher: vida)
     case 'oponentes': return o === 'quantos' && chaves(c, []);
-    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' && chaves(c, ['min']) && Number.isInteger(c.min);   // "each graveyard with seven or more cards" (Master of Lake-town)
+    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' ? chaves(c, ['min']) && Number.isInteger(c.min)   // "each graveyard with seven or more cards" (Master of Lake-town)
+      : o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return (o === 'quantos' && (j === undefined || j === 'maiorPorDono') || (o === 'vm' && j === 'soma')) && chaves(c, ['junta']);
     case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || (typeof c.marc === 'string' && !!c.marc))
@@ -143,10 +144,11 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'combate': return M.contaAtaque(e, o, ctx.voce);   // oponentesAtacados: corpo-a-corpo (702.121a)
     case 'atacado': {                                                       // o jogador defensor: do evento (ataca) ou de quem bloqueia (combate.ts)
       const D = ctx.ev && ctx.ev.def !== undefined ? e.jogs[ctx.ev.def] : null; if (!D) return 0;
+      if (o === 'vida') return D.vida;
       return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
     }
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
-    case 'jogadores': return o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
+    case 'jogadores': return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
     case 'X': return ctx.x || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {

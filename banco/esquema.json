@@ -794,6 +794,10 @@
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
     },
+    "vmTotal": {
+     "$ref": "#/$defs/qtd",
+     "description": "\"with total mana value N or less\": a soma do valor de mana dos escolhidos neste alvo não passa de N (Rampaging Yao Guai; CR 601.2c)"
+    },
     "diferenteDe": {
      "type": "integer",
      "description": "\"another target\": não pode ser o escolhido no alvo N"
@@ -1075,6 +1079,10 @@
       }
      },
      "description": "desvirar N permanentes viradas suas que batem em f (Halo Fountain: 'Untap two tapped creatures you control')"
+    },
+    "exercer": {
+     "type": "boolean",
+     "description": "exercer (CR 701.43a): a fonte não desvira no próximo passo de desvirar do controlador"
     }
    }
   },
@@ -1591,6 +1599,14 @@
         "type": "string"
        },
        "description": "N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)"
+      },
+      "marcaFicam": {
+       "type": "string",
+       "description": "põe 1 marcador deste tipo em cada uma que fica (Promise of Loyalty: 'vow')"
+      },
+      "votoContra": {
+       "type": "boolean",
+       "description": "as que ficam não podem atacar você (quem resolve) nem seus planeswalkers enquanto tiverem o marcador de marcaFicam (Promise of Loyalty)"
       }
      },
      "description": "op sacrificar: cada jogador escolhe N que ficam e sacrifica o resto do filtro (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty)"
@@ -1668,6 +1684,10 @@
       "type": "string"
      },
      "description": "cavar: pega até UM de cada subtipo da lista (Kaalia, Zenith Seeker: 'an Angel, a Demon, and/or a Dragon')"
+    },
+    "habilDe": {
+     "$ref": "#/$defs/objeto",
+     "description": "op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)"
     }
    },
    "additionalProperties": false,
@@ -2353,6 +2373,10 @@
     "naoPrimeira": {
      "type": "boolean",
      "description": "ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)"
+    },
+    "porAtivada": {
+     "type": "boolean",
+     "description": "ev alvoDe: só quando o que mira é uma habilidade ATIVADA (\"becomes the target of an activated ability\", Professor Hojo)"
     }
    }
   },
@@ -2400,9 +2424,10 @@
       "equiparComoInstantanea",
       "primeiroEquiparGratis",
       "naoPerdeJogo",
-      "darRondar"
+      "darRondar",
+      "manaComoQualquerCor"
      ],
-     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor)"
+     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
     "afeta": {
      "oneOf": [
@@ -2538,7 +2563,7 @@
     },
     "aoMirar": {
      "type": "boolean",
-     "description": "aumentaCusto: só mágicas/habilidades que miram o afetado"
+     "description": "aumentaCusto/reduzCusto: só mágicas/habilidades que miram o afetado (reduzCusto aoMirar: só com deHabil, Professor Hojo)"
     },
     "quem": {
      "$ref": "#/$defs/jogador",
@@ -2592,6 +2617,20 @@
      "type": "integer",
      "minimum": 1,
      "description": "reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')"
+    },
+    "corMana": {
+     "enum": [
+      "W",
+      "U",
+      "B",
+      "R",
+      "G"
+     ],
+     "description": "manaComoQualquerCor: a cor da mana que vale por qualquer cor (\"spend blue mana as though it were mana of any color\")"
+    },
+    "primeiraNoSeuTurno": {
+     "type": "boolean",
+     "description": "reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)"
     }
    }
   },
