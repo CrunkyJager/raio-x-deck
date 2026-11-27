@@ -3509,6 +3509,19 @@ caso('701.25', "vigiar: olha o topo e põe no cemitério o que quiser; o resto f
   igual(e.objs[g[g.length - 1]].n, 'Grizzly Bears', 'Bears ficou no topo');
 });
 
+caso('707.10', "magecraft (\"conjura ou copia\"): Archmage Emeritus dispara ao copiar a mágica; a cópia feita pelo oponente não", () => {
+  for (const c of ['Archmage Emeritus', 'Storm-Kiln Artist', 'Veyran, Voice of Duality']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Archmage Emeritus'], [1, 'Grizzly Bears']] });
+  const b = e.por(0, 'Lightning Bolt', { zona: 'mao' });
+  M.mover(e, b.id, 'pilha'); b.pil = { x: 0, alvos: [[{ jog: 1 }]], ctrl: 0, opc: {} };
+  e.pend = [];
+  M.criarCopia(e, b, 0, { alvos: [[{ jog: 1 }]], novos: false });
+  igual(e.pend.map(p => p.n), ['Archmage Emeritus'], 'copiar dispara o magecraft');
+  e.pend = [];
+  M.evento(e, { ev: 'copia', id: b.id, j: 1 });
+  igual(e.pend.length, 0, 'cópia do oponente: não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

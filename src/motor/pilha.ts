@@ -895,6 +895,7 @@ M.criarCopia = (e, o, j, { alvos, novos }) => {
   e.pilha.push(id);
   if (novos) M.eventosAlvo(e, alvos, id);                           // "becomes the target" vale para a cópia (ward)
   M.log(e, e.jogs[j].nome, 'copia', o.n, descAlvos(e, alvos));
+  if (M.evento && !o.hab) M.evento(e, { ev: 'copia', id, j });     // CR 707.10: copiar não é conjurar; só "cast or copy" (magecraft) dispara
   return e.objs[id];
 };
 
