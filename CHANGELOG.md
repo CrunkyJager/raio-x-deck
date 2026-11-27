@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.56.0 — 27/11/2026 · Motor: gatilho "sai do seu cemitério"
+Testes: check 0 erros · Vitest 380/380 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1502/1756 (eram 1496). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste do Syr Konrad: 20 partidas, 0 erros.
+- **"Sempre que uma ou mais cartas saírem do seu cemitério"**: Syr Konrad, Teval, Teval's Judgment, Kheru Goldkeeper, Kishla Skimmer, Insidious Roots. "Uma ou mais" dispara uma vez pelo grupo; carta do cemitério do oponente não conta.
+
 ## v0.55.0 — 27/11/2026 · Motor: fases de combate extras
 Testes: check 0 erros · Vitest 379/379 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1496/1756 (eram 1490). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste da Aurelia: 20 partidas, 45 fases extras, 0 erros.
 - **Fase extra** (CR 500.8): Aurelia, Combat Celebrant, Genji Glove, Karlach, Moraug, Aggravated Assault (combate + principal logo depois da principal em que foi ativada). Várias na fila: a criada por último vem primeiro.

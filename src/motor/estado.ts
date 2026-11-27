@@ -282,6 +282,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (sub) { zona = sub.zona; M.log(e, o.n, 'vai para', zona, 'em vez do cemitério (' + sub.n + ')'); }
   if (o.cmd && (zona === 'mao' || zona === 'grimorio')) zona = 'comando';
   const zDe = o.zona, snap = zDe === 'campo' ? { ...o, marc: { ...o.marc } } : null;   // LKI de quem sai (603.10a)
+  const snapCem = zDe === 'cemiterio' ? { ...o } : null;
   const de = M.listaDe(e, o), k = de.lastIndexOf(id);   // id único na lista; o fim (topo, ficha nova) é o mais comum
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
@@ -298,7 +299,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zona === 'campo' && (M.dadoBase(e, o).kw || []).some(x => x.k === 'entraPreparada')) M.preparar(e, o);   // "enters prepared"
   if (zona === 'cemiterio' || zona === 'exilio') e.abeNovo.push(id);
   if (zDe === 'campo' && e.ctrlEf && e.ctrlEf.length) M.recalcCtrl(e);   // a fonte do "enquanto você controlar" saiu (Roil Elemental)
-  if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap, ...(sac && zDe === 'campo' ? { sac: true } : {}) });   // gatilhos.js
+  if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio' || zDe === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap, ...(sac && zDe === 'campo' ? { sac: true } : {}), ...(snapCem ? { snapCem } : {}) });   // snapCem: a carta como era no cemitério (saiCemiterio)   // gatilhos.js
   if (zona === 'campo' && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1);   // CR 714.3a: a saga entra com 1 marcador de história
   if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
   return o;
