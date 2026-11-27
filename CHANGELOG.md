@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.57.0 — 27/11/2026 · Motor: dano fora do combate é evento; "quando esta receber dano"
+Testes: check 0 erros · Vitest 381/381 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1508/1756 (eram 1502). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste de Dinossauros: 20 partidas, 0 erros, enrage disparando.
+- **Conserto:** dano de mágica/habilidade (Lightning Bolt, Impact Tremors, Pyroclasm) não gerava o evento de dano; só o de combate. Os gatilhos "sempre que causar dano" de 86 cartas não viam esse dano.
+- **"Sempre que esta receber dano"** (enrage): Ripjaw Raptor, Apex Altisaur, Wrathful Raptors, Spiteful Sliver, Strong, Metropolis Reformer. No combate, várias fontes ao mesmo tempo disparam uma vez só.
+
 ## v0.56.0 — 27/11/2026 · Motor: gatilho "sai do seu cemitério"
 Testes: check 0 erros · Vitest 380/380 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1502/1756 (eram 1496). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste do Syr Konrad: 20 partidas, 0 erros.
 - **"Sempre que uma ou mais cartas saírem do seu cemitério"**: Syr Konrad, Teval, Teval's Judgment, Kheru Goldkeeper, Kishla Skimmer, Insidious Roots. "Uma ou mais" dispara uma vez pelo grupo; carta do cemitério do oponente não conta.
