@@ -314,7 +314,8 @@ M.permJogar = (e, j, o) => { const l = e.permJogar; if (!l || !l.length) return 
 // recapitular (CR 702.34): conjurar do cemitério pelo custo de recapitular; ao sair da pilha vai para o exílio (702.34a)
 // flashback dado a cartas do cemitério por efeito "neste turno" (Past in Flames, 702.34a): custo = o custo de mana da carta
 const flashDado = (e, o) => {
-  for (const t of e.efTemp || []) for (const s of t.est) if (s.modo === 'continuo' && s.afeta && s.afeta.zona === 'cemiterio') {
+  for (const t of e.efTemp || []) for (const s of t.est) if (s.modo === 'darFlashback' && M.tempTem(t, o)) return M.dadoDe(e, o).custo || null;   // a carta alvo (Flashback, Snapcaster): presa por id+ts
+  else if (s.modo === 'continuo' && s.afeta && s.afeta.zona === 'cemiterio') {
     const k = (s.kw || []).find(x => x.k === 'flashback');
     if (k && M.bate(e, o, s.afeta, { voce: t.ctrl, este: -1 })) return k.custo || M.dadoDe(e, o).custo || null;
   }
@@ -503,7 +504,7 @@ M.podeAtivar = (e, j, o, k) => {
   if (a.lealdade !== undefined) {                                     // CR 606.3: feitiço, uma por turno por permanente
     if (!M.velFeitico(e, j) || o.lealTurno === e.turno.n) return false;
     if (a.lealdade < 0 && (o.marc.lealdade || 0) < -a.lealdade) return false;
-  } else if (a.vel === 'feitico' && !M.velFeitico(e, j)) return false;
+  } else if (a.vel === 'feitico' && !M.velFeitico(e, j) && !(a._equipar && e.turno.ativo === j && M.estSeu(e, j, 'equiparComoInstantanea'))) return false;   // Forge Anew: no seu turno, equipar na velocidade de instantânea
   if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
   if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
   if (a._soltar && !o.anexo) return false;                            // reconfigurar: soltar só se anexada (702.151a)
@@ -882,6 +883,7 @@ const PROC = {
     const j = P.j, o = e.objs[P.id], a = M.atvDe(e, o)[P.k], c = a.custo, ctx = { voce: j, este: o.id };
     const ex = c.virar || c.sacrificar === 'este' || c.devolver === 'este' ? [o.id] : [];
     let mana = M.custoAtv(e, o, a);                                                   // CR 602.2b → 601.2f (reduzCusto deHabil)
+    if (a._equipar && e.turno.ativo === j) e.jogs[j].equipT = e.turno.n;                // o 1º equipar do seu turno já foi (Forge Anew)
     let x = 0;
     if (mana && mana.x) {
       const mx = maxX(e, j, mana, ex);

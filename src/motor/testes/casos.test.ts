@@ -4854,6 +4854,99 @@ caso('500.7', "turno extra: dois extras, o último criado vem primeiro; depois v
   }
   igual(vez, [2, 0, 1, 2], 'extra do 2 (último criado), extra do 0, e segue do 0: 1, 2');
 });
+caso('106.1', "prod {cadaCor} (Faeburrow Elder): uma mana de CADA cor entre suas permanentes, tudo junto", () => {
+  const e = cena({ campo: [[0, 'Faeburrow Elder'], [0, 'Llanowar Elves'], [0, 'Serra Angel'], [1, 'Lightning Bolt']] });
+  const F = objN(e, 0, 'Faeburrow Elder'); F.doente = false;
+  const p = M.pacotesDe(e, F, M.atvDe(e, F)[0]);
+  igual(p.length, 1, 'um pacote só'); igual([p[0].W, p[0].G, p[0].R], [1, 1, 0], 'W e G, sem a cor do oponente');
+});
+
+caso('603.7', "Faramir: escolhe um oponente; o atrasado só dispara na etapa final DELE (deQuem oponenteEscolhido)", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Faramir, Prince of Ithilien']] });
+  const F = objN(e, 0, 'Faramir, Prince of Ithilien');
+  const g = M.carta('Faramir, Prince of Ithilien').gat[0].fx[0];
+  let pergs = 0;
+  M.executar(e, g, { voce: 0, este: F.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, F) } }, (j, tipo, ops) => { pergs++; igual(ops.map(o => o.jog), [1, 2]); return ops[1]; });
+  igual([pergs, e.atras.length, e.atras[0].mem.jog], [1, 1, 2], 'perguntou e guardou o jogador 2');
+  e.turno.n = 3; e.pend = [];
+  M.evento(e, { ev: 'fase', passo: 'final', ativo: 1 });
+  igual(e.pend.length, 0, 'final do jogador 1: não');
+  e.turno.n = 4;
+  M.evento(e, { ev: 'fase', passo: 'final', ativo: 2 });
+  igual(e.pend.length, 1, 'final do escolhido: dispara');
+});
+
+caso('509.1b', "Feasting Hobbit: criatura com poder MENOR que o dele não bloqueia (limite do filtro = poder do este − 1)", () => {
+  const e = cena({ campo: [[0, 'Feasting Hobbit'], [1, 'Llanowar Elves'], [1, 'Grizzly Bears']] });
+  const h = objN(e, 0, 'Feasting Hobbit'), por = M.dadoDe(e, h).est[0].por;
+  ok(M.bate(e, objN(e, 1, 'Llanowar Elves'), por, { voce: 0, este: h.id }), 'elfo 1 < 2: não pode bloquear');
+  ok(!M.bate(e, objN(e, 1, 'Grizzly Bears'), por, { voce: 0, este: h.id }), 'urso 2 = 2: pode bloquear');
+  h.marc['+1/+1'] = 3; e.vCamada = (e.vCamada || 0) + 1;
+  ok(M.bate(e, objN(e, 1, 'Grizzly Bears'), por, { voce: 0, este: h.id }), 'hobbit 5: urso não bloqueia');
+});
+
+caso('702.34a', "Flashback (a carta): a instantânea alvo no cemitério ganha flashback até o fim do turno, custo = o custo de mana dela", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Flashback']] });
+  const b = e.por(0, 'Lightning Bolt', { zona: 'cemiterio' });
+  M.avancar(e);
+  ok(!opsDe(e, 'conjurar').some(o => o.id === b.id), 'antes: não');
+  conj(e, 'Flashback'); resolvePilha(e);
+  ok(opsDe(e, 'conjurar').some(o => o.id === b.id), 'depois: conjura do cemitério');
+  igual(M.porFlash(e, 0, b), true);
+});
+
+caso('601.2f', "Forensic Gadgeteer: habilidade de artefato custa {1} a menos, mas não abaixo de uma mana (reduzCusto minimo)", () => {
+  const e = cena({ campo: [[0, 'Forensic Gadgeteer'], [0, 'Mind Stone'], [0, "Wayfarer's Bauble"]] });
+  const m = objN(e, 0, 'Mind Stone'), w = objN(e, 0, "Wayfarer's Bauble");
+  igual(M.custoAtv(e, m, M.atvDe(e, m)[1]), { g: 1 }, '{1} fica {1}');
+  igual(M.custoAtv(e, w, M.atvDe(e, w)[0]), { g: 1 }, '{2} vira {1}');
+});
+
+caso('702.6a', "Forge Anew: o 1º equipar do seu turno custa {0}, o 2º paga; no seu turno equipa fora da velocidade de feitiço", () => {
+  const e = cena({ campo: [[0, 'Forge Anew'], [0, 'Behemoth Sledge'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  const sl = objN(e, 0, 'Behemoth Sledge'), k = M.atvDe(e, sl).findIndex(a => a._equipar);
+  igual(M.custoAtv(e, sl, M.atvDe(e, sl)[k]), {}, '1º: {0}');
+  e.jogs[0].equipT = e.turno.n;
+  igual(M.custoAtv(e, sl, M.atvDe(e, sl)[k]), { g: 3 }, '2º: {3}');
+  e.jogs[0].equipT = 0; e.turno.passo = 'manutencao';
+  ok(M.podeAtivar(e, 0, sl, k), 'na manutenção do seu turno: pode');
+  e.turno.ativo = 1;
+  igual(M.custoAtv(e, sl, M.atvDe(e, sl)[k]), { g: 3 }, 'turno do oponente: paga');
+});
+
+caso('122.8', "moverMarcador: Forgotten Ancient divide os +1/+1 entre outras criaturas, um a um, e para quando quiser", () => {
+  const e = cena({ campo: [[0, 'Forgotten Ancient'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const fa = objN(e, 0, 'Forgotten Ancient'), b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 1, 'Llanowar Elves');
+  fa.marc['+1/+1'] = 3;
+  const f = M.carta('Forgotten Ancient').gat[1].fx[0], fila: any[] = [b.id, l.id, 'pronto'];
+  M.executar(e, { ...f, talvez: false }, { voce: 0, este: fa.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, fa) } }, (j, tipo, ops) => { const q = fila.shift(); return ops.find(o => q === 'pronto' ? o.a === 'pronto' : o.id === q); });
+  igual([fa.marc['+1/+1'], b.marc['+1/+1'], l.marc['+1/+1']], [1, 1, 1], '1 no urso, 1 no elfo, parou com 1');
+});
+
+// ---------- contagens num formato só (27/11): {conta:{de, o, junta}} ----------
+caso('701.54d', "Frodo: compra só se ele é o Portador e o Anel te tentou 2+ vezes (cond portadorDoAnel 'este' + conta tentacoes)", () => {
+  const e = cena({ campo: [[0, 'Frodo, Adventurous Hobbit'], [0, 'Grizzly Bears']] });
+  const fr = objN(e, 0, 'Frodo, Adventurous Hobbit'), b = objN(e, 0, 'Grizzly Bears');
+  const se = M.carta('Frodo, Adventurous Hobbit').gat[0].fx[1].se, ctx = { voce: 0, este: fr.id };
+  ok(M.seOk(se), 'condição aceita'); ok(!M.condicao(e, se, ctx), 'sem Anel: não');
+  e.jogs[0].anel = { n: 1, p: { id: fr.id, ts: fr.ts } };
+  ok(!M.condicao(e, se, ctx), 'tentado 1 vez: não');
+  e.jogs[0].anel.n = 2; ok(M.condicao(e, se, ctx), 'Portador e 2 vezes: sim');
+  e.jogs[0].anel.p = { id: b.id, ts: b.ts }; ok(!M.condicao(e, se, ctx), 'o Portador é o urso: não');
+  ok(M.condicao(e, { portadorDoAnel: true }, ctx), 'mas você tem um Portador');
+});
+
+caso('506.2', "Frontier Warmonger: quando criaturas (de qualquer um) atacam um oponente seu, as que atacam o oponente ganham ameaça; atacando você, não", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Frontier Warmonger'], [1, 'Grizzly Bears'], [2, 'Llanowar Elves']] });
+  const b = objN(e, 1, 'Grizzly Bears'), l = objN(e, 2, 'Llanowar Elves');
+  const g = M.carta('Frontier Warmonger').gat[0], ctx = { voce: 0, este: objN(e, 0, 'Frontier Warmonger').id };
+  e.turno.combate = { atk: [{ id: b.id, ts: b.ts, alvo: { jog: 2 } }, { id: l.id, ts: l.ts, alvo: { jog: 0 } }] };
+  ok(M.condicao(e, g.se, ctx), 'alguém ataca um oponente seu');
+  ok(M.bate(e, b, g.fx[0].em.todos, ctx) && !M.bate(e, l, g.fx[0].em.todos, ctx), 'o urso (→ jogador 2) sim; o elfo (→ você) não');
+  e.turno.combate = { atk: [{ id: l.id, ts: l.ts, alvo: { jog: 0 } }] };
+  ok(!M.condicao(e, g.se, ctx), 'só atacando você: não dispara');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

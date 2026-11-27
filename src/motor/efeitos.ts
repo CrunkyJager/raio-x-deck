@@ -12,7 +12,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 // contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -28,7 +28,7 @@ const qtdOk = q0 => { const q = M.qn(q0); return q === undefined || typeof q ===
     && (q.metade === undefined || (q.metade === true && !(ehConj(q.conta) && q.conta.junta))) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1))
     && !(q.conta.de === 'cada' && q.conta.o === 'vida' && !(dentroCada > 0)) && !(q.conta.de === 'cada' && q.conta.o === 'marcadores' && !(dentroObj > 0))); };
 const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
-const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
+const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k)) && (se.portadorDoAnel === undefined || se.portadorDoAnel === true || se.portadorDoAnel === 'este')
   && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || (qtdOk(se.conta.q) && ['min', 'max', 'igual'].every(k => se.conta[k] === undefined || typeof se.conta[k] === 'number' || qtdOk(se.conta[k]))))
   && (!se.esteEm || (Array.isArray(se.esteEm) && se.esteEm.length > 0 && se.esteEm.every(z => ['campo', 'cemiterio', 'exilio', 'mao', 'comando', 'grimorio'].includes(z)))));
 M.seOk = seOk;
@@ -633,6 +633,11 @@ const H = {
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k))))),
     fx(e, f, ctx) {
       if (gatSempre(f) && f.em === 'doEvento' && ctx.ev) for (const o of [e.objs[ctx.ev.id]]) if (o && o.zona === 'pilha' && !o.hab && (ctx.ev.ts === undefined || o.ts === ctx.ev.ts)) o.gatPilha = [...(o.gatPilha || []), ...f.habil.gat];   // a mágica: a permanente que ela vira tem (Rivaz)
+      // "target instant or sorcery card in your graveyard gains flashback until end of turn" (Flashback, Snapcaster Mage):
+      // a carta no cemitério, presa por id+ts no e.efTemp; custo = o custo de mana dela (lido no flashDe, pilha.ts)
+      const noCem = objsDe(e, f, ctx).filter(o => o.zona === 'cemiterio');
+      if (noCem.length && (f.kw || []).length === 1 && f.kw[0].k === 'flashback' && !f.kw[0].custo && f.dura === 'fimDoTurno')
+        (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: [{ modo: 'darFlashback' }], este: null, ids: noCem.map(o => ({ id: o.id, ts: o.ts })), fim: 'turno', ts: ++e.ts });
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
       if (f.sub !== undefined || f.cores !== undefined || gatSempre(f)) {
         for (const o of os) {
@@ -821,9 +826,15 @@ const H = {
   gatilhoAtrasado: {
     campos: ['quando'],
     ok: f => M.atrasadoOk(f.quando),
-    fx(e, f, ctx) {
+    fx(e, f, ctx, ask?) {
+      // deQuem 'oponenteEscolhido' (Faramir: "choose an opponent. At the beginning of that player's next end step"): escolhe agora
+      let jog;
+      if (f.quando.deQuem === 'oponenteEscolhido') {
+        const ops = M.vivos(e).filter(x => x !== ctx.voce); if (!ops.length) return;
+        jog = ops.length === 1 || !ask ? ops[0] : ask(ctx.voce, 'escolha', ops.map(x => ({ a: 'jogador', jog: x })), { o: 'oponente', fonte: (e.objs[ctx.este] || {}).n }).jog;
+      }
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
-        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal, lkiAlvos: ctx.lki && ctx.lki.alvos } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
+        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(jog !== undefined ? { jog } : {}), ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal, lkiAlvos: ctx.lki && ctx.lki.alvos } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
     },
   },
   // miríade (CR 702.116a): para cada oponente que não é o defensor, pode criar uma ficha cópia desta, virada e atacando
@@ -994,8 +1005,9 @@ const H = {
       const q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
       const F = e.objs[ctx.este] || { ctrl: ctx.voce, escolha: null };
       const cs = M.coresDeProd(e, { ...F, ctrl: ctx.voce }, f.prod); if (!cs || !cs.length) return;
-      const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
       const J = e.jogs[ctx.voce];
+      if (f.prod.cadaCor) { for (const c of cs) J.reserva[c] += q; M.log(e, J.nome, 'recebe', cs.map(c => c.repeat(q)).join('')); return; }   // uma de cada cor
+      const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
       // restrita (CR 106.6, Klauth: "spend this mana only to cast spells"): vai para J.restrita; com ficaNoTurno fica até o fim do turno
       if (f.so) { const m = M.zeroMana(); m[c] = q; (J.restrita || (J.restrita = [])).push({ m, f: M.filtroSo(F, f.so), ...(f.ficaNoTurno ? { fica: e.turno.n } : {}) }); M.log(e, J.nome, 'recebe', c.repeat(q), '(só para ' + (M.fmtFiltroSo(M.filtroSo(F, f.so)) || 'mágicas') + ')'); return; }
       J.reserva[c] += q;

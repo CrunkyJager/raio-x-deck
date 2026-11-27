@@ -468,7 +468,15 @@
      "type": "boolean"
     },
     "atacando": {
-     "type": "boolean"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "oponente"
+      }
+     ],
+     "description": "'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)"
     },
     "equipada": {
      "type": "boolean",
@@ -540,7 +548,14 @@
      "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"
     },
     "semMarcador": {
-     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "string"
+      }
+     ],
      "description": "true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')"
     },
     "kw": {
@@ -551,7 +566,14 @@
      "description": "tem estas palavras-chave"
     },
     "nomeUnico": {
-     "anyOf": [{"type": "boolean"}, {"const": "criaturaOuCemiterio"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "criaturaOuCemiterio"
+      }
+     ],
      "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
     "poderAcimaBase": {
@@ -1040,6 +1062,19 @@
        "items": {
         "type": "string"
        }
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "cadaCor"
+       ],
+       "properties": {
+        "cadaCor": {
+         "$ref": "#/$defs/filtro"
+        }
+       },
+       "description": "uma mana de CADA cor entre os objetos que batem (Faeburrow Elder, Bloom Tender: 'for each color among permanents you control, add one mana of that color'); qtd multiplica cada uma"
       }
      ]
     },
@@ -1611,8 +1646,15 @@
      "description": "você é o monarca"
     },
     "portadorDoAnel": {
-     "type": "boolean",
-     "description": "você tem um Portador do Anel (o Anel te tentou)"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "este"
+      }
+     ],
+     "description": "true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)"
     },
     "maisTerrenosOponente": {
      "enum": [
@@ -1906,9 +1948,10 @@
      "enum": [
       "voce",
       "cadaJogador",
-      "oponente"
+      "oponente",
+      "oponenteEscolhido"
      ],
-     "description": "ev fase: no turno de quem"
+     "description": "ev fase: no turno de quem; oponenteEscolhido (só gatilho atrasado): o oponente escolhido quando o atrasado foi criado (Faramir)"
     },
     "combate": {
      "type": "boolean"
@@ -2050,9 +2093,11 @@
       "deveBloquear",
       "darFuga",
       "darLoucura",
-      "oponentesNaoProcuram"
+      "oponentesNaoProcuram",
+      "equiparComoInstantanea",
+      "primeiroEquiparGratis"
      ],
-     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
+     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
     "afeta": {
      "oneOf": [
@@ -2205,6 +2250,11 @@
     "exilar": {
      "type": "integer",
      "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
+    },
+    "minimo": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')"
     }
    }
   },
@@ -2566,9 +2616,10 @@
       "maior",
       "dano",
       "nome",
-      "tipos"
+      "tipos",
+      "tentacoes"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
     "junta": {
      "enum": [

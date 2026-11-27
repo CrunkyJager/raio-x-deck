@@ -21,7 +21,7 @@ M.gatOk = g => {
   memoOk.set(g, ok);
   return ok;
 };
-const relJog = (r, j, ctrl) => r === 'voce' ? j === ctrl : r === 'oponente' ? j !== ctrl : true;
+const relJog = (r, j, ctrl) => r === 'voce' ? j === ctrl : r === 'oponente' || r === 'oponenteEscolhido' ? j !== ctrl : true;
 const bate = (e, o, f, ctx) => { try { return M.bate(e, o, f, ctx); } catch (_) { return false; } };
 const cond = (e, se, ctx) => { if (!se) return true; try { return M.condicao(e, se, ctx); } catch (_) { return false; } };
 
@@ -100,6 +100,7 @@ function atrasados(e, ev) {
     if (A.g.proximoTurno && e.turno.n <= A.t) continue;
     if (A.g.nesteTurno && e.turno.n !== A.t) { A.feito = true; continue; }
     const F = { id: A.fonte, ctrl: A.ctrl, ts: A.lki ? A.lki.ts : -1 };
+    if (A.g.deQuem === 'oponenteEscolhido' && (ev.ev !== 'fase' || ev.ativo !== (A.mem && A.mem.jog))) continue;   // o oponente escolhido ao criar
     if (!bateEv(e, A.g, ev, F) || !cond(e, A.g.se, { voce: A.ctrl, este: A.fonte })) continue;
     A.feito = true;                                                                       // 603.7c: uma vez só
     e.pend.push({ fonte: A.fonte, ts: F.ts, ctrl: A.ctrl, k: 'atrasado', g: A.g, n: A.n, face: null, ficha: null, lki: A.lki, mem: A.mem, ev: { ...ev, snap: undefined } });
