@@ -33,17 +33,30 @@ function protegeDe(e, alvo, fonteDado) {
     if (x.k !== 'protecao') continue;
     if (x.de === 'tudo' || x.de === 'everything') return true;
     if ((x.de === 'cadaCor' || x.de === 'each color') && cores) return true;
-    if (x.de && /^[WUBRG]+$/.test(x.de) && [...x.de].some(c => cores.includes(c))) return true;   // uma cor ou várias ("each of that creature's colors")
+    if (x.de && M.protKwBate(x.de, fonteDado)) return true;
   }
   return false;
 }
 M.protegeDe = protegeDe;
+// "de" de uma proteção bate com a fonte? cor (W/U/B/R/G), tipo de carta (Serra's Emissary) ou subtipo (Dog, Rat)
+M.protKwBate = (de, fd) => /^[WUBRG]+$/.test(de) ? [...de].some(c => (fd.cores || '').includes(c)) :   // uma cor ou várias ("each of that creature's colors")
+   (fd.tipos || []).includes(de) || (fd.sub || []).includes(de);
 
 // ---------- atacantes (CR 508.1) ----------
+// "[criaturas que batem] não podem atacar", de outra permanente (est naoPodeAtacar com afeta filtro; seJog: o controlador
+// da atacante fez algo no turno — Angelic Arbiter: quem conjurou mágica neste turno não ataca)
+const proibidaDeAtacar = (e, o) => e.campo.some(id => {
+  const F = e.objs[id];
+  return (M.dadoDe(e, F).est || []).some(s => s.modo === 'naoPodeAtacar' && s.afeta && typeof s.afeta === 'object' && (!s.seJog || M.jogFez(e, o.ctrl, s.seJog))
+    && bateF(e, o, s.afeta, { voce: F.ctrl, este: F.id }));
+});
+const bateF = (e, o, f, ctx) => { try { return M.bate(e, o, { ...f, zona: 'campo' }, ctx); } catch (_) { return false; } };
+M.podeAtacarObj = (e, o, a) => podeAtacar(e, o, a);
 function podeAtacar(e, o, a) {
   if (o.ctrl !== a || !M.temTipo(e, o, 'Creature') || o.virada) return false;           // 508.1a
   if (o.doente && !kw(e, o, 'pressa')) return false;                                       // 302.6
   if (kw(e, o, 'defensor') || estEste(e, o, 'naoPodeAtacar', true)) return false;          // 702.3b, 508.1c
+  if (proibidaDeAtacar(e, o)) return false;
   return true;
 }
 // quem pode ser atacado: oponentes vivos e seus planeswalkers (506.2, 508.1b). Batalha precisa do protetor
@@ -52,16 +65,17 @@ function podeAtacar(e, o, a) {
 function alvosAtaque(e, a) {
   const cobra = new Set<any>();
   for (const id of e.campo) { const o = e.objs[id]; if ((M.dadoDe(e, o).est || []).some(s => s.modo === 'ataqueCusta')) cobra.add(o.ctrl); }
-  const r: any[] = [];
+  const r: any[] = [], semAtaque = new Set(M.tempDe(e, 'naoPodeAtacar').filter(({ s }) => s.contra && s.contra.jog === 'voce').map(({ t }) => t.ctrl));   // "não podem atacar você" (efeito temporário)
   for (const j of M.vivos(e)) {
     if (j === a || cobra.has(j)) continue;
-    r.push({ jog: j });
+    if (!semAtaque.has(j)) r.push({ jog: j });
     for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === j && M.temTipo(e, o, 'Planeswalker')) r.push({ o: id }); }
   }
   return r;
 }
 // voto (Promise of Loyalty): de quem esta não pode atacar enquanto tiver o marcador
 const votoDe = o => o && o.voto && (o.marc[o.voto.marc] || 0) > 0 ? o.voto.js : [];
+M.alvosAtaque = (e, a) => alvosAtaque(e, a);
 const defDe = (e, alvo) => alvo.jog !== undefined ? alvo.jog : e.objs[alvo.o].ctrl;
 // CR 508.4: permanente que entra atacando. Quem a controla escolhe um jogador ou planeswalker que ela poderia atacar
 // (508.4a); primeiro o mais atacado agora (o agente básico pega o primeiro). Não foi declarada: não dispara "ataca".
@@ -119,7 +133,7 @@ M.PROC.atacar = (e, P, ask) => {
     C.atk.push({ id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
   }
   // quem atacou quem neste turno (contas ataquesNoTurno/atacantesEmVoce; o combate some no fim do combate)
-  e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def })));
+  e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def, jog: r.alvo.jog })));
   for (const r of C.atk) M.evento(e, { ev: 'ataca', id: r.id, def: r.def });          // 508.3a
   if (C.atk.length) M.evento(e, { ev: 'atacantesDeclarados', j: a, n: C.atk.length });
   if (C.atk.length) M.log(e, e.jogs[a].nome, 'ataca com', C.atk.map(r => e.objs[r.id].n + '→' + (r.alvo.jog !== undefined ? e.jogs[r.alvo.jog].nome : e.objs[r.alvo.o].n)).join(', '));
@@ -288,7 +302,7 @@ function aplicarGolpes(e, golpes) {
     if (!(g.q > 0)) continue;
     const fd = M.dadoDe(e, g.fonte);
     if (g.alvo.jog !== undefined) {
-      if (M.protegeJog(e, g.alvo.jog)) continue;                                           // 702.16j: prevenido
+      if (M.protegeJog(e, g.alvo.jog, g.fonte)) continue;                                           // 702.16j: prevenido
       const J = e.jogs[g.alvo.jog];
       M.danoJogador(e, g.alvo.jog, g.q, M.kwDe(e, g.fonte));                               // 120.3a (infectar: veneno, 702.90b); 119.7
       if (g.fonte.cmd) J.danoCmd[g.fonte.id] = (J.danoCmd[g.fonte.id] || 0) + g.q;          // 903.10a

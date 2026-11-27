@@ -37,16 +37,18 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   switch (c.de) {
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
-      : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'tentacoes'].includes(o) && chaves(c, []);
+      : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'vidaInicial', 'tentacoes'].includes(o) && chaves(c, []);
     case 'turno': if (o === 'entraram') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
       return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
       : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
-    case 'atacado': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : o === 'vida' && chaves(c, []);   // o jogador defensor (Nightkin Ambusher: rad)
-    case 'oponentes': case 'jogadores': return o === 'quantos' ? chaves(c, []) : c.de === 'jogadores' && o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
+    case 'atacado': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : o === 'vida' && chaves(c, []);   // o jogador defensor (Nightkin Ambusher: rad; Preacher: vida)
+    case 'oponentes': return o === 'quantos' && chaves(c, []);
+    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' ? chaves(c, ['min']) && Number.isInteger(c.min)   // "each graveyard with seven or more cards" (Master of Lake-town)
+      : o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
-    case 'evento': return ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);
+    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
@@ -56,7 +58,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 // estática: só o que não depende de evento/alvo/efeito anterior (é o CONTA_EST + PROP_EST de antes)
 function estOk(c) {
   if (temF(c)) return true;
-  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'devocao', 'tentacoes'].includes(c.o);
+  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes'].includes(c.o);
   if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
@@ -66,7 +68,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram')));
+  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -106,6 +108,7 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'mao') return J.zonas.mao.length;
       if (o === 'grimorio') return J.zonas.grimorio.length;
       if (o === 'vida') return J.vida;
+      if (o === 'vidaInicial') return J.vidaInicial ?? 40;   // 103.4: a vida com que começou (Angel of Destiny)
       if (o === 'devocao') return M.devocao(e, ctx.voce, c.cores);
       if (o === 'tentacoes') return (J.anel && J.anel.n) || 0;   // "the Ring has tempted you N or more times this game" (701.54d)
       return c.marc === 'poison' ? J.veneno || 0 : (J.marc || {})[c.marc] || 0;   // "for each experience counter you have" (122.1)
@@ -131,7 +134,7 @@ M.contar = (e, c, ctx: any = {}) => {
       return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
     }
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
-    case 'jogadores': return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : M.vivos(e).length;
+    case 'jogadores': return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
     case 'X': return ctx.x || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {
@@ -146,6 +149,7 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'vida') return vidaEv(ev) ? ev.q || 0 : 0;                    // "that much life" (Sanguine Bond)
       if (o === 'dano') return ev.ev === 'dano' ? ev.q || 0 : 0;              // "that much damage"
       if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;   // "that many" (Shalai and Hallar)
+      if (o === 'poder' && c.junta === 'soma') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
       if (o === 'mao') { const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo; return jj !== undefined && e.jogs[jj] ? e.jogs[jj].zonas.mao.length : 0; }   // "if that player has four or more cards in hand" (Fevered Visions)
       const ob = e.objs[ev.id];
       if (o === 'poder') return !ob ? 0 : ob.zona === 'campo' || !ev.snap ? M.poder(e, ob) : M.poder(e, ev.snap);   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
