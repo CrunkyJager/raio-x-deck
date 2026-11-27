@@ -387,6 +387,10 @@ export interface RxFiltro {
    */
   semKw?: string[];
   /**
+   * soulbond (702.95): esta e a criatura pareada com ela, só enquanto pareadas ("each of those creatures": Tandem Lookout)
+   */
+  pareadaComEste?: true;
+  /**
    * mágica/habilidade na pilha com ao menos um alvo que bate neste filtro ("a spell that targets one or more creatures you control", Arcee)
    */
   miraUm?: RxFiltro;
@@ -457,6 +461,20 @@ export interface RxAlvo {
    * o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)
    */
   ouZona?: RxZona;
+  /**
+   * f 'habilidade': "ability you control from an enchantment source" (Weaver of Harmony)
+   */
+  hab?: {
+    /**
+     * quem controla a habilidade na pilha
+     */
+    ctrl?: 'voce' | 'oponente';
+    tipo?: 'ativada' | 'desencadeada';
+    /**
+     * a fonte da habilidade (saiu de zona: só o tipo impresso)
+     */
+    fonte?: RxFiltro;
+  };
 }
 
 /**
@@ -506,7 +524,14 @@ export interface RxCustoAtv {
     | 'este'
     | {
         f?: RxFiltro;
-        qtd?: number;
+        /**
+         * 'X' = "Sacrifice X …": o X é anunciado ao ativar (602.2b) e vale no efeito/alvos (Ruthless Technomancer)
+         */
+        qtd?: number | 'X';
+        /**
+         * qtd 'X': o menor X ("X can't be 0" = 1)
+         */
+        xMin?: number;
         /**
          * uma permanente para cada filtro, todas diferentes (Jarad: 'Sacrifice a Swamp and a Forest'); no lugar de f/qtd
          */
@@ -618,6 +643,8 @@ export interface RxFx {
     | 'ficha'
     | 'copiarPermanente'
     | 'copiarMagica'
+    | 'copiarHabilidade'
+    | 'parear'
     | 'trocarAlvos'
     | 'duasPilhas'
     | 'limitarBloqueio'
@@ -743,6 +770,18 @@ export interface RxFx {
     min?: number;
     max?: number;
     /**
+     * {P} de cada modo, na ordem (Season of the Burrow; CR 700.2h): escolhe até maxPontos no total
+     */
+    pontos?: number[];
+    /**
+     * "choose up to N {P} worth of modes"
+     */
+    maxPontos?: number;
+    /**
+     * modos (sem alvo) que podem ser escolhidos mais de uma vez; modo COM alvo que repete vai escrito de novo na lista, com alvo próprio
+     */
+    repete?: number[];
+    /**
      * só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)
      */
     naoRepeteNoTurno?: boolean;
@@ -850,6 +889,10 @@ export interface RxFx {
    * op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: "that share a land type")
    */
   tipoTerrenoComum?: boolean;
+  /**
+   * op buscar: procura no grimório e/ou no cemitério (Sanctum of All: "search your library and/or graveyard")
+   */
+  ouCemiterio?: boolean;
   /**
    * op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está
    */
@@ -1104,7 +1147,7 @@ export interface RxCond {
     nao?: boolean;
   };
   /**
-   * condição nomeada: metalcraft, blessing, maxspeed…; solved (este Caso está resolvido, 719.3)
+   * condição nomeada: metalcraft, blessing, maxspeed (Max speed: sua velocidade é 4, 702.178a)…; solved (este Caso está resolvido, 719.3)
    */
   palavra?: string;
   /**
@@ -1171,7 +1214,7 @@ export interface RxCond {
 
 export interface RxKw {
   /**
-   * replicar {custo}: custo adicional pago N vezes ao conjurar; ao conjurar, copia N vezes (CR 702.56); comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
+   * replicar {custo}: custo adicional pago N vezes ao conjurar; ao conjurar, copia N vezes (CR 702.56); comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx; ligarMotores: Start your engines! (702.179a: sem velocidade, passa a ter 1; sobe 1 por turno seu em que um oponente perde vida, até 4, 702.179d); estacao: Station (702.184a: vire outra criatura sua: marcadores de carga = poder dela, só como feitiço; 'N+' (722.2a) = se {conta:{q:{conta:{de:'este',o:'marcadores',marc:'charge'}},min:N}})
    */
   k:
     | 'voar'
@@ -1235,6 +1278,8 @@ export interface RxKw {
     | 'imortal'
     | 'desaparecer'
     | 'rebote'
+    | 'cifrar'
+    | 'soulbond'
     | 'dobra'
     | 'eternizar'
     | 'agregar'
@@ -1260,7 +1305,9 @@ export interface RxKw {
     | 'converter'
     | 'dragar'
     | 'suspender'
-    | 'replicar';
+    | 'replicar'
+    | 'ligarMotores'
+    | 'estacao';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
@@ -1829,7 +1876,7 @@ export interface RxFace {
  */
 export interface RxContagem {
   /**
-   * este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se
+   * este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se | viradas (as viradas para pagar o custo: estação)
    */
   de:
     | (
@@ -1850,6 +1897,7 @@ export interface RxContagem {
         | 'tipoMaisComum'
         | 'se'
         | 'custo'
+        | 'viradas'
       )
     | {
         alvo: number;

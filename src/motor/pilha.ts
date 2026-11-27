@@ -110,6 +110,19 @@ function opcoesConj(e, j, d, o?) {
 const custoOpc = (d, custo, opc, e?, o?) => { const c = opc.dobra ? (e ? M.custoComImposto(e, o, dobraDe(d).custo) : dobraDe(d).custo) : opc.investida ? (e ? M.custoComImposto(e, o, investidaDe(d).custo) : investidaDe(d).custo) : opc.converter ? (e ? M.custoComImposto(e, o, converterDe(d).custo) : converterDe(d).custo) : opc.concessao ? (e ? M.custoComImposto(e, o, concessaoDe(d).custo) : concessaoDe(d).custo) : opc.iminente ? (e ? M.custoComImposto(e, o, iminenteDe(d).custo) : iminenteDe(d).custo) : opc.alt !== undefined ? (b => opc.chute ? M.somaCusto(b, chuteDe(d).custo) : b)(e ? M.custoComImposto(e, o, d.est[opc.alt].pagar.mana || {}) : d.est[opc.alt].pagar.mana || {}) : opc.prototipo ? (e ? M.custoComImposto(e, o, M.prototipoDe(d).custo) : M.prototipoDe(d).custo) : opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo; const c2 = opc.prole ? M.somaCusto(c, proleDe(d).custo) : c; let r = c2; for (let i = 0; i < (opc.replicar || 0); i++) r = M.somaCusto(r, opc.repC); return r; };   // replicar: N vezes (702.56a)
 // pode ser alvo de quem controla a mágica/habilidade? antimagia (CR 702.11b) e manto (CR 702.18a); proteção = T18
 const alcancavel = (e, o, voce) => !(M.temKw(e, o, 'manto') || (M.temKw(e, o, 'antimagia') && o.ctrl !== voce));
+// "activated or triggered ability you control from an enchantment source" (Weaver of Harmony): quem controla a
+// habilidade e o que é a fonte (113.7: a fonte é o objeto que a gerou; saiu do campo/zona, vale o último estado conhecido)
+function habBate(e, o, h, ctx) {
+  const ctl = o.pil ? o.pil.ctrl ?? o.ctrl : o.ctrl;
+  if (h.ctrl === 'voce' && ctl !== ctx.voce) return false;
+  if (h.ctrl === 'oponente' && ctl === ctx.voce) return false;
+  if (h.tipo && h.tipo !== (o.hab.gat !== undefined ? 'desencadeada' : 'ativada')) return false;
+  if (!h.fonte) return true;
+  const F = e.objs[o.hab.fonte];
+  if (F && F.ts === o.hab.fonteTs) return M.bate(e, F, { ...h.fonte, zona: F.zona }, ctx);
+  const d = o.hab.ficha || M.carta(o.n) || {};                       // a fonte mudou de zona: os tipos impressos dela
+  return (h.fonte.tipo || []).every(t => (d.tipos || []).includes(t)) && Object.keys(h.fonte).every(k => k === 'tipo');
+}
 M.alvoLegal = (e, a, esc, ctx) => {
   const f = a.f, voce = ctx.voce;
   if (esc.jog !== undefined) {
@@ -123,7 +136,7 @@ M.alvoLegal = (e, a, esc, ctx) => {
   const o = e.objs[esc.o];
   if (!o || o.ts !== esc.ts) return false;                         // mudou de zona: não é mais o mesmo objeto
   if (f === 'magica') return ehMagica(o);
-  if (f === 'habilidade') return o.zona === 'pilha' && !!o.hab;      // "target activated or triggered ability" (habilidade de mana não usa a pilha, 605.3b)
+  if (f === 'habilidade') return o.zona === 'pilha' && !!o.hab && (!a.hab || habBate(e, o, a.hab, ctx));      // "target activated or triggered ability" (habilidade de mana não usa a pilha, 605.3b)
   if (f === 'magicaOuHab') return o.zona === 'pilha';               // "target spell or ability" (Deflecting Swat)
   if (o.zona === 'campo' && !alcancavel(e, o, voce)) return false;
   if (o.zona === 'campo' && e.objs[ctx.este] && M.protegeDe(e, o, M.dadoDe(e, e.objs[ctx.este]))) return false;   // 702.16b: proteção, não é alvo do que tem a qualidade
@@ -220,6 +233,7 @@ const candRev = (e, j, c, fora) => M.objetosQue(e, { ...(c.revelar.f || {}), zon
 const candExi = (e, j, c, fora) => M.objetosQue(e, { ...(c.exilarDe.f || {}), zona: c.exilarDe.zona }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas[c.exilarDe.zona].includes(o.id));
 const candDesc = (e, j, fora, f?) => e.jogs[j].zonas.mao.filter(id => id !== fora && (!f || M.bate(e, e.objs[id], { ...f, zona: 'mao' }, { voce: j })));   // descartarF: "discard a creature card" (Tortured Existence)
 // custo fora da mana dá para pagar agora? (antes da mana: o que sai daqui não paga mana)
+const nSac = c => c.sacrificar.qtd === 'X' ? c.sacrificar.xMin || 0 : c.sacrificar.qtd || 1;   // "Sacrifice X artifacts": o mínimo do X
 function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (!c) return true;
   const J = e.jogs[j];
@@ -235,7 +249,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.descartarEste && (!o || o.zona !== 'mao')) return false;
   if (c.porMarcador && (!o || o.zona !== 'campo')) return false;   // canalizar: só da mão (CR 602.2, a habilidade diz a zona)
   if (c.sacrificar && c.sacrificar.e && !sacE(e, j, c, o && o.id)) return false;
-  else if (c.sacrificar && c.sacrificar !== 'este' && !c.sacrificar.e && (M.custoProibido(e, 'sacrificarCriatura') ? candSac(e, j, c, o && o.id).length < (c.sacrificar.qtd || 1) : !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.sacrificar.qtd || 1))) return false;
+  else if (c.sacrificar && c.sacrificar !== 'este' && !c.sacrificar.e && (M.custoProibido(e, 'sacrificarCriatura') ? candSac(e, j, c, o && o.id).length < nSac(c) : !M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, nSac(c)))) return false;
   if (c.descartar && candDesc(e, j, daMao, c.descartarF).length < c.descartar) return false;
   if (c.revelar && M.objetosQue(e, { ...(c.revelar.f || {}), dono: 'voce', zona: 'mao' }, { voce: j }).filter(x => x.id !== daMao).length < (c.revelar.qtd || 1)) return false;
   if (c.devolver === 'este' && (!o || o.zona !== 'campo')) return false;
@@ -646,7 +660,7 @@ M.podeAtivar = (e, j, o, k) => {
   if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
   if (a._soltar && !o.anexo) return false;                            // reconfigurar: soltar só se anexada (702.151a)
   if (!custoFisicoOk(e, j, o, a.custo, { daMao: a.custo.descartarEste ? o.id : undefined })) return false;
-  const ctx = { voce: j, este: o.id };
+  const ctx = { voce: j, este: o.id, ...(a.custo.sacrificar && a.custo.sacrificar.qtd === 'X' ? { x: candSac(e, j, a.custo, o.id).length } : {}) };   // "Sacrifice X": o maior X possível
   for (const i of alvosUsados(a.fx)) {
     const al = (a.alvos || [])[i];
     if (!al || !M.alvoSuportado(al)) return false;
@@ -791,6 +805,13 @@ const jogDoAlvo = (e, x) => x.jog !== undefined ? x.jog : e.objs[x.o].zona === '
 const minAlvo = (a, ctx?) => a.min === 'X' ? (ctx && ctx.x) || 0 : a.min ?? 1;
 // o X não passa do número de alvos possíveis quando são exatamente X
 const tetoXAlvos = (e, d, ctx, mx) => (d.alvos || []).reduce((m, a) => a && a.min === 'X' ? Math.min(m, M.alvosPossiveis(e, a, ctx).length) : m, mx);
+// X do "Sacrifice X …" com alvo de poder até X: não passa do maior poder entre os alvos possíveis (não sacrifica à toa)
+const xPorSac = (e, d, ctx, mx) => {
+  const a = (d.alvos || [])[0], pm = a && a.f && a.f.poder && a.f.poder.max === 'X' ? a.f.poder : null;
+  if (!pm) return mx;
+  const os = M.alvosPossiveis(e, a, { ...ctx, x: mx }).filter(t => t.o !== undefined).map(t => M.poder(e, e.objs[t.o]));
+  return os.length ? Math.min(mx, Math.max(0, ...os)) : -1;
+};
 function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc?: any) {
   const esc: any[] = [];
   let total = 0;
@@ -864,6 +885,20 @@ function escolherModos(e, j, d, f, ask, de?, cabe?: (c: any) => boolean) {
   const F = es.naoRepeteNoTurno && de !== undefined ? e.objs[de] : null, chave = F ? de + ':' + F.ts : null;
   const MT = chave ? (e.modosTurno && e.modosTurno.t === e.turno.n ? e.modosTurno : (e.modosTurno = { t: e.turno.n, usados: {} })) : null;
   const jaUsados = MT ? MT.usados[chave as string] || [] : [];
+  if (es.pontos) {                                                  // CR 700.2h: "choose up to N {P} worth of modes" (Season of the Burrow): cada
+    const P = es.pontos, rep = new Set(es.repete || []);            // modo custa P[m] patinhas; repete: os modos que podem vir mais de uma vez (700.2d).
+    let resto = es.maxPontos ?? 0;                                  // Modo com alvo que repete é escrito de novo, com alvo próprio (cada vez mira o seu)
+    for (;;) {
+      const ops: any[] = [];
+      if (modos.length >= (es.min ?? 1)) ops.push({ a: 'pronto' });
+      for (let m = 0; m < n; m++) if ((P[m] ?? 1) <= resto && (rep.has(m) || !modos.includes(m)) && modoViavel(e, j, d, f.modos[m])) ops.push({ a: 'modo', m });
+      if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto')) break;
+      const r = ask(j, 'modo', ops, { de, modos: f.modos, pontos: P, resto });
+      if (r.a === 'pronto') break;
+      modos.push(r.m); resto -= P[r.m] ?? 1;
+    }
+    return modos.sort((a, b) => a - b);                             // na ordem impressa (700.2: repetido fica junto)
+  }
   while (modos.length < Math.min(max, n)) {
     const ops: any[] = [];
     if (modos.length >= (es.min ?? 1)) ops.push({ a: 'pronto' });
@@ -1126,6 +1161,10 @@ const PROC = {
     if (mana && mana.x) {
       const mx = tetoXAlvos(e, a, ctx, maxX(e, j, mana, ex));
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
+    } else if (c.sacrificar && c.sacrificar.qtd === 'X') {                             // "Sacrifice X artifacts" (Ruthless Technomancer): anuncia o X (601.2b via 602.2b)
+      const mn = c.sacrificar.xMin || 0, mx = xPorSac(e, a, ctx, candSac(e, j, c, o.id).length);
+      if (mx < mn) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
+      x = ask(j, 'x', Array.from({ length: mx - mn + 1 }, (_, v) => ({ a: 'x', v: v + mn })).reverse(), { id: o.id }).v;
     }
     let tir = 0;                                                                      // "remove one or more +1/+1 counters" (Arcee, 602.2b/601.2f): quantos tira é escolha de quem ativa
     if (c.tirarMarcador && c.tirarMarcador.umOuMais) {
@@ -1137,7 +1176,7 @@ const PROC = {
     if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
     const red = reducaoAlvo(e, j, alvos); if (red.g && mana && mana.g) mana = { ...mana, g: Math.max(0, mana.g - red.g) };   // Professor Hojo
-    const fis = escolherCustoFisico(e, j, c, o.id, c.descartarEste ? o.id : null, ask);
+    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask);
     const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac, ...fis.dev, ...fis.vir]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
@@ -1146,7 +1185,7 @@ const PROC = {
     const id = e.prox++;
     const h = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
       hab: { fonte: o.id, fonteTs: o.ts, k: P.k, fx: a.fx, alvos: a.alvos || [], ficha: o.ficha || null },
-      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) }, ...(tir ? { tirados: tir } : {}), ...(fis.sac.length ? { sac: fis.sac.map(id => lkiDe(e, e.objs[id])) } : {}) } };   // "a sacrificada" (custo, LKI 608.2h)
+      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) }, ...(tir ? { tirados: tir } : {}), ...(fis.sac.length ? { sac: fis.sac.map(id => lkiDe(e, e.objs[id])) } : {}), ...((fis.vir || []).length ? { vir: fis.vir.map(id => lkiDe(e, e.objs[id])) } : {}) } };   // "a sacrificada" (custo, LKI 608.2h)
     e.objs[id] = h; e.pilha.push(id);
     M.eventosAlvo(e, alvos, id);
     if (mana) pagarMana(e, j, pl, mana, x);
@@ -1207,7 +1246,7 @@ const PROC = {
       const T = e.turno, ch = o.hab.fonte + ':' + o.hab.fonteTs + ':' + (o.hab.gat !== undefined ? 'g' + o.hab.gat : 'a' + o.hab.k);
       T.resHab = T.resHab || {}; P.resHab = T.resHab[ch] = (T.resHab[ch] || 0) + 1;
     }
-    const ctx = P.ctx = P.ctx || { resHab: P.resHab, voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, tirados: pil.tirados || 0, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, ...(pil.mem || {}) };
+    const ctx = P.ctx = P.ctx || { resHab: P.resHab, voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, tirados: pil.tirados || 0, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, vir: pil.vir || null, ...(pil.mem || {}) };
     if (o.hab && o.hab.talvez && !P.talvez) {                      // CR 603.5: "you may" do gatilho inteiro, escolhido ao resolver
       if (ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'gatilho', id: o.hab.fonte, n: o.n }).a === 'nao') { e.proc = null; M.log(e, o.n, 'gatilho: escolheu não fazer'); tirarDaPilha(e, o); return; }
       P.talvez = true; ask.etapa();
@@ -1252,12 +1291,14 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
     return;
   }
   const ctrl = o.pil && o.pil.ctrl, deZona = o.pil && o.pil.de;
+  const cifra = resolveu && M.temKw(e, o, 'cifrar') ? escolheCifra(e, o, ctrl, ask) : null;   // pergunta antes de mexer
   o.pil = null;
   if (resolveu && deZona === 'mao' && M.temKw(e, o, 'rebote')) {                 // 702.88a rebote: exila ao resolver; na sua próxima manutenção, pode conjurá-la de graça
     M.mover(e, o.id, 'exilio'); M.log(e, o.n, 'vai para o exílio (rebote)');
     (e.atras || (e.atras = [])).push({ g: GAT_REBOTE, ctrl, fonte: o.id, n: o.n, t: e.turno.n, lki: null, mem: { movidos: [{ id: o.id, ts: e.objs[o.id].ts }] } });
     return;
   }
+  if (cifra) { cifrar(e, o, cifra); return; }   // 702.99a
   if (resolveu && o.face === 0 && M.formaDe(e, o) === 'aventura') {               // 716.3d: a Aventura vai para o exílio
     M.mover(e, o.id, 'exilio'); o.aventura = ctrl;                                // e quem conjurou pode conjurar a criatura de lá
     return;
@@ -1265,6 +1306,26 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
   M.mover(e, o.id, 'cemiterio');
 }
 M.tirarDaPilha = tirarDaPilha;
+// CR 702.99 cifrar: ao resolver, quem controla pode exilar a carta "codificada" numa criatura sua; essa criatura passa a
+// ter "sempre que causar dano de combate a um jogador, quem a controla pode conjurar uma cópia da carta codificada sem
+// pagar o custo de mana" (702.99a). A ligação vale enquanto a carta ficar no exílio e a criatura no campo (702.99c):
+// o gatilho fica em o.ganhos.gatS (o mover zera) e o jogar confere o ts da carta. A cópia não é codificada (é cópia, 707.10a).
+function escolheCifra(e, o, ctrl, ask) {
+  if (ctrl === undefined || ctrl === null || !ask) return null;
+  const cs = e.campo.map(id => e.objs[id]).filter(x => x.ctrl === ctrl && M.temTipo(e, x, 'Creature'));
+  if (!cs.length) return null;
+  const r = ask(ctrl, 'cifrar', [...cs.map(x => ({ a: 'cifrar', id: x.id })), { a: 'nenhum' }], { id: o.id, n: o.n });
+  return r && r.a === 'cifrar' ? e.objs[r.id] : null;
+}
+function cifrar(e, o, C) {
+  M.mover(e, o.id, 'exilio');
+  const x = e.objs[o.id];
+  const g = { ev: 'dano', combate: true, aJogador: true, quem: { este: true }, fx: [{ op: 'jogar', em: 'cifrada', cifra: { id: x.id, ts: x.ts }, copia: true, gratis: true, talvez: true, qtd: 1 }] };
+  C.ganhos = { ...(C.ganhos || {}), gatS: [...((C.ganhos && C.ganhos.gatS) || []), g] };
+  e.vCamada = (e.vCamada || 0) + 1;
+  M.log(e, o.n, 'codificada em', C.n);
+  return true;
+}
 
 // CR 707.10: copiar uma mágica na pilha. A cópia leva as escolhas da original (modo, X, alvos, chute, custos pagos:
 // 707.10), é controlada por quem copiou e NÃO é conjurada (707.10c: sem evento 'conjura', não dispara Zada/Archmage
@@ -1284,7 +1345,8 @@ M.criarCopia = (e, o, j, { alvos, novos }) => {
   const id = e.prox++;
   e.objs[id] = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false, face: o.face ?? null, copia: true,
     ...(o.ficha ? { ficha: o.ficha } : {}), ...(o.copiaPrep ? { copiaPrep: o.copiaPrep } : {}),
-    pil: { ...o.pil, ctrl: j, alvos, opc: o.pil.opc ? { ...o.pil.opc } : o.pil.opc, lki: undefined } };
+    ...(o.hab ? { hab: { ...o.hab } } : {}),   // CR 707.10: cópia de habilidade ativada/desencadeada (a fonte é a mesma, 707.10a)
+    pil: { ...o.pil, ctrl: j, alvos, opc: o.pil.opc ? { ...o.pil.opc } : o.pil.opc, lki: o.hab ? o.pil.lki : undefined } };
   e.pilha.push(id);
   if (novos) M.eventosAlvo(e, alvos, id);                           // "becomes the target" vale para a cópia (ward)
   M.log(e, e.jogs[j].nome, 'copia', o.n, descAlvos(e, alvos));

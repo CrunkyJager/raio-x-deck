@@ -749,6 +749,10 @@
      },
      "description": "não tem nenhuma destas palavras-chave (\"if it didn't have decayed\": Wilhelt)"
     },
+    "pareadaComEste": {
+     "const": true,
+     "description": "soulbond (702.95): esta e a criatura pareada com ela, só enquanto pareadas (\"each of those creatures\": Tandem Lookout)"
+    },
     "miraUm": {
      "$ref": "#/$defs/filtro",
      "description": "mágica/habilidade na pilha com ao menos um alvo que bate neste filtro (\"a spell that targets one or more creatures you control\", Arcee)"
@@ -894,6 +898,16 @@
     "ouZona": {
      "$ref": "#/$defs/zona",
      "description": "o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)"
+    },
+    "hab": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "ctrl": {"enum": ["voce", "oponente"], "description": "quem controla a habilidade na pilha"},
+      "tipo": {"enum": ["ativada", "desencadeada"]},
+      "fonte": {"$ref": "#/$defs/filtro", "description": "a fonte da habilidade (saiu de zona: só o tipo impresso)"}
+     },
+     "description": "f 'habilidade': \"ability you control from an enchantment source\" (Weaver of Harmony)"
     }
    }
   },
@@ -998,7 +1012,12 @@
          "$ref": "#/$defs/filtro"
         },
         "qtd": {
-         "type": "integer"
+         "anyOf": [{"type": "integer"}, {"const": "X"}],
+         "description": "'X' = \"Sacrifice X …\": o X é anunciado ao ativar (602.2b) e vale no efeito/alvos (Ruthless Technomancer)"
+        },
+        "xMin": {
+         "type": "integer",
+         "description": "qtd 'X': o menor X (\"X can't be 0\" = 1)"
         },
         "e": {
          "type": "array",
@@ -1208,6 +1227,8 @@
       "ficha",
       "copiarPermanente",
       "copiarMagica",
+      "copiarHabilidade",
+      "parear",
       "trocarAlvos",
       "duasPilhas",
       "limitarBloqueio",
@@ -1455,6 +1476,20 @@
       "max": {
        "type": "integer"
       },
+      "pontos": {
+       "type": "array",
+       "items": {"type": "integer", "minimum": 1},
+       "description": "{P} de cada modo, na ordem (Season of the Burrow; CR 700.2h): escolhe até maxPontos no total"
+      },
+      "maxPontos": {
+       "type": "integer",
+       "description": "\"choose up to N {P} worth of modes\""
+      },
+      "repete": {
+       "type": "array",
+       "items": {"type": "integer"},
+       "description": "modos (sem alvo) que podem ser escolhidos mais de uma vez; modo COM alvo que repete vai escrito de novo na lista, com alvo próprio"
+      },
       "naoRepeteNoTurno": {
        "type": "boolean",
        "description": "só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)"
@@ -1645,6 +1680,10 @@
     "tipoTerrenoComum": {
      "type": "boolean",
      "description": "op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: \"that share a land type\")"
+    },
+    "ouCemiterio": {
+     "type": "boolean",
+     "description": "op buscar: procura no grimório e/ou no cemitério (Sanctum of All: \"search your library and/or graveyard\")"
     },
     "copia": {
      "type": "boolean",
@@ -2053,7 +2092,7 @@
     },
     "palavra": {
      "type": "string",
-     "description": "condição nomeada: metalcraft, blessing, maxspeed…; solved (este Caso está resolvido, 719.3)"
+     "description": "condição nomeada: metalcraft, blessing, maxspeed (Max speed: sua velocidade é 4, 702.178a)…; solved (este Caso está resolvido, 719.3)"
     },
     "monarca": {
      "type": "boolean",
@@ -2216,6 +2255,8 @@
       "segundoDividido",
       "desaparecer",
       "rebote",
+      "cifrar",
+      "soulbond",
       "dobra",
       "eternizar",
       "agregar",
@@ -2241,9 +2282,11 @@
       "converter",
       "dragar",
       "suspender",
-      "replicar"
+      "replicar",
+      "ligarMotores",
+      "estacao"
      ],
-     "description": "replicar {custo}: custo adicional pago N vezes ao conjurar; ao conjurar, copia N vezes (CR 702.56); comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
+     "description": "replicar {custo}: custo adicional pago N vezes ao conjurar; ao conjurar, copia N vezes (CR 702.56); comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx; ligarMotores: Start your engines! (702.179a: sem velocidade, passa a ter 1; sobe 1 por turno seu em que um oponente perde vida, até 4, 702.179d); estacao: Station (702.184a: vire outra criatura sua: marcadores de carga = poder dela, só como feitiço; 'N+' (722.2a) = se {conta:{q:{conta:{de:'este',o:'marcadores',marc:'charge'}},min:N}})"
     },
     "custo": {
      "$ref": "#/$defs/mana"
@@ -3138,7 +3181,8 @@
         "cada",
         "tipoMaisComum",
         "se",
-        "custo"
+        "custo",
+        "viradas"
        ]
       },
       {
@@ -3168,7 +3212,7 @@
        "description": "os objetos que batem no filtro"
       }
      ],
-     "description": "este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se"
+     "description": "este | {alvo:N} | {f:filtro} | voce | oponentes | jogadores | turno (o que aconteceu neste turno) | combate | evento (o do gatilho) | lembradas (as do efeito anterior) | sacrificadas (custo) | cada (o da vez no repetirCada) | X | resultado | escolhido | se | viradas (as viradas para pagar o custo: estação)"
     },
     "o": {
      "enum": [
