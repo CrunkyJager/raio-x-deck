@@ -286,7 +286,7 @@ function jogsDe(e, f, ctx) {
     case 'controlador': return [...new Set(lkisDe(e, f, ctx).map(l => l.ctrl))].filter(j => vivos.includes(j));
     case 'dono': return [...new Set(lkisDe(e, f, ctx).map(l => l.dono))].filter(j => vivos.includes(j));
     case 'cadaAtual': return ctx.cadaAtual !== undefined && vivos.includes(ctx.cadaAtual) ? [ctx.cadaAtual] : [];
-    case 'doEvento': { const jj = ctx.ev ? (ctx.ev.ev === 'dano' ? ctx.ev.jog : ctx.ev.j) : undefined; return jj !== undefined && vivos.includes(jj) ? [jj] : []; }   // quem descartou (Megrim); no dano, o jogador que recebeu (Blightbelly Rat)
+    case 'doEvento': { const jj = ctx.ev ? (ctx.ev.ev === 'dano' ? ctx.ev.jog : ctx.ev.j ?? ctx.ev.ativo) : undefined; return jj !== undefined && vivos.includes(jj) ? [jj] : []; }   // quem descartou (Megrim); no dano, o jogador que recebeu (Blightbelly Rat)
   }
   throw new Error('quem sem suporte: ' + f.quem);
 }
@@ -355,6 +355,7 @@ function tempEstOk(s, f) {
     case 'danoNaoPrevenivel': return s.afeta === 'cadaJogador' && so();                                             // efeitos.ts M.substDano
     case 'ptDefinido': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && so('pBase', 'rBase')   // 7b (Sephiroth): e.temp.base
       && Number.isInteger(s.pBase) && Number.isInteger(s.rBase) && f.dura === 'fimDoTurno';
+    case 'naoPodeAtacar': return s.afeta === undefined && f.em === undefined && so('contra') && !!s.contra && Object.keys(s.contra).length === 1 && s.contra.jog === 'voce';   // "não podem atacar você neste turno" (Champions of Minas Tirith): combate.ts alvosAtaque
     case 'naoPodeConjurar': return s.afeta === 'voce' && so();                                                         // lido em pilha.ts (M.naoConjura)
     case 'conjurarComLampejo': return s.afeta === 'voce' && so('f') && (!s.f || M.filtroOk(s.f));                   // lido em pilha.ts (M.lampejoDado)
     case 'continuo': return f.em === undefined && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)        // emblema do Sorin: lido nas camadas (estado.ts)
@@ -478,6 +479,8 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
           for (const x of Object.values<any>(e.objs)) if (x.dono === o.dono && !x.hab && M.temTipo(e, x, 'Creature')) (M.dadoDe(e, x).sub || []).forEach(s2 => t.add(s2));
           ops = [...t].sort().map(v => ({ a: 'tipo', v }));
           if (!ops.length) continue;
+        } else if (fz.o === 'tipoCarta') {        // "choose a card type" (Cloud Key: artifact, creature, enchantment, instant ou sorcery)
+          ops = (fz.tipos || ['Artifact', 'Creature', 'Enchantment', 'Instant', 'Sorcery']).map(v => ({ a: 'tipoCarta', v }));
         } else if (fz.o === 'modo') {             // "As this enters, choose X or Y" (Mirrodin Besieged, Sieges): os modos são os nomes que as habilidades leem
           ops = M.modosDe(d).map(v => ({ a: 'modo', v }));
           if (!ops.length) continue;

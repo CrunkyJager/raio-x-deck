@@ -5201,6 +5201,92 @@ caso('602.5', "Drana and Linvala: as criaturas do oponente não ativam; ela ganh
   ok(!M.ativBloqueada(e, dr), 'a dela ativa');
 });
 
+caso('601.2f', "tipo de card em comum / escolhido (Semblance Anvil, Cemetery Prowler, Cloud Key): reduzem só as mágicas que dividem tipo de card com o que foi exilado por ele / o tipo escolhido", () => {
+  const e = cena({ campo: [[0, 'Semblance Anvil'], [0, 'Cemetery Prowler'], [0, 'Cloud Key']], mao: [[0, 'Sol Ring'], [0, 'Llanowar Elves'], [0, 'Lightning Bolt'], [0, 'Counterspell']] });
+  const A = objN(e, 0, 'Semblance Anvil'), P = objN(e, 0, 'Cemetery Prowler'), K = objN(e, 0, 'Cloud Key');
+  igual(M.custoComImposto(e, naMao(e, 0, 'Lightning Bolt')), { p: ['R'] }, 'nada exilado: sem redução');
+  const b = e.por(0, 'Grizzly Bears', { zona: 'exilio' }); b.exPor = { id: A.id, ts: A.ts };            // criatura exilada pela bigorna
+  igual(M.custoComImposto(e, naMao(e, 0, 'Llanowar Elves')).g || 0, 0, 'criatura: {2} a menos (o colorido fica)');
+  igual(M.custoComImposto(e, naMao(e, 0, 'Counterspell')), { p: ['U', 'U'] }, 'instantânea não divide tipo com a criatura');
+  const s1 = e.por(0, 'Swords to Plowshares', { zona: 'exilio' }); s1.exPor = { id: P.id, ts: P.ts };   // instantânea exilada pelo Prowler
+  const c0 = M.custoComImposto(e, naMao(e, 0, 'Counterspell')); igual([c0.g || 0, c0.p], [0, ['U', 'U']], 'Prowler: só o genérico sai (não há)');
+  const ar = e.por(0, 'Arcane Signet', { zona: 'exilio' }); ar.exPor = { id: P.id, ts: P.ts };
+  K.escolha = { tipoCarta: 'Artifact' }; e.vCamada = (e.vCamada || 0) + 1;
+  igual(M.custoComImposto(e, naMao(e, 0, 'Sol Ring')).g || 0, 0, 'Sol Ring {1}: Prowler (artefato) + Cloud Key (artefato) = 0');
+  K.escolha = { tipoCarta: 'Creature' };
+  const f = cena({ campo: [[0, 'Cemetery Prowler']], mao: [[0, 'Arcane Signet']] });
+  const P2 = objN(f, 0, 'Cemetery Prowler'), a2 = f.por(0, 'Arcane Signet', { zona: 'exilio' }); a2.exPor = { id: P2.id, ts: P2.ts };
+  const sc = f.por(0, 'Sol Ring', { zona: 'exilio' }); sc.exPor = { id: P2.id, ts: P2.ts };
+  igual(M.custoComImposto(f, naMao(f, 0, 'Arcane Signet')).g, 1, 'dois artefatos exilados: o tipo conta uma vez só (Arcane Signet {2} → {1})');
+  ok(M.carta('Cloud Key').subst.every(x => M.substOk(x)) && M.carta('Semblance Anvil').est.every(x => M.estReduzOk(x)), 'aceitas');
+});
+
+caso('115.10', "naoAlvo (Chandra's Ignition): a criatura alvo causa dano igual ao poder a cada OUTRA criatura e a cada oponente; ela mesma não leva", () => {
+  const e = cena({ campo: [...terras(5), [0, 'Serra Angel'], [1, 'Grizzly Bears']], mao: [[0, "Chandra's Ignition"]] });
+  const v1 = e.jogs[1].vida; M.avancar(e); conj(e, "Chandra's Ignition");
+  if (e.perg && e.perg.tipo === 'alvo') respE(e, o => o.a === 'alvo' && e.objs[o.o] && e.objs[o.o].n === 'Serra Angel');
+  resolveCom(e);
+  const A = objN(e, 0, 'Serra Angel');
+  ok(A && A.dano === 0, 'o alvo não leva dano: ' + (A && A.dano));
+  ok(!noCampo(e).includes('Grizzly Bears'), 'o urso morre');
+  igual(e.jogs[1].vida, v1 - 4, '4 no oponente');
+});
+
+caso('508.1d', "Champions of Minas Tirith: no começo do combate do oponente, se você é o monarca, ele paga {X} (X = cartas na mão dele) ou não ataca você neste combate", () => {
+  const e = cena({ campo: [[0, 'Champions of Minas Tirith'], [1, 'Grizzly Bears'], [1, 'Forest'], [1, 'Forest']], mao: [[1, 'Forest'], [1, 'Island']] });
+  const C = objN(e, 0, 'Champions of Minas Tirith'); e.monarca = 0; e.turno.ativo = 1; e.pend = [];
+  M.evento(e, { ev: 'fase', passo: 'inicioCombate', ativo: 1 });
+  igual(e.pend.filter(p => p.n === 'Champions of Minas Tirith').length, 1, 'dispara no combate do oponente');
+  const g = M.carta('Champions of Minas Tirith').gat[1], ctx = () => ({ voce: 0, este: C.id, ev: { ev: 'fase', passo: 'inicioCombate', ativo: 1 }, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  ok(M.gatOk(g), 'gatilho aceito');
+  M.executar(e, g.fx[0], ctx(), (j, t, ops) => ops.find(o => o.a === 'naoPagar'));
+  ok(!M.alvosAtaque(e, 1).some(t => t.jog === 0), 'não pagou: não pode atacar o monarca');
+  e.efTemp = [];
+  let perguntou = -1;
+  M.executar(e, g.fx[0], ctx(), (j, t, ops) => { perguntou = j; return ops.find(o => o.a === 'pagar') || ops[0]; });
+  igual(perguntou, 1, 'quem paga é o oponente da vez');
+  ok(M.alvosAtaque(e, 1).some(t => t.jog === 0), 'pagou {2}: ataca normal');
+  e.pend = []; e.monarca = 1; M.evento(e, { ev: 'fase', passo: 'inicioCombate', ativo: 1 });
+  igual(e.pend.filter(p => p.n === 'Champions of Minas Tirith').length, 0, 'sem ser monarca: não');
+});
+
+caso('613.1f', "est continuo tiraKw (Colossus Hammer): a equipada ganha +10/+10 e perde voar; desequipada, volta a voar", () => {
+  const e = cena({ campo: [[0, 'Serra Angel'], [0, 'Colossus Hammer']] });
+  const A = objN(e, 0, 'Serra Angel'), H = objN(e, 0, 'Colossus Hammer');
+  ok(M.temKw(e, A, 'voar'), 'voa');
+  H.anexo = { id: A.id, ts: A.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  igual([M.poder(e, A), M.resistencia(e, A), M.temKw(e, A, 'voar'), M.temKw(e, A, 'vigilancia')], [14, 14, false, true], 'equipada: 14/14 sem voar, vigilância fica');
+  H.anexo = null; e.vCamada++;
+  ok(M.temKw(e, A, 'voar'), 'sem o martelo: voa de novo');
+});
+
+caso('702.120a', "custo por modo: Tiered (Cloud's Limit Break: {0}/{1}/{3}{W}) e Escalate (Collective Resistance: {G} por modo além do primeiro); Blade Beam com controladores diferentes", () => {
+  const vir = (e, j, n) => { const o = objN(e, j, n); o.virada = true; return o; };
+  const e = cena({ jogs: 3, campo: [...terras(2, 'Plains'), [1, 'Grizzly Bears'], [2, 'Serra Angel']], mao: [[0, "Cloud's Limit Break"]] });
+  vir(e, 1, 'Grizzly Bears'); vir(e, 2, 'Serra Angel');
+  M.avancar(e); conj(e, "Cloud's Limit Break");
+  ok(e.perg && e.perg.tipo === 'alvo' && !e.perg.ops.some(o => o.a === 'pronto'), 'com 2 terrenos só cabe o Cross-Slash ({0}): vai direto ao alvo único');
+  const f = cena({ jogs: 3, campo: [...terras(6, 'Plains'), [1, 'Grizzly Bears'], [1, 'Llanowar Elves'], [2, 'Serra Angel']], mao: [[0, "Cloud's Limit Break"]] });
+  vir(f, 1, 'Grizzly Bears'); vir(f, 1, 'Llanowar Elves'); vir(f, 2, 'Serra Angel');
+  M.avancar(f); conj(f, "Cloud's Limit Break");
+  igual(f.perg.ops.filter(o => o.a === 'modo').map(o => o.m), [0, 1, 2], 'com 6: os três');
+  respE(f, o => o.a === 'modo' && o.m === 1);
+  ok(f.perg && f.perg.tipo === 'alvo', 'alvos do Blade Beam');
+  respE(f, o => o.a === 'alvo' && f.objs[o.o] && f.objs[o.o].n === 'Grizzly Bears');
+  ok(!f.perg.ops.some(o => o.a === 'alvo' && f.objs[o.o] && f.objs[o.o].n === 'Llanowar Elves'), 'o outro do mesmo controlador não é oferecido');
+  respE(f, o => o.a === 'alvo' && f.objs[o.o] && f.objs[o.o].n === 'Serra Angel');
+  resolveCom(f);
+  ok(!noCampo(f).includes('Grizzly Bears') && !noCampo(f).includes('Serra Angel') && noCampo(f).includes('Llanowar Elves'), 'destruiu um de cada controlador');
+  igual(f.campo.filter(id => f.objs[id].n === 'Plains' && f.objs[id].virada).length, 3, 'pagou {1}{W} + {1}');
+  const g = cena({ campo: [...terras(3, 'Forest'), [1, 'Sol Ring'], [1, 'Propaganda']], mao: [[0, 'Collective Resistance']] });
+  M.avancar(g); conj(g, 'Collective Resistance');
+  respE(g, o => o.a === 'modo' && o.m === 0); respE(g, o => o.a === 'modo' && o.m === 1);
+  ok(!(g.perg && g.perg.tipo === 'modo'), 'terceiro modo não cabe em 3 terrenos ({1}{G} + {G}{G} = 4): não pergunta mais');
+  resolveCom(g);
+  ok(!noCampo(g).includes('Sol Ring') && !noCampo(g).includes('Propaganda'), 'destruiu artefato e encantamento');
+  igual(g.campo.filter(id => g.objs[id].n === 'Forest' && g.objs[id].virada).length, 3, 'pagou {1}{G} + {G}');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

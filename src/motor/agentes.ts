@@ -141,6 +141,8 @@ const basico = (e, p) => {
       const c = p.ctx.custo, meu = p.ctx.de === p.j;
       if (p.ctx.op === 'anular' || p.ctx.op === 'resguardo') return k;   // a minha mágica/habilidade seria anulada
       if (p.ctx.op === 'pagando') return c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : c.mana || c.exilarDe ? k : 0;   // com vida (mesmo junto de mana): com folga; mana e exilar do cemitério sim
+      if (p.ctx.op === 'efeitoTemporario' && c.mana && e.turno.ativo === p.j)   // "pague {X} ou não ataca você" (Champions of Minas Tirith): paga se tem quem atacar
+        return (c.mana.g || 0) + (p.ctx.x || 0) <= 4 && e.campo.some(id => { const x = o(id); return x.ctrl === p.j && !x.virada && M.temTipo(e, x, 'Creature'); }) ? k : 0;
       if (c.mana) return e.turno.ativo !== p.j || (c.mana.g || 0) + (p.ctx.x || 0) <= 1 ? k : 0;
       if (c.vida) return J.vida - c.vida > 10 ? k : 0;
       if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura

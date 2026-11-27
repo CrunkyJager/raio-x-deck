@@ -319,6 +319,14 @@ export interface RxFiltro {
    * com {X} no custo de mana (Frontline Medic)
    */
   comX?: boolean;
+  /**
+   * tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)
+   */
+  tipoCartaEmComum?: 'este' | RxFiltro;
+  /**
+   * não é o objeto escolhido como alvo N desta mágica/habilidade ("each other creature" depois de mirar uma: Chandra's Ignition)
+   */
+  naoAlvo?: number;
 }
 
 export interface RxCompara {
@@ -357,6 +365,10 @@ export interface RxAlvo {
    * "another target": não pode ser o escolhido no alvo N
    */
   diferenteDe?: number;
+  /**
+   * "with different controllers": cada alvo escolhido tem um controlador diferente (Blade Beam)
+   */
+  ctrlDiferentes?: true;
   /**
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
@@ -599,9 +611,9 @@ export interface RxFx {
    */
   quando?: RxGat;
   /**
-   * escolher: o quê
+   * escolher: o quê; tipoCarta = um tipo de card, ao entrar (subst emVez; opções em 'tipos', padrão artefato/criatura/encantamento/instantânea/feitiço: Cloud Key), lido no filtro tipo ['escolhido']
    */
-  o?: 'tipoCriatura' | 'cor' | 'jogador' | 'numero' | 'carta' | 'modo' | 'tipo';
+  o?: 'tipoCriatura' | 'cor' | 'jogador' | 'numero' | 'carta' | 'modo' | 'tipo' | 'tipoCarta';
   escolhe?: {
     min?: number;
     max?: number;
@@ -609,6 +621,14 @@ export interface RxFx {
      * só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)
      */
     naoRepeteNoTurno?: boolean;
+    /**
+     * custo a mais de cada modo escolhido, na ordem dos modos (Tiered: Cloud's Limit Break; Spree) — CR 601.2f
+     */
+    custoModos?: RxMana[];
+    /**
+     * Escalate: este custo a mais por modo escolhido além do primeiro (CR 702.120a; Collective Resistance)
+     */
+    escalar?: RxMana;
     maxSe?: {
       se?: RxCond;
       max?: number;
@@ -1248,6 +1268,10 @@ export interface RxEst {
    * continuo: perde estes tipos (deus com devoção baixa)
    */
   tiraTipo?: string[];
+  /**
+   * continuo: os afetados perdem estas palavras-chave (Colossus Hammer: "and loses flying")
+   */
+  tiraKw?: RxKw[];
   /**
    * naoPodeAtacar/ataqueCusta: o defensor (jogador e/ou permanente)
    */

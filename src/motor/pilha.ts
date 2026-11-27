@@ -53,6 +53,7 @@ M.alvoSuportado = a => {
   if (a.max !== undefined && a.max !== 'qualquer' && typeof a.max !== 'number') return false;
   if (a.opcao !== undefined && !OPCAO_OK.has(a.opcao)) return false;
   if (a.diferenteDe !== undefined && !Number.isInteger(a.diferenteDe)) return false;
+  if (a.ctrlDiferentes !== undefined && a.ctrlDiferentes !== true) return false;   // "with different controllers" (Blade Beam)
   if (typeof f === 'string') return ['qualquerAlvo', 'jogador', 'oponente', 'magica', 'magicaOuHab'].includes(f);
   return M.filtroOk(f);
 };
@@ -647,7 +648,8 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
     if (!alvoAtivo(d.alvos[i], opc)) { esc[i] = []; continue; }     // alvo de outra opção (chute/presente)
     const a = d.alvos[i], min = a.min ?? 1, max = a.max === 'qualquer' ? Infinity : a.max ?? 1, lista: any[] = [];
     while (lista.length < max) {
-      let ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y)) && !(Number.isInteger(a.diferenteDe) && (esc[a.diferenteDe] || []).some(y => mesmo(x, y)))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3; diferenteDe: "another target" (Markov Retribution)
+      let ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y)) && !(Number.isInteger(a.diferenteDe) && (esc[a.diferenteDe] || []).some(y => mesmo(x, y)))
+        && !(a.ctrlDiferentes && x.o !== undefined && lista.some(y => y.o !== undefined && e.objs[y.o] && e.objs[y.o].ctrl === e.objs[x.o].ctrl))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3; diferenteDe: "another target" (Markov Retribution)
       if (a.porJogador || a.porOponente) ops = ops.filter(x => { const jx = jogDoAlvo(e, x); return (!a.porOponente || jx !== ctx.voce) && !lista.some(y => jogDoAlvo(e, y) === jx); });   // "for each player/opponent, up to one target … that player controls/owns" (até 1 de cada)
       if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
@@ -692,7 +694,17 @@ function modoViavel(e, j, d, fx) {
   return alvosUsados(fx).every(i => { const a = (d.alvos || [])[i]; return a && M.alvoSuportado(a) && ((a.min ?? 1) === 0 || M.alvosPossiveis(e, a, { voce: j }).length >= (a.min ?? 1)); });
 }
 M.modosViaveis = (e, j, d) => d.fx[0].modos.filter(m => modoViavel(e, j, d, m)).length;
-function escolherModos(e, j, d, f, ask, de?) {
+// custo a mais pelos modos escolhidos (601.2f): custoModos = um custo por modo (Tiered, Spree); escalar = por modo além do
+// primeiro (Escalate, 702.120a)
+const custoModos = (f, modos) => {
+  const es = (f && f.escolhe) || {}; let c: any = {};
+  if (es.custoModos) for (const m of modos) c = M.somaCusto(c, es.custoModos[m] || {});
+  if (es.escalar && modos.length > 1) c = M.somaCusto(c, es.escalar, modos.length - 1);
+  return c;
+};
+M.custoModos = custoModos;
+// cabe(extra): o custo da mágica + extra ainda fecha (modo com custo que não dá para pagar não é oferecido)
+function escolherModos(e, j, d, f, ask, de?, cabe?: (c: any) => boolean) {
   const es = f.escolhe || { min: 1, max: 1 }, n = f.modos.length;
   let max = es.max ?? 1;
   if (es.maxSe && M.condicao(e, es.maxSe.se, { voce: j })) max = es.maxSe.max;
@@ -704,7 +716,8 @@ function escolherModos(e, j, d, f, ask, de?) {
   while (modos.length < Math.min(max, n)) {
     const ops: any[] = [];
     if (modos.length >= (es.min ?? 1)) ops.push({ a: 'pronto' });
-    for (let m = 0; m < n; m++) if (!modos.includes(m) && !jaUsados.includes(m) && modoViavel(e, j, d, f.modos[m])) ops.push({ a: 'modo', m });   // CR 700.2d
+    const temCusto = !!(es.custoModos || es.escalar);
+    for (let m = 0; m < n; m++) if (!modos.includes(m) && !jaUsados.includes(m) && modoViavel(e, j, d, f.modos[m]) && (!temCusto || !cabe || cabe(custoModos(f, [...modos, m])))) ops.push({ a: 'modo', m });   // CR 700.2d
     if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto')) break;
     const r = ask(j, 'modo', ops, { de, modos: f.modos });
     if (r.a === 'pronto') break;
@@ -832,9 +845,10 @@ const PROC = {
     const j = P.j, o = e.objs[P.id], ctx = { voce: j, este: o.id };
     o.face = P.face ?? null;                                                          // 709.3, 712.8b, 716.3: a face vem antes
     const d = M.dadoDe(e, o);
-    const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask, o.id) : null;          // CR 601.2b
+    const custoB = M.custoComImposto(e, o, custoBase(e, j, o, P));
+    const modos = modalTopo(d) ? escolherModos(e, j, d, d.fx[0], ask, o.id, c => !!plano(e, j, M.somaCusto(custoB, c), 0, null, o)) : null;          // CR 601.2b
     const fx = fxEfetivo(d, d.fx || [], modos);
-    const custo0 = M.custoComImposto(e, o, custoBase(e, j, o, P)), usados = alvosUsados(fx), alt = altUsado(e, j, o, P);
+    const custo0 = modos ? M.somaCusto(custoB, custoModos(d.fx[0], modos)) : custoB, usados = alvosUsados(fx), alt = altUsado(e, j, o, P);   // 601.2f: custo dos modos
     const viaveis = opcoesConj(e, j, d, P.gratis || P.loucura || P.milagre ? undefined : o).filter(op => opcOk(e, j, d, usados, custo0, op, o));
     let opc: any = viaveis.length > 1 ? ask(j, 'opcao', viaveis.map(v => ({ a: 'opcao', v })), { id: o.id }).v : viaveis[0] || {};   // 601.2b
     if (opc.presente) opc = { ...opc, jog: ask(j, 'presente', M.vivos(e).filter(x => x !== j).map(x => ({ a: 'jogador', jog: x })), { id: o.id }).jog };   // 702.174a: um oponente

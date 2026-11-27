@@ -620,6 +620,21 @@
     "comX": {
      "type": "boolean",
      "description": "com {X} no custo de mana (Frontline Medic)"
+    },
+    "tipoCartaEmComum": {
+     "oneOf": [
+      {
+       "const": "este"
+      },
+      {
+       "$ref": "#/$defs/filtro"
+      }
+     ],
+     "description": "tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)"
+    },
+    "naoAlvo": {
+     "type": "integer",
+     "description": "não é o objeto escolhido como alvo N desta mágica/habilidade (\"each other creature\" depois de mirar uma: Chandra's Ignition)"
     }
    }
   },
@@ -719,6 +734,10 @@
     "diferenteDe": {
      "type": "integer",
      "description": "\"another target\": não pode ser o escolhido no alvo N"
+    },
+    "ctrlDiferentes": {
+     "const": true,
+     "description": "\"with different controllers\": cada alvo escolhido tem um controlador diferente (Blade Beam)"
     },
     "opcao": {
      "enum": [
@@ -1209,9 +1228,10 @@
       "numero",
       "carta",
       "modo",
-      "tipo"
+      "tipo",
+      "tipoCarta"
      ],
-     "description": "escolher: o quê"
+     "description": "escolher: o quê; tipoCarta = um tipo de card, ao entrar (subst emVez; opções em 'tipos', padrão artefato/criatura/encantamento/instantânea/feitiço: Cloud Key), lido no filtro tipo ['escolhido']"
     },
     "escolhe": {
      "type": "object",
@@ -1225,6 +1245,17 @@
       "naoRepeteNoTurno": {
        "type": "boolean",
        "description": "só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)"
+      },
+      "custoModos": {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/mana"
+       },
+       "description": "custo a mais de cada modo escolhido, na ordem dos modos (Tiered: Cloud's Limit Break; Spree) — CR 601.2f"
+      },
+      "escalar": {
+       "$ref": "#/$defs/mana",
+       "description": "Escalate: este custo a mais por modo escolhido além do primeiro (CR 702.120a; Collective Resistance)"
       },
       "maxSe": {
        "type": "object",
@@ -2249,6 +2280,13 @@
       "type": "string"
      },
      "description": "continuo: perde estes tipos (deus com devoção baixa)"
+    },
+    "tiraKw": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/kw"
+     },
+     "description": "continuo: os afetados perdem estas palavras-chave (Colossus Hammer: \"and loses flying\")"
     },
     "contra": {
      "type": "object",
