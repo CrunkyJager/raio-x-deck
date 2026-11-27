@@ -7206,6 +7206,79 @@ caso('602.2b', "Sanctum of Shattered Heights: o custo descarta só terreno OU Sa
   igual([naZona(e, 0, 'cemiterio'), naZona(e, 0, 'mao'), objN(e, 1, 'Grizzly Bears').dano], [['Forest'], ['Llanowar Elves'], 1], 'descartou a Forest; 1 Santuário = 1 de dano');
 });
 
+caso('508.1', "Breena, the Demagogue: quando um jogador ataca um oponente seu que tem mais vida que outro oponente seu, o atacante compra 1 e você põe 2 marcadores +1/+1 numa criatura sua (ev atacaJogador)", () => {
+  ok(!M.carta('Breena, the Demagogue').falta && M.gatOk(M.carta('Breena, the Demagogue').gat[0]), 'aceito');
+  for (const [vida2, dispara] of [[30, true], [40, false]] as const) {
+    const e = combate([[0, 'Grizzly Bears'], [2, 'Breena, the Demagogue']], { jogs: 3 });
+    e.jogs[1].vida = 40; e.jogs[0].vida = vida2;   // o 2 tem a Breena; o 0 (também oponente dela) ataca o 1
+    const m0 = e.jogs[0].zonas.mao.length, br = objN(e, 2, 'Breena, the Demagogue');
+    ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears'), { jog: 1 }); fecha(e, 'atacar'); resolveCom(e);
+    igual([e.jogs[0].zonas.mao.length - m0, br.marc['+1/+1'] || 0], dispara ? [1, 2] : [0, 0], dispara ? 'o 1 tem 40 > 30: dispara' : '40 = 40: não');
+  }
+});
+
+caso('509.1', "Brutal Hordechief: 'and you choose how those creatures block' — quem ativou declara os bloqueios do oponente (voceEscolhe) e o agente escolhe o pior para o defensor", () => {
+  ok(!M.carta('Brutal Hordechief').falta, 'saiu do falta');
+  const e = combate([...enche(4, 'Mountain').map(n => [0, n]), [0, 'Brutal Hordechief'], [0, 'Grizzly Bears'], [1, 'Hill Giant'], [1, 'Elvish Mystic']]);
+  M.avancar(e);
+  respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Brutal Hordechief'); resolve(e);
+  const bh = objN(e, 0, 'Brutal Hordechief'), gb = objN(e, 0, 'Grizzly Bears'), hg = objN(e, 1, 'Hill Giant'), em = objN(e, 1, 'Elvish Mystic');
+  ate(e, 'atacar'); atacaCom(e, bh); atacaCom(e, gb); fecha(e, 'atacar');
+  if (!(e.perg && e.perg.tipo === 'bloquear')) ate(e, 'bloquear');
+  igual([e.perg.j, e.perg.ctx.def], [0, 1], 'quem escolhe é o atacante');
+  for (let i = 0; i < 6 && e.perg && e.perg.tipo === 'bloquear'; i++) M.responder(e, M.agenteBasico()(e, e.perg));
+  const de = id => e.turno.combate.atk.find(r => r.bloq.some(b => b.id === id));
+  igual([e.objs[de(hg.id).id].n, !!de(em.id)], ['Brutal Hordechief', true], 'o Gigante troca com o Hordechief em vez de matar o Urso; o Mystic bloqueia e morre');
+});
+
+caso('702.127', "aftermath (Dusk // Dawn): da mão só Dusk; do cemitério só Dawn, que devolve as criaturas de poder ≤ 2 e vai para o exílio", () => {
+  ok(!M.carta('Dusk').faces[0].falta, 'saiu do falta');
+  const pl = enche(5, 'Plains').map(n => [0, n]);
+  const e = cena({ campo: [...pl, [0, 'Dusk', { zona: 'cemiterio' }], [0, 'Grizzly Bears', { zona: 'cemiterio' }], [0, 'Hill Giant', { zona: 'cemiterio' }]], mao: [[0, 'Dusk']] });
+  M.avancar(e);
+  const mao = naMao(e, 0, 'Dusk'), cem = e.jogs[0].zonas.cemiterio.map(id => e.objs[id]).find(o => o.n === 'Dusk');
+  igual(opsDe(e, 'conjurar').filter(o => o.id === mao.id).map(o => o.face ?? null), ['esq'], 'da mão: só Dusk');
+  igual(opsDe(e, 'conjurar').filter(o => o.id === cem.id).map(o => o.face ?? null), [0], 'do cemitério: só Dawn');
+  respE(e, o => o.a === 'conjurar' && o.id === cem.id && o.face === 0); resolveCom(e);
+  igual([naMao(e, 0, 'Grizzly Bears') ? 1 : 0, e.jogs[0].zonas.mao.some(id => e.objs[id].n === 'Hill Giant') ? 1 : 0, cem.zona], [1, 0, 'exilio'], 'o Urso volta, o Gigante não; Dawn vai para o exílio');
+});
+
+caso('106.4', "firebending 1 (ficha da Firebender Ascension): ao atacar, {R} que fica até o fim do combate (op mana ficaNoCombate)", () => {
+  const e = combate([[0, 'Firebender Ascension']]), A = objN(e, 0, 'Firebender Ascension');
+  M.executar(e, M.carta('Firebender Ascension').gat[0].fx[0], { voce: 0, este: A.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  const f = e.campo.map(id => e.objs[id]).find(o => o.ficha && o.ctrl === 0); ok(!!f, 'a ficha 2/2');
+  ate(e, 'atacar'); const pare = x => x.jogs[0].reserva.R > 0 || x.turno.passo === 'principal2';
+  M.responder(e, e.perg.ops.findIndex(x => x.a === 'atacar' && x.id === f.id), pare); if (e.perg && e.perg.tipo === 'atacar') M.responder(e, e.perg.ops.findIndex(x => x.a === 'pronto'), pare);
+  igual(e.jogs[0].reserva.R, 1, 'firebending: +R');
+  e.turno.passo = 'atacantes'; M.esvaziarReservas(e); igual(e.jogs[0].reserva.R, 1, 'fica entre etapas do combate');
+  e.turno.passo = 'fimCombate'; M.esvaziarReservas(e); igual(e.jogs[0].reserva.R, 0, 'some no fim do combate');
+});
+
+caso('707.10', "Frontline Heroism: mágica que mira só UMA criatura sua (filtro soMiraUma) → ficha 1/1 com pressa e a cópia mira a ficha (copiarMagica miraCriada); mirando a do oponente, não", () => {
+  ok(!M.carta('Frontline Heroism').falta && M.gatOk(M.carta('Frontline Heroism').gat[1]), 'aceito');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Frontline Heroism'], [0, 'Grizzly Bears']], mao: [[0, 'Giant Growth']] });
+  M.avancar(e); conj(e, 'Giant Growth'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  const t = e.campo.map(id => e.objs[id]).find(o => o.ficha && o.ctrl === 0), gb = objN(e, 0, 'Grizzly Bears');
+  ok(!!t && M.temKw(e, t, 'pressa'), 'a ficha 1/1 com pressa');
+  igual([M.poder(e, gb), M.poder(e, t)], [5, 4], 'o Urso e a ficha +3/+3');
+  const f = cena({ campo: [[0, 'Forest'], [0, 'Frontline Heroism'], [1, 'Grizzly Bears']], mao: [[0, 'Giant Growth']] });
+  M.avancar(f); conj(f, 'Giant Growth'); alvoObj(f, 'Grizzly Bears'); resolveCom(f);
+  ok(!f.campo.some(id => f.objs[id].ficha), 'criatura do oponente: não dispara');
+});
+
+caso('510.2', "Gollum, Obsessed Stalker: no seu passo final, só o oponente que levou dano de combate de um Gollum nesta partida perde a vida que você ganhou no turno (quem feridosPorEsteNome)", () => {
+  ok(!M.carta('Gollum, Obsessed Stalker').falta, 'saiu do falta');
+  const e = combate([[0, 'Gollum, Obsessed Stalker']], { jogs: 3 });
+  const g = objN(e, 0, 'Gollum, Obsessed Stalker');
+  ate(e, 'atacar'); atacaCom(e, g, { jog: 1 }); fecha(e, 'atacar');
+  ok(!!e.jogs[1].feridoPorNome['Gollum, Obsessed Stalker'] && !e.jogs[2].feridoPorNome, 'o 1 levou dano do Gollum');
+  const f = cena({ jogs: 3, passo: 'principal2', campo: [[0, 'Gollum, Obsessed Stalker']] }); f.pend = [];
+  f.jogs[1].feridoPorNome = { 'Gollum, Obsessed Stalker': true }; M.ganharVida(f, 0, 3);
+  const v1 = f.jogs[1].vida, v2 = f.jogs[2].vida;
+  passarAte(f, 'final'); M.avancar(f, x => x.turno.passo !== 'final'); if (f.perg && f.pilha.length) resolve(f);
+  igual([v1 - f.jogs[1].vida, v2 - f.jogs[2].vida], [3, 0], 'só o 1 perde 3');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
