@@ -655,6 +655,7 @@ export interface RxFx {
     | 'trocarAlvos'
     | 'duasPilhas'
     | 'limitarBloqueio'
+    | 'trocarTexto'
     | 'dano'
     | 'destruir'
     | 'sacrificar'
@@ -737,6 +738,10 @@ export interface RxFx {
   virada?: boolean;
   atacando?: boolean;
   revelar?: boolean;
+  /**
+   * trocarTexto: o tipo de criatura que entra no lugar do escolhido em todo o texto e linha de tipo do afetado (New Blood: 'replacing all instances of one creature type with Vampire', CR 612.1/612.2)
+   */
+  novoTipo?: string;
   sobControle?: RxJogador;
   /**
    * mover para o grimório: embaixo

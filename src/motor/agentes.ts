@@ -222,6 +222,7 @@ const basico = (e, p) => {
       return k >= 0 ? k : 0;
     }
     case 'escolha': {
+      if (p.ctx && p.ctx.o === 'trocaTexto') return 0;   // 612: as opções vêm do tipo mais citado no texto dele (o que mais muda)
       if (p.ops.some(op => op.a === 'tipoCarta')) {   // "choose a card type": redução (Cloud Key) → o tipo mais comum nas suas mágicas; proteção (Serra's Emissary) → o mais comum nos oponentes
         const F = p.ctx && o(p.ctx.id), red = !!F && (M.dadoDe(e, F).est || []).some(s => s.modo === 'reduzCusto');
         return melhorOp(p.ops, op => Object.values<any>(e.objs).reduce((s, x) => s + (!x.hab && (red ? x.dono === p.j && x.zona !== 'campo' : x.dono !== p.j) && M.temTipo(e, x, op.v) ? (x.zona === 'campo' ? 2 : 1) : 0), 0));

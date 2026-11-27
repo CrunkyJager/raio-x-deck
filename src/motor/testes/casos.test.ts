@@ -7317,6 +7317,19 @@ caso('510.2', "Gollum, Obsessed Stalker: no seu passo final, só o oponente que 
   igual([v1 - f.jogs[1].vida, v2 - f.jogs[2].vida], [3, 0], 'só o 1 perde 3');
 });
 
+caso('612.2', "New Blood: rouba o Elvish Archdruid e troca 'Elf' por 'Vampire' no texto e na linha de tipo (camada 3, 613.1c): vira Vampire Druid, dá +1/+1 aos meus Vampiros e não aos Elfos; conta Vampiros na mana", () => {
+  const e = cena({ campo: [...terras(4, 'Swamp'), [0, 'Bloodghast'], [1, 'Elvish Archdruid'], [1, 'Llanowar Elves']], mao: [[0, 'New Blood']] });
+  const ad = objN(e, 1, 'Elvish Archdruid'), bg = objN(e, 0, 'Bloodghast'), le = objN(e, 1, 'Llanowar Elves');
+  igual([M.poder(e, le), M.poder(e, bg)], [2, 2], 'antes: o Llanowar ganha +1/+1');
+  M.avancar(e); conj(e, 'New Blood'); resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.o === ad.id) : -1);
+  igual(bg.virada, true, 'virou o Vampiro como custo');
+  igual([ad.ctrl, M.dadoDe(e, ad).sub], [0, ['Vampire', 'Druid']], 'meu, e é Vampire Druid');
+  igual(ad.n, 'Elvish Archdruid', 'o nome não muda');
+  igual([M.poder(e, bg), M.poder(e, le)], [3, 1], 'agora: "Other Vampire creatures you control get +1/+1"');
+  const at = M.atvDe(e, ad).find(a => a.deMana); ok(at && JSON.stringify(at).includes('Vampire') && !JSON.stringify(at).includes('Elf'), 'a mana conta Vampiros');
+  M.mover(e, ad.id, 'mao'); igual(M.dadoDe(e, ad).sub, ['Elf', 'Druid'], 'saiu do campo: objeto novo, texto original (400.7)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
