@@ -649,8 +649,8 @@
      "description": "tem estas palavras-chave"
     },
     "nomeUnico": {
-     "type": "boolean",
-     "description": "não tem o mesmo nome de outra permanente que você controla"
+     "anyOf": [{"type": "boolean"}, {"const": "criaturaOuCemiterio"}],
+     "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
     "poderAcimaBase": {
      "type": "boolean",
