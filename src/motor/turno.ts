@@ -132,7 +132,10 @@ function acaoDoTurno(e) {
       if (J.marc && J.marc.rad > 0) radiacao(e, a);
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
-      if (!(T.n === 1 && e.jogs.length === 2)) M.comprar(e, a, 1);
+      if (!(T.n === 1 && e.jogs.length === 2)) {
+        if (M.temDragar(e, a)) M.iniciarProc(e, { tp: 'compra', j: a, qtd: 1 });   // dragar (702.52a): pergunta antes de comprar
+        else M.comprar(e, a, 1);
+      }
       break;
     case 'limpeza': {                                               // CR 514.1 descarte até o máximo
       const sobra = J.zonas.mao.length - maoMax(e, a);
@@ -226,6 +229,8 @@ M.PROC.terreno = (e, P, ask) => {
   M.evento(e, { ev: 'jogaTerreno', id: o.id, j, de });            // CR 305.1: "jogar um terreno" (de: de onde; Shadow of the Goblin)
   M.agiu(e, j);                                                     // CR 117.3c
 };
+// etapa de compra com carta de dragar no cemitério: a compra é processo (todas as perguntas antes de mexer)
+M.PROC.compra = (e, P, ask) => M.comprar(e, P.j, P.qtd, { ask, antes: () => { e.proc = null; } });
 const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });
 M.jogarTerreno = jogarTerreno;
 
@@ -280,6 +285,9 @@ M.abe = e => {
     for (const id of e.campo) {
       const o = e.objs[id]; if (!o.anexo) continue;
       const t = M.anexadoA(e, o), aura = (M.dadoDe(e, o).sub || []).includes('Aura');
+      if (o.concedida && (!t || !M.temTipo(e, t, 'Creature'))) {     // 702.103f: concedida solta (ou em ilegal) fica no campo e volta a ser criatura
+        o.anexo = null; o.concedida = false; e.vCamada = (e.vCamada || 0) + 1; mudou = true; M.log(e, o.n, 'solta: volta a ser criatura (702.103f)'); continue;
+      }
       if (aura ? !t : !t || !M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }
