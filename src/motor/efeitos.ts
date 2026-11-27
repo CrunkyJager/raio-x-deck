@@ -97,7 +97,7 @@ function sacEntraOk(s) {
   if (!s.emVez || s.emVez.length !== 2 || !s.quem || !s.quem.este) return false;
   const [a, b] = s.emVez;
   return a.op === 'sacrificar' && (a.quem === undefined || a.quem === 'voce') && !!a.f && M.filtroOk(a.f) && !!a.qtd && a.qtd.ate === 'qualquer' && Object.keys(a).every(k => ['op', 'quem', 'f', 'qtd'].includes(k))
-    && b.op === 'marcador' && b.em === 'este' && typeof b.tipoMarc === 'string' && !!b.qtd && !!b.qtd.conta && b.qtd.conta.de === 'resultado' && Object.keys(b.qtd.conta).length === 1 && Object.keys(b.qtd).every(k => k === 'conta' || k === 'mult') && Object.keys(b).every(k => ['op', 'em', 'tipoMarc', 'qtd'].includes(k));
+    && b.op === 'marcador' && b.em === 'este' && typeof b.tipoMarc === 'string' && !!b.qtd && !!M.qn(b.qtd).conta && M.qn(b.qtd).conta.de === 'resultado' && Object.keys(M.qn(b.qtd)).every(k => k === 'conta' || k === 'mult') && Object.keys(b).every(k => ['op', 'em', 'tipoMarc', 'qtd'].includes(k));
 }
 function saidaOk(s) {
   if (!Object.keys(s).every(k => ['ev', 'quem', 'muda', 'emVez', 'se', 'talvez'].includes(k)) || !!s.muda === !!s.emVez) return false;
