@@ -3506,6 +3506,23 @@ caso('702.75a', "esconderijo: ao entrar olha 4, exila 1 ligado a ela e o resto v
   for (const c of ['Cemetery Tampering', 'Mosswort Bridge', 'Windbrisk Heights']) ok(JSON.stringify(M.carta(c)).includes('exiladaPorEste'), c);
 });
 
+caso('613.1d', "modificar: subtipo e cor além dos outros, sem prazo (Liliana −3: Zombie preto); disparada ganha para sempre (Rivaz: o Dragão do cemitério é exilado ao morrer)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] }); const gb = e.objs[e.campo[0]];
+  const X = (f, ctx: any = {}) => M.executar(e, f, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, ...ctx }, () => ({ a: 'nao' }));
+  const lil = M.carta("Liliana, Death's Majesty").atv.find(a => a.lealdade === -3).fx[1];
+  ok(M.fxSuportado([lil], { topo: false }), 'Liliana aceita');
+  X(lil, { movidos: [{ id: gb.id, ts: gb.ts }] });
+  ok(M.temTipo(e, gb, 'Creature') && (M.dadoDe(e, gb).sub || []).includes('Zombie') && (M.dadoDe(e, gb).sub || []).includes('Bear'), 'Zombie além de Bear');
+  igual([...M.dadoDe(e, gb).cores].sort().join(''), 'BG', 'preto além de verde');
+  e.turno.n++; ok((M.dadoDe(e, gb).sub || []).includes('Zombie'), 'sem prazo');
+  const r = M.carta('Rivaz of the Claw').gat[0].fx[0], cl = M.carta('Clavileño, First of the Blessed').gat[0].fx[0];
+  ok(M.fxSuportado([r], { topo: false }) && M.fxSuportado([cl], { topo: false }), 'Rivaz e Clavileño aceitos');
+  X({ op: 'modificar', em: 'este', habil: r.habil, dura: 'sempre' }, { este: gb.id });
+  M.abe(e); e.pend = [];
+  gb.dano = 9; M.abe(e); M.avancar(e); resolveCom(e);
+  ok(gb.zona === 'exilio', 'morreu e o gatilho ganho o exilou: ' + gb.zona);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -308,6 +308,13 @@ function fonteOutra(e, fo, ctx) {
 // modificar 'enquantoNoCampo' (Urza's Saga): só 'este' ganhando habilidade ativada que o motor ativa
 const ganhoOk = f => f.em === 'este' && f.p === undefined && f.r === undefined && !(f.kw || []).length && !(f.est || []).length
   && !!f.habil && Object.keys(f.habil).length === 1 && Array.isArray(f.habil.atv) && f.habil.atv.length > 0 && f.habil.atv.every(a => !!a && M.custoSuportado(a.custo || {}) && M.fxSuportado(a.fx, { topo: false }));
+const gatSempre = f => f.dura === 'sempre' && !!f.habil && Array.isArray(f.habil.gat);
+// tipo/cor "além dos outros" e/ou disparada ganha para sempre; P/R e kw juntos só se a parte de P/R/kw sozinha passa
+const modTipoOk = f => f.dura === 'sempre' && f.em !== undefined && f.gat === undefined && !(f.est || []).length
+  && (f.sub === undefined || (Array.isArray(f.sub) && f.sub.length > 0 && f.sub.every(x => typeof x === 'string' && x !== 'escolhido')))
+  && (f.cores === undefined || (typeof f.cores === 'string' && /^[WUBRG]+$/.test(f.cores)))
+  && (f.habil === undefined || (gatSempre(f) && Object.keys(f.habil).length === 1 && f.habil.gat.length > 0 && f.habil.gat.every(g => M.gatOk(g))))
+  && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw);
 // estáticas de regra que o modificar entrega ao e.efTemp (lidas por M.tempNoObj em combate.ts)
 const EST_REGRA = ['naoPodeSerBloqueada', 'naoPodeBloquear', 'deveAtacar'];
 // estática dada por efeitoTemporario que algum leitor conhece (estado.ts: M.tempNoObj, M.vidaFixa, M.protegeJog)
@@ -531,16 +538,28 @@ const H = {
   // Por ora só 'fimDoTurno' e P/R/palavra-chave sem parâmetro; habilidade, tipo e estática dadas = próxima volta.
   // est: estáticas dadas até o fim do turno; por ora só deveBloquear afeta 'este' (509.1c), com atacante 'doEvento' =
   // bloqueia aquela criatura (presa na resolução: Fighter Class, Tolsimir); sem ele, bloqueia se puder (Brutal Hordechief)
+  // sub/cores: "it's a black Zombie / becomes a Demon in addition to its other colors and types" (camadas 4 e 5,
+  // o.anim preso ao objeto, sem prazo: 611.2a). habil.gat com dura 'sempre': habilidade disparada ganha enquanto o
+  // objeto estiver no campo (o.ganhos.gatS; o mover zera) — Rivaz, Clavileño.
   modificar: {
-    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat'],
+    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat', 'sub', 'cores'],
     qtd: q => q === undefined,
-    ok: f => f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
+    ok: f => f.sub !== undefined || f.cores !== undefined || gatSempre(f) ? modTipoOk(f) : (f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
       && (f.gat === undefined || (Array.isArray(f.gat) && f.gat.every(g => M.gatOk(g))))   // "ganha 'quando morrer, …'" até o fim do turno (Demonic Gifts)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
       && (f.est || []).every(s => s.afeta === 'este' && (s.modo === 'deveBloquear' ? Object.keys(s).every(k => ['modo', 'afeta', 'atacante'].includes(k)) && (s.atacante === undefined || s.atacante === 'doEvento')
-        : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k)))),
+        : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k))))),
     fx(e, f, ctx) {
+      if (gatSempre(f) && f.em === 'doEvento' && ctx.ev) for (const o of [e.objs[ctx.ev.id]]) if (o && o.zona === 'pilha' && !o.hab && (ctx.ev.ts === undefined || o.ts === ctx.ev.ts)) o.gatPilha = [...(o.gatPilha || []), ...f.habil.gat];   // a mágica: a permanente que ela vira tem (Rivaz)
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
+      if (f.sub !== undefined || f.cores !== undefined || gatSempre(f)) {
+        for (const o of os) {
+          if (f.sub || f.cores) (o.anim || (o.anim = [])).push({ ts: o.ts, sub: f.sub, maisCores: f.cores, fim: null });
+          if (gatSempre(f)) o.ganhos = { ...(o.ganhos || {}), gatS: [...((o.ganhos && o.ganhos.gatS) || []), ...f.habil.gat] };
+        }
+        e.vCamada = (e.vCamada || 0) + 1;
+        if (f.p === undefined && f.r === undefined && !(f.kw || []).length) return;
+      }
       if (f.dura === 'enquantoNoCampo' && f.habil) {                            // habilidade ganha enquanto no campo (o mover zera o.ganhos)
         for (const o of os) o.ganhos = { atv: [...((o.ganhos && o.ganhos.atv) || []), ...f.habil.atv] };
         return;
