@@ -2191,6 +2191,22 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('601.3', "jogar do topo do grimório com permissão (Courser of Kruphix: terreno; Emperor Mihail II: Merfolk); só a carta do topo, só com a fonte no campo", () => {
+  const e = cena({ campo: [[0, 'Courser of Kruphix'], [0, 'Emperor Mihail II'], [0, 'Island'], [0, 'Island']], passo: 'principal1' });
+  const noTopo = n => { const o = e.por(0, n, { zona: 'mao' }); const J = e.jogs[0]; J.zonas.mao.splice(J.zonas.mao.indexOf(o.id), 1); J.zonas.grimorio.push(o.id); o.zona = 'grimorio'; return o; };
+  ok(M.olhaTopo(e, 0) && !M.olhaTopo(e, 1), 'olha o topo: só quem controla o Courser');
+  const fo = noTopo('Forest');
+  const ops = () => M.opcoesPrioridade(e, 0);
+  ok(ops().some(o => o.a === 'terreno' && o.id === fo.id), 'Forest do topo: pode jogar');
+  const mf = noTopo('Benthic Biomancer');
+  ok(!ops().some(o => o.id === fo.id), 'a Forest não é mais o topo');
+  ok(ops().some(o => o.a === 'conjurar' && o.id === mf.id), 'Merfolk do topo: pode conjurar (Mihail)');
+  const gb = noTopo('Grizzly Bears');
+  ok(!ops().some(o => o.id === gb.id), 'Urso do topo: sem permissão');
+  M.mover(e, e.campo.find(id => e.objs[id].n === 'Courser of Kruphix'), 'cemiterio');
+  e.jogs[0].zonas.grimorio.push(e.jogs[0].zonas.grimorio.splice(e.jogs[0].zonas.grimorio.indexOf(fo.id), 1)[0]);
+  ok(!ops().some(o => o.id === fo.id), 'sem o Courser: não joga terreno do topo');
+});
 caso('605.1b', "gatilho de mana ao virar terreno (Wild Growth, Regal Behemoth): resolve na hora, o solver conta com ele; Behemoth só se for o monarca", () => {
   for (const c of ['Wild Growth', 'Fertile Ground', 'Regal Behemoth', "Mirari's Wake"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
   const e = cena({ campo: [[0, 'Forest'], [0, 'Wild Growth'], [0, 'Regal Behemoth']], passo: 'principal2' }); e.pend = [];
