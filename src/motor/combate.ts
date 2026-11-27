@@ -73,6 +73,8 @@ function alvosAtaque(e, a) {
   }
   return r;
 }
+// voto (Promise of Loyalty): de quem esta não pode atacar enquanto tiver o marcador
+const votoDe = o => o && o.voto && (o.marc[o.voto.marc] || 0) > 0 ? o.voto.js : [];
 M.alvosAtaque = (e, a) => alvosAtaque(e, a);
 const defDe = (e, alvo) => alvo.jog !== undefined ? alvo.jog : e.objs[alvo.o].ctrl;
 // CR 508.4: permanente que entra atacando. Quem a controla escolhe um jogador ou planeswalker que ela poderia atacar
@@ -103,6 +105,7 @@ M.PROC.atacar = (e, P, ask) => {
   // incitada (701.38b): ataca quem não a incitou, se puder (só sobra o incitador se não houver outro alvo)
   const alvosDe = id => {
     const inc = M.tempDe(e, 'incitado').filter(({ s, t }) => M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);
+    const v = votoDe(e.objs[id]); if (v.length) { const ok = alvos.filter(t => !v.includes(defDe(e, t))); return ok; }   // voto (Promise of Loyalty): não ataca aquele jogador nem os planeswalkers dele
     if (!inc.length) return alvos;
     const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
     return fora.length ? fora : alvos;
