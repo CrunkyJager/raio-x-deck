@@ -3441,6 +3441,23 @@ caso('702.29e', "ciclo de tipo: Step Through (ciclo de Wizard {2}) procura um Wi
   ok(!opsDe(h, 'ativar').some(op => h.objs[op.id].n === 'Blur Sliver'), 'o Homing do oponente não dá à minha mão');
 });
 
+caso('121.1', "comprar com conta: Windfall (o maior descarte), Peer into the Abyss (metade do grimório e da vida do alvo, para cima), One with the Machine (maior VM)", () => {
+  const e = cena({ mao: [[0, 'Grizzly Bears'], [0, 'Forest'], [1, 'Forest'], [1, 'Forest'], [1, 'Sol Ring']] });
+  const X = (c, ctx = {}) => M.executar(e, c, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, ...ctx }, () => ({ a: 'nao' }));
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const f of M.carta('Windfall').fx) M.executar(e, f, ctx, () => ({ a: 'nao' }));
+  igual([e.jogs[0].zonas.mao.length, e.jogs[1].zonas.mao.length], [3, 3], 'cada um compra 3 (o maior descarte)');
+  const g0 = e.jogs[1].zonas.grimorio.length;
+  for (const f of M.carta('Peer into the Abyss').fx) X(f, { alvos: [[{ jog: 1 }]] });
+  igual(e.jogs[1].zonas.grimorio.length, g0 - Math.ceil(g0 / 2), 'metade do grimório, para cima');
+  igual(e.jogs[1].vida, 20, 'perde metade de 40');
+  const f = cena({ campo: [[0, 'Sol Ring'], [0, 'Gilded Lotus']] });
+  const m0 = f.jogs[0].zonas.mao.length;
+  M.executar(f, M.carta('One with the Machine').fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(f.jogs[0].zonas.mao.length - m0, 5, 'Gilded Lotus: VM 5');
+  for (const c of ['Windfall', 'Peer into the Abyss', 'One with the Machine', "Jace's Archivist", 'Whispering Madness']) ok(M.fxSuportado(M.carta(c).fx || M.carta(c).atv[0].fx), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
