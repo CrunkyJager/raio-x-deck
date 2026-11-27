@@ -1601,6 +1601,10 @@ export interface RxEst {
    */
   corMana?: 'W' | 'U' | 'B' | 'R' | 'G';
   /**
+   * ganhaAtivadas: a mana paga como se fosse de qualquer cor nos custos das habilidades ganhas (Drana and Linvala: 'You may spend mana as though it were mana of any color to activate those abilities', CR 609.4b)
+   */
+  qualquerCor?: boolean;
+  /**
    * reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)
    */
   primeiraNoSeuTurno?: boolean;

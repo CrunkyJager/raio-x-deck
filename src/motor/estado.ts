@@ -1026,6 +1026,9 @@ const bisDado = (e, o) => {
     } }
   return null;
 };
+// Drana and Linvala (609.4b): a habilidade ganha com _qualquerCor paga cor com qualquer mana (M.custoAtv); cópia guardada (k estável)
+const QQ_COR = new WeakMap<any, any>();
+const qualquerCorDe = a => { let c = QQ_COR.get(a); if (!c) QQ_COR.set(a, (c = { ...a, _qualquerCor: true })); return c; };
 M.atvDe = (e, o) => {
   let b = atvCarta(M.dadoDe(e, o));
   if (o.zona === 'cemiterio') { const x = bisDado(e, o); if (x && !b.some(a => a._bis)) b = b.concat([x]); }
@@ -1034,7 +1037,7 @@ M.atvDe = (e, o) => {
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
   if (o.zona === 'mao') b = b.concat(cicloNaMao(e, o));
   if (o.zona === 'campo') for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'ganhaAtivadas' && s.afeta === 'este' && s.f)   // "has all activated abilities of all creatures your opponents control" (Drana and Linvala): as impressas (sem as ganhas, 613.8 sem laço)
-    for (const x of M.objetosQue(e, { zona: 'campo', ...s.f }, { voce: o.ctrl, este: o.id })) if (x.id !== o.id) b = b.concat(atvCarta(M.dadoDe(e, x)));
+    for (const x of M.objetosQue(e, { zona: 'campo', ...s.f }, { voce: o.ctrl, este: o.id })) if (x.id !== o.id) b = b.concat(s.qualquerCor ? atvCarta(M.dadoDe(e, x)).map(qualquerCorDe) : atvCarta(M.dadoDe(e, x)));
   return h.length ? b.concat(h) : b;
 };
 /** alguém no campo dá habilidade (habil)? sem isso gatDe/atvDe são só os da carta */
