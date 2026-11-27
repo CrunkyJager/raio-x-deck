@@ -1009,7 +1009,7 @@ function escolherAd(e, j, o, c, ask, custo?, x = 0) {
   if (alts.length <= 1) return alts[0] || c;
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
-function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
+function escolherCustoFisico(e, j, c, fonte, daMao, ask, porPoder = false) {   // porPoder: o efeito conta o poder das viradas (estação): a de mais poder
   const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], desv: [] as any[], rev: [] as any[], exi: [] as any[] };
   if (c.exilarDe) {
     for (let i = 0; i < (c.exilarDe.qtd || 1); i++) {
@@ -1033,7 +1033,7 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
   } else if (c.virarOutros) {
     for (let i = 0; i < (c.virarOutros.qtd || 1); i++) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id)).map(o => ({ a: 'virar', id: o.id }));
-      r.vir.push(ask(j, 'custo', ops, { o: 'virar' }).id);
+      r.vir.push(ask(j, 'custo', ops, { o: 'virar', ...(porPoder ? { porPoder: true } : {}) }).id);
     }
   }
   if (c.desvirarOutros) for (let i = 0; i < (c.desvirarOutros.qtd || 1); i++) {
@@ -1250,7 +1250,7 @@ const PROC = {
     if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
     const red = reducaoAlvo(e, j, alvos); if (red.g && mana && mana.g) mana = { ...mana, g: Math.max(0, mana.g - red.g) };   // Professor Hojo
-    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask);
+    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask, (a.fx || []).some(f => f && f.qtd && f.qtd.conta && f.qtd.conta.de === 'viradas' && f.qtd.conta.o === 'poder'));
     const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac, ...fis.dev, ...fis.vir]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
