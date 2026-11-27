@@ -57,7 +57,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'viradas': return o === 'poder' && j === 'soma' && chaves(c, ['junta']);   // as viradas para pagar o custo (estação, 702.184a)
-    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist', 'ataques'].includes(o) && chaves(c, []);   // ataques: quantas vezes o objeto da vez atacou neste turno (Moraug)   // poder/resist: o objeto da vez (Unnatural Growth)
+    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist', 'ataques', 'tipoEmComum'].includes(o) && chaves(c, []);   // ataques: quantas vezes o objeto da vez atacou neste turno (Moraug)   // poder/resist: o objeto da vez (Unnatural Growth)
   }
   return false;
 }
@@ -67,7 +67,7 @@ function estOk(c) {
   if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes', 'marcadores', 'cores'].includes(c.o);   // marcadores: os do jogador (rad, energia…)
   if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'excesso', 'aoCemiterio'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
-  if (c.de === 'cada') return c.o === 'ataques';   // na estática, 'cada' = o objeto afetado (camadas põem ctx.cadaObj)
+  if (c.de === 'cada') return c.o === 'ataques' || c.o === 'tipoEmComum';   // tipoEmComum: Coat of Arms   // na estática, 'cada' = o objeto afetado (camadas põem ctx.cadaObj)
   return c.de === 'oponentes' || c.de === 'jogadores';
 }
 /** a conta (já nova) é jogável neste lugar? */
@@ -203,6 +203,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'cada':
       if (o === 'vida') return ctx.cadaAtual !== undefined ? e.jogs[ctx.cadaAtual].vida : 0;   // o jogador da vez (Dire Fleet Ravager)
       { const cc = ctx.cadaObj, ob = cc && e.objs[cc.id]; if (!ob || ob.ts !== cc.ts) return 0;
+        if (o === 'tipoEmComum') return M.comTipoEmComum(e, ob);   // as outras criaturas que dividem tipo com ela (Coat of Arms)
         if (o === 'ataques') return (e.turno.ataques || []).filter(r => r.id === ob.id && r.ts === ob.ts && !r.entrou).length;   // "each time it has attacked this turn" (508.1; entrar atacando não é atacar, 508.4)
         return o === 'poder' ? M.poder(e, ob) : o === 'resist' ? M.resistencia(e, ob) : ob.marc[c.marc] || 0; }   // o objeto da vez; poder pode ser negativo (dobrar, 701.10e)
   }

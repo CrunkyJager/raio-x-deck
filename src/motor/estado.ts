@@ -1284,6 +1284,20 @@ const tiposCriatura = (e, o) => {
 };
 M.tiposCriatura = tiposCriatura;
 const comumCom = (a, b) => a === 'todos' ? (b === 'todos' || b.length > 0) : b === 'todos' ? a.length > 0 : a.some(t => b.includes(t));
+// conta {de:'cada', o:'tipoEmComum'}: as OUTRAS criaturas no campo (de qualquer jogador) que dividem ao menos um tipo de
+// criatura com o objeto da vez (Coat of Arms; metamorfo divide todos, 702.73a). No lote a contagem é por assinatura de
+// tipos (mil fichas de Goblin = uma contagem só), descontando a própria depois.
+const TEC = {};
+const ehCriatura = (e, x) => (M.dadoDe(e, x).tipos || []).includes('Creature');
+M.comTipoEmComum = (e, ob) => {
+  const t = tiposCriatura(e, ob); if (t !== 'todos' && !t.length) return 0;
+  const conta = () => e.campo.reduce((n, id) => { const x = e.objs[id]; return n + (ehCriatura(e, x) && comumCom(t, tiposCriatura(e, x)) ? 1 : 0); }, 0);
+  let n;
+  if (LOTE) { let m = LOTE.get(TEC); if (!m) LOTE.set(TEC, m = new Map()); const k = t === 'todos' ? '*' : [...t].sort().join(',');
+    n = m.get(k); if (n === undefined) m.set(k, n = conta()); }
+  else n = conta();
+  return n - (ob.zona === 'campo' && ehCriatura(e, ob) ? 1 : 0);
+};
 // tipoEmComum: 'este' (a fonte), 'doEvento' (o objeto do evento: ctx.ev), 'comandante' (os seus) ou um filtro (alguma que bate)
 function tipoEmComum(e, o, ref, ctx) {
   const t = tiposCriatura(e, o); if (t !== 'todos' && !t.length) return false;
