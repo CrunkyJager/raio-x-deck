@@ -730,6 +730,26 @@ function pagarMana(e, j, pl, custo, x, para?) {
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
 }
 
+// CR 601.2f: "custa {N} (ou N de vida) a mais" para o oponente que mira (Kopala, Warden of Waves; Terror of the Peaks).
+// Cada estática soma uma vez por mágica/habilidade, mesmo mirando várias que ela cobre. deHabil: só habilidade ativada.
+M.estAumentaOk = s => !!s && s.modo === 'aumentaCusto' && s.aoMirar === true && s.quem === 'oponente' && Object.keys(s).every(k => ['modo', 'afeta', 'aoMirar', 'quem', 'qtd', 'deHabil', 'pagar'].includes(k))
+  && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
+  && (s.pagar === undefined ? Number.isInteger(s.qtd) && s.qtd > 0 : s.qtd === undefined && Object.keys(s.pagar).length === 1 && Number.isInteger(s.pagar.vida));
+const impostoAlvo = (e, j, alvos, deHabil) => {
+  const r = { g: 0, vida: 0 }, os = (alvos || []).flat().filter(a => a && a.o !== undefined).map(a => e.objs[a.o]).filter(Boolean);
+  if (!os.length) return r;
+  for (const id of M.indiceCampo(e).est) {
+    const F = e.objs[id]; if (!F || F.ctrl === j) continue;
+    for (const s of M.dadoDe(e, F).est || []) {
+      if (s.modo !== 'aumentaCusto' || !M.estAumentaOk(s) || !!s.deHabil !== !!deHabil) continue;
+      if (!os.some(o => s.afeta === 'este' ? o.id === F.id : M.bate(e, o, s.afeta, { voce: F.ctrl, este: F.id }))) continue;
+      r.g += s.qtd || 0; r.vida += (s.pagar && s.pagar.vida) || 0;
+    }
+  }
+  return r;
+};
+M.impostoAlvo = impostoAlvo;
+
 const PROC = {
   conjurar(e, P, ask) {
     const j = P.j, o = e.objs[P.id], ctx = { voce: j, este: o.id };
@@ -752,6 +772,9 @@ const PROC = {
     const cabe = d.impostoPorAlvo ? n => !!plano(e, j, comAlvos(n), x, null, o) : undefined;
     const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask, cabe, opc);          // CR 601.2c
     custo = comAlvos(alvos.reduce((s, l) => s + (l ? l.length : 0), 0));
+    const imp = impostoAlvo(e, j, alvos, false);                                     // 601.2f: Kopala, Terror of the Peaks
+    if (imp.g) custo = M.somaCusto(custo, { g: imp.g });
+    if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(sem vida para o custo a mais)'); return; }   // 119.4
     let cad = d.custoAd ? escolherAd(e, j, o, d.custoAd, ask) : null;             // CR 601.2b: anuncia qual custo do "ou"
     if (cad && cad.vida === 'X') {                                                    // 601.2b/119.4: X de vida até a vida que tem
       x = ask(j, 'x', Array.from({ length: Math.max(0, e.jogs[j].vida) + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id, vida: true }).v;
@@ -775,6 +798,7 @@ const PROC = {
     M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
     pagarMana(e, j, pl, custo, x, o);                                                 // CR 601.2h
+    if (imp.vida) M.perderVida(e, j, imp.vida);
     if (alt && alt.F) { if (alt.vida) M.perderVida(e, j, alt.vida); if (alt.s.limite) alt.F.altUso = { t: e.turno.n, ts: alt.F.ts }; }   // 119.4: vida paga; "uma vez por turno"
     if (cad) pagarFisico(e, j, o, cad, fis);
     for (const id of exFuga) M.mover(e, id, 'exilio');
@@ -787,13 +811,16 @@ const PROC = {
   ativar(e, P, ask) {
     const j = P.j, o = e.objs[P.id], a = M.atvDe(e, o)[P.k], c = a.custo, ctx = { voce: j, este: o.id };
     const ex = c.virar || c.sacrificar === 'este' || c.devolver === 'este' ? [o.id] : [];
-    const mana = M.custoAtv(e, o, a);                                                 // CR 602.2b → 601.2f (reduzCusto deHabil)
+    let mana = M.custoAtv(e, o, a);                                                   // CR 602.2b → 601.2f (reduzCusto deHabil)
     let x = 0;
     if (mana && mana.x) {
       const mx = maxX(e, j, mana, ex);
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
     }
     const alvos = escolherAlvos(e, j, a, a.fx, { ...ctx, x }, ask);                   // CR 602.2b → 601.2c
+    const imp = impostoAlvo(e, j, alvos, true);                                      // 601.2f via 602.2b: Kopala (habilidade)
+    if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
+    if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
     const fis = escolherCustoFisico(e, j, c, o.id, c.descartarEste ? o.id : null, ask);
     const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac, ...fis.dev, ...fis.vir]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
@@ -806,6 +833,7 @@ const PROC = {
     e.objs[id] = h; e.pilha.push(id);
     M.eventosAlvo(e, alvos, id);
     if (mana) pagarMana(e, j, pl, mana, x);
+    if (imp.vida) M.perderVida(e, j, imp.vida);
     const ninja = a._ninjutsu && fis.dev.length ? (e.turno.combate.atk.find(x => x.id === fis.dev[0] && x.ts === e.objs[fis.dev[0]].ts) || {}).alvo : null;   // o defensor do que voltou (702.49c)
     pagarFisico(e, j, o, c, fis);
     if (ninja) (h.pil as any).ninja = ninja;

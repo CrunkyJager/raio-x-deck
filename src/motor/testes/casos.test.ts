@@ -3922,6 +3922,20 @@ caso('614.12', "entra virada/desvirada por outra permanente: Authority of the Co
   ok(!g.virada && h.virada, 'meu Guildgate desvirado; o do oponente virado');
 });
 
+caso('601.2f', "custo a mais para o oponente que mira: Lightning Bolt no Terror of the Peaks custa 3 de vida a mais; Kopala: {2} a mais para mirar um Tritão", () => {
+  for (const c of ['Kopala, Warden of Waves', 'Terror of the Peaks']) ok(M.carta(c).est.filter(s => s.modo === 'aumentaCusto').every(s => M.estAumentaOk(s)), c + ' aceito');
+  const e = cena({ campo: [[1, 'Terror of the Peaks'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoObj(e, 'Terror of the Peaks');
+  igual(e.jogs[0].vida, 37, 'pagou 3 de vida');
+  const t = e.campo.map(id => e.objs[id]).find(o => o.n === 'Terror of the Peaks');
+  const k = cena({ campo: [[1, 'Kopala, Warden of Waves']] });
+  const kop = k.objs[k.campo[0]];
+  igual(M.impostoAlvo(k, 0, [[{ o: kop.id, ts: kop.ts }]], false).g, 2, 'mágica do oponente: +{2}');
+  igual(M.impostoAlvo(k, 0, [[{ o: kop.id, ts: kop.ts }]], true).g, 2, 'habilidade do oponente: +{2}');
+  igual(M.impostoAlvo(k, 1, [[{ o: kop.id, ts: kop.ts }]], false).g, 0, 'do próprio dono: nada');
+  ok(t, 'Terror (5/4) segue no campo depois de 3 de dano');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
