@@ -1099,6 +1099,25 @@ const H = {
       for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) - q1); }
     },
   },
+  // monstruosidade N (CR 701.37a): se esta não é monstruosa, põe N marcadores +1/+1 e ela fica monstruosa (o.monstro = ts:
+  // objeto novo não é, 400.7); "quando fica monstruosa" (701.37b) dispara pelo evento monstruosa. Já monstruosa: nada.
+  monstruosidade: {
+    fx(e, f, ctx) {
+      for (const o of objsDe(e, { em: f.em || 'este' }, ctx)) {
+        if (o.monstro === o.ts) continue;
+        M.porMarcadores(e, o, '+1/+1', qtdDe(e, f.qtd, ctx));
+        o.monstro = o.ts; e.vCamada = (e.vCamada || 0) + 1;
+        M.log(e, o.n, 'fica monstruosa');
+        if (M.evento) M.evento(e, { ev: 'monstruosa', id: o.id, ts: o.ts });
+      }
+    },
+  },
+  // "look at target player's hand" (Gitaxian Probe, Peek): só informação; o log da Mesa mostra as cartas a quem olhou
+  olharMao: {
+    fx(e, f, ctx) {
+      for (const j of jogsDe(e, f, ctx)) { const J = e.jogs[j]; M.log(e, e.jogs[ctx.voce].nome, 'olha a mão de', J.nome + ':', J.zonas.mao.map(id => e.objs[id].n).join(', ') || '(vazia)'); }
+    },
+  },
   // naoDesvira: não desvira no próximo desvirar do controlador (Junk Winder); soNaoDesvira: só isso, sem virar (Fifty Feet of Rope)
   // qtd {ate: N|'qualquer'} ("tap X untapped Myr you control", Myr Battlesphere): quem resolve escolhe quantas, entre as
   // desviradas do em; resultado = quantas virou (o "se fizer" lê ctx.pagou do talvez)

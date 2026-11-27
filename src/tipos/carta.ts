@@ -401,6 +401,10 @@ export interface RxCustoAtv {
     | {
         f?: RxFiltro;
         qtd?: number;
+        /**
+         * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
+         */
+        comEste?: boolean;
       };
   descartar?: number;
   revelar?: {
@@ -458,7 +462,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
    */
   op:
     | 'mana'
@@ -515,7 +519,9 @@ export interface RxFx {
     | 'incitar'
     | 'fundir'
     | 'tomarIniciativa'
-    | 'aventurar';
+    | 'aventurar'
+    | 'monstruosidade'
+    | 'olharMao';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -1024,7 +1030,8 @@ export interface RxGat {
     | 'completaMasmorra'
     | 'sala'
     | 'tomaIniciativa'
-    | 'nivel';
+    | 'nivel'
+    | 'monstruosa';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */

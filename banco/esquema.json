@@ -812,6 +812,10 @@
         },
         "qtd": {
          "type": "integer"
+        },
+        "comEste": {
+         "type": "boolean",
+         "description": "sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')"
         }
        }
       }
@@ -1009,9 +1013,11 @@
       "incitar",
       "fundir",
       "tomarIniciativa",
-      "aventurar"
+      "aventurar",
+      "monstruosidade",
+      "olharMao"
      ],
-     "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)"
+     "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)"
     },
     "talvez": {
      "type": "boolean"
@@ -1905,7 +1911,8 @@
       "completaMasmorra",
       "sala",
       "tomaIniciativa",
-      "nivel"
+      "nivel",
+      "monstruosa"
      ]
     },
     "naoMorre": {

@@ -166,7 +166,7 @@ M.custoSuportado = c => {
   return true;
 };
 // candidatos a sacrificar/descartar de um custo
-const candSac = (e, j, c, fonte) => M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });
+const candSac = (e, j, c, fonte) => M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => !c.sacrificar.comEste || o.id !== fonte);
 const candDev = (e, j, c, fonte) => M.objetosQue(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });   // devolver à mão como custo (Master Transmuter)
 const candVir = (e, j, c, fonte) => M.objetosQue(e, { ...(c.virarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => !o.virada && o.id !== fonte);
 M.candVir = candVir;
@@ -480,7 +480,7 @@ M.podeAtivar = (e, j, o, k) => {
     if ((al.min ?? 1) > 0 && M.alvosPossiveis(e, al, ctx).length < (al.min ?? 1)) return false;
   }
   if (a.custo.mana) {
-    const ex = a.custo.virar || a.custo.sacrificar === 'este' || a.custo.devolver === 'este' ? [o.id] : [];
+    const ex = a.custo.virar || a.custo.sacrificar === 'este' || (a.custo.sacrificar && a.custo.sacrificar.comEste) || a.custo.devolver === 'este' ? [o.id] : [];
     if (!plano(e, j, M.custoAtv(e, o, a), 0, ex)) return false;
   }
   return true;
@@ -730,7 +730,7 @@ function pagarFisico(e, j, o, c, esc) {
   for (const id of esc.sac) M.mover(e, id, 'cemiterio', { sac: true });            // CR 701.21
   if (esc.desc.length) M.descartar(e, j, esc.desc);
   if (esc.desc.length) o.descCusto = esc.desc.map(id => ({ id, ts: e.objs[id].ts })); else delete o.descCusto;   // em 'descartadaCusto' (Grab the Prize)
-  if (c.sacrificar === 'este') M.mover(e, o.id, 'cemiterio', { sac: true });
+  if (c.sacrificar === 'este' || (c.sacrificar && c.sacrificar.comEste && o.zona === 'campo')) M.mover(e, o.id, 'cemiterio', { sac: true });   // comEste: "sacrifice this and N …" (Glass-Cast Heart)
   if (c.exilarEste) M.mover(e, o.id, 'exilio');
   if (c.descartarEste) M.descartar(e, j, [o.id]);                  // CR 701.9 (Otawara, Trumpeting Carnosaur)
   for (const id of esc.dev || []) M.mover(e, id, 'mao');            // à mão do dono (Master Transmuter, Mina and Denn)
@@ -824,7 +824,7 @@ const PROC = {
 
   ativar(e, P, ask) {
     const j = P.j, o = e.objs[P.id], a = M.atvDe(e, o)[P.k], c = a.custo, ctx = { voce: j, este: o.id };
-    const ex = c.virar || c.sacrificar === 'este' || c.devolver === 'este' ? [o.id] : [];
+    const ex = c.virar || c.sacrificar === 'este' || (c.sacrificar && c.sacrificar.comEste) || c.devolver === 'este' ? [o.id] : [];
     let mana = M.custoAtv(e, o, a);                                                   // CR 602.2b → 601.2f (reduzCusto deHabil)
     if (a._equipar && e.turno.ativo === j) e.jogs[j].equipT = e.turno.n;                // o 1º equipar do seu turno já foi (Forge Anew)
     let x = 0;
