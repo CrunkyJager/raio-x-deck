@@ -270,6 +270,9 @@ M.abe = e => {
     for (const id of e.campo) {
       const o = e.objs[id]; if (!o.anexo) continue;
       const t = M.anexadoA(e, o), aura = (M.dadoDe(e, o).sub || []).includes('Aura');
+      if (o.concedida && (!t || !M.temTipo(e, t, 'Creature'))) {     // 702.103f: concedida solta (ou em ilegal) fica no campo e volta a ser criatura
+        o.anexo = null; o.concedida = false; e.vCamada = (e.vCamada || 0) + 1; mudou = true; M.log(e, o.n, 'solta: volta a ser criatura (702.103f)'); continue;
+      }
       if (aura ? !t : !t || !M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }

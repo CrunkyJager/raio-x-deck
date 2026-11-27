@@ -1057,6 +1057,7 @@ export interface RxKw {
     | 'bis'
     | 'prole'
     | 'iminente'
+    | 'concessao'
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
