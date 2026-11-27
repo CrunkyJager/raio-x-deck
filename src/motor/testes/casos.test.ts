@@ -3822,6 +3822,19 @@ caso('702.84a', "Molten Gatekeeper: desenterrar {R} do cemitério como feitiço;
   ok(!M.podeAtivar(f, 0, h, 0), 'fora da principal: não'); f.turno.passo = 'principal1'; ok(M.podeAtivar(f, 0, h, 0), 'na principal: sim');
 });
 
+caso('107.14', "Salvation Colossus: desenterrar pagando oito {E} (702.84a) — sem 8 de energia não ativa; pagando, tira os 8 marcadores de você e volta com pressa", () => {
+  const e = cena({});
+  const c = e.por(0, 'Salvation Colossus', { zona: 'cemiterio' });
+  ok(!(M.carta('Salvation Colossus').falta || []).length, 'sem falta');
+  M.marcadorJogador(e, 0, 'energy', 7);
+  ok(!M.podeAtivar(e, 0, c, 0), 'com 7 de energia: não');
+  M.marcadorJogador(e, 0, 'energy', 2);
+  ok(M.podeAtivar(e, 0, c, 0), 'com 9: sim');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === c.id); resolvePilha(e);
+  igual(e.jogs[0].marc.energy, 1, 'pagou 8');
+  ok(c.zona === 'campo' && M.temKw(e, c, 'pressa'), 'no campo com pressa');
+  M.mover(e, c.id, 'cemiterio'); igual(c.zona, 'exilio', 'iria sair: exílio');
+});
 // ---------- contagens num formato só (27/11): {conta:{de, o, junta}} ----------
 caso('107.3', 'contagens: o nome velho e o formato novo dão o mesmo número (mão, vida, oponentes, filtro, soma do poder)', () => {
   const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Llanowar Elves'], [0, 'Forest']], mao: [[0, 'Forest'], [0, 'Sol Ring']] });

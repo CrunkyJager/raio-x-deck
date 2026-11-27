@@ -586,6 +586,10 @@ export interface RxCustoAtv {
     umOuMais?: boolean;
   };
   /**
+   * pagar N {E}: tirar N marcadores de energia de você (CR 107.14; Salvation Colossus)
+   */
+  energia?: number;
+  /**
    * pôr marcador neste como custo (Devoted Druid: -1/-1)
    */
   porMarcador?: {

@@ -191,7 +191,7 @@ const alvosUsadosDe = (d, fx) => {
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
 M.CARTA_OK = new Set(['impostoPorAlvo', 'conjurarSo']);
-const CUSTO_OK = new Set(['mana', 'virar', 'exercer', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste', 'desvirarOutros', 'descartarF']);
+const CUSTO_OK = new Set(['mana', 'virar', 'exercer', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste', 'desvirarOutros', 'descartarF', 'energia']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number' && !(c.vida && typeof c.vida === 'object' && M.qtdEstOk(c.vida))) return false;   // contagem: lida ao pagar (War Room)
@@ -256,6 +256,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.fundoEste && (!o || o.zona !== 'campo')) return false;
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
+  if (c.energia && ((J.marc || {}).energy || 0) < c.energia) return false;   // pagar {E} = tirar marcadores de energia de você (107.14)
   if (c.virarOutros && c.virarOutros.poder === undefined && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
   if (c.desvirarOutros && candDesv(e, j, c, o && o.id).length < (c.desvirarOutros.qtd || 1)) return false;
   if (c.virarOutros && c.virarOutros.poder !== undefined && candVir(e, j, c, o && o.id).reduce((s, x) => s + Math.max(0, M.poder(e, x)), 0) < c.virarOutros.poder) return false;   // tripular N (702.122a)
@@ -829,11 +830,11 @@ function opcoes(e, j) {
     for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste || l[k]._ninjutsu) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   // do cemitério (CR 602.2): a que exila a própria carta no custo (eternizar, Kheru Goldkeeper, bis 702.141a) ou, com custo de
-  // mana (ou de sacrificar outras: Jarad), a que tira a carta de lá ao resolver (desenterrar, Drownyard Temple) se não há outra dela na pilha — não repete sem parar
+  // mana (ou de sacrificar outras: Jarad; ou de energia: Salvation Colossus), a que tira a carta de lá ao resolver (desenterrar, Drownyard Temple) se não há outra dela na pilha — não repete sem parar
   for (const id of J.zonas.cemiterio) {
     const o = e.objs[id], l = M.atvDe(e, o);
     const naPilha = () => e.pilha.some(p => e.objs[p].hab && e.objs[p].hab.fonte === id);
-    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && (l[k].custo.exilarEste || ((l[k].custo.mana || (l[k].custo.sacrificar && l[k].custo.sacrificar !== 'este')) && !naPilha())) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
+    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && (l[k].custo.exilarEste || ((l[k].custo.mana || l[k].custo.energia || (l[k].custo.sacrificar && l[k].custo.sacrificar !== 'este')) && !naPilha())) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   ops.push(...M.manaEscOps(e, j));
@@ -1074,6 +1075,7 @@ function pagarFisico(e, j, o, c, esc) {
   if ((esc.rev || []).length) M.log(e, J.nome, 'revela', esc.rev.map(id => e.objs[id].n).join(', '));   // CR 701.20: só mostra
   if (c.vida) M.perderVida(e, j, vidaCusto(e, j, o, c));
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
+  if (c.energia) M.marcadorJogador(e, j, 'energy', c.energia, true);   // 107.14 (122.1: tirar não é 'pôr')
   if (c.porMarcador) M.porMarcadores(e, o, c.porMarcador.tipo, c.porMarcador.qtd || 1);   // 122.6: com as substituições de marcador
   for (const id of esc.sac) M.mover(e, id, 'cemiterio', { sac: true });            // CR 701.21
   if (esc.desc.length) M.descartar(e, j, esc.desc);
