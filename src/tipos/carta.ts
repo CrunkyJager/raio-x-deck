@@ -344,6 +344,10 @@ export interface RxAlvo {
    */
   modo?: number;
   /**
+   * um alvo para cada jogador (até 1 de cada; permanente = de quem controla, carta fora do campo = do dono): Afterlife from the Loam
+   */
+  porJogador?: boolean;
+  /**
    * um alvo para cada oponente (até 1 de cada)
    */
   porOponente?: boolean;
@@ -377,6 +381,7 @@ export type RxObjeto =
       | 'cadaAtual'
       | 'descartadaCusto'
       | 'danificado'
+      | 'sacrificada'
     );
 
 /**
@@ -462,7 +467,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
    */
   op:
     | 'mana'
@@ -532,10 +537,10 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)
    */
   prod?:
-    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos')
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
     | string[]
     | {
         cadaCor: RxFiltro;
@@ -628,6 +633,10 @@ export interface RxFx {
    */
   gat?: RxGat[];
   emblema?: boolean;
+  /**
+   * efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)
+   */
+  proximaMagica?: boolean;
   /**
    * copiarMagica: pode escolher novos alvos
    */
@@ -733,6 +742,10 @@ export interface RxFx {
    */
   soNaoDesvira?: boolean;
   /**
+   * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
+   */
+  trocaCor?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -797,7 +810,7 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -911,6 +924,7 @@ export interface RxKw {
     | 'afinidade'
     | 'convocar'
     | 'improvisar'
+    | 'delve'
     | 'loucura'
     | 'milagre'
     | 'reconfigurar'
@@ -1019,6 +1033,7 @@ export interface RxGat {
     | 'marcadorPosto'
     | 'alvoDe'
     | 'vira'
+    | 'ficaMonstruosa'
     | 'zonaVarios'
     | 'capitulo'
     | 'saiCemiterio'
@@ -1030,8 +1045,7 @@ export interface RxGat {
     | 'completaMasmorra'
     | 'sala'
     | 'tomaIniciativa'
-    | 'nivel'
-    | 'monstruosa';
+    | 'nivel';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1041,7 +1055,7 @@ export interface RxGat {
    */
   quem?: RxFiltro;
   /**
-   * jogador do evento (quem conjura/compra/perde vida; quem leva dano)
+   * jogador do evento (quem conjura/compra/perde vida; quem leva dano; marcadorPosto: quem pôs)
    */
   jog?: RxJogador;
   /**
@@ -1107,7 +1121,7 @@ export interface RxGat {
    */
   ouCopia?: boolean;
   /**
-   * conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)
+   * ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: "their first noncreature spell each turn")
    */
   primeiraNoTurno?: boolean;
   /**
@@ -1484,9 +1498,9 @@ export interface RxContagem {
    */
   cores?: string;
   /**
-   * de: turno — de quem (padrão: você)
+   * de: turno — de quem (padrão: você; cadaAtual = o jogador da vez no repetirCada)
    */
-  quem?: 'oponentes';
+  quem?: 'oponentes' | 'cadaAtual';
   /**
    * de: se — condição (kicked, promisedgift, morbid…)
    */

@@ -97,8 +97,20 @@ const basico = (e, p) => {
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
     }
-    case 'virar': case 'desvirar': {   // "vire/desvire até N" (Myr Battlesphere, Snap): todas as que der
+    case 'virar': {                   // "vire até N" (Myr Battlesphere): todas as que der
       const k = p.ops.findIndex(op => op.a === p.tipo); return k >= 0 ? k : 0;
+    }
+    case 'escolherCarta': {           // marcadores numa criatura escolhida (Finality): a de maior resistência
+      if (!(p.ctx && p.ctx.op === 'marcador')) return 0;
+      return melhorOp(p.ops, op => op.id === undefined ? -99 : M.resistencia(e, o(op.id)));
+    }
+    case 'desvirar': {                // "desvire até N": as suas primeiro (o núcleo já põe as suas na frente)
+      const k = p.ops.findIndex(op => op.id !== undefined && o(op.id).ctrl === p.j);
+      return k >= 0 ? k : 0;
+    }
+    case 'tumulto': {                 // 702.136a: pressa se ainda dá para atacar neste turno; senão o marcador (fica para sempre)
+      const atacaJa = e.turno.ativo === p.j && ['principal1', 'inicioCombate'].includes(e.turno.passo);
+      return p.ops.findIndex(op => op.a === (atacaJa ? 'pressa' : 'marcador'));
     }
     case 'x': {                       // X de vida (Toxic Deluge): o menor que mata a maior criatura do oponente, sem morrer
       if (!(p.ctx && p.ctx.vida)) return 0;
@@ -115,6 +127,7 @@ const basico = (e, p) => {
         }
         if (c.descartar) v += Math.min(...J.zonas.mao.filter(id => id !== p.ctx.id).map(id => valorDescarte(e, p.j, id))) + 0.5;
         if (c.vida) v += c.vida / 3;
+        if (c.mana) v += (c.mana.g || 0) + (c.mana.p || []).length;   // "ou pague {1}": revelar sai de graça
         return v;
       };
       return melhorOp(p.ops, op => -perda(op.v));
@@ -124,7 +137,7 @@ const basico = (e, p) => {
       const k = p.ops.findIndex(op => op.a === 'pagar'); if (k < 0) return 0;   // vida com folga; sacrifício só quando o efeito é contra mim
       const c = p.ctx.custo, meu = p.ctx.de === p.j;
       if (p.ctx.op === 'anular' || p.ctx.op === 'resguardo') return k;   // a minha mágica/habilidade seria anulada
-      if (p.ctx.op === 'pagando') return c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : c.mana ? k : 0;   // com vida (mesmo junto de mana): com folga   // "pode pagar; se pagar": mana sim; vida com folga
+      if (p.ctx.op === 'pagando') return c.vida ? (e.jogs[p.j].vida > c.vida + 10 ? k : 0) : c.mana || c.exilarDe ? k : 0;   // com vida (mesmo junto de mana): com folga; mana e exilar do cemitério sim
       if (c.mana) return e.turno.ativo !== p.j || (c.mana.g || 0) + (p.ctx.x || 0) <= 1 ? k : 0;
       if (c.vida) return J.vida - c.vida > 10 ? k : 0;
       if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura

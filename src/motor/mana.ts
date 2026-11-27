@@ -88,6 +88,11 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
       if (!ctx.comSo && (!ctx.para || !M.bate(e, ctx.para, fs, { voce: o.ctrl }))) continue;   // comSo: a ativação com escolha guarda a restrita à parte
     }
     if (f.se && !M.condicao(e, f.se, { voce: o.ctrl, este: o.id })) continue;
+    if (f.prod === 'cadaCorSuas') {                // "para cada cor entre as permanentes que você controla, adicione uma daquela cor" (Faeburrow Elder): um pacote só
+      const cs = M.coresEntre(e, e.campo.map(id => e.objs[id]).filter(x => x.ctrl === o.ctrl));
+      pac = pac.map(p => { const n = { ...p }; for (const c of cs) n[c] += 1; return n; });
+      continue;
+    }
     const cs = M.coresDeProd(e, o, f.prod);
     const q = M.qtd(e, f.qtd, { voce: o.ctrl, este: o.id, x: ctx.x });
     if (!cs || q === null) return null;
