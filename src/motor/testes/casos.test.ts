@@ -7367,6 +7367,18 @@ caso('702.122a', "agente tripula com critério: Rolling Hamsphere (4/4, tripular
   ok(!vez(false), 'ursos prontos (2+2 = 4, não < 4): não tripula');
 });
 
+caso('702.33c', "multikicker (Marshal's Anthem): paga o chute N vezes (opções do maior ao menor) e o gatilho devolve até N criaturas ({conta:{de:'este', o:'kicker'}})", () => {
+  ok(!M.carta("Marshal's Anthem").falta, 'saiu do falta');
+  const e = cena({ campo: [...enche(8, 'Plains').map(n => [0, n]), [0, 'Grizzly Bears', { zona: 'cemiterio' }], [0, 'Hill Giant', { zona: 'cemiterio' }], [0, 'Serra Angel', { zona: 'cemiterio' }]], mao: [[0, "Marshal's Anthem"]] });
+  M.avancar(e); conj(e, "Marshal's Anthem");
+  ok(e.perg && e.perg.tipo === 'opcao', 'pergunta o chute');
+  igual(e.perg.ops.map(o => o.v.chute || 0), [2, 1, 0], '8 terrenos: até 2 vezes');
+  respE(e, o => o.v.chute === 2);
+  resolveCom(e, p => p.tipo === 'alvo' ? Math.max(0, p.ops.findIndex(o => o.a === 'alvo')) : -1);
+  igual(e.campo.filter(id => ['Grizzly Bears', 'Hill Giant', 'Serra Angel'].includes(e.objs[id].n)).length, 2, 'voltaram 2');
+  igual(M.contar(e, { de: 'este', o: 'kicker' }, { voce: 0, este: objN(e, 0, "Marshal's Anthem").id }), 2, 'no campo: chutado 2 vezes');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
