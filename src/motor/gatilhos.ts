@@ -233,7 +233,8 @@ function loteInfo(e, lote) {
 }
 M.evento = (e, ev) => {
   // "the next spell you cast this turn …" (Mistrise Village, CR 611.2): o efeito se prende à mágica quando ela é conjurada (601.2i)
-  if (ev.ev === 'conjura' && e.efTemp) for (const t of e.efTemp) if (t.proxMag && !t.mag && t.ctrl === ev.j && e.objs[ev.id]) t.mag = { id: ev.id, ts: e.objs[ev.id].ts };
+  if (ev.ev === 'conjura' && e.efTemp) for (const t of e.efTemp) if (t.proxMag && !t.mag && t.ctrl === ev.j && e.objs[ev.id]
+    && t.est.every(s => s.modo !== 'conjurarComLampejo' || !s.f || M.bate(e, e.objs[ev.id], s.f, { voce: t.ctrl, este: t.este ? t.este.id : -1 }))) t.mag = { id: ev.id, ts: e.objs[ev.id].ts };   // lampejo: a próxima DO TIPO (Progenitor's Icon); depois não vale mais
   if (!e.pend || (e.turno.passo === 'mulligan')) return;
   const saida = ev.ev === 'zona' && ev.de === 'campo';
   if (saida) (e.lote = e.lote || []).push(ev.snap);
@@ -421,4 +422,4 @@ M.porGatilhos = e => {
   return true;
 };
 // 603.4: condição de intervenção checada de novo ao resolver
-M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte });
+M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ev: (o.pil && o.pil.ev) || undefined });   // com o evento: o defensor do 'ataca' (Preacher)

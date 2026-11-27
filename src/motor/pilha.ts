@@ -38,7 +38,7 @@ M.lampejoDado = (e, j, o) => {
     const F = e.objs[id];
     for (const s of M.dadoDe(e, F).est || []) if ((s.afeta === 'cadaJogador' || (s.afeta === 'voce' && F.ctrl === j)) && lampejoOk(e, j, o, s, { voce: j, este: F.id })) return true;
   }
-  for (const t of e.efTemp || []) if (t.ctrl === j) for (const s of t.est) if (lampejoOk(e, j, o, s, { voce: j, este: t.este ? t.este.id : -1 })) return true;
+  for (const t of e.efTemp || []) if (t.ctrl === j && !(t.proxMag && t.mag)) for (const s of t.est) if (lampejoOk(e, j, o, s, { voce: j, este: t.este ? t.este.id : -1 })) return true;
   return false;
 };
 // velocidade (CR 307.1, 117.1a): mágica de feitiço só na principal do ativo com a pilha vazia
@@ -152,7 +152,7 @@ const alvosUsadosDe = (d, fx) => {
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
 M.CARTA_OK = new Set(['impostoPorAlvo']);
-const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe']);
+const CUSTO_OK = new Set(['mana', 'virar', 'exercer', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
@@ -777,6 +777,7 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
 function pagarFisico(e, j, o, c, esc) {
   const J = e.jogs[j];
   if (c.virar) M.virarObj(e, o);
+  if (c.exercer && o) o.naoDesv = o.ts;                             // exercer (CR 701.43a): não desvira no seu próximo passo de desvirar
   if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) M.virarObj(e, e.objs[id]);          // virarOutros
   for (const id of esc.exi || []) M.mover(e, id, 'exilio');        // exilarDe (CR 406)

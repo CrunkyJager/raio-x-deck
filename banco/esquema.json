@@ -785,6 +785,10 @@
     "virar": {
      "type": "boolean"
     },
+    "exercer": {
+     "type": "boolean",
+     "description": "exercer (CR 701.43a): a fonte não desvira no próximo passo de desvirar do controlador"
+    },
     "desvirar": {
      "type": "boolean"
     },

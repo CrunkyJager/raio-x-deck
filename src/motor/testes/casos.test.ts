@@ -5143,6 +5143,37 @@ caso('506.2', "Frontier Warmonger: quando criaturas (de qualquer um) atacam um o
   ok(!M.condicao(e, g.se, ctx), 'só atacando você: não dispara');
 });
 
+caso('508.3a', "Preacher of the Schism: ficha se ataca o jogador de mais vida (empate vale); compra se VOCÊ tem mais vida; conta {de:'atacado', o:'vida'} e {de:'jogadores', o:'vida', junta:'maior'}", () => {
+  const [g1, g2] = M.carta('Preacher of the Schism').gat; ok(M.gatOk(g1) && M.gatOk(g2), 'gatilhos aceitos');
+  const e = cena({ jogs: 3, campo: [[0, 'Preacher of the Schism']] });
+  const p = objN(e, 0, 'Preacher of the Schism'), c = def => ({ voce: 0, este: p.id, ev: { ev: 'ataca', id: p.id, def } });
+  ok(M.condicao(e, g1.se, c(1)) && M.condicao(e, g2.se, c(1)), 'todos com 40: as duas');
+  e.jogs[1].vida = 30; e.jogs[2].vida = 45;
+  ok(!M.condicao(e, g1.se, c(1)) && M.condicao(e, g1.se, c(2)), 'ficha só atacando o de 45');
+  ok(!M.condicao(e, g2.se, c(2)), 'você (40) não tem mais vida: não compra');
+  e.jogs[0].vida = 45; ok(M.condicao(e, g2.se, c(1)), 'empatado no topo: compra');
+});
+
+caso('701.43a', "Pride Sovereign: {W},{T}, exerça: duas fichas Gato; exercida não desvira no próximo desvirar", () => {
+  const e = cena({ campo: [[0, 'Pride Sovereign'], [0, 'Plains']] });
+  const ps = objN(e, 0, 'Pride Sovereign'); ps.doente = false;
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === ps.id); resolvePilha(e);
+  igual(e.campo.filter(id => e.objs[id].n !== 'Pride Sovereign' && e.objs[id].n !== 'Plains').length, 2, 'dois Gatos');
+  ok(ps.virada && ps.naoDesv === ps.ts, 'virada e exercida');
+  igual(M.poder(e, ps), 4, '+1/+1 por Gato');
+});
+
+caso('601.3e', "Progenitor's Icon: só a PRÓXIMA mágica do tipo escolhido tem lampejo; outra de tipo diferente não gasta", () => {
+  ok(M.fxSuportado(M.carta("Progenitor's Icon").atv[1].fx), 'aceito');
+  const e = cena({ campo: [[0, "Progenitor's Icon"]], mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  const ic = objN(e, 0, "Progenitor's Icon"); ic.escolha = { tipo: 'Bear' };
+  const [b1, b2, el] = e.jogs[0].zonas.mao.map(id => e.objs[id]);
+  M.executar(e, M.carta("Progenitor's Icon").atv[1].fx[0], { voce: 0, este: ic.id, alvos: [], ilegal: {}, lki: {} }, null);
+  ok(M.lampejoDado(e, 0, b1) && !M.lampejoDado(e, 0, el), 'Urso sim, Elfo não');
+  M.evento(e, { ev: 'conjura', id: el.id, j: 0 }); ok(M.lampejoDado(e, 0, b1), 'o Elfo não gasta');
+  M.evento(e, { ev: 'conjura', id: b1.id, j: 0 }); ok(!M.lampejoDado(e, 0, b2), 'depois do 1º Urso, o 2º não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -391,6 +391,10 @@ export interface RxCustoAtv {
   ou?: [RxCustoAtv, RxCustoAtv, ...RxCustoAtv[]];
   mana?: RxMana;
   virar?: boolean;
+  /**
+   * exercer (CR 701.43a): a fonte não desvira no próximo passo de desvirar do controlador
+   */
+  exercer?: boolean;
   desvirar?: boolean;
   virarOutros?: {
     f?: RxFiltro;

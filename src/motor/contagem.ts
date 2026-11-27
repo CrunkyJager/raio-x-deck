@@ -42,8 +42,8 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
       return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
       : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
-    case 'atacado': return o === 'marcadores' && chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc;   // o jogador defensor (Nightkin Ambusher: rad)
-    case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
+    case 'atacado': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : o === 'vida' && chaves(c, []);   // o jogador defensor (Nightkin Ambusher: rad)
+    case 'oponentes': case 'jogadores': return o === 'quantos' ? chaves(c, []) : c.de === 'jogadores' && o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
     case 'evento': return ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);
@@ -127,10 +127,11 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'combate': return M.contaAtaque(e, o, ctx.voce);   // oponentesAtacados: corpo-a-corpo (702.121a)
     case 'atacado': {                                                       // o jogador defensor: do evento (ataca) ou de quem bloqueia (combate.ts)
       const D = ctx.ev && ctx.ev.def !== undefined ? e.jogs[ctx.ev.def] : null; if (!D) return 0;
+      if (o === 'vida') return D.vida;
       return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
     }
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
-    case 'jogadores': return M.vivos(e).length;
+    case 'jogadores': return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : M.vivos(e).length;
     case 'X': return ctx.x || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {
