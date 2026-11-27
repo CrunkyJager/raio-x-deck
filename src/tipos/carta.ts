@@ -154,7 +154,7 @@ export type RxQtd =
     };
 
 /**
- * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots)
+ * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = "choose a player": você escolhe qualquer jogador ao resolver (Gluntch)
  */
 export type RxJogador =
   | (
@@ -171,6 +171,7 @@ export type RxJogador =
       | 'proximo'
       | 'cadaAtual'
       | 'atacadosPorEste'
+      | 'umJogador'
     )
   | {
       alvo: number;
@@ -375,6 +376,9 @@ export type RxObjeto =
     }
   | {
       todos: RxFiltro;
+    }
+  | {
+      um: RxFiltro;
     }
   | (
       | 'este'

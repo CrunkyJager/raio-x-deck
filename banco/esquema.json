@@ -360,7 +360,8 @@
       "atacado",
       "proximo",
       "cadaAtual",
-      "atacadosPorEste"
+      "atacadosPorEste",
+      "umJogador"
      ]
     },
     {
@@ -377,7 +378,7 @@
      "description": "o jogador que é o alvo N (vários alvos)"
     }
    ],
-   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots)"
+   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = \"choose a player\": você escolhe qualquer jogador ao resolver (Gluntch)"
   },
   "filtro": {
    "type": "object",
@@ -759,6 +760,19 @@
        "$ref": "#/$defs/filtro"
       }
      }
+    },
+    {
+     "type": "object",
+     "required": [
+      "um"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "um": {
+       "$ref": "#/$defs/filtro"
+      }
+     },
+     "description": "\"a creature you control\" sem alvo: quem faz o efeito (quem; padrão você) escolhe uma que bate no filtro ao resolver"
     },
     {
      "enum": [

@@ -84,6 +84,9 @@ const basico = (e, p) => {
       });
       return b;
     }
+    // "choose a player"/"an opponent" sem alvo (Gluntch, Baleful Mastery): o que é bom fica comigo; entre oponentes, o de menos vida
+    case 'jogador': { const k = p.ops.findIndex(op => op.jog === p.j); return k >= 0 ? k : melhorOp(p.ops, op => -e.jogs[op.jog].vida); }
+    case 'um': return melhorOp(p.ops, op => M.poder(e, o(op.id)));   // "a creature you control" sem alvo: a de mais poder
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
     case 'manter': {                  // a que fica: a de mais valor (não ficha, maior valor de mana)
       let b = 0, bv = -Infinity;
