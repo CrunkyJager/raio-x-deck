@@ -52,14 +52,15 @@ function podeAtacar(e, o, a) {
 function alvosAtaque(e, a) {
   const cobra = new Set<any>();
   for (const id of e.campo) { const o = e.objs[id]; if ((M.dadoDe(e, o).est || []).some(s => s.modo === 'ataqueCusta')) cobra.add(o.ctrl); }
-  const r: any[] = [];
+  const r: any[] = [], semAtaque = new Set(M.tempDe(e, 'naoPodeAtacar').filter(({ s }) => s.contra && s.contra.jog === 'voce').map(({ t }) => t.ctrl));   // "não podem atacar você" (efeito temporário)
   for (const j of M.vivos(e)) {
     if (j === a || cobra.has(j)) continue;
-    r.push({ jog: j });
+    if (!semAtaque.has(j)) r.push({ jog: j });
     for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === j && M.temTipo(e, o, 'Planeswalker')) r.push({ o: id }); }
   }
   return r;
 }
+M.alvosAtaque = (e, a) => alvosAtaque(e, a);
 const defDe = (e, alvo) => alvo.jog !== undefined ? alvo.jog : e.objs[alvo.o].ctrl;
 // CR 508.4: permanente que entra atacando. Quem a controla escolhe um jogador ou planeswalker que ela poderia atacar
 // (508.4a); primeiro o mais atacado agora (o agente básico pega o primeiro). Não foi declarada: não dispara "ataca".

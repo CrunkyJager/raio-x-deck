@@ -570,7 +570,7 @@ const equiparDe = kw => {
 // (habil), P/R fixado (7b) e perder habilidade ficam para a próxima volta: a estática com eles não é lida.
 // Dependência (CR 613.8) simplificada: enquanto uma estática decide quem afeta (filtro, condição, contagem), as
 // leituras de P/R e palavra-chave usam só a carta (sem camadas). Nenhum filtro do banco hoje depende de outra camada.
-const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se', 'habil', 'cores']);
+const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se', 'habil', 'cores', 'tiraKw']);   // tiraKw: "e perde voar" (Colossus Hammer, 613.1f)
 const TIPOS_CARTA = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle']);
 // tipo/sub dado a 'este' (camada 4): lido no M.dadoDe; com filtro (Ashaya, Bello, Dryad, Leyline) ainda não
 M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub || s.tiraTipo) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'tiraTipo', 'se'].includes(k))
@@ -609,8 +609,8 @@ M.estContOk = s => M.estTipoOk(s) || M.estTipoFiltroOk(s) || (!!s && estTipoFilt
   : contOk(s));
 const contOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
   && (s.afeta === 'este' || s.afeta === 'equipada' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
-  && qtdEstOk(s.p) && qtdEstOk(s.r) && M.kwListaOk(s.kw) && habilOk(s.habil)
-  && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || s.habil !== undefined || s.cores !== undefined)
+  && qtdEstOk(s.p) && qtdEstOk(s.r) && M.kwListaOk(s.kw) && M.kwListaOk(s.tiraKw) && habilOk(s.habil)
+  && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || (s.tiraKw || []).length > 0 || s.habil !== undefined || s.cores !== undefined)
   && (s.cores === undefined || (typeof s.cores === 'string' && /^[WUBRG]*$/.test(s.cores)))
   && (!s.se || M.seOk(s.se));
 const NADA = { p: 0, r: 0, kw: [] as any[], gat: [] as any[], atv: [] as any[] };
@@ -768,7 +768,7 @@ function camadas(e, o, lote?: any[]) {
   if (!fontes.length && !temp.length) return NADA;
   lendoCamada++;
   try {
-    let p = 0, r = 0; const kw: any[] = [], gat: any[] = [], atv: any[] = [];
+    let p = 0, r = 0; const kw: any[] = [], gat: any[] = [], atv: any[] = [], tira: string[] = [];
     for (const [x, s] of fontes) {
       const F = typeof x === 'object' ? x : e.objs[x];
       const ctx = { voce: F.ctrl, este: F.id };
@@ -777,11 +777,12 @@ function camadas(e, o, lote?: any[]) {
       if (s.p !== undefined) p += qtdCamada(e, s, s.p, F, ctx);
       if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx);
       for (const x of s.kw || []) kw.push(x);
+      for (const x of s.tiraKw || []) tira.push(x.k);
       if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
     const T = temp.length ? somaTemp(temp).get(o.id + ':' + o.ts) : undefined;
     if (T) { p += T.p; r += T.r; for (const x of T.kw) kw.push(x); }
-    return { p, r, kw, gat, atv, ...(T && T.base ? { base: T.base } : {}) };
+    return { p, r, kw, gat, atv, ...(tira.length ? { tira } : {}), ...(T && T.base ? { base: T.base } : {}) };
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
@@ -800,8 +801,9 @@ const MARC_KW = { flying: 'voar', 'first strike': 'primeiroAtaque', 'double stri
   indestructible: 'indestrutivel', lifelink: 'vinculoVida', menace: 'ameaca', reach: 'alcance', trample: 'atropelar', vigilance: 'vigilancia' };
 M.MARC_KW = MARC_KW;
 M.kwDe = (e, o) => {
-  let b = M.dadoDe(e, o).kw || []; const c = camadas(e, o).kw;
+  let b = M.dadoDe(e, o).kw || []; const C = camadas(e, o), c = C.kw;
   if (c.length) b = b.concat(c);
+  if ((C as any).tira) b = b.filter(x => !(C as any).tira.includes(x.k));   // perde (613.1f; simplificação: também a ganha depois, como o tiraKw do animar)
   if (o.zona === 'campo' && o.marc) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
   // "perde antimagia e indestrutível até o fim do turno" (Shadowspear, 613.1f): o.anim.tiraKw. Simplificação: tira também a
   // palavra-chave ganha depois (613.7 diria que a mais nova vale)
@@ -930,7 +932,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -939,13 +941,15 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.este && o.id !== ctx.este) return false;
   if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.outro && o.id === ctx.este) return false;
+  if (f.naoAlvo !== undefined && ((ctx.alvos || [])[f.naoAlvo] || []).some(x => x && x.o === o.id)) return false;   // "each other creature" = menos o alvo N (Chandra's Ignition)
   if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;
   // "a creature dealt damage by this creature this turn" (Markov Enforcer): o.feridaPor guarda {id, ts, t} da fonte; no 'morre' vale o lki (snap)
   if (f.feridaPorEsteNoTurno && !(o.feridaPor || []).some(x => x.id === ctx.este && x.t === e.turno.n && (!e.objs[ctx.este] || x.ts === e.objs[ctx.este].ts || e.objs[ctx.este].zona !== 'campo'))) return false;
   // "exiled with this" (406.6, 607.2a): o exílio guarda quem exilou (o.exPor {id, ts}); vale para este objeto (mesmo ts, ou o lki se já saiu)
   if (f.exiladaPorEste && !(o.zona === 'exilio' && o.exPor && o.exPor.id === ctx.este && o.exPor.ts === ((ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (e.objs[ctx.este] || {}).ts))) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
-  if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
+  if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t === 'escolhido' ? tipoCartaEscolhido(e, ctx) : t)))) return false;   // 'escolhido': o tipo de card escolhido (Cloud Key)
+  if (f.tipoCartaEmComum !== undefined && !tipoCartaEmComum(e, o, f.tipoCartaEmComum, ctx)) return false;
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha) || (t === 'escolhido' && ehEscolhido(e, o, ctx)))) return false;
   if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s))) return false;   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
@@ -1010,6 +1014,18 @@ function tipoEmComum(e, o, ref, ctx) {
   else throw new Error('tipoEmComum sem suporte: ' + JSON.stringify(ref));
   return outros.some(x => x && comumCom(t, tiposCriatura(e, x)));
 }
+// tipo de card em comum (CR 205.2a: Artifact, Creature…; supertipo e subtipo não): 'este' ou um filtro (alguma que bate).
+// Semblance Anvil: "Spells you cast that share a card type with the exiled card"
+const TIPOS_DE_CARD = new Set(['Artifact', 'Battle', 'Creature', 'Enchantment', 'Instant', 'Kindred', 'Tribal', 'Land', 'Planeswalker', 'Sorcery']);
+const tiposCard = (e, x) => (M.dadoDe(e, x).tipos || []).filter(t => TIPOS_DE_CARD.has(t));
+function tipoCartaEmComum(e, o, ref, ctx) {
+  const t = tiposCard(e, o); if (!t.length) return false;
+  const outros = ref === 'este' ? [e.objs[ctx.este]] : ref && typeof ref === 'object' && M.filtroOk(ref) ? M.objetosQue(e, ref, ctx).filter(x => x.id !== o.id) : null;
+  if (!outros) throw new Error('tipoCartaEmComum sem suporte: ' + JSON.stringify(ref));
+  return outros.some(x => x && tiposCard(e, x).some(k => t.includes(k)));
+}
+// o tipo de card escolhido ao entrar ("choose a card type", Cloud Key: o.escolha.tipoCarta) ou na resolução (ctx.escolha)
+const tipoCartaEscolhido = (e, ctx) => (ctx.escolha && ctx.escolha.tipoCarta) || ((e.objs[ctx.este] || {}).escolha || {}).tipoCarta || '\u0000';
 const escolhidoDe = (e, ctx) => { if (ctx.escolha && ctx.escolha.tipo) return ctx.escolha.tipo; const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };   // op escolher na resolução (ctx.escolha) antes da escolha ao entrar
 const ehEscolhido = (e, o, ctx) => { const v = escolhidoDe(e, ctx), t = tiposCriatura(e, o); return v !== '\u0000' && (t === 'todos' || t.includes(v)); };   // changeling é de todos os tipos (702.73a)
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));

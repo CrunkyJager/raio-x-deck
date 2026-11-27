@@ -271,17 +271,17 @@ export interface RxFiltro {
    */
   exiladaPorEste?: boolean;
   /**
-   * sem nenhum marcador (Damning Verdict)
+   * true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')
    */
-  semMarcador?: boolean;
+  semMarcador?: boolean | string;
   /**
    * tem estas palavras-chave
    */
   kw?: string[];
   /**
-   * não tem o mesmo nome de outra permanente que você controla
+   * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
-  nomeUnico?: boolean;
+  nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
    * poder maior que o poder base
    */
@@ -310,6 +310,14 @@ export interface RxFiltro {
    * compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)
    */
   tipoEmComum?: ('este' | 'comandante' | 'doEvento') | RxFiltro;
+  /**
+   * tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)
+   */
+  tipoCartaEmComum?: 'este' | RxFiltro;
+  /**
+   * não é o objeto escolhido como alvo N desta mágica/habilidade ("each other creature" depois de mirar uma: Chandra's Ignition)
+   */
+  naoAlvo?: number;
 }
 
 export interface RxCompara {
@@ -345,6 +353,10 @@ export interface RxAlvo {
    */
   diferenteDe?: number;
   /**
+   * "with different controllers": cada alvo escolhido tem um controlador diferente (Blade Beam)
+   */
+  ctrlDiferentes?: true;
+  /**
    * o alvo só existe com (ou sem) chute/presente; 'instead' com alvo diferente vira dois alvos, um de cada opção (Tear Asunder, Long River's Pull, Wear Down)
    */
   opcao?: 'chute' | 'semChute' | 'presente' | 'semPresente';
@@ -360,7 +372,17 @@ export type RxObjeto =
   | {
       todos: RxFiltro;
     }
-  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
+  | (
+      | 'este'
+      | 'equipada'
+      | 'doEvento'
+      | 'criadas'
+      | 'escolhida'
+      | 'anterior'
+      | 'cadaAtual'
+      | 'descartadaCusto'
+      | 'sacrificada'
+    );
 
 /**
  * custo de habilidade ativada / custo adicional / 'a menos que pague'
@@ -509,9 +531,9 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)
    */
-  prod?: ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos') | string[];
+  prod?: ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas') | string[];
   de?: RxZona;
   para?: RxZona;
   /**
@@ -556,9 +578,9 @@ export interface RxFx {
    */
   quando?: RxGat;
   /**
-   * escolher: o quê
+   * escolher: o quê; tipoCarta = um tipo de card, ao entrar (subst emVez; opções em 'tipos', padrão artefato/criatura/encantamento/instantânea/feitiço: Cloud Key), lido no filtro tipo ['escolhido']
    */
-  o?: 'tipoCriatura' | 'cor' | 'jogador' | 'numero' | 'carta' | 'modo' | 'tipo';
+  o?: 'tipoCriatura' | 'cor' | 'jogador' | 'numero' | 'carta' | 'modo' | 'tipo' | 'tipoCarta';
   escolhe?: {
     min?: number;
     max?: number;
@@ -566,6 +588,14 @@ export interface RxFx {
      * só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)
      */
     naoRepeteNoTurno?: boolean;
+    /**
+     * custo a mais de cada modo escolhido, na ordem dos modos (Tiered: Cloud's Limit Break; Spree) — CR 601.2f
+     */
+    custoModos?: RxMana[];
+    /**
+     * Escalate: este custo a mais por modo escolhido além do primeiro (CR 702.120a; Collective Resistance)
+     */
+    escalar?: RxMana;
     maxSe?: {
       se?: RxCond;
       max?: number;
@@ -704,6 +734,10 @@ export interface RxFx {
    * op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)
    */
   soNaoDesvira?: boolean;
+  /**
+   * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
+   */
+  trocaCor?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -1078,6 +1112,10 @@ export interface RxGat {
    */
   ouCopia?: boolean;
   /**
+   * conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)
+   */
+  primeiraNoTurno?: boolean;
+  /**
    * zona de origem do objeto que mudou de zona
    */
   de?: RxZona;
@@ -1179,6 +1217,10 @@ export interface RxEst {
    * continuo: perde estes tipos (deus com devoção baixa)
    */
   tiraTipo?: string[];
+  /**
+   * continuo: os afetados perdem estas palavras-chave (Colossus Hammer: "and loses flying")
+   */
+  tiraKw?: RxKw[];
   /**
    * naoPodeAtacar/ataqueCusta: o defensor (jogador e/ou permanente)
    */
