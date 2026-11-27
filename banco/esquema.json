@@ -1048,6 +1048,7 @@
       "copiarPermanente",
       "copiarMagica",
       "trocarAlvos",
+      "duasPilhas",
       "dano",
       "destruir",
       "sacrificar",
@@ -1475,9 +1476,21 @@
      "$ref": "#/$defs/objeto",
      "description": "moverMarcador: o objeto que recebe os marcadores (o `em` é de onde saem; Forgotten Ancient)"
     },
+    "posicao": {
+     "type": "integer",
+     "minimum": 2,
+     "description": "mover para o grimório: N-ésima a partir do topo (\"fourth from the top\" = 4, Lost to Legend)"
+    },
+    "tiraTipo": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "mover para o campo: entra sem estes tipos (\"It's an enchantment. (It's not a creature.)\", Enduring Courage)"
+    },
     "aleatorio": {
      "type": "boolean",
-     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Thassa's Oracle)"
+     "description": "descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Empty the Laboratory, Thassa's Oracle)"
     },
     "ficaNoTurno": {
      "type": "boolean",
@@ -1920,6 +1933,9 @@
       "rondar",
       "evoluir",
       "persistir",
+      "desaparecer",
+      "rebote",
+      "dobra",
       "eternizar",
       "agregar",
       "miriade",
@@ -2808,6 +2824,8 @@
       "vidaPerdida",
       "resolucoesDestaHab",
       "oponentesAtacados",
+      "sacrificadas",
+      "manaGasta",
       "entraram",
       "atacantes",
       "atacantesEmVoce",
@@ -2823,10 +2841,10 @@
      "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)"
     },
     "f": {
-       "$ref": "#/$defs/filtro",
-       "description": "de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)"
-      },
-      "junta": {
+     "$ref": "#/$defs/filtro",
+     "description": "só os que batem — turno/entraram (Éowyn, Shieldmaiden: outro Humano seu); turno/sacrificadas (\"if you sacrificed a Food this turn\": {sub:['Food']})"
+    },
+    "junta": {
      "enum": [
       "soma",
       "maior",

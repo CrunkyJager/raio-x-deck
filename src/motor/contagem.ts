@@ -33,12 +33,12 @@ const DO_CONJ = { quantos: [undefined], poder: ['soma', 'maior'], resist: ['soma
 function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   const o = c.o, j = c.junta;
   if (temF(c)) return M.filtroOk(c.de.f) && !!DO_CONJ[o] && DO_CONJ[o].includes(j) && chaves(c, ['junta']);
-  if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida'].includes(o) && chaves(c, []);
+  if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida', 'manaGasta'].includes(o) && chaves(c, []);
   switch (c.de) {
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'vidaInicial', 'tentacoes'].includes(o) && chaves(c, []);
-    case 'turno': if (o === 'entraram') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
+    case 'turno': if (o === 'entraram' || o === 'sacrificadas') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
       if (o === 'excesso') return chaves(c, ['quem']) && (c.quem === undefined || c.quem === 'oponentes');   // objetos (criatura/planeswalker) que levaram dano excedente (120.10)
       return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
       : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
@@ -59,7 +59,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 // estática: só o que não depende de evento/alvo/efeito anterior (é o CONTA_EST + PROP_EST de antes)
 function estOk(c) {
   if (temF(c)) return true;
-  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes'].includes(c.o);
+  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes', 'marcadores'].includes(c.o);   // marcadores: os do jogador (rad, energia…)
   if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'excesso'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
@@ -69,7 +69,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc))) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc))) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -94,7 +94,7 @@ M.contar = (e, c, ctx: any = {}) => {
     const i = c.de.alvo;
     if (o === 'vida' || o === 'grimorio') { const jj = M.jogsAlvo(e, i, ctx)[0]; return jj === undefined ? 0 : o === 'vida' ? e.jogs[jj].vida : e.jogs[jj].zonas.grimorio.length; }
     const a = L && L.alvos && L.alvos[i] && L.alvos[i][0];
-    return a ? a[o] : 0;
+    return a ? a[o] || 0 : 0;   // manaGasta: a mana gasta para conjurar a mágica alvo (LKI na pilha, Mana Sculpt)
   }
   const J = e.jogs[ctx.voce];
   switch (c.de) {
@@ -128,6 +128,7 @@ M.contar = (e, c, ctx: any = {}) => {
         if (c.quem === 'oponentes') { const v = M.vivos(e).filter(x => x !== ctx.voce).map(de); return c.junta === 'soma' ? v.reduce((a, b) => a + b, 0) : Math.max(0, ...v); }
         return de(c.quem === 'cadaAtual' ? ctx.cadaAtual ?? ctx.voce : ctx.voce);
       }
+      if (o === 'sacrificadas') { const S = J.sacT; return S && S.t === e.turno.n ? S.l.filter(x => !c.f || M.bate(e, x, { ...c.f, zona: 'campo' }, ctx)).length : 0; }   // as que você sacrificou neste turno (LKI; Elanor Gardner)
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       // corpo-a-corpo (702.121a): os oponentes que você atacou com criatura neste combate (jogador, não planeswalker), na resolução
       if (o === 'oponentesAtacados') return new Set(((e.turno.combate || {}).atk || []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== ctx.voce && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog)).size;   // "the second time this ability has resolved this turn" (contando esta)

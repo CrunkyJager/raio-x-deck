@@ -24,7 +24,9 @@ const basico = (e, p) => {
       p.ops.forEach((op, k2) => { if (op.a !== 'descartar') return; const v = terra(op.id) ? 0.5 : (M.dadoDe(e, o(op.id)).vm || 0); if (v > bv) { bv = v; b = k2; } });
       return b;
     }
+    case 'pilha': { const S = (p.ctx && p.ctx.somas) || [0, 0]; return S[0] <= S[1] ? 0 : 1; }   // separar: na pilha mais leve; escolher a sacrificada: a mais leve (Liliana of the Veil)
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
+      if (p.ctx && p.ctx.op === 'entraVirada') return 1;   // "you may have this enter tapped": desvirada (o "se fizer" é o preço, Mariposa)
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
       if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || !!M.loucuraDe(e, o(p.ctx.id)) ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
       return 0;

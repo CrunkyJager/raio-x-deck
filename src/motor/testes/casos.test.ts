@@ -5874,6 +5874,144 @@ caso('109.2', "filtro ou: 'a Human or artifact card' (Boromir, Gondor's Hope) ba
   ok(M.carta('Battle at the Helvault').gat.filter(g => g.alvos).every(g => g.alvos[0].porJogador && M.gatOk(g)), 'Helvault: 1 alvo por jogador');
 });
 
+caso('702.63a', "desaparecer 2 (Dreamtide Whale): entra com 2 de tempo; cada manutenção sua tira 1; tirou o último, sacrifica", () => {
+  const e = cena({ campo: [[0, 'Island']] });
+  const w = e.por(0, 'Dreamtide Whale', { zona: 'mao' }); M.mover(e, w.id, 'campo');
+  igual(w.marc.time, 2, 'entra com 2');
+  e.pend = []; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 1 }); igual(e.pend.length, 0, 'a do oponente: não');
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(w.marc.time, 1, 'tira 1'); igual(w.zona, 'campo', 'fica');
+  e.perg = null; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(w.zona, 'cemiterio', 'o último: sacrificada');
+});
+
+caso('701.21', "contagem {de:'turno', o:'sacrificadas', f}: Elanor Gardner só busca terreno no fim do turno se você sacrificou uma Comida neste turno", () => {
+  ok(M.carta('Elanor Gardner').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Elanor Gardner'], [0, 'Grizzly Bears']] });
+  const q = { conta: { de: 'turno', o: 'sacrificadas', f: { sub: ['Food'] } } };
+  igual(M.qtd(e, q, { voce: 0 }), 0, 'nada ainda');
+  M.mover(e, objN(e, 0, 'Grizzly Bears').id, 'cemiterio', { sac: true }); igual(M.qtd(e, q, { voce: 0 }), 0, 'Bears não é Comida');
+  const [fd] = M.criarFichas(e, 0, { nome: 'Food' }, 1); M.mover(e, fd.id, 'cemiterio', { sac: true });
+  igual(M.qtd(e, q, { voce: 0 }), 1, 'a Comida conta'); igual(M.qtd(e, q, { voce: 1 }), 0, 'do outro não');
+  e.pend = []; M.evento(e, { ev: 'fase', passo: 'final', ativo: 0 }); igual(e.pend.filter(p => p.n === 'Elanor Gardner').length, 1, 'dispara');
+  const f = cena({ campo: [[0, 'Elanor Gardner']] }); f.pend = []; M.evento(f, { ev: 'fase', passo: 'final', ativo: 0 });
+  igual(f.pend.filter(p => p.n === 'Elanor Gardner').length, 0, 'sem Comida sacrificada: não');
+});
+
+caso('701.20', "cavar aleatorio (Empty the Laboratory): os Zumbis revelados entram; o resto vai ao fundo em ordem aleatória", () => {
+  ok(M.fxSuportado(M.carta('Empty the Laboratory').fx), 'aceito');
+  const e = cena({});
+  for (const n of ['Forest', 'Island', 'Gravecrawler', 'Mountain', 'Swamp']) e.por(0, n, { zona: 'grimorio' });
+  const g0 = e.jogs[0].zonas.grimorio.length;
+  M.executar(e, { op: 'cavar', quem: 'voce', ateAchar: { f: { tipo: ['Creature'], sub: ['Zombie'] }, qtd: 1 }, pega: 'tudo', revelar: true, f: { tipo: ['Creature'], sub: ['Zombie'] }, para: 'campo', resto: 'grimorio', fundo: true, aleatorio: true }, ctxDe(e), (j, t, ops) => ops[0]);
+  ok(e.campo.some(id => e.objs[id].n === 'Gravecrawler'), 'o Zumbi entrou');
+  igual(e.jogs[0].zonas.grimorio.length, g0 - 1, 'o resto voltou ao grimório');
+});
+
+caso('601.3', "Emry: vira e escolhe artefato do cemitério; pode conjurá-lo neste turno (permissão até o fim do turno, não na hora)", () => {
+  ok(M.fxSuportado(M.carta('Emry, Lurker of the Loch').atv[0].fx), 'aceito');
+  const e = cena({ campo: [[0, 'Emry, Lurker of the Loch'], [0, 'Island']] });
+  const em = objN(e, 0, 'Emry, Lurker of the Loch'); em.doente = false;
+  const sr = e.por(0, 'Sol Ring', { zona: 'cemiterio' });
+  M.avancar(e); ativa(e, 'Emry, Lurker of the Loch'); if (e.perg && e.perg.tipo === 'alvo') alvoObj(e, 'Sol Ring'); resolveCom(e);
+  igual(sr.zona, 'cemiterio', 'ainda no cemitério');
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === sr.id), 'pode conjurar o Sol Ring');
+});
+
+caso('613.1d', "Enduring Courage/Vitality: morre e volta ao campo como encantamento, sem ser criatura (mover tiraTipo), já ao entrar", () => {
+  for (const n of ['Enduring Courage', 'Enduring Vitality']) {
+    ok(M.carta(n).gat.every(g => M.gatOk(g)), n + ' aceito');
+    const e = cena({ campo: [[0, n]] });
+    const c = objN(e, 0, n); M.mover(e, c.id, 'cemiterio'); M.avancar(e); resolvePilha(e);
+    igual(c.zona, 'campo', n + ': voltou');
+    ok(!M.temTipo(e, c, 'Creature') && M.temTipo(e, c, 'Enchantment'), n + ': só encantamento');
+  }
+});
+
+caso('702.88a', "rebote (Ephemerate): da mão, exila ao resolver e na sua próxima manutenção pode conjurar de graça (pisca de novo)", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Grizzly Bears']], mao: [[0, 'Ephemerate']] });
+  const ep = e.jogs[0].zonas.mao.map(id => e.objs[id]).find(o => o.n === 'Ephemerate');
+  M.avancar(e); conj(e, 'Ephemerate'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(ep.zona, 'exilio', 'exilada (rebote)');
+  igual((e.atras || []).length, 1, 'atrasado para a próxima manutenção');
+  const b = objN(e, 0, 'Grizzly Bears'), ts = b.ts;
+  e.perg = null; e.turno.n++; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e);
+  for (let i = 0; i < 30 && e.perg && (e.pilha.length || e.perg.tipo !== 'acao'); i++) {
+    const p = e.perg;
+    if (p.tipo === 'jogar') { respE(e, o => o.a === 'jogar'); continue; }
+    if (p.tipo === 'alvo') { alvoObj(e, 'Grizzly Bears'); continue; }
+    if (p.tipo === 'acao') { respE(e, o => o.a === 'passar'); continue; }
+    M.responder(e, M.agenteBasico()(e, p));
+  }
+  igual(ep.zona, 'cemiterio', 'conjurada do exílio: agora vai ao cemitério');
+  ok(objN(e, 0, 'Grizzly Bears').ts > ts, 'piscou de novo');
+});
+
+caso('702.185a', "dobra/warp (Exalted Sunborn): da mão por {1}{W}; no final é exilada e depois pode ser conjurada do exílio", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Plains']], mao: [[0, 'Exalted Sunborn']] });
+  const s = e.jogs[0].zonas.mao.map(id => e.objs[id]).find(o => o.n === 'Exalted Sunborn');
+  M.avancar(e); conj(e, 'Exalted Sunborn'); resolveCom(e);
+  igual(s.zona, 'campo', 'entrou pagando 2');
+  e.perg = null; M.evento(e, { ev: 'fase', passo: 'final', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(s.zona, 'exilio', 'no final: exilada');
+  ok(!!M.permJogar(e, 0, s), 'pode conjurar do exílio depois');
+});
+
+caso('701.21', "duasPilhas (Liliana of the Veil −6): quem resolve separa as permanentes do alvo em duas pilhas; ele sacrifica a que escolher. Liliana Dreadhorde −9: um de cada tipo fica", () => {
+  ok(M.fxSuportado(M.carta('Liliana of the Veil').atv[2].fx) && M.fxSuportado(M.carta('Liliana, Dreadhorde General').atv[2].fx), 'aceitos');
+  const e = cena({ campo: [[1, 'Grizzly Bears'], [1, 'Hill Giant'], [1, 'Forest'], [1, 'Sol Ring']] });
+  const ag = M.agenteBasico();
+  M.executar(e, { op: 'duasPilhas', quem: 'alvoJogador' }, { ...ctxDe(e), alvos: [[{ jog: 1 }]] }, (j, t, ops, c) => ops[ag(e, { j, tipo: t, ops, ctx: c })]);
+  const fica = e.campo.filter(id => e.objs[id].ctrl === 1).length;
+  ok(fica > 0 && fica < 4, 'uma pilha foi, a outra ficou: ' + fica);
+  igual(e.jogs[1].zonas.cemiterio.length, 4 - fica, 'as da pilha no cemitério');
+  const f = cena({ campo: [[1, 'Grizzly Bears'], [1, 'Hill Giant'], [1, 'Forest'], [1, 'Mountain'], [1, 'Sol Ring']] });
+  M.executar(f, M.carta('Liliana, Dreadhorde General').atv[2].fx[0], ctxDe(f), (j, t, ops) => ops[0]);
+  igual(f.campo.filter(id => f.objs[id].ctrl === 1).length, 3, 'fica 1 criatura, 1 terreno, 1 artefato');
+});
+
+caso('607.2a', "Lobelia: ao entrar exila o topo de cada oponente (cavar comEste); depois a ativada acha 'uma carta exilada com Lobelia'", () => {
+  const e = cena({ campo: [[0, 'Swamp']] });
+  e.por(1, 'Grizzly Bears', { zona: 'grimorio' });
+  const lo = e.por(0, 'Lobelia, Defender of Bag End', { zona: 'mao' }); M.mover(e, lo.id, 'campo'); M.avancar(e); resolvePilha(e);
+  const ex = e.jogs[1].zonas.exilio.map(id => e.objs[id]);
+  igual(ex.map(o => o.n), ['Grizzly Bears'], 'exilou o topo do oponente');
+  ok(M.objetosQue(e, { exiladaPorEste: true, zona: 'exilio' }, { voce: 0, este: lo.id, lki: {} }).length === 1, 'exilada com Lobelia');
+});
+
+caso('401.4', "mover posicao (Lost to Legend): a permanente histórica vai para o grimório do dono como a quarta do topo", () => {
+  const e = cena({ campo: [[1, 'Sol Ring']] });
+  for (const n of ['Forest', 'Island', 'Mountain', 'Swamp', 'Plains']) e.por(1, n, { zona: 'grimorio' });
+  const sr = objN(e, 1, 'Sol Ring');
+  M.executar(e, M.carta('Lost to Legend').fx[0], { ...ctxDe(e), alvos: [[{ o: sr.id, ts: sr.ts }]] }, (j, t, ops) => ops[0]);
+  const g = e.jogs[1].zonas.grimorio; igual(e.objs[g[g.length - 4]].n, 'Sol Ring', 'quarta do topo');
+});
+
+caso('601.2h', "contagem {de:{alvo:0}, o:'manaGasta'} (Mana Sculpt): a mana gasta na mágica alvo (com X), lida do LKI da pilha", () => {
+  const e = cena({ campo: [...terras(4, 'Mountain')], mao: [[0, 'Fireball']] });
+  M.avancar(e); const naPilha = x => x.pilha.length > 0;
+  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && e.objs[o.id].n === 'Fireball'), naPilha);
+  M.responder(e, e.perg.ops.findIndex(o => o.v === 3), naPilha); M.responder(e, e.perg.ops.findIndex(o => o.a === 'alvo' && o.jog === 1), naPilha);
+  const fb = e.objs[e.pilha[e.pilha.length - 1]];
+  igual(M.lkiDe(e, fb).manaGasta, 4, 'X=3 + {R}');
+  igual(M.qtdDe(e, { conta: { de: { alvo: 0 }, o: 'manaGasta' } }, { voce: 0, alvos: [[{ o: fb.id, ts: fb.ts }]], lki: { alvos: [[M.lkiDe(e, fb)]] } }), 4, 'pela contagem');
+  ok(M.contaOk({ de: { alvo: 0 }, o: 'manaGasta' }), 'aceita');
+});
+
+caso('725.1', "Mariposa Military Base: pode entrar virada e ganhar 2 rad; a compra custa {1} a menos por rad; radiação na 1ª principal moe e tira rad por não-terreno", () => {
+  ok(M.carta('Mariposa Military Base').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Forest']] });
+  const mp = e.por(0, 'Mariposa Military Base', { zona: 'mao' });
+  M.aplicarEntrada(e, M.decidirEntrada(e, mp.id, 0, {}, (j, t, ops, c) => c && c.op === 'entraVirada' ? ops[0] : ops[0]));
+  ok(mp.virada, 'entrou virada (escolheu)'); M.avancar(e); resolvePilha(e);
+  igual((e.jogs[0].marc || {}).rad, 2, '2 rad');
+  igual(M.vmDe(M.custoAtv(e, mp, M.atvDe(e, mp)[1])), 3, 'a compra custa {3}');
+  for (const n of ['Forest', 'Grizzly Bears', 'Hill Giant']) e.por(0, n, { zona: 'grimorio' });
+  const v0 = e.jogs[0].vida; e.perg = null; e.turno.radFeito = false;
+  M.evento(e, { ev: 'fase', passo: 'principal1', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(e.jogs[0].vida, v0 - 2, 'moeu Hill Giant e Bears: perde 2'); igual(e.jogs[0].marc.rad, 0, 'tirou 2 rad');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

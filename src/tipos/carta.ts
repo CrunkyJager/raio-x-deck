@@ -526,6 +526,7 @@ export interface RxFx {
     | 'copiarPermanente'
     | 'copiarMagica'
     | 'trocarAlvos'
+    | 'duasPilhas'
     | 'dano'
     | 'destruir'
     | 'sacrificar'
@@ -761,7 +762,15 @@ export interface RxFx {
    */
   paraObj?: RxObjeto;
   /**
-   * descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Thassa's Oracle)
+   * mover para o grimório: N-ésima a partir do topo ("fourth from the top" = 4, Lost to Legend)
+   */
+  posicao?: number;
+  /**
+   * mover para o campo: entra sem estes tipos ("It's an enchantment. (It's not a creature.)", Enduring Courage)
+   */
+  tiraTipo?: string[];
+  /**
+   * descartar ao acaso (Gamble) · também vale para escolher modos ao acaso (Outlaws' Merriment) · cavar: o resto vai em ordem aleatória (Empty the Laboratory, Thassa's Oracle)
    */
   aleatorio?: boolean;
   /**
@@ -1042,6 +1051,9 @@ export interface RxKw {
     | 'corpo-a-corpo'
     | 'evoluir'
     | 'persistir'
+    | 'desaparecer'
+    | 'rebote'
+    | 'dobra'
     | 'eternizar'
     | 'agregar'
     | 'miriade'
@@ -1612,6 +1624,8 @@ export interface RxContagem {
     | 'vidaPerdida'
     | 'resolucoesDestaHab'
     | 'oponentesAtacados'
+    | 'sacrificadas'
+    | 'manaGasta'
     | 'entraram'
     | 'atacantes'
     | 'atacantesEmVoce'
@@ -1624,7 +1638,7 @@ export interface RxContagem {
     | 'jogadores'
     | 'excesso';
   /**
-   * de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)
+   * só os que batem — turno/entraram (Éowyn, Shieldmaiden: outro Humano seu); turno/sacrificadas ("if you sacrificed a Food this turn": {sub:['Food']})
    */
   f?: RxFiltro;
   /**

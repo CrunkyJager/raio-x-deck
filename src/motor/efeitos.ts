@@ -475,7 +475,8 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
       if (c.revelar) for (const r of M.objetosQue(e, { ...c.revelar.f, dono: 'voce', zona: 'mao' }, ctx)) if (r.id !== id) ops.push({ a: 'revelar', rid: r.id });
       const r = ask(ctrl, 'aMenosQue', ops, { id, vida: c.vida || 0 });
       if (r.a === 'naoPagar') vir = true; else if (r.a === 'pagar') pagaVida = c.vida;
-    } else vir = true;
+    } else if (s.talvez) { if (ask && ask(ctrl, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'entraVirada', id }).a === 'sim') vir = true; }   // "you may have this land enter tapped" (Mariposa Military Base)
+    else vir = true;
   }
   let escolha: any = null, clone: any = null;
   const cp = ask && (d.subst || []).find(x => x.ev === 'entra' && x.emVez && x.emVez[0] && x.emVez[0].op === 'copiarPermanente');
@@ -535,10 +536,10 @@ function temTumulto(e, o, d, ctrl) {
   }
   return false;
 }
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null }: any) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, conjDe = null, anim = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   if (sacEntra) for (const sid of sacEntra.ids) if (e.objs[sid] && e.objs[sid].zona === 'campo') M.mover(e, sid, 'cemiterio', { sac: true });   // 701.21, antes de entrar
-  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, clone });
+  const o = M.mover(e, id, 'campo', { virada: vir, face, conj, conjDe, anim, clone });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
@@ -931,6 +932,14 @@ const H = {
     },
   },
   // persistir (CR 702.79a): a carta que morreu (mesmo objeto no cemitério: ev.tsCem) volta ao campo do dono com um -1/-1
+  desaparecer: {                                                    // 702.63a (vanishing), só do gatilho da palavra-chave: tira um marcador de tempo; tirou o último, sacrifica
+    ok: () => false,
+    fx(e, f, ctx) {
+      const o = e.objs[ctx.este]; if (!o || o.zona !== 'campo' || (ctx.lki.este && o.ts !== ctx.lki.este.ts) || !(o.marc.time > 0)) return;
+      o.marc.time--; M.log(e, o.n, 'perde um marcador de tempo (' + o.marc.time + ')');
+      if (o.marc.time === 0) M.mover(e, o.id, 'cemiterio', { sac: true });   // 701.21
+    },
+  },
   persistir: {
     ok: () => false,
     fx(e, f, ctx, ask) {
@@ -1046,13 +1055,15 @@ const H = {
     },
   },
   mover: {
-    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio', 'exilaAoSair'],
+    campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio', 'exilaAoSair', 'tiraTipo', 'posicao'],
     qtd: q => qtdOk(q) || ateOk(q),
     ok: f => (['mao', 'campo', 'cemiterio', 'exilio', 'grimorio'].includes(f.para) || (f.para === 'comando' && f.em !== undefined)) && (f.em !== undefined || (f.f && (typeof f.qtd === 'number' || ateOk(f.qtd)))),
     fx(e, f, ctx, ask) {
       let ids;
       // em 'este' com de: a carta que acabou de ir para lá (o gatilho de mudar de zona acha o objeto novo, CR 603.6/400.7)
       if (f.em === 'este' && f.de) { const o = e.objs[ctx.este]; ids = o && o.zona === f.de && !o.hab ? [o.id] : []; }
+      // em alvo com de: o alvo que o efeito anterior acabou de mover para lá ("exile target creature, then return it", Ephemerate; 400.7: objeto novo, achado por ctx.movidos)
+      else if (f.de && f.em && typeof f.em === 'object' && Number.isInteger(f.em.alvo)) { const v = objsDe(e, f, ctx).map(o => o.id); ids = [...v, ...((ctx.alvos || [])[f.em.alvo] || []).map(a => a.o).filter(id => { const o = e.objs[id]; return o && !v.includes(id) && o.zona === f.de && (ctx.movidos || []).some(m => m.id === id && m.ts === o.ts); })]; }
       else if (f.em !== undefined) ids = objsDe(e, f, ctx).map(o => o.id);
       else {                                                        // "ponha N cartas da sua mão…" (Brainstorm)
         const j = jogsDe(e, f, ctx)[0]; if (j === undefined) return;
@@ -1070,8 +1081,8 @@ const H = {
       const ent = f.para === 'campo' ? ids.map(id => M.decidirEntrada(e, id, f.sobControle === 'voce' ? ctx.voce : e.objs[id].dono, { virada: !!f.virada, ...(f.transformada ? { face: 0 } : {}) }, ask)) : [];
       // CR 508.4: entra atacando (sem declarar: não dispara "ataca"); quem controla escolhe quem ela ataca, entre os que poderia atacar
       const atk = f.atacando && e.turno.combate ? ent.map(p => M.escolherAtacado(e, p.ctrl, ask)) : [];
-      if (f.para === 'campo') ent.forEach((p, k) => { const o = M.aplicarEntrada(e, p); if (atk[k]) M.porAtacando(e, o, atk[k]); if (f.exilaAoSair && o && o.zona === 'campo') o.exilaAoSair = true; });   // desenterrar (702.84a)
-      else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo });
+      if (f.para === 'campo') ent.forEach((p, k) => { const o = M.aplicarEntrada(e, f.tiraTipo ? { ...p, anim: [{ tiraTipo: f.tiraTipo }] } : p); if (atk[k]) M.porAtacando(e, o, atk[k]); if (f.exilaAoSair && o && o.zona === 'campo') o.exilaAoSair = true; });   // desenterrar (702.84a)
+      else for (const id of ids) M.mover(e, id, f.para, { topo: !f.fundo, pos: f.posicao });
       if (f.comEste && f.para === 'exilio') { const F = e.objs[ctx.este]; if (F) for (const id of ids) if (e.objs[id].zona === 'exilio') e.objs[id].exPor = { id: F.id, ts: (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? F.ts }; }   // "exiled with this" (607.2a)
       ctx.movidos = movidos(e, ids);
     },
@@ -1475,6 +1486,29 @@ const H = {
     ctx.movidos = movidos(e, ids);                                   // "put a card from among them" (Ripples of Undeath: f.lembrada)
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
   } },
+  // radiação (CR 725.1, Fallout): no começo da 1ª fase principal de quem tem marcador rad, ele moe tantas; para cada
+  // não-terreno moída, perde 1 de vida e tira um rad. Só do gatilho interno (gatilhos.ts).
+  radiacao: { ok: () => false, fx(e, f, ctx) {
+    const J = e.jogs[ctx.voce], n = (J.marc || {}).rad || 0; if (!n) return;
+    H.moer.fx(e, { op: 'moer', quem: 'voce', qtd: n }, ctx);
+    const nt = (ctx.movidos || []).filter(m => e.objs[m.id] && !M.temTipo(e, e.objs[m.id], 'Land')).length;
+    if (nt) { M.perderVida(e, ctx.voce, nt); J.marc.rad = Math.max(0, n - nt); }
+    M.log(e, J.nome, 'radiação: moe', n, '— perde', nt, 'e tira', nt, 'rad');
+  } },
+  // "separate all permanents target player controls into two piles; that player sacrifices all permanents in the pile of
+  // their choice" (Liliana of the Veil −6): quem resolve separa (uma pergunta por permanente), o jogador escolhe a pilha
+  duasPilhas: { fx(e, f, ctx, ask) {
+    for (const j of jogsDe(e, f, ctx)) {
+      const P: number[][] = [[], []], soma = [0, 0], val = id => M.dadoDe(e, e.objs[id]).vm || 0.5;
+      for (const id of e.campo.filter(id => e.objs[id].ctrl === j)) {
+        const k = ask(ctx.voce, 'pilha', [0, 1].map(v => ({ a: 'pilha', v, id })), { id, somas: [...soma] }).v;
+        P[k].push(id); soma[k] += val(id);
+      }
+      const sac = ask(j, 'pilha', [0, 1].map(v => ({ a: 'pilha', v })), { somas: [...soma], sacrifica: true }).v;
+      M.log(e, e.jogs[j].nome, 'sacrifica a pilha', sac + 1, '(' + P[sac].length + ' permanentes)');
+      for (const id of P[sac]) if (e.objs[id] && e.objs[id].zona === 'campo' && e.objs[id].ctrl === j) M.mover(e, id, 'cemiterio', { sac: true });   // 701.21
+    }
+  } },
   // qtd 'tudo' = "sacrifica todas" (Living Death, sem escolha); {ate:N|'qualquer'} = "quantas quiser" (Scapeshift)
   sacrificar: {                                                     // CR 701.21: quem sacrifica escolhe
     campos: ['f', 'exceto'],
@@ -1543,7 +1577,7 @@ const H = {
     },
   },
   cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
-    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio'],
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'comEste'],
     talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
     ok: f => {
       const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
@@ -1592,6 +1626,7 @@ const H = {
       const ent = plano.map(p => p.para === 'campo' ? M.decidirEntrada(e, p.id, f.sobControle === 'voce' ? ctx.voce : p.j, { virada: p.virada }, ask) : null);
       plano.forEach((p, k) => { if (p.para === 'grimorio') return; if (ent[k]) M.aplicarEntrada(e, ent[k]); else M.mover(e, p.id, p.para); });
       ctx.movidos = movidos(e, plano.map(p => p.id));
+      if (f.comEste && f.para === 'exilio') { const F = e.objs[ctx.este]; if (F) for (const p of plano) if (e.objs[p.id].zona === 'exilio') e.objs[p.id].exPor = { id: F.id, ts: (ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? F.ts }; }   // "exile those cards" ... "a card exiled with Lobelia" (607.2a)
       if (f.resto) {                                                // de volta ao topo: na mesma ordem (uma das ordens que a regra deixa)
         const r = f.resto === 'grimorio' && !f.fundo ? resto.slice().reverse() : resto;
         if (f.aleatorio) M.embaralhar(e, r);                        // "in a random order" (Thassa's Oracle)
