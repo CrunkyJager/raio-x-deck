@@ -3340,25 +3340,6 @@ caso('702.51', "convocar: Hour of Reckoning ({4}{W}{W}{W}) com 3 Planícies + 4 
   ok(!M.opcoesPrioridade(f, 0).some(o => o.a === 'conjurar'), '3 criaturas + 3 terrenos = 6 de 7');
 });
 
-caso('707.10', "copiar mágica: Zada copia o Bolt por criatura; Dualcaster copia o Bolt na pilha; a cópia some (não vai ao cemitério) e não é conjurada", () => {
-  const e = cena({ campo: [[0, 'Zada, Hedron Grinder'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
-  e.cfg.log = true;
-  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
-  const ag = M.agenteBasico();
-  while (e.perg && e.perg.tipo !== 'acao') M.responder(e, ag(e, e.perg), x => x.turno.passo !== 'principal1');
-  igual(e.jogs[1].vida, 31, 'Bolt + 2 cópias (2 outras criaturas)');
-  igual(naZona(e, 0, 'cemiterio'), ['Lightning Bolt'], 'só a original no cemitério');
-  igual(e.pilha.length, 0, 'pilha limpa');
-  igual(e.jogs[0].conjT.n, 1, 'as cópias não contam como conjuradas');
-  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt'], [0, 'Dualcaster Mage']] });
-  M.avancar(f); respE(f, o => o.a === 'conjurar' && f.objs[o.id].n === 'Lightning Bolt'); alvoJog(f, 1);
-  ok(f.pilha.length === 1 && f.perg && f.perg.j === 0, 'Bolt na pilha, prioridade de volta');
-  conj(f, 'Dualcaster Mage');
-  while (f.perg && f.perg.tipo !== 'acao') M.responder(f, ag(f, f.perg), x => x.turno.passo !== 'principal1');
-  igual(f.jogs[1].vida, 34, 'Bolt + cópia do Dualcaster');
-  ok(noCampo(f).includes('Dualcaster Mage'), 'Dualcaster no campo');
-});
-
 caso('707.10', "cópia de mágica de permanente vira ficha (608.3f): Archmage of Echoes copia o Wizard conjurado", () => {
   const e = cena({ campo: [[0, 'Archmage of Echoes'], [0, 'Island'], [0, 'Island']], mao: [[0, 'Vodalian Hexcatcher']] });
   M.avancar(e); conj(e, 'Vodalian Hexcatcher');
@@ -6425,6 +6406,174 @@ caso('107.3', "Well of Lost Dreams: ganhou 3 de vida → pode pagar {X} com X �
   M.executar(e, g.fx[0], { voce: 0, este: w.id, ev: { ev: 'ganhaVida', j: 0, q: 3 }, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => { if (t === 'escolha') vistos = ops.map(o => o.v); return ops[0]; });
   igual(vistos, [2, 1, 0], 'X de 2 a 0 (só 2 manas)');
   igual([e.jogs[0].zonas.mao.length - mao, e.campo.filter(id => e.objs[id].virada).length], [2, 2], 'pagou {2}, comprou 2');
+});
+
+caso('707.10', "copiar mágica: Zada não copia o Bolt no jogador (só o que mira só ela); Dualcaster copia o Bolt na pilha; a cópia some (não vai ao cemitério) e não é conjurada", () => {
+  const e = cena({ campo: [[0, 'Zada, Hedron Grinder'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
+  e.cfg.log = true;
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  const ag = M.agenteBasico();
+  while (e.perg && e.perg.tipo !== 'acao') M.responder(e, ag(e, e.perg), x => x.turno.passo !== 'principal1');
+  igual(e.jogs[1].vida, 37, 'só o Bolt: mirou o jogador, não a Zada');
+  igual(naZona(e, 0, 'cemiterio'), ['Lightning Bolt'], 'só a original no cemitério');
+  igual(e.pilha.length, 0, 'pilha limpa');
+  igual(e.jogs[0].conjT.n, 1, 'as cópias não contam como conjuradas');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt'], [0, 'Dualcaster Mage']] });
+  M.avancar(f); respE(f, o => o.a === 'conjurar' && f.objs[o.id].n === 'Lightning Bolt'); alvoJog(f, 1);
+  ok(f.pilha.length === 1 && f.perg && f.perg.j === 0, 'Bolt na pilha, prioridade de volta');
+  conj(f, 'Dualcaster Mage');
+  while (f.perg && f.perg.tipo !== 'acao') M.responder(f, ag(f, f.perg), x => x.turno.passo !== 'principal1');
+  igual(f.jogs[1].vida, 34, 'Bolt + cópia do Dualcaster');
+  ok(noCampo(f).includes('Dualcaster Mage'), 'Dualcaster no campo');
+});
+
+caso('701.6b', "Tishana's Tidebinder: anula uma habilidade desencadeada na pilha (alvo 'habilidade'); magia não é alvo", () => {
+  const g = M.carta("Tishana's Tidebinder").gat[0]; ok(M.gatOk(g) && g.alvos.every(a => M.alvoSuportado(a)), 'aceita');
+  const e = cena({ campo: [[1, 'Llanowar Elves']], mao: [[0, 'Grizzly Bears']] });
+  e.pilha.push(...[]);
+  const h = { id: e.prox++, n: 'teste', dono: 1, ctrl: 1, zona: 'pilha', ts: ++e.ts, hab: { fonte: e.campo[0], fonteTs: 0, k: 0, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], alvos: [] }, marc: {} };
+  e.objs[h.id] = h; e.pilha.push(h.id);
+  const cx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  igual(M.alvosPossiveis(e, g.alvos[0], cx).map(x => x.o), [h.id], 'a habilidade é alvo');
+  M.executar(e, g.fx[0], { ...cx, alvos: [[{ o: h.id, ts: h.ts }]] }, null);
+  igual(e.pilha.length, 0, 'anulada'); ok(!e.objs[h.id], 'sumiu (113.7)');
+});
+
+caso('508.1', "Tolsimir: o Lobo que ataca dispara só se Tolsimir atacou neste combate (atacouNoTurno); Lobo sozinho, não", () => {
+  ok(M.carta("Tolsimir, Midnight's Light").gat.every(g => M.gatOk(g)), 'aceita');
+  const e = cena({ campo: [[0, "Tolsimir, Midnight's Light"], [1, 'Grizzly Bears']] });
+  M.criarFichas(e, 0, { pt: [5, 5], cores: 'GW', tipos: ['Creature'], sub: ['Wolf'] }, 1); e.pend = [];
+  const t = objN(e, 0, "Tolsimir, Midnight's Light"), w = e.objs[e.campo.find(id => e.objs[id].ficha)];
+  w.doente = false;
+  ate(e, 'atacar'); atacaCom(e, t); atacaCom(e, w); fecha(e, 'atacar');
+  const f = cena({ campo: [[0, "Tolsimir, Midnight's Light"], [1, 'Grizzly Bears']] });
+  M.criarFichas(f, 0, { pt: [5, 5], cores: 'GW', tipos: ['Creature'], sub: ['Wolf'] }, 1); f.pend = [];
+  const w2 = f.objs[f.campo.find(id => f.objs[id].ficha)];
+  const g = M.carta("Tolsimir, Midnight's Light").gat[1];
+  ok(!M.condicao(f, g.se, { voce: 0, este: objN(f, 0, "Tolsimir, Midnight's Light").id }), 'Tolsimir não atacou: não');
+  ok(M.condicao(e, g.se, { voce: 0, este: t.id }), 'atacou: sim');
+});
+
+caso('701.44', "Topography Tracker: a criatura minha que exploraria explora duas vezes (2 marcadores com 2 não-terrenos no topo); a do oponente, uma", () => {
+  ok(M.carta('Topography Tracker').subst.every(s => M.substOk(s)), 'aceita');
+  const e = cena({ campo: [[0, 'Topography Tracker'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']], grimorio: 0 });
+  for (const n of ['Serra Angel', 'Serra Angel']) { e.por(0, n, { zona: 'grimorio' }); e.por(1, n, { zona: 'grimorio' }); }
+  const b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 1, 'Llanowar Elves');
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Grizzly Bears', zona: 'campo' } } }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(b.marc['+1/+1'], 2, 'duas vezes');
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Llanowar Elves', zona: 'campo' } } }, { voce: 1, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(l.marc['+1/+1'], 1, 'do oponente: uma');
+});
+
+caso('118.3', "Tortured Existence: o descarte do custo tem que ser carta de criatura (descartarF); só terreno na mão, não ativa", () => {
+  const a = M.carta('Tortured Existence').atv[0]; ok(M.custoSuportado(a.custo), 'aceita');
+  const e = cena({ campo: [[0, 'Tortured Existence'], [0, 'Swamp']], mao: [[0, 'Forest']] });
+  e.por(0, 'Serra Angel', { zona: 'cemiterio' });
+  const t = objN(e, 0, 'Tortured Existence');
+  M.avancar(e); ok(!e.perg.ops.some(o => o.a === 'ativar' && o.id === t.id), 'só Forest: não');
+  const f = cena({ campo: [[0, 'Tortured Existence'], [0, 'Swamp']], mao: [[0, 'Forest'], [0, 'Grizzly Bears']] });
+  f.por(0, 'Serra Angel', { zona: 'cemiterio' });
+  const t2 = objN(f, 0, 'Tortured Existence');
+  M.avancar(f); ok(f.perg.ops.some(o => o.a === 'ativar' && o.id === t2.id), 'com Urso: sim');
+  respE(f, o => o.a === 'ativar' && o.id === t2.id); resolveCom(f);
+  igual(f.jogs[0].zonas.mao.map(id => f.objs[id].n).sort(), ['Forest', 'Serra Angel'], 'descartou o Urso, voltou o Anjo');
+});
+
+caso('701.63', "expend: Wandertale Mentor ganha o marcador quando a mana gasta em mágicas no turno chega a 4 (2+2), uma vez só; Trailtracker aceita expend 8", () => {
+  ok(M.carta('Trailtracker Scout').gat.every(g => M.gatOk(g)), 'Trailtracker aceita');
+  const e = cena({ campo: [...terras(6, 'Forest'), [0, 'Wandertale Mentor']], mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const w = objN(e, 0, 'Wandertale Mentor');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(w.marc['+1/+1'] || 0, 0, '2 gastos: nada');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(w.marc['+1/+1'], 1, '4 gastos: marcador');
+  M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(w.marc['+1/+1'], 1, '6 gastos: não repete');
+});
+
+caso('701.16', "Twilight Prophet: com a bênção, revela o topo, põe na mão e o oponente perde / você ganha o valor de mana dele (Serra Angel: 5); Twenty-Toed Toad conta marcador de qualquer tipo", () => {
+  ok(M.carta('Twilight Prophet').gat.every(g => M.gatOk(g)), 'aceita');
+  const e = cena({ campo: [[0, 'Twilight Prophet']], grimorio: 0 }); e.por(0, 'Serra Angel', { zona: 'grimorio' });
+  const t = objN(e, 0, 'Twilight Prophet'), g = M.carta('Twilight Prophet').gat[0];
+  const v0 = e.jogs[0].vida, v1 = e.jogs[1].vida;
+  const cx = { voce: 0, este: t.id, alvos: [], ilegal: {}, lki: { alvos: [] } }; for (const fx of g.fx) M.executar(e, fx, cx, () => ({ a: 'sim' }));
+  igual(naZona(e, 0, 'mao'), ['Serra Angel'], 'na mão');
+  igual([e.jogs[1].vida, e.jogs[0].vida], [v1 - 5, v0 + 5], '5 e 5');
+  const f = cena({ campo: [[0, 'Twenty-Toed Toad']] }), s = objN(f, 0, 'Twenty-Toed Toad');
+  s.marc = { '+1/+1': 12, stun: 8 };
+  igual(M.contar(f, { de: 'este', o: 'marcadores' }, { voce: 0, este: s.id }), 20, '12+8 de tipos diferentes');
+});
+
+caso('707.2', "Twinflame: com dois alvos, uma ficha cópia de CADA um (repetirCada cada alvo), com ímpeto", () => {
+  ok(M.fxSuportado(M.carta('Twinflame').fx), 'aceita');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Serra Angel']] }); e.pend = [];
+  const b = objN(e, 0, 'Grizzly Bears'), a = objN(e, 0, 'Serra Angel');
+  M.executar(e, M.carta('Twinflame').fx[0], { voce: 0, alvos: [[{ o: b.id, ts: b.ts }, { o: a.id, ts: a.ts }]], ilegal: {}, lki: { alvos: [] }, criadas: [] }, () => ({ a: 'nao' }));
+  const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha);
+  igual(fs.map(o => M.dadoDe(e, o).n).sort(), ['Grizzly Bears', 'Serra Angel'], 'uma de cada');
+  ok(fs.every(o => M.temKw(e, o, 'pressa')), 'com ímpeto');
+});
+
+caso('702.143', "Ultimate Magic: Holy: conjurada do exílio (prever) previne o dano a você no turno; da mão, não. Ugin lê mágica incolor (cor 'C')", () => {
+  ok(M.fxSuportado(M.carta('Ultimate Magic: Holy').fx), 'aceita');
+  const e = cena({ mao: [[0, 'Ultimate Magic: Holy']] }), h = e.objs[e.jogs[0].zonas.mao[0]];
+  M.mover(e, h.id, 'pilha'); h.conjDe = 'mao';
+  ok(!M.condicao(e, { conjuradaCom: 'exilio' }, { voce: 0, este: h.id }), 'da mão: não');
+  h.conjDe = 'exilio'; ok(M.condicao(e, { conjuradaCom: 'exilio' }, { voce: 0, este: h.id }), 'do exílio: sim');
+  const f = cena({ campo: [[0, 'Sol Ring'], [0, 'Grizzly Bears']] });
+  ok(M.bate(f, objN(f, 0, 'Sol Ring'), { cor: 'C' }, { voce: 0 }) && !M.bate(f, objN(f, 0, 'Grizzly Bears'), { cor: 'C' }, { voce: 0 }), 'incolor');
+});
+
+caso('702.162', "Ultra Magnus: More Than Meets the Eye — com 5 terrenos (não fecha os 7) conjura convertida por {2}{R}{G}{W} e entra já como Armored Carrier", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Forest'], [0, 'Plains'], [0, 'Plains'], [0, 'Forest']], mao: [[0, 'Ultra Magnus, Tactician']] }); e.pend = [];
+  const id = e.jogs[0].zonas.mao[0];
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === id); resolveCom(e);
+  igual(e.objs[id].zona, 'campo', 'entrou'); igual(M.dadoDe(e, e.objs[id]).n, 'Ultra Magnus, Armored Carrier', 'transformada');
+});
+
+caso('701.10e', "Unnatural Growth: no começo do combate dobra P/R de cada criatura minha (Urso 2/2 → 4/4, Anjo 4/4 → 8/8); a do oponente fica", () => {
+  const g = M.carta('Unnatural Growth').gat[0]; ok(M.gatOk(g), 'aceita');
+  const e = cena({ campo: [[0, 'Unnatural Growth'], [0, 'Grizzly Bears'], [0, 'Serra Angel'], [1, 'Llanowar Elves']] }); e.pend = [];
+  const u = objN(e, 0, 'Unnatural Growth'), b = objN(e, 0, 'Grizzly Bears'), a = objN(e, 0, 'Serra Angel'), l = objN(e, 1, 'Llanowar Elves');
+  const cx = { voce: 0, este: u.id, alvos: [], ilegal: {}, lki: { alvos: [] } }; for (const fx of g.fx) M.executar(e, fx, cx, () => ({ a: 'nao' }));
+  igual([M.poder(e, b), M.resistencia(e, b), M.poder(e, a), M.resistencia(e, a)], [4, 4, 8, 8], 'dobrou');
+  igual([M.poder(e, l), M.resistencia(e, l)], [1, 1], 'oponente igual');
+});
+
+caso('702.72', "Wren's Run Packmaster: campeão — exila outro Elfo meu; sem Elfo, sacrifica; ao sair, o Elfo volta", () => {
+  const [g1, g2] = M.carta("Wren's Run Packmaster").gat; ok(M.gatOk(g1) && M.gatOk(g2), 'aceita');
+  const e = cena({ campo: [[0, "Wren's Run Packmaster"], [0, 'Llanowar Elves']] }); e.pend = [];
+  const p = objN(e, 0, "Wren's Run Packmaster"), l = objN(e, 0, 'Llanowar Elves');
+  const cx: any = { voce: 0, este: p.id, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const fx of g1.fx) M.executar(e, fx, cx, (j, t, ops) => ops && ops.length ? ops[0] : { a: 'sim' });
+  igual([e.objs[l.id].zona, e.objs[p.id].zona], ['exilio', 'campo'], 'Elfo exilado, fica');
+  const lki = { este: { ...p } }; M.mover(e, p.id, 'cemiterio');
+  for (const fx of g2.fx) M.executar(e, fx, { voce: 0, este: p.id, alvos: [], ilegal: {}, lki }, () => ({ a: 'sim' }));
+  igual(e.objs[l.id].zona, 'campo', 'Elfo voltou');
+  const f = cena({ campo: [[0, "Wren's Run Packmaster"]] }); f.pend = []; const q = objN(f, 0, "Wren's Run Packmaster");
+  for (const fx of g1.fx) M.executar(f, fx, { voce: 0, este: q.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'sim' }));
+  igual(f.objs[q.id].zona, 'cemiterio', 'sem Elfo: sacrificada');
+});
+
+caso('608.2h', "Zack Fair: sacrificado no custo, põe na criatura os marcadores DELE de cada tipo e prende o Equipamento que estava nele (LKI)", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Zack Fair'], [0, 'Grizzly Bears'], [0, 'Swiftfoot Boots']] }); e.pend = [];
+  const z = objN(e, 0, 'Zack Fair'), b = objN(e, 0, 'Grizzly Bears'), s = objN(e, 0, 'Swiftfoot Boots');
+  z.marc = { '+1/+1': 2, stun: 1 }; z.doente = false; s.anexo = { id: z.id, ts: z.ts };
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === z.id);
+  resolveCom(e, p => p.ops.findIndex(o => o.o === b.id || o.id === b.id));
+  igual(z.zona, 'cemiterio', 'sacrificado');
+  igual([b.marc['+1/+1'], b.marc.stun], [2, 1], 'os marcadores dele');
+  ok(s.anexo && s.anexo.id === b.id, 'Botas no Urso'); ok(M.temKw(e, b, 'indestrutivel'), 'indestrutível');
+});
+
+caso('707.10', "Zada: Giant Growth só nela copia para cada outra criatura minha (cada cópia numa); mirando outra, não copia", () => {
+  ok(M.gatOk(M.carta('Zada, Hedron Grinder').gat[0]), 'aceita');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest'], [0, 'Zada, Hedron Grinder'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Serra Angel']], mao: [[0, 'Giant Growth'], [0, 'Giant Growth']] });
+  const z = objN(e, 0, 'Zada, Hedron Grinder'), b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 0, 'Llanowar Elves'), s = objN(e, 1, 'Serra Angel');
+  M.avancar(e); conj(e, 'Giant Growth'); alvoObj(e, 'Zada, Hedron Grinder'); resolveCom(e);
+  igual([M.poder(e, z), M.poder(e, b), M.poder(e, l), M.poder(e, s)], [6, 5, 4, 4], 'três +3/+3, o Anjo do oponente fica');
+  conj(e, 'Giant Growth'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  igual([M.poder(e, z), M.poder(e, b), M.poder(e, l)], [6, 8, 4], 'mirando o Urso: só ele');
 });
 
 // ---------- rodar ----------

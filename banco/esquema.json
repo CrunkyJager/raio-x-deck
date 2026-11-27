@@ -690,6 +690,10 @@
     "postaPorEste": {
      "type": "boolean",
      "description": "posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')"
+    },
+    "soMiraEste": {
+     "const": true,
+     "description": "mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um (\"a spell that targets only Zada\")"
     }
    }
   },
@@ -738,10 +742,12 @@
         "jogador",
         "oponente",
         "magica",
+        "habilidade",
         "magicaOuHab"
        ]
       }
-     ]
+     ],
+     "description": "filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)"
     },
     "min": {
      "type": "integer"
@@ -1083,6 +1089,10 @@
     "exercer": {
      "type": "boolean",
      "description": "exercer (CR 701.43a): a fonte não desvira no próximo passo de desvirar do controlador"
+    },
+    "descartarF": {
+     "$ref": "#/$defs/filtro",
+     "description": "com descartar: só cartas que batem neste filtro (\"Discard a creature card\": Tortured Existence)"
     }
    }
   },
@@ -1401,12 +1411,25 @@
      }
     },
     "cada": {
-     "oneOf": [
+     "anyOf": [
       {
        "$ref": "#/$defs/jogador"
       },
       {
        "$ref": "#/$defs/filtro"
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "alvo"
+       ],
+       "properties": {
+        "alvo": {
+         "type": "integer"
+        }
+       },
+       "description": "repetirCada: cada alvo legal do grupo N (Twinflame: uma cópia para cada)"
       }
      ]
     },
@@ -1688,6 +1711,10 @@
     "habilDe": {
      "$ref": "#/$defs/objeto",
      "description": "op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)"
+    },
+    "cadaOutroAlvo": {
+     "const": true,
+     "description": "copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)"
     }
    },
    "additionalProperties": false,
@@ -1835,6 +1862,7 @@
       "kicker",
       "flashback",
       "cemiterio",
+      "exilio",
       "madness",
       "evoke",
       "alternativo",
@@ -2082,7 +2110,8 @@
       "infectar",
       "fuga",
       "prototipo",
-      "comecaNoCampo"
+      "comecaNoCampo",
+      "converter"
      ],
      "description": "comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -2427,7 +2456,7 @@
       "darRondar",
       "manaComoQualquerCor"
      ],
-     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
+     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
     "afeta": {
      "oneOf": [
@@ -2654,9 +2683,10 @@
       "anulada",
       "vidaMuda",
       "ganhaVida",
-      "moer"
+      "moer",
+      "explorar"
      ],
-     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal)"
+     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal) · explorar: quem (a criatura que exploraria) + muda.mult: explora N vezes (Topography Tracker)"
     },
     "quem": {
      "$ref": "#/$defs/filtro"

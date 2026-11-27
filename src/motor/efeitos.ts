@@ -79,6 +79,7 @@ const SUBST: Record<string, (s) => boolean> = {
       && Object.keys(s.emVez[0]).every(k => ['op', 'f', 'tipos'].includes(k)) && (s.emVez[0].tipos === undefined || Array.isArray(s.emVez[0].tipos)))
     || sacEntraOk(s),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
+  explorar: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && s.muda.mult > 1 && Object.keys(s).every(k => ['ev', 'quem', 'muda'].includes(k)),   // efeitos.ts explorar
   moer: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.soma) && Object.keys(s).every(k => ['ev', 'jog', 'muda'].includes(k)) && [undefined, 'voce', 'oponente', 'qualquer'].includes(s.jog),   // efeitos.ts moer (The Water Crystal)
   compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
@@ -978,7 +979,8 @@ const H = {
   explorar: {
     fx(e, f, ctx, ask) {
       const feitos = ctx.expl || (ctx.expl = new Map());           // o processo roda de novo a cada pergunta: quem já explorou não repete
-      const lista = feitos.get(f) || (feitos.set(f, { ids: objsDe(e, f, ctx).map(o => o.id), n: 0 }), feitos.get(f));
+      const vezes = o => substsDe(e, 'explorar').reduce((m, { F, s }) => substSe(e, F, s) && substQuem(e, F, s, o) ? m * s.muda.mult : m, 1);   // 614.1a: "instead it explores, then it explores again" (Topography Tracker)
+      const lista = feitos.get(f) || (feitos.set(f, { ids: objsDe(e, f, ctx).flatMap(o => Array(vezes(o)).fill(o.id)), n: 0 }), feitos.get(f));
       for (; lista.n < lista.ids.length; lista.n++) {
         const o = e.objs[lista.ids[lista.n]], j = o.ctrl, g = e.jogs[j].zonas.grimorio, top = g[g.length - 1];
         if (top === undefined) { if (o.zona === 'campo') M.porMarcadores(e, o, '+1/+1', 1); M.evento(e, { ev: 'explora', id: o.id, j }); continue; }   // grimório vazio: nada revelado, não é terreno
@@ -1016,17 +1018,17 @@ const H = {
   // 'cadaAtual'), na ordem do turno (101.4). Cada efeito de dentro é uma etapa: o progresso fica no ctx (ctx.rep) porque o
   // processo roda de novo a cada pergunta. Com filtro de objetos ("para cada criatura sua com marcador +1/+1", Kalonian Hydra,
   // Second Harvest): a lista é tirada ao começar a resolver (608.2h) e em/copiaDe 'cadaAtual' é o objeto da vez; o que saiu
-  // do campo no meio fica de fora (400.7). repetirCada dentro de outro: ainda não.
+  // do campo no meio fica de fora (400.7). cada {alvo:N}: cada alvo legal daquele grupo (Twinflame). repetirCada dentro de outro: ainda não.
   repetirCada: {
     campos: ['cada', 'fx'],
     ok: f => !dentroCada && !dentroObj && Array.isArray(f.fx) && f.fx.length > 0 && f.fx.every(x => x.op !== 'modal')
       && ((f.cada === 'cadaOponente' || f.cada === 'cadaJogador' || f.cada === 'umJogador' || f.cada === 'oponente') ? comCada(() => M.fxSuportado(f.fx, { topo: false }))
-        : !!f.cada && typeof f.cada === 'object' && M.filtroOk(f.cada) && comObj(() => M.fxSuportado(f.fx, { topo: false }))),
+        : !!f.cada && typeof f.cada === 'object' && (Number.isInteger(f.cada.alvo) && Object.keys(f.cada).length === 1 || M.filtroOk(f.cada)) && comObj(() => M.fxSuportado(f.fx, { topo: false }))),
     fx(e, f, ctx, ask) {
       const obj = typeof f.cada === 'object';
       let R = ctx.rep;
       if (!R) {   // a lista sai antes de tudo; se perguntou (cada 'umJogador'), a resposta já ficou na lista: zera para os efeitos de dentro
-        R = ctx.rep = { f, js: obj ? M.objetosQue(e, f.cada.zona ? f.cada : { ...f.cada, zona: 'campo' }, ctx).map(o => ({ id: o.id, ts: o.ts })) : jogsDe(e, { quem: f.cada, op: 'repetirCada' }, ctx), k: 0, i: 0 };
+        R = ctx.rep = { f, js: obj ? (Number.isInteger(f.cada.alvo) ? objsDe(e, { em: f.cada }, ctx) : M.objetosQue(e, f.cada.zona ? f.cada : { ...f.cada, zona: 'campo' }, ctx)).map(o => ({ id: o.id, ts: o.ts })) : jogsDe(e, { quem: f.cada, op: 'repetirCada' }, ctx), k: 0, i: 0 };
         if (ask && ask.etapa) ask.etapa();
       }
       while (R.k < R.js.length) {
@@ -1145,13 +1147,24 @@ const H = {
   perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu && !M.naoPerde(e, j)) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) if (!M.vidaFixa(e, j)) M.perderVida(e, j, q); } },   // 119.7
   copiarMagica: {                                                   // CR 707.10: "copy that spell" (pilha.ts: M.alvosDaCopia/M.criarCopia)
-    campos: ['novoAlvo'],
+    campos: ['novoAlvo', 'cadaOutroAlvo'],
+    ok: f => !f.cadaOutroAlvo || (f.em === 'doEvento' && f.qtd === undefined && !f.novoAlvo),
     fx(e, f, ctx, ask) {
       let o: any = null;
       if (f.em === 'doEvento') o = objsDe(e, { em: 'doEvento', de: 'pilha' }, ctx)[0];          // a mágica conjurada (Archmage, Zada)
       else if (f.em === 'este') { const S = e.objs[ctx.este]; o = S && S.zona === 'pilha' && !S.hab && (!ctx.lki.este || S.ts === ctx.lki.este.ts) ? S : null; }   // ela mesma na pilha (Bygone Marvels)
       else o = objsDe(e, f, ctx).find(x => x.zona === 'pilha') || null;                      // a mágica alvo (Dualcaster)
       if (!o || o.zona !== 'pilha' || o.hab || !o.pil) return;
+      if (f.cadaOutroAlvo) {                                         // "copy that spell for each other creature you control that the spell could target" (Zada): cada cópia mira uma delas
+        const d = M.dadoDe(e, o), F = e.objs[ctx.este], i = (o.pil.alvos || []).findIndex(l => l && l.length === 1 && F && l[0].o === F.id);
+        const a = i >= 0 && (d.alvos || [])[i]; if (!a) return;
+        const cx = { voce: o.pil.ctrl ?? o.ctrl, este: o.id, x: o.pil.x };
+        for (const id of [...e.campo]) {
+          const x = e.objs[id]; if (id === F.id || x.ctrl !== ctx.voce || !M.temTipo(e, x, 'Creature') || !M.alvoLegal(e, a, { o: x.id, ts: x.ts }, cx)) continue;
+          M.criarCopia(e, o, ctx.voce, { alvos: o.pil.alvos.map((l, k) => k === i ? [{ o: x.id, ts: x.ts }] : (l || []).map(y => ({ ...y }))), novos: true });
+        }
+        return;
+      }
       const n = f.qtd === undefined ? 1 : Math.max(0, qtdDe(e, f.qtd, ctx));
       const planos: any[] = [];
       for (let k = 0; k < n; k++) planos.push(M.alvosDaCopia(e, o, ctx.voce, !!f.novoAlvo, ask));   // pergunta tudo antes de mexer
@@ -1258,11 +1271,11 @@ const H = {
   // que houver (o primeiro). paraObj 'escolhida' (Forgotten Ancient): um a um, em outras criaturas, até o jogador parar.
   moverMarcador: {
     campos: ['paraObj', 'tipoMarc'],
-    qtd: q => qtdOk(q) || ateOk(q),                                 // "any number of" = {ate: 'qualquer'}
-    ok: f => f.em !== undefined && (f.paraObj === 'escolhida' ? f.tipoMarc !== undefined : f.paraObj !== undefined && f.paraObj !== 'escolhida' && emOk(f.paraObj)),
+    qtd: q => qtdOk(q) || ateOk(q) || q === 'tudo',                 // "any number of" = {ate: 'qualquer'}; 'tudo' sem tipoMarc = todos os de cada tipo (do LKI)
+    ok: f => f.em !== undefined && (f.qtd !== 'tudo' || (f.em === 'este' && !f.tipoMarc && f.paraObj !== 'escolhida')) && (f.paraObj === 'escolhida' ? f.tipoMarc !== undefined : f.paraObj !== undefined && f.paraObj !== 'escolhida' && emOk(f.paraObj)),
     fx(e, f, ctx, ask) {
       const de = objsDe(e, f, ctx)[0];
-      let q = qtdDe(e, f.qtd, ctx);
+      let q = f.qtd === 'tudo' ? 0 : qtdDe(e, f.qtd, ctx);
       if (f.paraObj === 'escolhida') {
         if (!de || de.zona !== 'campo') return;
         const t = f.tipoMarc;
@@ -1279,6 +1292,8 @@ const H = {
         q = Math.min(q, de.marc[t] || 0); if (q <= 0) return;
         de.marc[t] -= q; M.porMarcadores(e, para, t, q);
       } else if (f.tipoMarc && (!de || de.zona !== 'campo') && q > 0) M.porMarcadores(e, para, f.tipoMarc, q);   // "move its counters" de quem saiu: os do LKI
+      else if (!f.tipoMarc && f.qtd === 'tudo' && f.em === 'este' && (!de || de.zona !== 'campo') && ctx.lki && ctx.lki.este)   // "put [its] counters on" (Zack Fair): cada tipo do LKI
+        for (const [t, n] of Object.entries<any>(ctx.lki.este.marc || {})) if (n > 0) M.porMarcadores(e, para, t, n);
     },
   },
   // bis (CR 702.141a): uma ficha cópia por oponente, com ímpeto e "ataca se puder" (simplificação: ataca qualquer um,

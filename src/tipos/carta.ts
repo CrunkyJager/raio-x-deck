@@ -348,6 +348,10 @@ export interface RxFiltro {
    * posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')
    */
   postaPorEste?: boolean;
+  /**
+   * mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um ("a spell that targets only Zada")
+   */
+  soMiraEste?: true;
 }
 
 export interface RxCompara {
@@ -359,7 +363,10 @@ export interface RxCompara {
 export type RxZona = 'campo' | 'mao' | 'grimorio' | 'cemiterio' | 'exilio' | 'pilha' | 'comando' | 'qualquer';
 
 export interface RxAlvo {
-  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'magicaOuHab');
+  /**
+   * filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)
+   */
+  f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'habilidade' | 'magicaOuHab');
   min?: number;
   /**
    * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman)
@@ -530,6 +537,10 @@ export interface RxCustoAtv {
    * exercer (CR 701.43a): a fonte não desvira no próximo passo de desvirar do controlador
    */
   exercer?: boolean;
+  /**
+   * com descartar: só cartas que batem neste filtro ("Discard a creature card": Tortured Existence)
+   */
+  descartarF?: RxFiltro;
 }
 
 export type RxDura =
@@ -696,7 +707,12 @@ export interface RxFx {
     };
   };
   modos?: RxFxs[];
-  cada?: RxJogador | RxFiltro;
+  cada?:
+    | RxJogador
+    | RxFiltro
+    | {
+        alvo: number;
+      };
   /**
    * repetirCada / sub-efeito
    */
@@ -905,6 +921,10 @@ export interface RxFx {
    */
   habilDe?: RxObjeto;
   /**
+   * copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)
+   */
+  cadaOutroAlvo?: true;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -973,7 +993,7 @@ export interface RxCond {
    */
   vidaOponenteMax?: number;
   conjuradaCom?:
-    'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke' | 'alternativo' | 'impending';
+    'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'exilio' | 'madness' | 'evoke' | 'alternativo' | 'impending';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -1149,7 +1169,8 @@ export interface RxKw {
     | 'infectar'
     | 'fuga'
     | 'prototipo'
-    | 'comecaNoCampo';
+    | 'comecaNoCampo'
+    | 'converter';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
@@ -1360,7 +1381,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
    */
   modo:
     | 'continuo'
@@ -1525,7 +1546,7 @@ export interface RxEst {
  */
 export interface RxSubst {
   /**
-   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal)
+   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal) · explorar: quem (a criatura que exploraria) + muda.mult: explora N vezes (Topography Tracker)
    */
   ev:
     | 'entra'
@@ -1538,7 +1559,8 @@ export interface RxSubst {
     | 'anulada'
     | 'vidaMuda'
     | 'ganhaVida'
-    | 'moer';
+    | 'moer'
+    | 'explorar';
   quem?: RxFiltro;
   muda?: {
     virada?: boolean;
