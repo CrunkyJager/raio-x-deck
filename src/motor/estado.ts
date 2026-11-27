@@ -1004,7 +1004,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['comX', 'postaPorEste', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'maiorPoder', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'manaGasta', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'maiorPoder', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k)) && (!f || f.ou === undefined || (Array.isArray(f.ou) && f.ou.length > 1 && f.ou.every(g => !!g && typeof g === 'object' && M.filtroOk(g))));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -1044,6 +1044,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
   if (f.vm && !compara(d.vm || 0, limites(e, f.vm, ctx))) return false;
   if (f.poder && !compara(M.poder(e, o), limites(e, f.poder, ctx))) return false;
+  if (f.manaGasta && !compara(o.zona === 'pilha' ? o.manaGasta || 0 : 0, limites(e, f.manaGasta, ctx))) return false;   // mana gasta para conjurar (a mágica na pilha; fora dela, 0)
   if (f.resist && !compara(M.resistencia(e, o), limites(e, f.resist, ctx))) return false;
   if (f.postaPorEste !== undefined && ((!!e.postoAgora && e.postoAgora.fonte === ctx.este && e.postoAgora.id === o.id) || (!!o.postoPor && o.postoPor.fonte === ctx.este && o.postoPor.ts === o.ts)) !== !!f.postaPorEste) return false;   // Kodama of the East Tree
   if (f.comX !== undefined && ((d.custo && d.custo.x) > 0) !== !!f.comX) return false;   // "with {X} in its mana cost" (202.1, Frontline Medic)
@@ -1264,7 +1265,8 @@ M.condicao = (e, se, ctx) => {
   if (se.objBate) {                                                 // o objeto (este, doEvento, equipada, criadas, alvo) bate no filtro? nao: o contrário
     // doEvento que saiu do campo: como estava ao sair (LKI, 603.10a — "criatura sem voar morre" olha o marcador que ela tinha)
     const lki = se.objBate.em === 'doEvento' && ctx.ev && ctx.ev.snap && ctx.ev.de === 'campo' ? [ctx.ev.snap] : null;
-    const b = (lki || M.objsDe(e, { em: se.objBate.em }, ctx)).some(o => M.bate(e, o, se.objBate.f || {}, ctx));
+    const naPilha = se.objBate.em === 'doEvento' && ctx.ev && (ctx.ev.ev === 'conjura' || ctx.ev.ev === 'copia');   // a mágica conjurada está na pilha (Boromir, Warden)
+    const b = (lki || M.objsDe(e, { em: se.objBate.em, ...(naPilha ? { de: 'pilha' } : {}) }, ctx)).some(o => M.bate(e, o, se.objBate.f || {}, ctx));
     if (b === !!se.objBate.nao) return false;
   }   // "se fizer" do efeito anterior (ctx da resolução)
   const vida = e.jogs[ctx.voce].vida;

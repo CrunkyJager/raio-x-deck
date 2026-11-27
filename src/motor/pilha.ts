@@ -1021,6 +1021,7 @@ const PROC = {
     M.eventosAlvo(e, alvos, o.id);
     gastar(e, j, pagarMana(e, j, pl, custo, x, o));                                   // CR 601.2h (expend: Wandertale Mentor)
     if (o.pil) o.pil.manaGasta = M.vmDe(pl.custo || custo) + (custo && custo.x ? custo.x * x : 0);   // "the amount of mana spent to cast that spell" (Mana Sculpt; 601.2h)
+    o.manaGasta = M.vmDe(custo) + x * (custo.x || 0);                                // "if no mana was spent to cast it" (Boromir, Warden; 601.2h). Firexiana paga com vida conta como mana (aproximação)
     if (imp.vida) M.perderVida(e, j, imp.vida);
     if (alt && alt.F) { if (alt.vida) M.perderVida(e, j, alt.vida); if (alt.s.limite) alt.F.altUso = { t: e.turno.n, ts: alt.F.ts }; }   // 119.4: vida paga; "uma vez por turno"
     if (cad) pagarFisico(e, j, o, cad, fis);

@@ -356,6 +356,10 @@ export interface RxFiltro {
    * mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um ("a spell that targets only Zada")
    */
   soMiraEste?: true;
+  /**
+   * mana gasta para conjurar esta mágica (na pilha): "if no mana was spent to cast it" = {max:0} (Boromir, Warden of the Tower)
+   */
+  manaGasta?: RxCompara;
 }
 
 export interface RxCompara {
@@ -928,6 +932,10 @@ export interface RxFx {
    * copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)
    */
   cadaOutroAlvo?: true;
+  /**
+   * ficha: entra bloqueando o atacante do evento 'bloqueia' (Brimaz: "that's blocking that creature")
+   */
+  bloqueando?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
