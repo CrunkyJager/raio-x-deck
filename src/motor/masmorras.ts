@@ -19,9 +19,9 @@ M.danoJogador = (e, j, q, kw) => {
 // 'veneno' fica aceito até a normalização do banco) em J.veneno; os outros (rad, experience…) em J.marc, que por ora só guarda.
 M.marcadorJogador = (e, j, tipo, q, tirar) => {
   const J = e.jogs[j]; if (!J || J.saiu || !(q > 0)) return;
-  if (tipo === 'poison' || tipo === 'veneno') { J.veneno = Math.max(0, (J.veneno || 0) + (tirar ? -q : q)); M.log(e, J.nome, tirar ? 'perde' : 'recebe', q, 'veneno'); return; }
-  const m = J.marc || (J.marc = {});
-  m[tipo] = Math.max(0, (m[tipo] || 0) + (tirar ? -q : q));
+  if (tipo === 'poison' || tipo === 'veneno') { J.veneno = Math.max(0, (J.veneno || 0) + (tirar ? -q : q)); M.log(e, J.nome, tirar ? 'perde' : 'recebe', q, 'veneno'); }
+  else { const m = J.marc || (J.marc = {}); m[tipo] = Math.max(0, (m[tipo] || 0) + (tirar ? -q : q)); }
+  if (!tirar && M.evento) M.evento(e, { ev: 'marcadorPosto', jog: j, t: tipo === 'veneno' ? 'poison' : tipo, n: q, j: e.agente ?? j });   // marcador em jogador (122.1): o gatilho sem 'quem' vê (All Will Be One)
 };
 
 // ---------- masmorras (CR 309) — escritas pelo motor a partir do Oracle (Scryfall, 25/11) ----------

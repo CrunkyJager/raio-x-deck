@@ -139,8 +139,11 @@ function bloqueiaEste(e, b, at) {                                               
   }
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
-  if (kw(e, at, 'intimidar') && !M.temTipo(e, b, 'Artifact') && ![...(M.dadoDe(e, at).cores || '')].some(c => (M.dadoDe(e, b).cores || '').includes(c))) return false;   // 702.13b: só artefato ou quem tem uma cor em comum
   if (M.ehPortador(e, at) && M.poder(e, b) > M.poder(e, at)) return false;               // 701.54c: Portador não é bloqueado por poder maior
+  if (kw(e, at, 'intimidar') && !M.temTipo(e, b, 'Artifact')) {                          // 702.13b: só criatura artefato ou que divide cor
+    const ca = M.dadoDe(e, at).cores || '', cb = M.dadoDe(e, b).cores || '';
+    if (![...ca].some(c => cb.includes(c))) return false;
+  }
   // caminhada de terreno (702.14c): não pode ser bloqueada enquanto o defensor controla terreno daquele tipo
   for (const x of M.kwDe(e, at)) if (x.k === 'caminhadaTerreno' && typeof x.tipo === 'string'
     && M.objetosQue(e, { tipo: ['Land'], sub: [x.tipo], ctrl: 'voce', zona: 'campo' }, { voce: b.ctrl }).length) return false;

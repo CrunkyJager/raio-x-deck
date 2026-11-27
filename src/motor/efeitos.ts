@@ -12,7 +12,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 // contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -28,7 +28,7 @@ const qtdOk = q0 => { const q = M.qn(q0); return q === undefined || typeof q ===
     && (q.metade === undefined || (q.metade === true && !(ehConj(q.conta) && q.conta.junta))) && (q.divCima === undefined || (Number.isInteger(q.divCima) && q.divCima > 1))
     && !(q.conta.de === 'cada' && q.conta.o === 'vida' && !(dentroCada > 0)) && !(q.conta.de === 'cada' && q.conta.o === 'marcadores' && !(dentroObj > 0))); };
 const emOk = v => v === undefined || v === 'este' || v === 'descartadaCusto' || (v === 'cadaAtual' && dentroObj > 0) || v === 'equipada' || v === 'doEvento' || v === 'criadas' || v === 'anterior' || (v && typeof v === 'object' && (typeof v.alvo === 'number' || (v.todos && M.filtroOk(v.todos))));
-const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k))
+const seOk = se => !se || (Object.keys(se).every(k => COND_OK.has(k)) && (se.portadorDoAnel === undefined || se.portadorDoAnel === true || se.portadorDoAnel === 'este')
   && M.condValorOk(se) && (!se.objBate || (Object.keys(se.objBate).every(k => ['em', 'f', 'nao'].includes(k)) && se.objBate.em !== undefined && emOk(se.objBate.em) && M.filtroOk(se.objBate.f || {}))) && (!se.existe || M.filtroOk(se.existe.f)) && (!se.controla || M.filtroOk(se.controla.f)) && (!se.conta || (qtdOk(se.conta.q) && ['min', 'max', 'igual'].every(k => se.conta[k] === undefined || typeof se.conta[k] === 'number' || qtdOk(se.conta[k]))))
   && (!se.esteEm || (Array.isArray(se.esteEm) && se.esteEm.length > 0 && se.esteEm.every(z => ['campo', 'cemiterio', 'exilio', 'mao', 'comando', 'grimorio'].includes(z)))));
 M.seOk = seOk;
@@ -44,6 +44,7 @@ const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['q
     : a.custo.descartar ? Number.isInteger(a.custo.descartar) && a.custo.descartar > 0   // "you may discard a card. When you do…" (Awaken the Honored Dead)
     : a.custo.sacrificar === 'este' ? true                                         // "unless you sacrifice this" (Withercrown dá à encantada)
     : a.custo.sacrificar ? typeof a.custo.sacrificar === 'object' && M.filtroOk(a.custo.sacrificar.f || {}) && Object.keys(a.custo.sacrificar).every(k => k === 'f' || k === 'qtd') && (a.custo.sacrificar.qtd === undefined || Number.isInteger(a.custo.sacrificar.qtd))
+    : a.custo.exilarDe ? M.custoSuportado({ exilarDe: a.custo.exilarDe })            // "você pode exilar um card de criatura do seu cemitério" (Masked Vandal)
     : false)
   && (a.qtd === undefined || !!a.custo.mana);
 M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
@@ -97,7 +98,7 @@ function sacEntraOk(s) {
   if (!s.emVez || s.emVez.length !== 2 || !s.quem || !s.quem.este) return false;
   const [a, b] = s.emVez;
   return a.op === 'sacrificar' && (a.quem === undefined || a.quem === 'voce') && !!a.f && M.filtroOk(a.f) && !!a.qtd && a.qtd.ate === 'qualquer' && Object.keys(a).every(k => ['op', 'quem', 'f', 'qtd'].includes(k))
-    && b.op === 'marcador' && b.em === 'este' && typeof b.tipoMarc === 'string' && !!b.qtd && M.qn(b.qtd).conta && M.qn(b.qtd).conta.de === 'resultado' && Object.keys(M.qn(b.qtd).conta).length === 1 && Object.keys(b.qtd).every(k => k === 'conta' || k === 'mult') && Object.keys(b).every(k => ['op', 'em', 'tipoMarc', 'qtd'].includes(k));
+    && b.op === 'marcador' && b.em === 'este' && typeof b.tipoMarc === 'string' && !!b.qtd && (q => !!q && !!q.conta && q.conta.de === 'resultado' && Object.keys(q.conta).length === 1 && Object.keys(q).every(k => k === 'conta' || k === 'mult'))(M.qn(b.qtd)) && Object.keys(b).every(k => ['op', 'em', 'tipoMarc', 'qtd'].includes(k));
 }
 function saidaOk(s) {
   if (!Object.keys(s).every(k => ['ev', 'quem', 'muda', 'emVez', 'se', 'talvez'].includes(k)) || !!s.muda === !!s.emVez) return false;
@@ -117,7 +118,7 @@ function substsDe(e, tipo) {
   for (const id of M.indiceCampo(e).sb) { const F = e.objs[id]; if (!F) continue; for (const s of M.dadoDe(e, F).subst || []) if (tipoSubst(s) === tipo && M.substOk(s)) r.push({ F, s }); }   // índice: só quem tem substituição
   // efeitoTemporario com substituição (Spore Frog, Riot Control, Selfless Squire): vale mesmo que a fonte já tenha saído
   // (611.2b); o "você" é quem resolveu o efeito
-  for (const t of e.efTemp || []) for (const s of t.subst || []) if (tipoSubst(s) === tipo) r.push({ F: { id: t.este ? t.este.id : -1, ctrl: t.ctrl }, s });
+  for (const t of e.efTemp || []) if (!t.proxMag) for (const s of t.subst || []) if (tipoSubst(s) === tipo) r.push({ F: { id: t.este ? t.este.id : -1, ctrl: t.ctrl }, s });
   return r;
 }
 const substSe = (e, F, s) => { if (!s.se) return true; try { return M.condicao(e, s.se, { voce: F.ctrl, este: F.id }); } catch (_) { return false; } };
@@ -135,7 +136,7 @@ M.porMarcadores = (e, o, t, q) => {
   }
   q = (q + soma) * mult;
   if (t === 'lore') M.porHistoria(e, o, q); else o.marc[t] = (o.marc[t] || 0) + q;
-  if (M.evento) M.evento(e, { ev: 'marcadorPosto', id: o.id, ts: o.ts, t, n: q });   // "sempre que um ou mais marcadores forem postos" (122.6; um evento por objeto)
+  if (M.evento) M.evento(e, { ev: 'marcadorPosto', id: o.id, ts: o.ts, t, n: q, j: e.agente ?? o.ctrl });   // "sempre que um ou mais marcadores forem postos" (122.6; um evento por objeto); j = quem pôs (quem resolve o efeito; no custo/entrada, o controlador)
   return q;
 };
 // "entra com marcadores" (614.1c, 614.12): os da própria carta e os dados por outras permanentes (Arwen, Bramblewood)
@@ -316,14 +317,14 @@ const ganhoOk = f => f.em === 'este' && f.p === undefined && f.r === undefined &
   && !!f.habil && Object.keys(f.habil).length === 1 && Array.isArray(f.habil.atv) && f.habil.atv.length > 0 && f.habil.atv.every(a => !!a && M.custoSuportado(a.custo || {}) && M.fxSuportado(a.fx, { topo: false }));
 const gatSempre = f => f.dura === 'sempre' && !!f.habil && Array.isArray(f.habil.gat);
 // tipo/cor "além dos outros" e/ou disparada ganha para sempre; P/R e kw juntos só se a parte de P/R/kw sozinha passa
-const modTipoOk = f => f.dura === 'sempre' && f.em !== undefined && f.gat === undefined && !(f.est || []).length
+// trocaCor: "vira [cor]" (105.3: perde as outras), também até o fim do turno (Crimson Wisps); sem ele, cores é "além das outras"
+const modTipoOk = f => (f.dura === 'sempre' || (f.trocaCor === true && f.dura === 'fimDoTurno' && f.sub === undefined)) && (f.trocaCor === undefined || (f.trocaCor === true && f.cores !== undefined)) && f.em !== undefined && f.gat === undefined && !(f.est || []).length
   && (f.sub === undefined || (Array.isArray(f.sub) && f.sub.length > 0 && f.sub.every(x => typeof x === 'string' && x !== 'escolhido')))
   && (f.cores === undefined || (typeof f.cores === 'string' && /^[WUBRG]+$/.test(f.cores)))
   && (f.habil === undefined || (gatSempre(f) && Object.keys(f.habil).length === 1 && f.habil.gat.length > 0 && f.habil.gat.every(g => M.gatOk(g))))
   && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw);
 // "protection from each of that creature's colors" (Éowyn, Fearless Knight): as cores do que o efeito anterior moveu, na resolução
 const coresDoAnterior = (e, ctx) => [...new Set((ctx.movidos || []).flatMap(m => e.objs[m.id] ? [...(M.dadoDe(e, e.objs[m.id]).cores || '')] : []))].join('');
-const tempNaMagica = f => f.em === 'doEvento' && !(f.est || []).length && !(f.gat || []).length && (f.subst || []).length > 0 && f.subst.every(s => tipoSubst(s) === 'anulada');
 // estáticas de regra que o modificar entrega ao e.efTemp (lidas por M.tempNoObj em combate.ts)
 const EST_REGRA = ['naoPodeSerBloqueada', 'naoPodeBloquear', 'deveAtacar'];
 // estática dada por efeitoTemporario que algum leitor conhece (estado.ts: M.tempNoObj, M.vidaFixa, M.protegeJog)
@@ -359,6 +360,8 @@ function pagouParaImpedir(e, f, ctx, ask) {
     else if (c.sacrificar === 'este') { const o = e.objs[ctx.este]; if (o && o.zona === 'campo' && o.ctrl === j) ops.push({ a: 'pagar' }); }
     else if (c.descartar) { if (J.zonas.mao.length >= c.descartar) ops.push({ a: 'pagar' }); }
     else if (c.sacrificar) { if (M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }, c.sacrificar.qtd || 1)) ops.push({ a: 'pagar' }); }
+    const candEx = () => c.exilarDe ? M.objetosQue(e, { ...(c.exilarDe.f || {}), zona: c.exilarDe.zona }, { voce: j }).filter(o => J.zonas[c.exilarDe.zona].includes(o.id) && o.id !== ctx.este) : [];
+    if (c.exilarDe && candEx().length >= (c.exilarDe.qtd || 1)) ops.push({ a: 'pagar' });
     const fo = e.objs[ctx.item] || e.objs[ctx.este];
     const r = ask(j, 'aMenosQuePagar', ops, { op: f.op, fonte: fo ? fo.n : '?', de: ctx.voce, custo: c, x });
     if (r.a !== 'pagar') continue;
@@ -369,7 +372,11 @@ function pagouParaImpedir(e, f, ctx, ask) {
       const ids = escolherN(ask, j, 'descartar', J.zonas.mao.slice(), c.descartar, { ctx: { op: 'descartar' } });
       M.descartar(e, j, ids, { ask, efeito: true });
     }
-    else {
+    else if (c.exilarDe) {
+      const ex: any[] = [];
+      for (let i = 0; i < (c.exilarDe.qtd || 1); i++) ex.push(ask(j, 'custo', candEx().filter(o => !ex.includes(o.id)).map(o => ({ a: 'exilar', id: o.id })), { o: 'exilar' }).id);
+      for (const id of ex) M.mover(e, id, 'exilio');
+    } else {
       const sac: any[] = [];
       for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
         const cand = M.objetosQue(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }).filter(o => !sac.includes(o.id));
@@ -400,7 +407,8 @@ M.executar = (e, f, ctx, ask) => {
   const h = H[f.op];
   if (!h) throw new Error('efeito sem suporte no motor2: ' + f.op + ' (' + ((e.objs[ctx.item] || {}).n || '?') + ')');
   if (f.talvez) ctx.pagou = true;                                    // "se fizer" (se.pagou) do efeito seguinte
-  h.fx(e, f, ctx, ask);
+  const ag = e.agente; e.agente = ctx.voce;                          // quem faz o efeito (o "you put counters" de All Will Be One)
+  try { h.fx(e, f, ctx, ask); } finally { e.agente = ag; }
 };
 
 // entrar no campo (CR 110.2: sob o controle de quem conjurou/pôs; 614.1c "entra virado"; 614.12 escolha ao entrar)
@@ -470,9 +478,22 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
     const ids = cand.length ? escolherN(ask, ctrl, 'sacrificar', cand, cand.length, { podeMenos: true, ctx: { id, entra: true } }) : [];
     if (ids.length) sacEntra = { ids, t: b.tipoMarc, q: ids.length * (b.qtd.mult || 1) };
   }
-  return { id, ctrl, vir, pagaVida, escolha, face, clone, ...(sacEntra ? { sacEntra } : {}) };
+  // tumulto (702.136a): entra com um marcador +1/+1 a mais OU ganha pressa. Vale a dela e a dada por permanente sua (Rhythm
+  // of the Wild: "criaturas não-ficha que você controla têm tumulto"), olhando-a como vai estar no campo (614.12)
+  const tumulto = ask && temTumulto(e, o, d, ctrl) ? ask(ctrl, 'tumulto', [{ a: 'marcador' }, { a: 'pressa' }], { id }).a : null;
+  return { id, ctrl, vir, pagaVida, escolha, face, clone, tumulto, ...(sacEntra ? { sacEntra } : {}) };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, marc = null, clone = null, sacEntra = null }: any) => {
+function temTumulto(e, o, d, ctrl) {
+  if (!(d.tipos || []).includes('Creature')) return false;
+  if ((d.kw || []).some(x => x.k === 'tumulto')) return true;
+  for (const id of e.campo) {
+    const F = e.objs[id]; if (F.ctrl !== ctrl) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'continuo' && (s.kw || []).some(x => x.k === 'tumulto') && s.afeta && typeof s.afeta === 'object'
+      && M.bate(e, { ...o, ctrl }, { ...s.afeta, zona: o.zona }, { voce: F.ctrl, este: F.id })) return true;
+  }
+  return false;
+}
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, marc = null, clone = null, sacEntra = null, tumulto = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   if (sacEntra) for (const sid of sacEntra.ids) if (e.objs[sid] && e.objs[sid].zona === 'campo') M.mover(e, sid, 'cemiterio', { sac: true });   // 701.21, antes de entrar
   const o = M.mover(e, id, 'campo', { virada: vir, face, conj, clone });
@@ -480,6 +501,8 @@ M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x 
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
   if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
   if (sacEntra && sacEntra.q > 0) M.porMarcadores(e, o, sacEntra.t, sacEntra.q);
+  if (tumulto === 'marcador') M.porMarcadores(e, o, '+1/+1', 1);
+  else if (tumulto === 'pressa') (o.anim || (o.anim = [])).push({ ts: o.ts, kw: [{ k: 'pressa' }], fim: null });   // 702.136a: pressa enquanto estiver no campo
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
 };
@@ -544,7 +567,9 @@ M.criarFicha = criarFicha;
 // o que o token trouxer além do copiaDe vale por cima (707.9b). Fonte que saiu: o objeto guarda o nome e a face.
 function copiaDe(e, token, ctx) {
   const { copiaDe: de, ...resto } = token;
-  const src = de === 'doEvento' ? ctx.ev && e.objs[ctx.ev.id] : de === 'este' ? e.objs[ctx.este] : objsDe(e, { em: de }, ctx)[0];
+  // sacrificada: a sacrificada no custo (Cleaver Skaab), como estava ao sair (LKI: a face; 707.2 valores copiáveis)
+  const sac = de === 'sacrificada' && ctx.sac && ctx.sac[0] && e.objs[ctx.sac[0].id] ? { ...e.objs[ctx.sac[0].id], face: ctx.sac[0].face } : null;
+  const src = de === 'sacrificada' ? sac : de === 'doEvento' ? ctx.ev && e.objs[ctx.ev.id] : de === 'este' ? e.objs[ctx.este] : objsDe(e, { em: de }, ctx)[0];
   if (!src || src.hab) return null;
   const { faces, forma, ...base } = M.dadoBase(e, src);
   const { maisSub, semCusto, ...over } = resto;                     // "é Zombie além dos outros tipos", "não tem custo de mana" (707.9b, eternizar)
@@ -565,7 +590,15 @@ function danoEm(e, alvoObj, q, fonte) {
 
 // ---------- os efeitos ----------
 const H = {
-  comprar: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) M.comprar(e, j, q); } },
+  // "may draw up to N" (Arcane Denial): cada jogador escolhe quantas, de 0 a N; pergunta a todos antes de comprar
+  comprar: {
+    qtd: q => qtdOk(q) || (ateOk(q) && Number.isInteger(q.ate)),
+    fx(e, f, ctx, ask) {
+      const q = qtdDe(e, f.qtd, ctx), js = jogsDe(e, f, ctx);
+      const n = ateOk(f.qtd) ? js.map(j => ask(j, 'x', Array.from({ length: q + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { op: 'comprar' }).v) : js.map(() => q);
+      js.forEach((j, i) => { if (n[i] > 0) M.comprar(e, j, n[i]); });
+    },
+  },
   dano: {
     campos: ['fonte'],
     ok: f => f.fonte === undefined || f.fonte === 'doEvento' || (!!f.fonte && typeof f.fonte === 'object' && Number.isInteger(f.fonte.alvo) && Object.keys(f.fonte).length === 1),
@@ -598,7 +631,7 @@ const H = {
   // o.anim preso ao objeto, sem prazo: 611.2a). habil.gat com dura 'sempre': habilidade disparada ganha enquanto o
   // objeto estiver no campo (o.ganhos.gatS; o mover zera) — Rivaz, Clavileño.
   modificar: {
-    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat', 'sub', 'cores'],
+    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat', 'sub', 'cores', 'trocaCor'],
     qtd: q => q === undefined,
     ok: f => f.sub !== undefined || f.cores !== undefined || gatSempre(f) ? modTipoOk(f) : (f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
       && (f.gat === undefined || (Array.isArray(f.gat) && f.gat.every(g => M.gatOk(g))))   // "ganha 'quando morrer, …'" até o fim do turno (Demonic Gifts)
@@ -607,10 +640,15 @@ const H = {
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k))))),
     fx(e, f, ctx) {
       if (gatSempre(f) && f.em === 'doEvento' && ctx.ev) for (const o of [e.objs[ctx.ev.id]]) if (o && o.zona === 'pilha' && !o.hab && (ctx.ev.ts === undefined || o.ts === ctx.ev.ts)) o.gatPilha = [...(o.gatPilha || []), ...f.habil.gat];   // a mágica: a permanente que ela vira tem (Rivaz)
+      // "target instant or sorcery card in your graveyard gains flashback until end of turn" (Flashback, Snapcaster Mage):
+      // a carta no cemitério, presa por id+ts no e.efTemp; custo = o custo de mana dela (lido no flashDe, pilha.ts)
+      const noCem = objsDe(e, f, ctx).filter(o => o.zona === 'cemiterio');
+      if (noCem.length && (f.kw || []).length === 1 && f.kw[0].k === 'flashback' && !f.kw[0].custo && f.dura === 'fimDoTurno')
+        (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: [{ modo: 'darFlashback' }], este: null, ids: noCem.map(o => ({ id: o.id, ts: o.ts })), fim: 'turno', ts: ++e.ts });
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
       if (f.sub !== undefined || f.cores !== undefined || gatSempre(f)) {
         for (const o of os) {
-          if (f.sub || f.cores) (o.anim || (o.anim = [])).push({ ts: o.ts, sub: f.sub, maisCores: f.cores, fim: null });
+          if (f.sub || f.cores) (o.anim || (o.anim = [])).push({ ts: o.ts, sub: f.sub, ...(f.trocaCor ? { cores: f.cores } : { maisCores: f.cores }), fim: f.dura === 'fimDoTurno' ? 'turno' : null });
           if (gatSempre(f)) o.ganhos = { ...(o.ganhos || {}), gatS: [...((o.ganhos && o.ganhos.gatS) || []), ...f.habil.gat] };
         }
         e.vCamada = (e.vCamada || 0) + 1;
@@ -648,19 +686,17 @@ const H = {
     },
   },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
-  // em 'doEvento' só com subst anulada: "a próxima mágica que você conjurar não pode ser anulada" (Mistrise Village),
-  // preso à mágica do evento conjura (M.naoAnulavel, pilha.ts)
   efeitoTemporario: {
-    campos: ['dura', 'est', 'subst', 'emblema', 'gat'],
+    campos: ['dura', 'est', 'subst', 'emblema', 'gat', 'proximaMagica'],
     qtd: q => q === undefined,
     ok: f => (f.quem === undefined || f.quem === 'voce') && (f.dura === 'fimDoTurno' || f.dura === 'proximoTurnoSeu' || f.dura === 'sempre')
-      && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number') || tempNaMagica(f)) && ((f.est || []).length + (f.subst || []).length + (f.gat || []).length) > 0
-      && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => (tipoSubst(s) === 'dano' || tempNaMagica(f)) && M.substOk(s) && !(s.quem && s.quem.este))
+      && (f.em === undefined || f.em === 'este' || (f.em && typeof f.em.alvo === 'number')) && ((f.est || []).length + (f.subst || []).length + (f.gat || []).length) > 0
+      && (f.est || []).every(s => tempEstOk(s, f)) && (f.subst || []).every(s => f.proximaMagica ? s.ev === 'anulada' && M.substOk(s) && Object.keys(s.quem).length === 1 : tipoSubst(s) === 'dano' && M.substOk(s) && !(s.quem && s.quem.este))
+      && (!f.proximaMagica || (f.em === undefined && !(f.est || []).length && !(f.gat || []).length && f.dura === 'fimDoTurno'))
       && (f.gat || []).every(g => f.em === undefined && M.gatOk(g) && !(g.quem && g.quem.este)),
     fx(e, f, ctx) {
       const F = e.objs[ctx.este], este = F && F.zona === 'campo' && (!ctx.lki.este || F.ts === ctx.lki.este.ts) ? { id: F.id, ts: F.ts } : null;
-      const ids = f.em === undefined ? null : tempNaMagica(f) ? [ctx.ev && e.objs[ctx.ev.id]].filter(o => o && o.zona === 'pilha' && !o.hab).map(o => ({ id: o.id, ts: o.ts }))
-        : objsDe(e, f, ctx).map(o => ({ id: o.id, ts: o.ts }));
+      const ids = f.em === undefined ? null : objsDe(e, f, ctx).map(o => ({ id: o.id, ts: o.ts }));
       if (ids && !ids.length) return;                                // alvo ilegal: nada a afetar (608.2b)
       // gat: habilidade disparada do emblema (114.4) ou "neste turno, sempre que…" (603.7a, Forth Eorlingas): M.evento (gatilhos.ts) a dispara sem objeto
       const D = F || e.objs[ctx.item], n = f.emblema ? 'Emblema (' + (D ? D.n : '?') + ')' : D ? D.n : '?';
@@ -670,15 +706,16 @@ const H = {
         if (os.length) (e.temp || (e.temp = [])).push({ ids: os.map(o => ({ id: o.id, ts: o.ts })), p: 0, r: 0, kw: [], base: [s.pBase, s.rBase], ts: ++e.ts });
       }
       if (!(f.est || []).some(x => x.modo !== 'ptDefinido') && !subst.length && !(f.gat || []).length) return;
-      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: (f.est || []).filter(x => x.modo !== 'ptDefinido'), subst, gat: f.gat || [], n, este, ids, fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
+      (e.efTemp || (e.efTemp = [])).push({ ctrl: ctx.voce, est: (f.est || []).filter(x => x.modo !== 'ptDefinido'), subst, gat: f.gat || [], n, este, ids, ...(f.proximaMagica ? { proxMag: true, mag: null } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'sempre' ? 'nunca' : ctx.voce, ts: ++e.ts });   // 'sempre': resto da partida / emblema (114)
     },
   },
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
   // fimDoTurno sai na limpeza (514.2). Os números são lidos na resolução (611.2c). Lido no M.dadoDe (estado.ts).
   animar: {
-    campos: ['p', 'r', 'tipos', 'sub', 'kw', 'cores', 'dura', 'todosTipos', 'tiraKw'],
+    campos: ['p', 'r', 'tipos', 'sub', 'kw', 'cores', 'dura', 'todosTipos', 'tiraKw', 'habil'],
     qtd: q => q === undefined,
-    ok: f => f.em !== undefined && (f.dura === 'fimDoTurno' || f.dura === 'sempre') && (f.p === undefined) === (f.r === undefined)
+    // habil: só gatilhos, só até o fim do turno (Den of the Bugbear: "e ganha 'sempre que ataca, …'"): vão para o.ganhos.gat, que a limpeza zera (514.2)
+    ok: f => f.em !== undefined && (f.habil === undefined || (f.dura === 'fimDoTurno' && !!f.habil && Object.keys(f.habil).every(k => k === 'gat') && Array.isArray(f.habil.gat) && f.habil.gat.every(g => M.gatOk(g)))) && (f.dura === 'fimDoTurno' || f.dura === 'sempre') && (f.p === undefined) === (f.r === undefined)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw) && M.kwListaOk(f.tiraKw) && (f.todosTipos === undefined || f.todosTipos === true)
       && (f.p !== undefined || (f.tipos || []).length > 0 || (f.kw || []).length > 0 || (f.tiraKw || []).length > 0),
     fx(e, f, ctx) {
@@ -689,6 +726,7 @@ const H = {
         // todosTipos (Mirror Entity, 205.3m): "ganha todos os tipos de criatura" = metamorfo dado (lido em tiposCriatura)
         const kw = f.todosTipos ? [...(f.kw || []), { k: 'metamorfo' }] : f.kw;
         (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null });
+        if (f.habil) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.habil.gat] };   // 613.1f
         M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
       }
       e.vCamada = (e.vCamada || 0) + 1;
@@ -807,9 +845,15 @@ const H = {
   gatilhoAtrasado: {
     campos: ['quando'],
     ok: f => M.atrasadoOk(f.quando),
-    fx(e, f, ctx) {
+    fx(e, f, ctx, ask?) {
+      // deQuem 'oponenteEscolhido' (Faramir: "choose an opponent. At the beginning of that player's next end step"): escolhe agora
+      let jog;
+      if (f.quando.deQuem === 'oponenteEscolhido') {
+        const ops = M.vivos(e).filter(x => x !== ctx.voce); if (!ops.length) return;
+        jog = ops.length === 1 || !ask ? ops[0] : ask(ctx.voce, 'escolha', ops.map(x => ({ a: 'jogador', jog: x })), { o: 'oponente', fonte: (e.objs[ctx.este] || {}).n }).jog;
+      }
       (e.atras || (e.atras = [])).push({ g: f.quando, ctrl: ctx.voce, fonte: ctx.este, n: (e.objs[ctx.este] || e.objs[ctx.item] || {}).n, t: e.turno.n,
-        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
+        lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(jog !== undefined ? { jog } : {}), ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal, lkiAlvos: ctx.lki && ctx.lki.alvos } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
     },
   },
   // miríade (CR 702.116a): para cada oponente que não é o defensor, pode criar uma ficha cópia desta, virada e atacando
@@ -915,6 +959,18 @@ const H = {
   fasear: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) M.fasearFora(e, o.id); } },   // CR 702.26
   // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o escudo de regeneração não vale
   destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel') && (f.semRegenerar || !M.regenera(e, o))) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
+  // CR 701.37: monstruosidade N — se não é monstruosa, põe N marcadores +1/+1 e fica monstruosa (o.monstro = ts do objeto:
+  // mudou de zona, é objeto novo e não é mais, 400.7). Ativar de novo não faz nada; "quando fica monstruosa" (701.37b).
+  monstruosidade: {
+    qtd: q => typeof q === 'number' || qtdOk(q),
+    fx(e, f, ctx) {
+      for (const o of objsDe(e, f.em === undefined ? { em: 'este' } : f, ctx)) {
+        if (o.zona !== 'campo' || o.monstro === o.ts) continue;
+        M.porMarcadores(e, o, '+1/+1', qtdDe(e, f.qtd, ctx)); o.monstro = o.ts;
+        M.log(e, o.n, 'fica monstruosa'); M.evento(e, { ev: 'ficaMonstruosa', id: o.id, ts: o.ts });
+      }
+    },
+  },
   regenerar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo') M.porRegen(e, o); } },   // CR 701.15a
   // dura 'enquantoNoCampo' (CR 610.3): "exile … until [esta] leaves the battlefield" — volta ao campo do dono quando a
   // fonte sai (estado.ts M.mover, e.volta); se a fonte já saiu antes de resolver, não exila (610.3c)
@@ -968,8 +1024,9 @@ const H = {
       const q = qtdDe(e, f.qtd, ctx); if (q <= 0) return;
       const F = e.objs[ctx.este] || { ctrl: ctx.voce, escolha: null };
       const cs = M.coresDeProd(e, { ...F, ctrl: ctx.voce }, f.prod); if (!cs || !cs.length) return;
-      const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
       const J = e.jogs[ctx.voce];
+      if (f.prod.cadaCor) { for (const c of cs) J.reserva[c] += q; M.log(e, J.nome, 'recebe', cs.map(c => c.repeat(q)).join('')); return; }   // uma de cada cor
+      const c = cs.length === 1 ? cs[0] : ask(ctx.voce, 'escolha', cs.map(v => ({ a: 'cor', v })), { o: 'cor' }).v;
       // restrita (CR 106.6, Klauth: "spend this mana only to cast spells"): vai para J.restrita; com ficaNoTurno fica até o fim do turno
       if (f.so) { const m = M.zeroMana(); m[c] = q; (J.restrita || (J.restrita = [])).push({ m, f: M.filtroSo(F, f.so), ...(f.ficaNoTurno ? { fica: e.turno.n } : {}) }); M.log(e, J.nome, 'recebe', c.repeat(q), '(só para ' + (M.fmtFiltroSo(M.filtroSo(F, f.so)) || 'mágicas') + ')'); return; }
       J.reserva[c] += q;
@@ -1003,13 +1060,20 @@ const H = {
   },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
-    campos: ['token', 'virada', 'atacando'],
-    ok: f => ((f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'))
+    campos: ['token', 'virada', 'atacando', 'porJogadorAtacado'],
+    ok: f => ((f.porJogadorAtacado === undefined || (f.porJogadorAtacado === true && f.atacando === true)) && (f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || f.token.copiaDe === 'sacrificada' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'))
       && (!f.token || !f.token.gat || f.token.gat.every(g => M.gatOk(g))),   // a habilidade desencadeada da ficha também tem que ser lida (Munitions, Elemental do Wildfire Awakener)
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx); ctx.criadas = [];
       const tok = f.token && f.token.copiaDe !== undefined ? copiaDe(e, f.token, ctx) : f.token;
       if (!tok) return;
+      // "para cada jogador que você está atacando, crie … virada e atacando aquele jogador" (Soaring Lightbringer, 506.2)
+      if (f.porJogadorAtacado) {
+        const C = e.turno.combate; if (!C) return;
+        const defs = [...new Set(C.atk.filter(r => r.alvo && r.alvo.jog !== undefined && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog))];
+        for (const d of defs) for (const j of jogsDe(e, f, ctx)) for (const o of M.criarFichas(e, j, tok, q, { virada: true })) { ctx.criadas.push({ id: o.id, ts: o.ts }); M.porAtacando(e, o, { jog: d }); }
+        return;
+      }
       for (const j of jogsDe(e, f, ctx)) for (const o of M.criarFichas(e, j, tok, q, { virada: !!f.virada })) {
         ctx.criadas.push({ id: o.id, ts: o.ts });
         // CR 508.4: "virada e atacando" — fora do combate só entra virada; no "para cada oponente", ataca aquele jogador
@@ -1086,6 +1150,23 @@ const H = {
       H.gatilhoAtrasado.fx(e, { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'sacrificar', em: 'criadas' }] } }, ctx);
     },
   },
+  // fundir (CR 701.42, 712.4): se você é dono e controla as duas, exila esta e a parceira (f) e põe no campo a carta
+  // fundida (faces[0] desta). A parceira fica no exílio ligada a ela (o.fundidaCom); quando a fundida sai do campo, as
+  // duas vão juntas (712.4c). Simplificação: o valor de mana da fundida é o da face de trás (não a soma das duas, 712.8g).
+  fundir: {
+    campos: ['f', 'virada', 'atacando'],
+    ok: f => !!f.f && M.filtroOk(f.f) && f.em === undefined,
+    fx(e, f, ctx, ask) {
+      const F = e.objs[ctx.este], j = ctx.voce;
+      if (!F || F.zona !== 'campo' || F.ctrl !== j || F.dono !== j || M.formaDe(e, F) !== 'fundir' || F.ficha) return;
+      const P = M.objetosQue(e, f.f, ctx).find(o => o.id !== F.id && o.ctrl === j && o.dono === j && !o.ficha); if (!P) return;
+      M.mover(e, F.id, 'exilio'); M.mover(e, P.id, 'exilio');
+      const o = M.mover(e, F.id, 'campo', { face: 0, virada: !!f.virada });
+      o.fundidaCom = { id: P.id, ts: P.ts };
+      M.log(e, F.n, 'e', P.n, 'se fundem em', M.dadoDe(e, o).n);
+      if (f.atacando && e.turno.combate) { const t = M.escolherAtacado(e, j, ask || ((_j, _t, ops) => ops[0])); if (t) M.porAtacando(e, o, t); }   // 508.4
+    },
+  },
   // popular (CR 701.36a): escolha uma ficha de criatura que você controla e crie uma ficha que é cópia dela (sem ficha: nada, 701.36b)
   popular: {
     fx(e, f, ctx, ask) {
@@ -1098,10 +1179,18 @@ const H = {
       }
     },
   },
+  // f (sem em): "ponha N marcadores numa criatura que você controla" — escolhida na resolução, sem alvo (Finality), como o sacrificar
   marcador: {                                                       // CR 122
-    campos: ['tipoMarc', 'tirar'],
-    fx(e, f, ctx) {
+    campos: ['tipoMarc', 'tirar', 'f'],
+    ok: f => f.f === undefined || (f.em === undefined && f.quem === undefined && M.filtroOk(f.f)),
+    fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx);
+      if (f.f) {
+        const cand = M.objetosQue(e, { ...f.f, zona: f.f.zona || 'campo' }, ctx).map(o => o.id);
+        const [id] = escolherN(ask || ((_j, _t, ops) => ops[0]), ctx.voce, 'escolherCarta', cand, Math.min(1, cand.length), { ctx: { op: 'marcador' } });
+        if (id !== undefined) { if (f.tirar) e.objs[id].marc[f.tipoMarc] = Math.max(0, (e.objs[id].marc[f.tipoMarc] || 0) - q); else M.porMarcadores(e, e.objs[id], f.tipoMarc, q); }
+        return;
+      }
       if (f.em === undefined && f.quem !== undefined) { for (const j of jogsDe(e, f, ctx)) M.marcadorJogador(e, j, f.tipoMarc, q, !!f.tirar); return; }   // no jogador (122.1: poison, rad, experience)
       for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) - q1); }
     },
@@ -1110,6 +1199,8 @@ const H = {
   // qtd {ate: N|'qualquer'} ("tap X untapped Myr you control", Myr Battlesphere): quem resolve escolhe quantas, entre as
   // desviradas do em; resultado = quantas virou (o "se fizer" lê ctx.pagou do talvez)
   virar: {
+    // qtd {ate: N | 'qualquer'}: "tap X untapped Myr you control" (Myr Battlesphere): escolhe quais entre as desviradas
+    // que batem; ctx.resultado = quantas virou (o "+X/+0" e o "X de dano" do efeito seguinte)
     campos: ['naoDesvira', 'soNaoDesvira'],
     qtd: q => q === undefined || (ateOk(q) && q.ate !== 'X'),
     ok: f => (!f.soNaoDesvira || f.naoDesvira === true) && (f.qtd === undefined || !f.naoDesvira),
@@ -1136,13 +1227,18 @@ const H = {
       }
     },
   },
-  // qtd {ate: N} ("untap up to two lands", Snap): quem resolve escolhe entre as viradas do em
+  // qtd {ate: N} ("desvire até três terrenos", Frantic Search): quem resolve escolhe até N dos que batem (só os virados importam)
   desvirar: {
-    qtd: q => q === undefined || (ateOk(q) && q.ate !== 'X'),
+    qtd: q => q === undefined || ateOk(q),
     fx(e, f, ctx, ask) {
-      const os = f.qtd !== undefined ? escolherAte(e, f, ctx, ask, 'desvirar', o => o.virada) : objsDe(e, f, ctx);
+      let os = objsDe(e, f, ctx);
+      if (f.qtd !== undefined) {
+        const cand = os.filter(o => o.virada).sort((a, b) => (a.ctrl === ctx.voce ? 0 : 1) - (b.ctrl === ctx.voce ? 0 : 1)).map(o => o.id);
+        const ids = escolherN(ask || ((_j, _t, ops) => ops[0]), ctx.voce, 'desvirar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: true, ctx: { op: 'desvirar' } });
+        os = ids.map(id => e.objs[id]);
+      }
       for (const o of os) M.desvirarObj(e, o);
-      if (f.qtd !== undefined) ctx.resultado = os.length;
+      if (f.qtd !== undefined) ctx.resultado = os.length;           // quantas desvirou (o "se fizer")
     },
   },
   // CR 701.3: prende o Equipamento/Aura (em) ao objeto a. Equipamento só em criatura e nunca em si mesmo (301.5c);
@@ -1180,7 +1276,7 @@ const H = {
   descartar: {
     campos: ['aleatorio'],
     ok: f => f.aleatorio === undefined || (f.aleatorio === true && !ateOk(f.qtd)),
-    qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira' || (ateOk(q) && q.ate !== 'X'),
+    qtd: q => q === undefined || typeof q === 'number' || q === 'maoInteira' || (ateOk(q) && q.ate !== 'X') || (!ateOk(q) && qtdOk(q) && !dadoOk(q)),   // contagem (Honden: uma por Santuário seu)
     fx(e, f, ctx, ask) {
       const por: any[] = [];
       for (const j of jogsDe(e, f, ctx)) {
@@ -1224,6 +1320,11 @@ const H = {
         if (o.zona === 'pilha') M.log(e, e.jogs[o.dono].nome, 'conjura', o.n, 'pelo milagre');
       }
     },
+  },
+  turnoExtra: {                                                     // CR 500.7: "take an extra turn after this one" (pilha: o último criado vem primeiro)
+    qtd: q => q === undefined,
+    ok: f => f.quem === 'voce' || f.quem === undefined,
+    fx(e, f, ctx) { (e.turnosExtra || (e.turnosExtra = [])).push(ctx.voce); M.log(e, e.jogs[ctx.voce].nome, 'vai ter um turno extra depois deste'); },
   },
   faseExtra: {                                                      // CR 500.8: "after this phase, there is an additional combat phase [followed by an additional main phase]"
     campos: ['fase'],
@@ -1417,7 +1518,7 @@ const H = {
           esc.push(x); cand.splice(cand.indexOf(x), 1);
         }
         for (const x of esc) {
-          if (x.jog !== undefined) { e.jogs[x.jog].veneno++; continue; }
+          if (x.jog !== undefined) { const ag = e.agente; e.agente = j; M.marcadorJogador(e, x.jog, 'poison', 1, false); e.agente = ag; continue; }
           const o = e.objs[x.id];
           for (const t of Object.keys(o.marc)) if (o.marc[t] > 0) M.porMarcadores(e, o, t, 1);   // 701.34a: põe (as substituições valem, 614.1)
         }

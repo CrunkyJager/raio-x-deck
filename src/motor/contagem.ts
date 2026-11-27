@@ -4,7 +4,8 @@
 //   de    = DE QUEM/ONDE se conta: 'este' | {alvo:N} | 'evento' | 'sacrificadas' | 'lembradas' | 'cada' | {f: filtro} | 'atacado'
 //           | 'voce' | 'oponentes' | 'jogadores' | 'turno' | 'combate' | 'X' | 'resultado' | 'se' | 'escolhido'
 //   o     = O QUE se lê: 'quantos' | 'poder' | 'resist' | 'vm' | 'cores' | 'marcadores' (marc = tipo) | 'vida' | 'mao'
-//           | 'grimorio' | 'devocao' (cores) | 'magias' | 'descartes' | 'ataques' | 'atacantes' | 'atacantesEmVoce' | 'dano' …
+//           | 'grimorio' | 'devocao' (cores) | 'magias' | 'descartes' | 'ataques' | 'atacantes' | 'atacantesEmVoce' | 'dano'
+//           | 'tipos' (tipos de card, com junta 'diferentes': delirium) | 'resolucoesDestaHab' (de 'turno': Omnath) …
 //   junta = como junta vários: 'soma' | 'maior' | 'diferentes' | 'maiorPorDono' (sem junta = quantos / o valor do único)
 // Os nomes velhos continuam entrando por traduzQtd() (o cartas-rx.js de reserva, até a T45, usa os nomes velhos);
 // o banco próprio (banco/cartas) já é escrito no formato novo e o esquema não aceita mais nome velho.
@@ -36,9 +37,10 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   switch (c.de) {
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
-      : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
+      : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'tentacoes'].includes(o) && chaves(c, []);
     case 'turno': if (o === 'entraram') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
-      return ['magias', 'descartes', 'ataques', 'compras', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
+      return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
+      : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'atacado': return o === 'marcadores' && chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc;   // o jogador defensor (Nightkin Ambusher: rad)
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
@@ -54,7 +56,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 // estática: só o que não depende de evento/alvo/efeito anterior (é o CONTA_EST + PROP_EST de antes)
 function estOk(c) {
   if (temF(c)) return true;
-  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'devocao'].includes(c.o);
+  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'devocao', 'tentacoes'].includes(c.o);
   if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
@@ -105,18 +107,24 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'grimorio') return J.zonas.grimorio.length;
       if (o === 'vida') return J.vida;
       if (o === 'devocao') return M.devocao(e, ctx.voce, c.cores);
+      if (o === 'tentacoes') return (J.anel && J.anel.n) || 0;   // "the Ring has tempted you N or more times this game" (701.54d)
       return c.marc === 'poison' ? J.veneno || 0 : (J.marc || {})[c.marc] || 0;   // "for each experience counter you have" (122.1)
     case 'turno':
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'entraram') { const R = e.turno.entraram; if (!R || R.t !== e.turno.n) return 0; const { zona, ...f } = c.f || {}; return R.l.filter(x => M.bate(e, x, f, ctx)).length; }   // como era ao entrar (Éowyn, Shieldmaiden)
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
-      if (o === 'compras') { const D = J.compT; return D && D.t === e.turno.n ? D.n : 0; }      // "cards you've drawn this turn" (Fists of Flame)
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
-      if (o === 'resolucoesDestaHab') { if (ctx.resHab !== undefined) return ctx.resHab; const R = e.resHab; return R && R.t === e.turno.n && ctx.hk ? R.m[ctx.hk] || 0 : 0; }   // "the first/second time this ability has resolved this turn" (Omnath, CR 603.4); conta a de agora
+      if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
+      if (o === 'vidaPerdida' || o === 'compras') {   // de você, do jogador da vez (cadaAtual, no repetirCada) ou dos oponentes (soma/maior)
+        const de = jj => { const T = o === 'vidaPerdida' ? e.jogs[jj].perdT : e.jogs[jj].compT; return T && T.t === e.turno.n ? T.n : 0; };
+        if (c.quem === 'oponentes') { const v = M.vivos(e).filter(x => x !== ctx.voce).map(de); return c.junta === 'soma' ? v.reduce((a, b) => a + b, 0) : Math.max(0, ...v); }
+        return de(c.quem === 'cadaAtual' ? ctx.cadaAtual ?? ctx.voce : ctx.voce);
+      }
+      if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       // corpo-a-corpo (702.121a): os oponentes que você atacou com criatura neste combate (jogador, não planeswalker), na resolução
       if (o === 'oponentesAtacados') return new Set(((e.turno.combate || {}).atk || []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== ctx.voce && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog)).size;   // "the second time this ability has resolved this turn" (contando esta)
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
-    case 'combate': return M.contaAtaque(e, o, ctx.voce);
+    case 'combate': return M.contaAtaque(e, o, ctx.voce);   // oponentesAtacados: corpo-a-corpo (702.121a)
     case 'atacado': {                                                       // o jogador defensor: do evento (ataca) ou de quem bloqueia (combate.ts)
       const D = ctx.ev && ctx.ev.def !== undefined ? e.jogs[ctx.ev.def] : null; if (!D) return 0;
       return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
@@ -141,6 +149,7 @@ M.contar = (e, c, ctx: any = {}) => {
       const ob = e.objs[ev.id];
       if (o === 'poder') return !ob ? 0 : ob.zona === 'campo' || !ev.snap ? M.poder(e, ob) : M.poder(e, ev.snap);   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
       if (o === 'resist') return ob && ob.zona === 'campo' ? M.resistencia(e, ob) : ev.snap ? M.resistencia(e, ev.snap) : 0;   // Verdant Sun's Avatar
+      if (o === 'poder') return ob && ob.zona === 'campo' ? M.poder(e, ob) : ev.snap ? M.poder(e, ev.snap) : ob ? M.poder(e, ob) : 0;   // "that creature's power" (Terror of the Peaks)
       if (!ob) return 0;
       return o === 'vm' ? M.dadoDe(e, ob).vm || 0 : coresN(M.dadoDe(e, ob).cores);   // "that spell's mana value / colors" (Ramos, 105.2)
     }
