@@ -212,7 +212,10 @@ export interface RxFiltro {
   cor?: string | string[];
   zona?: RxZona;
   virada?: boolean;
-  atacando?: boolean;
+  /**
+   * 'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)
+   */
+  atacando?: boolean | 'oponente';
   /**
    * a criatura que este equipamento/aura está anexado
    */
@@ -814,9 +817,9 @@ export interface RxCond {
    */
   monarca?: boolean;
   /**
-   * você tem um Portador do Anel (o Anel te tentou)
+   * true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)
    */
-  portadorDoAnel?: boolean;
+  portadorDoAnel?: boolean | 'este';
   /**
    * oponente controla mais terrenos que você: 'algum' = algum oponente (Land Tax, Loyal Warhound); 'doEvento' = o jogador do evento (Archaeomancer's Map)
    */
@@ -1411,7 +1414,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
    */
   o?:
     | 'quantos'
@@ -1445,7 +1448,8 @@ export interface RxContagem {
     | 'maior'
     | 'dano'
     | 'nome'
-    | 'tipos';
+    | 'tipos'
+    | 'tentacoes';
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */

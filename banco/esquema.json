@@ -468,7 +468,15 @@
      "type": "boolean"
     },
     "atacando": {
-     "type": "boolean"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "oponente"
+      }
+     ],
+     "description": "'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)"
     },
     "equipada": {
      "type": "boolean",
@@ -540,7 +548,14 @@
      "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"
     },
     "semMarcador": {
-     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "string"
+      }
+     ],
      "description": "true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')"
     },
     "kw": {
@@ -551,7 +566,14 @@
      "description": "tem estas palavras-chave"
     },
     "nomeUnico": {
-     "anyOf": [{"type": "boolean"}, {"const": "criaturaOuCemiterio"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "criaturaOuCemiterio"
+      }
+     ],
      "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
     "poderAcimaBase": {
@@ -1608,8 +1630,15 @@
      "description": "você é o monarca"
     },
     "portadorDoAnel": {
-     "type": "boolean",
-     "description": "você tem um Portador do Anel (o Anel te tentou)"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "este"
+      }
+     ],
+     "description": "true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)"
     },
     "maisTerrenosOponente": {
      "enum": [
@@ -2566,9 +2595,10 @@
       "maior",
       "dano",
       "nome",
-      "tipos"
+      "tipos",
+      "tentacoes"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
     "junta": {
      "enum": [
