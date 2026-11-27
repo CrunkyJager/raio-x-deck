@@ -3543,6 +3543,16 @@ caso('702.14c', "caminhada de terreno: Cold-Eyed Selkie não pode ser bloqueada 
   ok(M.kwDe(g, g.objs[g.campo[1]]).filter(x => x.k === 'caminhadaTerreno').length >= 1, 'Lord dá islandwalk');
 });
 
+caso('702.135a', "pós-vida: Ministrant of Obligation morre e cria 2 Espíritos 1/1 voadores; exilada não", () => {
+  const e = cena({ campo: [[0, 'Ministrant of Obligation']] }); e.pend = [];
+  const m = e.objs[e.campo[0]];
+  m.dano = 5; M.abe(e); M.avancar(e); resolveCom(e);
+  const sp = e.campo.map(id => e.objs[id]).filter(o => o.ficha && (o.ficha.sub || []).includes('Spirit'));
+  igual(sp.length, 2, 'dois Espíritos'); ok(M.temKw(e, sp[0], 'voar') && sp[0].ctrl === 0, 'voam, meus');
+  const f = cena({ campo: [[0, 'Orzhov Enforcer']] }); f.pend = [];
+  M.mover(f, f.campo[0], 'exilio'); igual(f.pend.length, 0, 'exilada: nada');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
