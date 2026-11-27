@@ -1028,7 +1028,7 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
     while (soma < c.virarOutros.poder) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id) && M.poder(e, o) > 0).map(o => ({ a: 'virar', id: o.id }));
       if (!ops.length) break;
-      const id = ask(j, 'custo', ops, { o: 'virar' }).id; r.vir.push(id); soma += M.poder(e, e.objs[id]);
+      const id = ask(j, 'custo', ops, { o: 'virar', tripular: true }).id; r.vir.push(id); soma += M.poder(e, e.objs[id]);
     }
   } else if (c.virarOutros) {
     for (let i = 0; i < (c.virarOutros.qtd || 1); i++) {

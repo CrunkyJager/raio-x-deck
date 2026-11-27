@@ -7330,6 +7330,43 @@ caso('612.2', "New Blood: rouba o Elvish Archdruid e troca 'Elf' por 'Vampire' n
   M.mover(e, ad.id, 'mao'); igual(M.dadoDe(e, ad).sub, ['Elf', 'Druid'], 'saiu do campo: objeto novo, texto original (400.7)');
 });
 
+caso('722.2b', "espaçonave (Wedgelight Rammer, estação 9+ com P/R): abaixo de 9 cargas é só artefato, sem voar; com 9+ é criatura artefato 3/4 com voar e iniciativa", () => {
+  const e = cena({ campo: [[0, 'Wedgelight Rammer']] }); e.pend = [];
+  const w = objN(e, 0, 'Wedgelight Rammer');
+  w.marc.charge = 8;
+  ok(!M.temTipo(e, w, 'Creature') && !M.temKw(e, w, 'voar'), '8: não é criatura nem voa');
+  w.marc.charge = 9;
+  ok(M.temTipo(e, w, 'Creature') && M.temTipo(e, w, 'Artifact'), '9+: criatura artefato');
+  igual([M.poder(e, w), M.resistencia(e, w), M.temKw(e, w, 'voar'), M.temKw(e, w, 'primeiroAtaque')], [3, 4, true, true], '3/4, voar e iniciativa');
+});
+
+caso('702.122c', "fica tripulado (Mobilizer Mech): quando a tripular resolve, dispara e anima outro Veículo seu até o fim do turno", () => {
+  const e = cena({ campo: [[0, 'Mobilizer Mech'], [0, 'Rolling Hamsphere'], [0, 'Hill Giant']] }); e.pend = [];
+  const mm = objN(e, 0, 'Mobilizer Mech'), h = objN(e, 0, 'Rolling Hamsphere');
+  ok(M.gatOk(M.carta('Mobilizer Mech').gat[0]), 'gatilho aceito');
+  M.avancar(e); respE(e, op => op.a === 'ativar' && op.id === mm.id);
+  for (let g = 0; e.perg && g < 30 && !(e.perg.tipo === 'acao' && !e.pilha.length && !e.pend.length); g++) {
+    const p = e.perg;
+    if (p.tipo === 'alvo') { M.responder(e, p.ops.findIndex(op => op.o === h.id)); continue; }
+    M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(op => op.a === 'passar') : M.agenteBasico()(e, p));
+  }
+  ok(M.temTipo(e, mm, 'Creature'), 'o Mech tripulado é criatura');
+  ok(M.temTipo(e, h, 'Creature'), 'o gatilho animou o Hamsphere');
+});
+
+caso('702.122a', "agente tripula com critério: Rolling Hamsphere (4/4, tripular 3) com dois ursos enjoados tripula (não perde ataque); com dois ursos prontos (4 de poder) não", () => {
+  const vez = enjoo => {
+    const e = cena({ campo: [[0, 'Rolling Hamsphere'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']] }); e.pend = [];
+    const h = objN(e, 0, 'Rolling Hamsphere');
+    for (const id of e.campo) if (e.objs[id].n === 'Grizzly Bears') e.objs[id].doente = enjoo;
+    M.avancar(e);
+    const op = e.perg && e.perg.ops[M.agenteBasico()(e, e.perg)];
+    return !!op && op.a === 'ativar' && op.id === h.id;
+  };
+  ok(vez(true), 'ursos enjoados: tripula');
+  ok(!vez(false), 'ursos prontos (2+2 = 4, não < 4): não tripula');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
