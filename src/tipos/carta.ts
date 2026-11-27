@@ -1066,10 +1066,12 @@ export interface RxKw {
     | 'decaida'
     | 'infectar'
     | 'fuga'
-    | 'dragar';
+    | 'dragar'
+    | 'suspender'
+    | 'desaparecer';
   custo?: RxMana;
   /**
-   * dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b)
+   * dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b). suspender: N marcadores de tempo, com custo (702.62a: da mão, pague o custo e exile com N marcadores; na sua manutenção tira 1; ao tirar o último, conjura sem pagar o custo de mana; criatura ganha ímpeto). desaparecer: N (702.63a: entra com N marcadores de tempo; na sua manutenção, se tem, tira 1; ao tirar o último, sacrifique)
    */
   n?: number;
   /**

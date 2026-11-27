@@ -230,6 +230,7 @@ const RESP = {
     else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
     else if (op.a === 'prever') M.prever(e, p.j, op.id);
+    else if (op.a === 'suspender') M.suspender(e, p.j, op.id);
   },
   descartar(e, p, op) {
     M.descartar(e, p.j, [op.id]);                                   // CR 514.1 (dispara 'descarta'; loucura vale)

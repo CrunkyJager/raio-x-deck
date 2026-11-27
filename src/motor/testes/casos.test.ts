@@ -5898,6 +5898,69 @@ caso('702.52b', 'dragar: com menos de N cartas no grimório não dá; carta com 
   igual(naZona(e2, 0, 'mao').filter(n => n === 'Life from the Loam').length, 2, 'as duas na mão');
 });
 
+caso('702.62a', 'suspender (Resurgent Belief, sem custo de mana): da mão paga {1}{W} e exila com 2 de tempo; não dá para conjurar; tira 1 em cada manutenção sua; no último conjura de graça', () => {
+  const e = cena({ campo: terras(2, 'Plains'), mao: [[0, 'Resurgent Belief']] }); e.pend = [];
+  const rb = e.jogs[0].zonas.mao[0];
+  for (const nm of ['Phyrexian Arena', 'Rhystic Study']) { const g = e.jogs[0].zonas.grimorio, id = g[0]; e.objs[id].n = nm; M.mover(e, id, 'cemiterio'); }
+  const ops = M.opcoesPrioridade(e, 0);
+  ok(ops.some(o => o.a === 'suspender' && o.id === rb), 'pode suspender');
+  ok(!ops.some(o => o.a === 'conjurar' && o.id === rb), 'sem custo de mana: não conjura da mão');
+  M.avancar(e); respE(e, o => o.a === 'suspender' && o.id === rb);
+  igual([e.objs[rb].zona, e.objs[rb].marc.time, e.campo.filter(id => e.objs[id].virada).length, M.suspensa(e.objs[rb])], ['exilio', 2, 2, true], 'exilada com 2, pagou {1}{W}, suspensa');
+  ateTurno(e, 3);
+  igual(e.objs[rb].marc.time, 2, 'manutenção do oponente não tira');
+  ateTurno(e, 4);
+  igual(e.objs[rb].marc.time, 1, 'sua manutenção tira 1');
+  ateTurno(e, 6);
+  igual(e.objs[rb].zona, 'cemiterio', 'tirou o último: conjurou e resolveu');
+  ok(['Phyrexian Arena', 'Rhystic Study'].every(n => noCampo(e).includes(n)), 'os encantamentos voltaram');
+});
+caso('702.62b', 'suspensa = no exílio com marcador de tempo e suspender; sem custo de suspender pagável não suspende; outra carta no exílio com marcador de tempo não dispara', () => {
+  const e = cena({ campo: terras(1, 'Plains'), mao: [[0, 'Resurgent Belief']] }); e.pend = [];
+  const rb = e.jogs[0].zonas.mao[0];
+  ok(!M.opcoesPrioridade(e, 0).some(o => o.a === 'suspender'), 'uma terra só: não paga {1}{W}');
+  const e2 = cena({ mao: [[0, 'Resurgent Belief'], [0, 'Grizzly Bears']] }); e2.pend = [];
+  const [r2, gb] = e2.jogs[0].zonas.mao;
+  M.mover(e2, r2, 'exilio'); e2.objs[r2].marc.time = 2;                // exilada com marcador, mas não pelo suspender
+  M.mover(e2, gb, 'exilio'); e2.objs[gb].marc.time = 1; e2.objs[gb].suspensa = true;   // sem suspender na carta
+  ok(!M.suspensa(e2.objs[r2]), 'sem ter sido suspensa não está suspensa');
+  M.suspensoEvento(e2, 0);
+  igual(e2.pend.length, 0, 'nenhum gatilho');
+  e2.objs[r2].suspensa = true; e2.objs[r2].marc.time = 0;
+  ok(!M.suspensa(e2.objs[r2]), 'sem marcador de tempo não está suspensa');
+  void rb;
+});
+caso('702.62c', 'suspender de criatura: conjurada ao tirar o último marcador ganha ímpeto (pressa); pode recusar e ela fica no exílio', () => {
+  const nm = 'Criatura Suspensa de Teste';
+  (banco.db as any)[nm] = { v: 2, n: nm, custo: { g: 5 }, vm: 5, ci: 'G', cores: 'G', tipos: ['Creature'], pt: [4, 4], kw: [{ k: 'suspender', n: 1, custo: { p: ['G'] } }] };
+  try {
+    for (const quer of [true, false]) {
+      const e = cena({ campo: terras(1, 'Forest'), mao: [[0, nm]] }); e.pend = [];
+      const c = e.jogs[0].zonas.mao[0];
+      M.avancar(e); respE(e, o => o.a === 'suspender' && o.id === c);
+      e.turno.n = 3; e.turno.ativo = 1; e.turno.passo = 'final'; e.turno.prio = null; e.perg = null;
+      ateTurno(e, 4, 'manutencao');
+      M.avancar(e); let g = 0;
+      while (e.perg && e.perg.tipo !== 'jogar' && g++ < 50) M.responder(e, e.perg.tipo === 'acao' ? e.perg.ops.findIndex(o => o.a === 'passar') : 0);
+      ok(e.perg && e.perg.tipo === 'jogar', 'perguntou se conjura');
+      respE(e, o => o.a === (quer ? 'jogar' : 'naoJogar'));
+      if (!quer) { igual([e.objs[c].zona, M.suspensa(e.objs[c])], ['exilio', false], 'recusou: fica exilada, não mais suspensa'); continue; }
+      ateTurno(e, 4, 'principal1');
+      igual(e.objs[c].zona, 'campo', 'entrou');
+      ok(M.temKw(e, e.objs[c], 'pressa'), 'com ímpeto');
+    }
+  } finally { delete (banco.db as any)[nm]; }
+});
+
+caso('702.63a', 'desaparecer 2 (Dreamtide Whale): entra com 2 de tempo; tira 1 só na manutenção de quem controla; ao tirar o último é sacrificada', () => {
+  const e = cena({ mao: [[0, 'Dreamtide Whale']] }); e.pend = [];
+  const w = e.jogs[0].zonas.mao[0]; M.aplicarEntrada(e, { id: w, ctrl: 0 });
+  igual(e.objs[w].marc.time, 2, 'entrou com 2');
+  ateTurno(e, 3); igual(e.objs[w].marc.time, 2, 'manutenção do oponente não tira');
+  ateTurno(e, 4); igual(e.objs[w].marc.time, 1, 'tira 1');
+  ateTurno(e, 6); igual(e.objs[w].zona, 'cemiterio', 'tirou o último: sacrificada');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;

@@ -334,6 +334,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'atacado': return op.jog !== undefined ? nomeJ(op.jog) : `${nomeOp(e.objs[op.o])} (${nomeJ(e.objs[op.o].ctrl)})`;
       case 'jogador': return nomeJ(op.jog);
       case 'jogar': return `Conjurar ${nomeOp(ob)}${p.ctx && p.ctx.gratis ? ' de graça' : ''}`;
+      case 'naoJogar': return 'Não conjurar (fica no exílio)';
       case 'mao': return `Pôr ${nomeOp(ob)} na mão`;
       case 'primeiro': return `${nomeOp(ob)} recebe o dano primeiro`;
       case 'dividir': return String(op.v);
@@ -400,7 +401,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
           if (o.a === 'terreno' && o.face === undefined && ob.zona === 'mao' && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a });
           else if (o.a === 'conjurar' && ob.cmd && ob.zona === 'comando' && !ops.some(x => x.v === 'cmd')) ops.push({ v: 'cmd', n: ob.n, k });
           else if (o.a === 'conjurar' && ob.zona === 'mao' && o.face === undefined && !ops.some(x => x.v === i)) ops.push({ v: i, n: ob.n, k, a: o.a, lac: !!(lacs[HK][i] && lacs[HK][i]!.length) });
-          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'terreno' ? `Baixar ${ob.n} (${o.face != null ? 'outra face' : DE_ZONA[ob.zona] || ob.zona})` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + (DE_ZONA[ob.zona] || ob.zona) + ')' : ''}`, k });
+          else ops.push({ v: 'eq' + k, n: o.a === 'ativar' ? `Ativar ${ob.n}` : o.a === 'suspender' ? `Suspender ${ob.n} (${(M.suspenderDe(e, ob) || {}).n} marcadores de tempo)` : o.a === 'prever' ? `Prever ${ob.n} (exila virada por {2})` : o.a === 'terreno' ? `Baixar ${ob.n} (${o.face != null ? 'outra face' : DE_ZONA[ob.zona] || ob.zona})` : `Conjurar ${ob.n}${o.face != null ? ' (outra face)' : ob.zona !== 'mao' ? ' (' + (DE_ZONA[ob.zona] || ob.zona) + ')' : ''}`, k });
         });
         const mana = M.somaMana(J.reserva) + M.fontesDeMana(e, HK).length;
         const r = pede('lanca', { ops, mao: mao(), mana, resp: !minha, reserva: M.somaMana(J.reserva) ? M.fmtMana(J.reserva) : '', passo: e.turno.passo });
