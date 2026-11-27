@@ -3873,6 +3873,15 @@ caso('702.116a', "miríade: atacando um de 3 jogadores, cria cópias viradas e a
   ok(M.carta('Battle Angels of Tyr').kw.some(x => x.k === 'miriade'));
 });
 
+caso('702.79a', "persistir: Puppeteer Clique morre e volta com -1/-1; morrendo com o marcador, fica no cemitério", () => {
+  const e = cena({ campo: [[0, 'Puppeteer Clique']] }); e.pend = [];
+  const p = e.objs[e.campo[0]];
+  M.mover(e, p.id, 'cemiterio'); M.avancar(e); resolveCom(e);
+  ok(p.zona === 'campo' && p.marc['-1/-1'] === 1, 'voltou com -1/-1: ' + p.zona);
+  e.pend = []; M.mover(e, p.id, 'cemiterio'); igual(e.pend.filter(x => x.k === 'persistir').length, 0, 'com o marcador: não persiste');
+  ok(M.carta('River Kelpie').kw.some(x => x.k === 'persistir'));
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

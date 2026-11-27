@@ -464,11 +464,12 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
   }
   return { id, ctrl, vir, pagaVida, escolha, face };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0 }) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, marc = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
   const o = M.mover(e, id, 'campo', { virada: vir, face, conj });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
+  if (marc) for (const t in marc) M.porMarcadores(e, o, t, marc[t]);   // "volta com um marcador -1/-1" (persistir)
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
 };
@@ -791,6 +792,14 @@ const H = {
       const criadas: any[] = [];
       for (const j of quem) for (const t of M.criarFichas(e, ctx.voce, tok, 1, { virada: true })) { M.porAtacando(e, t, { jog: j }); criadas.push({ id: t.id, ts: t.ts }); }
       H.gatilhoAtrasado.fx(e, { quando: { ev: 'fase', passo: 'fimCombate', deQuem: 'voce', nesteTurno: true, fx: [{ op: 'exilar', em: 'criadas' }] } }, { ...ctx, criadas });
+    },
+  },
+  // persistir (CR 702.79a): a carta que morreu (mesmo objeto no cemitério: ev.tsCem) volta ao campo do dono com um -1/-1
+  persistir: {
+    ok: () => false,
+    fx(e, f, ctx, ask) {
+      const o = e.objs[ctx.este]; if (!o || o.zona !== 'cemiterio' || !ctx.ev || o.ts !== ctx.ev.tsCem) return;
+      M.aplicarEntrada(e, { ...M.decidirEntrada(e, o.id, o.dono, {}, ask), marc: { '-1/-1': 1 } });
     },
   },
   // CR 603.12: gatilho reflexo ("when you do, …"): criado na resolução, dispara na hora; vai à pilha da próxima vez que
