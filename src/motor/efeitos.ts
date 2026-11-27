@@ -981,11 +981,11 @@ const H = {
   ganharJogo: { fx(e, f, ctx) {                                     // CR 104.2b: o efeito diz que ele vence; no multijogador os outros perdem juntos (104.3h)
     if (e.fim) return;
     const j = jogsDe(e, f, ctx).find(x => !e.jogs[x].saiu);
-    if (j === undefined) return;
+    if (j === undefined || M.naoVence(e, j)) return;               // "your opponents can't win the game" (Platinum Angel)
     M.log(e, e.jogs[j].nome, 'vence o jogo por efeito');
     e.fim = { vencedor: j, motivo: 'efeito: vence o jogo', turno: e.turno.n };
   } },
-  perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
+  perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu && !M.naoPerde(e, j)) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) if (!M.vidaFixa(e, j)) M.perderVida(e, j, q); } },   // 119.7
   copiarMagica: {                                                   // CR 707.10: "copy that spell" (pilha.ts: M.alvosDaCopia/M.criarCopia)
     campos: ['novoAlvo'],
@@ -1238,7 +1238,7 @@ const H = {
   escolher: {                                                       // "choose a creature type / a color" na resolução: vale para os efeitos seguintes (ctx.escolha)
     campos: ['o'],
     qtd: q => q === undefined,
-    ok: f => (f.o === 'tipoCriatura' || f.o === 'cor') && (f.quem === undefined || f.quem === 'voce'),
+    ok: f => (f.o === 'tipoCriatura' || f.o === 'cor') && (f.quem === undefined || f.quem === 'voce' || (f.quem === 'cadaAtual' && f.o === 'tipoCriatura' && dentroCada > 0)),
     fx(e, f, ctx, ask) {
       let ops;
       if (f.o === 'cor') ops = 'WUBRG'.split('').map(v => ({ a: 'cor', v }));
@@ -1247,9 +1247,10 @@ const H = {
         for (const x of Object.values<any>(e.objs)) if (!x.hab && x.zona !== 'fora' && M.temTipo(e, x, 'Creature')) (M.dadoDe(e, x).sub || []).forEach(s => t.add(s));
         ops = [...(t.size ? t : new Set(['Human']))].sort().map(v => ({ a: 'tipo', v }));
       }
-      const r = ask(ctx.voce, 'escolha', ops, { o: f.o, fonte: (e.objs[ctx.este] || {}).n });
-      ctx.escolha = { ...(ctx.escolha || {}), ...(f.o === 'cor' ? { cor: r.v } : { tipo: r.v }) };
-      M.log(e, e.jogs[ctx.voce].nome, 'escolhe', r.v);
+      const quem = f.quem === 'cadaAtual' ? ctx.cadaAtual : ctx.voce;  // cadaAtual (repetirCada): cada jogador escolhe; os tipos se juntam em escolha.tipos
+      const r = ask(quem, 'escolha', ops, { o: f.o, fonte: (e.objs[ctx.este] || {}).n });
+      ctx.escolha = f.quem === 'cadaAtual' ? { ...(ctx.escolha || {}), tipos: [...((ctx.escolha && ctx.escolha.tipos) || []), r.v] } : { ...(ctx.escolha || {}), ...(f.o === 'cor' ? { cor: r.v } : { tipo: r.v }) };
+      M.log(e, e.jogs[quem].nome, 'escolhe', r.v);
     },
   },
   revelarTopo: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; const ids = g.slice(-q).reverse(); if (ids.length) M.log(e, e.jogs[j].nome, 'revela do topo', ids.map(id => e.objs[id].n).join(', ')); } } },   // CR 701.20: só mostra; quem pega é o efeito seguinte (topo: true)

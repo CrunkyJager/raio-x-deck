@@ -241,7 +241,7 @@ M.abe = e => {
     const perdem: any[] = [];
     for (const J of e.jogs) {
       if (J.saiu) continue;
-      if (J.vida <= 0 || J.comprouVazio || J.veneno >= 10 || Object.values<any>(J.danoCmd).some(d => d >= 21)) perdem.push(J.i);
+      if ((J.vida <= 0 || J.comprouVazio || J.veneno >= 10 || Object.values<any>(J.danoCmd).some(d => d >= 21)) && !M.naoPerde(e, J.i)) perdem.push(J.i);   // Platinum Angel
       J.comprouVazio = false;
     }
     // permanentes (CR 704.5f, g, i) e fichas fora do campo (704.5d)

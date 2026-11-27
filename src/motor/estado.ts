@@ -279,6 +279,9 @@ M.virarObj = (e, o) => { if (!o || o.virada) return; o.virada = true; if (M.even
 M.desvirarObj = (e, o) => { if (!o || !o.virada) return; o.virada = false; if (M.evento) M.evento(e, { ev: 'desvira', id: o.id, ts: o.ts }); };
 // "sua vida não pode mudar" (Teferi's Protection, Flare of Fortitude, Platinum Emperion): sem ganho, perda nem pagar vida (119.8)
 M.vidaFixa = (e, j) => estJog(e, j, s => s.modo === 'vidaNaoMuda');
+// "you can't lose the game and your opponents can't win the game" (Platinum Angel, CR 104.3/104.2): estática naoPerdeJogo afeta voce
+M.naoPerde = (e, j) => estJog(e, j, s => s.modo === 'naoPerdeJogo');
+M.naoVence = (e, j) => M.vivos(e).some(x => x !== j && M.naoPerde(e, x));
 // "você tem proteção contra tudo" (702.16j, 702.16b): não é alvo, dano a você é prevenido. Só 'tudo' por ora.
 M.protegeJog = (e, j) => estJog(e, j, s => s.modo === 'protecaoJogador' && protTudo(s));
 // "você tem antimagia" (702.11c): oponente não mira você (Dawn's Truce, Lazotep Plating, Metropolis Reformer)
@@ -986,7 +989,11 @@ function tipoEmComum(e, o, ref, ctx) {
   return outros.some(x => x && comumCom(t, tiposCriatura(e, x)));
 }
 const escolhidoDe = (e, ctx) => { if (ctx.escolha && ctx.escolha.tipo) return ctx.escolha.tipo; const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };   // op escolher na resolução (ctx.escolha) antes da escolha ao entrar
-const ehEscolhido = (e, o, ctx) => { const v = escolhidoDe(e, ctx), t = tiposCriatura(e, o); return v !== '\u0000' && (t === 'todos' || t.includes(v)); };   // changeling é de todos os tipos (702.73a)
+const ehEscolhido = (e, o, ctx) => {
+  const t = tiposCriatura(e, o);
+  if (ctx.escolha && ctx.escolha.tipos) return t === 'todos' || ctx.escolha.tipos.some(v => t.includes(v));   // "a type chosen this way" (Patriarch's Bidding: cada jogador escolhe um)
+  const v = escolhidoDe(e, ctx); return v !== '\u0000' && (t === 'todos' || t.includes(v));
+};   // changeling é de todos os tipos (702.73a)
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));
 const quemBate = (e, j, q, voce, ctx: any = {}) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : q === 'cadaAtual' ? j === ctx.cadaAtual : q === 'atacado' ? !!ctx.ev && ctx.ev.def !== undefined && j === ctx.ev.def
   : q === 'doEvento' ? !!ctx.ev && j === (ctx.ev.ev === 'dano' ? ctx.ev.jog : ctx.ev.j ?? ctx.ev.jog) : true;   // doEvento: o jogador do evento (Hellkite Tyrant: quem levou o dano)   // cadaAtual: o jogador da vez no repetirCada

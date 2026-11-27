@@ -4510,6 +4510,60 @@ caso('603.4', "Éowyn, Shieldmaiden: 'se outro Humano entrou sob seu controle ne
   e.turno.n++; ok(!se(), 'no turno seguinte, não');
 });
 
+caso('608.2c', "Patriarch's Bidding: cada jogador escolhe um tipo; cada um devolve do cemitério as criaturas de QUALQUER tipo escolhido", () => {
+  ok(M.fxSuportado(M.carta("Patriarch's Bidding").fx), 'efeito aceito');
+  const e = cena({});
+  const el = e.por(0, 'Llanowar Elves', { zona: 'cemiterio' }), gb = e.por(1, 'Grizzly Bears', { zona: 'cemiterio' }), g0 = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }), kr = e.por(1, 'Krenko, Mob Boss', { zona: 'cemiterio' });
+  const quer = { 0: 'Elf', 1: 'Bear' }, quem: number[] = [];
+  const ask = (j, t, ops) => { if (t === 'escolha') { quem.push(j); return ops.find(o => o.v === quer[j]) || ops[0]; } return ops[0]; };
+  (ask as any).etapa = () => {};
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const f of M.carta("Patriarch's Bidding").fx) M.executar(e, f, ctx, ask);
+  igual(quem, [0, 1], 'os dois escolheram');
+  ok(el.zona === 'campo' && gb.zona === 'campo' && g0.zona === 'campo', 'Elfo e os dois Ursos voltam');
+  igual(kr.zona, 'cemiterio', 'o Goblin não');
+});
+
+caso('608.2n', "Padeem: compra se você controla o artefato de maior valor de mana (empate vale); Perch Protection se exila ao resolver", () => {
+  const g = M.carta('Padeem, Consul of Innovation').gat[0]; ok(M.gatOk(g), 'gatilho aceito');
+  const e = cena({ campo: [[0, 'Padeem, Consul of Innovation'], [0, 'Sol Ring'], [1, 'Sol Ring']] });
+  const pd = objN(e, 0, 'Padeem, Consul of Innovation'), se = () => M.condicao(e, g.se, { voce: 0, este: pd.id });
+  ok(se(), 'empate: compra');
+  e.por(1, 'Myr Battlesphere'); ok(!se(), 'o oponente tem o maior: não');
+  const f = cena({ campo: [[0, 'Padeem, Consul of Innovation']] }); ok(!M.condicao(f, g.se, { voce: 0, este: objN(f, 0, 'Padeem, Consul of Innovation').id }), 'sem artefato: não');
+  const h = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Plains']], mao: [[0, 'Perch Protection']] });
+  M.avancar(h); conj(h, 'Perch Protection');
+  for (let k = 0; k < 20 && h.perg && (h.pilha.length || h.perg.tipo !== 'acao'); k++) respE(h, o => o.a === 'passar' || o.a !== 'opcao' || !o.v.presente);
+  ok(h.jogs[0].zonas.exilio.some(id => h.objs[id].n === 'Perch Protection'), 'no exílio');
+  ok(!h.jogs[0].zonas.cemiterio.some(id => h.objs[id].n === 'Perch Protection'), 'não no cemitério');
+  igual(h.campo.filter(id => h.objs[id].n !== 'Plains').length, 4, 'quatro Pássaros');
+});
+
+caso('104.3a', "Platinum Angel: com 0 de vida você não perde; ela sai, você perde nas ações de estado; o oponente não vence por efeito", () => {
+  const e = cena({ campo: [[0, 'Platinum Angel']] });
+  e.jogs[0].vida = 0; M.abe(e);
+  ok(!e.jogs[0].saiu, 'não perdeu');
+  M.executar(e, { op: 'ganharJogo', quem: 'voce' }, { voce: 1, alvos: [], ilegal: {}, lki: { alvos: [] } }, () => ({}));
+  ok(!e.fim, 'o oponente não vence');
+  M.mover(e, objN(e, 0, 'Platinum Angel').id, 'cemiterio'); M.abe(e);
+  ok(e.jogs[0].saiu, 'sem o Anjo: perde');
+});
+
+caso('603.7', "Phelia: a exilada volta no final; se voltou sob seu controle (era sua), Phelia ganha +1/+1; a do oponente volta para ele e nada", () => {
+  const g = M.carta('Phelia, Exuberant Shepherd').gat[0]; ok(M.gatOk(g) && M.atrasadoOk(g.fx[1].quando), 'gatilho e atrasado aceitos');
+  for (const [dono, marca] of [[0, 1], [1, undefined]] as any) {
+    const e = cena({ campo: [[0, 'Phelia, Exuberant Shepherd'], [dono, 'Sol Ring']] });
+    const ph = objN(e, 0, 'Phelia, Exuberant Shepherd'), sr = objN(e, dono, 'Sol Ring');
+    const ctx: any = { voce: 0, este: ph.id, alvos: [[{ o: sr.id, ts: sr.ts }]], ilegal: {}, lki: { alvos: [[M.lkiDe(e, sr)]], este: M.lkiDe(e, ph) } };
+    for (const f of g.fx) M.executar(e, f, ctx, () => ({ a: 'nao' }));
+    igual(sr.zona, 'exilio', 'exilada');
+    const A = e.atras[0], c2: any = { voce: 0, este: ph.id, alvos: [], ilegal: {}, lki: { alvos: [], este: A.lki }, ...A.mem };
+    for (const f of A.g.fx) M.executar(e, f, c2, () => ({ a: 'nao' }));
+    ok(sr.zona === 'campo' && sr.ctrl === dono, 'voltou para o dono');
+    igual(ph.marc['+1/+1'], marca, dono === 0 ? 'sua: +1/+1' : 'do oponente: nada');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

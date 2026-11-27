@@ -1145,6 +1145,7 @@ export interface RxEst {
     | 'conjurarComLampejo'
     | 'desviraNoTurnoDeOutro'
     | 'vidaNaoMuda'
+    | 'naoPerdeJogo'
     | 'protecaoJogador'
     | 'ptDefinido'
     | 'danoNaoPrevenivel'
