@@ -17,7 +17,7 @@ try {
   const { M } = await srv.ssrLoadModule('/src/motor/index.ts');
   const { bancoProprio } = await srv.ssrLoadModule('/src/dados/cartas.ts');
   const codigo = readdirSync(path.join(raiz, 'src/motor')).filter(f => f.endsWith('.ts')).map(f => readFileSync(path.join(raiz, 'src/motor', f), 'utf8')).join('\n');
-  const citado = new Set([...codigo.matchAll(/'([a-zA-Z]+)'/g)].map(m => m[1]));
+  const citado = new Set([...codigo.matchAll(/'([a-zA-Z][a-zA-Z-]*)'/g)].map(m => m[1]));
 
   const motivos = new Map();          // motivo → Set(cartas)
   const anota = (m, n) => { if (!motivos.has(m)) motivos.set(m, new Set()); motivos.get(m).add(n); };
@@ -48,7 +48,7 @@ try {
   for (const c of cartas) {
     const n = c.n, antes = [...motivos.values()].reduce((s, v) => s + (v.has(n) ? 1 : 0), 0);
     const ve = d => {
-      for (const k of Object.keys(d)) if (!BASE_CARTA.has(k)) anota(`carta.${k}`, n);
+      for (const k of Object.keys(d)) if (!BASE_CARTA.has(k) && !(M.CARTA_OK && M.CARTA_OK.has(k))) anota(`carta.${k}`, n);
       fxMotivos(d.fx, true, n, 'fx');
       for (const a of d.alvos || []) if (!M.alvoSuportado(a)) anota(`alvo ${typeof a.f === 'string' ? a.f : Object.keys(a.f || {}).filter(k => !M.filtroOk({ [k]: 1 })).map(k => 'f.' + k).join(',') || Object.keys(a).filter(k => !['f', 'min', 'max'].includes(k)).join(',') || '?'}`, n);
       if (d.custoAd && !M.custoAdSuportado(d.custoAd)) for (const k of Object.keys(d.custoAd).filter(k => k !== 'ou')) if (!M.custoSuportado({ [k]: d.custoAd[k] })) anota(`custoAd.${k}`, n);
