@@ -2,7 +2,12 @@
   // Aba Lista (T43 d): primeira tela em componente. A caixa #deck-in continua sem bind (análise e montar leem e
   // escrevem .value direto); o Analisar e os exemplos chamam window.RAIOX.run, que lê a caixa como antes.
   const ex: Record<string, string> = window.EXEMPLOS || {};
-  const analisa = () => window.RAIOX?.run();
+  // 27/11: clique antes da análise carregar (RAIOX ainda não existe) não fazia nada; agora avisa e roda quando ela chegar
+  const analisa = () => {
+    if (window.RAIOX) { window.RAIOX.run(); return; }
+    const m = document.getElementById('go-msg'); if (m) m.textContent = 'Carregando as cartas…';
+    setTimeout(analisa, 200);
+  };
   function exemplo(nome: string) {
     const caixa = document.getElementById('deck-in') as HTMLTextAreaElement;
     caixa.value = ex[nome]; analisa();

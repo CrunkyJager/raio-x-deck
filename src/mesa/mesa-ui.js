@@ -500,16 +500,21 @@ async function x1Entrar(id) {
   X1 = { peer, eu: 1 };
   peer.on('open', () => {
     const c = peer.connect(id, { reliable: true }); X1.c = c;
-    c.on('open', () => { c.send({ tp: 'deck', Dv: deckVivo(), nome: meuCmd() }); x1Aviso('Na sala. Esperando o anfitrião começar…'); });
+    c.on('open', () => { x1Envia({ tp: 'deck', Dv: deckVivo(), nome: meuCmd() }, c); x1Aviso('Na sala. Esperando o anfitrião começar…'); });
     c.on('data', x1Recebe); c.on('close', () => x1Aviso('O anfitrião fechou a sala.', 1));
   });
   peer.on('error', er => x1Aviso('Não deu para entrar na sala: ' + esc(String(er.type || er)), 1));
 }
+// 27/11: o PeerJS não manda Set/Map (o deck tem Set) → vai como texto JSON, Set/Map marcados e refeitos na chegada
+const x1Txt = o => JSON.stringify(o, (k, v) => v instanceof Set ? { __set: [...v] } : v instanceof Map ? { __map: [...v] } : v);
+const x1Obj = t => JSON.parse(t, (k, v) => v && typeof v === 'object' && !Array.isArray(v) ? (v.__set ? new Set(v.__set) : v.__map ? new Map(v.__map) : v) : v);
+function x1Envia(o, c) { (c || X1.c).send(x1Txt(o)); }
 function x1Recebe(d) {
+  if (typeof d === 'string') d = x1Obj(d);
   if (!X1 || !d) return;
   if (d.tp === 'deck' && X1.eu === 0) {
     const msg = { Dv: deckVivo(), Ops: [d.Dv], seed: (Math.random() * 4294967296) >>> 0, T: 20, vida: +store.get('vivoVida', 40), nomes: [meuCmd(), d.nome || 'Amigo'], ks: [0, 1] };
-    X1.c.send({ tp: 'inicio', msg }); x1Comeca(msg, 0);
+    x1Envia({ tp: 'inicio', msg }); x1Comeca(msg, 0);
   } else if (d.tp === 'inicio' && X1.eu === 1) x1Comeca(d.msg, 1);
   else if (d.tp === 'esc' && JG && JG.rede && d.n === JG.esc.length) { JG.esc.push(d.v); avancaEu(); }
 }
@@ -525,7 +530,7 @@ async function x1Comeca(msg, eu) {
 function desenhaEu() { $('#v-mesa').innerHTML = mesaEuHTML(JG.q.quadro, { q: JG.q }); ligaMesaEu(); }
 // no começo da partida a mesa rola para a tela inteira, longe do cabeçalho
 function rolaMesa() { const m = $('.ja'); if (m && !JG.rolou) { JG.rolou = true; const nav = document.querySelector('nav, .tabs'), h = nav ? nav.getBoundingClientRect().height : 0; window.scrollTo({ top: m.getBoundingClientRect().top + scrollY - h - 16, behavior: 'smooth' }); } }
-function responde(v) { if (!JG) return; JG.esc.push(v); if (JG.rede && X1 && X1.c) X1.c.send({ tp: 'esc', v, n: JG.esc.length - 1 }); JG.q = null; $$('.ja button').forEach(b => b.disabled = true); avancaEu(); }
+function responde(v) { if (!JG) return; JG.esc.push(v); if (JG.rede && X1 && X1.c) x1Envia({ tp: 'esc', v, n: JG.esc.length - 1 }); JG.q = null; $$('.ja button').forEach(b => b.disabled = true); avancaEu(); }
 
 const PERG = {
   mulligan: (q) => `Sua mão inicial${q.nm ? ` (depois de ${q.nm} mulligan${q.nm > 1 ? 's' : ''})` : ''}. Fica com ela?`,
@@ -666,7 +671,7 @@ function mesaEuHTML(Q, o) {
     meio = `<div class="ja-meio perg"><span class="c-k">Sua vez de decidir · turno ${q.t}</span>
       ${atkIm ? `<img class="ja-evim" src="${esc(atkIm[1] || atkIm[0])}" alt="${esc(q.x.n)}" data-zoom="${esc(atkIm[1])}">` : ''}<p><b>${esc(PERG[q.tipo] ? PERG[q.tipo](q) : q.tipo)}</b></p>
       <div class="j-ops">${bt.join('')}</div>
-      <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length ? '' : 'disabled'}>↶ Desfazer</button><button class="btn small" ${/[?&]dev=1/.test(location.search) ? "" : "hidden"} data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
+      <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length && !G.rede ? '' : 'disabled'} ${G.rede ? 'title="No X1 não dá para desfazer: a escolha já foi para o amigo"' : ''}>↶ Desfazer</button><button class="btn small" ${/[?&]dev=1/.test(location.search) ? "" : "hidden"} data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
   } else if (ev) {
     const Mk = G.Ms[ev.k] || [], nc = ev.c >= 0 && Mk[ev.c] ? (Mk[ev.c].frente || Mk[ev.c].nome) : null, im = nc ? imgDe(nc) : null;
     const quem = ev.k === MEU_LUGAR() ? 'Você' : NOMES[ev.k] || '';
@@ -697,7 +702,7 @@ function ligaMesaEu() {
       const v = b.dataset.b;
       if (v === 'prox') { JG.acorda && JG.acorda(); return; }
       if (v === 'pula') { JG.pula = true; JG.acorda && JG.acorda(); return; }
-      if (v === 'desf') { JG.esc.pop(); JG.visto = 1e9; JG.q = null; avancaEu(); return; }
+      if (v === 'desf') { if (JG.rede) return; JG.esc.pop(); JG.visto = 1e9; JG.q = null; avancaEu(); return; }
       if (v === 'sai') { JG = null; painelVivo(); return; }
       // recarregar só o motor (23/11): worker novo com ?v= novo baixa engine/mesa/forge-motor de novo; a partida refaz com as mesmas escolhas
       if (v === 'motor') { para(); WV = Date.now(); JG.visto = 1e9; JG.q = null; avancaEu(); return; }
