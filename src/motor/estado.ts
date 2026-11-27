@@ -40,6 +40,9 @@ const tipoFiltro = (d): any[] => { let l: any[] | undefined = TIPO_FILTRO.get(d)
 // tipo básico de terreno ganho (CR 305.6): "{T}: Add [cor]" intrínseca; objetos fixos para o cache de atv
 const MANA_BASICA = { Plains: 'W', Island: 'U', Swamp: 'B', Mountain: 'R', Forest: 'G' };
 const ATV_BASICA = Object.fromEntries(Object.entries(MANA_BASICA).map(([t, c]) => [t, { custo: { virar: true }, deMana: true, fx: [{ op: 'mana', prod: [c], qtd: 1 }] }]));
+// 'escolhido' no sub da estática de tipo (Metallic Mimic, Roaming Throne): o tipo escolhido ao entrar (o.escolha.tipo)
+const ESCOLHIDO = new WeakMap<object, Map<string, any>>();
+const comEscolhido = (s, t) => { let c = ESCOLHIDO.get(s); if (!c) ESCOLHIDO.set(s, (c = new Map())); let r = c.get(t); if (!r) c.set(t, (r = { ...s, sub: s.sub.map(x => x === 'escolhido' ? t : x) })); return r; };
 const MISTO = new WeakMap<object, Map<any, any>>();
 const misto = (d, m) => {
   let c = MISTO.get(d); if (!c) MISTO.set(d, (c = new Map()));
@@ -91,7 +94,7 @@ M.dadoDe = (e, o) => {
   const st = tipoEste(d);
   if (st.length && !lendoTipo) {
     lendoTipo++;
-    try { for (const s of st) { let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, { voce: o.ctrl, este: o.id }); } catch (_) { ok = false; } } if (ok) d = misto(d, s); } }
+    try { for (let s of st) { let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, { voce: o.ctrl, este: o.id }); } catch (_) { ok = false; } } if ((s.sub || []).includes('escolhido')) { const t = o.escolha && o.escolha.tipo; if (!t) ok = false; else s = comEscolhido(s, t); } if (ok) d = misto(d, s); } }
     finally { lendoTipo--; }
   }
   if (!lendoTipo) {
@@ -346,7 +349,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
   Object.assign(o, { clone: zona === 'campo' ? clone : null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
-    conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
+    conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
   const para = M.listaDe(e, o);
@@ -549,7 +552,7 @@ const TIPOS_CARTA = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Pla
 // tipo/sub dado a 'este' (camada 4): lido no M.dadoDe; com filtro (Ashaya, Bello, Dryad, Leyline) ainda não
 M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub || s.tiraTipo) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'tiraTipo', 'se'].includes(k))
   && (s.tiraTipo === undefined || (Array.isArray(s.tiraTipo) && s.tiraTipo.every(t => TIPOS_CARTA.has(t))))
-  && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && !(s.sub || []).includes('escolhido') && (!s.se || M.seOk(s.se));
+  && (s.tipo || []).every(t => TIPOS_CARTA.has(t)) && (s.sub || []).every(x => typeof x === 'string') && (!s.se || M.seOk(s.se));
 const CONTA_EST = new Set(['cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'marcadoresNoEste', 'devocao']);
 // prop: em vez de quantos, soma/maior de uma característica dos que batem (Ghalta, The Great Henge, Metalwork Colossus, Excalibur)
 const PROP_EST = new Set(['somaPoder', 'maiorPoder', 'somaVm', 'maiorVm', 'cores']);   // cores: "for each color among permanents you control" (Conqueror's Flail, CR 105.2)
@@ -857,6 +860,14 @@ const ninjutsuDe = kw => {
   if (!a) NINJA.set(kw, (a = { zona: 'mao', custo: { mana: kw.custo || {}, devolver: { f: { tipo: ['Creature'], naoBloqueada: true } } }, _ninjutsu: true, fx: [{ op: 'ninjutsu' }] }));
   return a;
 };
+// bis (CR 702.141a): "[custo], exile esta carta do seu cemitério: para cada oponente, uma ficha cópia que ataca esse
+// oponente neste turno se puder; ganham ímpeto; sacrifique-as no começo da próxima etapa final" — só como feitiço
+const BIS = new WeakMap<object, any>();
+const bisDe = kw => {
+  let a = BIS.get(kw);
+  if (!a) BIS.set(kw, (a = { zona: 'cemiterio', custo: { mana: kw.custo || {}, exilarEste: true }, vel: 'feitico', _bis: true, fx: [{ op: 'bis' }] }));
+  return a;
+};
 const RECONF = new WeakMap<object, any>();
 const reconfDe = kw => {
   let a = RECONF.get(kw);
@@ -871,7 +882,7 @@ const atvCarta = d => {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
-    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'eternizar' && x.custo).map(eternizarDe)];
+    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'eternizar' && x.custo).map(eternizarDe), ...(d.kw || []).filter(x => x.k === 'bis' && x.custo).map(bisDe)];
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
     ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length || tp.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj, ...tp] : d.atv || NADA.atv));
   }
@@ -902,7 +913,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -935,6 +946,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
   if (f.vm && !compara(d.vm || 0, f.vm)) return false;
   if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
+  if (f.resist && !compara(M.resistencia(e, o), f.resist)) return false;
   if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;
   if (f.conjurada !== undefined && (o.zona === 'pilha' ? !!o.pil : !!o.conjurada) !== !!f.conjurada) return false;   // "if you cast it" (601.2): a mágica na pilha ou a permanente que veio dela
   if (f.atacouNoTurno !== undefined && (e.turno.ataques || []).some(r => r.id === o.id && r.ts === o.ts) !== !!f.atacouNoTurno) return false;   // "attacked this turn" (508.1)
@@ -1023,7 +1035,7 @@ M.qtd = (e, q, ctx: any = {}) => {
   if (typeof q === 'number') return q;
   if (q === 'X') return ctx.x || 0;
   if (q && typeof q.conta === 'object') return q.prop ? M.qtdEst(e, q, ctx) : (q.metade ? Math.floor(M.objetosQue(e, q.conta, ctx).length / 2) : M.objetosQue(e, q.conta, ctx).length) * (q.mult || 1) + (q.soma || 0);
-  if (q && (q.conta === 'lembrados' || q.conta === 'evento')) return M.qtdDe(e, q, { lki: {}, ...ctx });
+  if (q && (q.conta === 'lembrados' || q.conta === 'evento' || q.conta === 'resolucoesDestaHabNoTurno')) return M.qtdDe(e, q, { lki: {}, ...ctx });
   if (q && CONTA_ATK.has(q.conta)) return M.contaAtaque(e, q.conta, ctx.voce) * (q.mult || 1) + (q.soma || 0);
   if (q && CONTA_EST.has(q.conta) && qtdEstOk(q)) return M.qtdEst(e, q, ctx);   // marcadoresNoEste (de), mão, vida, devoção…
   return null;      // contagem que o núcleo ainda não sabe → quem chama não oferece a habilidade

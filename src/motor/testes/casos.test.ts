@@ -3920,6 +3920,253 @@ caso('707.5', "entra como cópia: Phyrexian Metamorph copia Grizzly Bears e é a
   for (const c of ['Phyrexian Metamorph', 'Sculpting Steel']) ok(M.carta(c).subst.every(x => M.substOk(x)), c);
 });
 
+caso('111.10d', 'Powerstone: {C} só para mágica de artefato; Map ativa (explorar); Junk existe mas não ativa; nome fora da tabela fica só com o nome', () => {
+  const p = cena({ mao: [[0, 'Sol Ring']] }); ficha(p, 0, 'Powerstone');
+  ok(M.opcoesPrioridade(p, 0).some(o => o.a === 'conjurar' && p.objs[o.id].n === 'Sol Ring'), 'Sol Ring sim');
+  const q = cena({ mao: [[0, 'Grizzly Bears']], campo: [[0, 'Forest']] }); ficha(q, 0, 'Powerstone');
+  ok(!M.opcoesPrioridade(q, 0).some(o => o.a === 'conjurar'), 'criatura não-artefato não');
+  const r = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Wastes']] }); const mp = ficha(r, 0, 'Map'); ficha(r, 0, 'Junk');
+  igual(M.dadoDe(r, mp).sub, ['Map']);
+  ok(M.opcoesPrioridade(r, 0).some(o => o.a === 'ativar' && o.id === mp.id), 'Map ativa (explorar, 701.44)');
+  ok(!M.opcoesPrioridade(r, 0).some(o => o.a === 'ativar' && o.id !== mp.id), 'Junk (jogar do exílio) ainda não');
+  const x = ficha(r, 0, 'Wicked Role');
+  igual(x.n, 'Wicked Role');
+  igual(M.fichaDe({ nome: 'Treasure', virada: 1 }).sub, ['Treasure']);
+});
+
+// descarte (CR 701.9) e loucura (702.35): o deck da Ivora
+caso('305.7', "tipo dado por estática: Yavimaya faz todo terreno Floresta (e dá {T}: G); Metallic Mimic é do tipo escolhido", () => {
+  for (const c of ['Yavimaya, Cradle of Growth', 'Metallic Mimic', 'Roaming Throne']) ok(M.carta(c).est.filter(s => s.modo === 'continuo').every(s => M.estContOk(s)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Yavimaya, Cradle of Growth'], [1, 'Island'], [0, 'Metallic Mimic']] });
+  const ilha = e.campo.map(id => e.objs[id]).find(o => o.n === 'Island');
+  ok(M.dadoDe(e, ilha).sub.includes('Forest') && M.dadoDe(e, ilha).sub.includes('Island'), 'a Ilha do oponente é Floresta também');
+  ok(M.atvDe(e, ilha).some(a => a.deMana && a.fx[0].prod[0] === 'G'), 'e faz G');
+  const mm = e.campo.map(id => e.objs[id]).find(o => o.n === 'Metallic Mimic');
+  ok(!(M.dadoDe(e, mm).sub || []).includes('escolhido'), 'sem escolha: nada');
+  mm.escolha = { tipo: 'Elf' };
+  ok(M.dadoDe(e, mm).sub.includes('Elf'), 'escolheu Elf: é Elf');
+  const y = e.campo.find(id => e.objs[id].n === 'Yavimaya, Cradle of Growth'); M.mover(e, y, 'cemiterio');
+  ok(!M.dadoDe(e, ilha).sub.includes('Forest'), 'sem Yavimaya volta a ser só Ilha');
+});
+
+caso('118.9', "custo alternativo dado por permanente: Dracogenesis conjura Dragão de graça; Demon of Fate's Design paga vida = valor de mana, uma vez por turno", () => {
+  for (const c of ["Bolas's Citadel", "Demon of Fate's Design", 'Dracogenesis', 'Rooftop Storm']) ok(M.carta(c).est.filter(s => s.modo === 'custoAlternativo').every(s => M.estAltOk(s)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Dracogenesis']], mao: [[0, 'Dragonlord Dromoka'], [0, 'Gravecrawler']] });
+  M.avancar(e);
+  ok(opsDe(e, 'conjurar').every(o => e.objs[o.id].n === 'Dragonlord Dromoka'), 'sem terreno: só o Dragão');
+  conj(e, 'Dragonlord Dromoka');
+  ok(noCampo(e).includes('Dragonlord Dromoka'), 'Dromoka de graça');
+  const f = cena({ campo: [[0, "Demon of Fate's Design"]], mao: [[0, 'Dragon Tempest'], [0, 'Dragon Tempest']] });
+  M.avancar(f); conj(f, 'Dragon Tempest');
+  ok(noCampo(f).includes('Dragon Tempest'), 'encantamento pela vida'); igual(f.jogs[0].vida, 38, 'pagou 2');
+  igual(opsDe(f, 'conjurar').length, 0, 'a segunda não: uma vez por turno');
+});
+
+caso('603.2', "\"a segunda vez que esta habilidade resolve neste turno\": Tannuk compra só na 2ª entrada de terreno", () => {
+  for (const c of ['Belladonna Took', 'Ms. Bumbleflower', 'Tannuk, Memorial Ensign']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Tannuk, Memorial Ensign']] });
+  const mao0 = e.jogs[0].zonas.mao.length;
+  const entra = () => { e.por(0, 'Mountain'); const fim = x => !x.pilha.length && !x.pend.length; M.avancar(e, fim); for (let g = 0; !fim(e) && e.perg && g < 10; g++) M.responder(e, e.perg.ops.findIndex(o => o.a === 'passar'), fim); };
+  entra(); igual(e.jogs[0].zonas.mao.length, mao0, '1ª: não compra'); igual(e.jogs[1].vida, 39);
+  entra(); igual(e.jogs[0].zonas.mao.length, mao0 + 1, '2ª: compra');
+  entra(); igual(e.jogs[0].zonas.mao.length, mao0 + 1, '3ª: não'); igual(e.jogs[1].vida, 37);
+});
+
+caso('701.25', "vigiar: olha o topo e põe no cemitério o que quiser; o resto fica no topo", () => {
+  ok(M.fxSuportado(M.carta('Consider').fx), 'Consider aceito');
+  const e = cena({ campo: [] });
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' }); e.por(0, 'Sol Ring', { zona: 'grimorio' });   // topo: Sol Ring
+  const g = e.jogs[0].zonas.grimorio;
+  M.executar(e, { op: 'vigiar', quem: 'voce', qtd: 2 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops.find(x => x.a === (e.objs[x.id].n === 'Sol Ring' ? 'cemiterio' : 'topo')));
+  igual(naZona(e, 0, 'cemiterio'), ['Sol Ring']);
+  igual(e.objs[g[g.length - 1]].n, 'Grizzly Bears', 'Bears ficou no topo');
+});
+
+caso('707.10', "magecraft (\"conjura ou copia\"): Archmage Emeritus dispara ao copiar a mágica; a cópia feita pelo oponente não", () => {
+  for (const c of ['Archmage Emeritus', 'Storm-Kiln Artist', 'Veyran, Voice of Duality']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Archmage Emeritus'], [1, 'Grizzly Bears']] });
+  const b = e.por(0, 'Lightning Bolt', { zona: 'mao' });
+  M.mover(e, b.id, 'pilha'); b.pil = { x: 0, alvos: [[{ jog: 1 }]], ctrl: 0, opc: {} };
+  e.pend = [];
+  M.criarCopia(e, b, 0, { alvos: [[{ jog: 1 }]], novos: false });
+  igual(e.pend.map(p => p.n), ['Archmage Emeritus'], 'copiar dispara o magecraft');
+  e.pend = [];
+  M.evento(e, { ev: 'copia', id: b.id, j: 1 });
+  igual(e.pend.length, 0, 'cópia do oponente: não');
+});
+
+caso('702.134', "mentor: ao atacar, +1/+1 numa atacante com poder menor (Legion Warboss 2/2 → a 1/1); a de poder igual não serve", () => {
+  const e = cena({ campo: [[0, 'Legion Warboss'], [0, 'Llanowar Elves'], [0, 'Grizzly Bears']] });
+  const os = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  const W = os('Legion Warboss'), Gg = os('Llanowar Elves'), B = os('Grizzly Bears');
+  e.turno.combate = { atk: [W, Gg, B].map(o => ({ id: o.id, ts: o.ts, def: 1 })) };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: W.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'mentor'); ok(p, 'mentor disparou');
+  const f = p.g.alvos[0].f;
+  ok(M.bate(e, Gg, f, { voce: 0 }) && !M.bate(e, B, f, { voce: 0 }) && !M.bate(e, W, f, { voce: 0 }), 'só a de poder menor é alvo');
+});
+caso('702.175', "prole: pago o custo a mais, a criatura entra e cria uma ficha cópia 1/1 dela; sem pagar, não", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Agate Instigator']] });
+  M.avancar(e); respE(e, o => o.a === 'conjurar');
+  if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v && o.v.prole);
+  for (let g = 0; e.pilha.length + e.pend.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar');
+  const ags = e.campo.map(id => e.objs[id]).filter(o => M.dadoDe(e, o).n === 'Agate Instigator' || o.n === 'Agate Instigator');
+  igual(ags.length, 2, 'a carta e a ficha');
+  const fi = ags.find(o => o.ficha); ok(fi, 'uma é ficha');
+  igual([M.poder(e, fi), M.resistencia(e, fi)], [1, 1], 'a ficha é 1/1');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Agate Instigator']] });
+  M.avancar(f); respE(f, o => o.a === 'conjurar');
+  for (let g = 0; f.pilha.length + f.pend.length && f.perg && g < 10; g++) respE(f, o => o.a === 'passar');
+  igual(f.campo.filter(id => f.objs[id].n === 'Agate Instigator').length, 1, 'só 2 de mana: sem prole');
+});
+
+caso('701.3', "anexar ao objeto do evento: Hero's Blade se prende ao lendário que entra; Sword of the Meek volta do cemitério e equipa a 1/1", () => {
+  for (const c of ["Hero's Blade", 'Nim Deathmantle', 'Sword of the Meek']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, "Hero's Blade"]] });
+  const hb = e.objs[e.campo[0]];
+  const k = e.por(0, 'Krenko, Mob Boss');
+  const cx = { voce: 0, este: hb.id, alvos: [], ilegal: {}, lki: {}, ev: { ev: 'zona', id: k.id, para: 'campo' } };
+  M.executar(e, M.carta("Hero's Blade").gat[0].fx[0], cx, () => ({ a: 'sim' }));
+  ok(hb.anexo && hb.anexo.id === k.id, 'Blade presa ao Krenko');
+  const f = cena({ campo: [] });
+  const sw = f.por(0, 'Sword of the Meek', { zona: 'cemiterio' });
+  const el = f.por(0, 'Llanowar Elves');
+  const cy = { voce: 0, este: sw.id, alvos: [], ilegal: {}, lki: {}, ev: { ev: 'zona', id: el.id, para: 'campo' } };
+  for (const fx of M.carta('Sword of the Meek').gat[0].fx) M.executar(f, fx, cy, () => ({ a: 'sim' }));
+  ok(sw.zona === 'campo' && sw.anexo && sw.anexo.id === el.id, 'Sword voltou e equipou');
+});
+
+caso('120.3', "dano igual ao poder da criatura do evento (Terror of the Peaks) e ao maior grupo de um tipo de criatura (Basalt Ravager)", () => {
+  for (const c of ['Basalt Ravager', 'Terror of the Peaks', 'Warstorm Surge']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Elvish Mystic'], [0, 'Grizzly Bears'], [0, 'Hill Giant']] });
+  const cx = (ev?) => ({ voce: 0, alvos: [], ilegal: {}, lki: {}, ev });
+  igual(M.qtdDe(e, { conta: 'tipoMaisComum' }, cx()), 2, 'dois Elfos');
+  const hg = e.campo.map(id => e.objs[id]).find(o => o.n === 'Hill Giant');
+  igual(M.qtdDe(e, { conta: 'poderDoEvento' }, cx({ ev: 'zona', id: hg.id, para: 'campo' })), 3, 'Hill Giant 3/3');
+});
+
+caso('122.5', "mover marcadores: Nesting Grounds tira um e põe no outro; Zack Fair sacrificado passa os +1/+1 que tinha; Forgotten Ancient um a um", () => {
+  for (const c of ['Forgotten Ancient']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  for (const c of ['Nesting Grounds', 'Zack Fair']) ok(M.carta(c).atv.every(a => M.fxSuportado(a.fx, { topo: false })), c + ' aceito');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Hill Giant']] });
+  const [gb, hg] = e.campo.map(id => e.objs[id]);
+  gb.marc['+1/+1'] = 2;
+  const cx: any = { voce: 0, alvos: [[{ o: gb.id, ts: gb.ts }], [{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: {} };
+  M.executar(e, M.carta('Nesting Grounds').atv[1].fx[0], cx, () => ({ a: 'nao' }));
+  igual([gb.marc['+1/+1'], hg.marc['+1/+1']], [1, 1], 'um passou');
+  const z = e.por(0, 'Zack Fair'); z.marc['+1/+1'] = 3;
+  const cz: any = { voce: 0, este: z.id, alvos: [[{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, z) } };
+  M.mover(e, z.id, 'cemiterio');
+  M.executar(e, M.carta('Zack Fair').atv[0].fx[1], cz, () => ({ a: 'nao' }));
+  igual(hg.marc['+1/+1'], 4, 'Zack passou os 3');
+  const fa = e.por(0, 'Forgotten Ancient'); fa.marc['+1/+1'] = 2;
+  M.executar(e, M.carta('Forgotten Ancient').gat[1].fx[0], { voce: 0, este: fa.id, alvos: [], ilegal: {}, lki: {} }, (_j, t, ops) => t === 'talvez' ? { a: 'sim' } : ops.find(o => o.id === gb.id) || ops[0]);
+  igual([fa.marc['+1/+1'], gb.marc['+1/+1']], [0, 3], 'Ancient passou os 2 para os Bears');
+});
+
+caso('701.21', "sacrificar todas menos N (Promise of Loyalty) e \"uma de cada tipo, o resto vai\" (Ajani): quem sacrifica escolhe as que ficam", () => {
+  for (const c of ['Archfiend of Depravity']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  ok(M.fxSuportado(M.carta('Promise of Loyalty').fx), 'Promise aceito');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Hill Giant'], [1, 'Llanowar Elves'], [1, 'Sol Ring'], [1, 'Grizzly Bears'], [1, 'Island']] });
+  const ag = M.agenteBasico();
+  const ask = (j, tipo, ops, cx) => ops[ag(e, { j, tipo, ops, ctx: cx })];
+  M.executar(e, { op: 'sacrificar', quem: 'cadaJogador', f: { tipo: ['Creature'], zona: 'campo' }, exceto: { qtd: 1 } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, ask);
+  igual(noCampo(e).filter(n => n !== 'Sol Ring' && n !== 'Island').length, 2, 'uma criatura de cada');
+  ok(noCampo(e).includes('Hill Giant'), 'fica a de mais valor');
+  const f = cena({ campo: [[1, 'Llanowar Elves'], [1, 'Grizzly Bears'], [1, 'Sol Ring'], [1, 'Island']] });
+  M.executar(f, { op: 'sacrificar', quem: 'cadaOponente', f: { tipo: ['Permanent'], nao: ['Land'], zona: 'campo' }, exceto: { qtd: 1, porTipo: ['Artifact', 'Creature', 'Enchantment', 'Planeswalker'] } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, tipo, ops, cx) => ops[ag(f, { j, tipo, ops, ctx: cx })]);
+  igual(noCampo(f).sort(), ['Island', 'Sol Ring', noCampo(f).find(n => n === 'Llanowar Elves' || n === 'Grizzly Bears')].sort(), 'fica um artefato, uma criatura e o terreno');
+  igual(noCampo(f).length, 3);
+});
+
+caso('614.12', "entra virada/desvirada por outra permanente: Authority of the Consuls vira a criatura do oponente; Spelunking desvira seu terreno que entraria virado", () => {
+  for (const c of ['Authority of the Consuls', "Kinjalli's Sunwing", 'Spelunking']) ok(M.carta(c).subst.every(s => M.substOk(s)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Authority of the Consuls']] });
+  const ent = (x, j, n) => { const o = x.por(j, n, { zona: 'mao' }); M.entrarPermanente(x, o.id, j, {}, (_j, _t, ops) => ops[0]); return o; };
+  const b1 = ent(e, 1, 'Grizzly Bears'), b0 = ent(e, 0, 'Hill Giant');
+  ok(b1.virada && !b0.virada, 'só a do oponente entra virada');
+  ok(M.criarFichas(e, 1, { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' }, 1)[0].virada, 'ficha do oponente também');
+  const f = cena({ campo: [[0, 'Spelunking']] });
+  const g = ent(f, 0, 'Dimir Guildgate'), h = ent(f, 1, 'Dimir Guildgate');
+  ok(!g.virada && h.virada, 'meu Guildgate desvirado; o do oponente virado');
+});
+
+caso('601.2f', "custo a mais para o oponente que mira: Lightning Bolt no Terror of the Peaks custa 3 de vida a mais; Kopala: {2} a mais para mirar um Tritão", () => {
+  for (const c of ['Kopala, Warden of Waves', 'Terror of the Peaks']) ok(M.carta(c).est.filter(s => s.modo === 'aumentaCusto').every(s => M.estAumentaOk(s)), c + ' aceito');
+  const e = cena({ campo: [[1, 'Terror of the Peaks'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoObj(e, 'Terror of the Peaks');
+  igual(e.jogs[0].vida, 37, 'pagou 3 de vida');
+  const t = e.campo.map(id => e.objs[id]).find(o => o.n === 'Terror of the Peaks');
+  const k = cena({ campo: [[1, 'Kopala, Warden of Waves']] });
+  const kop = k.objs[k.campo[0]];
+  igual(M.impostoAlvo(k, 0, [[{ o: kop.id, ts: kop.ts }]], false).g, 2, 'mágica do oponente: +{2}');
+  igual(M.impostoAlvo(k, 0, [[{ o: kop.id, ts: kop.ts }]], true).g, 2, 'habilidade do oponente: +{2}');
+  igual(M.impostoAlvo(k, 1, [[{ o: kop.id, ts: kop.ts }]], false).g, 0, 'do próprio dono: nada');
+  ok(t, 'Terror (5/4) segue no campo depois de 3 de dano');
+});
+
+caso('111.4', "ficha com habilidade própria: o alvo da habilidade da ficha não conta como alvo do gatilho que a cria (Weapons Manufacturing → Munitions); gatilho da ficha que o motor não lê trava a carta", () => {
+  ok(M.carta('Weapons Manufacturing').gat.every(g => M.gatOk(g)), 'Weapons Manufacturing aceito');
+  const e = cena({ campo: [[0, 'Weapons Manufacturing']] });
+  M.executar(e, M.carta('Weapons Manufacturing').gat[0].fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  const mu = e.campo.map(id => e.objs[id]).find(o => o.n === 'Munitions');
+  ok(mu && M.gatDe(e, mu).some(g => g.ev === 'sai'), 'Munitions com o gatilho de sair');
+});
+
+caso('701.44', "explorar: terreno no topo vai para a mão; senão +1/+1 e pode ir ao cemitério; \"quando uma criatura sua explora\" (Merfolk Cave-Diver)", () => {
+  for (const c of ['Merfolk Cave-Diver', 'Nicanzil, Current Conductor']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Merfolk Cave-Diver'], [0, 'Grizzly Bears']] });
+  const gb = e.campo.map(id => e.objs[id]).find(o => o.n === 'Grizzly Bears');
+  const mao0 = e.jogs[0].zonas.mao.length;
+  e.por(0, 'Forest', { zona: 'grimorio' });
+  e.pend = [];
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Grizzly Bears', zona: 'campo' } } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(e.jogs[0].zonas.mao.length, mao0 + 1, 'Forest na mão'); igual(gb.marc['+1/+1'] || 0, 0);
+  igual(e.pend.map(p => p.n), ['Merfolk Cave-Diver'], 'Cave-Diver dispara');
+  e.por(0, 'Sol Ring', { zona: 'grimorio' });
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Grizzly Bears', zona: 'campo' } } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops.find(o => o.a === 'cemiterio') || ops[0]);
+  igual(gb.marc['+1/+1'], 1, 'não-terreno: +1/+1'); igual(naZona(e, 0, 'cemiterio'), ['Sol Ring']);
+});
+
+caso('508.3a', "\"sempre que uma ou mais atacam\" (grupo): Meriadoc dispara uma vez com dois Halflings atacando", () => {
+  for (const c of ['Mavren Fein, Dusk Apostle', 'Meriadoc Brandybuck']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Meriadoc Brandybuck'], [0, 'Meriadoc Brandybuck']] });
+  const [a, b] = e.campo.map(id => e.objs[id]);
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: a.id, def: 1 }); M.evento(e, { ev: 'ataca', id: b.id, def: 1 });
+  igual(e.pend.length, 2, 'um disparo por Meriadoc, não por atacante');
+});
+
+caso('702.141', "bis: do cemitério, exila a carta e cria uma ficha cópia por oponente, com ímpeto e que deve atacar; sacrificadas na etapa final", () => {
+  const e = cena({ jogs: 3, campo: enche(7, 'Island').map(n => [0, n]) });
+  const md = e.por(0, 'Mist Dancer', { zona: 'cemiterio' });
+  M.avancar(e);
+  const op = e.perg.ops.findIndex(o => o.a === 'ativar' && o.id === md.id); ok(op >= 0, 'bis oferecido do cemitério');
+  respE(e, o => o.a === 'ativar' && o.id === md.id);
+  for (let g = 0; e.pilha.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar');
+  igual(md.zona, 'exilio', 'a carta foi exilada');
+  const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha && o.n === 'Mist Dancer');
+  igual(fs.length, 2, 'uma ficha por oponente');
+  ok(fs.every(o => M.temKw(e, o, 'pressa')), 'com ímpeto');
+  igual(e.atras.length, 1, 'sacrifício atrasado');
+  M.executar(e, e.atras[0].g.fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {}, criadas: e.atras[0].mem.criadas }, () => ({ a: 'nao' }));
+  igual(e.campo.filter(id => e.objs[id].n === 'Mist Dancer').length, 0, 'sacrificadas');
+});
+
+caso('702.121', "corpo a corpo: atacando dois oponentes, Tifa ganha +2/+2; atacar só um dá +1/+1", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Tifa, Martial Artist'], [0, 'Grizzly Bears']] });
+  const [t, b] = e.campo.map(id => e.objs[id]);
+  e.turno.combate = { atk: [{ id: t.id, ts: t.ts, alvo: { jog: 1 }, def: 1 }, { id: b.id, ts: b.ts, alvo: { jog: 2 }, def: 2 }] };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: t.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'corpo-a-corpo'); ok(p, 'disparou');
+  igual(p.g.fx[0].p, 2, '+2/+2');
+  e.turno.combate.atk[1].alvo = { jog: 1 }; e.pend = [];
+  M.evento(e, { ev: 'ataca', id: t.id, def: 1 });
+  igual(e.pend.find(x => x.k === 'corpo-a-corpo').g.fx[0].p, 1, 'um oponente: +1/+1');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
