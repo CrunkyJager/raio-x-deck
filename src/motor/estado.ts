@@ -111,11 +111,34 @@ M.gatAnel = (e, o) => M.ehPortador(e, o) ? ANEL_GATS[Math.min(4, e.jogs[o.ctrl].
 M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 // animar enquantoNoCampo: vale enquanto a fonte (mesmo objeto, ts) está no campo sob o mesmo controlador (611.2b)
 const animFonteOk = (e, s) => { const F = e.objs[s.id]; return !!F && F.zona === 'campo' && F.ts === s.ts && (s.ctrl === undefined || F.ctrl === s.ctrl); };   // sem ctrl: "enquanto esta permanecer no campo" (Tidebinder)
+// troca de texto (CR 612, camada 3 = 613.1c): o.texto [{ts, de, para}] troca a palavra de tipo de criatura em todo o
+// dado (linha de tipo e texto: sub, filtros, fichas criadas); o nome não muda. Guardado por dado + troca (WeakMap)
+const TEXTO = new WeakMap<object, Map<string, any>>();
+const SEM_TROCA = new Set(['n', 'id', 'oracleHash', 'rev', 'falta', 'faces', 'v']);
+const trocaFundo = (x, de, para) => typeof x === 'string' ? (x === de ? para : x) : Array.isArray(x) ? x.map(y => trocaFundo(y, de, para))
+  : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, trocaFundo(v, de, para)])) : x;
+const comTexto = (d, de, para) => {
+  let m = TEXTO.get(d); if (!m) TEXTO.set(d, (m = new Map()));
+  const k = de + '>' + para; let r = m.get(k); if (r) return r;
+  r = {}; for (const [c, v] of Object.entries(d)) r[c] = SEM_TROCA.has(c) ? v : trocaFundo(v, de, para);
+  m.set(k, r); return r;
+};
+/** tipos de criatura que aparecem no texto ou na linha de tipo do objeto (opções do "replacing all instances of one creature type") */
+M.tiposNoTexto = (e, o) => {
+  const tipos = new Set<string>();
+  for (const x of Object.values<any>(e.objs)) if (!x.hab && x.zona !== 'fora' && M.temTipo(e, x, 'Creature')) for (const t of M.dadoDe(e, x).sub || []) if (!SUB_NAO_CRIAT_TODOS.has(t)) tipos.add(t);
+  const d = M.dadoDe(e, o), achados = new Map<string, number>();
+  const anda = (x, k?) => { if (typeof x === 'string') { if (tipos.has(x) || (k === 'sub' && !SUB_NAO_CRIAT_TODOS.has(x))) achados.set(x, (achados.get(x) || 0) + 1); }
+    else if (Array.isArray(x)) x.forEach(y => anda(y, k)); else if (x && typeof x === 'object') for (const [c, v] of Object.entries(x)) if (!SEM_TROCA.has(c)) anda(v, c); };
+  anda(d);
+  return [...achados.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t);
+};
 M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
   if (o.zona !== 'campo') return o.zona === 'pilha' && o.pil && o.pil.conc ? comoAura(d) : d;
   if (o.proto) d = comProto(d);   // 702.103b: mágica concedida é de Aura
   if (o.nivel > 1 && d.niveis) d = comNivel(d, o.nivel);
+  if (o.texto) for (const t of o.texto) if (t.ts === o.ts) d = comTexto(d, t.de, t.para);   // camada 3 (613.1c), antes da 4
   const A = o.anim;
   if (A && A.length) for (const a of A) if (a.ts === o.ts && !a.semHab && (!a.src || animFonteOk(e, a.src))) d = misto(d, a);
   const st = tipoEste(d);

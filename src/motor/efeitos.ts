@@ -784,6 +784,23 @@ const H = {
       M.recalcCtrl(e);
     },
   },
+  // "change the text of that creature by replacing all instances of one creature type with Vampire" (New Blood; CR 612.1, 612.2):
+  // camada 3 (613.1c), preso ao objeto (o.texto, mesmo ts) e sem duração. Quem resolve escolhe o tipo trocado (as opções são
+  // os tipos de criatura que aparecem no texto/linha de tipo dele); o M.dadoDe troca a palavra em tudo (sub, filtros, fichas)
+  trocarTexto: {
+    campos: ['novoTipo'],
+    qtd: q => q === undefined,
+    ok: f => typeof f.novoTipo === 'string' && !!f.em && typeof f.em.alvo === 'number' && (f.quem === undefined || f.quem === 'voce'),
+    fx(e, f, ctx, ask) {
+      for (const o of objsDe(e, f, ctx).filter(x => x.zona === 'campo')) {
+        const ops = M.tiposNoTexto(e, o).filter(t => t !== f.novoTipo).map(v => ({ a: 'tipo', v }));
+        if (!ops.length) continue;                                     // nenhuma palavra de tipo de criatura: trocar não muda nada
+        const r = ask(ctx.voce, 'escolha', ops, { o: 'trocaTexto', id: o.id, para: f.novoTipo, fonte: (e.objs[ctx.este] || {}).n });
+        (o.texto || (o.texto = [])).push({ ts: o.ts, de: r.v, para: f.novoTipo });
+        M.log(e, e.jogs[ctx.voce].nome, 'troca o texto de', o.n + ':', r.v, '→', f.novoTipo);
+      }
+    },
+  },
   // estáticas de regra que valem até o fim do turno ou até o próximo turno de quem fez (CR 611.2b): e.efTemp (estado.ts)
   efeitoTemporario: {
     campos: ['dura', 'est', 'subst', 'emblema', 'gat', 'proximaMagica'],
