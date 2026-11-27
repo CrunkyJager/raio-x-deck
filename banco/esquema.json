@@ -464,7 +464,19 @@
      "description": "cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)"
     },
     "zona": {
-     "$ref": "#/$defs/zona"
+     "oneOf": [
+      {
+       "$ref": "#/$defs/zona"
+      },
+      {
+       "type": "array",
+       "items": {
+        "$ref": "#/$defs/zona"
+       },
+       "minItems": 2
+      }
+     ],
+     "description": "lista = em alguma destas zonas (Visions of Glory: comandante no campo ou na zona de comando)"
     },
     "virada": {
      "type": "boolean"
@@ -526,8 +538,21 @@
      "description": "equipada, encantada ou com marcador"
     },
     "conjurada": {
-     "anyOf": [{"type": "boolean"}, {"enum": ["mao", "cemiterio", "exilio", "comando", "grimorio"]}],
-     "description": "foi conjurada (não só posta); com zona: conjurada DE lá ('if you cast it from your hand' = 'mao')"
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "enum": [
+        "mao",
+        "cemiterio",
+        "exilio",
+        "comando",
+        "grimorio"
+       ]
+      }
+     ],
+     "description": "foi conjurada (não só posta); com zona: conjurada DE lá (\"if you cast it from your hand\" = 'mao'; Cyclone Summoner, Wakening Sun's Avatar)"
     },
     "ouEste": {
      "type": "boolean",
@@ -538,7 +563,14 @@
      "description": "atacante que não foi bloqueado (depois da declaração de bloqueadores; ninjutsu)"
     },
     "comMarcador": {
-     "anyOf": [{"type": "boolean"}, {"type": "string"}],
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "string"
+      }
+     ],
      "description": "texto = tem ao menos 1 marcador deste tipo; true = tem algum marcador (Mutational Advantage)"
     },
     "feridaPorEsteNoTurno": {
@@ -1142,8 +1174,14 @@
       {
        "type": "object",
        "additionalProperties": false,
-       "required": ["coresEntre"],
-       "properties": {"coresEntre": {"$ref": "#/$defs/filtro"}}
+       "required": [
+        "coresEntre"
+       ],
+       "properties": {
+        "coresEntre": {
+         "$ref": "#/$defs/filtro"
+        }
+       }
       },
       {
        "enum": [
@@ -1537,7 +1575,7 @@
     },
     "fonte": {
      "$ref": "#/$defs/objeto",
-     "description": "op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
+     "description": "copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
     },
     "noDe": {
      "$ref": "#/$defs/objeto",
@@ -1580,7 +1618,19 @@
      "items": {
       "type": "string"
      },
-     "description": "animar: supertipos a mais (\"becomes a legendary 6/6…\", Cacophony Unleashed)"
+     "description": "animar: supertipos a mais (\"becomes a legendary 6/6…\", Cacophony Unleashed) | copiarPermanente: supertipos além dos copiados (\"it's legendary in addition to its other types\": Sarkhan)"
+    },
+    "xAte": {
+     "$ref": "#/$defs/qtd",
+     "description": "com pagando {mana:{x:1}}: \"you may pay {X}, where X is less than or equal to N\" — você escolhe o X (0…N); o efeito lê o X pago (qtd 'X'; Well of Lost Dreams)"
+    },
+    "mantemNome": {
+     "type": "boolean",
+     "description": "copiarPermanente: \"except its name is [este]\" (707.9b; Sunfrill Imitator, Sarkhan Soul Aflame)"
+    },
+    "mantemGat": {
+     "type": "boolean",
+     "description": "copiarPermanente: \"and it has this ability\" — fica com as habilidades desencadeadas impressas dela (Sunfrill Imitator)"
     }
    },
    "additionalProperties": false,
@@ -1699,8 +1749,10 @@
     "turno": {
      "enum": [
       "seu",
-      "deOutro"
-     ]
+      "deOutro",
+      "doEvento"
+     ],
+     "description": "doEvento: é o turno do jogador do evento (\"draws a card during their turn\": Wedding Ring)"
     },
     "pagou": {
      "type": "boolean",
@@ -1877,6 +1929,10 @@
       "vida"
      ],
      "description": "o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)"
+    },
+    "nao": {
+     "$ref": "#/$defs/cond",
+     "description": "a condição de dentro NÃO vale (\"unless you have the city's blessing\": {nao:{palavra:'blessing'}}; Wayward Swordtooth)"
     }
    }
   },
@@ -2066,6 +2122,10 @@
     "se": {
      "$ref": "#/$defs/cond",
      "description": "\"Activate only if …\""
+    },
+    "reduz": {
+     "$ref": "#/$defs/qtd",
+     "description": "\"This ability costs {1} less to activate for each …\": tira N do genérico desta habilidade (CR 601.2f/602.2b; Voldaren Estate, Otawara)"
     }
    }
   },
@@ -2116,7 +2176,8 @@
       "nivel",
       "monstruosa",
       "portador",
-      "ativa"
+      "ativa",
+      "gasta"
      ],
      "description": "portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)"
     },
@@ -2214,7 +2275,7 @@
     },
     "n": {
      "type": "integer",
-     "description": "capitulo: número do capítulo da saga"
+     "description": "capitulo: número do capítulo da saga; gasta: N de \"whenever you expend N\" (a N-ésima mana gasta em mágicas no turno; Wandertale Mentor)"
     },
     "umAlvo": {
      "type": "boolean",
@@ -2786,7 +2847,7 @@
       {
        "enum": [
         "atacado",
-         "este",
+        "este",
         "voce",
         "turno",
         "combate",
@@ -2872,9 +2933,10 @@
       "tentacoes",
       "cemiterio",
       "jogadores",
-      "excesso"
+      "excesso",
+      "aoCemiterio"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)"
     },
     "f": {
      "$ref": "#/$defs/filtro",

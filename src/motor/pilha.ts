@@ -165,7 +165,7 @@ M.CARTA_OK = new Set(['impostoPorAlvo']);
 const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
-  if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
+  if (c && c.vida !== undefined && typeof c.vida !== 'number' && !(c.vida && typeof c.vida === 'object' && M.qtdEstOk(c.vida))) return false;   // contagem: lida ao pagar (War Room)
   // "Put a -1/-1 counter on this creature" como custo (Devoted Druid, CR 118.3/602.2b): {tipo, qtd} na própria fonte
   if (c && c.porMarcador !== undefined && !(c.porMarcador && typeof c.porMarcador.tipo === 'string' && (c.porMarcador.qtd === undefined || Number.isInteger(c.porMarcador.qtd))
     && Object.keys(c.porMarcador).every(k => k === 'tipo' || k === 'qtd'))) return false;
@@ -207,7 +207,8 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
     if (c.desvirar && !o.virada) return false;
     if (M.temTipo(e, o, 'Creature') && o.doente && !M.temKw(e, o, 'pressa')) return false;
   }
-  if (c.vida && (J.vida < c.vida || M.vidaFixa(e, j))) return false;   // CR 119.4, 119.8
+  const vida = vidaCusto(e, j, o, c);
+  if (vida && (J.vida < vida || M.vidaFixa(e, j))) return false;   // CR 119.4, 119.8
   if (c.vida && M.custoProibido(e, 'vida')) return false;
   if (c.sacrificar === 'este' && o && M.temTipo(e, o, 'Creature') && M.custoProibido(e, 'sacrificarCriatura')) return false;
   if (c.descartarEste && (!o || o.zona !== 'mao')) return false;
@@ -409,6 +410,15 @@ const altDados = (e, j, o) => {
       const vida = s.pagar && s.pagar.vida !== undefined ? (Number.isInteger(s.pagar.vida) ? s.pagar.vida : M.dadoDe(e, o).vm || 0) : 0;
       if (vida && e.jogs[j].vida - vida <= 10) continue;
       r.push({ custo: s.gratis ? {} : s.pagar.mana || {}, vida, F, s });
+    }
+  }
+  // emblema / efeito temporário seu (114.4): "You may cast spells from your hand without paying their mana costs" (Tamiyo −7)
+  for (const t of e.efTemp || []) {
+    if (t.ctrl !== j) continue;
+    for (const s of t.est || []) {
+      if (s.modo !== 'custoAlternativo' || !s.gratis || s.limite || !M.estAltOk(s) || typeof s.afeta !== 'object') continue;
+      try { if (!M.bate(e, o, s.afeta, { voce: j, este: -1 }) || (s.se && !M.condicao(e, s.se, { voce: j, este: -1 }))) continue; } catch (_) { continue; }
+      r.push({ custo: {}, vida: 0, F: null, s });
     }
   }
   return r;
@@ -772,6 +782,8 @@ M.escolherModos = (e, j, d, f, ask, de?) => escolherModos(e, j, d, f, ask, de);
 const opcoesAd = c => { const { ou, ...resto } = c; return ou ? ou.map(a => ({ ...resto, ...a })) : [c]; };
 // "pague X de vida" como custo adicional (Toxic Deluge, CR 601.2b/119.4): o X é anunciado na conjuração (vidaX)
 const vidaX = c => !!c && c.vida === 'X' && !c.ou;
+// vida do custo: número, ou contagem lida ao pagar ("pay life equal to the number of colors in your commanders' color identity", War Room)
+const vidaCusto = (e, j, o, c) => c.vida && typeof c.vida === 'object' ? Math.max(0, M.qtdEst(e, c.vida, { voce: j, este: o && o.id })) : c.vida;
 M.custoAdSuportado = c => vidaX(c) ? M.custoSuportado({ ...c, vida: 1 }) : opcoesAd(c).some(M.custoSuportado);
 function altsAd(e, j, o, c) {
   if (vidaX(c)) return M.vidaFixa(e, j) ? [{ ...c, vida: 0 }] : [c];   // 119.8: vida fixa só paga X = 0
@@ -842,7 +854,7 @@ function pagarFisico(e, j, o, c, esc) {
   for (const id of esc.vir || []) M.virarObj(e, e.objs[id]);          // virarOutros
   for (const id of esc.exi || []) M.mover(e, id, 'exilio');        // exilarDe (CR 406)
   if ((esc.rev || []).length) M.log(e, J.nome, 'revela', esc.rev.map(id => e.objs[id].n).join(', '));   // CR 701.20: só mostra
-  if (c.vida) M.perderVida(e, j, c.vida);
+  if (c.vida) M.perderVida(e, j, vidaCusto(e, j, o, c));
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   if (c.porMarcador) M.porMarcadores(e, o, c.porMarcador.tipo, c.porMarcador.qtd || 1);   // 122.6: com as substituições de marcador
   for (const id of esc.sac) M.mover(e, id, 'cemiterio', { sac: true });            // CR 701.21
@@ -861,6 +873,15 @@ function pagarMana(e, j, pl, custo, x, para?) {
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(M.reservaCom(e, j, para), custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
+  const sm = (custo.g || 0) + (custo.x || 0) * x + (custo.p || []).length - Math.floor((pg.vida || 0) / 2);   // manas gastas (phyrexiano pago em vida não conta)
+  return Math.max(0, sm);
+}
+// expend N: "as you spend your Nth total mana to cast spells during a turn" — um evento por limite cruzado
+function gastar(e, j, n) {
+  if (!n) return;
+  const J = e.jogs[j], antes = J.gastoT && J.gastoT.t === e.turno.n ? J.gastoT.n : 0;
+  J.gastoT = { t: e.turno.n, n: antes + n };
+  for (let k = antes + 1; k <= antes + n; k++) M.evento(e, { ev: 'gasta', j, n: k });
 }
 
 // CR 601.2f: "custa {N} (ou N de vida) a mais" para o oponente que mira (Kopala, Warden of Waves; Terror of the Peaks).
@@ -939,7 +960,7 @@ const PROC = {
     for (let c = M.cascatas(e, o); c > 0; c--) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'cascata', g: { ev: 'conjura', fx: [{ op: 'descobrir', qtd: Math.max(-1, (M.dadoDe(e, o).vm || 0) - 1), cascata: true }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.85a/c: cada instância dispara
     M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, alvos, o.id);
-    pagarMana(e, j, pl, custo, x, o);                                                 // CR 601.2h
+    gastar(e, j, pagarMana(e, j, pl, custo, x, o));                                   // CR 601.2h (expend: Wandertale Mentor)
     if (o.pil) o.pil.manaGasta = M.vmDe(pl.custo || custo) + (custo && custo.x ? custo.x * x : 0);   // "the amount of mana spent to cast that spell" (Mana Sculpt; 601.2h)
     if (imp.vida) M.perderVida(e, j, imp.vida);
     if (alt && alt.F) { if (alt.vida) M.perderVida(e, j, alt.vida); if (alt.s.limite) alt.F.altUso = { t: e.turno.n, ts: alt.F.ts }; }   // 119.4: vida paga; "uma vez por turno"
@@ -1066,7 +1087,7 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
     const plano = M.decidirEntrada(e, o.id, o.pil.ctrl, {}, ask);   // pergunta antes de mexer
     const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga, deZ = o.pil.de;
     o.pil = null;
-    const ent = M.aplicarEntrada(e, { ...plano, conj, x, conjDe: deZ || 'mao' });   // conjurada já na entrada: o "if you cast it" do gatilho de entrar é lido aí (603.4)
+    const ent = M.aplicarEntrada(e, { ...plano, conj, x, conjDe: deZ || 'mao', conjurada: true });   // conjurada já na entrada: o "if you cast it" do gatilho de entrar é lido aí (603.4)
     if (ent) { ent.conjurada = true; ent.conjDe = deZ || 'mao'; }     // conjDe: de que zona ("if you cast it from your hand", Cyclone Summoner); filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
     if (conj && conj.iminente && ent) { const k = iminenteDe(M.dadoBase(e, ent)); if (k) ent.marc.time = (ent.marc.time || 0) + k.n; }   // 702.176a: entra com N marcadores de tempo
     if (conj && conj.investida && ent) {   // 702.109a: pressa enquanto estiver no campo; no começo do próximo passo final volta à mão do dono

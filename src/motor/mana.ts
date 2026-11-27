@@ -271,7 +271,9 @@ M.custoComImposto = (e, o, base?) => {
   return reduz(c, reducoes(e, o.dono, o, false));
 };
 // custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
-M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true));
+// a.reduz: "This ability costs {1} less to activate for each …" (Voldaren Estate, Otawara) — redução da própria habilidade
+M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : reduz({ ...a.custo.mana }, reducaoAtv(e, o, a, reducoes(e, o.ctrl, o, true)));
+const reducaoAtv = (e, o, a, r) => { if (a.reduz !== undefined) r.g += Math.max(0, M.qtdEst(e, a.reduz, { voce: o.ctrl, este: o.id })); return r; };
 // Forge Anew: "you may pay {0} rather than pay the equip cost of the first equip ability you activate each of your turns"
 const equipGratis = (e, o, a) => !!a._equipar && e.turno.ativo === o.ctrl && e.jogs[o.ctrl].equipT !== e.turno.n && M.estSeu(e, o.ctrl, 'primeiroEquiparGratis');
 /** j controla uma permanente com a estática deste modo (sem filtro: Forge Anew) */
@@ -284,7 +286,7 @@ M.estSeu = (e, j, modo) => e.campo.some(id => { const F = e.objs[id]; return F.c
 const RED_OK = new Set(['modo', 'afeta', 'de', 'qtd', 'custo', 'deHabil', 'se', 'minimo']);
 M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => RED_OK.has(k) || k.startsWith('_'))
   && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
-  && (s.de === undefined || s.de === 'mao')
+  && (s.de === undefined || s.de === 'mao' || s.de === 'cemiterio')   // cemiterio: só conjurada do cemitério (flashback de Visions of Glory)
   && (s.custo === undefined ? s.qtd !== undefined && M.qtdEstOk(s.qtd)
     : s.qtd === undefined && Object.keys(s.custo).every(k => k === 'p') && Array.isArray(s.custo.p))
   && (!s.se || M.seOk(s.se));

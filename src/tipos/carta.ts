@@ -212,7 +212,10 @@ export interface RxFiltro {
    * cor; lista = alguma destas (Goblin Anarchomancer: vermelha OU verde)
    */
   cor?: string | string[];
-  zona?: RxZona;
+  /**
+   * lista = em alguma destas zonas (Visions of Glory: comandante no campo ou na zona de comando)
+   */
+  zona?: RxZona | [RxZona, RxZona, ...RxZona[]];
   virada?: boolean;
   /**
    * 'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)
@@ -252,7 +255,7 @@ export interface RxFiltro {
    */
   modificada?: boolean;
   /**
-   * foi conjurada (não só posta); com zona: conjurada DE lá ('if you cast it from your hand' = 'mao')
+   * foi conjurada (não só posta); com zona: conjurada DE lá ("if you cast it from your hand" = 'mao'; Cyclone Summoner, Wakening Sun's Avatar)
    */
   conjurada?: boolean | ('mao' | 'cemiterio' | 'exilio' | 'comando' | 'grimorio');
   /**
@@ -804,7 +807,7 @@ export interface RxFx {
    */
   naoDesvira?: boolean;
   /**
-   * op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
+   * copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
    */
   fonte?: RxObjeto;
   /**
@@ -844,9 +847,21 @@ export interface RxFx {
    */
   nomesDiferentes?: boolean;
   /**
-   * animar: supertipos a mais ("becomes a legendary 6/6…", Cacophony Unleashed)
+   * animar: supertipos a mais ("becomes a legendary 6/6…", Cacophony Unleashed) | copiarPermanente: supertipos além dos copiados ("it's legendary in addition to its other types": Sarkhan)
    */
   super?: string[];
+  /**
+   * com pagando {mana:{x:1}}: "you may pay {X}, where X is less than or equal to N" — você escolhe o X (0…N); o efeito lê o X pago (qtd 'X'; Well of Lost Dreams)
+   */
+  xAte?: RxQtd;
+  /**
+   * copiarPermanente: "except its name is [este]" (707.9b; Sunfrill Imitator, Sarkhan Soul Aflame)
+   */
+  mantemNome?: boolean;
+  /**
+   * copiarPermanente: "and it has this ability" — fica com as habilidades desencadeadas impressas dela (Sunfrill Imitator)
+   */
+  mantemGat?: boolean;
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
@@ -897,7 +912,10 @@ export interface RxCond {
     min?: number;
   };
   esteEm?: RxZona[];
-  turno?: 'seu' | 'deOutro';
+  /**
+   * doEvento: é o turno do jogador do evento ("draws a card during their turn": Wedding Ring)
+   */
+  turno?: 'seu' | 'deOutro' | 'doEvento';
   /**
    * o 'se fizer' / 'se não fizer' do efeito anterior
    */
@@ -1000,6 +1018,10 @@ export interface RxCond {
    * o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)
    */
   eventoMais?: 'mao' | 'terrenos' | 'vida';
+  /**
+   * a condição de dentro NÃO vale ("unless you have the city's blessing": {nao:{palavra:'blessing'}}; Wayward Swordtooth)
+   */
+  nao?: RxCond;
 }
 
 export interface RxKw {
@@ -1055,6 +1077,7 @@ export interface RxKw {
     | 'proeza'
     | 'tripular'
     | 'selar'
+    | 'investida'
     | 'fabricar'
     | 'posVida'
     | 'cascata'
@@ -1134,6 +1157,10 @@ export interface RxAtv {
    * "Activate only if …"
    */
   se?: RxCond;
+  /**
+   * "This ability costs {1} less to activate for each …": tira N do genérico desta habilidade (CR 601.2f/602.2b; Voldaren Estate, Otawara)
+   */
+  reduz?: RxQtd;
 }
 
 export interface RxGat {
@@ -1179,7 +1206,8 @@ export interface RxGat {
     | 'nivel'
     | 'monstruosa'
     | 'portador'
-    | 'ativa';
+    | 'ativa'
+    | 'gasta';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1239,7 +1267,7 @@ export interface RxGat {
    */
   nesteTurno?: boolean;
   /**
-   * capitulo: número do capítulo da saga
+   * capitulo: número do capítulo da saga; gasta: N de "whenever you expend N" (a N-ésima mana gasta em mágicas no turno; Wandertale Mentor)
    */
   n?: number;
   /**
@@ -1623,7 +1651,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)
    */
   o?:
     | 'quantos'
@@ -1664,7 +1692,8 @@ export interface RxContagem {
     | 'tentacoes'
     | 'cemiterio'
     | 'jogadores'
-    | 'excesso';
+    | 'excesso'
+    | 'aoCemiterio';
   /**
    * só os que batem — turno/entraram (Éowyn, Shieldmaiden: outro Humano seu); turno/sacrificadas ("if you sacrificed a Food this turn": {sub:['Food']})
    */
