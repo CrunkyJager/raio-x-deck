@@ -2191,6 +2191,52 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('605.1b', "gatilho de mana ao virar terreno (Wild Growth, Regal Behemoth): resolve na hora, o solver conta com ele; Behemoth só se for o monarca", () => {
+  for (const c of ['Wild Growth', 'Fertile Ground', 'Regal Behemoth', "Mirari's Wake"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Wild Growth'], [0, 'Regal Behemoth']], passo: 'principal2' }); e.pend = [];
+  const [fo, wg] = e.campo;
+  e.objs[wg].anexo = { id: fo, ts: e.objs[fo].ts };
+  const tot = p => Object.values(p).reduce((a: number, b: any) => a + b, 0);
+  igual(M.fontesDeMana(e, 0).find(f => f.id === fo).pacotes.map(tot), [2], 'sem monarca: Forest + Wild Growth = 2');
+  ok(!!M.planoMana(e, 0, { g: 1, p: ['G'] }), 'paga {1}{G} só com a Forest');
+  M.virarMonarca(e, 0);
+  const pac = M.fontesDeMana(e, 0).find(f => f.id === fo).pacotes;
+  igual([pac.length, tot(pac[0])], [5, 3], 'monarca: + 1 de qualquer cor (5 escolhas)');
+  M.ativarMana(e, 0, fo, 0, 0);
+  igual([e.objs[fo].virada, tot(e.jogs[0].reserva)], [true, 3], 'virou e a reserva tem 3');
+});
+caso('724', "Éomer: 'target player becomes the monarch' — a IA escolhe a si mesma; Faramir: na sua etapa final, se você é o monarca (603.4), 2 fichas", () => {
+  const Eo = M.carta('Éomer, King of Rohan'), Fa = M.carta('Faramir, Steward of Gondor');
+  ok(M.gatOk(Eo.gat[0]) && M.gatOk(Fa.gat[1]), 'gatilhos aceitos');
+  const e = cena({ campo: [[0, 'Faramir, Steward of Gondor']], passo: 'principal2' }); e.pend = [];
+  const IA = M.agenteBasico();
+  const r = IA(e, { j: 0, tipo: 'alvo', ops: [{ a: 'alvo', jog: 1 }, { a: 'alvo', jog: 0 }], ctx: { i: 0, de: -1, paraSi: true } });
+  igual(r, 1, 'IA escolhe ela mesma para virar monarca');
+  M.executar(e, Eo.gat[0].fx[0], { voce: 0, este: -1, alvos: [[{ jog: 1 }]], ilegal: {}, lki: { alvos: [] } }, null);
+  igual(e.monarca, 1, 'o jogador-alvo virou o monarca');
+  const fichas = x => x.campo.filter(id => x.objs[id].ficha && x.objs[id].ctrl === 0).length;
+  passarAte(e, 'final'); M.avancar(e); resolveCom(e);
+  igual(fichas(e), 0, 'não é o monarca: sem fichas');
+  const e2 = cena({ campo: [[0, 'Faramir, Steward of Gondor']], passo: 'principal2' }); e2.pend = [];   // na principal2: o combate não trava o passarAte
+  M.virarMonarca(e2, 0); passarAte(e2, 'final'); M.avancar(e2); resolveCom(e2);
+  igual(fichas(e2), 2, 'monarca na sua etapa final: 2 fichas');
+});
+caso('613.4b', "Sephiroth: criaturas modificadas (700.9) viram 7/5 base até o fim do turno (7b), o +X da 7c soma por cima; só modificada paga o custo do cemitério", () => {
+  const S = M.carta('Sephiroth, Fallen Hero');
+  ok(M.gatOk(S.gat[0]) && M.custoSuportado(S.atv[0].custo), 'gatilho e custo aceitos');
+  const e = cena({ campo: [[0, 'Sephiroth, Fallen Hero'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears']], passo: 'principal2' }); e.pend = [];
+  const [sp, u, v, w] = e.campo;
+  ok(!M.bate(e, e.objs[u], { modificada: true }, { voce: 0 }), 'sem marcador: não modificada');
+  const ctx: any = { voce: 0, este: sp, alvos: [[{ o: u, ts: e.objs[u].ts }]], ilegal: {}, lki: { alvos: [] } };
+  for (const f of S.gat[0].fx) M.executar(e, f, ctx, () => ({ a: 'sim' }));
+  const pt = id => [M.poder(e, e.objs[id]), M.resistencia(e, e.objs[id])];
+  igual([e.objs[u].marc.cell, pt(u), pt(v), pt(w)], [1, [7, 5], [2, 2], [2, 2]], 'só a com marcador vira 7/5');
+  M.executar(e, { op: 'modificar', em: 'este', p: 3, r: 3, dura: 'fimDoTurno' }, { ...ctx, este: u }, null);
+  igual(pt(u), [10, 8], '7c depois da 7b');
+  e.objs[v].marc.cell = 1; igual(pt(v), [2, 2], 'modificada depois da resolução não entra (611.2c)');
+  ok(M.objetosQue(e, { ...S.atv[0].custo.sacrificar.f }, { voce: 0 }).map(o => o.id).sort().join() === [u, v].sort().join(), 'candidatas ao sacrifício: as modificadas');
+  passarAte(e, 'principal1'); igual(pt(u), [2, 2], 'acabou na limpeza');
+});
 caso('603.7', 'gatilho atrasado com o alvo de quem o criou: Alora — a atacante escolhida volta à mão no fim do turno; se mudou de zona, não (400.7)', () => {
   const g = M.carta('Alora, Merry Thief').gat[0];
   ok(M.gatOk(g), 'gatilho da Alora aceito');

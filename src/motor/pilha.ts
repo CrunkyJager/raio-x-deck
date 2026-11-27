@@ -490,6 +490,8 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 // Ordem da CR: anunciar (move para a pilha), modos, X, alvos, custos. Aqui as escolhas vêm primeiro e a carta só
 // vai para a pilha quando tudo fecha — o resultado é o mesmo (nada do jogo muda entre um passo e outro).
 // cabe(n): o custo ainda fecha com n alvos no total (impostoPorAlvo, CR 601.2f); sem ele, qualquer número.
+// o alvo-jogador i é o primeiro de jogador e o efeito que o usa é bom para quem ganha (Éomer: "target player becomes the monarch")
+const paraSi = (fx, alvos, i) => (alvos || []).findIndex(a => a && (a.f === 'jogador' || a.f === 'qualquerAlvo')) === i && (fx || []).some(f => f && f.op === 'virarMonarca' && f.quem === 'alvoJogador');
 function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc?: any) {
   const esc: any[] = [];
   let total = 0;
@@ -501,7 +503,7 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
       if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
       if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto' && max === Infinity)) break;
-      const r = ask(j, 'alvo', ops, { i, de: ctx.este });
+      const r = ask(j, 'alvo', ops, { i, de: ctx.este, ...(paraSi(fx, d.alvos, i) ? { paraSi: true } : {}) });
       if (r.a === 'pronto') break;
       lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts }); total++;
     }

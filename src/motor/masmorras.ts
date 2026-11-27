@@ -249,7 +249,7 @@ M.condMasmorra = (e, se, ctx) => {
 
 // ---------- efeitos ----------
 const H = M.EFEITOS;
-const jogsDe = (e, f, ctx) => { const q = f.quem; const vivos = M.vivos(e); return q === undefined || q === 'voce' ? (vivos.includes(ctx.voce) ? [ctx.voce] : []) : q === 'doEvento' ? (ctx.ev && ctx.ev.j !== undefined && vivos.includes(ctx.ev.j) ? [ctx.ev.j] : []) : q === 'cadaJogador' ? vivos : q === 'cadaOponente' ? vivos.filter(j => j !== ctx.voce) : []; };
+const jogsDe = (e, f, ctx) => { const q = f.quem; const vivos = M.vivos(e); return q === undefined || q === 'voce' ? (vivos.includes(ctx.voce) ? [ctx.voce] : []) : q === 'doEvento' ? (ctx.ev && ctx.ev.j !== undefined && vivos.includes(ctx.ev.j) ? [ctx.ev.j] : []) : q === 'alvoJogador' ? (ctx.alvos || []).map((l, i) => (l || []).filter((a, k) => a.jog !== undefined && !(ctx.ilegal || {})[i + ':' + k] && vivos.includes(a.jog)).map(a => a.jog)).find(js => js.length) || [] : q === 'cadaJogador' ? vivos : q === 'cadaOponente' ? vivos.filter(j => j !== ctx.voce) : []; };
 // fx aventurar (701.49) e tomarIniciativa (727): quem = voce (o banco) ou doEvento (o gatilho inerente do dano)
 H.aventurar = {
   campos: ['undercity'],
@@ -257,7 +257,7 @@ H.aventurar = {
   fx(e, f, ctx, ask) { for (const j of jogsDe(e, f, ctx)) M.aventurar(e, j, ask, !!f.undercity); },
 };
 H.virarMonarca = {
-  ok: f => f.quem === undefined || f.quem === 'voce',
+  ok: f => f.quem === undefined || f.quem === 'voce' || f.quem === 'alvoJogador',   // Éomer: "target player becomes the monarch"
   fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) M.virarMonarca(e, j); },
 };
 H.tomarIniciativa = {

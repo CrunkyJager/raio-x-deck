@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.51.0 — 27/11/2026 · Motor: camada 7b, modificada, monarca-alvo, gatilho de mana
+Testes: check 0 erros · Vitest 370/370 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1453/1756 (eram 1444). Masmorras: 20 partidas, 0 erros.
+- **Sephiroth:** filtro "modificada" (CR 700.9: marcador, Equipamento ou Aura sua) e P/R base fixado até o fim do turno (camada 7b, 613.4b); o +X da 7c soma por cima.
+- **Éomer:** "jogador-alvo vira o monarca"; a IA escolhe a si mesma. **Faramir:** gatilho "se você é o monarca" (603.4).
+- **Gatilho de mana ao virar terreno** (CR 605.1b, sem pilha): Wild Growth, Fertile Ground, Regal Behemoth, Mirari's Wake; o pagamento automático conta a mana a mais.
+
 ## v0.50.0 — 26/11/2026 · Motor: efeitos temporários, monarca, emblemas e o pedido do Edigar
 Testes: check 0 erros · Vitest 367/367 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1444/1756 (eram 1400). Ivora e Masmorras: 30 partidas cada, 0 erros.
 - **Pedido do Edigar:** marcador +1/+1 separado do bônus de lorde na Mesa; a Mesa não pergunta a ordem dos gatilhos quando a ordem não muda nada (CR 701.9a, 603.3b); "vai ao cemitério de qualquer lugar" dispara vindo da mão/grimório (Kozilek, Ulamog).
