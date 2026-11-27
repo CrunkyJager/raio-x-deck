@@ -120,7 +120,10 @@ function acaoDoTurno(e) {
       for (const id of e.campo.slice()) { const o = e.objs[id]; if (o.ctrl === a && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1); }
       break;
     case 'compra':                                                  // CR 504.1; 103.8a só em 2 jogadores
-      if (!(T.n === 1 && e.jogs.length === 2)) M.comprar(e, a, 1);
+      if (!(T.n === 1 && e.jogs.length === 2)) {
+        if (M.temDragar(e, a)) M.iniciarProc(e, { tp: 'compra', j: a, qtd: 1 });   // dragar (702.52a): pergunta antes de comprar
+        else M.comprar(e, a, 1);
+      }
       break;
     case 'limpeza': {                                               // CR 514.1 descarte até o máximo
       const sobra = J.zonas.mao.length - maoMax(e, a);
@@ -214,6 +217,8 @@ M.PROC.terreno = (e, P, ask) => {
   M.evento(e, { ev: 'jogaTerreno', id: o.id, j, de });            // CR 305.1: "jogar um terreno" (de: de onde; Shadow of the Goblin)
   M.agiu(e, j);                                                     // CR 117.3c
 };
+// etapa de compra com carta de dragar no cemitério: a compra é processo (todas as perguntas antes de mexer)
+M.PROC.compra = (e, P, ask) => M.comprar(e, P.j, P.qtd, { ask, antes: () => { e.proc = null; } });
 const jogarTerreno = (e, j, id, face?) => M.iniciarProc(e, face === undefined ? { tp: 'terreno', j, id } : { tp: 'terreno', j, id, face });
 M.jogarTerreno = jogarTerreno;
 
@@ -268,6 +273,9 @@ M.abe = e => {
     for (const id of e.campo) {
       const o = e.objs[id]; if (!o.anexo) continue;
       const t = M.anexadoA(e, o), aura = (M.dadoDe(e, o).sub || []).includes('Aura');
+      if (o.concedida && (!t || !M.temTipo(e, t, 'Creature'))) {     // 702.103f: concedida solta (ou em ilegal) fica no campo e volta a ser criatura
+        o.anexo = null; o.concedida = false; e.vCamada = (e.vCamada || 0) + 1; mudou = true; M.log(e, o.n, 'solta: volta a ser criatura (702.103f)'); continue;
+      }
       if (aura ? !t : !t || !M.temTipo(e, t, 'Creature') || M.temTipo(e, o, 'Creature')) {
         if (aura) morrem.push(id); else { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; mudou = true; }
       }
@@ -308,7 +316,12 @@ M.abe = e => {
       const d = M.dadoDe(e, o), nm = o.clone ? d.n || o.n : o.n;      // o clone tem o nome copiado (707.2)
       if ((d.super || []).includes('Legendary')) (lend[o.ctrl + '|' + nm] = lend[o.ctrl + '|' + nm] || []).push(id);
     }
-    const dup = Object.values<any>(lend).find(l => l.length > 1);
+    let dup = Object.values<any>(lend).find(l => l.length > 1);
+    if (dup) {                                                        // "the legend rule doesn't apply to Slivers you control" (Sliver Gravemother): tira os isentos
+      const isento = id => { const o = e.objs[id]; return M.indiceCampo(e).est.some(fid => { const F = e.objs[fid];
+        return F.ctrl === o.ctrl && (M.dadoDe(e, F).est || []).some(s => s.modo === 'semRegraLenda' && s.afeta && M.bate(e, o, { ...s.afeta, zona: 'campo' }, { voce: F.ctrl, este: F.id })); }); };
+      dup = Object.values<any>(lend).map(l => l.filter(id => !isento(id))).find(l => l.length > 1);
+    }
     if (dup) { e.perg = { j: e.objs[dup[0]].ctrl, tipo: 'lenda', ops: dup.map(id => ({ a: 'fica', id })), ctx: { ids: dup } }; return; }
     // comandante no cemitério/exílio desde a última checagem (CR 903.9a): o dono pode mandar ao comando
     while (e.abeNovo.length) {
