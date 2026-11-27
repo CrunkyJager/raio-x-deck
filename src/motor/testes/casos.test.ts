@@ -3831,6 +3831,44 @@ caso('205.1b', "The Master, Transcendent: a criatura que volta do cemitério é 
   ok(M.temKw(e, o, 'voar'), 'mantém as habilidades');
 });
 
+caso('603.10a', "The Skullspore Nexus: duas criaturas não-ficha minhas morrem juntas (Wrath) → UMA ficha Fungus Dinosaur com P/R = soma do poder delas (2+4 = 6/6)", () => {
+  ok(M.carta('The Skullspore Nexus').gat.every(g => M.gatOk(g)), 'aceita');
+  const e = cena({ campo: [[0, 'The Skullspore Nexus'], [0, 'Grizzly Bears'], [0, 'Serra Angel'], [1, 'Llanowar Elves']] }); e.pend = [];
+  M.executar(e, { op: 'destruir', em: { todos: { tipo: ['Creature'], zona: 'campo' } } }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  M.abe(e); M.avancar(e); resolveCom(e);
+  const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha && o.ctrl === 0);
+  igual(fs.length, 1, 'uma ficha só: ' + JSON.stringify(e.log.slice(-6)));
+  igual([M.poder(e, fs[0]), M.resistencia(e, fs[0])], [6, 6], 'soma do poder');
+});
+
+caso('702.18a', "eminência: The Ur-Dragon na zona de comando já reduz em {1} as mágicas Dragão suas; do oponente e não-Dragão não", () => {
+  ok(M.estReduzOk(M.carta('The Ur-Dragon').est[0]), 'aceita');
+  const e = cena({ cmd: ['The Ur-Dragon'], mao: [[0, 'Ancient Copper Dragon'], [0, 'Grizzly Bears'], [1, 'Ancient Copper Dragon']] });
+  const m = n => e.jogs[0].zonas.mao.map(id => e.objs[id]).find(o => o.n === n);
+  igual(M.custoComImposto(e, m('Ancient Copper Dragon')).g, 3, 'Dragão: {4} vira {3}');
+  igual(M.custoComImposto(e, m('Grizzly Bears')).g, 1, 'Urso: igual');
+  const op = e.objs[e.jogs[1].zonas.mao[0]]; igual(M.custoComImposto(e, op).g, 4, 'do oponente: igual');
+  const ur = e.objs[e.jogs[0].zonas.comando[0]]; igual(M.custoComImposto(e, ur).g, 4, 'ela mesma não (other)');
+});
+
+caso('614.1a', "The Water Crystal: o oponente que moeria 2 mói 6 (subst moer soma 4); eu mesmo mói 2; e moer 0 não vira 4", () => {
+  ok(M.carta('The Water Crystal').subst.every(s => M.substOk(s)), 'aceita');
+  const e = cena({ campo: [[0, 'The Water Crystal']] });
+  const cx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  M.executar(e, { op: 'moer', quem: 'cadaOponente', qtd: 2 }, cx, null); igual(e.jogs[1].zonas.cemiterio.length, 6, 'oponente: 2+4');
+  M.executar(e, { op: 'moer', quem: 'voce', qtd: 2 }, cx, null); igual(e.jogs[0].zonas.cemiterio.length, 2, 'eu: 2');
+  M.executar(e, { op: 'moer', quem: 'cadaOponente', qtd: 0 }, cx, null); igual(e.jogs[1].zonas.cemiterio.length, 6, '0: nada');
+});
+
+caso('119.3', "vida ganha neste turno ({de:'turno', o:'vidaGanha'}): soma os ganhos do turno; Assemble the Entmoot cria a ficha X/X com ela", () => {
+  const e = cena({}); const cx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  igual(M.contar(e, { de: 'turno', o: 'vidaGanha' }, cx), 0);
+  M.ganharVida(e, 0, 3); M.ganharVida(e, 0, 2); M.ganharVida(e, 1, 7);
+  igual(M.contar(e, { de: 'turno', o: 'vidaGanha' }, cx), 5, 'só os meus: 3+2');
+  e.turno.n++; igual(M.contar(e, { de: 'turno', o: 'vidaGanha' }, cx), 0, 'outro turno: zera');
+  ok(M.fxSuportado(M.carta('Assemble the Entmoot').atv[0].fx, { topo: false }), 'ficha X/X aceita');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

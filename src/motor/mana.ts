@@ -270,6 +270,9 @@ function reducoes(e, j, o, deHabil) {
   const r = { g: 0, p: [] as string[] };
   const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
   if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
+  for (const J of e.jogs) for (const id of J.zonas.comando || []) {   // eminência (Ur-Dragon): "as long as … in the command zone or on the battlefield"
+    const C = e.objs[id]; if (C && C.id !== o.id && (M.dadoDe(e, C).est || []).some(s => s.modo === 'reduzCusto' && s.se && (s.se.esteEm || []).includes('comando'))) fontes.push(C);
+  }
   if (!deHabil) for (const k of M.dadoDe(e, o).kw || []) if (k.k === 'afinidade' && k.tipo)   // CR 702.41: {1} a menos por [tipo] seu
     r.g += M.objetosQue(e, { tipo: [k.tipo], ctrl: 'voce', zona: 'campo' }, { voce: j, este: o.id }).length;
   for (const F of fontes) for (const s of M.dadoDe(e, F).est || []) {
@@ -277,7 +280,7 @@ function reducoes(e, j, o, deHabil) {
     const ctx = { voce: F.ctrl, este: F.id };
     if (s.afeta === 'este') { if (F.id !== o.id || (s.de && o.zona !== s.de)) continue; }
     else {
-      if (F.zona !== 'campo') continue;                               // a estática com filtro só vale do campo
+      if (F.zona !== 'campo' && !(s.se && (s.se.esteEm || []).includes(F.zona))) continue;   // a estática com filtro só vale do campo (ou de onde o esteEm diz)
       const { zona, ctrl, ...f } = s.afeta;
       if (ctrl && ctrl !== 'qualquer' && (ctrl === 'voce') !== (j === F.ctrl)) continue;
       if (deHabil ? zona && zona !== 'qualquer' && o.zona !== zona : zona && zona !== 'pilha') continue;

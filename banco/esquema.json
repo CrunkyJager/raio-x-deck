@@ -2212,9 +2212,10 @@
       "compra",
       "anulada",
       "vidaMuda",
-      "ganhaVida"
+      "ganhaVida",
+      "moer"
      ],
-     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda"
+     "description": " ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: \"would mill\" (jog + muda.soma: mói N a mais — The Water Crystal)"
     },
     "quem": {
      "$ref": "#/$defs/filtro"

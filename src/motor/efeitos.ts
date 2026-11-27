@@ -65,6 +65,7 @@ const SUBST: Record<string, (s) => boolean> = {
   entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
     || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo'))),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
+  moer: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.soma) && Object.keys(s).every(k => ['ev', 'jog', 'muda'].includes(k)) && [undefined, 'voce', 'oponente', 'qualquer'].includes(s.jog),   // efeitos.ts moer (The Water Crystal)
   compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
   entraMarc: s => !!s.muda && Object.keys(s.muda).length === 1 && !!s.muda.marcadores && typeof s.muda.marcadores === 'object'
@@ -863,11 +864,12 @@ const H = {
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
     campos: ['token', 'virada', 'atacando'],
-    ok: f => (f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'),
+    ok: f => (!f.token || !Array.isArray(f.token.pt) || f.token.pt.every(x => typeof x === 'number' || qtdOk(x))) && ((f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number')),
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx); ctx.criadas = [];
-      const tok = f.token && f.token.copiaDe !== undefined ? copiaDe(e, f.token, ctx) : f.token;
+      let tok = f.token && f.token.copiaDe !== undefined ? copiaDe(e, f.token, ctx) : f.token;
       if (!tok) return;
+      if (Array.isArray(tok.pt) && tok.pt.some(x => typeof x !== 'number')) tok = { ...tok, pt: tok.pt.map(x => typeof x === 'number' ? x : Math.max(0, qtdDe(e, x, ctx))) };   // "X/X", "P/R igual a…": vale ao criar (Skullspore Nexus, Assemble the Entmoot)
       for (const j of jogsDe(e, f, ctx)) for (const o of M.criarFichas(e, j, tok, q, { virada: !!f.virada })) {
         ctx.criadas.push({ id: o.id, ts: o.ts });
         // CR 508.4: "virada e atacando" — fora do combate só entra virada; no "para cada oponente", ataca aquele jogador
@@ -1047,7 +1049,8 @@ const H = {
   revelarTopo: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; const ids = g.slice(-q).reverse(); if (ids.length) M.log(e, e.jogs[j].nome, 'revela do topo', ids.map(id => e.objs[id].n).join(', ')); } } },   // CR 701.20: só mostra; quem pega é o efeito seguinte (topo: true)
   moer: { fx(e, f, ctx) {   // CR 701.13. Depois de mover: 'moe' por carta {id, j} e o lote 'moeGrupo' {ids, n} ("uma ou mais", Scorchbeast)
     const q = qtdDe(e, f.qtd, ctx), ids: any[] = [];
-    for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
+    const mais = j => q > 0 ? substsDe(e, 'moer').reduce((n, { F, s }) => (s.jog === 'voce' ? j === F.ctrl : s.jog === 'oponente' ? j !== F.ctrl : true) ? n + s.muda.soma : n, 0) : 0;   // 614.1a: "mill that many plus four instead"
+    for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio, qj = q + mais(j); for (let i = 0; i < qj && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
   } },
   // qtd 'tudo' = "sacrifica todas" (Living Death, sem escolha); {ate:N|'qualquer'} = "quantas quiser" (Scapeshift)

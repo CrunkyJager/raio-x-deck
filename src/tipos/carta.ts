@@ -1235,7 +1235,7 @@ export interface RxEst {
  */
 export interface RxSubst {
   /**
-   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda
+   *  ganhaVida: só o GANHO de vida (jog + muda soma/mult: Angel of Vitality, Bilbo, The Wind Crystal); vidaMuda pega ganho e perda · moer: "would mill" (jog + muda.soma: mói N a mais — The Water Crystal)
    */
   ev:
     | 'entra'
@@ -1247,7 +1247,8 @@ export interface RxSubst {
     | 'compra'
     | 'anulada'
     | 'vidaMuda'
-    | 'ganhaVida';
+    | 'ganhaVida'
+    | 'moer';
   quem?: RxFiltro;
   muda?: {
     virada?: boolean;
