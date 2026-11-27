@@ -3961,6 +3961,15 @@ caso('701.44', "explorar: terreno no topo vai para a mão; senão +1/+1 e pode i
   igual(gb.marc['+1/+1'], 1, 'não-terreno: +1/+1'); igual(naZona(e, 0, 'cemiterio'), ['Sol Ring']);
 });
 
+caso('508.3a', "\"sempre que uma ou mais atacam\" (grupo): Meriadoc dispara uma vez com dois Halflings atacando", () => {
+  for (const c of ['Mavren Fein, Dusk Apostle', 'Meriadoc Brandybuck']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Meriadoc Brandybuck'], [0, 'Meriadoc Brandybuck']] });
+  const [a, b] = e.campo.map(id => e.objs[id]);
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: a.id, def: 1 }); M.evento(e, { ev: 'ataca', id: b.id, def: 1 });
+  igual(e.pend.length, 2, 'um disparo por Meriadoc, não por atacante');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
