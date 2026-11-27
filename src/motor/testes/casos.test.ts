@@ -3553,6 +3553,19 @@ caso('702.135a', "pós-vida: Ministrant of Obligation morre e cria 2 Espíritos 
   M.mover(f, f.campo[0], 'exilio'); igual(f.pend.length, 0, 'exilada: nada');
 });
 
+caso('702.122a', "tripular: Rolling Hamsphere (tripular 3) vira as criaturas com poder total 3 e vira criatura até o fim do turno; sem poder suficiente, não oferece", () => {
+  const e = cena({ campo: [[0, 'Rolling Hamsphere'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const h = e.objs[e.campo[0]];
+  ok(!M.temTipo(e, h, 'Creature'), 'parado: não é criatura');
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(op => op.a === 'ativar' && op.id === h.id);
+  ok(k >= 0, 'tripular oferecido'); M.responder(e, k); resolveCom(e);
+  ok(M.temTipo(e, h, 'Creature') && M.temTipo(e, h, 'Artifact'), 'tripulado: criatura artefato');
+  igual(e.campo.filter(id => e.objs[id].n === 'Grizzly Bears' && e.objs[id].virada).length, 2, 'virou as duas (2+2 ≥ 3)');
+  const f = cena({ campo: [[0, 'Rolling Hamsphere'], [0, 'Grizzly Bears']] }); f.pend = [];
+  M.avancar(f); ok(!f.perg.ops.some(op => op.a === 'ativar' && op.id === f.campo[0]), 'poder 2 < 3: não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

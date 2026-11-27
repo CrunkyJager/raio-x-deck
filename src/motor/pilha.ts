@@ -150,7 +150,7 @@ M.custoSuportado = c => {
     && (c.devolver.qtd === undefined || Number.isInteger(c.devolver.qtd)) && Object.keys(c.devolver).every(k => k === 'f' || k === 'qtd'))) return false;
   // "vire uma criatura lendária desvirada que você controla" (Dungeon Descent): {f, qtd}; não é o {T} dela, enjoo não importa (302.6)
   if (c && c.virarOutros !== undefined && !(c.virarOutros && typeof c.virarOutros === 'object' && M.filtroOk(c.virarOutros.f || {})
-    && (c.virarOutros.qtd === undefined || Number.isInteger(c.virarOutros.qtd)) && Object.keys(c.virarOutros).every(k => k === 'f' || k === 'qtd'))) return false;
+    && (c.virarOutros.qtd === undefined || Number.isInteger(c.virarOutros.qtd)) && (c.virarOutros.poder === undefined || (Number.isInteger(c.virarOutros.poder) && c.virarOutros.qtd === undefined)) && Object.keys(c.virarOutros).every(k => k === 'f' || k === 'qtd' || k === 'poder'))) return false;
   return true;
 };
 // candidatos a sacrificar/descartar de um custo
@@ -175,7 +175,8 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.devolver === 'este' && (!o || o.zona !== 'campo')) return false;
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
-  if (c.virarOutros && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
+  if (c.virarOutros && c.virarOutros.poder === undefined && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
+  if (c.virarOutros && c.virarOutros.poder !== undefined && candVir(e, j, c, o && o.id).reduce((s, x) => s + Math.max(0, M.poder(e, x)), 0) < c.virarOutros.poder) return false;   // tripular N (702.122a)
   return true;
 }
 
@@ -628,7 +629,14 @@ function escolherAd(e, j, o, c, ask) {
 }
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
   const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[] };
-  if (c.virarOutros) {
+  if (c.virarOutros && c.virarOutros.poder !== undefined) {        // "vire criaturas com poder total N ou mais" (tripular, 702.122a)
+    let soma = 0;
+    while (soma < c.virarOutros.poder) {
+      const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id) && M.poder(e, o) > 0).map(o => ({ a: 'virar', id: o.id }));
+      if (!ops.length) break;
+      const id = ask(j, 'custo', ops, { o: 'virar' }).id; r.vir.push(id); soma += M.poder(e, e.objs[id]);
+    }
+  } else if (c.virarOutros) {
     for (let i = 0; i < (c.virarOutros.qtd || 1); i++) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id)).map(o => ({ a: 'virar', id: o.id }));
       r.vir.push(ask(j, 'custo', ops, { o: 'virar' }).id);
