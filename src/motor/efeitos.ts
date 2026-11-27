@@ -504,7 +504,7 @@ function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {} }: any = 
 // Fichas predefinidas (CR 111.10): o banco escreve só {nome:'Treasure'}; o tipo e as habilidades vêm daqui,
 // escritos a partir do texto Oracle da ficha. O que o token trouxer além do nome vale por cima.
 // Powerstone: a restrição vira so {tipo:Artifact} (paga mágica de artefato; ainda não paga habilidade).
-// Map (explorar) e Junk (exila o topo e pode jogar) usam ops que o motor não tem: a ficha existe, a habilidade não é ativada.
+// Junk (exila o topo e pode jogar) usa op que o motor não tem: a ficha existe, a habilidade não é ativada.
 const art = (sub, atv) => ({ tipos: ['Artifact'], sub: [sub], cores: '', vm: 0, atv });
 const sacE = (c: any = {}) => ({ ...c, sacrificar: 'este' });
 M.FICHAS = {
@@ -969,6 +969,26 @@ const H = {
         q = Math.min(q, de.marc[t] || 0); if (q <= 0) return;
         de.marc[t] -= q; M.porMarcadores(e, para, t, q);
       } else if (f.tipoMarc && (!de || de.zona !== 'campo') && q > 0) M.porMarcadores(e, para, f.tipoMarc, q);   // "move its counters" de quem saiu: os do LKI
+    },
+  },
+  // CR 701.44: explorar. Revela o topo; terreno vai para a mão; senão, +1/+1 na que explora e o jogador pode pôr a
+  // carta no cemitério (pergunta 'vigiar'). Fora do campo ainda explora, sem o marcador (701.44b). Evento 'explora'.
+  explorar: {
+    ok: f => f.em !== undefined,
+    fx(e, f, ctx, ask) {
+      for (const o of objsDe(e, f, ctx)) {
+        const j = o.ctrl, g = e.jogs[j].zonas.grimorio, top = g[g.length - 1];
+        if (top !== undefined) {
+          const c = e.objs[top];
+          M.log(e, e.jogs[j].nome, 'explora com', o.n, '— revela', c.n);
+          if (M.temTipo(e, c, 'Land')) M.mover(e, top, 'mao');
+          else {
+            if (o.zona === 'campo') M.porMarcadores(e, o, '+1/+1', 1);
+            if (ask(j, 'vigiar', [{ a: 'topo', id: top }, { a: 'cemiterio', id: top }], { op: 'explorar' }).a === 'cemiterio') M.mover(e, top, 'cemiterio');
+          }
+        } else if (o.zona === 'campo') M.porMarcadores(e, o, '+1/+1', 1);   // grimório vazio: nada revelado, não é terreno (701.44a)
+        M.evento(e, { ev: 'explora', id: o.id, j });
+      }
     },
   },
   // popular (CR 701.36a): escolha uma ficha de criatura que você controla e crie uma ficha que é cópia dela (sem ficha: nada, 701.36b)

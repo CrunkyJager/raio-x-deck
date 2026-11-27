@@ -1441,14 +1441,15 @@ caso('111.10c', 'Blood ({1},{T}, descarte, sacrifique: compra); o agente só usa
   igual(naZona(e, 0, 'cemiterio'), ['Forest'], 'descartou o terreno');
   igual(e.jogs[0].zonas.mao.length, 3, '3 − 1 + 1');
 });
-caso('111.10d', 'Powerstone: {C} só para mágica de artefato; Map/Junk existem mas não ativam; nome fora da tabela fica só com o nome', () => {
+caso('111.10d', 'Powerstone: {C} só para mágica de artefato; Map ativa (explorar); Junk existe mas não ativa; nome fora da tabela fica só com o nome', () => {
   const p = cena({ mao: [[0, 'Sol Ring']] }); ficha(p, 0, 'Powerstone');
   ok(M.opcoesPrioridade(p, 0).some(o => o.a === 'conjurar' && p.objs[o.id].n === 'Sol Ring'), 'Sol Ring sim');
   const q = cena({ mao: [[0, 'Grizzly Bears']], campo: [[0, 'Forest']] }); ficha(q, 0, 'Powerstone');
   ok(!M.opcoesPrioridade(q, 0).some(o => o.a === 'conjurar'), 'criatura não-artefato não');
   const r = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Wastes']] }); const mp = ficha(r, 0, 'Map'); ficha(r, 0, 'Junk');
   igual(M.dadoDe(r, mp).sub, ['Map']);
-  ok(!M.opcoesPrioridade(r, 0).some(o => o.a === 'ativar'), 'explorar/jogar do exílio ainda não');
+  ok(M.opcoesPrioridade(r, 0).some(o => o.a === 'ativar' && o.id === mp.id), 'Map ativa (explorar, 701.44)');
+  ok(!M.opcoesPrioridade(r, 0).some(o => o.a === 'ativar' && o.id !== mp.id), 'Junk (jogar do exílio) ainda não');
   const x = ficha(r, 0, 'Wicked Role');
   igual(x.n, 'Wicked Role');
   igual(M.fichaDe({ nome: 'Treasure', virada: 1 }).sub, ['Treasure']);
@@ -3943,6 +3944,21 @@ caso('111.4', "ficha com habilidade própria: o alvo da habilidade da ficha não
   M.executar(e, M.carta('Weapons Manufacturing').gat[0].fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
   const mu = e.campo.map(id => e.objs[id]).find(o => o.n === 'Munitions');
   ok(mu && M.gatDe(e, mu).some(g => g.ev === 'sai'), 'Munitions com o gatilho de sair');
+});
+
+caso('701.44', "explorar: terreno no topo vai para a mão; senão +1/+1 e pode ir ao cemitério; \"quando uma criatura sua explora\" (Merfolk Cave-Diver)", () => {
+  for (const c of ['Merfolk Cave-Diver', 'Nicanzil, Current Conductor']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Merfolk Cave-Diver'], [0, 'Grizzly Bears']] });
+  const gb = e.campo.map(id => e.objs[id]).find(o => o.n === 'Grizzly Bears');
+  const mao0 = e.jogs[0].zonas.mao.length;
+  e.por(0, 'Forest', { zona: 'grimorio' });
+  e.pend = [];
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Grizzly Bears', zona: 'campo' } } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(e.jogs[0].zonas.mao.length, mao0 + 1, 'Forest na mão'); igual(gb.marc['+1/+1'] || 0, 0);
+  igual(e.pend.map(p => p.n), ['Merfolk Cave-Diver'], 'Cave-Diver dispara');
+  e.por(0, 'Sol Ring', { zona: 'grimorio' });
+  M.executar(e, { op: 'explorar', em: { todos: { nome: 'Grizzly Bears', zona: 'campo' } } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops.find(o => o.a === 'cemiterio') || ops[0]);
+  igual(gb.marc['+1/+1'], 1, 'não-terreno: +1/+1'); igual(naZona(e, 0, 'cemiterio'), ['Sol Ring']);
 });
 
 // ---------- rodar ----------
