@@ -6779,6 +6779,34 @@ caso('701.3d', 'Akiri, Fearless Voyager: {W} desanexa um Equipamento de uma cria
   ok(!K.virada, 'Akiri não vira');
 });
 
+caso('707.9b', "Urza, Prince of Kroog: cópia de artefato seu que é 1/1 Soldier criatura além dos outros tipos; Vault 12: X = rad somado de todos", () => {
+  const e = cena({ campo: [[0, 'Sol Ring']] });
+  const sr = objN(e, 0, 'Sol Ring');
+  const f = M.carta('Urza, Prince of Kroog').atv[0].fx[0];
+  ok(M.fxSuportado([f]), 'aceito');
+  M.executar(e, f, { voce: 0, este: -1, alvos: [[{ o: sr.id, ts: sr.ts }]], ilegal: {}, lki: {} }, null);
+  const c = e.objs[e.campo.find(id => e.objs[id].ficha)];
+  ok(M.temTipo(e, c, 'Artifact') && M.temTipo(e, c, 'Creature') && (M.dadoDe(e, c).sub || []).includes('Soldier') && M.poder(e, c) === 1, 'artefato criatura Soldier 1/1');
+  const v = cena({ jogs: 3 });
+  M.marcadorJogador(v, 0, 'rad', 3); M.marcadorJogador(v, 1, 'rad', 3); M.marcadorJogador(v, 2, 'rad', 2);
+  igual(M.qtdDe(v, M.carta('Vault 12: The Necropolis').gat[1].fx[0].qtd, { voce: 0, lki: {} }), 8, '3 + 3 + 2');
+});
+
+caso('614.1', "Winding Constrictor: marcador em você também ganha +1; Wilhelt: Zumbi com decaída não dá ficha; Venser mira mágica; Vaultborn vira artefato na cópia", () => {
+  const e = cena({ campo: [[0, 'Winding Constrictor']] });
+  M.marcadorJogador(e, 0, 'energy', 2); M.marcadorJogador(e, 1, 'energy', 2);
+  igual([e.jogs[0].marc.energy, e.jogs[1].marc.energy], [3, 2], 'eu 2+1; o oponente não');
+  const w = M.carta('Wilhelt, the Rotcleaver').gat[0].quem;
+  const f = cena({ campo: [[0, 'Wilhelt, the Rotcleaver']] });
+  const [tk] = M.criarFichas(f, 0, { pt: [2, 2], cores: 'B', tipos: ['Creature'], sub: ['Zombie'], kw: [{ k: 'decaida' }] }, 1);
+  const [t2] = M.criarFichas(f, 0, { pt: [2, 2], cores: 'B', tipos: ['Creature'], sub: ['Zombie'] }, 1);
+  const cx = { voce: 0, este: objN(f, 0, 'Wilhelt, the Rotcleaver').id };
+  igual([M.bate(f, tk, w, cx), M.bate(f, t2, w, cx)], [false, true], 'decaída fica de fora');
+  ok(M.carta('Venser, Shaper Savant').gat.every(g => M.gatOk(g)) && M.carta('Vaultborn Tyrant').gat.every(g => M.gatOk(g)) && M.carta('Wizard Class').niveis[0].gat.every(g => M.gatOk(g)), 'Venser, Vaultborn, Wizard Class aceitos');
+  const v = cena({ mao: [[1, 'Lightning Bolt']] }); const b = v.jogs[1].zonas.mao[0]; M.mover(v, b, 'pilha');
+  ok(M.alvosPossiveis(v, M.carta('Venser, Shaper Savant').gat[0].alvos[0], { voce: 0, este: -1 }).some(a => a.o === b), 'a mágica é alvo');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

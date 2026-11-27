@@ -360,6 +360,10 @@ export interface RxFiltro {
    * mana gasta para conjurar esta mágica (na pilha): "if no mana was spent to cast it" = {max:0} (Boromir, Warden of the Tower)
    */
   manaGasta?: RxCompara;
+  /**
+   * não tem nenhuma destas palavras-chave ("if it didn't have decayed": Wilhelt)
+   */
+  semKw?: string[];
 }
 
 export interface RxCompara {
@@ -968,6 +972,14 @@ export interface RxToken {
   atv?: RxAtv[];
   copiaDe?: RxObjeto;
   anexadaA?: 'criadas' | 'este';
+  /**
+   * com copiaDe: tipos de carta além dos da cópia (707.9b: "a 1/1 Soldier creature in addition to its other types")
+   */
+  maisTipos?: string[];
+  /**
+   * com copiaDe: subtipos além dos da cópia (707.9b)
+   */
+  maisSub?: string[];
   /**
    * cópia sem o supertipo lendário
    */

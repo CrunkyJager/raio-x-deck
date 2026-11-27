@@ -46,7 +46,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'atacado': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : o === 'vida' && chaves(c, []);   // o jogador defensor (Nightkin Ambusher: rad; Preacher: vida)
     case 'oponentes': return o === 'quantos' && chaves(c, []);
-    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' ? chaves(c, ['min']) && Number.isInteger(c.min)   // "each graveyard with seven or more cards" (Master of Lake-town)
+    case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'marcadores' ? chaves(c, ['marc', 'junta']) && typeof c.marc === 'string' && !!c.marc && c.junta === 'soma' : o === 'cemiterio' ? chaves(c, ['min']) && Number.isInteger(c.min)   // "each graveyard with seven or more cards" (Master of Lake-town)
       : o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return (o === 'quantos' && (j === undefined || j === 'maiorPorDono') || (o === 'vm' && j === 'soma')) && chaves(c, ['junta']);
@@ -149,7 +149,8 @@ M.contar = (e, c, ctx: any = {}) => {
       return c.marc === 'poison' ? D.veneno || 0 : (D.marc || {})[c.marc] || 0;
     }
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
-    case 'jogadores': return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
+    case 'jogadores': if (o === 'marcadores') return M.vivos(e).reduce((t, jj) => { const J = e.jogs[jj]; return t + (c.marc === 'poison' ? J.veneno || 0 : (J.marc || {})[c.marc] || 0); }, 0);   // "the total number of rad counters among players" (Vault 12)
+      return o === 'vida' ? Math.max(...M.vivos(e).map(j => e.jogs[j].vida)) : o === 'cemiterio' ? M.vivos(e).filter(j => e.jogs[j].zonas.cemiterio.length >= c.min).length : M.vivos(e).length;
     case 'X': return ctx.x || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {
