@@ -13,6 +13,12 @@ M.coresDeProd = (e, o, prod) => {
   if (prod === 'escolhida') return esc ? [esc] : [];
   if (prod === 'qualquer') return CORES;
   if (prod === 'comandante') return CORES.filter(c => e.jogs[o.ctrl].ci.includes(c));
+  // {cadaCor: filtro}: "for each color among permanents you control, add one mana of that color" (Faeburrow Elder, Bloom
+  // Tender): as cores do conjunto. pacotesDe dá TODAS juntas (um pacote só), não uma à escolha
+  if (prod && typeof prod === 'object' && prod.cadaCor) {
+    const s = new Set(M.objetosQue(e, prod.cadaCor, { voce: o.ctrl, este: o.id }).flatMap(x => (M.dadoDe(e, x).cores || '').split('')));
+    return CORES.filter(c => s.has(c));
+  }
   if (prod === 'refletida' || prod === 'deSeusTerrenos') {
     // refletida (Exotic Orchard): terrenos dos oponentes, só cores. deSeusTerrenos (Incubation Druid): "any TYPE that a
     // land you control could produce" — terrenos seus, incolor conta (CR 106.7, 106.1b)
@@ -82,10 +88,16 @@ M.pacotesDe = (e, o, atv, ctx: any = {}) => {
       if (!ctx.comSo && (!ctx.para || !M.bate(e, ctx.para, fs, { voce: o.ctrl }))) continue;   // comSo: a ativação com escolha guarda a restrita à parte
     }
     if (f.se && !M.condicao(e, f.se, { voce: o.ctrl, este: o.id })) continue;
+    if (f.prod === 'cadaCorSuas') {                // "para cada cor entre as permanentes que você controla, adicione uma daquela cor" (Faeburrow Elder): um pacote só
+      const cs = M.coresEntre(e, e.campo.map(id => e.objs[id]).filter(x => x.ctrl === o.ctrl));
+      pac = pac.map(p => { const n = { ...p }; for (const c of cs) n[c] += 1; return n; });
+      continue;
+    }
     const cs = M.coresDeProd(e, o, f.prod);
     const q = M.qtd(e, f.qtd, { voce: o.ctrl, este: o.id, x: ctx.x });
     if (!cs || q === null) return null;
     if (!cs.length || q <= 0) continue;
+    if (f.prod && f.prod.cadaCor) { pac = pac.map(p => { const n = { ...p }; for (const c of cs) n[c] += q; return n; }); continue; }
     const novo: any[] = [];
     for (const p of pac) for (const c of cs) { const n = { ...p }; n[c] += q; novo.push(n); }
     pac = novo;
@@ -162,7 +174,7 @@ M.esvaziarReservas = e => {
   for (const J of e.jogs) {
     const F = J.fica && J.fica.t === e.turno.n && e.turno.passo !== 'limpeza' ? J.fica : null, r = M.zeroMana();
     if (F) for (const c of TIPOS) { r[c] = Math.min(J.reserva[c], F.m[c]); F.m[c] = r[c]; }
-    J.reserva = r; J.restrita = [];
+    J.reserva = r; J.restrita = (J.restrita || []).filter(x => x.fica === e.turno.n && e.turno.passo !== 'limpeza');   // restrita com ficaNoTurno (Klauth)
   }
 };
 
@@ -253,13 +265,17 @@ M.custoComImposto = (e, o, base?) => {
   return reduz(c, reducoes(e, o.dono, o, false));
 };
 // custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
-M.custoAtv = (e, o, a) => a.custo.mana ? reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true)) : a.custo.mana;
+M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true));
+// Forge Anew: "you may pay {0} rather than pay the equip cost of the first equip ability you activate each of your turns"
+const equipGratis = (e, o, a) => !!a._equipar && e.turno.ativo === o.ctrl && e.jogs[o.ctrl].equipT !== e.turno.n && M.estSeu(e, o.ctrl, 'primeiroEquiparGratis');
+/** j controla uma permanente com a estática deste modo (sem filtro: Forge Anew) */
+M.estSeu = (e, j, modo) => e.campo.some(id => { const F = e.objs[id]; return F.ctrl === j && (M.dadoDe(e, F).est || []).some(s => s.modo === modo); });
 
 // ---- reduzCusto (CR 601.2f): depois dos aumentos (imposto), tira genérico; custo.p tira símbolos coloridos (Morophon).
 // Fontes: as estáticas do campo (afeta filtro: a mágica que você conjura, ou o permanente dono da habilidade) e a da
 // própria carta (afeta 'este', de 'mao' = só da mão: Ghalta, Otawara). O filtro com zona 'pilha' fala da mágica que
 // está sendo conjurada (ainda na mão quando o custo é calculado). Redução de genérico não mexe no X (simplificação).
-const RED_OK = new Set(['modo', 'afeta', 'de', 'qtd', 'custo', 'deHabil', 'se']);
+const RED_OK = new Set(['modo', 'afeta', 'de', 'qtd', 'custo', 'deHabil', 'se', 'minimo']);
 M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => RED_OK.has(k) || k.startsWith('_'))
   && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
   && (s.de === undefined || s.de === 'mao')
@@ -267,7 +283,7 @@ M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => 
     : s.qtd === undefined && Object.keys(s.custo).every(k => k === 'p') && Array.isArray(s.custo.p))
   && (!s.se || M.seOk(s.se));
 function reducoes(e, j, o, deHabil) {
-  const r = { g: 0, p: [] as string[] };
+  const r = { g: 0, p: [] as string[], min: 0 };
   const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
   if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
   if (!deHabil) for (const k of M.dadoDe(e, o).kw || []) if (k.k === 'afinidade' && k.tipo)   // CR 702.41: {1} a menos por [tipo] seu
@@ -285,11 +301,12 @@ function reducoes(e, j, o, deHabil) {
     }
     if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
     if (s.custo) r.p.push(...s.custo.p); else r.g += Math.max(0, M.qtdEst(e, s.qtd, ctx));
+    if (s.minimo) r.min = Math.max(r.min, s.minimo);   // "can't reduce the mana in that cost to less than one mana" (Forensic Gadgeteer)
   }
   return r;
 }
 function reduz(c, r) {
-  if (r.g && c.g) c.g = Math.max(0, c.g - r.g);
+  if (r.g && c.g) c.g = Math.max(r.min ? Math.min(c.g, r.min - (c.p || []).length) : 0, c.g - r.g);   // minimo: o total não fica abaixo (simplificação: vale para todas as reduções juntas)
   if (r.p.length && c.p && c.p.length) { const p = c.p.slice(); for (const x of r.p) { const i = p.indexOf(x); if (i >= 0) p.splice(i, 1); } c.p = p; }
   return c;
 }

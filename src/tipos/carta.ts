@@ -213,7 +213,10 @@ export interface RxFiltro {
   cor?: string | string[];
   zona?: RxZona;
   virada?: boolean;
-  atacando?: boolean;
+  /**
+   * 'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)
+   */
+  atacando?: boolean | 'oponente';
   /**
    * a criatura que este equipamento/aura está anexado
    */
@@ -272,15 +275,15 @@ export interface RxFiltro {
    */
   exiladaPorEste?: boolean;
   /**
-   * sem nenhum marcador (Damning Verdict)
+   * true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')
    */
-  semMarcador?: boolean;
+  semMarcador?: boolean | string;
   /**
    * tem estas palavras-chave
    */
   kw?: string[];
   /**
-   * true: não tem o mesmo nome de outra permanente que você controla (Yenna); 'criaturaOuCemiterio': de outra criatura sua nem de card de criatura no seu cemitério (Guardian Project)
+   * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
   nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
@@ -369,7 +372,17 @@ export type RxObjeto =
   | {
       todos: RxFiltro;
     }
-  | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
+  | (
+      | 'este'
+      | 'equipada'
+      | 'doEvento'
+      | 'criadas'
+      | 'escolhida'
+      | 'anterior'
+      | 'cadaAtual'
+      | 'descartadaCusto'
+      | 'sacrificada'
+    );
 
 /**
  * custo de habilidade ativada / custo adicional / 'a menos que pague'
@@ -519,9 +532,14 @@ export interface RxFx {
     custo: RxCustoAtv;
   };
   /**
-   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)
+   * mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)
    */
-  prod?: ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos') | string[];
+  prod?:
+    | ('qualquer' | 'comandante' | 'refletida' | 'escolhida' | 'deSeusTerrenos' | 'cadaCorSuas')
+    | string[]
+    | {
+        cadaCor: RxFiltro;
+      };
   de?: RxZona;
   para?: RxZona;
   /**
@@ -610,6 +628,10 @@ export interface RxFx {
    */
   gat?: RxGat[];
   emblema?: boolean;
+  /**
+   * efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)
+   */
+  proximaMagica?: boolean;
   /**
    * copiarMagica: pode escolher novos alvos
    */
@@ -715,6 +737,10 @@ export interface RxFx {
    */
   soNaoDesvira?: boolean;
   /**
+   * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
+   */
+  trocaCor?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -779,7 +805,7 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke' | 'alternativo';
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'cemiterio' | 'madness' | 'evoke' | 'alternativo';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -819,9 +845,9 @@ export interface RxCond {
    */
   monarca?: boolean;
   /**
-   * você tem um Portador do Anel (o Anel te tentou)
+   * true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)
    */
-  portadorDoAnel?: boolean;
+  portadorDoAnel?: boolean | 'este';
   /**
    * oponente controla mais terrenos que você: 'algum' = algum oponente (Land Tax, Loyal Warhound); 'doEvento' = o jogador do evento (Archaeomancer's Map)
    */
@@ -1036,9 +1062,9 @@ export interface RxGat {
    */
   passo?: 'manutencao' | 'compra' | 'inicioCombate' | 'final' | 'principal1' | 'principal2' | 'fimCombate';
   /**
-   * ev fase: no turno de quem
+   * ev fase: no turno de quem; oponenteEscolhido (só gatilho atrasado): o oponente escolhido quando o atrasado foi criado (Faramir)
    */
-  deQuem?: 'voce' | 'cadaJogador' | 'oponente';
+  deQuem?: 'voce' | 'cadaJogador' | 'oponente' | 'oponenteEscolhido';
   combate?: boolean;
   aJogador?: boolean;
   /**
@@ -1094,6 +1120,10 @@ export interface RxGat {
    */
   ouCopia?: boolean;
   /**
+   * ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: "their first noncreature spell each turn")
+   */
+  primeiraNoTurno?: boolean;
+  /**
    * zona de origem do objeto que mudou de zona
    */
   de?: RxZona;
@@ -1117,7 +1147,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
    */
   modo:
     | 'continuo'
@@ -1148,7 +1178,9 @@ export interface RxEst {
     | 'darLoucura'
     | 'oponentesNaoProcuram'
     | 'custoProibido'
-    | 'naoGanhaVida';
+    | 'naoGanhaVida'
+    | 'equiparComoInstantanea'
+    | 'primeiroEquiparGratis';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1244,6 +1276,10 @@ export interface RxEst {
    * condição do jogador afetado (naoPodeConjurar: o jogador; naoPodeAtacar: o controlador da criatura) — Angelic Arbiter: 'each opponent who cast a spell / attacked with a creature this turn'
    */
   seJog?: 'atacouNoTurno' | 'conjurouNoTurno';
+  /**
+   * reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')
+   */
+  minimo?: number;
 }
 
 /**
@@ -1422,7 +1458,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
    */
   o?:
     | 'quantos'
@@ -1456,7 +1492,8 @@ export interface RxContagem {
     | 'maior'
     | 'dano'
     | 'nome'
-    | 'tipos';
+    | 'tipos'
+    | 'tentacoes';
   /**
    * vários objetos: soma | maior | diferentes | maiorPorDono (sem junta = quantos são)
    */
@@ -1470,9 +1507,9 @@ export interface RxContagem {
    */
   cores?: string;
   /**
-   * de: turno — de quem (padrão: você)
+   * de: turno — de quem (padrão: você; cadaAtual = o jogador da vez no repetirCada)
    */
-  quem?: 'oponentes';
+  quem?: 'oponentes' | 'cadaAtual';
   /**
    * de: se — condição (kicked, promisedgift, morbid…)
    */

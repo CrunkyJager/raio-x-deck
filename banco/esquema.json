@@ -469,7 +469,15 @@
      "type": "boolean"
     },
     "atacando": {
-     "type": "boolean"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "oponente"
+      }
+     ],
+     "description": "'oponente': atacando um oponente seu (o jogador, não planeswalker; Frontier Warmonger)"
     },
     "equipada": {
      "type": "boolean",
@@ -541,8 +549,15 @@
      "description": "no exílio, exilada por este objeto (op mover com comEste; 607.2a 'exiled with this': Bag of Holding)"
     },
     "semMarcador": {
-     "type": "boolean",
-     "description": "sem nenhum marcador (Damning Verdict)"
+     "anyOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "type": "string"
+      }
+     ],
+     "description": "true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')"
     },
     "kw": {
      "type": "array",
@@ -557,12 +572,10 @@
        "type": "boolean"
       },
       {
-       "enum": [
-        "criaturaOuCemiterio"
-       ]
+       "const": "criaturaOuCemiterio"
       }
      ],
-     "description": "true: não tem o mesmo nome de outra permanente que você controla (Yenna); 'criaturaOuCemiterio': de outra criatura sua nem de card de criatura no seu cemitério (Guardian Project)"
+     "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
     "poderAcimaBase": {
      "type": "boolean",
@@ -752,7 +765,8 @@
       "escolhida",
       "anterior",
       "cadaAtual",
-      "descartadaCusto"
+      "descartadaCusto",
+      "sacrificada"
      ]
     }
    ]
@@ -1036,7 +1050,7 @@
      }
     },
     "prod": {
-     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid)",
+     "description": "mana: cores produzidas; 'qualquer', 'comandante' (identidade), ou lista de opções; 'deSeusTerrenos' = um tipo que um terreno seu poderia produzir (Incubation Druid); 'cadaCorSuas' = uma de cada cor entre as permanentes que você controla (Faeburrow Elder)",
      "oneOf": [
       {
        "enum": [
@@ -1044,7 +1058,8 @@
         "comandante",
         "refletida",
         "escolhida",
-        "deSeusTerrenos"
+        "deSeusTerrenos",
+        "cadaCorSuas"
        ]
       },
       {
@@ -1052,6 +1067,19 @@
        "items": {
         "type": "string"
        }
+      },
+      {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "cadaCor"
+       ],
+       "properties": {
+        "cadaCor": {
+         "$ref": "#/$defs/filtro"
+        }
+       },
+       "description": "uma mana de CADA cor entre os objetos que batem (Faeburrow Elder, Bloom Tender: 'for each color among permanents you control, add one mana of that color'); qtd multiplica cada uma"
       }
      ]
     },
@@ -1258,6 +1286,10 @@
     "emblema": {
      "type": "boolean"
     },
+    "proximaMagica": {
+     "type": "boolean",
+     "description": "efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)"
+    },
     "novoAlvo": {
      "type": "boolean",
      "description": "copiarMagica: pode escolher novos alvos"
@@ -1393,6 +1425,10 @@
     "soNaoDesvira": {
      "type": "boolean",
      "description": "op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)"
+    },
+    "trocaCor": {
+     "type": "boolean",
+     "description": "modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)"
     }
    },
    "additionalProperties": false,
@@ -1537,6 +1573,7 @@
       "sobrecarga",
       "kicker",
       "flashback",
+      "cemiterio",
       "madness",
       "evoke",
       "alternativo"
@@ -1615,8 +1652,15 @@
      "description": "você é o monarca"
     },
     "portadorDoAnel": {
-     "type": "boolean",
-     "description": "você tem um Portador do Anel (o Anel te tentou)"
+     "oneOf": [
+      {
+       "type": "boolean"
+      },
+      {
+       "const": "este"
+      }
+     ],
+     "description": "true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)"
     },
     "maisTerrenosOponente": {
      "enum": [
@@ -1919,9 +1963,10 @@
      "enum": [
       "voce",
       "cadaJogador",
-      "oponente"
+      "oponente",
+      "oponenteEscolhido"
      ],
-     "description": "ev fase: no turno de quem"
+     "description": "ev fase: no turno de quem; oponenteEscolhido (só gatilho atrasado): o oponente escolhido quando o atrasado foi criado (Faramir)"
     },
     "combate": {
      "type": "boolean"
@@ -1998,6 +2043,10 @@
      "type": "boolean",
      "description": "conjura: também quando copia"
     },
+    "primeiraNoTurno": {
+     "type": "boolean",
+     "description": "conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)"
+    },
     "de": {
      "$ref": "#/$defs/zona",
      "description": "zona de origem do objeto que mudou de zona"
@@ -2017,6 +2066,10 @@
     "naoPrimeira": {
      "type": "boolean",
      "description": "ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)"
+    },
+    "primeiraNoTurno": {
+     "type": "boolean",
+     "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
     }
    }
   },
@@ -2057,9 +2110,11 @@
       "darLoucura",
       "oponentesNaoProcuram",
       "custoProibido",
-      "naoGanhaVida"
+      "naoGanhaVida",
+      "equiparComoInstantanea",
+      "primeiroEquiparGratis"
      ],
-     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir)"
+     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
     "afeta": {
      "oneOf": [
@@ -2229,6 +2284,11 @@
       "conjurouNoTurno"
      ],
      "description": "condição do jogador afetado (naoPodeConjurar: o jogador; naoPodeAtacar: o controlador da criatura) — Angelic Arbiter: 'each opponent who cast a spell / attacked with a creature this turn'"
+    },
+    "minimo": {
+     "type": "integer",
+     "minimum": 1,
+     "description": "reduzCusto: o custo de mana não fica abaixo de N manas (Forensic Gadgeteer: 'can't reduce the mana in that cost to less than one mana')"
     }
    }
   },
@@ -2590,9 +2650,10 @@
       "maior",
       "dano",
       "nome",
-      "tipos"
+      "tipos",
+      "tentacoes"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
     },
     "junta": {
      "enum": [
@@ -2613,9 +2674,10 @@
     },
     "quem": {
      "enum": [
-      "oponentes"
+      "oponentes",
+      "cadaAtual"
      ],
-     "description": "de: turno — de quem (padrão: você)"
+     "description": "de: turno — de quem (padrão: você; cadaAtual = o jogador da vez no repetirCada)"
     },
     "cond": {
      "type": "string",
