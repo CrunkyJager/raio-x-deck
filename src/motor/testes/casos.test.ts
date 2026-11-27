@@ -3665,6 +3665,106 @@ caso('701.36a', "popular: cria cópia de uma ficha de criatura sua; sem ficha, n
   for (const c of ['Growing Ranks', 'Song of the Worldsoul', 'Promise of Aclazotz']) { const d = M.carta(c); ok([...(d.gat || []).map(g => M.gatOk(g)), M.fxSuportado(d.fx || [])].every(Boolean), c); }
 });
 
+caso('614.1a', "troca de ficha: Academy Manufactor faz Pista+Comida+Tesouro (×2 com Doubling Season); Jinnie Fay troca o Servo 1/1 por Gato 2/2 e deixa o Tesouro", () => {
+  for (const c of ['Academy Manufactor', "Jinnie Fay, Jetmir's Second"]) ok(M.carta(c).subst.every(s => M.substOk(s)), c + ' aceita');
+  const cx = () => ({ voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  const conta = (e, n) => e.campo.filter(id => e.objs[id].n === n && e.objs[id].ctrl === 0).length;
+  const e = cena({ campo: [[0, 'Academy Manufactor'], [0, 'Doubling Season']] });
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual([conta(e, 'Clue'), conta(e, 'Food'), conta(e, 'Treasure')], [2, 2, 2], 'um de cada, ×2 com Doubling Season');
+  M.executar(e, { op: 'ficha', quem: 'cadaOponente', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual(e.campo.filter(id => e.objs[id].ctrl === 1).length, 1, 'do oponente não troca');
+  const f = cena({ campo: [[0, "Jinnie Fay, Jetmir's Second"]] });
+  M.executar(f, { op: 'ficha', quem: 'voce', qtd: 2, token: { pt: [1, 1], tipos: ['Artifact', 'Creature'], sub: ['Servo'] } }, cx(), null);
+  igual(conta(f, 'Cat Token'), 2, 'dois Gatos no lugar dos Servos'); igual(conta(f, 'Servo Token'), 0);
+  ok(f.campo.filter(id => f.objs[id].n === 'Cat Token').every(id => M.temKw(f, f.objs[id], 'pressa')), 'Gato com pressa');
+  M.executar(f, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
+  igual(conta(f, 'Treasure'), 1, 'Tesouro fica (talvez)');
+});
+
+caso('601.2b', "Toxic Deluge: anuncia X, paga X de vida (custo adicional) e todas as criaturas ganham −X/−X; o agente escolhe o X que mata a maior do oponente", () => {
+  ok(M.custoAdSuportado(M.carta('Toxic Deluge').custoAd), 'custo aceito');
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Swamp'], [0, 'Swamp'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']], mao: [[0, 'Toxic Deluge']] });
+  M.avancar(e); conj(e, 'Toxic Deluge');
+  igual(e.perg.tipo, 'x'); igual(e.perg.ops.length, 41, 'X de 0 a 40');
+  igual(e.perg.ops[M.agenteBasico()(e, e.perg)].v, 2, 'agente: X = 2 (o Urso)');
+  respE(e, o => o.v === 2); M.avancar(e);
+  igual(e.jogs[0].vida, 38, 'pagou 2 de vida');
+  igual(e.campo.filter(id => e.objs[id].ctrl === 1).length, 0, 'as duas morreram');
+});
+
+caso('602.2b', "Devoted Druid: pôr um marcador −1/−1 nela é custo — desvira; na segunda vez morre (0/0) pela ação de estado", () => {
+  ok(M.carta('Devoted Druid').atv.every(a => M.custoSuportado(a.custo)), 'custos aceitos');
+  const e = cena({ campo: [[0, 'Devoted Druid', { virada: true }]] });
+  const d = e.campo.map(id => e.objs[id]).find(o => o.n === 'Devoted Druid');
+  M.avancar(e);
+  respE(e, o => o.a === 'ativar' && o.id === d.id && o.k === 1); resolvePilha(e);
+  ok(!d.virada, 'desvirou'); igual(d.marc['-1/-1'], 1); igual(M.resistencia(e, d), 1);
+  respE(e, o => o.a === 'ativar' && o.id === d.id && o.k === 1); resolvePilha(e);
+  igual(d.zona, 'cemiterio', '0/0 morre');
+});
+
+caso('613.4c', "Conqueror's Flail: a equipada ganha +1/+1 por cor entre as suas permanentes (Urso verde + Krenko vermelho = +2/+2)", () => {
+  ok(M.carta("Conqueror's Flail").est.every(s => s.modo !== 'continuo' || M.estContOk(s)), 'estática aceita');
+  const e = cena({ campo: [[0, "Conqueror's Flail"], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Sol Ring'], [1, 'Lightning Greaves']] });
+  const fl = objN(e, 0, "Conqueror's Flail"), b = objN(e, 0, 'Grizzly Bears');
+  fl.anexo = { id: b.id, ts: b.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  igual([M.poder(e, b), M.resistencia(e, b)], [3, 3], 'uma cor (verde): +1/+1');
+  e.por(0, 'Krenko, Mob Boss'); e.vCamada++;
+  igual([M.poder(e, b), M.resistencia(e, b)], [4, 4], 'verde e vermelho: +2/+2');
+});
+
+caso('305.7', "tipo dado por filtro (613.1d): Dryad faz seus terrenos de todo tipo básico (Forest dá as 5 cores, 305.6); Ashaya faz suas criaturas não-ficha Florestas (viram para {G})", () => {
+  for (const c of ['Dryad of the Ilysian Grove', 'Ashaya, Soul of the Wild']) ok(M.carta(c).est.every(s => s.modo !== 'continuo' || M.estContOk(s)), c + ' aceita');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Dryad of the Ilysian Grove'], [1, 'Island']] });
+  const fo = objN(e, 0, 'Forest'), il = objN(e, 1, 'Island');
+  igual(M.dadoDe(e, fo).sub.slice().sort(), ['Forest', 'Island', 'Mountain', 'Plains', 'Swamp']);
+  igual(M.atvDe(e, fo).filter(a => a.deMana).flatMap(a => a.fx[0].prod).sort(), ['B', 'G', 'R', 'U', 'W'], 'mana das 5 cores');
+  igual(M.dadoDe(e, il).sub, ['Island'], 'do oponente não');
+  const f = cena({ campo: [[0, 'Ashaya, Soul of the Wild'], [0, 'Grizzly Bears'], [0, 'Forest']] });
+  const b = objN(f, 0, 'Grizzly Bears'), a = objN(f, 0, 'Ashaya, Soul of the Wild');
+  ok(M.temTipo(f, b, 'Land') && M.temTipo(f, b, 'Creature'), 'o Urso é terreno e criatura');
+  ok(M.fontesDeMana(f, 0).some(x => x.id === b.id), 'o Urso vira para mana');
+  igual(M.poder(f, a), 3, 'Ashaya conta 3 terrenos (ela, o Urso e a Floresta)');
+  M.criarFichas(f, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Elf'] }, 1);
+  const tk = f.campo.map(id => f.objs[id]).find(o => o.ficha);
+  ok(!M.temTipo(f, tk, 'Land'), 'ficha não');
+});
+
+caso('613.1d', "Skyknight Squire: com 3 marcadores +1/+1 voa e é Cavaleiro (tipo e palavra-chave na mesma estática); com 2, não", () => {
+  ok(M.carta('Skyknight Squire').est.every(s => M.estContOk(s)), 'estática aceita');
+  const e = cena({ campo: [[0, 'Skyknight Squire']] });
+  const k = objN(e, 0, 'Skyknight Squire');
+  k.marc['+1/+1'] = 2; e.vCamada = (e.vCamada || 0) + 1;
+  ok(!M.temKw(e, k, 'voar') && !M.dadoDe(e, k).sub.includes('Knight'), 'com 2: nada');
+  k.marc['+1/+1'] = 3; e.vCamada++;
+  ok(M.temKw(e, k, 'voar'), 'voa'); ok(M.dadoDe(e, k).sub.includes('Knight'), 'é Cavaleiro');
+  igual(M.poder(e, k), 4);
+});
+
+caso('118.9', "Flare of Fortitude: sem mana, conjura sacrificando uma criatura branca não-ficha (custo alternativo); sem branca, não dá", () => {
+  ok(M.carta('Flare of Fortitude').est.every(s => s.modo !== 'custoAlternativo' || M.estAltOk(s)), 'custo aceito');
+  const e = cena({ campo: [[0, 'Serra Angel'], [0, 'Grizzly Bears']], mao: [[0, 'Flare of Fortitude']] });
+  M.avancar(e);
+  ok(opsDe(e, 'conjurar').some(o => e.objs[o.id].n === 'Flare of Fortitude'), 'oferecida sem mana');
+  conj(e, 'Flare of Fortitude'); if (e.perg && e.perg.tipo === 'custo') respE(e, o => o.id === objN(e, 0, 'Serra Angel').id);
+  resolvePilha(e);
+  ok(e.jogs[0].zonas.cemiterio.map(id => e.objs[id].n).includes('Serra Angel'), 'sacrificou o Anjo');
+  const b = objN(e, 0, 'Grizzly Bears'); ok(M.temKw(e, b, 'indestrutivel') && M.temKw(e, b, 'antimagia'), 'indestrutível e antimagia');
+  const f = cena({ campo: [[0, 'Grizzly Bears']], mao: [[0, 'Flare of Fortitude']] });
+  M.avancar(f); ok(!opsDe(f, 'conjurar').length, 'sem criatura branca e sem mana: não');
+});
+
+caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispara uma vez a mais; sem ele, uma", () => {
+  ok(M.carta('Ancient Greenwarden').est.some(s => s.modo === 'dobraGatilho'), 'como dobraGatilho (evs entra, causa terreno)');
+  const e = cena({ campo: [[0, 'Ancient Greenwarden'], [0, 'Aesi, Tyrant of Gyre Strait']] }); e.pend = [];
+  e.por(0, 'Forest');
+  igual(e.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 2, 'Aesi 2 vezes');
+  const f = cena({ campo: [[0, 'Aesi, Tyrant of Gyre Strait']] }); f.pend = [];
+  f.por(0, 'Forest');
+  igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

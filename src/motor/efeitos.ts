@@ -68,7 +68,9 @@ const SUBST: Record<string, (s) => boolean> = {
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
   entraMarc: s => !!s.muda && Object.keys(s.muda).length === 1 && !!s.muda.marcadores && typeof s.muda.marcadores === 'object'
     && Object.values<any>(s.muda.marcadores).every((q: any) => qtdOk(q === 'X' ? q : q && typeof q === 'object' && q.conta === 'X' ? 'X' : q)),
-  ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')),
+  ficha: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || (!!s.muda.maisFicha && typeof s.muda.maisFicha === 'object')
+    || (Array.isArray(s.muda.trocaPor) && s.muda.trocaPor.length > 0 && s.muda.trocaPor.every(t => !!t && typeof t === 'object')))
+    && (s.talvez === undefined || (s.talvez === true && !!s.muda.trocaPor)),
   marcador: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || Number.isInteger(s.muda.soma) || s.muda.impedir === true)
     && Object.keys(s).every(k => ['ev', 'quem', 'marc', 'muda', 'se'].includes(k)),
   // morre / vaiCemiterio (CR 614.1a, lido no M.mover): muda.para (Liesa), "exile com marcador" (Ravenloft), "embaralhe no grimório" (Blightsteel)
@@ -133,19 +135,37 @@ function entraComMarcadores(e, o, x) {
     }
   }
 }
-// criar fichas (CR 111) com as substituições 'ficha' (Parallel Lives, Doubling Season, Queen Allenal, Bilbo): a 1ª ficha
-// serve de amostra para o filtro; "mais uma" antes de multiplicar (a ordem boa para o controlador, 616.1).
+// criar fichas (CR 111) com as substituições 'ficha' (Parallel Lives, Doubling Season, Queen Allenal, Bilbo, Academy
+// Manufactor, Jinnie Fay). Primeiro as trocas ("instead create", 614.1a: cada molde que bate vira os de trocaPor; cada fonte
+// vale uma vez por ficha, 614.5), depois "mais uma" e multiplicar (a ordem boa para o controlador, 616.1). O filtro de
+// cada substituição olha uma amostra do molde (sem entrar no campo).
+const amostraFicha = (j, tok0) => { const tok = M.fichaDe(tok0), n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim(); return { id: -1, n, dono: j, ctrl: j, zona: 'pilha', ts: 0, dano: 0, marc: {}, ficha: { ...tok, n } }; };
+// "you may instead" (Jinnie Fay): a IA troca só ficha de criatura por uma criatura maior (P+R, depois nº de palavras-chave);
+// Tesouro/Pista/Comida ficam (simplificação da escolha, não da regra)
+const valorFicha = t => { const x = M.fichaDe(t) || {}; return (x.tipos || []).includes('Creature') && x.pt ? (+x.pt[0] || 0) + (+x.pt[1] || 0) + (x.kw || []).length / 10 : -1; };
 M.criarFichas = (e, j, tok, q, opc: any = {}) => {
   const out: any[] = [];
   if (!(q > 0)) return out;
-  out.push(criarFicha(e, j, tok, opc));
-  let mult = 1; const extras: any[] = [];
-  for (const { F, s } of substsDe(e, 'ficha')) {
-    if (!substQuem(e, F, s, out[0]) || !substSe(e, F, s)) continue;
-    if (s.muda.mult) mult *= s.muda.mult; else extras.push(s.muda.maisFicha);
+  const lista = substsDe(e, 'ficha').filter(({ F, s }) => substSe(e, F, s));
+  const bateM = ({ F, s }, t) => { try { return substQuem(e, F, s, amostraFicha(j, t)); } catch (_) { return false; } };
+  let moldes = [tok];
+  const fontes = [...new Set(lista.filter(r => r.s.muda.trocaPor).map(r => r.F.id))];
+  for (const fid of fontes) {
+    const grupo = lista.filter(r => r.F.id === fid && r.s.muda.trocaPor);
+    moldes = moldes.flatMap(t => {
+      const ok = grupo.filter(r => bateM(r, t));
+      const obrig = ok.find(r => !r.s.talvez);
+      if (obrig) return obrig.s.muda.trocaPor;
+      let melhor: any = null, v = valorFicha(t);
+      for (const r of ok) { const w = Math.min(...r.s.muda.trocaPor.map(valorFicha)); if (v >= 0 && w > v) { v = w; melhor = r; } }
+      return melhor ? melhor.s.muda.trocaPor : [t];
+    });
   }
-  for (let i = 1; i < q * mult; i++) out.push(criarFicha(e, j, tok, opc));
-  for (const x of extras) for (let i = 0; i < mult; i++) out.push(criarFicha(e, j, x, {}));
+  const multDe = t => lista.reduce((m, r) => r.s.muda.mult && bateM(r, t) ? m * r.s.muda.mult : m, 1);
+  for (const t of moldes) { const m = multDe(t); for (let i = 0; i < q * m; i++) out.push(criarFicha(e, j, t, opc)); }
+  // "those tokens plus an additional" (Queen Allenal, Bilbo): uma a mais por evento, multiplicada pelo dobro do primeiro molde
+  const extras = lista.filter(r => r.s.muda.maisFicha && moldes.some(t => bateM(r, t))).map(r => r.s.muda.maisFicha);
+  for (const x of extras) for (let i = 0; i < multDe(moldes[0]); i++) out.push(criarFicha(e, j, x, {}));
   return out;
 };
 // dano (CR 615, 614.1a): dobrar (mult), metade arredondada para cima, prevenir, "todo menos N" (teto). jog = o jogador
@@ -571,7 +591,8 @@ const H = {
         for (const o of os) o.ganhos = { atv: [...((o.ganhos && o.ganhos.atv) || []), ...f.habil.atv] };
         return;
       }
-      const n = q => q === undefined ? 0 : typeof q === 'number' ? q : qtdDe(e, q, ctx);   // número direto: −4/−4 não vira 0
+      // número direto: −4/−4 não vira 0; {conta, mult:-1} = −X/−X (Toxic Deluge, Olivia's Wrath): conta positiva, sinal depois
+      const n = q => q === undefined ? 0 : typeof q === 'number' ? q : q && q.mult < 0 && !q.soma ? -qtdDe(e, { ...q, mult: -q.mult }, ctx) : qtdDe(e, q, ctx);
       const p = n(f.p), r = n(f.r);
       const ev = ctx.ev, at = ev && e.objs[ev.id];
       if ((f.gat || []).length) { for (const o of os) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.gat] }; e.vCamada = (e.vCamada || 0) + 1; }   // sai na limpeza (514.2) ou ao mudar de zona
