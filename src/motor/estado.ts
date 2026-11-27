@@ -1234,7 +1234,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate', 'emCombate', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'emCombate', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
