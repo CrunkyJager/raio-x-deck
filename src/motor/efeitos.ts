@@ -511,13 +511,14 @@ const H = {
       const it = e.objs[ctx.item];
       const fonte = f.fonte === undefined ? { kw: fonteDado(e, ctx).kw, ctrl: ctx.voce, o: it && !it.hab ? it : e.objs[ctx.este] } : fonteOutra(e, f.fonte, ctx);
       if (!fonte) return;
-      let total = 0;
+      let total = 0; const evs: any[] = [];
       const parte = (o, jg?) => { const v = M.parteDividida(ctx, f, o, jg); return v === null ? q : v; };   // dividir à escolha (601.2d)
-      for (const o of objsDe(e, f, ctx)) { const v = M.substDano(e, parte(o), { fonte: fonte.o, o }); if (v > 0) { danoEm(e, o, v, fonte); total += v; } }   // 615, 614.1a
+      for (const o of objsDe(e, f, ctx)) { const v = M.substDano(e, parte(o), { fonte: fonte.o, o }); if (v > 0) { danoEm(e, o, v, fonte); total += v; evs.push({ o: o.id, q: v }); } }   // 615, 614.1a
       const js = f.em && typeof f.em.alvo === 'number' ? jogsAlvo(e, f.em.alvo, ctx) : [];
       const jq = f.quem ? jogsDe(e, f, ctx) : [];
-      for (const j of [...new Set([...js, ...jq])]) { const v = M.substDano(e, js.includes(j) ? parte(null, j) : q, { fonte: fonte.o, jog: j }); if (v <= 0 || M.protegeJog(e, j)) continue; M.danoJogador(e, j, v, fonte.kw); total += v; }   // CR 120.3a (infectar: veneno, 702.90b); 702.16j; 119.7
+      for (const j of [...new Set([...js, ...jq])]) { const v = M.substDano(e, js.includes(j) ? parte(null, j) : q, { fonte: fonte.o, jog: j }); if (v <= 0 || M.protegeJog(e, j)) continue; M.danoJogador(e, j, v, fonte.kw); total += v; evs.push({ jog: j, q: v }); }   // CR 120.3a (infectar: veneno, 702.90b); 702.16j; 119.7
       if (total && (fonte.kw || []).some(k => k.k === 'vinculoVida')) M.ganharVida(e, fonte.ctrl, total);   // CR 702.15b: quem controla a fonte
+      if (M.evento) for (const x of evs) M.evento(e, { ev: 'dano', fonte: fonte.o ? fonte.o.id : -1, combate: false, ...x });   // 120.3: dano fora do combate também é evento (enrage, Sanguine Bond é perda de vida)
     },
   },
   // "X ganha +N/+N e/ou palavra-chave até o fim do turno" (CR 611.2): números e conjunto afetado presos na resolução

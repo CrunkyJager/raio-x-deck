@@ -3317,6 +3317,20 @@ caso('603.2', "gatilho 'sai do cemitério': Syr Konrad por criatura que sai do s
   igual(e.pend.length, 0, 'carta do oponente saindo do cemitério dele não conta');
 });
 
+caso('120.3', "dano fora do combate é evento: Bolt no Ripjaw Raptor dispara o enrage (compra); dano em outra criatura não", () => {
+  for (const c of ['Apex Altisaur', 'Metropolis Reformer', 'Ripjaw Raptor', 'Spiteful Sliver', 'Strong, the Brutish Thespian', 'Wrathful Raptors']) ok((M.carta(c).gat || []).filter(g => g.recebe).every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Ripjaw Raptor'], [0, 'Grizzly Bears']], passo: 'principal2' });
+  const [rr, gb] = e.campo;
+  const bolt = (id) => M.executar(e, { op: 'dano', em: { alvo: 0 }, qtd: 3 }, { voce: 1, este: -1, alvos: [[{ o: id, ts: e.objs[id].ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  e.pend = []; bolt(gb);
+  igual(e.pend.length, 0, 'dano no Urso não dispara o Ripjaw');
+  const m = e.jogs[0].zonas.mao.length;
+  bolt(rr);
+  igual(e.pend.map(p => [p.n, p.ev.combate]), [['Ripjaw Raptor', false]], 'enrage com dano de mágica');
+  seguir(e); resolveCom(e);
+  igual(e.jogs[0].zonas.mao.length, m + 1, 'comprou 1');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
