@@ -132,7 +132,7 @@ function arena(Ds,seed,cfg){
     for(const l of p.terr)if(!l.tap){if(l.mana)l.mana.slice(l.usou||0).forEach(c=>u.push({s:lant?ANY:c,o:l,n:l.mana.length}));else u.push({s:lant?ANY:l.cor,o:l});}
     for(const x of p.perm){if(x.tok||x.tap)continue;const m=p.M[x.i];
       if(m.mana&&!(m.cri&&x.sick))for(let j=0;j<m.mana;j++)u.push({s:m.cor||'',o:x,n:m.mana});
-      if(m.manaX&&!(m.cri&&x.sick)){const n=m.manaX==='enc'?p.perm.filter(z=>z.i>=0&&mOf(z).ench).length:P.reduce((s,o)=>s+(o.vivo?o.perm.filter(z=>z.cri&&ehTipo(o,z,m.manaX)).length:0),0);for(let j=0;j<n;j++)u.push({s:ANY,o:x,n});}
+      if(m.manaX&&!(m.cri&&x.sick)){const n=m.manaX==='enc'?p.perm.filter(z=>z.i>=0&&mOf(z).ench).length:(m.manaXq==='eu'?[p]:P).reduce((s,o)=>s+(o.vivo?o.perm.filter(z=>z.cri&&ehTipo(o,z,m.manaX)).length:0),0);for(let j=0;j<n;j++)u.push({s:m.cor||ANY,o:x,n});}
       if(m.opal&&na>=3)u.push({s:ANY,o:x});
       if(m.ugin&&x.uMana)for(let j=0;j<3;j++)u.push({s:'',o:x,n:3});
       if(m.amber&&p.perm.some(y=>y.cri&&!y.tok&&p.M[y.i].leg))u.push({s:ANY,o:x});}
@@ -195,6 +195,8 @@ function arena(Ds,seed,cfg){
     if(!semGat)entrou(p,x);
     return x;
   }
+  /* ficha da carta (m.tok): com os tipos do texto e, se for o caso, uma por permanente do tipo ("for each Elf you control") */
+  function fichaDe(p,m){const n=(m.tokN||1)*(m.tokPor?p.perm.filter(x=>x.cri&&ehTipo(p,x,m.tokPor)).length:1);if(n>0)ficha(p,n,m.tokP||1,m.tokT||1,null,{tipos:m.tokTipos||[]});}
   function ficha(p,n,pw,tg,nome,o,semGat){
     o=o||{};let mult=1;for(const z of p.perm)if(z.i>=0&&!z.tok&&p.M[z.i].dobraFicha)mult*=2;n=Math.min(60,n*mult);
     const out=[];
@@ -367,7 +369,8 @@ function arena(Ds,seed,cfg){
         /* pump ativado só com mana (Ezuri, Elvish Warmaster): antes do combate, uma vez por turno, com 3+ do tipo prontos para atacar */
         if(h.q==='pump'){const H=pergH(p);if(z.pumpT===T||(!H&&p.perm.filter(w=>w.cri&&!w.tap&&!w.sick&&ehTipo(p,w,h.tipo)).length<3)||(H&&U.length<h.custo)||(H&&!quer(p,`Ativar ${nomeC(p,z.i)} (${h.custo} de mana)?`))||!pagaG(p,U,h.custo))continue;z.pumpT=T;faz(p,z,h.e,{});continue;}
         if(h.q!=='tap'||!pronto(z))continue;
-        if(h.dez){const el=p.perm.filter(w=>w!==z&&w.cri&&!w.tap&&ehTipo(p,w,h.dez));if(el.length<10||!quer(p,`${nomeC(p,z.i)}: virar 10 elfos (cada oponente perde 10)?`))continue;for(const w of el.slice(0,10))w.tap=true;z.tap=true;diz(p.k,'magia',`${nomeC(p,z.i)} vira 10 elfos: cada oponente perde 10`,z.i);faz(p,z,h.e,{});continue;}
+        if(h.dez){const el=p.perm.filter(w=>w!==z&&w.cri&&!w.tap&&ehTipo(p,w,h.dez));if(el.length<10||!quer(p,`${nomeC(p,z.i)}: virar 10 elfos (cada oponente perde 10)?`))continue;/* custo "vire dez elfos": vira primeiro quem não ataca neste turno (enjoado; 302.6 não impede pagar custo de virar), depois os mais fracos */
+          const podeAt=w=>(!w.sick||temKw(p,w,'haste'))&&poderDe(p,w)>0;el.sort((a,b)=>podeAt(a)-podeAt(b)||poderDe(p,a)-poderDe(p,b));for(const w of el.slice(0,10))w.tap=true;z.tap=true;diz(p.k,'magia',`${nomeC(p,z.i)} vira 10 elfos: cada oponente perde 10`,z.i);faz(p,z,h.e,{});continue;}
         if(!pergH(p)&&h.e.fic&&contN(p,z,h.e.fic.n,{})<2&&poderDe(p,z)>=2)continue;
         if(pergH(p)&&((h.custo&&U.length<h.custo)||!quer(p,`Virar ${nomeC(p,z.i)} e usar a habilidade${h.custo?` (${h.custo} de mana)`:''}?`)))continue;
         if(h.custo&&!pagaG(p,U,h.custo))continue;
@@ -506,7 +509,7 @@ function arena(Ds,seed,cfg){
       if(m.ret)compra(p,Math.max(0,...p.perm.filter(x=>x.cri).map(x=>poderDe(p,x))));
       if(m.ferocious)ganha(p,4*p.perm.filter(x=>x.cri&&poderDe(p,x)>=4).length);
       if(m.ramp){for(let j=0;j<m.ramp;j++)p.terr.push({cor:p.ci||'',tap:true,b:1});}
-      if(m.tok)ficha(p,m.tokN||1,m.tokP||1,m.tokT||1);
+      if(m.tok)fichaDe(p,m);
       if(m.tut)tutor(p,m.tut);
       ORIG=nomeC(p,i);{let xx;const cx={...(SACU||{})};Object.defineProperty(cx,'x',{get(){return xx===undefined?(xx=melhorMeu(p)):xx;},set(v){xx=v;},enumerable:true});for(const h of m.hab||[])if(h.q==='sp'&&!h.e.fichaDono)faz(p,null,h.e,cx);}SACU=null;
       p.gy.push(i);
@@ -518,7 +521,7 @@ function arena(Ds,seed,cfg){
       if(m.lifeETB)ganha(p,m.lifeETB);
       if(m.dr)compra(p,m.dr);
       if(m.ramp){for(let j=0;j<m.ramp;j++)p.terr.push({cor:p.ci||'',tap:true,b:1});}
-      if(m.tok)ficha(p,m.tokN||1,m.tokP||1,m.tokT||1);
+      if(m.tok)fichaDe(p,m);
       if(m.remEtb){const a=melhorAlvo(p,false,tipoRem(m));if(a)remove(p,a,i);}
       if(m.tut)tutor(p,m.tut);
       if(m.iron){const j=p.gy.findIndex(j=>p.M[j].a&&!p.M[j].sp);if(j>=0){const c=p.gy.splice(j,1)[0];entra(p,c);diz(p.k,'magia',`devolve ${nomeC(p,c)} do cemitério`);}}
@@ -549,7 +552,7 @@ function arena(Ds,seed,cfg){
     if(m.sp&&m.rem){const a=melhorAlvo(p,false,tipoRem(m));if(!a)return -1;if(/\bInstant\b/.test(m.tl)&&valor(a.o,a.x)<5)return -1;return 4+valor(a.o,a.x)/2;}
     if(m.wake)return p.gy.filter(j=>p.M[j].a&&!p.M[j].sp).length>=3?8:-1;
     let v=1;
-    if(m.mana||m.ramp||m.tithe||m.opal||m.amber)v+=cedo?9:2;
+    if(m.mana||m.manaX||m.ramp||m.tithe||m.opal||m.amber)v+=cedo?9:2;
     if(m.dis)v+=cedo?7:3;
     if(m.cada||m.gat||m.tome||m.slate||m.me)v+=6;
     if(m.dr&&m.sp)v+=3+m.dr*0.7;
@@ -649,7 +652,7 @@ function arena(Ds,seed,cfg){
     const letal=total>=alvo.vida+alvo.perm.filter(x=>x.cri&&!x.tap).length;
     if(!letal){
       /* criatura de mana fraca fica em casa: vale mais gerando mana e bloqueando */
-      at=at.filter(x=>x.tok||!p.M[x.i].mana||poderDe(p,x)>=3);
+      at=at.filter(x=>x.tok||!(p.M[x.i].mana||p.M[x.i].manaX)||poderDe(p,x)>=3);
       /* segura bloqueadores conforme a ameaca: um terco do ataque se a vida ja nao aguenta um golpe e meio da mesa */
       if(p.vida<=perigo*1.5&&at.length>2){const n=Math.min(at.length-1,Math.ceil(at.length/3));
         const fica=at.filter(x=>!temKw(p,x,'vigilance')).sort((a,b)=>resDe(p,b)-resDe(p,a)||poderDe(p,a)-poderDe(p,b)).slice(0,n);
@@ -936,7 +939,7 @@ function estudo(Dv,Ops,mesas,N,seed,prog,nOp,cfg){cfg=cfg||{};
   /* as 10 piores pelo valor puro tambem entram na grade (Top 10 mostra todas testadas) */
   for(const x of valor.filter(x=>!prot.has(x.i)).slice(0,10))if(!fracas.includes(x.i))fracas.push(x.i);
   /* candidatas: as da mesma familia das fracas primeiro, depois as mais versateis */
-  const fam=m=>m.mana||m.ramp?'mana':m.dr||m.cada||m.gat?'compra':m.rem||m.wip?'rem':m.cri?'cri':'outro';
+  const fam=m=>m.mana||m.manaX||m.ramp?'mana':m.dr||m.cada||m.gat?'compra':m.rem||m.wip?'rem':m.cri?'cri':'outro';
   const fs=new Set(fracas.map(i=>fam(M[i])));const cs=[];
   for(const c of ext)if(cs.length<nC)cs.push(c);
   for(const c of cand)if(!cs.includes(c)&&fs.has(fam(M[c]))&&cs.length<Math.ceil(nC*.6)+ext.length)cs.push(c);
