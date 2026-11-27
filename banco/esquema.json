@@ -720,6 +720,10 @@
       "type": "string"
      },
      "description": "não tem nenhuma destas palavras-chave (\"if it didn't have decayed\": Wilhelt)"
+    },
+    "pareadaComEste": {
+     "const": true,
+     "description": "soulbond (702.95): esta e a criatura pareada com ela, só enquanto pareadas (\"each of those creatures\": Tandem Lookout)"
     }
    }
   },
@@ -854,6 +858,16 @@
     "ouZona": {
      "$ref": "#/$defs/zona",
      "description": "o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)"
+    },
+    "hab": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "ctrl": {"enum": ["voce", "oponente"], "description": "quem controla a habilidade na pilha"},
+      "tipo": {"enum": ["ativada", "desencadeada"]},
+      "fonte": {"$ref": "#/$defs/filtro", "description": "a fonte da habilidade (saiu de zona: só o tipo impresso)"}
+     },
+     "description": "f 'habilidade': \"ability you control from an enchantment source\" (Weaver of Harmony)"
     }
    }
   },
@@ -1164,6 +1178,8 @@
       "ficha",
       "copiarPermanente",
       "copiarMagica",
+      "copiarHabilidade",
+      "parear",
       "trocarAlvos",
       "duasPilhas",
       "limitarBloqueio",
@@ -1408,6 +1424,20 @@
       },
       "max": {
        "type": "integer"
+      },
+      "pontos": {
+       "type": "array",
+       "items": {"type": "integer", "minimum": 1},
+       "description": "{P} de cada modo, na ordem (Season of the Burrow; CR 700.2h): escolhe até maxPontos no total"
+      },
+      "maxPontos": {
+       "type": "integer",
+       "description": "\"choose up to N {P} worth of modes\""
+      },
+      "repete": {
+       "type": "array",
+       "items": {"type": "integer"},
+       "description": "modos (sem alvo) que podem ser escolhidos mais de uma vez; modo COM alvo que repete vai escrito de novo na lista, com alvo próprio"
       },
       "naoRepeteNoTurno": {
        "type": "boolean",
@@ -2162,6 +2192,8 @@
       "segundoDividido",
       "desaparecer",
       "rebote",
+      "cifrar",
+      "soulbond",
       "dobra",
       "eternizar",
       "agregar",

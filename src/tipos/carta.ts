@@ -368,6 +368,10 @@ export interface RxFiltro {
    * não tem nenhuma destas palavras-chave ("if it didn't have decayed": Wilhelt)
    */
   semKw?: string[];
+  /**
+   * soulbond (702.95): esta e a criatura pareada com ela, só enquanto pareadas ("each of those creatures": Tandem Lookout)
+   */
+  pareadaComEste?: true;
 }
 
 export interface RxCompara {
@@ -432,6 +436,20 @@ export interface RxAlvo {
    * o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)
    */
   ouZona?: RxZona;
+  /**
+   * f 'habilidade': "ability you control from an enchantment source" (Weaver of Harmony)
+   */
+  hab?: {
+    /**
+     * quem controla a habilidade na pilha
+     */
+    ctrl?: 'voce' | 'oponente';
+    tipo?: 'ativada' | 'desencadeada';
+    /**
+     * a fonte da habilidade (saiu de zona: só o tipo impresso)
+     */
+    fonte?: RxFiltro;
+  };
 }
 
 /**
@@ -589,6 +607,8 @@ export interface RxFx {
     | 'ficha'
     | 'copiarPermanente'
     | 'copiarMagica'
+    | 'copiarHabilidade'
+    | 'parear'
     | 'trocarAlvos'
     | 'duasPilhas'
     | 'limitarBloqueio'
@@ -711,6 +731,18 @@ export interface RxFx {
   escolhe?: {
     min?: number;
     max?: number;
+    /**
+     * {P} de cada modo, na ordem (Season of the Burrow; CR 700.2h): escolhe até maxPontos no total
+     */
+    pontos?: number[];
+    /**
+     * "choose up to N {P} worth of modes"
+     */
+    maxPontos?: number;
+    /**
+     * modos (sem alvo) que podem ser escolhidos mais de uma vez; modo COM alvo que repete vai escrito de novo na lista, com alvo próprio
+     */
+    repete?: number[];
     /**
      * só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)
      */
@@ -1200,6 +1232,8 @@ export interface RxKw {
     | 'imortal'
     | 'desaparecer'
     | 'rebote'
+    | 'cifrar'
+    | 'soulbond'
     | 'dobra'
     | 'eternizar'
     | 'agregar'

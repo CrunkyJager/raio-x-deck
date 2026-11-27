@@ -118,6 +118,9 @@ const basico = (e, p) => {
     case 'concessao': return melhorOp(p.ops, op => { const x = o(op.o); return (x.ctrl === p.j ? 100 : -100) + M.poder(e, x) + M.resistencia(e, x); });   // a minha maior
     // "choose a player"/"an opponent" sem alvo (Gluntch, Baleful Mastery): o que é bom fica comigo; entre oponentes, o de menos vida
     case 'jogador': { const k = p.ops.findIndex(op => op.jog === p.j); return k >= 0 ? k : melhorOp(p.ops, op => -e.jogs[op.jog].vida); }
+    case 'modo': if (p.ctx && p.ctx.pontos) return melhorOp(p.ops, op => op.a === 'modo' ? p.ctx.pontos[op.m] ?? 1 : 0); return 0;   // {P}: o modo mais caro que ainda cabe (pronto quando não cabe nada)
+    case 'parear': return melhorOp(p.ops, op => op.a !== 'parear' ? -1 : 100 + M.poder(e, o(op.id)));   // 702.95a: parear sempre (o par só dá), com a mais forte
+    case 'cifrar': return melhorOp(p.ops, op => op.a !== 'cifrar' ? -1 : 100 + (M.temKw(e, o(op.id), 'voar') ? 10 : 0) + M.poder(e, o(op.id)));   // 702.99a: codifica na que mais passa (voa) e bate
     case 'um': return melhorOp(p.ops, op => M.poder(e, o(op.id)));   // "a creature you control" sem alvo: a de mais poder
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
     case 'manter': {                  // a que fica: a de mais valor (não ficha, maior valor de mana)
