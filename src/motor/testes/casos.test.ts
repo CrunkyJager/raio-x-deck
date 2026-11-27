@@ -1324,7 +1324,7 @@ caso('702.33d', 'conjuradaCom kicker (Goblin Bushwhacker): o gatilho de entrar s
     for (let i = 0; i < 6 && e.perg && (e.pilha.length || e.pend.length); i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
     igual(M.poder(e, objN(e, 0, 'Grizzly Bears')), 2 + esp, `${terras} Montanha(s): ` + JSON.stringify(e.log.slice(-4)));
   }
-  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'maxspeed' } }));
+  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'semNome' } }));
 });
 db['Cena Desgaste'] = { n: 'Cena Desgaste', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Sorcery'], vm: 2, ci: 'G', kw: [{ k: 'ofertaPresente', tipo: 'carta' }],
   alvos: [{ f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, opcao: 'semPresente' }, { f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, min: 2, max: 2, opcao: 'presente' }],
@@ -2558,25 +2558,6 @@ caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you d
   igual(e.objs[e.campo.find(id => e.objs[id].n === 'Llanowar Elves')].zona, 'campo');
 });
 
-caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; maxspeed continua recusada', () => {
-  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Grizzly Bears']] });
-  const ctx = { voce: 0, este: e.campo[0] };
-  ok(M.fxSuportado(M.carta('Dispatch').fx), 'Dispatch lido');
-  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), false, '2 artefatos');
-  e.por(0, 'Arcane Signet');
-  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), true, '3 artefatos');
-  igual(M.condicao(e, { palavra: 'metalcraft' }, { voce: 1, este: e.campo[0] }), false, 'são do outro');
-  e.por(0, 'Llanowar Elves'); e.por(0, 'Grizzly Bears');
-  igual(M.condicao(e, { palavra: 'coven' }, ctx), false, 'poderes 1 e 2');
-  e.por(0, 'Hill Giant');
-  igual(M.condicao(e, { palavra: 'coven' }, ctx), true, '1, 2 e 3');
-  igual(M.condicao(e, { palavra: 'blessing' }, ctx), false, '6 permanentes');
-  for (let i = 0; i < 3; i++) e.por(0, 'Wastes'); e.por(0, 'Wayward Swordtooth');   // 702.131b: precisa de uma com ascender
-  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
-  for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
-  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
-  ok(!M.condValorOk({ palavra: 'maxspeed' }));
-});
 caso('502.3', 'Unwinding Clock: seus artefatos desviram na etapa de desvirar dos outros; as criaturas não', () => {
   const e = cena({ campo: [[0, 'Unwinding Clock'], [0, 'Sol Ring'], [0, 'Grizzly Bears']] });
   const [sr, gb] = [objN(e, 0, 'Sol Ring'), objN(e, 0, 'Grizzly Bears')];
@@ -7057,6 +7038,57 @@ caso('122.1', "radiação: no começo da 1ª principal, mói N (rad); por não-t
     igual(e.jogs[0].zonas.cemiterio.length, 3, 'moeu 3');
     igual([e.jogs[0].vida, e.jogs[0].marc.rad], [comStrong ? v + 2 : v - 2, 1], comStrong ? 'Strong: +2' : '-2, sobra 1 rad');
   }
+});
+
+caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; palavra desconhecida recusada', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Grizzly Bears']] });
+  const ctx = { voce: 0, este: e.campo[0] };
+  ok(M.fxSuportado(M.carta('Dispatch').fx), 'Dispatch lido');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), false, '2 artefatos');
+  e.por(0, 'Arcane Signet');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), true, '3 artefatos');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, { voce: 1, este: e.campo[0] }), false, 'são do outro');
+  e.por(0, 'Llanowar Elves'); e.por(0, 'Grizzly Bears');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), false, 'poderes 1 e 2');
+  e.por(0, 'Hill Giant');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), true, '1, 2 e 3');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), false, '6 permanentes');
+  for (let i = 0; i < 3; i++) e.por(0, 'Wastes'); e.por(0, 'Wayward Swordtooth');   // 702.131b: precisa de uma com ascender
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
+  for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
+  ok(!M.condValorOk({ palavra: 'semNome' }));
+  ok(M.condValorOk({ palavra: 'maxspeed' }), 'maxspeed lida agora (702.179e)');
+});
+caso('702.179', "velocidade: Start your engines! dá velocidade 1; sobe 1 por turno seu em que um oponente perde vida (uma vez por turno, até 4); Max speed liga a mana da Howlsquad Heavy", () => {
+  const e = cena({ campo: [[0, 'Howlsquad Heavy'], [0, 'Goblin Guide']] }); e.pend = [];
+  const h = objN(e, 0, 'Howlsquad Heavy'), J = e.jogs[0];
+  e.turno.ativo = 0; M.ligarMotores(e);
+  igual(J.vel, 1, '702.179a: sem velocidade, passa a 1');
+  igual(e.jogs[1].vel || 0, 0, 'o outro não tem a palavra-chave');
+  M.perderVida(e, 1, 2); M.perderVida(e, 1, 1);
+  igual(J.vel, 2, 'oponente perdeu vida no seu turno: +1, só uma vez por turno');
+  M.perderVida(e, 0, 1); e.turno.n++; M.perderVida(e, 0, 1);
+  igual(J.vel, 2, 'perder você mesmo não conta');
+  e.turno.ativo = 1; M.perderVida(e, 1, 1); igual(J.vel, 2, 'no turno do outro não sobe');
+  e.turno.ativo = 0; const a = M.atvDe(e, h).find(x => x.deMana);
+  ok(!M.atvSeOk(e, a, h), 'velocidade 2: sem Max speed');
+  for (let i = 0; i < 4; i++) { e.turno.n++; M.perderVida(e, 1, 1); }
+  igual(J.vel, 4, 'para em 4');
+  ok(M.atvSeOk(e, a, h), 'Max speed (702.179e, 702.178a): a mana liga');
+  M.mover(e, h.id, 'cemiterio'); M.ligarMotores(e); igual(J.vel, 4, 'a velocidade fica quando a permanente sai');
+});
+
+caso('702.184a', "estação: Uthros vira outra criatura sua e ganha marcadores de carga = poder dela (só como feitiço); com 12+ a habilidade de mana liga", () => {
+  const e = cena({ campo: [[0, 'Uthros, Titanic Godcore'], [0, 'Hill Giant']] }); e.pend = [];
+  const u = objN(e, 0, 'Uthros, Titanic Godcore'), g = objN(e, 0, 'Hill Giant'); u.virada = false;
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(op => op.a === 'ativar' && op.id === u.id && M.atvDe(e, u)[op.k] && M.atvDe(e, u)[op.k]._estacao);
+  ok(k >= 0, 'estação oferecida'); M.responder(e, k); resolveCom(e);
+  ok(g.virada, 'virou o Hill Giant'); igual(u.marc.charge, 3, 'poder 3 → 3 de carga');
+  const a = M.atvDe(e, u).find(x => x.deMana && x.se);
+  ok(!M.atvSeOk(e, a, u), '3 < 12: a 12+ não vale');
+  u.marc.charge = 12; ok(M.atvSeOk(e, a, u), '12+ (722.2a): vale');
 });
 
 // ---------- rodar ----------
