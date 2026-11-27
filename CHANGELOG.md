@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.63.0 — 27/11/2026 · Motor: sobrecarga
+Testes: check 0 erros · Vitest 386/386 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1530/1756 (eram 1525).
+- **Sobrecarga** (CR 702.96): Cyclonic Rift e as outras de um alvo. Com mana para o custo de sobrecarga, a Mesa pergunta normal ou sobrecarga; na sobrecarga não tem alvo e o efeito vale para cada objeto que o alvo aceitaria. Sem mana, nem pergunta.
+
 ## v0.62.0 — 27/11/2026 · Conta e Meus decks na nuvem
 Testes: check 0 erros · Vitest 385/385 · partida Stangg igual à linha de base (erros 0) · navegador: criar conta → salvar → entrar em outro navegador → abrir → apagar ok; sem login o banco recusa (403).
 - **Meus decks** (aba Lista): entrar com Google ou com e-mail e senha, salvar o deck com nome e abrir em qualquer PC. Firebase, como no Grimório Arena. Cada pessoa só vê os próprios decks.

@@ -61,17 +61,29 @@ M.alvoSuportado = a => {
 const OPCAO_OK = new Set(['chute', 'semChute', 'presente', 'semPresente']);
 const chuteDe = d => (d.kw || []).find(k => k.k === 'chute' && k.custo);
 const presenteDe = d => (d.kw || []).find(k => k.k === 'ofertaPresente' && k.tipo === 'carta');
-const alvoAtivo = (a, opc) => !a || !a.opcao || !opc ? true : a.opcao === 'chute' ? !!opc.chute : a.opcao === 'semChute' ? !opc.chute
+const alvoAtivo = (a, opc) => opc && opc.sobrecarga ? false : !a || !a.opcao || !opc ? true : a.opcao === 'chute' ? !!opc.chute : a.opcao === 'semChute' ? !opc.chute
   : a.opcao === 'presente' ? !!opc.presente : !opc.presente;
 M.alvoAtivo = alvoAtivo;
 // combinações de opção que a carta tem, com a opção primeiro (o agente básico pega a primeira que fecha)
+// sobrecarga (CR 702.96): custo alternativo em que "alvo" vira "cada" (702.96b). Lido: um alvo só, com filtro de objeto;
+// o efeito vira repetirCada sobre o que caberia nesse alvo, com em {alvo:0} trocado pelo objeto da vez ('cadaAtual').
+const sobrecargaDe = d => (d.kw || []).find(k => k.k === 'sobrecarga' && k.custo);
+const trocaAlvo0 = v => Array.isArray(v) ? v.map(trocaAlvo0) : v && typeof v === 'object'
+  ? (Object.keys(v).length === 1 && v.alvo === 0 ? 'cadaAtual' : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, trocaAlvo0(x)]))) : v;
+M.fxSobrecarga = (d, fx) => {
+  const a = (d.alvos || [])[0];
+  if (!sobrecargaDe(d) || (d.alvos || []).length !== 1 || !a || !a.f || typeof a.f !== 'object' || (a.max ?? 1) !== 1) return null;
+  const nf = [{ op: 'repetirCada', cada: { ...a.f, zona: a.f.zona || 'campo' }, fx: trocaAlvo0(fx) }];
+  return JSON.stringify(nf).includes('"alvo"') || !M.fxSuportado(nf) ? null : nf;
+};
 function opcoesConj(e, j, d) {
   let l: any[] = [{}];
   if (chuteDe(d)) l = [{ chute: true }, {}];
+  if (d.fx && M.fxSobrecarga(d, d.fx)) l = [{ sobrecarga: true }, ...l];   // o agente básico pega a primeira que fecha
   if (presenteDe(d) && M.vivos(e).some(x => x !== j)) l = l.flatMap(o => [{ ...o, presente: true }, o]);
   return l;
 }
-const custoOpc = (d, custo, opc) => opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo;
+const custoOpc = (d, custo, opc, e?, o?) => opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo;
 // pode ser alvo de quem controla a mágica/habilidade? antimagia (CR 702.11b) e manto (CR 702.18a); proteção = T18
 const alcancavel = (e, o, voce) => !(M.temKw(e, o, 'manto') || (M.temKw(e, o, 'antimagia') && o.ctrl !== voce));
 M.alvoLegal = (e, a, esc, ctx) => {
@@ -388,7 +400,7 @@ function opcOk(e, j, d, usados, custo0, opc, o) {
     if (!alvoAtivo(a, opc)) continue;
     if ((a.min ?? 1) > 0 && M.alvosPossiveis(e, a, ctx).length < (a.min ?? 1)) return false;
   }
-  const custo = custoOpc(d, custo0, opc);
+  const custo = custoOpc(d, custo0, opc, e, o);
   if (M.vmDe(custo) > manaMax(e, j, null, o) + Math.floor(vidaPhy(e, j) / 2)) return false;
   return !!plano(e, j, custo, 0, null, o);
 }
@@ -676,7 +688,7 @@ const PROC = {
     const viaveis = opcoesConj(e, j, d).filter(op => opcOk(e, j, d, usados, custo0, op, o));
     let opc: any = viaveis.length > 1 ? ask(j, 'opcao', viaveis.map(v => ({ a: 'opcao', v })), { id: o.id }).v : viaveis[0] || {};   // 601.2b
     if (opc.presente) opc = { ...opc, jog: ask(j, 'presente', M.vivos(e).filter(x => x !== j).map(x => ({ a: 'jogador', jog: x })), { id: o.id }).jog };   // 702.174a: um oponente
-    let custo = custoOpc(d, custo0, opc);
+    let custo = custoOpc(d, custo0, opc, e, o);
     let x = 0;
     if (custo.x && !(P.gratis || (M.permJogar(e, j, o) || {}).gratis)) {             // CR 601.2b: anuncia o X (grátis: X = 0, 107.3b)
       const mx = maxX(e, j, custo, null, o);
@@ -707,7 +719,7 @@ const PROC = {
     for (const id of exFuga) M.mover(e, id, 'exilio');
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
     e.turno.magias = (e.turno.magias || 0) + 1;
-    M.log(e, e.jogs[j].nome, 'conjura', o.copiaPrep ? M.dadoDe(e, o).n + ' (cópia preparada de ' + o.n + ')' : o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', fuga ? '(fuga: exila ' + exFuga.length + ' do cemitério)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
+    M.log(e, e.jogs[j].nome, 'conjura', o.copiaPrep ? M.dadoDe(e, o).n + ' (cópia preparada de ' + o.n + ')' : o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', opc.sobrecarga ? '(sobrecarga)' : '', fuga ? '(fuga: exila ' + exFuga.length + ' do cemitério)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
     if (!P.loucura && !P.milagre && !P.agora) M.agiu(e, j);                                                     // CR 601.2i → 117.3c (loucura: no meio da resolução)
   },
 
@@ -764,7 +776,7 @@ const PROC = {
   resolver(e, P, ask) {
     const o = e.objs[P.id], pil = o.pil, j = pil.ctrl;
     const d = o.hab ? { fx: o.hab.fx, alvos: o.hab.alvos } : M.dadoDe(e, o);
-    const fx = fxEfetivo(d, d.fx || [], pil.modos);
+    const fx0 = fxEfetivo(d, d.fx || [], pil.modos), fx = !o.hab && pil.opc && pil.opc.sobrecarga ? M.fxSobrecarga(d, fx0) || fx0 : fx0;   // 702.96b
     if (!P.checou) {
       P.checou = true;
       if (!M.gatilhoAindaVale(e, o)) { e.proc = null; M.log(e, o.n, 'não resolve: condição do gatilho falhou (603.4)'); tirarDaPilha(e, o); return; }

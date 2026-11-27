@@ -3380,6 +3380,20 @@ caso('701.15c', "destruir sem regenerar: Terminate mata o Urso (o campo semRegen
   igual(f.objs[id].zona, 'cemiterio', 'pelo executar também');
 });
 
+caso('702.96', "sobrecarga: Cyclonic Rift com 7 terrenos devolve TODA permanente não-terreno do oponente; com 2 terrenos só o alvo", () => {
+  const ilhas = n => Array.from({ length: n }, () => [0, 'Island']);
+  const e = cena({ campo: [...ilhas(7), [0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [1, 'Sol Ring'], [1, 'Forest']], mao: [[0, 'Cyclonic Rift']] });
+  M.avancar(e); conj(e, 'Cyclonic Rift'); ok(e.perg && e.perg.tipo === 'opcao', 'pergunta: normal ou sobrecarga'); respE(e, o => o.v.sobrecarga);
+  M.avancar(e);
+  const no = (n, j) => e.campo.filter(id => e.objs[id].n === n && e.objs[id].ctrl === j).length;
+  igual(no('Grizzly Bears', 1) + no('Sol Ring', 1), 0, 'as não-terreno do oponente voltaram');
+  igual(no('Forest', 1), 1, 'terreno fica'); igual(no('Grizzly Bears', 0), 1, 'a minha fica');
+  igual(e.jogs[1].zonas.mao.filter(id => ['Grizzly Bears', 'Sol Ring'].includes(e.objs[id].n)).length, 2, 'foram para a mão do dono');
+  const f = cena({ campo: [...ilhas(2), [1, 'Grizzly Bears'], [1, 'Sol Ring']], mao: [[0, 'Cyclonic Rift']] });
+  M.avancar(f); conj(f, 'Cyclonic Rift'); ok(!f.perg || f.perg.tipo !== 'opcao', 'sem mana: nem pergunta'); alvoObj(f, 'Sol Ring'); M.avancar(f);
+  igual(f.campo.filter(id => f.objs[id].ctrl === 1).length, 1, 'sem mana para sobrecarga: só um alvo volta');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
