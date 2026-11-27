@@ -45,6 +45,8 @@ const basico = (e, p) => {
     case 'pilha': { const S = (p.ctx && p.ctx.somas) || [0, 0]; return S[0] <= S[1] ? 0 : 1; }   // separar: na pilha mais leve; escolher a sacrificada: a mais leve (Liliana of the Veil)
     case 'dragar': return escolheDragar(e, p);
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
+      // 104.4b: gatilho opcional que já disparou centenas de vezes no turno (laço que só eu mantenho): paro, senão vira empate
+      if (p.ctx && p.ctx.op === 'gatilho' && Object.entries((e.turno && e.turno.disp) || {}).some(([ch, n]) => ch.startsWith(p.ctx.id + ':') && (n as number) > 400)) return 1;
       if (p.ctx && p.ctx.op === 'entraVirada') return 1;   // "you may have this enter tapped": desvirada (o "se fizer" é o preço, Mariposa)
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
       if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || !!M.loucuraDe(e, o(p.ctx.id)) ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
@@ -86,6 +88,10 @@ const basico = (e, p) => {
         const kn = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._nivel
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));
         if (kn >= 0) return kn;
+        // estação (702.184a): depois do combate (principal 2) vira a de mais poder; na principal 1 só se nenhuma desvirada pode atacar
+        const kst = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._estacao && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id)
+          && (e.turno.passo === 'principal2' || !e.campo.some(id => { const x = o(id); return x.ctrl === p.j && x.id !== op.id && !x.virada && M.temTipo(e, x, 'Creature') && !x.doente; })));
+        if (kst >= 0) return kst;
         // Room (709.5e): destranca a outra porta com a mana que sobrou das mágicas
         const kd = p.ops.findIndex(op => op.a === 'destrancar');
         if (kd >= 0) return kd;
@@ -141,6 +147,7 @@ const basico = (e, p) => {
     case 'sacrificar': if (p.ctx && p.ctx.entra) { const k = p.ops.findIndex(op => op.a === 'sacrificar'); return k >= 0 ? k : 0; }   // Feasting Hobbit: todas as Comidas
     // falls through
     case 'custo': {
+      if (p.ctx && p.ctx.porPoder) return melhorOp(p.ops, op => M.poder(e, o(op.id)));   // estação (702.184a): a de mais poder dá mais marcadores
       let b = 0, bv = Infinity;
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;

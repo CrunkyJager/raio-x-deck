@@ -7721,6 +7721,88 @@ caso('613.1f', "agente: Tishana's Tidebinder mira a habilidade do oponente; a mi
   const [e, h] = mk(1); igual(escolha(e).o, h.id, 'a do oponente');
   const [f] = mk(0); igual(escolha(f).a, 'pronto', 'só a minha: não anula');
 });
+caso('702.184a', 'agente: estação — na principal 2 vira a criatura de mais poder que sobrou (não a que vai atacar na principal 1)', () => {
+  const mk = passo => { const e = cena({ passo, campo: [[0, 'Uthros, Titanic Godcore'], [0, 'Hill Giant'], [0, 'Llanowar Elves']] }); e.pend = []; M.avancar(e); return e; };
+  const ehEst = (e, op) => op.a === 'ativar' && M.atvDe(e, e.objs[op.id])[op.k] && M.atvDe(e, e.objs[op.id])[op.k]._estacao;
+  const e = mk('principal1'); ok(!ehEst(e, escolha(e)), 'principal 1: não vira quem pode atacar');
+  const f = mk('principal2'); ok(ehEst(f, escolha(f)), 'principal 2: estação');
+  M.responder(f, M.agenteBasico()(f, f.perg)); for (let i = 0; i < 10 && f.perg && f.perg.tipo !== 'acao'; i++) M.responder(f, M.agenteBasico()(f, f.perg));
+  resolveCom(f); igual(objN(f, 0, 'Uthros, Titanic Godcore').marc.charge, 3, 'virou o Hill Giant (poder 3), não o Elves');
+});
+caso('702.179', 'agente: velocidade 4 (Max speed) — a Howlsquad Heavy dá mana por Goblin e o agente conjura com ela; velocidade 3, não', () => {
+  const mk = vel => { const e = cena({ campo: [[0, 'Howlsquad Heavy'], [0, 'Goblin Guide'], [0, 'Goblin Guide']], mao: [[0, 'Lightning Bolt']] }); e.pend = []; e.jogs[0].vel = vel; M.avancar(e); return e; };
+  const e = mk(4); const op = escolha(e); igual([op.a, e.objs[op.id].n], ['conjurar', 'Lightning Bolt'], 'Max speed: conjura com a mana dos Goblins');
+  ok(!opsDe(mk(3), 'conjurar').length, 'velocidade 3: sem mana');
+});
+caso('702.95a', 'agente: soulbond pareia com a criatura mais forte (Hill Giant, não Llanowar Elves)', () => {
+  const e = cena({ campo: [...terras(3, 'Island'), [0, 'Llanowar Elves'], [0, 'Hill Giant']], mao: [[0, 'Tandem Lookout']] }); e.pend = [];
+  M.avancar(e); conj(e, 'Tandem Lookout'); const ag = M.agenteBasico();
+  for (let i = 0; i < 30 && (e.pilha.length || (e.perg && e.perg.tipo !== 'acao')); i++) { if (e.perg && e.perg.tipo !== 'acao') M.responder(e, ag(e, e.perg)); else resolveCom(e, p => p.tipo === 'parear' ? ag(e, p) : -1); }
+  igual(M.parDe(e, objN(e, 0, 'Tandem Lookout')), objN(e, 0, 'Hill Giant'), 'pareou com o Hill Giant');
+});
+caso('702.99a', 'agente: cifrar codifica na criatura que voa (Serra Angel), não na maior no chão', () => {
+  const e = cena({ campo: [[0, 'Island'], [0, 'Island'], [0, 'Swamp'], [0, 'Swamp'], [0, 'Hill Giant'], [0, 'Serra Angel']], mao: [[0, 'Whispering Madness']] });
+  M.avancar(e); conj(e, 'Whispering Madness'); let qual = null;
+  resolveCom(e, p => { if (p.tipo !== 'cifrar') return -1; const k = M.agenteBasico()(e, p); qual = e.objs[p.ops[k].id] && e.objs[p.ops[k].id].n; return k; });
+  igual(qual, 'Serra Angel');
+});
+caso('700.2h', 'agente: {P} — com só criatura do oponente para exilar e 5 {P}, gasta tudo (nenhuma pergunta fica sem resposta) e a mágica resolve', () => {
+  const e = cena({ campo: [...terras(5, 'Plains'), [1, 'Hill Giant']], mao: [[0, 'Season of the Burrow']] }); const ag = M.agenteBasico();
+  M.avancar(e); conj(e, 'Season of the Burrow'); const modos: number[] = [];
+  resolveCom(e, p => { const k = ag(e, p); if (p.tipo === 'modo' && p.ops[k].a === 'modo') modos.push(p.ops[k].m); return k; });
+  ok(!objN(e, 1, 'Hill Giant'), 'exilou o Hill Giant do oponente: ' + modos.join());
+  igual(naZona(e, 0, 'cemiterio').includes('Season of the Burrow'), true, 'resolveu');
+});
+caso('707.10', 'agente: Weaver of Harmony copia a habilidade sua de fonte encantamento que está na pilha', () => {
+  const W = M.carta('Weaver of Harmony').atv[0];
+  const e = cena({ campo: [[0, 'Weaver of Harmony'], [0, 'Weaver of Harmony'], [1, 'Weaver of Harmony']] });
+  const ws = e.campo.map(id => e.objs[id]);
+  const hab = (F, ctrl) => { const h = { id: e.prox++, n: F.n, dono: ctrl, ctrl, zona: 'pilha', ts: ++e.ts, hab: { fonte: F.id, fonteTs: F.ts, k: 0, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], alvos: [] }, pil: { ctrl, alvos: [] }, marc: {} }; e.objs[h.id] = h; e.pilha.push(h.id); return h; };
+  const hm = hab(ws[1], 0); hab(ws[2], 1);
+  const ops = M.alvosPossiveis(e, W.alvos[0], { voce: 0, este: ws[0].id }).map(x => ({ a: 'alvo', ...x }));   // min 1: sem 'pronto'
+  e.perg = { tipo: 'alvo', j: 0, ops, ctx: { de: ws[0].id } };
+  igual(escolha(e).o, hm.id, 'copia a minha (a do oponente nem é opção)');
+});
+caso('709.5e', 'agente: Room — conjura primeiro a mágica da mão; destranca a outra porta com a mana que sobra; sem mana, não', () => {
+  const mk = n => { const e = cena({ campo: [...terras(n, 'Swamp'), [0, 'Forest'], [0, 'Forest']], mao: [[0, 'Grizzly Bears']] }); e.pend = []; const x = e.por(0, 'Funeral Room', { zona: 'mao' }); M.mover(e, x.id, 'campo'); M.avancar(e); return e; };
+  const e = mk(10); igual(escolha(e).a, 'conjurar', 'a mágica antes');
+  const f = mk(8); f.jogs[0].zonas.mao = []; f.perg = null; M.avancar(f);
+  ok(opsDe(f, 'destrancar').length, 'pode destrancar'); igual(escolha(f).a, 'destrancar', 'sobrou mana: destranca');
+  const g = mk(0); g.jogs[0].zonas.mao = []; g.perg = null; M.avancar(g); ok(escolha(g).a !== 'destrancar', 'sem mana: não');
+});
+caso('702.37', 'agente: Grim Haruspex — com {B} conjura normal (não virada); virada no campo, desvira na principal com {B} sobrando', () => {
+  const e = cena({ campo: terras(3, 'Swamp'), mao: [[0, 'Grim Haruspex']] }); M.avancar(e);
+  const op = escolha(e); ok(op.a === 'conjurar' && !op.baixo, 'normal: ' + JSON.stringify(op));
+  const f = cena({ campo: terras(3, 'Island'), mao: [[0, 'Grim Haruspex']] }); M.avancar(f);
+  M.responder(f, f.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo), x => x.pilha.length > 0); M.avancar(f, x => !x.pilha.length);
+  const h = objN(f, 0, 'Grim Haruspex'); ok(h.faceBaixo, 'virada');
+  f.por(0, 'Swamp'); f.perg = null; M.avancar(f);
+  const v = escolha(f); igual([v.a, v.id], ['virarParaCima', h.id], 'desvira');
+  const g = cena({ campo: terras(3, 'Island'), mao: [[0, 'Grim Haruspex']] }); M.avancar(g);
+  M.responder(g, g.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo), x => x.pilha.length > 0); M.avancar(g, x => !x.pilha.length);
+  g.perg = null; M.avancar(g); ok(!opsDe(g, 'virarParaCima').length && escolha(g).a !== 'virarParaCima', 'sem {B}: não desvira');
+});
+caso('701.3d', 'agente: Akiri não gasta {W} desanexando Equipamento à toa na própria principal; quando ativa, aceita o "se fizer" (sim)', () => {
+  const e = cena({ campo: [[0, 'Akiri, Fearless Voyager'], [0, 'Grizzly Bears'], [0, "Hero's Blade"], [0, 'Plains']] });
+  const B = objN(e, 0, 'Grizzly Bears'), H = objN(e, 0, "Hero's Blade"), K = objN(e, 0, 'Akiri, Fearless Voyager');
+  H.anexo = { id: B.id, ts: B.ts }; M.avancar(e);
+  const op = escolha(e); ok(!(op.a === 'ativar' && op.id === K.id), 'não ativa a Akiri sem motivo');
+  ok(!(op.a === 'ativar' && op.id === H.id), 'não reequipa o que já está preso');
+  const p = { tipo: 'talvez', j: 0, ops: [{ a: 'sim' }, { a: 'nao' }], ctx: { op: 'desanexar' } };
+  igual(p.ops[M.agenteBasico()(e, p)].a, 'sim', 'desanexar: sim');
+});
+caso('104.4b', 'agente: laço falso — 600 fichas com Impact Tremors é finito: o agente resolve os gatilhos e o oponente morre (vitória, não empate); gatilho opcional que já disparou 500 vezes no turno, o agente para', () => {
+  const e = cena({ campo: [[0, 'Impact Tremors']] }); e.pend = []; e.perg = null;
+  const cx: any = { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: {} };
+  M.executar(e, { op: 'ficha', quem: 'voce', qtd: 600, token: { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' } }, cx, null);
+  const ag = M.agenteBasico();
+  for (let g = 0; g < 5000 && !e.fim && (e.pend.length || e.pilha.length || e.proc); g++) { M.avancar(e); if (e.perg) M.responder(e, ag(e, e.perg)); }
+  ok(e.fim && e.fim.vencedor === 0, 'o oponente morreu: ' + JSON.stringify(e.fim));
+  const f = cena({ campo: [[0, 'Impact Tremors']] }); const F = objN(f, 0, 'Impact Tremors');
+  const p: any = { tipo: 'talvez', j: 0, ops: [{ a: 'sim' }, { a: 'nao' }], ctx: { op: 'gatilho', id: F.id, n: F.n } };
+  igual(p.ops[ag(f, p)].a, 'sim', 'gatilho opcional normal: sim');
+  f.turno.disp = { [F.id + ':0']: 501 }; igual(p.ops[ag(f, p)].a, 'nao', '501 disparos no turno: para o laço (não é obrigatório)');
+});
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;
