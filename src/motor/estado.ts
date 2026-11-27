@@ -24,7 +24,13 @@ M.carta = n => {
 // Escolha um Antecedente (702.124k): o comandante e o antecedente (Background lendário) começam os dois no comando
 // (702.124b) e cada um tem o próprio imposto (903.8, 702.124d: j.imposto por id) — o novoJogo já faz isso.
 M.KW_SO_DECK = new Set(['parceiro', 'parceiroCom', 'escolhaAntecedente']);
-M.dadoBase = (e, o) => o.ficha ? o.ficha : o.clone ? o.clone : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
+// virada para baixo no campo ou na pilha (CR 708.2a): criatura 2/2 sem nome, texto, subtipo nem custo; a de disfarce/ocultar
+// tem resguardo {2} (702.168a, 701.58a). o.viradaComo: 'metamorfose' | 'disfarce' | 'manifestar' | 'ocultar'.
+const VIRADA = { n: '', tipos: ['Creature'], pt: [2, 2], custo: {}, vm: 0, cores: '', ci: '' };
+const VIRADA_RESG = { ...VIRADA, kw: [{ k: 'resguardo', custo: { g: 2 } }] };
+M.dadoVirada = o => o.viradaComo === 'disfarce' || o.viradaComo === 'ocultar' ? VIRADA_RESG : VIRADA;
+M.viradaBaixo = o => !!o && !!o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha');
+M.dadoBase = (e, o) => o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha') ? M.dadoVirada(o) : o.ficha ? o.ficha : o.clone ? o.clone : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
 // camada 4 (tipo) e 7b (P/R fixado), só no campo: o.anim (op animar, preso ao objeto: mesmo ts) e a estática
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
 // que muda é guardado por dado base + mudança (WeakMap), então ler continua sem alocar.
@@ -447,7 +453,7 @@ function substCemiterio(e, o, opc: any = {}) {
   }
   return null;
 }
-M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, conjDe = null, anim = null, pos = null, ask = null, efeito = false, sac = false, clone = null, conjurada = false, conc = null }: any = {}) => {   // sac: sacrifício (701.21), vai no evento
+M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, conjDe = null, anim = null, pos = null, ask = null, efeito = false, sac = false, clone = null, conjurada = false, conc = null, baixo = null }: any = {}) => {   // baixo: entra virada para baixo (708.4, metamorfose 702.37c)   // sac: sacrifício (701.21), vai no evento
   const o = e.objs[id];
   if (o.copia && zona !== 'pilha') {                                // cópia de mágica fora da pilha deixa de existir (704.5e)
     const l = M.listaDe(e, o), k = l.lastIndexOf(id); if (k >= 0) l.splice(k, 1);
@@ -472,7 +478,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   // 709.5d: a Room entra com a porta conjurada destrancada; posta no campo sem ser conjurada, com as duas trancadas
   const portas = zona === 'campo' && !o.ficha && !clone && M.ehRoom(M.carta(o.n)) ? { e: zDe === 'pilha' && faceNova === 'esq', d: zDe === 'pilha' && faceNova === 0 } : null;
   if (portas) faceNova = M.facePortas(portas);
-  Object.assign(o, { clone: zona === 'campo' ? clone : null, clone0: null, cloneFim: null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && (!!conjDe || !!conjurada), conjDe: zona === 'campo' ? conjDe : null, xConj: 0, voto: null, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: zona === 'campo' && conc ? { id: conc.o, ts: conc.ts } : null, concedida: zona === 'campo' && !!conc, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, suspensa: false, faceBaixo: false, olham: null, portas, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { clone: zona === 'campo' ? clone : null, clone0: null, cloneFim: null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && (!!conjDe || !!conjurada), conjDe: zona === 'campo' ? conjDe : null, xConj: 0, voto: null, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: zona === 'campo' && conc ? { id: conc.o, ts: conc.ts } : null, concedida: zona === 'campo' && !!conc, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, suspensa: false, faceBaixo: zona === 'campo' && !!baixo, viradaComo: zona === 'campo' && baixo ? baixo : null, olham: null, portas, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole || conj.iminente) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole, iminente: !!conj.iminente } : null,
     proto: zona === 'campo' && !!conj && !!conj.prototipo });   // 702.160: conjurada como protótipo, entra com o custo/cor/P-R dele   // como foi conjurada (702.33d)
   if (zona === 'campo' && anim) o.anim = anim.map(a => ({ ...a, ts: o.ts, fim: null }));   // entra já mudada ("It's an enchantment. It's not a creature", Enduring Courage): antes dos gatilhos de entrar
@@ -1164,7 +1170,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   for (const k in f) if (!FILTRO_OK.has(k)) throw new Error('filtro sem suporte no motor2: ' + k);
   const d = M.dadoDe(e, o), voce = ctx.voce;
   if (f.este && o.id !== ctx.este) return false;
-  if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
+  if (f.nome !== undefined && (M.viradaBaixo(o) || o.n !== f.nome) && d.n !== f.nome) return false;   // virada para baixo não tem nome (708.2a)   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.naoNome !== undefined && (o.n === f.naoNome || d.n === f.naoNome)) return false;   // "not named Tiamat"
   if (f.miraUm) {   // "a spell that targets one or more creatures or Vehicles you control" (Arcee): ao menos um alvo bate no filtro
     const l = o.zona === 'pilha' && o.pil ? (o.pil.alvos || []).flat().filter(a => a && a.o !== undefined) : [];
