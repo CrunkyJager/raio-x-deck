@@ -141,7 +141,7 @@ const alvosUsadosDe = (d, fx) => {
 };
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
-const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros']);
+const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'revelar']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
   if (c && c.vida !== undefined && typeof c.vida !== 'number') return false;
@@ -151,6 +151,10 @@ M.custoSuportado = c => {
   // "vire uma criatura lendária desvirada que você controla" (Dungeon Descent): {f, qtd}; não é o {T} dela, enjoo não importa (302.6)
   if (c && c.virarOutros !== undefined && !(c.virarOutros && typeof c.virarOutros === 'object' && M.filtroOk(c.virarOutros.f || {})
     && (c.virarOutros.qtd === undefined || Number.isInteger(c.virarOutros.qtd)) && Object.keys(c.virarOutros).every(k => k === 'f' || k === 'qtd'))) return false;
+  // "revele uma carta de Dinossauro da sua mão" (Thunderherd Migration): {f, qtd}; revelar não muda zona (701.20)
+  if (c && c.revelar !== undefined && !(c.revelar && typeof c.revelar === 'object' && M.filtroOk({ ...(c.revelar.f || {}), zona: undefined })
+    && (c.revelar.qtd === undefined || Number.isInteger(c.revelar.qtd)) && Object.keys(c.revelar).every(k => k === 'f' || k === 'qtd'))) return false;
+  if (c && c.mana !== undefined && !(c.mana && typeof c.mana === 'object')) return false;
   return true;
 };
 // candidatos a sacrificar/descartar de um custo
@@ -158,6 +162,7 @@ const candSac = (e, j, c, fonte) => M.objetosQue(e, { ...(c.sacrificar.f || {}),
 const candDev = (e, j, c, fonte) => M.objetosQue(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte });   // devolver à mão como custo (Master Transmuter)
 const candVir = (e, j, c, fonte) => M.objetosQue(e, { ...(c.virarOutros.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: fonte }).filter(o => !o.virada && o.id !== fonte);
 M.candVir = candVir;
+const candRev = (e, j, c, fora) => M.objetosQue(e, { ...(c.revelar.f || {}), zona: 'mao' }, { voce: j }).filter(o => o.id !== fora && e.jogs[j].zonas.mao.includes(o.id));
 const candDesc = (e, j, fora) => e.jogs[j].zonas.mao.filter(id => id !== fora);
 // custo fora da mana dá para pagar agora? (antes da mana: o que sai daqui não paga mana)
 function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
@@ -176,6 +181,7 @@ function custoFisicoOk(e, j, o, c, { daMao }: any = {}) {
   if (c.devolver && c.devolver !== 'este' && !M.temPeloMenos(e, { ...(c.devolver.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: o && o.id }, c.devolver.qtd || 1)) return false;
   if (c.tirarMarcador && (!o || (o.marc[c.tirarMarcador.tipo] || 0) < (c.tirarMarcador.qtd || 1))) return false;
   if (c.virarOutros && candVir(e, j, c, o && o.id).length < (c.virarOutros.qtd || 1)) return false;
+  if (c.revelar && candRev(e, j, c, daMao).length < (c.revelar.qtd || 1)) return false;
   return true;
 }
 
@@ -386,11 +392,13 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   if (d.fx && !M.fxSuportado(d.fx)) return false;
   if (!M.ehPermanente(e, o) && !(d.fx && d.fx.length)) return false;   // mágica sem efeito lido: não conjura à toa
   if (modalTopo(d) && M.modosViaveis(e, j, d) < ((d.fx[0].escolhe || {}).min ?? 1)) return false;
-  if (d.custoAd && !altsAd(e, j, o, d.custoAd).length) return false;   // custo adicional (com "ou": basta um pagável)
+  const alts = d.custoAd ? altsAd(e, j, o, d.custoAd) : null;
+  if (alts && !alts.length) return false;   // custo adicional (com "ou": basta um pagável)
   const usados = alvosUsados(modalTopo(d) ? [] : d.fx || []);
   if (usados.some(i => !(d.alvos || [])[i] || !M.alvoSuportado(d.alvos[i]))) return false;
   const custo0 = M.custoComImposto(e, o, custoBase(e, j, o, opts));
-  return opcoesConj(e, j, d).some(opc => opcOk(e, j, d, usados, custo0, opc, o));
+  const cs = alts ? [...new Set(alts.map(a => a.mana ? M.somaCusto(custo0, a.mana) : custo0))] : [custo0];   // "ou pague {1}": a mana entra no total
+  return cs.some(c0 => opcoesConj(e, j, d).some(opc => opcOk(e, j, d, usados, c0, opc, o)));
 }
 // a combinação de opções fecha? alvos ativos com escolha legal (CR 601.2c) e custo pagável
 function opcOk(e, j, d, usados, custo0, opc, o) {
@@ -627,7 +635,13 @@ function escolherAd(e, j, o, c, ask) {
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
 function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
-  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[] };
+  const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], rev: [] as any[] };
+  if (c.revelar) {
+    for (let i = 0; i < (c.revelar.qtd || 1); i++) {
+      const ops = candRev(e, j, c, daMao).filter(o => !r.rev.includes(o.id)).map(o => ({ a: 'revelar', id: o.id }));
+      r.rev.push(ask(j, 'custo', ops, { o: 'revelar' }).id);
+    }
+  }
   if (c.virarOutros) {
     for (let i = 0; i < (c.virarOutros.qtd || 1); i++) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id)).map(o => ({ a: 'virar', id: o.id }));
@@ -659,6 +673,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.virar) o.virada = true;
   if (c.desvirar) M.desvirarObj(e, o);
   for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
+  if ((esc.rev || []).length) M.log(e, J.nome, 'revela', esc.rev.map(id => e.objs[id].n).join(', '));   // CR 701.20: só mostra
   if (c.vida) M.perderVida(e, j, c.vida);
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   for (const id of esc.sac) M.mover(e, id, 'cemiterio', { sac: true });            // CR 701.21
@@ -701,6 +716,7 @@ const PROC = {
     custo = comAlvos(alvos.reduce((s, l) => s + (l ? l.length : 0), 0));
     const cad = d.custoAd ? escolherAd(e, j, o, d.custoAd, ask) : null;             // CR 601.2b: anuncia qual custo do "ou"
     const fis = cad ? escolherCustoFisico(e, j, cad, null, o.id, ask) : { sac: [] as any[], desc: [] as any[], dev: [] as any[] };
+    if (cad && cad.mana) custo = M.somaCusto(custo, cad.mana);                      // "ou pague {1}" (Thunderherd Migration): soma ao total (601.2f)
     const fuga = !porFlash(e, j, o) && !P.gratis && porFuga(e, j, o) ? fugaDe(e, j, o) : null;   // 702.138: as N outras do cemitério (601.2f)
     const exFuga = fuga ? M.escolherN(ask, j, 'custo', e.jogs[j].zonas.cemiterio.filter(id => id !== o.id), fuga.exilar, { ctx: { o: 'exilar' } }) : [];
     const pl = plano(e, j, custo, x, fis.sac, o);                                     // CR 601.2g: mana antes de pagar

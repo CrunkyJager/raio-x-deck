@@ -95,6 +95,7 @@ const basico = (e, p) => {
         }
         if (c.descartar) v += Math.min(...J.zonas.mao.filter(id => id !== p.ctx.id).map(id => valorDescarte(e, p.j, id))) + 0.5;
         if (c.vida) v += c.vida / 3;
+        if (c.mana) v += (c.mana.g || 0) + (c.mana.p || []).length;   // "ou pague {1}": revelar sai de graça
         return v;
       };
       return melhorOp(p.ops, op => -perda(op.v));

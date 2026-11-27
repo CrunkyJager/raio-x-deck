@@ -3423,6 +3423,23 @@ caso('702.131', "ascender: com 10 permanentes e uma com ascender ganha a bênç�
   ok(!f.jogs[0].bencao && !M.condicao(f, { palavra: 'blessing' }, { voce: 0 }), 'sem permanente com ascender: nada');
 });
 
+caso('601.2f', "custo adicional revelar OU {1} (Thunderherd Migration): com Dinossauro na mão revela e paga só {1}{G}; sem ele precisa de {2}{G}", () => {
+  ok(M.custoAdSuportado(M.carta('Thunderherd Migration').custoAd), 'o motor lê o custo');
+  for (const [dino, n] of [[true, 2], [false, 3], [false, 2]] as const) {
+    const campo = Array.from({ length: n }, () => [0, 'Forest']), mao = [[0, 'Thunderherd Migration'], ...(dino ? [[0, 'Apex Altisaur']] : [])];
+    const e = cena({ campo, mao }); e.pend = []; e.jogs[0].terrenos = 1;
+    e.por(0, 'Forest', { zona: 'grimorio' });
+    const tm = e.jogs[0].zonas.mao.find(x => e.objs[x].n === 'Thunderherd Migration');
+    igual(M.podeConjurar(e, 0, e.objs[tm]), dino || n === 3, `pode conjurar: dino ${dino}, ${n}`);
+    if (!(dino || n === 3)) continue;
+    M.avancar(e); conj(e, 'Thunderherd Migration');
+    resolveCom(e, () => -1);
+    const foi = naZona(e, 0, 'cemiterio').includes('Thunderherd Migration');
+    igual(foi, dino || n === 3, `dino ${dino}, ${n} floresta(s)`);
+    if (dino) ok(e.jogs[0].zonas.mao.some(id => e.objs[id].n === 'Apex Altisaur'), 'revelar não tira da mão');
+  }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
