@@ -171,6 +171,7 @@ function extras(e, F, g, ev) {
   return n;
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
+const GAT_MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
 const ESPIRITO = { pt: [1, 1], cores: 'WB', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] };
 // esconderijo N (CR 702.75a): idem, um gatilho por instância (702.75b não junta)
 const KW_ENTRA = new WeakMap<object, any[]>();
@@ -270,6 +271,10 @@ M.evento = (e, ev) => {
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
+  if (ev.ev === 'ataca' && e.objs[ev.id]) {   // miríade (702.116a): um gatilho por instância
+    const F = e.objs[ev.id];
+    for (const x of M.kwDe(e, F)) if (x.k === 'miriade') e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'miriade', g: GAT_MIRIADE, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev } });
+  }
   // pós-vida N (CR 702.135a): "quando vai do campo para o cemitério, crie N Espíritos 1/1 brancos e pretos voadores";
   // a palavra-chave é lida como estava no campo (603.10a: snap); quem controla o gatilho = quem a controlava
   if (ev.ev === 'zona' && ev.de === 'campo' && ev.para === 'cemiterio' && ev.snap) {

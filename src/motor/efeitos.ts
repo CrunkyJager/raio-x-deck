@@ -776,6 +776,23 @@ const H = {
         lki: (ctx.lki && ctx.lki.este) || (e.objs[ctx.este] && e.objs[ctx.este].zona === 'campo' ? M.lkiDe(e, e.objs[ctx.este]) : null), mem: { criadas: ctx.criadas || [], ...(M.alvosUsados(f.quando.fx).length ? { alvos: ctx.alvos, ilegal: ctx.ilegal } : {}), ...(JSON.stringify(f.quando.fx).includes('"anterior"') ? { movidos: (ctx.movidos || []).slice() } : {}) }, ts: ++e.ts });
     },
   },
+  // miríade (CR 702.116a): para cada oponente que não é o defensor, pode criar uma ficha cópia desta, virada e atacando
+  // esse jogador; as fichas são exiladas no fim do combate (gatilho atrasado). Simplificação: ataca o jogador, nunca
+  // um planeswalker dele. Pergunta tudo antes de mexer (o processo roda de novo a cada pergunta).
+  miriade: {
+    ok: () => false,                                                // só o gatilho da palavra-chave (gatilhos.ts)
+    fx(e, f, ctx, ask) {
+      const o = e.objs[ctx.este], C = e.turno.combate; if (!o || o.zona !== 'campo' || !C) return;
+      const a = C.atk.find(x => x.id === o.id), def = a ? a.def : undefined;
+      const quem = M.vivos(e).filter(j => j !== ctx.voce && j !== def)
+        .filter(j => ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'miriade', jog: j }).a === 'sim');
+      if (!quem.length) return;
+      const tok = copiaDe(e, { copiaDe: 'este' }, ctx); if (!tok) return;
+      const criadas: any[] = [];
+      for (const j of quem) for (const t of M.criarFichas(e, ctx.voce, tok, 1, { virada: true })) { M.porAtacando(e, t, { jog: j }); criadas.push({ id: t.id, ts: t.ts }); }
+      H.gatilhoAtrasado.fx(e, { quando: { ev: 'fase', passo: 'fimCombate', deQuem: 'voce', nesteTurno: true, fx: [{ op: 'exilar', em: 'criadas' }] } }, { ...ctx, criadas });
+    },
+  },
   // CR 603.12: gatilho reflexo ("when you do, …"): criado na resolução, dispara na hora; vai à pilha da próxima vez que
   // alguém receberia prioridade, e os alvos dele são escolhidos só então (Inti: o alvo vem depois do descarte)
   reflexo: {

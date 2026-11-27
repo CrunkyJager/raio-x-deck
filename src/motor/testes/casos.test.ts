@@ -3860,6 +3860,19 @@ caso('702.129a', "eternizar: do cemitério, como feitiço, exila a carta e cria 
   ok(M.carta('Timeless Witness').kw.some(x => x.k === 'eternizar'), 'Timeless Witness');
 });
 
+caso('702.116a', "miríade: atacando um de 3 jogadores, cria cópias viradas e atacando os outros 2 oponentes; exiladas no fim do combate; X1 não cria nada", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Scion of Calamity']], passo: 'principal1' });
+  const s = e.objs[e.campo[0]]; s.doente = false; e.pend = [];
+  e.turno.combate = { atk: [], etapa: 0, duas: false, deu1: {} }; M.porAtacando(e, s, { jog: 1 }); e.pend = [];
+  M.evento(e, { ev: 'ataca', id: s.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'miriade'); ok(p, 'gatilho');
+  M.executar(e, { op: 'miriade' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [], este: M.lkiDe(e, s) }, este: s.id }, () => ({ a: 'sim' }));
+  const tok = e.campo.map(id => e.objs[id]).filter(o => o.ficha);
+  igual(tok.length, 1, 'uma cópia (para o jogador 2)'); ok(tok[0].virada && e.turno.combate.atk.some(a => a.id === tok[0].id && a.def === 2), 'virada atacando o 2');
+  ok((e.atras || []).some(a => a.g.passo === 'fimCombate'), 'exílio no fim do combate agendado');
+  ok(M.carta('Battle Angels of Tyr').kw.some(x => x.k === 'miriade'));
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
