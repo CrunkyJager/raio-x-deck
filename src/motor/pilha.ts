@@ -142,6 +142,8 @@ const alvosUsadosDe = (d, fx) => {
 };
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
+// campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
+M.CARTA_OK = new Set(['impostoPorAlvo']);
 const CUSTO_OK = new Set(['mana', 'virar', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
@@ -423,6 +425,7 @@ M.atvSeOk = (e, a, o) => { if (!a.se) return true; if (!M.seOk(a.se)) return fal
 M.podeAtivar = (e, j, o, k) => {
   const d = M.dadoDe(e, o), a = M.atvDe(e, o)[k];
   if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
+  if (o.zona === 'campo' && M.ativBloqueada(e, o)) return false;   // Linvala, Myrel (602.5)
   if (!M.atvSeOk(e, a, o)) return false;                             // "Activate only if …" (602.5b)
   if ((d.falta || []).some(s => s.startsWith('Cost'))) return false;   // custo que o conversor não leu: não ativa errado
   if (!M.custoSuportado(a.custo) || !(a.fx && a.fx.length) || !M.fxSuportado(a.fx, { topo: false })) return false;
@@ -513,11 +516,16 @@ function opcoes(e, j) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
   }
-  // habilidade ativada da mão (atv zona 'mao': canalizar, Trumpeting Carnosaur). Do cemitério (Reassembling Skeleton…) ainda não
+  // habilidade ativada da mão (atv zona 'mao': canalizar, Trumpeting Carnosaur)
   for (const id of J.zonas.mao) {
     const o = e.objs[id], l = M.atvDe(e, o);
     // só a que tira a carta da mão no custo: sem isso (banco antes da correção 15) ativaria de graça sem parar ninjutsu: a carta sai da mão ao resolver (e o custo devolve um atacante)
     for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste || l[k]._ninjutsu) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
+  }
+  // do cemitério: só a que exila a própria carta no custo (eternizar, Kheru Goldkeeper) — não repete sem parar
+  for (const id of J.zonas.cemiterio) {
+    const o = e.objs[id], l = M.atvDe(e, o);
+    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && l[k].custo && l[k].custo.exilarEste && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   ops.push(...M.manaEscOps(e, j));
@@ -677,9 +685,9 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
 }
 function pagarFisico(e, j, o, c, esc) {
   const J = e.jogs[j];
-  if (c.virar) o.virada = true;
+  if (c.virar) M.virarObj(e, o);
   if (c.desvirar) M.desvirarObj(e, o);
-  for (const id of esc.vir || []) e.objs[id].virada = true;          // virarOutros
+  for (const id of esc.vir || []) M.virarObj(e, e.objs[id]);          // virarOutros
   if (c.vida) M.perderVida(e, j, c.vida);
   if (c.tirarMarcador) o.marc[c.tirarMarcador.tipo] -= (c.tirarMarcador.qtd || 1);
   if (c.porMarcador) M.porMarcadores(e, o, c.porMarcador.tipo, c.porMarcador.qtd || 1);   // 122.6: com as substituições de marcador
@@ -693,7 +701,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.devolver === 'este') M.mover(e, o.id, 'mao');              // Shigeki
 }
 function pagarMana(e, j, pl, custo, x, para?) {
-  if (pl.improv) { for (const id of pl.improv) e.objs[id].virada = true; custo = pl.custo; }   // improvisar (702.126a) e convocar (702.51a)
+  if (pl.improv) { for (const id of pl.improv) M.virarObj(e, e.objs[id]); custo = pl.custo; }   // improvisar (702.126a) e convocar (702.51a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(M.reservaCom(e, j, para), custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);

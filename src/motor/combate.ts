@@ -86,18 +86,25 @@ M.PROC.atacar = (e, P, ask) => {
   // declarações ficam no próprio processo (P.decl) e cada resposta fecha uma etapa: com centenas de fichas, refazer
   // tudo a cada resposta ficaria cúbico. Nada muda no estado até o "pronto".
   const decl = P.decl = P.decl || {};                                                     // id → alvo
+  // incitada (701.38b): ataca quem não a incitou, se puder (só sobra o incitador se não houver outro alvo)
+  const alvosDe = id => {
+    const inc = M.tempDe(e, 'incitado').filter(({ s, t }) => M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);
+    if (!inc.length) return alvos;
+    const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
+    return fora.length ? fora : alvos;
+  };
   for (;;) {
     const livres = aptos.filter(id => !decl[id]);
     // 508.1d: quem "ataca se puder" tem que atacar (qualquer alvo cumpre); só então dá para fechar
     const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false));
     const ops = devem.length ? [] : [{ a: 'pronto' }];
     if (livres.length > 1) for (const t of alvos) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
-    for (const id of livres) for (const t of alvos) ops.push({ a: 'atacar', id, ...t });
+    for (const id of livres) for (const t of alvosDe(id)) ops.push({ a: 'atacar', id, ...t });
     if (!ops.length) break;
     const op = ask(a, 'atacar', ops, { declarados: Object.keys(decl).length });
     if (op.a === 'pronto') break;
     const t = op.jog !== undefined ? { jog: op.jog } : { o: op.o };
-    if (op.a === 'todos') for (const id of livres) decl[id] = t; else decl[op.id] = t;
+    if (op.a === 'todos') { for (const id of livres) if (alvosDe(id).some(x => x.jog === t.jog && x.o === t.o)) decl[id] = t; } else decl[op.id] = t;
     ask.etapa();
   }
   e.proc = null;
@@ -105,7 +112,7 @@ M.PROC.atacar = (e, P, ask) => {
   for (const k of aptos) {
     const alvo = decl[k]; if (!alvo) continue;
     const id = k, o = e.objs[id];
-    if (!kw(e, o, 'vigilancia')) o.virada = true;                                          // 508.1f
+    if (!kw(e, o, 'vigilancia')) M.virarObj(e, o);                                          // 508.1f
     C.atk.push({ id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
   }
   // quem atacou quem neste turno (contas ataquesNoTurno/atacantesEmVoce; o combate some no fim do combate)
@@ -132,6 +139,7 @@ function bloqueiaEste(e, b, at) {                                               
   }
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
+  if (M.ehPortador(e, at) && M.poder(e, b) > M.poder(e, at)) return false;               // 701.54c: Portador não é bloqueado por poder maior
   // caminhada de terreno (702.14c): não pode ser bloqueada enquanto o defensor controla terreno daquele tipo
   for (const x of M.kwDe(e, at)) if (x.k === 'caminhadaTerreno' && typeof x.tipo === 'string'
     && M.objetosQue(e, { tipo: ['Land'], sub: [x.tipo], ctrl: 'voce', zona: 'campo' }, { voce: b.ctrl }).length) return false;
