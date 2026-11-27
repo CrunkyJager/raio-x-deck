@@ -36,7 +36,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   if (temF(c)) return M.filtroOk(c.de.f) && !!DO_CONJ[o] && DO_CONJ[o].includes(j) && chaves(c, ['junta']);
   if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida', 'manaGasta', 'poderAcimaDeste'].includes(o) && chaves(c, []);
   switch (c.de) {
-    case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
+    case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist', 'kicker'].includes(o) && chaves(c, []);   // kicker: vezes que pagou o chute (702.33c)
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'vidaInicial', 'tentacoes', 'cores'].includes(o) && chaves(c, []);   // cores: da identidade dos seus comandantes (903.4; War Room)
     case 'turno': if (o === 'entraram' || o === 'sacrificadas') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
@@ -71,7 +71,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist' || c.o === 'kicker')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -107,6 +107,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'este': {
       const ob = e.objs[ctx.este];
       const este = !L ? ob : ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : L.este;
+      if (o === 'kicker') return ob && ob.zona === 'campo' && ob.conjCom ? +ob.conjCom.kicker || 0 : 0;   // vezes que pagou o chute (702.33c; só a que entrou conjurada)
       if (!este) return 0;
       if (o === 'marcadores') return c.marc ? este.marc[c.marc] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0);
       if (!L && (o === 'poder' || o === 'resist')) return o === 'poder' ? M.poder(e, ob) : M.resistencia(e, ob);   // fora da resolução (condição do gatilho): o de agora

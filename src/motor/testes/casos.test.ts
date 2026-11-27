@@ -4848,6 +4848,21 @@ caso('702.100', "evoluir: entra criatura sua maior (poder ou resistência) → +
   igual(e.pend.filter(p => p.k === 'evoluir').length, 0, 'menor: não');
 });
 
+caso('702.100b', "evoluir: a comparação é refeita ao resolver (603.4); se a que entrou saiu, vale o último P/R conhecido", () => {
+  const e = cena({ campo: [[0, 'Gyre Sage']] });
+  const gs = e.objs[e.campo[0]];
+  e.pend = []; e.por(0, 'Grizzly Bears');
+  const p = e.pend.find(x => x.k === 'evoluir'); ok(p, 'disparou');
+  const pil = (ev: any) => ({ hab: { fonte: gs.id, fonteTs: gs.ts, gat: 'evoluir', fx: [], alvos: [] }, ctrl: 0, pil: { ev } });
+  ok(M.gatilhoAindaVale(e, pil(p.ev)), 'Bears 2/2 > Sage 1/2 ao resolver');
+  M.mover(e, p.ev.id, 'cemiterio');
+  ok(M.gatilhoAindaVale(e, pil(p.ev)), 'Bears saiu: vale o 2/2 de quando estava no campo');
+  e.pend = []; e.por(0, 'Grizzly Bears');
+  const q = e.pend.find(x => x.k === 'evoluir');
+  gs.marc['+1/+1'] = 2;
+  ok(!M.gatilhoAindaVale(e, pil(q.ev)), 'Sage virou 3/4 antes de resolver: não evolui');
+});
+
 caso('702.181', "mobilizar: Zurgo ataca e cria 1 Guerreiro virado e atacando; sacrificado na etapa final", () => {
   const e = cena({ campo: [[0, 'Zurgo Stormrender']] });
   const z = e.objs[e.campo[0]];
@@ -5966,6 +5981,80 @@ caso('702.109', "Riders of Rohan: investida (dash) é opção de conjuração; o
   ok(r && M.temKw(e, r, 'pressa'), 'com pressa');
   igual(e.atras.length, 1, 'volta no próximo passo final');
   ok(M.fxSuportado(M.carta('Urza, Lord High Artificer').atv[1].fx), 'Urza aceito');
+});
+
+caso('702.33c', "multichute (Marshal's Anthem): paga o chute N vezes; o gatilho volta até N criaturas (max = {de:'este', o:'kicker'})", () => {
+  const e = cena({ campo: terras(8, 'Plains'), mao: [[0, "Marshal's Anthem"]] });
+  for (const n of ['Grizzly Bears', 'Hill Giant', 'Llanowar Elves']) e.por(0, n, { zona: 'cemiterio' });
+  M.avancar(e); conj(e, "Marshal's Anthem");
+  ok(e.perg && e.perg.tipo === 'opcao' && e.perg.ops.some(o => o.v.chute === 2), 'opção chute ×2');
+  respE(e, o => o.v.chute === 2);
+  igual(e.campo.filter(id => e.objs[id].ctrl === 0 && e.objs[id].virada).length, 8, '4 + 2×{1}{W}: 8 terras');
+  resolveCom(e, p => p.tipo === 'alvo' ? p.ops.findIndex(o => o.a === 'alvo') : -1);   // o agente básico não pega alvo no próprio cemitério
+  const a = objN(e, 0, "Marshal's Anthem"); ok(a, 'no campo');
+  igual(a.conjCom.kicker, 2, 'chutou 2 vezes');
+  igual(M.qtd(e, M.carta("Marshal's Anthem").gat[0].alvos[0].max, { voce: 0, este: a.id }), 2, 'até 2 alvos');
+  igual(e.campo.filter(id => e.objs[id].ctrl === 0 && M.temTipo(e, e.objs[id], 'Creature')).length, 2, 'voltaram 2 das 3 (o máximo)');
+});
+
+caso('601.2c', "exatamente X alvos (Shigeki, da mão): o X não passa dos alvos possíveis e volta exatamente X", () => {
+  const e = cena({ campo: terras(6, 'Forest'), mao: [[0, 'Shigeki, Jukai Visionary']] });
+  for (const n of ['Grizzly Bears', 'Hill Giant']) e.por(0, n, { zona: 'cemiterio' });
+  M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Shigeki, Jukai Visionary');
+  ok(e.perg && e.perg.tipo === 'x', 'pergunta o X');
+  igual(Math.max(...e.perg.ops.map(o => o.v)), 2, '6 terras dariam X=4, mas só há 2 alvos');
+  respE(e, o => o.v === 2);
+  for (let i = 0; i < 4 && e.perg && e.perg.tipo === 'alvo'; i++) { ok(!e.perg.ops.some(o => o.a === 'pronto'), 'sem "pronto" antes de X alvos'); respE(e, o => o.a === 'alvo'); }
+  resolveCom(e);
+  igual(naZona(e, 0, 'mao').sort(), ['Grizzly Bears', 'Hill Giant'], 'as 2 voltaram');
+});
+caso('702.109', "Flamerush Rider: investida {2}{R}{R} é opção de conjuração", () => {
+  const e = cena({ campo: terras(5, 'Mountain'), mao: [[0, 'Flamerush Rider']] });
+  M.avancar(e); conj(e, 'Flamerush Rider');
+  ok(e.perg && e.perg.tipo === 'opcao' && e.perg.ops.some(o => o.v.investida), 'oferece a investida');
+});
+
+caso('701.19', "Sanctum of All: procura Santuário no grimório e/ou no cemitério (tambemCemiterio)", () => {
+  const f = M.carta('Sanctum of All').gat[0].fx[0]; ok(M.fxSuportado([f]), 'aceito');
+  const e = cena({ campo: [[0, 'Sanctum of All']] });
+  e.por(0, 'Honden of Cleansing Fire', { zona: 'cemiterio' });
+  M.executar(e, f, { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: {} }, (_j, _t, o) => o.find(x => x.a !== 'nenhum') || o[0]);
+  ok(objN(e, 0, 'Honden of Cleansing Fire'), 'veio do cemitério para o campo');
+  const g = cena({ campo: [[0, 'Sanctum of All']] });
+  g.por(0, 'Honden of Cleansing Fire', { zona: 'cemiterio' });
+  M.executar(g, { ...f, tambemCemiterio: undefined }, { voce: 0, este: g.campo[0], alvos: [], ilegal: {}, lki: {} }, (_j, _t, o) => o.find(x => x.a !== 'nenhum') || o[0]);
+  ok(!objN(g, 0, 'Honden of Cleansing Fire'), 'sem o campo: só o grimório');
+});
+
+caso('602.2b', "Sanctum of Shattered Heights: o custo descarta carta de terreno OU de Santuário (descartarF com ou)", () => {
+  const pode = mao => { const e = cena({ campo: [[0, 'Sanctum of Shattered Heights'], [0, 'Mountain'], [1, 'Grizzly Bears']], mao: mao.map(n => [0, n]) }); return M.opcoesPrioridade(e, 0).some(o => o.a === 'ativar'); };
+  igual(pode(['Grizzly Bears']), false, 'criatura não paga');
+  igual(pode(['Forest']), true, 'terreno paga');
+  igual(pode(['Honden of Cleansing Fire']), true, 'Santuário paga');
+});
+
+caso('115.1', "Spiteful Sliver: \"target player or planeswalker\" (f jogador + ou planeswalker); criatura não", () => {
+  const a = M.carta('Spiteful Sliver').est[0].habil.gat[0].alvos[0]; ok(M.alvoSuportado(a), 'aceito');
+  const e = cena({ campo: [[0, 'Spiteful Sliver'], [1, 'Ajani, the Greathearted'], [1, 'Grizzly Bears']] });
+  const r = M.alvosPossiveis(e, a, { voce: 0, este: e.campo[0] });
+  igual(r.filter(x => x.jog !== undefined).length, 2, 'os 2 jogadores');
+  igual(r.filter(x => x.o !== undefined).map(x => e.objs[x.o].n), ['Ajani, the Greathearted'], 'só o planeswalker');
+});
+
+caso('601.2b', "Ruthless Technomancer: \"Sacrifice X artifacts\" anuncia X; volta criatura de poder até X", () => {
+  const e = cena({ campo: [[0, 'Ruthless Technomancer'], ...terras(3, 'Swamp'), [0, 'Mind Stone'], [0, 'Mind Stone'], [0, 'Mind Stone']] });
+  for (const n of ['Grizzly Bears', 'Hill Giant']) e.por(0, n, { zona: 'cemiterio' });
+  M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Ruthless Technomancer');
+  ok(e.perg && e.perg.tipo === 'x' && e.perg.ctx.sacX, 'pergunta o X do sacrifício');
+  igual(Math.max(...e.perg.ops.map(o => o.v)), 3, 'até 3 (os artefatos)');
+  igual(M.agenteBasico()(e, e.perg), e.perg.ops.findIndex(o => o.v === 3), 'agente: o poder do Hill Giant');
+  respE(e, o => o.v === 2);
+  if (e.perg && e.perg.tipo === 'alvo') { ok(e.perg.ops.filter(o => o.a === 'alvo').every(o => e.objs[o.o].n === 'Grizzly Bears'), 'X=2: Hill Giant (3) não é alvo'); respE(e, o => o.a === 'alvo'); }   // um alvo só: escolhido direto
+  for (let i = 0; i < 6 && e.perg && e.perg.tipo === 'custo'; i++) respE(e, o => o.a === 'sacrificar');
+  igual(naZona(e, 0, 'cemiterio').filter(n => n === 'Mind Stone').length, 2, 'sacrificou 2');
+  resolveCom(e);
+  ok(objN(e, 0, 'Grizzly Bears'), 'Bears voltou');
+  ok(naZona(e, 0, 'cemiterio').includes('Hill Giant'), 'Hill Giant ficou');
 });
 
 caso('729.1', "radiação: na principal pré-combate de quem tem rad, moe N; por não terreno moída perde 1 de vida e tira 1 rad", () => {

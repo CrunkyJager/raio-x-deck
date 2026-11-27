@@ -796,6 +796,10 @@
      ],
      "description": "N, 'qualquer' ou uma contagem (\"up to X targets\", X = as não-terreno moídas: The Wise Mothman)"
     },
+    "exato": {
+     "type": "boolean",
+     "description": "o número de alvos é exatamente o max (\"return X target cards\": Shigeki); com max {conta:{de:'X'}} o X anunciado não passa dos alvos possíveis"
+    },
     "dividir": {
      "oneOf": [
       {
@@ -958,7 +962,8 @@
          "$ref": "#/$defs/filtro"
         },
         "qtd": {
-         "type": "integer"
+         "oneOf": [{"type": "integer"}, {"const": "X"}],
+         "description": "X: \"Sacrifice X artifacts\" (Ruthless Technomancer), X anunciado ao ativar (601.2b)"
         },
         "e": {
          "type": "array",
@@ -1582,6 +1587,10 @@
     "exilaAoSair": {
      "type": "boolean",
      "description": "op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)"
+    },
+    "tambemCemiterio": {
+     "type": "boolean",
+     "description": "op buscar: procura no grimório e/ou no cemitério (\"search your library and/or graveyard\", Sanctum of All)"
     },
     "tipoTerrenoComum": {
      "type": "boolean",
@@ -2227,6 +2236,10 @@
      "type": "integer",
      "minimum": 1,
      "description": "chute com {X}: o X anunciado com chute é pelo menos isto (\"X can't be 0\": Thieving Skydiver)"
+    },
+    "multi": {
+     "type": "boolean",
+     "description": "chute: multichute (702.33c), paga quantas vezes quiser; {de:'este', o:'kicker'} conta as vezes (Marshal's Anthem)"
     }
    }
   },

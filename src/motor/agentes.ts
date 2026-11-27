@@ -148,6 +148,11 @@ const basico = (e, p) => {
       return p.ops.findIndex(op => op.a === (atacaJa ? 'pressa' : 'marcador'));
     }
     case 'x': {                       // X de vida (Toxic Deluge): o menor que mata a maior criatura do oponente, sem morrer
+      if (p.ctx && p.ctx.sacX) {      // "Sacrifice X artifacts: … power X or less" (Ruthless Technomancer): o X da maior criatura do seu cemitério
+        const pw = Math.max(0, ...J.zonas.cemiterio.map(o).filter(x => M.temTipo(e, x, 'Creature')).map(x => M.dadoDe(e, x).pt ? M.dadoDe(e, x).pt[0] || 0 : 0));
+        const v = Math.min(pw, Math.max(...p.ops.map(op => op.v)));
+        return Math.max(0, p.ops.findIndex(op => op.v === v));
+      }
       if (!(p.ctx && p.ctx.vida)) return 0;
       const r = Math.max(0, ...e.campo.map(o).filter(x => x.ctrl !== p.j && M.temTipo(e, x, 'Creature')).map(x => M.resistencia(e, x)));
       const v = Math.min(r, J.vida - 1);
