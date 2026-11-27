@@ -3564,6 +3564,15 @@ caso('701.3', "anexar ao objeto do evento: Hero's Blade se prende ao lendário q
   ok(sw.zona === 'campo' && sw.anexo && sw.anexo.id === el.id, 'Sword voltou e equipou');
 });
 
+caso('120.3', "dano igual ao poder da criatura do evento (Terror of the Peaks) e ao maior grupo de um tipo de criatura (Basalt Ravager)", () => {
+  for (const c of ['Basalt Ravager', 'Terror of the Peaks', 'Warstorm Surge']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Elvish Mystic'], [0, 'Grizzly Bears'], [0, 'Hill Giant']] });
+  const cx = (ev?) => ({ voce: 0, alvos: [], ilegal: {}, lki: {}, ev });
+  igual(M.qtdDe(e, { conta: 'tipoMaisComum' }, cx()), 2, 'dois Elfos');
+  const hg = e.campo.map(id => e.objs[id]).find(o => o.n === 'Hill Giant');
+  igual(M.qtdDe(e, { conta: 'poderDoEvento' }, cx({ ev: 'zona', id: hg.id, para: 'campo' })), 3, 'Hill Giant 3/3');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

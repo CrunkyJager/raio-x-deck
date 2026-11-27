@@ -11,7 +11,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 // dentro de um repetirCada com filtro de objetos (Kalonian Hydra): em/copiaDe 'cadaAtual' = o objeto da vez
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 const CONTA_OK = new Set(['poderDoAlvo', 'resistDoAlvo', 'vmDoAlvo', 'poderDoEste', 'resistDoEste', 'marcadoresNoEste',
-  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'marcadoresSeus', 'resolucoesDestaHabNoTurno']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
+  'cartasNaMao', 'cartasNoGrimorio', 'magiasNoTurno', 'oponentes', 'jogadores', 'suaVida', 'devocao', 'X', 'resultado', 'lembrados', 'evento', 'atacantes', 'atacantesEmVoce', 'ataquesNoTurno', 'danoCausado', 'vidaGanha', 'poderDoSacrificado', 'vmDoSacrificado', 'marcadoresNoCada', 'descartadasNoTurno', 'vidaDoAtual', 'coresDoEvento', 'vmDoEvento', 'marcadoresNoEvento', 'marcadoresSeus', 'resolucoesDestaHabNoTurno', 'poderDoEvento', 'tipoMaisComum']);   // lembrados: as cartas descartadas pelo efeito anterior; evento: quantas o evento do gatilho juntou (descarta em grupo)   // resultado: quantos o efeito anterior moveu (Valakut Awakening)
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
 const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
 
@@ -255,6 +255,13 @@ function qtdDe(e, q, ctx) {
       case 'X': v = ctx.x || 0; break;
       case 'resultado': v = ctx.resultado || 0; break;
       case 'lembrados': v = (ctx.lembrados || []).length; break;
+      case 'poderDoEvento': { const o = ctx.ev && e.objs[ctx.ev.id]; v = !o ? 0 : o.zona === 'campo' || !ctx.ev.snap ? M.poder(e, o) : M.poder(e, ctx.ev.snap); break; }   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
+      case 'tipoMaisComum': {                                       // "the greatest number of creatures you control that have a creature type in common" (Basalt Ravager)
+        const cs = e.campo.map(id => e.objs[id]).filter(o => o.ctrl === ctx.voce && M.temTipo(e, o, 'Creature')).map(o => M.tiposCriatura(e, o));
+        const todos = cs.filter(t => t === 'todos').length, n: Record<string, number> = {};
+        for (const t of cs) if (t !== 'todos') for (const s of new Set<string>(t)) n[s] = (n[s] || 0) + 1;
+        v = Math.max(0, ...Object.values(n)) + todos; break;          // metamorfo é de todos os tipos (702.73a)
+      }
       case 'resolucoesDestaHabNoTurno': v = ctx.resHab || 0; break;   // "the second time this ability has resolved this turn" (contando esta)
       case 'marcadoresSeus': { const J = e.jogs[ctx.voce]; v = q.de === 'poison' ? J.veneno || 0 : (J.marc || {})[q.de] || 0; break; }   // "for each experience counter you have" (122.1)
       case 'marcadoresNoEvento': v = ctx.ev && ctx.ev.ev === 'marcadorPosto' ? ctx.ev.n || 0 : 0; break;   // "that many" (Shalai and Hallar)
