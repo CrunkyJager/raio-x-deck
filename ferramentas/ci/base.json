@@ -1,11 +1,11 @@
 {
- "_nota": "27/11/2026: mana por elfo, menace com lembrete, tipos das fichas, Lathril ganha 10 (motor velho). Antes: Linha de base da T08 (24/11/2026: custo de sacrifício e trava no motor). Melhorou de propósito → atualizar aqui no mesmo commit.",
+ "_nota": "27/11/2026: mana por elfo, menace com lembrete, tipos das fichas, Lathril ganha 10 (motor velho, lote A) + combos falsos do motor velho fora (Sanguine Bond+Vito, drenos sem evento 603.2, Krenko+Skirk+Tremors, lote D): 23.0|29.5|8.5|38.0 turno 8.9. Antes: Linha de base da T08 (24/11/2026: custo de sacrifício e trava no motor). Melhorou de propósito → atualizar aqui no mesmo commit.",
  "testa": "161/161",
- "partida": {"Stangg": 20.5,
-  "Krenko": 32.5,
-  "Lathril": 8.0,
+ "partida": {"Stangg": 23.0,
+  "Krenko": 29.5,
+  "Lathril": 8.5,
   "Edgar Markov": 38.0,
-  "turno": 8.6
+  "turno": 8.9
  },
  "gabarito": {
   "exato": 10,
