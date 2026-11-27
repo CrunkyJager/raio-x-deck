@@ -728,6 +728,14 @@ export interface RxFx {
    */
   naoAnulavel?: boolean;
   /**
+   * op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)
+   */
+  exilaAoSair?: boolean;
+  /**
+   * op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está
+   */
+  copia?: boolean;
+  /**
    * op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)
    */
   soConjurar?: boolean;

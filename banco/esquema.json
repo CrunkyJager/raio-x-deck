@@ -1389,6 +1389,14 @@
      "type": "boolean",
      "description": "op mana: a mágica paga com esta mana não pode ser anulada (Cavern of Souls)"
     },
+    "exilaAoSair": {
+     "type": "boolean",
+     "description": "op mover para campo: se ela fosse sair do campo, vai para o exílio em vez disso (desenterrar, CR 702.84a)"
+    },
+    "copia": {
+     "type": "boolean",
+     "description": "op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está"
+    },
     "soConjurar": {
      "type": "boolean",
      "description": "op jogar: true = só conjurar (mágica); sem o campo = jogar (terreno também)"

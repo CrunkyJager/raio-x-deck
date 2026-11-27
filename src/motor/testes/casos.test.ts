@@ -3765,6 +3765,52 @@ caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispar
   igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
 });
 
+caso('707.12', "Mizzix's Mastery: exila a instantânea do cemitério e conjura uma CÓPIA dela; a carta fica no exílio", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, "Mizzix's Mastery"]] });
+  const raio = e.por(0, 'Lightning Bolt', { zona: 'cemiterio' });
+  const v0 = e.jogs[1].vida;
+  M.avancar(e); conj(e, "Mizzix's Mastery");
+  for (let g = 0; g < 30 && (e.pilha.length || e.perg && e.perg.tipo !== 'acao'); g++) {
+    if (!e.perg) { M.avancar(e); continue; }
+    const t = e.perg.tipo;
+    if (t === 'jogar' || t === 'talvez') respE(e, o => o.a === 'jogar' || o.a === 'sim');
+    else if (t === 'acao') respE(e, o => o.a === 'passar');
+    else respE(e, e.perg.ops.some(o => o.jog === 1) ? o => o.jog === 1 : () => true);
+  }
+  igual(e.jogs[1].vida, v0 - 3, 'a cópia do Raio resolveu no oponente');
+  ok(e.jogs[0].zonas.exilio.includes(raio.id), 'o Raio original continua no exílio');
+  ok(!e.jogs[0].zonas.cemiterio.some(id => e.objs[id].n === 'Lightning Bolt'), 'a cópia não foi ao cemitério');
+  ok(e.jogs[0].zonas.exilio.some(id => e.objs[id].n === "Mizzix's Mastery"), 'a Mastery se exila');
+});
+
+caso('101.2', "Mistrise Village: {U},{T}; a próxima mágica sua neste turno não pode ser anulada (só ela)", () => {
+  const e = cena({ campo: [[0, 'Mistrise Village'], [0, 'Island'], [0, 'Mountain'], [0, 'Mountain'], [1, 'Grizzly Bears']], mao: [[0, 'Lightning Bolt'], [0, 'Shock']] });   // o Shock na mão: segura a prioridade
+  const mv = objN(e, 0, 'Mistrise Village');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === mv.id && o.k === 1); resolvePilha(e);
+  ok(e.atras && e.atras.length === 1 && e.atras[0].g.nesteTurno, 'atrasado só neste turno');
+  conj(e, 'Lightning Bolt'); if (e.perg && e.perg.tipo !== 'acao') alvoObj(e, 'Grizzly Bears');
+  const raio = e.objs[e.pilha[0]];
+  for (let g = 0; g < 5 && e.pilha.length > 1; g++) respE(e, o => o.a === 'passar');
+  igual(e.pilha, [raio.id], 'o gatilho resolveu, o Raio está na pilha');
+  ok(!M.anular(e, raio.id), 'o Raio não pode ser anulado');
+  resolvePilha(e);
+  ok((e.efTemp || []).filter(t => t.ids).every(t => t.ids.every(x => x.id === raio.id)), 'preso só ao Raio');
+  ok(!e.atras || !e.atras.length, 'o atrasado já foi (uma vez só)');
+});
+
+caso('702.84a', "Molten Gatekeeper: desenterrar {R} do cemitério como feitiço; volta com pressa, se fosse sair vai ao exílio, e no final é exilada", () => {
+  const e = cena({ campo: [[0, 'Mountain']], mao: [[0, 'Shock']] });
+  const g = e.por(0, 'Molten Gatekeeper', { zona: 'cemiterio' });
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === g.id); resolvePilha(e);
+  ok(g.zona === 'campo' && M.temKw(e, g, 'pressa'), 'no campo com pressa');
+  ok(e.atras && e.atras.some(A => A.g.passo === 'final'), 'atrasado do final');
+  M.mover(e, g.id, 'cemiterio');
+  igual(g.zona, 'exilio', 'iria ao cemitério: exílio');
+  const f = cena({ campo: [[0, 'Mountain']], passo: 'inicioCombate' });
+  const h = f.por(0, 'Molten Gatekeeper', { zona: 'cemiterio' });
+  ok(!M.podeAtivar(f, 0, h, 0), 'fora da principal: não'); f.turno.passo = 'principal1'; ok(M.podeAtivar(f, 0, h, 0), 'na principal: sim');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -513,11 +513,15 @@ function opcoes(e, j) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
   }
-  // habilidade ativada da mão (atv zona 'mao': canalizar, Trumpeting Carnosaur). Do cemitério (Reassembling Skeleton…) ainda não
+  // habilidade ativada da mão (atv zona 'mao': canalizar, Trumpeting Carnosaur); do cemitério logo abaixo
   for (const id of J.zonas.mao) {
     const o = e.objs[id], l = M.atvDe(e, o);
     // só a que tira a carta da mão no custo: sem isso (banco antes da correção 15) ativaria de graça sem parar ninjutsu: a carta sai da mão ao resolver (e o custo devolve um atacante)
     for (let k = 0; k < l.length; k++) if (l[k].zona === 'mao' && !l[k].deMana && (l[k].custo.descartarEste || l[k].custo.exilarEste || l[k]._ninjutsu) && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
+  }
+  for (const id of J.zonas.cemiterio) {                              // do cemitério (atv zona 'cemiterio': desenterrar, Drownyard Temple, CR 602.2)
+    const o = e.objs[id], l = M.atvDe(e, o);
+    for (let k = 0; k < l.length; k++) if (l[k].zona === 'cemiterio' && !l[k].deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k });
   }
   for (const f of M.fontesDeMana(e, j)) f.pacotes.forEach((p, k) => ops.push({ a: 'mana', id: f.id, k: f.k, escolha: k }));
   ops.push(...M.manaEscOps(e, j));
@@ -843,6 +847,7 @@ M.PROC = PROC;
 
 // CR 608.3 (permanente entra no campo), 608.2n (instantânea/feitiço vai ao cemitério do dono), 113.7 (habilidade some)
 function tirarDaPilha(e, o, resolveu?, ask?) {
+  if (!o.hab && o.zona !== 'pilha') { o.pil = null; return; }        // 608.2n: a própria mágica já se moveu (se exila ao resolver)
   if (o.copia && !(resolveu && M.ehPermanente(e, o))) {              // 707.10a/704.5e: a cópia some (resolvida ou anulada)
     const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); o.pil = null; o.zona = 'fora'; return;
   }
@@ -914,6 +919,7 @@ function naoAnulavel(e, o) {
     if (sb.se) { let ok = false; try { ok = M.condicao(e, sb.se, { voce: F.ctrl ?? F.dono, este: F.id }); } catch (_) { ok = false; } if (!ok) continue; }
     return F;
   }
+  for (const t of e.efTemp || []) if (t.ids && (t.subst || []).some(sb => sb.ev === 'anulada') && t.ids.some(x => x.id === o.id && x.ts === o.ts)) return { id: -1, n: t.n };   // Mistrise Village
   return null;
 }
 M.naoAnulavel = naoAnulavel;
