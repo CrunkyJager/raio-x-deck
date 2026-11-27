@@ -1134,7 +1134,7 @@ export interface RxCond {
 
 export interface RxKw {
   /**
-   * comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
+   * metamorfose/disfarce (702.37/702.168): custo = o de desvirar; pode conjurar virada para baixo por {3} como criatura 2/2 sem nome nem texto (disfarce: com resguardo {2}), 708; comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
    */
   k:
     | 'voar'
@@ -1209,6 +1209,8 @@ export interface RxKw {
     | 'prole'
     | 'iminente'
     | 'concessao'
+    | 'metamorfose'
+    | 'disfarce'
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
@@ -1283,7 +1285,7 @@ export interface RxAtv {
 
 export interface RxGat {
   /**
-   * destranca: "when you unlock this door" — no texto da porta (face) de uma Room; dispara quando essa porta fica destrancada, ao entrar ou pagando o custo (709.5h); portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)
+   * viradaParaCima: "when this is turned face up" (708.8) — dispara quando esta permanente virada para baixo é desvirada; destranca: "when you unlock this door" — no texto da porta (face) de uma Room; dispara quando essa porta fica destrancada, ao entrar ou pagando o custo (709.5h); portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)
    */
   ev:
     | 'destranca'
@@ -1327,7 +1329,8 @@ export interface RxGat {
     | 'portador'
     | 'ativa'
     | 'gasta'
-    | 'danoPrevenido';
+    | 'danoPrevenido'
+    | 'viradaParaCima';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */

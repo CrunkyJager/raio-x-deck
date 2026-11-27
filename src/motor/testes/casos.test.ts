@@ -7176,6 +7176,39 @@ caso('702.103', "Indebted Spirit: concessão {2}{W} vira Aura na Grizzly Bears (
   ok(!h.perg || h.perg.tipo !== 'opcao' || !h.perg.ops[M.agenteBasico()(h, h.perg)].v.concessao, 'sem criatura minha: normal');
 });
 
+caso('702.37', "Grim Haruspex: metamorfose — da mão por {3} virada para baixo (2/2 sem nome nem habilidade, 708.2a), só quem controla olha (708.5); desvirar pagando {B} é ação especial sem pilha (116.2b), mesmo objeto (708.8); sai do campo revelada (708.9)", () => {
+  ok(M.gatOk({ ev: 'viradaParaCima', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }), 'evento viradaParaCima aceito');
+  const e = cena({ campo: [...terras(3, 'Island'), [0, 'Grizzly Bears'], [0, 'Grizzly Bears']], mao: [[0, 'Grim Haruspex']] }); e.pend = [];
+  M.avancar(e);
+  ok(!e.perg.ops.some(o => o.a === 'conjurar' && !o.baixo && e.objs[o.id].n === 'Grim Haruspex'), 'sem {B}: não conjura normal');
+  igual(M.agenteBasico()(e, e.perg), e.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo), 'o agente conjura virada');
+  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo === 'metamorfose'), x => x.pilha.length > 0);
+  const sp = e.objs[e.pilha[e.pilha.length - 1]];
+  ok(sp.faceBaixo && M.dadoDe(e, sp).n === '' && M.temTipo(e, sp, 'Creature'), 'na pilha: mágica de criatura 2/2 virada (708.4)');
+  M.avancar(e, x => !x.pilha.length);
+  const h = objN(e, 0, 'Grim Haruspex'), d = M.dadoDe(e, h);
+  ok(h && h.faceBaixo, 'entrou virada');
+  igual([M.poder(e, h), M.resistencia(e, h), d.n, (d.sub || []).length, d.vm, d.cores], [2, 2, '', 0, 0, ''], '2/2 sem nome, subtipo, custo nem cor');
+  ok(!M.bate(e, h, { nome: 'Grim Haruspex' }, { voce: 0 }), 'não tem o nome');
+  const u1 = e.campo.find(id => e.objs[id].n === 'Grizzly Bears');
+  M.mover(e, u1, 'cemiterio');
+  ok(!e.pend.some(p => p.fonte === h.id), 'virada: sem a habilidade, não dispara');
+  ok(!M.podeVirarParaCima(e, 1, h), 'o oponente não desvira');
+  e.por(0, 'Swamp');
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'virarParaCima' && o.id === h.id), 'opção de desvirar com {B}');
+  const ts = h.ts, pil = e.pilha.length;
+  M.virarParaCima(e, 0, h.id);
+  ok(!h.faceBaixo && h.ts === ts && e.pilha.length === pil, 'para cima, mesmo objeto, sem usar a pilha');
+  igual([M.poder(e, h), M.resistencia(e, h)], [3, 2], 'agora é a Grim Haruspex 3/2');
+  e.pend = [];
+  M.mover(e, e.campo.find(id => e.objs[id].n === 'Grizzly Bears'), 'cemiterio');
+  ok(e.pend.some(p => p.fonte === h.id), 'para cima: a outra que morre faz comprar');
+  const f = cena({ campo: terras(3, 'Island'), mao: [[0, 'Grim Haruspex']] }); M.avancar(f);
+  respE(f, o => o.a === 'conjurar' && o.baixo); M.avancar(f, x => !x.pilha.length);
+  const h2 = objN(f, 0, 'Grim Haruspex'); M.mover(f, h2.id, 'mao');
+  ok(!f.objs[h2.id].faceBaixo, 'na mão: revelada, sem a virada (708.9)');
+});
+
 for (const c of casos) test(`CR ${c.cr} — ${c.nome}`, ctx => {
   banco.faltas.clear();
   let erro: unknown = null;
