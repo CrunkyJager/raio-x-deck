@@ -85,6 +85,11 @@ const basico = (e, p) => {
       return b;
     }
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
+    case 'manter': {                  // a que fica: a de mais valor (não ficha, maior valor de mana)
+      let b = 0, bv = -Infinity;
+      p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : (M.dadoDe(e, o(op.id)).vm || 0)) : -9; if (v > bv) { bv = v; b = i; } });
+      return b;
+    }
     case 'sacrificar': case 'custo': {
       let b = 0, bv = Infinity;
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });

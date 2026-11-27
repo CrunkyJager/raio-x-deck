@@ -3592,6 +3592,21 @@ caso('122.5', "mover marcadores: Nesting Grounds tira um e põe no outro; Zack F
   igual([fa.marc['+1/+1'], gb.marc['+1/+1']], [0, 3], 'Ancient passou os 2 para os Bears');
 });
 
+caso('701.21', "sacrificar todas menos N (Promise of Loyalty) e \"uma de cada tipo, o resto vai\" (Ajani): quem sacrifica escolhe as que ficam", () => {
+  for (const c of ['Archfiend of Depravity']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  ok(M.fxSuportado(M.carta('Promise of Loyalty').fx), 'Promise aceito');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Hill Giant'], [1, 'Llanowar Elves'], [1, 'Sol Ring'], [1, 'Grizzly Bears'], [1, 'Island']] });
+  const ag = M.agenteBasico();
+  const ask = (j, tipo, ops, cx) => ops[ag(e, { j, tipo, ops, ctx: cx })];
+  M.executar(e, { op: 'sacrificar', quem: 'cadaJogador', f: { tipo: ['Creature'], zona: 'campo' }, exceto: { qtd: 1 } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, ask);
+  igual(noCampo(e).filter(n => n !== 'Sol Ring' && n !== 'Island').length, 2, 'uma criatura de cada');
+  ok(noCampo(e).includes('Hill Giant'), 'fica a de mais valor');
+  const f = cena({ campo: [[1, 'Llanowar Elves'], [1, 'Grizzly Bears'], [1, 'Sol Ring'], [1, 'Island']] });
+  M.executar(f, { op: 'sacrificar', quem: 'cadaOponente', f: { tipo: ['Permanent'], nao: ['Land'], zona: 'campo' }, exceto: { qtd: 1, porTipo: ['Artifact', 'Creature', 'Enchantment', 'Planeswalker'] } }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, tipo, ops, cx) => ops[ag(f, { j, tipo, ops, ctx: cx })]);
+  igual(noCampo(f).sort(), ['Island', 'Sol Ring', noCampo(f).find(n => n === 'Llanowar Elves' || n === 'Grizzly Bears')].sort(), 'fica um artefato, uma criatura e o terreno');
+  igual(noCampo(f).length, 3);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
