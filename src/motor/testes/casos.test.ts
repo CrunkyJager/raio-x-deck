@@ -3476,6 +3476,19 @@ caso('305.7', "tipo dado por estática: Yavimaya faz todo terreno Floresta (e d�
   ok(!M.dadoDe(e, ilha).sub.includes('Forest'), 'sem Yavimaya volta a ser só Ilha');
 });
 
+caso('118.9', "custo alternativo dado por permanente: Dracogenesis conjura Dragão de graça; Demon of Fate's Design paga vida = valor de mana, uma vez por turno", () => {
+  for (const c of ["Bolas's Citadel", "Demon of Fate's Design", 'Dracogenesis', 'Rooftop Storm']) ok(M.carta(c).est.filter(s => s.modo === 'custoAlternativo').every(s => M.estAltOk(s)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Dracogenesis']], mao: [[0, 'Dragonlord Dromoka'], [0, 'Gravecrawler']] });
+  M.avancar(e);
+  ok(opsDe(e, 'conjurar').every(o => e.objs[o.id].n === 'Dragonlord Dromoka'), 'sem terreno: só o Dragão');
+  conj(e, 'Dragonlord Dromoka');
+  ok(noCampo(e).includes('Dragonlord Dromoka'), 'Dromoka de graça');
+  const f = cena({ campo: [[0, "Demon of Fate's Design"]], mao: [[0, 'Dragon Tempest'], [0, 'Dragon Tempest']] });
+  M.avancar(f); conj(f, 'Dragon Tempest');
+  ok(noCampo(f).includes('Dragon Tempest'), 'encantamento pela vida'); igual(f.jogs[0].vida, 38, 'pagou 2');
+  igual(opsDe(f, 'conjurar').length, 0, 'a segunda não: uma vez por turno');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
