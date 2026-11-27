@@ -3455,6 +3455,15 @@ caso('602.2b', "custo de exilar do cemitério (Drivnod): com 3 criaturas no cemi
   }
 });
 
+caso('105.2', "Faeburrow Elder: +1/+1 por cor entre as suas permanentes e {T}: uma mana de cada uma dessas cores", () => {
+  const e = cena({ campo: [[0, 'Faeburrow Elder', { doente: false }], [0, 'Grizzly Bears'], [0, 'Mountain'], [1, 'Vampire Nighthawk']] });
+  const fe = objN(e, 0, 'Faeburrow Elder');
+  ok(M.estContOk(M.carta('Faeburrow Elder').est[0]), 'a estática é lida');
+  igual([M.poder(e, fe), M.resistencia(e, fe)], [2, 2], 'verde e branco (terreno é incolor; o Nighthawk do oponente não conta)');
+  const f = M.fontesDeMana(e, 0, { soVirar: true }).find(x => x.id === fe.id);
+  igual(f.pacotes.length, 1, 'um pacote só'); igual([f.pacotes[0].W, f.pacotes[0].G, M.somaMana(f.pacotes[0])], [1, 1, 2]);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
