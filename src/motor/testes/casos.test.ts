@@ -3806,6 +3806,39 @@ caso('702.34a', "Flashback (a carta): a instantânea alvo no cemitério ganha fl
   igual(M.porFlash(e, 0, b), true);
 });
 
+caso('601.2f', "Forensic Gadgeteer: habilidade de artefato custa {1} a menos, mas não abaixo de uma mana (reduzCusto minimo)", () => {
+  const e = cena({ campo: [[0, 'Forensic Gadgeteer'], [0, 'Mind Stone'], [0, "Wayfarer's Bauble"]] });
+  const m = objN(e, 0, 'Mind Stone'), w = objN(e, 0, "Wayfarer's Bauble");
+  igual(M.custoAtv(e, m, M.atvDe(e, m)[1]), { g: 1 }, '{1} fica {1}');
+  igual(M.custoAtv(e, w, M.atvDe(e, w)[0]), { g: 1 }, '{2} vira {1}');
+});
+
+caso('702.6a', "Forge Anew: o 1º equipar do seu turno custa {0}, o 2º paga; no seu turno equipa fora da velocidade de feitiço", () => {
+  const e = cena({ campo: [[0, 'Forge Anew'], [0, 'Behemoth Sledge'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  const sl = objN(e, 0, 'Behemoth Sledge'), k = M.atvDe(e, sl).findIndex(a => a._equipar);
+  igual(M.custoAtv(e, sl, M.atvDe(e, sl)[k]), {}, '1º: {0}');
+  e.jogs[0].equipT = e.turno.n;
+  igual(M.custoAtv(e, sl, M.atvDe(e, sl)[k]), { g: 3 }, '2º: {3}');
+  e.jogs[0].equipT = 0; e.turno.passo = 'manutencao';
+  ok(M.podeAtivar(e, 0, sl, k), 'na manutenção do seu turno: pode');
+  e.turno.ativo = 1;
+  igual(M.custoAtv(e, sl, M.atvDe(e, sl)[k]), { g: 3 }, 'turno do oponente: paga');
+});
+
+caso('122.8', "moverMarcador: Forgotten Ancient divide os +1/+1 entre outras criaturas, um a um, e para quando quiser; Nesting Grounds move 1 de um alvo para outro", () => {
+  const e = cena({ campo: [[0, 'Forgotten Ancient'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const fa = objN(e, 0, 'Forgotten Ancient'), b = objN(e, 0, 'Grizzly Bears'), l = objN(e, 1, 'Llanowar Elves');
+  fa.marc['+1/+1'] = 3;
+  const f = M.carta('Forgotten Ancient').gat[1].fx[0], fila = [{ a: 'alvo', o: b.id }, { a: 'alvo', o: l.id }, { a: 'pronto' }];
+  M.executar(e, { ...f, talvez: false }, { voce: 0, este: fa.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, fa) } }, (j, tipo, ops) => { const q: any = fila.shift(); return ops.find(o => o.a === q.a && o.o === q.o); });
+  igual([fa.marc['+1/+1'], b.marc['+1/+1'], l.marc['+1/+1']], [1, 1, 1], '1 no urso, 1 no elfo, parou com 1');
+  const g = cena({ campo: [[0, 'Nesting Grounds'], [0, 'Grizzly Bears'], [0, 'Serra Angel']] });
+  const u = objN(g, 0, 'Grizzly Bears'), s = objN(g, 0, 'Serra Angel'); u.marc['+1/+1'] = 2;
+  const a = M.carta('Nesting Grounds').atv[1];
+  M.executar(g, a.fx[0], { voce: 0, este: objN(g, 0, 'Nesting Grounds').id, alvos: [[{ o: u.id, ts: u.ts }], [{ o: s.id, ts: s.ts }]], ilegal: {}, lki: {} }, () => { throw new Error('não pergunta'); });
+  igual([u.marc['+1/+1'], s.marc['+1/+1']], [1, 1]);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

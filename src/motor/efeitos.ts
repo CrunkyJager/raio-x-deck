@@ -911,6 +911,33 @@ const H = {
       for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) - q1); }
     },
   },
+  // CR 122.6/122.8: mover marcadores = tirar de um e pôr no outro (as substituições de pôr valem). em = de onde (no campo);
+  // paraObj = quem recebe: objeto/alvo (Nesting Grounds, Zack Fair) ou 'escolhida' = criaturas OUTRAS escolhidas na
+  // resolução, um a um, divididos como quiser (Forgotten Ancient: "any number … onto other creatures"). Sem tipoMarc:
+  // escolhe um tipo que a origem tem (Nesting Grounds: "a counter"). qtd {ate:'qualquer'}: quem move decide quando parar.
+  moverMarcador: {
+    campos: ['paraObj', 'tipoMarc'],
+    qtd: q => q === undefined || qtdOk(q) || (ateOk(q) && q.ate === 'qualquer'),
+    ok: f => f.em !== undefined && f.paraObj !== undefined && (f.paraObj === 'escolhida' || emOk(f.paraObj)),
+    fx(e, f, ctx, ask) {
+      const de = objsDe(e, f, ctx)[0]; if (!de) return;
+      const tipos = Object.keys(de.marc).filter(t => de.marc[t] > 0 && t !== 'lore');
+      let t = f.tipoMarc;
+      if (!t) { if (!tipos.length) return; t = tipos.length === 1 ? tipos[0] : ask(ctx.voce, 'escolha', tipos.map(v => ({ a: 'tipo', v })), { o: 'marcador', fonte: de.n }).v; }
+      let n = Math.min(de.marc[t] || 0, qtdDe(e, f.qtd ?? 1, ctx)); if (!(n > 0)) return;
+      const move = (o, k) => { de.marc[t] -= k; M.porMarcadores(e, o, t, k); };
+      if (f.paraObj !== 'escolhida') { const o = objsDe(e, { em: f.paraObj }, ctx)[0]; if (o && o.id !== de.id) move(o, n); return; }
+      const ate = !!(f.qtd && f.qtd.ate);
+      while (n > 0) {
+        const cand = e.campo.map(id => e.objs[id]).filter(o => o.id !== de.id && M.temTipo(e, o, 'Creature'));
+        if (!cand.length) return;
+        const r = ask(ctx.voce, 'escolha', [...(ate ? [{ a: 'pronto' }] : []), ...cand.map(o => ({ a: 'alvo', o: o.id }))], { o: 'moverMarcador', fonte: de.n, resta: n });
+        if (r.a === 'pronto') return;
+        move(e.objs[r.o], 1); n--;
+      }
+      e.vCamada = (e.vCamada || 0) + 1;
+    },
+  },
   // naoDesvira: não desvira no próximo desvirar do controlador (Junk Winder); soNaoDesvira: só isso, sem virar (Fifty Feet of Rope)
   virar: {
     campos: ['naoDesvira', 'soNaoDesvira'],

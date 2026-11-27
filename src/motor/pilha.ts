@@ -430,7 +430,7 @@ M.podeAtivar = (e, j, o, k) => {
   if (a.lealdade !== undefined) {                                     // CR 606.3: feitiço, uma por turno por permanente
     if (!M.velFeitico(e, j) || o.lealTurno === e.turno.n) return false;
     if (a.lealdade < 0 && (o.marc.lealdade || 0) < -a.lealdade) return false;
-  } else if (a.vel === 'feitico' && !M.velFeitico(e, j)) return false;
+  } else if (a.vel === 'feitico' && !M.velFeitico(e, j) && !(a._equipar && e.turno.ativo === j && M.estSeu(e, j, 'equiparComoInstantanea'))) return false;   // Forge Anew: no seu turno, equipar na velocidade de instantânea
   if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
   if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
   if (a._soltar && !o.anexo) return false;                            // reconfigurar: soltar só se anexada (702.151a)
@@ -757,6 +757,7 @@ const PROC = {
     const j = P.j, o = e.objs[P.id], a = M.atvDe(e, o)[P.k], c = a.custo, ctx = { voce: j, este: o.id };
     const ex = c.virar || c.sacrificar === 'este' || c.devolver === 'este' ? [o.id] : [];
     const mana = M.custoAtv(e, o, a);                                                 // CR 602.2b → 601.2f (reduzCusto deHabil)
+    if (a._equipar && e.turno.ativo === j) e.jogs[j].equipT = e.turno.n;                // o 1º equipar do seu turno já foi (Forge Anew)
     let x = 0;
     if (mana && mana.x) {
       const mx = maxX(e, j, mana, ex);
