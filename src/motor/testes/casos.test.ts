@@ -3630,6 +3630,23 @@ caso('602.5', "não pode ativar: Linvala trava as habilidades (até as de mana) 
   f.turno.ativo = 1; ok(!M.ativBloqueada(f, sr), 'no turno dele, ativa');
 });
 
+caso('610.3', "exilar até a fonte sair (Battle at the Helvault, Grasp of Fate): volta ao campo do dono quando ela sai; Awaken the Honored Dead III paga com descarte", () => {
+  const e = cena({ campo: [[0, 'Grasp of Fate'], [1, 'Grizzly Bears']] });
+  const g = e.objs[e.campo[0]], b = e.objs[e.campo[1]];
+  const ctx: any = { voce: 0, alvos: [[{ o: b.id, ts: b.ts }]], ilegal: {}, lki: { alvos: [] }, este: g.id };
+  M.executar(e, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, ctx, () => ({ a: 'nao' }));
+  ok(b.zona === 'exilio', 'exilou');
+  M.mover(e, g.id, 'cemiterio');
+  ok(b.zona === 'campo' && b.ctrl === 1, 'Grasp saiu: a Bears volta para o dono');
+  const f = cena({ campo: [[1, 'Grizzly Bears']] }); const fb = f.objs[f.campo[0]];
+  M.executar(f, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, { voce: 0, alvos: [[{ o: fb.id, ts: fb.ts }]], ilegal: {}, lki: { alvos: [] }, este: 999 }, () => ({ a: 'nao' }));
+  ok(fb.zona === 'campo', 'fonte fora do campo: não exila (610.3c)');
+  const h = cena({ mao: [[0, 'Forest']] }); const lb = h.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
+  const cap3 = M.carta('Awaken the Honored Dead').gat.find(x => x.n === 3).fx[0];
+  M.executar(h, cap3, { voce: 0, alvos: [[{ o: lb.id, ts: lb.ts }]], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.a === 'pagar') || ops[0]);
+  ok(h.jogs[0].zonas.mao.length === 1 && h.objs[h.jogs[0].zonas.mao[0]].n === 'Grizzly Bears', 'descartou a Forest e a Bears voltou para a mão');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -336,6 +336,10 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zDe === 'campo' && e.ctrlEf && e.ctrlEf.length) M.recalcCtrl(e);   // a fonte do "enquanto você controlar" saiu (Roil Elemental)
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio' || zDe === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap, ...(sac && zDe === 'campo' ? { sac: true } : {}), ...(snapCem ? { snapCem } : {}) });   // snapCem: a carta como era no cemitério (saiCemiterio)   // gatilhos.js
   if (zona === 'campo' && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1);   // CR 714.3a: a saga entra com 1 marcador de história
+  if (zDe === 'campo' && e.volta && e.volta.length && snap) {        // CR 610.3: o exilado "até esta sair" volta agora (sob o dono, 610.3c)
+    const vai = e.volta.filter(v => v.id === id && v.ts === snap.ts); e.volta = e.volta.filter(v => !vai.includes(v));
+    for (const v of vai) for (const x of v.ids) { const X = e.objs[x.id]; if (X && X.zona === 'exilio' && X.ts === x.ts) M.aplicarEntrada(e, M.decidirEntrada(e, x.id, X.dono, {}, (_j, _t, ops) => ops[0])); }
+  }
   if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
   return o;
 };

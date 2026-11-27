@@ -38,6 +38,7 @@ const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['q
   && (QUEM_OK.has(a.quem) || quemAlvo(a.quem)) && (a.quem !== 'cadaAtual' || dentroCada > 0) && !!a.custo && typeof a.custo === 'object' && Object.keys(a.custo).length === 1
   && (a.custo.mana ? Object.keys(a.custo.mana).every(k => k === 'g' || k === 'x' || /^[WUBRGC]$/.test(k) || k === 'p') && (!a.custo.mana.x || (a.qtd !== undefined && qtdOk(a.qtd)))
     : a.custo.vida ? Number.isInteger(a.custo.vida)
+    : a.custo.descartar ? Number.isInteger(a.custo.descartar) && a.custo.descartar > 0   // "you may discard a card. When you do…" (Awaken the Honored Dead)
     : a.custo.sacrificar === 'este' ? true                                         // "unless you sacrifice this" (Withercrown dá à encantada)
     : a.custo.sacrificar ? typeof a.custo.sacrificar === 'object' && M.filtroOk(a.custo.sacrificar.f || {}) && Object.keys(a.custo.sacrificar).every(k => k === 'f' || k === 'qtd') && (a.custo.sacrificar.qtd === undefined || Number.isInteger(a.custo.sacrificar.qtd))
     : false)
@@ -352,6 +353,7 @@ function pagouParaImpedir(e, f, ctx, ask) {
     if (c.mana) { mana = { ...c.mana }; if (mana.x) { x = qtdDe(e, a.qtd, ctx); } if (M.planoMana(e, j, mana, { x })) ops.push({ a: 'pagar' }); }
     else if (c.vida) { if (J.vida >= c.vida && !M.vidaFixa(e, j)) ops.push({ a: 'pagar' }); }   // CR 119.4, 119.8
     else if (c.sacrificar === 'este') { const o = e.objs[ctx.este]; if (o && o.zona === 'campo' && o.ctrl === j) ops.push({ a: 'pagar' }); }
+    else if (c.descartar) { if (J.zonas.mao.length >= c.descartar) ops.push({ a: 'pagar' }); }
     else if (c.sacrificar) { if (M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }, c.sacrificar.qtd || 1)) ops.push({ a: 'pagar' }); }
     const fo = e.objs[ctx.item] || e.objs[ctx.este];
     const r = ask(j, 'aMenosQuePagar', ops, { op: f.op, fonte: fo ? fo.n : '?', de: ctx.voce, custo: c, x });
@@ -359,6 +361,10 @@ function pagouParaImpedir(e, f, ctx, ask) {
     if (mana) M.pagarComPlano(e, j, mana, { x });
     else if (c.vida) M.perderVida(e, j, c.vida);                                                      // CR 119.4
     else if (c.sacrificar === 'este') M.mover(e, ctx.este, 'cemiterio', { sac: true });
+    else if (c.descartar) {                                                                           // CR 701.9: quem descarta escolhe
+      const ids = escolherN(ask, j, 'descartar', J.zonas.mao.slice(), c.descartar, { ctx: { op: 'descartar' } });
+      M.descartar(e, j, ids, { ask, efeito: true });
+    }
     else {
       const sac: any[] = [];
       for (let i = 0; i < (c.sacrificar.qtd || 1); i++) {
@@ -792,7 +798,18 @@ const H = {
   // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o escudo de regeneração não vale
   destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel') && (f.semRegenerar || !M.regenera(e, o))) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
   regenerar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo') M.porRegen(e, o); } },   // CR 701.15a
-  exilar: { fx(e, f, ctx) { const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id)); } },
+  // dura 'enquantoNoCampo' (CR 610.3): "exile … until [esta] leaves the battlefield" — volta ao campo do dono quando a
+  // fonte sai (estado.ts M.mover, e.volta); se a fonte já saiu antes de resolver, não exila (610.3c)
+  exilar: {
+    campos: ['dura'],
+    ok: f => f.dura === undefined || f.dura === 'enquantoNoCampo',
+    fx(e, f, ctx) {
+      let F: any = null;
+      if (f.dura) { F = e.objs[ctx.este]; if (!F || F.zona !== 'campo' || (ctx.lki.este && ctx.lki.este.ts !== F.ts)) return; }
+      const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id));
+      if (F && os.length) (e.volta || (e.volta = [])).push({ id: F.id, ts: F.ts, ids: ctx.movidos.map(m => ({ id: m.id, ts: m.ts })) });
+    },
+  },
   mover: {
     campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste'],
     qtd: q => qtdOk(q) || ateOk(q),
