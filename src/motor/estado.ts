@@ -772,8 +772,8 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.exiladaPorEste && !(o.zona === 'exilio' && o.exPor && o.exPor.id === ctx.este && o.exPor.ts === ((ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (e.objs[ctx.este] || {}).ts))) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
-  if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha))) return false;
-  if (f.sub && !f.sub.some(s => (d.sub || []).includes(s === 'escolhido' ? escolhidoDe(e, ctx) : s))) return false;   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
+  if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha) || (t === 'escolhido' && ehEscolhido(e, o, ctx)))) return false;
+  if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s))) return false;   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
   if (f.tipoTodos && !f.tipoTodos.every(t => (d.tipos || []).includes(t))) return false;            // criatura artefato (Mycosynth Golem)
   if (f.historico && !((d.tipos || []).includes('Artifact') || (d.super || []).includes('Legendary') || (d.sub || []).includes('Saga'))) return false;   // CR 700.6
@@ -824,7 +824,8 @@ function tipoEmComum(e, o, ref, ctx) {
   else throw new Error('tipoEmComum sem suporte: ' + JSON.stringify(ref));
   return outros.some(x => x && comumCom(t, tiposCriatura(e, x)));
 }
-const escolhidoDe = (e, ctx) => { const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };
+const escolhidoDe = (e, ctx) => { if (ctx.escolha && ctx.escolha.tipo) return ctx.escolha.tipo; const F = e.objs[ctx.este]; return F && F.escolha && F.escolha.tipo || '\u0000'; };   // op escolher na resolução (ctx.escolha) antes da escolha ao entrar
+const ehEscolhido = (e, o, ctx) => { const v = escolhidoDe(e, ctx), t = tiposCriatura(e, o); return v !== '\u0000' && (t === 'todos' || t.includes(v)); };   // changeling é de todos os tipos (702.73a)
 M.atacando = (e, o) => !!(e.turno.combate && (e.turno.combate.atk || []).some(r => r.id === o.id && r.ts === o.ts));
 const quemBate = (e, j, q, voce, ctx: any = {}) => q === 'qualquer' ? true : q === 'voce' ? j === voce : q === 'oponente' ? j !== voce : q === 'cadaAtual' ? j === ctx.cadaAtual : q === 'atacado' ? !!ctx.ev && ctx.ev.def !== undefined && j === ctx.ev.def
   : q === 'doEvento' ? !!ctx.ev && j === (ctx.ev.ev === 'dano' ? ctx.ev.jog : ctx.ev.j ?? ctx.ev.jog) : true;   // doEvento: o jogador do evento (Hellkite Tyrant: quem levou o dano)   // cadaAtual: o jogador da vez no repetirCada

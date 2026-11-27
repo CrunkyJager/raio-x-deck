@@ -126,7 +126,10 @@ const basico = (e, p) => {
         : (o(op.id).ctrl === p.j) === !((o(op.id).marc['-1/-1'] || 0) > 0)));
       return k >= 0 ? k : 0;
     }
-    case 'escolha': { const k = p.ops.findIndex(op => op.a === 'cor' && J.ci.includes(op.v)); return k >= 0 ? k : 0; }
+    case 'escolha': {
+      if (p.ops.some(op => op.a === 'tipo')) return melhorOp(p.ops, op => Object.values<any>(e.objs).reduce((s, x) => s + (x.dono === p.j && !x.hab && M.temTipo(e, x, 'Creature') && (M.dadoDe(e, x).sub || []).includes(op.v) ? (x.zona === 'campo' ? 2 : 1) : 0), 0));
+      const k = p.ops.findIndex(op => op.a === 'cor' && J.ci.includes(op.v)); return k >= 0 ? k : 0;
+    }
     default: return 0;
   }
 };
