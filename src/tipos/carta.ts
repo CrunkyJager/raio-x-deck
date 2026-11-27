@@ -390,6 +390,10 @@ export interface RxFiltro {
    * mágica/habilidade na pilha com ao menos um alvo que bate neste filtro ("a spell that targets one or more creatures you control", Arcee)
    */
   miraUm?: RxFiltro;
+  /**
+   * soulbond (702.95): esta e a criatura pareada com ela, só enquanto pareadas ("each of those creatures": Tandem Lookout)
+   */
+  pareadaComEste?: true;
 }
 
 export interface RxCompara {
@@ -457,6 +461,20 @@ export interface RxAlvo {
    * o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)
    */
   ouZona?: RxZona;
+  /**
+   * f 'habilidade': "ability you control from an enchantment source" (Weaver of Harmony)
+   */
+  hab?: {
+    /**
+     * quem controla a habilidade na pilha
+     */
+    ctrl?: 'voce' | 'oponente';
+    tipo?: 'ativada' | 'desencadeada';
+    /**
+     * a fonte da habilidade (saiu de zona: só o tipo impresso)
+     */
+    fonte?: RxFiltro;
+  };
 }
 
 /**
@@ -670,7 +688,9 @@ export interface RxFx {
     | 'selar'
     | 'tirarDoCombate'
     | 'vidaVira'
-    | 'semDanoCombate';
+    | 'semDanoCombate'
+    | 'copiarHabilidade'
+    | 'parear';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -742,6 +762,18 @@ export interface RxFx {
   escolhe?: {
     min?: number;
     max?: number;
+    /**
+     * {P} de cada modo, na ordem (Season of the Burrow; CR 700.2h): escolhe até maxPontos no total
+     */
+    pontos?: number[];
+    /**
+     * "choose up to N {P} worth of modes"
+     */
+    maxPontos?: number;
+    /**
+     * modos (sem alvo) que podem ser escolhidos mais de uma vez; modo COM alvo que repete vai escrito de novo na lista, com alvo próprio
+     */
+    repete?: number[];
     /**
      * só modos que esta fonte ainda não escolheu neste turno (Monument to Endurance)
      */
@@ -1264,7 +1296,9 @@ export interface RxKw {
     | 'ligarMotores'
     | 'estacao'
     | 'metamorfose'
-    | 'disfarce';
+    | 'disfarce'
+    | 'cifrar'
+    | 'soulbond';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')

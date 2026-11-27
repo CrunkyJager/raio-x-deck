@@ -752,6 +752,10 @@
     "miraUm": {
      "$ref": "#/$defs/filtro",
      "description": "mágica/habilidade na pilha com ao menos um alvo que bate neste filtro (\"a spell that targets one or more creatures you control\", Arcee)"
+    },
+    "pareadaComEste": {
+     "const": true,
+     "description": "soulbond (702.95): esta e a criatura pareada com ela, só enquanto pareadas (\"each of those creatures\": Tandem Lookout)"
     }
    }
   },
@@ -894,6 +898,30 @@
     "ouZona": {
      "$ref": "#/$defs/zona",
      "description": "o alvo também pode estar nesta zona, com o mesmo filtro (Angel of Serenity: criatura no campo e/ou carta de criatura num cemitério)"
+    },
+    "hab": {
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "ctrl": {
+       "enum": [
+        "voce",
+        "oponente"
+       ],
+       "description": "quem controla a habilidade na pilha"
+      },
+      "tipo": {
+       "enum": [
+        "ativada",
+        "desencadeada"
+       ]
+      },
+      "fonte": {
+       "$ref": "#/$defs/filtro",
+       "description": "a fonte da habilidade (saiu de zona: só o tipo impresso)"
+      }
+     },
+     "description": "f 'habilidade': \"ability you control from an enchantment source\" (Weaver of Harmony)"
     }
    }
   },
@@ -1260,7 +1288,9 @@
       "selar",
       "tirarDoCombate",
       "vidaVira",
-      "semDanoCombate"
+      "semDanoCombate",
+      "copiarHabilidade",
+      "parear"
      ],
      "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4) | fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log) | tirarDoCombate põe as que saíram em 'anterior'; vidaVira: a vida de quem vira qtd (119.5: ganha ou perde a diferença); semDanoCombate: em não causa dano de combate neste combate (Master of Cruelties)"
     },
@@ -1454,6 +1484,25 @@
       },
       "max": {
        "type": "integer"
+      },
+      "pontos": {
+       "type": "array",
+       "items": {
+        "type": "integer",
+        "minimum": 1
+       },
+       "description": "{P} de cada modo, na ordem (Season of the Burrow; CR 700.2h): escolhe até maxPontos no total"
+      },
+      "maxPontos": {
+       "type": "integer",
+       "description": "\"choose up to N {P} worth of modes\""
+      },
+      "repete": {
+       "type": "array",
+       "items": {
+        "type": "integer"
+       },
+       "description": "modos (sem alvo) que podem ser escolhidos mais de uma vez; modo COM alvo que repete vai escrito de novo na lista, com alvo próprio"
       },
       "naoRepeteNoTurno": {
        "type": "boolean",
@@ -2245,7 +2294,9 @@
       "ligarMotores",
       "estacao",
       "metamorfose",
-      "disfarce"
+      "disfarce",
+      "cifrar",
+      "soulbond"
      ],
      "description": "replicar {custo}: custo adicional pago N vezes ao conjurar; ao conjurar, copia N vezes (CR 702.56); comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx; ligarMotores: Start your engines! (702.179a: sem velocidade, passa a ter 1; sobe 1 por turno seu em que um oponente perde vida, até 4, 702.179d); estacao: Station (702.184a: vire outra criatura sua: marcadores de carga = poder dela, só como feitiço; 'N+' (722.2a) = se {conta:{q:{conta:{de:'este',o:'marcadores',marc:'charge'}},min:N}}) | metamorfose/disfarce (702.37/702.168): custo = o de desvirar; pode conjurar virada para baixo por {3} como criatura 2/2 sem nome nem texto (disfarce: com resguardo {2}), 708; comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },

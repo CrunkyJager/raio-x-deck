@@ -291,6 +291,7 @@ M.abe = e => {
       if (!v) { roles.set(k, o); continue; }
       if (v.ts < o.ts) { morrem.push(v.id); roles.set(k, o); } else morrem.push(id);
     }
+    for (const id of e.campo) { const o = e.objs[id]; if (o.par && !M.parDe(e, o)) { delete o.par; e.vCamada = (e.vCamada || 0) + 1; } }   // 702.95e: o par quebrou (não volta)
     // preparar: a cópia no exílio deixa de existir se a criatura saiu do campo ou não está mais preparada
     for (const J of e.jogs) for (const id of [...J.zonas.exilio]) { const c = e.objs[id]; if (c.copiaPrep && !M.prepValida(e, c)) { M.mover(e, id, 'cemiterio'); mudou = true; } }
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada

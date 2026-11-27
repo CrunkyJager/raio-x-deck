@@ -552,6 +552,16 @@ M.preparar = (e, o) => {
   e.jogs[o.ctrl].zonas.exilio.push(id);
   M.log(e, o.n, 'fica preparada');
 };
+// soulbond (CR 702.95): o.par = {id, ts, ctrl} dos dois lados. Pareadas enquanto as duas estiverem no campo, forem
+// criaturas e o mesmo jogador (o que pareou) controlar as duas (702.95c/e); o turno.ts desfaz o par que quebrou (de vez).
+M.parDe = (e, o) => {
+  const p = o && o.zona === 'campo' && o.par; if (!p) return null;
+  const q = e.objs[p.id];
+  if (!q || q.zona !== 'campo' || q.ts !== p.ts || !q.par || q.par.id !== o.id || q.par.ts !== o.ts) return null;
+  if (o.ctrl !== p.ctrl || q.ctrl !== p.ctrl || !M.temTipo(e, o, 'Creature') || !M.temTipo(e, q, 'Creature')) return null;
+  return q;
+};
+M.parear = (e, a, b) => { a.par = { id: b.id, ts: b.ts, ctrl: a.ctrl }; b.par = { id: a.id, ts: a.ts, ctrl: a.ctrl }; e.vCamada = (e.vCamada || 0) + 1; M.log(e, a.n, 'pareada com', b.n); };
 M.prepValida = (e, c) => { const o = c && c.copiaPrep && e.objs[c.copiaPrep.id]; return !!o && o.zona === 'campo' && o.ts === c.copiaPrep.ts && !!o.preparada; };
 const GAT_MILAGRE = { ev: 'compra', fx: [{ op: 'milagre' }] };
 M.milagreDe = (e, o) => { const k = (M.dadoDe(e, o).kw || []).find(x => x.k === 'milagre' && x.custo); return k ? k.custo : null; };
@@ -1153,7 +1163,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['convocou', 'comX', 'postaPorEste', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'manaGasta', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'miraUm', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'maiorPoder', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste', 'semKw']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'manaGasta', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'miraUm', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'maiorPoder', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste', 'semKw', 'pareadaComEste']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k)) && (!f || f.ou === undefined || (Array.isArray(f.ou) && f.ou.length > 1 && f.ou.every(g => !!g && typeof g === 'object' && M.filtroOk(g))));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -1171,6 +1181,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.naoAlvo !== undefined && ((ctx.alvos || [])[f.naoAlvo] || []).some(x => x && x.o === o.id)) return false;   // "each other creature" = menos o alvo N (Chandra's Ignition)
   if (f.ou && !f.ou.some(g => M.bate(e, o, g, ctx))) return false;   // "a Human or artifact card" (Boromir): bate em ao menos um
   if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;
+  if (f.pareadaComEste) { const F = e.objs[ctx.este], q = F && M.parDe(e, F); if (!q || (o.id !== F.id && o.id !== q.id)) return false; }   // "each of those creatures" (soulbond, 702.95): esta e a do par, se pareadas
   if (f.convocou && !(((ctx && e.objs[ctx.este]) || {}).convocou || []).some(m => m.id === o.id && m.ts === o.ts)) return false;   // convocou a mágica que resolve (702.51c)
   // "a creature dealt damage by this creature this turn" (Markov Enforcer): o.feridaPor guarda {id, ts, t} da fonte; no 'morre' vale o lki (snap)
   if (f.feridaPorEsteNoTurno && !(o.feridaPor || []).some(x => x.id === ctx.este && x.t === e.turno.n && (!e.objs[ctx.este] || x.ts === e.objs[ctx.este].ts || e.objs[ctx.este].zona !== 'campo'))) return false;

@@ -57,7 +57,7 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
   for (const k in f) if (!BASE.has(k) && !(h.campos || []).includes(k)) return false;
   if (f.quem !== undefined && !QUEM_OK.has(f.quem) && !quemAlvo(f.quem)) return false;
   if (f.quem === 'cadaAtual' && !dentroCada) return false;
-  if (!emOk(f.em) || !seOk(f.se)) return false;
+  if (!(f.op === 'jogar' && f.em === 'cifrada' && f.cifra) && !emOk(f.em) || !seOk(f.se)) return false;   // 'cifrada': só o jogar do cifrar (702.99a, pilha.ts)
   if (!(h.qtd ? h.qtd(f.qtd) : qtdOk(f.qtd))) return false;
   if (f.f && !M.filtroOk(f.f)) return false;
   if (f.aMenosQue !== undefined && !amqOk(f.aMenosQue)) return false;
@@ -832,13 +832,14 @@ const H = {
   // uma carta por vez e na ordem que escolher; terreno "agora" fica de fora. gratis: sem pagar o custo de mana (o
   // imposto do comandante é custo adicional e continua, 903.8; X = 0, 107.3b).
   jogar: {
-    campos: ['dura', 'soConjurar', 'gratis', 'f', 'copia'],
+    campos: ['dura', 'soConjurar', 'gratis', 'f', 'copia', 'cifra'],
     qtd: q => q === undefined || typeof q === 'number',
     ok: f => (f.em !== undefined) !== (f.f !== undefined) && [undefined, 'fimDoTurno', 'proximoTurnoSeu', 'proximoFinalSeu', 'sempre'].includes(f.dura)
-      && (f.em === undefined || f.em === 'anterior' || (f.em.todos && M.filtroOk(f.em.todos)) || typeof f.em.alvo === 'number') && !(f.f && f.dura) && !(f.copia && f.dura),
+      && (f.em === undefined || f.em === 'anterior' || (f.em === 'cifrada' && !!f.cifra && f.copia) || (f.em.todos && M.filtroOk(f.em.todos)) || typeof f.em.alvo === 'number') && !(f.f && f.dura) && !(f.copia && f.dura),
     fx(e, f, ctx, ask) {
       const j = ctx.voce;
-      const cand = () => f.f ? M.objetosQue(e, { ...f.f, zona: f.f.zona || 'mao' }, ctx) : objsDeQualquer(e, f, ctx);
+      const cand = () => f.em === 'cifrada' ? [e.objs[f.cifra.id]].filter(o => o && o.ts === f.cifra.ts && o.zona === 'exilio')   // 702.99c: ainda codificada
+        : f.f ? M.objetosQue(e, { ...f.f, zona: f.f.zona || 'mao' }, ctx) : objsDeQualquer(e, f, ctx);
       if (f.dura) {
         const fim = f.dura === 'fimDoTurno' ? 'turno' : f.dura === 'proximoTurnoSeu' ? j : f.dura === 'proximoFinalSeu' ? { final: j } : null;   // Inti: "until your next end step"
         for (const o of cand()) (e.permJogar || (e.permJogar = [])).push({ j, id: o.id, ts: o.ts, gratis: !!f.gratis, soConjurar: !!f.soConjurar, fim });
@@ -1191,6 +1192,37 @@ const H = {
       const planos: any[] = [];
       for (let k = 0; k < n; k++) planos.push(M.alvosDaCopia(e, o, ctx.voce, !!f.novoAlvo, ask));   // pergunta tudo antes de mexer
       for (const pl of planos) M.criarCopia(e, o, ctx.voce, pl);
+    },
+  },
+  // soulbond (CR 702.95a): "you may pair this creature with another unpaired creature" — ao resolver, esta (a fonte) e a
+  // outra têm de estar no campo, ser criaturas suas e sem par (702.95b: senão nada); em 'doEvento' = a que entrou, senão escolhe.
+  parear: {
+    ok: f => f.em === undefined || f.em === 'doEvento',
+    fx(e, f, ctx, ask) {
+      const F = e.objs[ctx.este], j = ctx.voce;
+      const livre = o => !!o && o.zona === 'campo' && o.ctrl === j && M.temTipo(e, o, 'Creature') && !M.parDe(e, o);
+      if (!livre(F) || (ctx.lki && ctx.lki.este && F.ts !== ctx.lki.este.ts)) return;
+      const cand = f.em === 'doEvento' ? objsDe(e, f, ctx).filter(o => o.id !== F.id && livre(o))
+        : e.campo.map(id => e.objs[id]).filter(o => o.id !== F.id && livre(o));
+      if (!cand.length) return;
+      const r = ask(j, 'parear', [...cand.map(o => ({ a: 'parear', id: o.id })), { a: 'nenhum' }], { id: F.id });
+      if (r.a !== 'parear') return;
+      M.parear(e, F, e.objs[r.id]);
+    },
+  },
+  // CR 707.10: "copy target activated or triggered ability [you control]" (Weaver of Harmony): a cópia vai para a pilha
+  // controlada por quem copiou, com os mesmos alvos/modos/X; novoAlvo = "you may choose new targets for the copy".
+  // Copiar não é ativar (602.1): não dispara "whenever you activate", não paga custo de novo.
+  copiarHabilidade: {
+    campos: ['novoAlvo'],
+    fx(e, f, ctx, ask) {
+      const n = f.qtd === undefined ? 1 : Math.max(0, qtdDe(e, f.qtd, ctx));
+      for (const o of objsDe(e, f, ctx)) {
+        if (o.zona !== 'pilha' || !o.hab || !o.pil || o.id === ctx.item) continue;
+        const planos: any[] = [];
+        for (let k = 0; k < n; k++) planos.push(M.alvosDaCopia(e, o, ctx.voce, !!f.novoAlvo, ask));
+        for (const pl of planos) M.criarCopia(e, o, ctx.voce, pl);
+      }
     },
   },
   trocarAlvos: { fx(e, f, ctx, ask) {                                // "you may choose new targets for target spell or ability" (115.7d): mesmo número, alvos legais
