@@ -5050,6 +5050,28 @@ caso('118.3', "Jarad: do cemitério, sacrifica um Pântano E uma Floresta (sacri
   igual(f.zona, 'cemiterio', 'a Floresta foi'); igual(g.campo.filter(id => g.objs[id].n === 'Swamp').length, 1, 'um Pântano ficou');
 });
 
+caso('701.20', "Kaalia, Zenith Seeker: dos 6 do topo pega no máximo um de cada (Anjo, Demônio, Dragão) — dois Anjos, só um vai", () => {
+  const e = cena({ campo: [[0, 'Kaalia, Zenith Seeker']] });
+  const G = e.jogs[0].zonas.grimorio;
+  for (const n of ['Wastes', 'Serra Angel', 'Serra Angel', "Demon of Fate's Design", 'Wastes', 'Wastes']) { const o = e.por(0, n, { zona: 'grimorio' }); G.splice(G.indexOf(o.id), 1); G.push(o.id); }
+  const K = objN(e, 0, 'Kaalia, Zenith Seeker'), m0 = e.jogs[0].zonas.mao.length;
+  M.executar(e, M.carta('Kaalia, Zenith Seeker').gat[0].fx[0], { voce: 0, este: K.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, K) } }, (j, tipo, ops) => ops.find(o => o.a !== 'nenhum') || ops[0]);
+  const mao = e.jogs[0].zonas.mao.slice(m0).map(id => e.objs[id].n).sort();
+  igual(mao, ["Demon of Fate's Design", 'Serra Angel']);
+});
+
+caso('603.4', "Kodama of the East Tree: entrou um permanente seu → pode pôr da mão um de VM igual ou menor; o que ele pôs não dispara de novo", () => {
+  const e = cena({ campo: [[0, 'Kodama of the East Tree']], mao: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves']] });
+  e.pend = [];
+  e.por(0, 'Hill Giant');
+  igual(e.pend.filter(p => p.n === 'Kodama of the East Tree').length, 1, 'o Gigante dispara');
+  const K = objN(e, 0, 'Kodama of the East Tree'), g = M.carta('Kodama of the East Tree').gat[0];
+  const gi = objN(e, 0, 'Hill Giant'); e.pend = [];
+  M.executar(e, { ...g.fx[0], talvez: false }, { voce: 0, este: K.id, ev: { ev: 'entra', id: gi.id, ts: gi.ts }, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, K) } }, (j, t, ops) => ops.find(o => o.id !== undefined && e.objs[o.id].n === 'Grizzly Bears') || ops[0]);
+  ok(e.campo.some(id => e.objs[id].n === 'Grizzly Bears'), 'pôs o urso');
+  igual(e.pend.filter(p => p.n === 'Kodama of the East Tree').length, 0, 'o urso posto por ele não dispara');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

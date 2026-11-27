@@ -317,6 +317,10 @@ export interface RxFiltro {
    * com {X} no custo de mana (Frontline Medic)
    */
   comX?: boolean;
+  /**
+   * posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')
+   */
+  postaPorEste?: boolean;
 }
 
 export interface RxCompara {
@@ -759,6 +763,10 @@ export interface RxFx {
    * modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)
    */
   trocaCor?: boolean;
+  /**
+   * cavar: pega até UM de cada subtipo da lista (Kaalia, Zenith Seeker: 'an Angel, a Demon, and/or a Dragon')
+   */
+  umPorSub?: string[];
   /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".

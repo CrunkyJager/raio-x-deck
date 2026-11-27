@@ -618,6 +618,10 @@
     "comX": {
      "type": "boolean",
      "description": "com {X} no custo de mana (Frontline Medic)"
+    },
+    "postaPorEste": {
+     "type": "boolean",
+     "description": "posta no campo por uma habilidade desta fonte (Kodama of the East Tree: 'if it wasn't put onto the battlefield with this ability')"
     }
    }
   },
@@ -1460,6 +1464,13 @@
     "trocaCor": {
      "type": "boolean",
      "description": "modificar com cores: 'vira [cor]' — perde as outras cores (105.3; Crimson Wisps); sem ele, cores é 'além das outras' (Liliana's Majesty)"
+    },
+    "umPorSub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "cavar: pega até UM de cada subtipo da lista (Kaalia, Zenith Seeker: 'an Angel, a Demon, and/or a Dragon')"
     }
    },
    "additionalProperties": false,
