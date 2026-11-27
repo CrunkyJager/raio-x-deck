@@ -339,7 +339,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'mao': return `Pôr ${nomeOp(ob)} na mão`;
       case 'primeiro': return `${nomeOp(ob)} recebe o dano primeiro`;
       case 'dividir': return String(op.v);
-      case 'opcao': { const v = op.v || {}; const l = [v.sobrecarga ? 'com sobrecarga (paga o custo de sobrecarga; vale para cada um, sem alvo)' : '', v.chute ? 'com chute (paga o custo extra)' : '', v.presente ? 'com presente para um oponente' : '', v.concessao ? 'com concessão (Aura: encanta uma criatura)' : ''].filter(Boolean); return l.length ? 'Conjurar ' + l.join(' e ') : 'Conjurar normal'; }
+      case 'opcao': { const v = op.v || {}; const l = [v.sobrecarga ? 'com sobrecarga (paga o custo de sobrecarga; vale para cada um, sem alvo)' : '', v.chute ? (typeof v.chute === 'number' ? 'com chute ' + v.chute + 'x (paga o custo extra ' + v.chute + ' vezes)' : 'com chute (paga o custo extra)') : '', v.presente ? 'com presente para um oponente' : '', v.concessao ? 'com concessão (Aura: encanta uma criatura)' : ''].filter(Boolean); return l.length ? 'Conjurar ' + l.join(' e ') : 'Conjurar normal'; }
       case 'custoOu': { const c = op.v || {}, l: string[] = [];
         if (c.sacrificar) l.push(c.sacrificar === 'este' ? 'sacrificar esta' : `sacrificar ${c.sacrificar.qtd || 1} ${((c.sacrificar.f || {}).tipo || ['permanente']).map((t: string) => TIPO_PT[t] || t).join(' ou ')}`);
         if (c.descartar) l.push(`descartar ${c.descartar} carta${c.descartar > 1 ? 's' : ''}`);

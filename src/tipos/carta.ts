@@ -1270,6 +1270,10 @@ export interface RxKw {
    * chute com {X}: o X anunciado com chute é pelo menos isto ("X can't be 0": Thieving Skydiver)
    */
   xMin?: number;
+  /**
+   * chute: multikicker (702.33c), pagável quantas vezes quiser; contar com {conta:{de:'este', o:'kicker'}} (Marshal's Anthem)
+   */
+  multi?: true;
 }
 
 export interface RxAtv {
