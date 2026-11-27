@@ -14,7 +14,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 // contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
-const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -93,7 +93,8 @@ const SUBST: Record<string, (s) => boolean> = {
   vaiCemiterio: s => saidaOk(s),
   anulada: s => !!s.muda && Object.keys(s.muda).length === 1 && s.muda.impedir === true && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k))
     && !!s.quem && s.quem.zona === 'pilha',   // "não pode ser anulada" (M.anular, pilha.ts)
-  dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
+  dano: s => !!s.muda && ((Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto)))
+    || (Object.keys(s.muda).length === 2 && s.muda.prevenir === true && !!s.muda.fichaPorDano && typeof s.muda.fichaPorDano === 'object'))
     && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se', 'depois'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento')
     && (s.depois === undefined || (s.muda.prevenir === true && Array.isArray(s.depois) && s.depois.every(f => f.op === 'marcador') && M.fxSuportado(s.depois))),
 };
@@ -214,6 +215,8 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
     return substSe(e, F, s);
   });
   if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) {   // Bonecrusher Giant: prevenir não vale (615.12)
+    const r = lista.find(r => r.s.muda.prevenir && r.s.muda.fichaPorDano);   // "for each 1 damage prevented this way, create…" (Inkshield): um escudo só leva o crédito
+    if (r) M.criarFichas(e, r.F.ctrl, r.s.muda.fichaPorDano, q);
     // "prevent that damage, remove that many +1/+1 counters…, then give each player a rad counter for each removed" (Bloatfly
     // Swarm, 615.5): depois = efeitos da própria substituição; resultado = o dano prevenido (e depois, quantos tirou)
     for (const { F, s } of lista) if (s.muda.prevenir && s.depois) { const ctx: any = { voce: F.ctrl, este: F.id, resultado: q, alvos: [], ilegal: {}, lki: {} }; for (const f of s.depois) M.executar(e, f, ctx, (_j, _t, ops) => ops[0]); }
@@ -559,10 +562,12 @@ function escolherAte(e, f, ctx, ask, tipo, ok) {
 // escolher n objetos de uma lista, um por pergunta (pode parar antes se 'podeMenos')
 M.escolherN = (...a) => (escolherN as any)(...a);
 const SUB_TERRENO = new Set(['Plains', 'Island', 'Swamp', 'Mountain', 'Forest', 'Desert', 'Gate', 'Lair', 'Locus', 'Mine', 'Power-Plant', 'Tower', 'Urza\'s', 'Cave', 'Sphere', 'Town']);   // CR 205.3i
-function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {}, distinto }: any = {}) {
+// "an Angel card, a Demon card, and/or a Dragon card" (Kaalia): cada carta pega ocupa uma vaga diferente (categorias(id) = as vagas que ela preenche)
+const cabemVagas = (ids, cat, usadas: any[] = []) => !ids.length || cat(ids[0]).some(v => !usadas.includes(v) && cabemVagas(ids.slice(1), cat, [...usadas, v]));
+function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {}, distinto, vagas }: any = {}) {
   const r: any[] = [];
   while (r.length < n) {
-    const ops = ids.filter(id => !r.includes(id) && (!distinto || !r.some(x => distinto(x) === distinto(id)))).map(id => ({ a: tipo, id }));   // distinto: "each have different names" (Tiamat)
+    const ops = ids.filter(id => !r.includes(id) && (!distinto || !r.some(x => distinto(x) === distinto(id))) && (!vagas || cabemVagas([...r, id], vagas))).map(id => ({ a: tipo, id }));   // distinto: "each have different names" (Tiamat)
     if (podeMenos) ops.unshift({ a: 'nenhum' });
     if (!ops.length) break;
     const x = ask(j, tipo, ops, ctx);
@@ -1486,15 +1491,6 @@ const H = {
     ctx.movidos = movidos(e, ids);                                   // "put a card from among them" (Ripples of Undeath: f.lembrada)
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
   } },
-  // radiação (CR 725.1, Fallout): no começo da 1ª fase principal de quem tem marcador rad, ele moe tantas; para cada
-  // não-terreno moída, perde 1 de vida e tira um rad. Só do gatilho interno (gatilhos.ts).
-  radiacao: { ok: () => false, fx(e, f, ctx) {
-    const J = e.jogs[ctx.voce], n = (J.marc || {}).rad || 0; if (!n) return;
-    H.moer.fx(e, { op: 'moer', quem: 'voce', qtd: n }, ctx);
-    const nt = (ctx.movidos || []).filter(m => e.objs[m.id] && !M.temTipo(e, e.objs[m.id], 'Land')).length;
-    if (nt) { M.perderVida(e, ctx.voce, nt); J.marc.rad = Math.max(0, n - nt); }
-    M.log(e, J.nome, 'radiação: moe', n, '— perde', nt, 'e tira', nt, 'rad');
-  } },
   // "separate all permanents target player controls into two piles; that player sacrifices all permanents in the pile of
   // their choice" (Liliana of the Veil −6): quem resolve separa (uma pergunta por permanente), o jogador escolhe a pilha
   duasPilhas: { fx(e, f, ctx, ask) {
@@ -1577,11 +1573,12 @@ const H = {
     },
   },
   cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
-    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'comEste'],
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'comEste', 'umDeCada'],
     talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
     ok: f => {
       const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
       if (f.aleatorio !== undefined && (f.aleatorio !== true || !f.resto)) return false;
+      if (f.umDeCada !== undefined && !(f.umDeCada === true && f.f && Array.isArray(f.f.sub) && f.f.sub.length > 1 && f.pega && ateOk(f.pega))) return false;
       if (f.ateAchar ? f.olha !== undefined || !M.filtroOk(f.ateAchar.f) || !qtdOk(f.ateAchar.qtd) || Object.keys(f.ateAchar).some(k => k !== 'f' && k !== 'qtd') : !qtdOk(f.olha) || f.olha === undefined) return false;
       if (!(f.pega === 'tudo' || Number.isInteger(f.pega) || (ateOk(f.pega) && Number.isInteger(f.pega.ate)))) return false;
       if (f.destinos ? !f.destinos.every(d => (Z.includes(d.para) || d.para === 'grimorio') && Object.keys(d).every(k => ['para', 'qtd', 'virada'].includes(k))) || f.para !== undefined : f.pega !== 0 && !Z.includes(f.para)) return false;
@@ -1615,7 +1612,7 @@ const H = {
         } else if (f.pega !== 0) {
           let vai;
           if (f.pega === 'tudo') vai = f.talvez && cand.length && ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'cavar' }).a === 'nao' ? [] : cand.slice();
-          else { const n = typeof f.pega === 'number' ? f.pega : f.pega.ate; vai = escolherN(ask, j, 'cavar', cand, Math.min(n, cand.length), { podeMenos: !!f.talvez || typeof f.pega !== 'number', ctx: { para: f.para } }); }
+          else { const n = typeof f.pega === 'number' ? f.pega : f.pega.ate; vai = escolherN(ask, j, 'cavar', cand, Math.min(n, cand.length), { podeMenos: !!f.talvez || typeof f.pega !== 'number', ctx: { para: f.para }, ...(f.umDeCada ? { vagas: id => f.f.sub.filter(t => (M.dadoDe(e, e.objs[id]).sub || []).includes(t)) } : {}) }); }
           tira(vai);
           for (const id of vai) plano.push({ id, j, para: f.para, virada: !!f.virada });
         }

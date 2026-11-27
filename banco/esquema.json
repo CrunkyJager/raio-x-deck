@@ -884,6 +884,13 @@
         "qtd": {
          "type": "integer"
         },
+        "e": {
+         "type": "array",
+         "items": {
+          "$ref": "#/$defs/filtro"
+         },
+         "description": "uma permanente para cada filtro, todas diferentes (Jarad: 'Sacrifice a Swamp and a Forest'); no lugar de f/qtd"
+        },
         "comEste": {
          "type": "boolean",
          "description": "sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')"
@@ -1560,6 +1567,10 @@
      "type": "boolean",
      "description": "animar: os subtipos de criatura passam a ser só os de sub (perde os outros, 205.1b: \"It's a green Mutant… loses its other creature types\" — The Master, Transcendent)"
     },
+    "umDeCada": {
+     "type": "boolean",
+     "description": "cavar: no máximo uma carta de cada subtipo do f.sub (\"an Angel card, a Demon card, and/or a Dragon card\": Kaalia, Zenith Seeker)"
+    },
     "nomesDiferentes": {
      "type": "boolean",
      "description": "buscar: as cartas pegas têm nomes diferentes entre si (\"that each have different names\": Tiamat)"
@@ -1793,6 +1804,10 @@
      "type": "boolean",
      "description": "você é o monarca"
     },
+    "haMonarca": {
+     "type": "boolean",
+     "description": "existe um monarca na partida (false = \"if there is no monarch\": Crown of Gondor)"
+    },
     "portadorDoAnel": {
      "oneOf": [
       {
@@ -1952,12 +1967,24 @@
       "intimidar",
       "decaida",
       "infectar",
-      "fuga"
+      "fuga",
+      "prototipo",
+      "comecaNoCampo"
      ],
-     "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
+     "description": "comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
     "custo": {
      "$ref": "#/$defs/mana"
+    },
+    "pt": {
+     "type": "array",
+     "items": {
+      "type": "integer"
+     },
+     "description": "prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')"
+    },
+    "cores": {
+     "type": "string"
     },
     "n": {
      "type": "integer"
@@ -2344,6 +2371,10 @@
     "de": {
      "$ref": "#/$defs/zona"
     },
+    "exilaAoSair": {
+     "type": "boolean",
+     "description": "podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage)"
+    },
     "limite": {
      "type": "integer"
     },
@@ -2540,6 +2571,10 @@
       "teto": {
        "type": "integer",
        "description": "no máximo N (previne todo menos N)"
+      },
+      "fichaPorDano": {
+       "$ref": "#/$defs/token",
+       "description": "com prevenir: cria uma desta ficha para cada 1 de dano prevenido assim (Inkshield, CR 615)"
       },
       "maisQtd": {
        "type": "integer",
@@ -2833,12 +2868,13 @@
       "dano",
       "nome",
       "tipos",
+      "poderAcimaDeste",
       "tentacoes",
       "cemiterio",
       "jogadores",
       "excesso"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)"
     },
     "f": {
      "$ref": "#/$defs/filtro",

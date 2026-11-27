@@ -6012,6 +6012,100 @@ caso('725.1', "Mariposa Military Base: pode entrar virada e ganhar 2 rad; a comp
   igual(e.jogs[0].vida, v0 - 2, 'moeu Hill Giant e Bears: perde 2'); igual(e.jogs[0].marc.rad, 0, 'tirou 2 rad');
 });
 
+caso('702.160', "protótipo (Cradle Clearcutter): sem {6}, conjura por {2}{G} e entra 1/3 verde; o {T} dá mana igual ao poder (1); com {6}, 3/6 incolor", () => {
+  const e = cena({ campo: [...terras(3, 'Forest')], mao: [[0, 'Cradle Clearcutter']] });
+  M.avancar(e); conj(e, 'Cradle Clearcutter'); resolveCom(e);
+  const C = objN(e, 0, 'Cradle Clearcutter');
+  ok(C && C.proto, 'entrou como protótipo: ' + e.log.slice(-3).join(' / '));
+  igual([M.poder(e, C), M.resistencia(e, C), M.dadoDe(e, C).cores, M.dadoDe(e, C).vm], [1, 3, 'G', 3], '1/3 verde, valor de mana 3');
+  M.mover(e, C.id, 'mao'); ok(!e.objs[C.id].proto && M.dadoDe(e, e.objs[C.id]).vm === 6, 'fora do campo volta a ser a carta normal');
+  const f = cena({ campo: [...terras(6, 'Forest')], mao: [[0, 'Cradle Clearcutter']] });
+  M.avancar(f); conj(f, 'Cradle Clearcutter'); if (f.perg && f.perg.tipo === 'opcao') respE(f, o => o.a === 'opcao' && !o.v.prototipo); resolveCom(f);
+  const D = objN(f, 0, 'Cradle Clearcutter');
+  igual([M.poder(f, D), M.resistencia(f, D), D.proto], [3, 6, false], 'com 6: a normal');
+});
+
+caso('701.43', "exert / monarca ausente / diferença de poder / metade para cima: Combat Celebrant, Crown of Gondor, Conformer Shuriken, Contaminated Drink", () => {
+  // Combat Celebrant: exercida não desvira no próximo desvirar do controlador
+  const fx = M.carta('Combat Celebrant').gat[0].fx;
+  const e = cena({ campo: [[0, 'Combat Celebrant'], [0, 'Grizzly Bears']] });
+  const C = objN(e, 0, 'Combat Celebrant'), B = objN(e, 0, 'Grizzly Bears'); C.virada = true; B.virada = true;
+  const cx = () => ({ voce: 0, este: C.id, alvos: [], ilegal: {}, lki: { alvos: [] } });
+  for (const f of fx.slice(0, 2)) M.executar(e, f, cx(), null);
+  ok(C.virada && !B.virada && C.naoDesv === C.ts, 'o urso desvira; a Celebrant fica exercida');
+  // Crown of Gondor: lendária entrando sem monarca → você vira; com monarca (outro), não
+  const g = cena({ campo: [[0, 'Crown of Gondor']] }); g.pend = [];
+  g.por(0, 'Aesi, Tyrant of Gyre Strait'); igual(g.pend.filter(p => p.n === 'Crown of Gondor').length, 1, 'sem monarca: dispara');
+  g.pend = []; g.monarca = 1; g.por(0, 'Aesi, Tyrant of Gyre Strait'); igual(g.pend.filter(p => p.n === 'Crown of Gondor').length, 0, 'já há monarca: não');
+  const K = objN(g, 0, 'Crown of Gondor'), eq = M.atvDe(g, K).findIndex(a => a.equipar || (a.fx || []).some(x => x.op === 'anexar' || x.op === 'equipar'));
+  const custoEq = () => M.custoAtv(g, K, M.atvDe(g, K)[eq >= 0 ? eq : 0]);
+  igual(custoEq().g, 4, 'equipar {4} sem ser o monarca'); g.monarca = 0; igual(custoEq().g, 1, 'monarca: {3} a menos');
+  // Conformer Shuriken: marcadores = poder do alvo − poder deste, se maior
+  const q = { conta: { de: { alvo: 0 }, o: 'poderAcimaDeste' } };
+  const h = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Serra Angel'], [1, 'Llanowar Elves']] });
+  const U = objN(h, 0, 'Grizzly Bears'), lk = o => ({ voce: 0, este: U.id, lki: { alvos: [[M.lkiDe(h, o)]] } });
+  igual([M.qtdDe(h, q, lk(objN(h, 1, 'Serra Angel'))), M.qtdDe(h, q, lk(objN(h, 1, 'Llanowar Elves')))], [2, 0], '4−2 = 2; menor: 0');
+  // Contaminated Drink: metade de X arredondada para cima
+  const r = M.carta('Contaminated Drink').fx[1].qtd;
+  igual([1, 2, 3].map(x => M.qtdDe(h, r, { voce: 0, x, lki: {} })), [1, 1, 2], 'X=1→1, 2→1, 3→2');
+});
+
+caso('103.6a', "Leyline of the Guildpact na mão inicial começa o jogo no campo (depois dos mulligans)", () => {
+  const e = M.novoJogo([{ cartas: Array(40).fill('Leyline of the Guildpact') }, { cartas: enche(40) }], { semente: 3 });
+  M.avancar(e);
+  while (e.perg && (e.perg.tipo === 'mulligan' || e.perg.tipo === 'fundo')) M.responder(e, 0);
+  const n = e.campo.filter(id => e.objs[id].n === 'Leyline of the Guildpact').length;
+  ok(n >= 6 && e.campo.every(id => e.objs[id].ctrl === 0), 'as 7 da mão inicial (menos a comprada depois) no campo: ' + n);
+});
+
+caso('615.1', "Inkshield: previne o dano de combate a você e cria uma Inkling 2/1 voadora para cada 1 prevenido; dano fora de combate passa", () => {
+  const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
+  const e = cena(); e.pend = [];
+  M.executar(e, ach(M.carta('Inkshield')), { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  igual([M.substDano(e, 3, { jog: 0, combate: true }), M.substDano(e, 2, { jog: 0 }), M.substDano(e, 4, { jog: 1, combate: true })], [0, 2, 4], 'só o de combate em você');
+  const ink = e.campo.filter(id => e.objs[id].ctrl === 0 && (M.dadoDe(e, e.objs[id]).sub || []).includes('Inkling'));
+  igual(ink.length, 3, '3 prevenidos = 3 Inklings');
+  ok(M.temKw(e, e.objs[ink[0]], 'voar'), 'voadora');
+});
+
+caso('602.2b', "custo com um filtro por permanente (Jarad: 'Sacrifice a Swamp and a Forest'): dois Pântanos não pagam; Pântano + Floresta pagam e ele volta à mão", () => {
+  for (const terras2 of [['Swamp', 'Swamp'], ['Swamp', 'Forest']]) {
+    const e = cena({ campo: [...terras2.map(n => [0, n]), [0, 'Island']] }); e.pend = [];
+    e.por(0, 'Jarad, Golgari Lich Lord', { zona: 'cemiterio' });
+    const pode = M.opcoesPrioridade(e, 0).some(o => o.a === 'ativar' && e.objs[o.id].n === 'Jarad, Golgari Lich Lord');
+    igual(pode, terras2[1] === 'Forest', terras2.join('+'));
+    if (!pode) continue;
+    M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Jarad, Golgari Lich Lord');
+    resolveCom(e);
+    igual([naZona(e, 0, 'mao'), noCampo(e).sort()], [['Jarad, Golgari Lich Lord'], ['Island']], 'sacrificou os dois, Jarad na mão');
+  }
+});
+
+caso('701.16', "Kaalia, Zenith Seeker: entre as 6 do topo pega no máximo um Anjo, um Demônio e um Dragão (dois Anjos não); o resto vai ao fundo", () => {
+  const fx = M.carta('Kaalia, Zenith Seeker').gat[0].fx;
+  ok(M.fxSuportado(fx), 'aceita');
+  ok(!M.fxSuportado([{ op: 'cavar', olha: 6, pega: { ate: 3 }, f: { sub: ['Angel'] }, para: 'mao', umDeCada: true }]), 'umDeCada com um subtipo só: não');
+  const e = cena({ grimorio: 0 });
+  for (const n of ['Forest', 'Island', 'Balefire Dragon', 'Archfiend of Despair', 'Reya Dawnbringer', 'Serra Angel']) e.por(0, n, { zona: 'grimorio' });
+  M.executar(e, fx[0], { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.a !== 'nenhum') || ops[0]);
+  const mao = naZona(e, 0, 'mao').sort();
+  igual(mao.length, 3, 'três: ' + mao.join(', '));
+  ok(mao.includes('Balefire Dragon') && mao.includes('Archfiend of Despair') && mao.filter(n => n === 'Serra Angel' || n === 'Reya Dawnbringer').length === 1, 'um de cada');
+  igual(e.jogs[0].zonas.grimorio.length, 3, 'o resto no fundo');
+});
+
+caso('601.3', "Kess, Dissident Mage: uma vez no seu turno conjura instantânea do cemitério; ela vai para o exílio em vez do cemitério; a segunda não", () => {
+  const e = cena({ campo: [...terras(4, 'Island'), [0, 'Kess, Dissident Mage']] }); e.pend = [];
+  e.por(0, 'Opt', { zona: 'cemiterio' }); e.por(0, 'Brainstorm', { zona: 'cemiterio' });
+  const doCem = () => M.opcoesPrioridade(e, 0).filter(o => o.a === 'conjurar' && e.objs[o.id].zona === 'cemiterio').map(o => e.objs[o.id].n).sort();
+  igual(doCem(), ['Brainstorm', 'Opt'], 'as duas do cemitério');
+  M.avancar(e); conj(e, 'Opt'); resolveCom(e);
+  ok(naZona(e, 0, 'exilio').includes('Opt') && !naZona(e, 0, 'cemiterio').includes('Opt'), 'Opt foi para o exílio');
+  igual(doCem(), [], 'uma vez por turno');
+  e.turno.ativo = 1; e.turno.n++;
+  igual(doCem(), [], 'no turno do oponente não');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

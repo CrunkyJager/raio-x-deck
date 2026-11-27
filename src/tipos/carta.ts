@@ -445,6 +445,10 @@ export interface RxCustoAtv {
         f?: RxFiltro;
         qtd?: number;
         /**
+         * uma permanente para cada filtro, todas diferentes (Jarad: 'Sacrifice a Swamp and a Forest'); no lugar de f/qtd
+         */
+        e?: RxFiltro[];
+        /**
          * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
          */
         comEste?: boolean;
@@ -832,6 +836,10 @@ export interface RxFx {
    */
   soSub?: boolean;
   /**
+   * cavar: no máximo uma carta de cada subtipo do f.sub ("an Angel card, a Demon card, and/or a Dragon card": Kaalia, Zenith Seeker)
+   */
+  umDeCada?: boolean;
+  /**
    * buscar: as cartas pegas têm nomes diferentes entre si ("that each have different names": Tiamat)
    */
   nomesDiferentes?: boolean;
@@ -945,6 +953,10 @@ export interface RxCond {
    */
   monarca?: boolean;
   /**
+   * existe um monarca na partida (false = "if there is no monarch": Crown of Gondor)
+   */
+  haMonarca?: boolean;
+  /**
    * true: você tem um Portador do Anel (o Anel te tentou); 'este': esta é o seu Portador (Frodo)
    */
   portadorDoAnel?: boolean | 'este';
@@ -992,7 +1004,7 @@ export interface RxCond {
 
 export interface RxKw {
   /**
-   * sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
+   * comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
    */
   k:
     | 'voar'
@@ -1070,8 +1082,15 @@ export interface RxKw {
     | 'intimidar'
     | 'decaida'
     | 'infectar'
-    | 'fuga';
+    | 'fuga'
+    | 'prototipo'
+    | 'comecaNoCampo';
   custo?: RxMana;
+  /**
+   * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
+   */
+  pt?: number[];
+  cores?: string;
   n?: number;
   /**
    * proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
@@ -1326,6 +1345,10 @@ export interface RxEst {
    */
   camada?: string;
   de?: RxZona;
+  /**
+   * podeJogar: a mágica conjurada por esta permissão vai para o exílio em vez do cemitério (Kess, Dissident Mage)
+   */
+  exilaAoSair?: boolean;
   limite?: number;
   gratis?: boolean;
   /**
@@ -1467,6 +1490,10 @@ export interface RxSubst {
      */
     teto?: number;
     /**
+     * com prevenir: cria uma desta ficha para cada 1 de dano prevenido assim (Inkshield, CR 615)
+     */
+    fichaPorDano?: RxToken;
+    /**
      * quantas fichas a mais (padrão 1)
      */
     maisQtd?: number;
@@ -1596,7 +1623,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith)
    */
   o?:
     | 'quantos'
@@ -1633,6 +1660,7 @@ export interface RxContagem {
     | 'dano'
     | 'nome'
     | 'tipos'
+    | 'poderAcimaDeste'
     | 'tentacoes'
     | 'cemiterio'
     | 'jogadores'

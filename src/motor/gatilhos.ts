@@ -17,7 +17,7 @@ M.gatOk = g => {
   let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por)) && (!g.recebe || (g.ev === 'dano' && M.filtroOk(g.recebe)));
-  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se));
+  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se));
   memoOk.set(g, ok);
   return ok;
 };
@@ -178,7 +178,6 @@ function extras(e, F, g, ev) {
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
 const GAT_PERSISTIR = { ev: 'morre', fx: [{ op: 'persistir' }] };
-const GAT_RADIACAO = { ev: 'fase', passo: 'principal1', fx: [{ op: 'radiacao' }] };   // 725.1
 const GAT_DESAPARECER = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'desaparecer' }] };   // 702.63a
 const GAT_MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
 const ESPIRITO = { pt: [1, 1], cores: 'WB', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] };
@@ -296,10 +295,6 @@ M.evento = (e, ev) => {
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
-  if (ev.ev === 'fase' && ev.passo === 'principal1' && ev.ativo !== undefined && e.jogs[ev.ativo] && ((e.jogs[ev.ativo].marc || {}).rad || 0) > 0 && !e.turno.radFeito) {   // 725.1: só a 1ª principal do turno
-    e.turno.radFeito = true;
-    e.pend.push({ fonte: -1, ts: 0, ctrl: ev.ativo, k: 'radiacao', g: GAT_RADIACAO, n: 'Radiação', face: null, ficha: null, lki: null, ev: { ...ev } });
-  }
   if (ev.ev === 'fase' && ev.passo === 'manutencao') {
     for (const id of e.campo) {   // desaparecer (702.63a): "if there's a time counter on it" (603.4)
       const F = e.objs[id]; if (!F || F.ctrl !== ev.ativo || !(F.marc.time > 0)) continue;

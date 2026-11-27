@@ -59,6 +59,12 @@ const corEst = (d): any[] => { let l: any[] | undefined = COR_EST.get(d); if (!l
 const COR_M = new WeakMap<object, any>();
 const corM = s => { let m = COR_M.get(s); if (!m) COR_M.set(s, (m = estTipoFiltro(s) ? { tipo: s.tipo, sub: s.sub, pt: s.pt, cores: s.cores } : { cores: s.cores })); return m; };
 const estTipoFiltro = s => !!s && !!s.afeta && typeof s.afeta === 'object' && !!(s.tipo || s.sub || s.pt);
+// protótipo (CR 702.160b): custo, cor e P/R do protótipo valem como os valores copiáveis da permanente
+const PROTO = new WeakMap<object, any>();
+M.prototipoDe = d => (d.kw || []).find(x => x.k === 'prototipo' && x.custo && Array.isArray(x.pt));
+const comProto = d => { let r = PROTO.get(d); if (r) return r; const k = M.prototipoDe(d); if (!k) return d;
+  const c = k.custo, vm = (c.g || 0) + (c.p || []).length;
+  PROTO.set(d, (r = { ...d, custo: c, vm, pt: k.pt, cores: k.cores ?? (c.p || []).filter(x => /^[WUBRG]$/.test(x)).filter((x, i, a) => a.indexOf(x) === i).join('') })); return r; };
 const MISTO = new WeakMap<object, Map<any, any>>();
 const misto = (d, m) => {
   let c = MISTO.get(d); if (!c) MISTO.set(d, (c = new Map()));
@@ -106,6 +112,7 @@ M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
   if (o.zona !== 'campo') return d;
+  if (o.proto) d = comProto(d);
   if (o.nivel > 1 && d.niveis) d = comNivel(d, o.nivel);
   const A = o.anim;
   if (A && A.length) for (const a of A) if (a.ts === o.ts) d = misto(d, a);
@@ -400,7 +407,8 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
   Object.assign(o, { clone: zona === 'campo' ? clone : null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && !!conjDe, conjDe: zona === 'campo' ? conjDe : null, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
-    conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole || conj.iminente) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole, iminente: !!conj.iminente } : null });   // como foi conjurada (702.33d)
+    conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole || conj.iminente) ? { kicker: !!conj.chute, presente: !!conj.presente, prole: !!conj.prole, iminente: !!conj.iminente } : null,
+    proto: zona === 'campo' && !!conj && !!conj.prototipo });   // 702.160: conjurada como protótipo, entra com o custo/cor/P-R dele   // como foi conjurada (702.33d)
   if (zona === 'campo' && anim) o.anim = anim.map(a => ({ ...a, ts: o.ts, fim: null }));   // entra já mudada ("It's an enchantment. It's not a creature", Enduring Courage): antes dos gatilhos de entrar
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo') for (const x of M.dadoDe(e, o).kw || []) if (x.k === 'desaparecer' && Number.isInteger(x.n)) o.marc.time = (o.marc.time || 0) + x.n;   // 702.63a: entra com N marcadores de tempo   // CR 306.5b: entra com a lealdade impressa
@@ -1163,7 +1171,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
+const COND_OK = new Set(['eventoMais', 'existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal', 'portadorDoAnel']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -1216,7 +1224,7 @@ M.condicao = (e, se, ctx) => {
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
     if (se.palavra && PALAVRA[se.palavra] && !PALAVRA[se.palavra](e, ctx)) return false;
   }
-  if ((se.temIniciativa !== undefined || se.monarca !== undefined || se.completouMasmorra !== undefined || se.desceu !== undefined) && !M.condMasmorra(e, se, ctx)) return false;
+  if ((se.temIniciativa !== undefined || se.monarca !== undefined || se.haMonarca !== undefined || se.completouMasmorra !== undefined || se.desceu !== undefined) && !M.condMasmorra(e, se, ctx)) return false;
   if (se.eventoMais !== undefined) {   // "if that player has more cards in hand / lands / life than each other player" (Battle Angels of Tyr): o jogador do evento
     const jj = ctx.ev ? (ctx.ev.jog !== undefined ? ctx.ev.jog : ctx.ev.j) : undefined; if (jj === undefined) return false;
     const v = j => se.eventoMais === 'mao' ? e.jogs[j].zonas.mao.length : se.eventoMais === 'vida' ? e.jogs[j].vida : e.campo.filter(id => e.objs[id].ctrl === j && M.temTipo(e, e.objs[id], 'Land')).length;
