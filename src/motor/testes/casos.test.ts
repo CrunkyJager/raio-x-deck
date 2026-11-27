@@ -3828,6 +3828,15 @@ caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispar
   igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
 });
 
+caso('603.6a', "entra vindo de uma zona: River Kelpie dispara com permanente que volta do cemitério, não com a que vem da mão", () => {
+  const e = cena({ campo: [[0, 'River Kelpie']] }); e.pend = [];
+  const b = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
+  M.mover(e, b.id, 'campo'); igual(e.pend.filter(p => p.n === 'River Kelpie').length, 1, 'do cemitério: compra');
+  e.pend = []; const c = e.por(0, 'Grizzly Bears', { zona: 'mao' }); M.mover(e, c.id, 'campo');
+  igual(e.pend.filter(p => p.n === 'River Kelpie').length, 0, 'da mão: não');
+  ok(M.carta('Kotis, Sibsig Champion').gat.every(g => M.gatOk(g)), 'Kotis aceito');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
