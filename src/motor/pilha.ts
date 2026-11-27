@@ -101,11 +101,13 @@ function opcoesConj(e, j, d, o?) {
   if (iminenteDe(d)) l = l.flatMap(o => o.sobrecarga || o.alt !== undefined ? [o] : [o, { ...o, iminente: true }]);
   if (investidaDe(d)) l = l.flatMap(o => o.sobrecarga || o.alt !== undefined || o.iminente ? [o] : [o, { ...o, investida: true }]);   // a normal primeiro   // o custo cheio primeiro (o agente pega a primeira que fecha)
   if (dobraDe(d)) l = [...l, ...l.filter(o => !o.sobrecarga && o.alt === undefined && !o.iminente && !o.investida).map(o => ({ ...o, dobra: true }))];   // depois da normal: o agente básico prefere a normal
-  if (M.prototipoDe(d)) l = [...l, ...l.filter(x => !x.sobrecarga && x.alt === undefined && !x.iminente && !x.investida && !x.dobra).map(x => ({ ...x, prototipo: true }))];   // 702.160a: depois da normal
+  if (M.prototipoDe(d)) l = [...l, ...l.filter(x => !x.sobrecarga && x.alt === undefined && !x.iminente && !x.investida && !x.dobra).map(x => ({ ...x, prototipo: true }))];
+  const rep = o && replicarDe(e, j, o);   // 702.56a: custo adicional (601.2b), soma com qualquer outro; mais cópias primeiro (o agente pega a primeira que fecha)
+  if (rep) l = l.flatMap(x => [...Array.from({ length: REPLICAR_MAX }, (_, i) => ({ ...x, replicar: REPLICAR_MAX - i, repC: rep })), x]);   // 702.160a: depois da normal
   if (concessaoDe(d)) l = l.flatMap(o => o.sobrecarga || o.alt !== undefined || o.iminente ? [o] : [o, { ...o, concessao: true }]);   // 702.103a: alternativo (118.9a: um só)
   return l;
 }
-const custoOpc = (d, custo, opc, e?, o?) => { const c = opc.dobra ? (e ? M.custoComImposto(e, o, dobraDe(d).custo) : dobraDe(d).custo) : opc.investida ? (e ? M.custoComImposto(e, o, investidaDe(d).custo) : investidaDe(d).custo) : opc.converter ? (e ? M.custoComImposto(e, o, converterDe(d).custo) : converterDe(d).custo) : opc.concessao ? (e ? M.custoComImposto(e, o, concessaoDe(d).custo) : concessaoDe(d).custo) : opc.iminente ? (e ? M.custoComImposto(e, o, iminenteDe(d).custo) : iminenteDe(d).custo) : opc.alt !== undefined ? (b => opc.chute ? M.somaCusto(b, chuteDe(d).custo) : b)(e ? M.custoComImposto(e, o, d.est[opc.alt].pagar.mana || {}) : d.est[opc.alt].pagar.mana || {}) : opc.prototipo ? (e ? M.custoComImposto(e, o, M.prototipoDe(d).custo) : M.prototipoDe(d).custo) : opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo; return opc.prole ? M.somaCusto(c, proleDe(d).custo) : c; };
+const custoOpc = (d, custo, opc, e?, o?) => { const c = opc.dobra ? (e ? M.custoComImposto(e, o, dobraDe(d).custo) : dobraDe(d).custo) : opc.investida ? (e ? M.custoComImposto(e, o, investidaDe(d).custo) : investidaDe(d).custo) : opc.converter ? (e ? M.custoComImposto(e, o, converterDe(d).custo) : converterDe(d).custo) : opc.concessao ? (e ? M.custoComImposto(e, o, concessaoDe(d).custo) : concessaoDe(d).custo) : opc.iminente ? (e ? M.custoComImposto(e, o, iminenteDe(d).custo) : iminenteDe(d).custo) : opc.alt !== undefined ? (b => opc.chute ? M.somaCusto(b, chuteDe(d).custo) : b)(e ? M.custoComImposto(e, o, d.est[opc.alt].pagar.mana || {}) : d.est[opc.alt].pagar.mana || {}) : opc.prototipo ? (e ? M.custoComImposto(e, o, M.prototipoDe(d).custo) : M.prototipoDe(d).custo) : opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo; const c2 = opc.prole ? M.somaCusto(c, proleDe(d).custo) : c; let r = c2; for (let i = 0; i < (opc.replicar || 0); i++) r = M.somaCusto(r, opc.repC); return r; };   // replicar: N vezes (702.56a)
 // pode ser alvo de quem controla a mágica/habilidade? antimagia (CR 702.11b) e manto (CR 702.18a); proteção = T18
 const alcancavel = (e, o, voce) => !(M.temKw(e, o, 'manto') || (M.temKw(e, o, 'antimagia') && o.ctrl !== voce));
 M.alvoLegal = (e, a, esc, ctx) => {
@@ -175,7 +177,7 @@ const alvosUsadosDe = (d, fx) => {
 
 // ---------- custos (CR 118, 601.2f–h, 602.2b) ----------
 // campos de topo da carta que o motor lê além dos de sempre (a cobertura pergunta aqui): impostoPorAlvo = CR 601.2f
-M.CARTA_OK = new Set(['impostoPorAlvo']);
+M.CARTA_OK = new Set(['impostoPorAlvo', 'conjurarSo']);
 const CUSTO_OK = new Set(['mana', 'virar', 'exercer', 'desvirar', 'sacrificar', 'descartar', 'vida', 'exilarEste', 'descartarEste', 'tirarMarcador', 'devolver', 'virarOutros', 'porMarcador', 'revelar', 'exilarDe', 'fundoEste', 'desvirarOutros', 'descartarF']);
 M.custoSuportado = c => {
   for (const k in c || {}) if (!CUSTO_OK.has(k)) return false;
@@ -451,6 +453,19 @@ const rondarDado = (e, j, o) => {
     for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darRondar' && s.custo && s.afeta && typeof s.afeta === 'object' && M.bate(e, o, { ...s.afeta, zona: o.zona }, { voce: j, este: F.id })) return { k: 'rondar', custo: s.custo }; }
   return null;
 };
+// replicar (CR 702.56a): custo adicional pago quantas vezes quiser; ao conjurar, copia uma vez por pagamento.
+// kw replicar {custo} da própria carta, ou est darReplicar {afeta} de permanente sua: custo = o custo de mana da mágica
+// (Hatchery Sliver). Várias instâncias (702.56b) contam separadas; aqui vale uma só (a da carta primeiro).
+const replicarDe = (e, j, o) => {
+  const d = M.dadoDe(e, o), k = (d.kw || []).find(x => x.k === 'replicar' && x.custo);
+  if (k) return k.custo;
+  if (!d.custo) return null;
+  for (const id of e.campo) { const F = e.objs[id]; if (F.ctrl !== j) continue;
+    for (const s of M.dadoDe(e, F).est || []) if (s.modo === 'darReplicar' && s.afeta && typeof s.afeta === 'object' && M.bate(e, o, { ...s.afeta, zona: o.zona }, { voce: j, este: F.id })) return d.custo; }
+  return null;
+};
+M.replicarDe = replicarDe;
+const REPLICAR_MAX = 4;   // o agente não vai além disso (a mana raramente dá)
 const altDe = (e, j, o) => altInfo(e, j, o)?.custo;
 const altInfo = (e, j, o) => {
   let melhor: any = null, info: any = null;
@@ -512,9 +527,45 @@ M.podePrever = (e, j, o) => o.zona === 'mao' && o.dono === j && e.turno.ativo ==
 M.prever = (e, j, id) => {
   const o = e.objs[id], pl = M.podePrever(e, j, o) && plano(e, j, { g: 2 }, 0, null, o); if (!pl) return;
   pagarMana(e, j, pl, { g: 2 }, 0);
-  M.mover(e, id, 'exilio'); o.previsto = e.turno.n;
+  M.mover(e, id, 'exilio'); o.previsto = e.turno.n; o.faceBaixo = true; o.olham = [j];   // 702.143a: virada para baixo; o dono pode olhar
   M.log(e, e.jogs[j].nome, 'prevê uma carta (exila virada)');
   M.agiu(e, j);
+};
+// suspender (702.62): ação especial (116.2f) quando você poderia começar a conjurar a carta da mão (velocidade dela, 702.62a):
+// pague o custo de suspender e exile-a com N marcadores de tempo. Ela fica "suspensa" (702.62b) enquanto estiver no exílio
+// com marcador de tempo; os dois gatilhos (tirar na manutenção, conjurar ao tirar o último) estão em M.suspensoEvento.
+M.suspenderDe = (e, o) => (M.dadoDe(e, o).kw || []).find(x => x.k === 'suspender' && x.custo && Number.isInteger(x.n) && x.n > 0) || null;
+M.podeSuspender = (e, j, o) => {
+  const k = o.zona === 'mao' && o.dono === j && M.suspenderDe(e, o); if (!k || M.naoConjura(e, j)) return false;
+  const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo') || M.lampejoDado(e, j, o);
+  return (inst || M.velFeitico(e, j)) && !!plano(e, j, k.custo, 0, null, o);
+};
+M.suspender = (e, j, id) => {
+  const o = e.objs[id], k = M.podeSuspender(e, j, o) && M.suspenderDe(e, o), pl = k && plano(e, j, k.custo, 0, null, o); if (!pl) return;
+  pagarMana(e, j, pl, k.custo, 0);
+  M.mover(e, id, 'exilio'); o.marc.time = k.n; o.suspensa = true;
+  M.log(e, e.jogs[j].nome, 'suspende', o.n, `(${k.n} marcadores de tempo)`);
+  M.agiu(e, j);
+};
+// destrancar (116.2m, 709.5e): ação especial de quem controla a Room, com prioridade, pilha vazia, na fase principal do
+// próprio turno: paga o custo de mana da porta trancada e ela fica destrancada (gatilho "when you unlock this door", 709.5h)
+M.custoPorta = (o, k) => { const c = M.carta(o.n); return (k === 'e' ? c.custo : c.faces[0].custo) || {}; };
+M.podeDestrancar = (e, j, o, k) => !!o && o.zona === 'campo' && o.ctrl === j && !!o.portas && !o.portas[k] && M.velFeitico(e, j) && !!plano(e, j, M.custoPorta(o, k), 0, null, o);
+M.destrancar = (e, j, id, k) => {
+  const o = e.objs[id]; if (!M.podeDestrancar(e, j, o, k)) return;
+  const custo = M.custoPorta(o, k), pl = plano(e, j, custo, 0, null, o); if (!pl) return;
+  pagarMana(e, j, pl, custo, 0);
+  M.porPorta(e, o, k, true);
+  M.agiu(e, j);
+};
+// dá (ou tira, 709.5g) a designação de destrancada da porta k; destrancar dispara o gatilho da porta (709.5h)
+M.porPorta = (e, o, k, aberta) => {
+  if (!o.portas || !!o.portas[k] === aberta) return;
+  o.portas = { ...o.portas, [k]: aberta }; o.face = M.facePortas(o.portas);
+  e.vCamada = (e.vCamada || 0) + 1; M.idxSujo && M.idxSujo(e);
+  const c = M.carta(o.n);
+  M.log(e, e.jogs[o.ctrl].nome, aberta ? 'destranca' : 'tranca', k === 'e' ? c.n : c.faces[0].n, '(' + o.n + ')');
+  if (aberta) M.evento(e, { ev: 'destranca', id: o.id, ts: o.ts, porta: k, j: o.ctrl });
 };
 // cópia da mágica de preparo no exílio: só o controlador da criatura preparada (regras do preparar)
 const porPreparo = (e, j, o) => !!o.copiaPrep && o.zona === 'exilio' && M.prepValida(e, o) && e.objs[o.copiaPrep.id].ctrl === j;
@@ -537,6 +588,8 @@ M.loucuraDe = (e, o) => {
   return null;
 };
 const custoLoucura = (e, o) => M.loucuraDe(e, o);
+// restrição de quando conjurar (CR 601.3): passo do turno e/ou de quem é o turno
+const conjurarSoOk = (e, j, c) => (!c.passo || e.turno.passo === c.passo) && (!c.turno || (c.turno === 'seu') === (e.turno.ativo === j));
 function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const louc = !!opts.loucura && o.zona === 'exilio' && o.loucura && !!custoLoucura(e, o);
   const milag = !!opts.milagre && o.zona === 'mao' && !!M.milagreDe(e, o);   // milagre (702.94a): na resolução do gatilho, sem olhar a velocidade
@@ -544,8 +597,9 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const d = M.dadoDe(e, o);
   if (o.dono !== j && !agora && !M.permJogar(e, j, o) && !(o.zona === 'exilio' && permDe(e, j, o))) return false;
   if (!opts.gratis && permVida(e, j, o) && e.jogs[j].vida - (d.vm || 0) <= 10) return false;   // 119.4 pede vida ≥ vm; a IA não paga abaixo de 10 (como altDados)
-  if (M.temTipo(e, o, 'Land') || !d.custo) return false;          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
+  if (M.temTipo(e, o, 'Land') || (!d.custo && !opts.gratis)) return false;   // terreno não é conjurado (CR 305.9); sem custo de mana: só "sem pagar" (suspender 702.62a, cascata)
   if (M.naoConjura(e, j)) return false;
+  if (d.conjurarSo && !conjurarSoOk(e, j, d.conjurarSo)) return false;   // "cast this spell only during …" (307.5, Illusionist's Gambit)
   if (!(louc || agora || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o) || porPrevisao(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
   if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo') || M.lampejoDado(e, j, o);
@@ -676,6 +730,8 @@ function opcoes(e, j) {
   const doCem = M.temPermissaoCemiterio(e, j) ? J.zonas.cemiterio : [];
   const G = J.zonas.grimorio, doTopo = G.length && permTopo(e, j) && M.podeJogarDe(e, j, e.objs[G[G.length - 1]]) ? [G[G.length - 1]] : [];   // Courser, Oracle of Mul Daya
   for (const id of J.zonas.mao) if (M.podePrever(e, j, e.objs[id])) ops.push({ a: 'prever', id });   // 702.143a: no seu turno, com prioridade
+  for (const id of J.zonas.mao) if (M.podeSuspender(e, j, e.objs[id])) ops.push({ a: 'suspender', id });
+  for (const id of e.campo) { const o = e.objs[id]; if (o.portas && o.ctrl === j) for (const k of ['e', 'd']) if (M.podeDestrancar(e, j, o, k)) ops.push({ a: 'destrancar', id, porta: k }); }   // 116.2m   // 702.62a: quando poderia conjurá-la
   const doExilio = J.zonas.exilio.filter(id => daAventura(e, j, e.objs[id]) || porPreparo(e, j, e.objs[id]) || porPrevisao(e, j, e.objs[id]));
   const doExPerm = permissoes(e, j).some(p => p.s.de === 'exilio') ? e.jogs.flatMap(J2 => J2.zonas.exilio).filter(id => !doExilio.includes(id) && !M.permJogar(e, j, e.objs[id]) && !!permDe(e, j, e.objs[id])) : [];   // Valgavoth: as exiladas por ele, de qualquer exílio
   if (M.velFeitico(e, j) && J.terrenos < M.terrenosPorTurno(e, j))
@@ -1042,10 +1098,11 @@ const PROC = {
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
     if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
     M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; if (pjU) { const F = e.objs[pjU.ctx.este]; if (pjU.s.limite && F) F.pjUso = { t: e.turno.n, ts: F.ts }; if (pjU.s.exilaAoSair) o.exPerm = true; } o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
-    o.pil = { x, alvos, modos, ctrl: j, opc, de, ...(conc ? { conc } : {}), ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}) };
+    o.pil = { x, alvos, modos, ctrl: j, opc, de, ...(conc ? { conc } : {}), ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}), ...(P.suspensa ? { susp: true } : {}) };
     { const J = e.jogs[j]; J.conjT = { t: e.turno.n, n: (J.conjT && J.conjT.t === e.turno.n ? J.conjT.n : 0) + 1 };
       J.conjH = { t: e.turno.n, l: [...(J.conjH && J.conjH.t === e.turno.n ? J.conjH.l : []), { ...o }] }; }   // as mágicas do turno (cópia rasa na pilha): "a primeira mágica não-criatura" (Esper Sentinel)   // conta magiasNoTurno (Aetherflux, Dreamtide Whale)
     const antes = e.conjTodas && e.conjTodas.t === e.turno.n ? e.conjTodas.n : 0; e.conjTodas = { t: e.turno.n, n: antes + 1 };   // de todos os jogadores (tempestade, 702.40a)
+    if (opc.replicar) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'replicar', g: { ev: 'conjura', fx: [{ op: 'copiarMagica', em: 'este', novoAlvo: true, qtd: opc.replicar }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.56a: "when you cast this spell, copy it for each time you paid its replicate cost"
     if (M.temKw(e, o, 'tempestade') && antes > 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'tempestade', g: { ev: 'conjura', fx: [{ op: 'copiarMagica', em: 'este', novoAlvo: true, qtd: antes }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.40a: copia uma vez por mágica conjurada antes neste turno
     for (let c = M.cascatas(e, o); c > 0; c--) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'cascata', g: { ev: 'conjura', fx: [{ op: 'descobrir', qtd: Math.max(-1, (M.dadoDe(e, o).vm || 0) - 1), cascata: true }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.85a/c: cada instância dispara
     o.manaGasta = M.manaDoCusto(pl.improv || pl.delve ? pl.custo : custo, x);       // o gatilho "if the amount of mana spent…" (603.4) é visto já no evento; o pagarMana grava o exato
@@ -1062,7 +1119,7 @@ const PROC = {
     if (descRetr != null) M.descartar(e, j, [descRetr]);
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
     e.turno.magias = (e.turno.magias || 0) + 1;
-    M.log(e, e.jogs[j].nome, 'conjura', o.copiaPrep ? M.dadoDe(e, o).n + ' (cópia preparada de ' + o.n + ')' : o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', opc.prole ? '(com prole)' : '', opc.iminente ? '(iminente)' : '', conc ? '(concessão em ' + e.objs[conc.o].n + ')' : '', opc.investida ? '(investida)' : '', opc.converter ? '(convertida)' : '', opc.prototipo ? '(protótipo)' : '', opc.sobrecarga ? '(sobrecarga)' : '', opc.alt !== undefined ? '(custo alternativo)' : '', fuga ? '(fuga: exila ' + exFuga.length + ' do cemitério)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
+    M.log(e, e.jogs[j].nome, 'conjura', o.copiaPrep ? M.dadoDe(e, o).n + ' (cópia preparada de ' + o.n + ')' : o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', opc.prole ? '(com prole)' : '', opc.iminente ? '(iminente)' : '', conc ? '(concessão em ' + e.objs[conc.o].n + ')' : '', opc.investida ? '(investida)' : '', opc.converter ? '(convertida)' : '', opc.prototipo ? '(protótipo)' : '', opc.replicar ? `(replicar ×${opc.replicar})` : '', opc.sobrecarga ? '(sobrecarga)' : '', opc.alt !== undefined ? '(custo alternativo)' : '', fuga ? '(fuga: exila ' + exFuga.length + ' do cemitério)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
     if (!P.loucura && !P.milagre && !P.agora) M.agiu(e, j);                                                     // CR 601.2i → 117.3c (loucura: no meio da resolução)
   },
 
@@ -1184,7 +1241,7 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
   if (o.hab) { const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); delete e.objs[o.id]; return; }
   if (resolveu && M.ehPermanente(e, o)) {
     const plano = M.decidirEntrada(e, o.id, o.pil.ctrl, o.pil.opc && o.pil.opc.converter ? { face: 0 } : {}, ask);   // pergunta antes de mexer; convertida entra transformada (702.162b)
-    const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga, deZ = o.pil.de, c0 = o.pil.conc;
+    const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga, deZ = o.pil.de, c0 = o.pil.conc, susp = o.pil.susp;
     const conc = c0 && M.alvoLegal(e, ALVO_CONC, c0, { voce: o.pil.ctrl, este: o.id }) ? c0 : null;   // 702.103e: alvo ilegal → resolve como criatura
     if (c0 && !conc) M.log(e, o.n, 'alvo da concessão ilegal: entra como criatura (702.103e)');
     o.pil = null;
@@ -1196,6 +1253,7 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
       M.executar(e, { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'mover', em: 'este', para: 'mao' }] } }, { voce: ent.ctrl, este: ent.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, ent) } }, null);
     }
     if (ent && conj && conj.dobra) (e.atras || (e.atras = [])).push({ g: GAT_DOBRA, ctrl: ent.ctrl, fonte: ent.id, n: ent.n, t: e.turno.n, lki: null, mem: { movidos: [{ id: ent.id, ts: ent.ts }] } });   // 702.185a     // conjDe: de que zona ("if you cast it from your hand", Cyclone Summoner); filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
+    if (susp && ent && M.temTipo(e, ent, 'Creature')) { (ent.anim || (ent.anim = [])).push({ ts: ent.ts, kw: [{ k: 'pressa' }], fim: null }); e.vCamada = (e.vCamada || 0) + 1; }   // 702.62a: conjurada pelo suspender, ímpeto (simplificação: enquanto estiver no campo, não só enquanto você controla)
     if (fuga && typeof fuga === 'object') for (const m in fuga) ent.marc[m] = (ent.marc[m] || 0) + fuga[m];   // 702.138c: "foge com"                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
     return;
   }

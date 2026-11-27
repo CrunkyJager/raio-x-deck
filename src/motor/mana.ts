@@ -285,8 +285,10 @@ const reducaoAtv = (e, o, a, r) => { if (a.reduz !== undefined) r.g += Math.max(
 // "you may spend blue mana as though it were mana of any color to pay the activation costs of this creature's abilities"
 // (Quicksilver Elemental, CR 609.4b): cada símbolo de outra cor vira híbrido com a cor (R → R/U); incolor {C} e phyrexiano ficam
 const comoQualquerCor = (e, o, c, a?) => {
-  if (a && a._qualquerCor && c.p && c.p.length)   // qualquer mana colorida paga qualquer símbolo de cor (Drana and Linvala); {C} e phyrexiano ficam
-    return { ...c, p: c.p.map(p => /^[WUBRG]$/.test(p) || /^[WUBRG]\/[WUBRG]$/.test(p) ? '*' : p) };
+  if (a && a._qualquerCor && c.p && c.p.length) {   // qualquer mana paga a cor (Drana and Linvala): símbolo colorido/híbrido vira genérico; {C} e phyrexiano ficam
+    const fica = c.p.filter(p => !/^[WUBRG](\/[WUBRG])?$/.test(p));
+    return { ...c, g: (c.g || 0) + c.p.length - fica.length, p: fica };
+  }
   const s = (M.dadoDe(e, o).est || []).find(x => x.modo === 'manaComoQualquerCor' && x.afeta === 'este' && /^[WUBRG]$/.test(x.corMana || ''));
   if (!s || !c.p || !c.p.length) return c;
   return { ...c, p: c.p.map(p => /^[WUBRG]$/.test(p) && p !== s.corMana ? p + '/' + s.corMana : p) };

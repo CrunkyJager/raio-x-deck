@@ -71,6 +71,9 @@ const basico = (e, p) => {
         if ((d.vm || 0) > bv) { bv = d.vm || 0; b = i; }
       });
       if (b >= 0) return b;
+      // suspender (702.62a): com a mana que sobrou das mágicas, a carta que não dá para conjurar agora (sem custo de mana ou cara demais)
+      const kss = p.ops.findIndex(op => op.a === 'suspender' && !p.ops.some(x => x.a === 'conjurar' && x.id === op.id));
+      if (kss >= 0) return kss;
       if (meu) {                      // equipar (CR 702.6): o Equipamento que não está preso a ninguém
         const ke = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._equipar && !M.anexadoA(e, o(op.id))
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));   // já na pilha: espera resolver
@@ -82,6 +85,9 @@ const basico = (e, p) => {
         const kn = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._nivel
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));
         if (kn >= 0) return kn;
+        // Room (709.5e): destranca a outra porta com a mana que sobrou das mágicas
+        const kd = p.ops.findIndex(op => op.a === 'destrancar');
+        if (kd >= 0) return kd;
       }
       if (meu) {
         const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());

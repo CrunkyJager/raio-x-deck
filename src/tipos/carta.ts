@@ -110,6 +110,24 @@ export interface Carta {
     gat?: RxGat[];
     atv?: RxAtv[];
   }[];
+  /**
+   * "cast this spell only during …" (601.3): só no passo e/ou só no turno de quem (Illusionist's Gambit: bloqueadores, oponente)
+   */
+  conjurarSo?: {
+    passo?:
+      | 'desvirar'
+      | 'manutencao'
+      | 'compra'
+      | 'principal1'
+      | 'inicioCombate'
+      | 'atacantes'
+      | 'bloqueadores'
+      | 'dano'
+      | 'fimCombate'
+      | 'principal2'
+      | 'final';
+    turno?: 'seu' | 'oponente';
+  };
 }
 
 /**
@@ -584,7 +602,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4) | fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); monstruosidade: se esta (em, padrão 'este') não é monstruosa, põe qtd marcadores +1/+1 e ela fica monstruosa (CR 701.37); gat ev monstruosa = 'when it becomes monstrous'; olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade); tirarDoCombate: em deixa de atacar/bloquear (506.4) | fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); olharMao: quem olha a mão de quem (quem = o jogador olhado; só informação, vai ao log) | tirarDoCombate põe as que saíram em 'anterior'; vidaVira: a vida de quem vira qtd (119.5: ganha ou perde a diferença); semDanoCombate: em não causa dano de combate neste combate (Master of Cruelties)
    */
   op:
     | 'mana'
@@ -650,7 +668,9 @@ export interface RxFx {
     | 'olharMao'
     | 'resolverCaso'
     | 'selar'
-    | 'tirarDoCombate';
+    | 'tirarDoCombate'
+    | 'vidaVira'
+    | 'semDanoCombate';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -798,6 +818,12 @@ export interface RxFx {
    */
   tiraKw?: RxKw[];
   /**
+   * anular: se anulou uma habilidade cuja fonte está no campo e bate f, a fonte perde todas as habilidades enquanto esta permanente estiver no campo (Tishana's Tidebinder; CR 613.1f)
+   */
+  perdeFonte?: {
+    f: RxFiltro;
+  };
+  /**
    * animar: ganha todos os tipos de criatura
    */
   todosTipos?: boolean;
@@ -909,6 +935,10 @@ export interface RxFx {
    * op mover para o exílio: guarda que foi este objeto que exilou (607.2a), para o filtro exiladaPorEste depois
    */
   comEste?: boolean;
+  /**
+   * exila virada para baixo (406.3): ninguém vê, só quem olhou ao exilar (cavar: 'look at ... and exile face down', Lobelia) ou quem o efeito deixa; sem características no exílio (406.3a)
+   */
+  faceBaixo?: true;
   /**
    * op mover para o campo: entra com a face de trás (712.14): exilar e voltar transformada (Ajani, Welcome to … III), volta do cemitério transformada (Ojer Taq)
    */
@@ -1145,7 +1175,7 @@ export interface RxCond {
 
 export interface RxKw {
   /**
-   * comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
+   * replicar {custo}: custo adicional pago N vezes ao conjurar; ao conjurar, copia N vezes (CR 702.56); comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx
    */
   k:
     | 'voar'
@@ -1232,7 +1262,9 @@ export interface RxKw {
     | 'prototipo'
     | 'comecaNoCampo'
     | 'converter'
-    | 'dragar';
+    | 'dragar'
+    | 'suspender'
+    | 'replicar';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
@@ -1240,7 +1272,7 @@ export interface RxKw {
   pt?: number[];
   cores?: string;
   /**
-   * dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b)
+   * dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b). suspender: N marcadores de tempo, com custo (702.62a: da mão, pague o custo e exile com N marcadores; na sua manutenção tira 1; ao tirar o último, conjura sem pagar o custo de mana; criatura ganha ímpeto). desaparecer: N (702.63a: entra com N marcadores de tempo; na sua manutenção, se tem, tira 1; ao tirar o último, sacrifique)
    */
   n?: number;
   /**
@@ -1293,9 +1325,10 @@ export interface RxAtv {
 
 export interface RxGat {
   /**
-   * portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)
+   * destranca: "when you unlock this door" — no texto da porta (face) de uma Room; dispara quando essa porta fica destrancada, ao entrar ou pagando o custo (709.5h); portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur); naoBloqueada: atacante sem bloqueador declarado (509.3g, 'attacks and isn't blocked'; jog/doEvento = o defensor; aJogador: só quem ataca um jogador)
    */
   ev:
+    | 'destranca'
     | 'cicla'
     | 'desvira'
     | 'jogaTerreno'
@@ -1336,7 +1369,8 @@ export interface RxGat {
     | 'portador'
     | 'ativa'
     | 'gasta'
-    | 'danoPrevenido';
+    | 'danoPrevenido'
+    | 'naoBloqueada';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1358,6 +1392,9 @@ export interface RxGat {
    */
   deQuem?: 'voce' | 'cadaJogador' | 'oponente' | 'oponenteEscolhido';
   combate?: boolean;
+  /**
+   * dano/danoUmaVez: o dano foi num jogador; naoBloqueada: a criatura atacava um jogador
+   */
   aJogador?: boolean;
   /**
    * o dano é a um jogador ou planeswalker (Neheb)
@@ -1455,7 +1492,7 @@ export interface RxGat {
 
 export interface RxEst {
   /**
-   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
+   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | atacaSozinha (afeta 'este'): só pode atacar sozinha (506.5, 508.1c; Master of Cruelties) | naoPodeAtacar com contra num efeitoTemporario com em: aquelas não atacam você nem seus planeswalkers (Illusionist's Gambit) | darReplicar (afeta = filtro da mágica): as mágicas suas que batem têm replicar com custo = o custo de mana delas (Hatchery Sliver, 702.56); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew); darRondar: as mágicas suas que batem em afeta têm rondar com o custo 'custo' (Hunting Velociraptor, 702.76); darRondar: as mágicas suas que batem em afeta têm rondar com este custo (Hunting Velociraptor) | manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew) | naoPerdeJogo (afeta voce): você não pode perder o jogo e seus oponentes não podem vencer (Platinum Angel; dado por modificar dura sempre: The Book of Exalted Deeds); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
    */
   modo:
     | 'continuo'
@@ -1490,6 +1527,7 @@ export interface RxEst {
     | 'darRetrace'
     | 'darBis'
     | 'semRegraLenda'
+    | 'radiacaoGanhaVida'
     | 'darLoucura'
     | 'oponentesNaoProcuram'
     | 'custoProibido'
@@ -1497,11 +1535,16 @@ export interface RxEst {
     | 'equiparComoInstantanea'
     | 'primeiroEquiparGratis'
     | 'darRondar'
-    | 'manaComoQualquerCor';
+    | 'manaComoQualquerCor'
+    | 'atacaSozinha'
+    | 'darReplicar';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
-  pt?: unknown[];
+  /**
+   * continuo com tipo: P/R base [p, r]; 'vm' = cada afetado com P/R base iguais ao seu valor de mana (Starfield of Nyx, March of the Machines)
+   */
+  pt?: unknown[] | 'vm';
   kw?: RxKw[];
   tipo?: string[];
   habil?: {
@@ -1558,6 +1601,10 @@ export interface RxEst {
    * continuo: os afetados perdem estas palavras-chave (Colossus Hammer: "and loses flying")
    */
   tiraKw?: RxKw[];
+  /**
+   * continuo: os afetados perdem todas as habilidades (CR 613.1f, camada 6; Poppet Factory). O que foi dado depois (timestamp maior, 613.7) fica
+   */
+  tiraTudo?: true;
   /**
    * continuo afeta equipada: os tipos de criatura viram só os de sub ("is a black Zombie", Nim Deathmantle; CR 205.1b)
    */
@@ -1618,9 +1665,9 @@ export interface RxEst {
    */
   corMana?: 'W' | 'U' | 'B' | 'R' | 'G';
   /**
-   * ganhaAtivadas: pode gastar mana como se fosse de qualquer cor para ativar as habilidades ganhas (Drana and Linvala; 609.4b). {C} e phyrexiano não mudam
+   * ganhaAtivadas: a mana paga como se fosse de qualquer cor nos custos das habilidades ganhas (Drana and Linvala: 'You may spend mana as though it were mana of any color to activate those abilities', CR 609.4b)
    */
-  qualquerCor?: true;
+  qualquerCor?: boolean;
   /**
    * reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)
    */
@@ -1819,7 +1866,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room); alvos (de evento, com f): quantos alvos distintos da mágica do evento batem no filtro f (Arcee: "put that many +1/+1 counters"); marcadores (de custo): os tirados no custo "remove one or more" (Arcee)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); manaGasta (de evento conjura): a mana gasta para conjurar (Liberator); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room); alvos (de evento, com f): quantos alvos distintos da mágica do evento batem no filtro f (Arcee: "put that many +1/+1 counters"); marcadores (de custo): os tirados no custo "remove one or more" (Arcee)
    */
   o?:
     | 'quantos'
