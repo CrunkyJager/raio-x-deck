@@ -794,6 +794,12 @@ export interface RxFx {
    */
   tiraKw?: RxKw[];
   /**
+   * anular: se anulou uma habilidade cuja fonte está no campo e bate f, a fonte perde todas as habilidades enquanto esta permanente estiver no campo (Tishana's Tidebinder; CR 613.1f)
+   */
+  perdeFonte?: {
+    f: RxFiltro;
+  };
+  /**
    * animar: ganha todos os tipos de criatura
    */
   todosTipos?: boolean;
@@ -1551,6 +1557,10 @@ export interface RxEst {
    * continuo: os afetados perdem estas palavras-chave (Colossus Hammer: "and loses flying")
    */
   tiraKw?: RxKw[];
+  /**
+   * continuo: os afetados perdem todas as habilidades (CR 613.1f, camada 6; Poppet Factory). O que foi dado depois (timestamp maior, 613.7) fica
+   */
+  tiraTudo?: true;
   /**
    * continuo afeta equipada: os tipos de criatura viram só os de sub ("is a black Zombie", Nim Deathmantle; CR 205.1b)
    */

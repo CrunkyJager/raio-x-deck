@@ -110,14 +110,14 @@ const ANEL_GATS = [0, 1, 2, 3, 4].map(n => ANEL_GAT.filter(g => g._anel <= n));
 M.gatAnel = (e, o) => M.ehPortador(e, o) ? ANEL_GATS[Math.min(4, e.jogs[o.ctrl].anel.n)] : NADA.atv;
 M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 // animar enquantoNoCampo: vale enquanto a fonte (mesmo objeto, ts) está no campo sob o mesmo controlador (611.2b)
-const animFonteOk = (e, s) => { const F = e.objs[s.id]; return !!F && F.zona === 'campo' && F.ts === s.ts && F.ctrl === s.ctrl; };
+const animFonteOk = (e, s) => { const F = e.objs[s.id]; return !!F && F.zona === 'campo' && F.ts === s.ts && (s.ctrl === undefined || F.ctrl === s.ctrl); };   // sem ctrl: "enquanto esta permanecer no campo" (Tidebinder)
 M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
   if (o.zona !== 'campo') return o.zona === 'pilha' && o.pil && o.pil.conc ? comoAura(d) : d;
   if (o.proto) d = comProto(d);   // 702.103b: mágica concedida é de Aura
   if (o.nivel > 1 && d.niveis) d = comNivel(d, o.nivel);
   const A = o.anim;
-  if (A && A.length) for (const a of A) if (a.ts === o.ts && (!a.src || animFonteOk(e, a.src))) d = misto(d, a);
+  if (A && A.length) for (const a of A) if (a.ts === o.ts && !a.semHab && (!a.src || animFonteOk(e, a.src))) d = misto(d, a);
   const st = tipoEste(d);
   if (st.length && !lendoTipo) {
     lendoTipo++;
@@ -151,6 +151,10 @@ M.dadoDe = (e, o) => {
           if (ok) d = misto(d, s);
         }
       }
+      // perder todas as habilidades (camada 6, CR 613.1f): depois dos tipos e cores (as camadas 4/5 das próprias
+      // estáticas já valeram, 613.6); o que foi dado depois (timestamp maior, 613.7) volta
+      const P = perdeTs(e, o, I);
+      if (P) { d = semHab(d); if (A) for (const a of A) if (a.ts === o.ts && !a.semHab && a.kw && a.kw.length && (a.tE || 0) >= P && (!a.src || animFonteOk(e, a.src))) d = comKw(d, a.kw); }
     } finally { lendoTipo--; }
   }
   if (o.anexo && (d.kw || []).some(x => x.k === 'reconfigurar')) d = semCriatura(d);   // 702.151b: anexada, não é criatura
@@ -158,6 +162,42 @@ M.dadoDe = (e, o) => {
   if (e.jogs[o.ctrl] && e.jogs[o.ctrl].anel && M.ehPortador(e, o)) d = misto(d, ANEL_LEND);   // 701.54c: o Portador do Anel é lendário
   return d;
 };
+// ---- perder todas as habilidades (CR 613.1f, camada 6) ----
+// Fontes: o.anim {semHab, tE, src} (efeito de resolução preso ao objeto: Tishana's Tidebinder "enquanto esta criatura
+// estiver no campo") e a estática 'continuo' {tiraTudo} (Poppet Factory: "fichas de criatura suas perdem todas as
+// habilidades"; timestamp = o da fonte, 613.7a). Devolve o timestamp mais novo que vale (0 = não perde). Quem decide
+// se a estática afeta lê o objeto sem a perda (613.8 simplificado). Estática de fonte que também perdeu tudo não vale.
+let perdendo = 0;
+const PERDE_OK = s => s.modo === 'continuo' && s.tiraTudo === true;
+const temPerde = d => (d.est || []).some(PERDE_OK);
+function perdeTs(e, o, I): number {
+  let P = 0;
+  const A = o.anim;
+  if (A) for (const a of A) if (a.semHab && a.ts === o.ts && (!a.src || animFonteOk(e, a.src)) && (a.tE || 0) > P) P = a.tE || 1;
+  if (!I.ph.length || perdendo) return P;
+  perdendo++;
+  try {
+    for (const id of I.ph) {
+      const F = e.objs[id]; if (!F || F.zona !== 'campo' || F.ts <= P) continue;
+      const ctx = { voce: F.ctrl, este: F.id };
+      for (const s of M.dadoBase(e, F).est || []) {
+        if (!PERDE_OK(s) || !afeta(e, F, s, o, ctx)) continue;
+        let ok = true; if (s.se) { try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } }
+        if (ok && !(F.id !== o.id && perdeTs(e, F, I))) { P = F.ts; break; }
+      }
+    }
+  } finally { perdendo--; }
+  return P;
+}
+M.perdeTs = (e, o) => o.zona === 'campo' ? perdeTs(e, o, indice(e)) : 0;
+// rápido: sem nenhuma fonte de perda no campo nem o.anim, nem olha
+const perdeu = (e, o) => o.zona === 'campo' && (!!o.anim || indice(e).ph.length > 0) && perdeTs(e, o, indice(e)) > 0;
+M.perdeuTudo = perdeu;
+// sem palavras-chave, estáticas, gatilhos, ativadas e substituições (a de mana também, 605); tipos, cores e P/R impressos ficam
+const SEM_HAB = new WeakMap<object, any>();
+const semHab = d => { let r = SEM_HAB.get(d); if (!r) { r = { ...d }; for (const k of ['kw', 'est', 'gat', 'atv', 'subst', 'niveis']) delete r[k]; SEM_HAB.set(d, r); } return r; };
+const COM_KW = new WeakMap<object, Map<any, any>>();
+const comKw = (d, kw) => { let c = COM_KW.get(d); if (!c) COM_KW.set(d, (c = new Map())); let r = c.get(kw); if (!r) c.set(kw, (r = { ...d, kw: [...(d.kw || []), ...kw] })); return r; };
 // reconfigurar (702.151b): enquanto anexada, perde o tipo Criatura e os subtipos de criatura (fica o Equipamento)
 const SEM_CRIATURA = new WeakMap<object, any>();
 const semCriatura = d => {
@@ -663,7 +703,7 @@ const equiparDe = kw => {
 // (habil), P/R fixado (7b) e perder habilidade ficam para a próxima volta: a estática com eles não é lida.
 // Dependência (CR 613.8) simplificada: enquanto uma estática decide quem afeta (filtro, condição, contagem), as
 // leituras de P/R e palavra-chave usam só a carta (sem camadas). Nenhum filtro do banco hoje depende de outra camada.
-const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se', 'habil', 'cores', 'tiraKw']);   // tiraKw: "e perde voar" (Colossus Hammer, 613.1f)
+const CONT_OK = new Set(['modo', 'afeta', 'p', 'r', 'kw', 'se', 'habil', 'cores', 'tiraKw', 'tiraTudo']);   // tiraTudo: "perdem todas as habilidades" (Poppet Factory, 613.1f; lido no M.dadoDe)   // tiraKw: "e perde voar" (Colossus Hammer, 613.1f)
 const TIPOS_CARTA = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle']);
 // tipo/sub dado a 'este' (camada 4): lido no M.dadoDe; com filtro (Ashaya, Bello, Dryad, Leyline) ainda não
 M.estTipoOk = s => !!s && s.modo === 'continuo' && s.afeta === 'este' && (s.tipo || s.sub || s.tiraTipo) && Object.keys(s).every(k => ['modo', 'afeta', 'tipo', 'sub', 'tiraTipo', 'se'].includes(k))
@@ -703,7 +743,8 @@ M.estContOk = s => M.estTipoOk(s) || M.estTipoFiltroOk(s) || (!!s && estTipoFilt
 const contOk = s => !!s && s.modo === 'continuo' && Object.keys(s).every(k => CONT_OK.has(k) || k.startsWith('_'))
   && (s.afeta === 'este' || s.afeta === 'equipada' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
   && qtdEstOk(s.p) && qtdEstOk(s.r) && M.kwListaOk(s.kw) && M.kwListaOk(s.tiraKw) && habilOk(s.habil)
-  && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || (s.tiraKw || []).length > 0 || s.habil !== undefined || s.cores !== undefined)
+  && (s.p !== undefined || s.r !== undefined || (s.kw || []).length > 0 || (s.tiraKw || []).length > 0 || s.habil !== undefined || s.cores !== undefined || s.tiraTudo === true)
+  && (s.tiraTudo === undefined || s.tiraTudo === true)
   && (s.cores === undefined || (typeof s.cores === 'string' && /^[WUBRG]*$/.test(s.cores)))
   && (!s.se || M.seOk(s.se));
 const NADA = { p: 0, r: 0, kw: [] as any[], gat: [] as any[], atv: [] as any[] };
@@ -712,14 +753,14 @@ let lendoCamada = 0;
 // O mover e o criarFicha avisam quem entra e sai (M.campoEntra/M.campoSai); e.vCamada (transformar, trocar de
 // controle, anexar) ou o tamanho do campo fora do esperado refazem tudo. Antes a chave era e.ts: cada ficha nova
 // refazia a varredura, e com milhares de Goblins do Krenko cada evento era O(campo) — O(n²) na partida.
-type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; tp: number[]; tf: number[]; cor: number[]; l: [any, any][] | null; hab: boolean };
+type Idx = { v: number; n: number; gat: number[]; est: number[]; sb: number[]; tp: number[]; tf: number[]; cor: number[]; ph: number[]; l: [any, any][] | null; hab: boolean };
 const IDX = new WeakMap<any, Idx>();
 function indice(e): Idx {
   let I = IDX.get(e);
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
-  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], tf: [], cor: [], l: null, hab: false };
+  I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], tf: [], cor: [], ph: [], l: null, hab: false };
   lendoTipo++;   // o dadoDe daqui não lê o tipo dado pela equipada (é o próprio índice que ele usa)
-  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && (o.ganhos.gat || o.ganhos.gatS)) || M.ehPortador(e, o)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); if (tipoFiltro(d).length) I.tf.push(id); if (corEst(d).length) I.cor.push(id); } }
+  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && (o.ganhos.gat || o.ganhos.gatS)) || M.ehPortador(e, o)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); if (tipoFiltro(d).length) I.tf.push(id); if (corEst(d).length) I.cor.push(id); if (temPerde(d)) I.ph.push(id); } }
   finally { lendoTipo--; }
   IDX.set(e, I);
   return I;
@@ -733,7 +774,7 @@ M.campoEntra = (e, id) => {
   const I = IDX.get(e); if (!I) return;
   if (I.v !== (e.vCamada || 0) || I.n + 1 !== e.campo.length) { IDX.delete(e); return; }
   let d; lendoTipo++; try { d = M.dadoDe(e, e.objs[id]); } finally { lendoTipo--; }
-  if (tipoEquip(d).length || tipoFiltro(d).length || corEst(d).length) { IDX.delete(e); return; }   // raro (Equipamento que dá tipo): refaz tudo, a equipada pode mudar de tipo
+  if (tipoEquip(d).length || tipoFiltro(d).length || corEst(d).length || temPerde(d)) { IDX.delete(e); return; }   // raro (Equipamento que dá tipo): refaz tudo, a equipada pode mudar de tipo
   I.n++;
   if (d.gat) I.gat.push(id);
   if (d.est) { I.est.push(id); I.l = null; }
@@ -748,6 +789,7 @@ M.campoSai = (e, id) => {
   k = I.sb.indexOf(id); if (k >= 0) I.sb.splice(k, 1);
   k = I.tp.indexOf(id); if (k >= 0) I.tp.splice(k, 1);
   k = I.tf.indexOf(id); if (k >= 0) I.tf.splice(k, 1);
+  k = I.ph.indexOf(id); if (k >= 0) I.ph.splice(k, 1);
 };
 // ganho de vida (CR 119.3) com as substituições 'ganhaVida' do campo (CR 614.1a): Angel of Vitality/Bilbo (soma),
 // The Wind Crystal (mult). Cada uma vale uma vez por evento (616.5); a ordem é de quem ganha (616.1): somas antes
@@ -782,12 +824,15 @@ M.perderVida = (e, j, q) => {
   M.evento(e, { ev: 'perdeVida', j, q });
   return q;
 };
+// est ptDefinido com filtro e números (camada 7b, 613.4b): "fichas de criatura suas têm P/R base 3/3" (Poppet Factory)
+const ptFiltroOk = s => s.modo === 'ptDefinido' && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && Number.isInteger(s.pBase) && Number.isInteger(s.rBase) && Object.keys(s).every(k => ['modo', 'afeta', 'pBase', 'rBase', 'se'].includes(k));
 // quem no campo tem estática 'continuo' lida (sem isso, cada leitura de P/R ou palavra-chave varria o campo inteiro)
 function fontesCont(e): Idx & { l: [any, any][] } {
   const I = indice(e);
   if (I.l) return I as Idx & { l: [any, any][] };
   const l: [any, any][] = [];
-  for (const id of I.est) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s) && !M.estTipoFiltroOk(s)) l.push([id, s]);   // tipo com filtro: no dadoDe
+  lendoTipo++;   // as estáticas de quem perdeu tudo ficam na lista (a perda é conferida a cada leitura, camadas)
+  try { for (const id of I.est) for (const s of M.dadoDe(e, e.objs[id]).est || []) if (s.modo === 'continuo' && M.estContOk(s) && !M.estTipoFiltroOk(s) || ptFiltroOk(s)) l.push([id, s]); } finally { lendoTipo--; }   // tipo com filtro: no dadoDe
   I.l = l; I.hab = l.some(([, s]) => s.habil);
   return I as Idx & { l: [any, any][] };
 }
@@ -824,15 +869,15 @@ M.tempTem = (t, o) => {
 };
 // soma dos 'modificar' até o fim do turno por objeto (id:ts). e.temp só cresce no turno (e vira [] novo na virada),
 // então o índice só acrescenta as entradas novas.
-const SOMA_T = new WeakMap<any[], { n: number; m: Map<string, { p: number; r: number; kw: any[]; base?: number[] }> }>();
+const SOMA_T = new WeakMap<any[], { n: number; m: Map<string, { p: number; r: number; kw: any[]; kts: number[]; base?: number[] }> }>();
 function somaTemp(temp: any[]) {
   let I = SOMA_T.get(temp);
   if (!I || I.n > temp.length) SOMA_T.set(temp, I = { n: 0, m: new Map() });
   for (; I.n < temp.length; I.n++) {
     const t = temp[I.n];
     for (const x of t.ids) {
-      const k = x.id + ':' + x.ts; let v = I.m.get(k); if (!v) I.m.set(k, v = { p: 0, r: 0, kw: [] });
-      v.p += t.p || 0; v.r += t.r || 0; for (const w of t.kw || []) v.kw.push(w);
+      const k = x.id + ':' + x.ts; let v = I.m.get(k); if (!v) I.m.set(k, v = { p: 0, r: 0, kw: [], kts: [] });
+      v.p += t.p || 0; v.r += t.r || 0; for (const w of t.kw || []) { v.kw.push(w); v.kts.push(t.ts || 0); }
       if (t.base) v.base = t.base;   // 7b: o mais novo vale (613.7, ordem de ts = ordem do e.temp)
     }
   }
@@ -867,21 +912,26 @@ function camadas(e, o, lote?: any[]) {
   if (!fontes.length && !temp.length) return NADA;
   lendoCamada++;
   try {
-    let p = 0, r = 0; const kw: any[] = [], gat: any[] = [], atv: any[] = [], tira: string[] = [];
+    let p = 0, r = 0, base: number[] | undefined; const kw: any[] = [], gat: any[] = [], atv: any[] = [], tira: string[] = [];
+    const P = FC.ph.length || o.anim ? perdeTs(e, o, FC) : 0;   // perdeu tudo (613.1f): o dado antes disso não vale (613.7)
     for (const [x, s] of fontes) {
       const F = typeof x === 'object' ? x : e.objs[x];
+      if (s.tiraTudo) continue;
+      if (typeof x !== 'object' && F.zona === 'campo' && (FC.ph.length || F.anim) && perdeTs(e, F, FC)) continue;   // a fonte perdeu as próprias estáticas
       const ctx = { voce: F.ctrl, este: F.id };
       if (!afeta(e, F, s, o, ctx)) continue;
       if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
+      if (s.modo === 'ptDefinido') { base = [s.pBase, s.rBase]; continue; }   // 7b: em ordem de campo, o mais novo vale (613.7)
       if (s.p !== undefined) p += qtdCamada(e, s, s.p, F, ctx);
       if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx);
+      if (P && (F.ts || 0) < P) continue;   // camada 6 mais velha que a perda
       for (const x of s.kw || []) { if (x.de !== 'escolhido') { kw.push(x); continue; } const v = F.escolha && (F.escolha.tipoCarta || F.escolha.cor); if (v) kw.push(kwEscolhido(x, v)); }   // "protection from the chosen card type/color" (Serra's Emissary): o que a fonte escolheu ao entrar
       for (const x of s.tiraKw || []) tira.push(x.k);
       if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
     const T = temp.length ? somaTemp(temp).get(o.id + ':' + o.ts) : undefined;
-    if (T) { p += T.p; r += T.r; for (const x of T.kw) kw.push(x); }
-    return { p, r, kw, gat, atv, ...(tira.length ? { tira } : {}), ...(T && T.base ? { base: T.base } : {}) };
+    if (T) { p += T.p; r += T.r; T.kw.forEach((x, k) => { if (!P || T.kts[k] >= P) kw.push(x); }); }
+    return { p, r, kw, gat, atv, ...(tira.length ? { tira } : {}), ...(T && T.base ? { base: T.base } : base ? { base } : {}) };   // o de resolução (Sephiroth) é o mais novo
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
@@ -903,7 +953,7 @@ M.kwDe = (e, o) => {
   let b = M.dadoDe(e, o).kw || []; const C = camadas(e, o), c = C.kw;
   if (c.length) b = b.concat(c);
   if ((C as any).tira) b = b.filter(x => !(C as any).tira.includes(x.k));   // perde (613.1f; simplificação: também a ganha depois, como o tiraKw do animar)
-  if (o.zona === 'campo' && o.marc) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
+  if (o.zona === 'campo' && o.marc && !perdeu(e, o)) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);   // perdeu tudo: o marcador ficou, a palavra-chave não (simplificação: marcador posto antes)
   // "perde antimagia e indestrutível até o fim do turno" (Shadowspear, 613.1f): o.anim.tiraKw. Simplificação: tira também a
   // palavra-chave ganha depois (613.7 diria que a mais nova vale)
   if (o.anim && o.zona === 'campo') for (const a of o.anim) if (a.ts === o.ts && a.tiraKw) b = b.filter(x => !a.tiraKw.includes(x.k));
@@ -1029,8 +1079,9 @@ const bisDado = (e, o) => {
 M.atvDe = (e, o) => {
   let b = atvCarta(M.dadoDe(e, o));
   if (o.zona === 'cemiterio') { const x = bisDado(e, o); if (x && !b.some(a => a._bis)) b = b.concat([x]); }
-  if (o.ganhos && o.ganhos.atv) b = b.concat(o.ganhos.atv);
-  if (o.ganhos && o.ganhos.atvT) b = b.concat(o.ganhos.atvT);   // até o fim do turno (Quicksilver Elemental)
+  const sem = !!o.ganhos && perdeu(e, o);   // perdeu tudo: o ganho por resolução (sem timestamp) conta como mais velho
+  if (o.ganhos && o.ganhos.atv && !sem) b = b.concat(o.ganhos.atv);
+  if (o.ganhos && o.ganhos.atvT && !sem) b = b.concat(o.ganhos.atvT);   // até o fim do turno (Quicksilver Elemental)
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
   if (o.zona === 'mao') b = b.concat(cicloNaMao(e, o));
   if (o.zona === 'campo') for (const s of M.dadoDe(e, o).est || []) if (s.modo === 'ganhaAtivadas' && s.afeta === 'este' && s.f)   // "has all activated abilities of all creatures your opponents control" (Drana and Linvala): as impressas (sem as ganhas, 613.8 sem laço)
@@ -1044,9 +1095,10 @@ M.temHabil = e => fontesCont(e).hab;
 M.loteHabil = (e, lote) => (lote || []).filter(S => (M.dadoDe(e, S).est || []).some(s => s.modo === 'continuo' && s.habil));
 M.gatDe = (e, o, lote?) => {
   let b = M.dadoDe(e, o).gat || [];
-  if (o.ganhos && o.ganhos.gatS) b = b.concat(o.ganhos.gatS);
-  if (o.zona === 'campo' && e.jogs[o.ctrl] && e.jogs[o.ctrl].anel) { const ga = M.gatAnel(e, o); if (ga.length) b = b.concat(ga); }   // ganho sem prazo (Rivaz): antes do de fim de turno, que sai na limpeza
-  if (o.ganhos && o.ganhos.gat) b = b.concat(o.ganhos.gat);   // ganho por resolução até o fim do turno (Demonic Gifts); o mover zera
+  const sem = (!!o.ganhos || (!!e.jogs[o.ctrl] && !!e.jogs[o.ctrl].anel)) && perdeu(e, o);   // perdeu tudo: ganhos e o Anel contam como mais velhos
+  if (o.ganhos && o.ganhos.gatS && !sem) b = b.concat(o.ganhos.gatS);
+  if (o.zona === 'campo' && e.jogs[o.ctrl] && e.jogs[o.ctrl].anel && !sem) { const ga = M.gatAnel(e, o); if (ga.length) b = b.concat(ga); }   // ganho sem prazo (Rivaz): antes do de fim de turno, que sai na limpeza
+  if (o.ganhos && o.ganhos.gat && !sem) b = b.concat(o.ganhos.gat);   // ganho por resolução até o fim do turno (Demonic Gifts); o mover zera
   if (!fontesCont(e).hab && !(lote && lote.length)) return b;
   const h = camadas(e, o, lote).gat;
   return h.length ? b.concat(h) : b;
