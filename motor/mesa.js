@@ -836,16 +836,15 @@ function arena(Ds,seed,cfg){
 }
 
 const COMBOS=[["Heliod, Sun-Crowned","Walking Ballista"],["Thassa's Oracle","Demonic Consultation"],["Thassa's Oracle","Tainted Pact"],
- ["Kinnan, Bonder Prodigy","Basalt Monolith"],["Isochron Scepter","Dramatic Reversal"],["Exquisite Blood","Sanguine Bond"],["Niv-Mizzet, Parun","Curiosity"],
+ ["Kinnan, Bonder Prodigy","Basalt Monolith"],["Isochron Scepter","Dramatic Reversal"],["Niv-Mizzet, Parun","Curiosity"],
  ["Kiki-Jiki, Mirror Breaker","Zealous Conscripts"],["Kiki-Jiki, Mirror Breaker","Pestermite"],["Kiki-Jiki, Mirror Breaker","Deceiver Exarch"],["Splinter Twin","Deceiver Exarch"],["Splinter Twin","Pestermite"],
  ["Mikaeus, the Unhallowed","Triskelion"],["Dualcaster Mage","Twinflame"],["Dualcaster Mage","Heat Shimmer"],["Worldgorger Dragon","Animate Dead"],["Painter's Servant","Grindstone"],
  ["Bloodchief Ascension","Mindcrank"],["Peregrine Drake","Deadeye Navigator"],["Basalt Monolith","Rings of Brighthearth"],["Basalt Monolith","Forsaken Monument"],
  ["Ashnod's Altar","Nim Deathmantle","Wurmcoil Engine"],["Food Chain","Eternal Scourge"],["Food Chain","Squee, the Immortal"],["Underworld Breach","Brain Freeze","Lion's Eye Diamond"],
- ["Sanguine Bond","Vito, Thorn of the Dusk Rose"],["Exquisite Blood","Vito, Thorn of the Dusk Rose"],["Walking Ballista","Mikaeus, the Unhallowed"],["Ghave, Guru of Spores","Ashnod's Altar"],
- ["Krenko, Mob Boss","Skirk Prospector","Impact Tremors"],
+ ["Walking Ballista","Mikaeus, the Unhallowed"],["Ghave, Guru of Spores","Ashnod's Altar"],
  ["Sharuum the Hegemon","Disciple of the Vault","Phyrexian Metamorph"],["Prosper, Tome-Bound","Mayhem Devil","Ashnod's Altar"],["Meren of Clan Nel Toth","Ashnod's Altar","Reassembling Skeleton"],
- 
- ["Edgar Markov","Sanguine Bond","Exquisite Blood"],["Isshin, Two Heavens as One","Najeela, the Blade-Blossom"]];
+
+ ["Isshin, Two Heavens as One","Najeela, the Blade-Blossom"]];
 /* N partidas do deck 0 contra 3 sorteados do grupo de oponentes */
 function torneio(Dv,Ops,N,seed,prog,nOp){nOp=nOp||3;
   const R=rngDe(seed>>>0),Q=[];
