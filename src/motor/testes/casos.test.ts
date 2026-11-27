@@ -4446,6 +4446,36 @@ caso('709.3', 'lista colada com "A // B" (carta de duas faces/portas): acha pelo
   ok(Object.values<any>(e.objs).some(o => o.n === 'Dazzling Theater'), 'virou Dazzling Theater');
 });
 
+caso('118.9', "Baleful Mastery: pagou o custo alternativo {1}{B} → um oponente (à escolha) compra; pelo custo normal, não", () => {
+  ok(M.fxSuportado(M.carta('Baleful Mastery').fx), 'aceito');
+  const e = cena({ jogs: 3, campo: [[0, 'Swamp'], [0, 'Swamp'], [1, 'Grizzly Bears']], mao: [[0, 'Baleful Mastery']] });
+  const m1 = e.jogs[1].zonas.mao.length, m2 = e.jogs[2].zonas.mao.length;
+  e.jogs[2].vida = 30;
+  M.avancar(e); conj(e, 'Baleful Mastery'); alvoObj(e, 'Grizzly Bears');
+  resolveCom(e);
+  ok(naZona(e, 1, 'exilio').includes('Grizzly Bears'), 'exilou');
+  igual([e.jogs[1].zonas.mao.length - m1, e.jogs[2].zonas.mao.length - m2], [0, 1], 'só o oponente escolhido compra (o de menos vida)');
+  const f = cena({ campo: [[1, 'Grizzly Bears']], mao: [[0, 'Baleful Mastery']] });
+  const b = f.jogs[0].zonas.mao[0], u = f.campo.find(id => f.objs[id].n === 'Grizzly Bears');
+  M.mover(f, b, 'pilha'); const n1 = f.jogs[1].zonas.mao.length;
+  const ctx: any = { voce: 0, este: b, alvos: [[{ o: u, ts: f.objs[u].ts }]], ilegal: {}, lki: {} };
+  for (const x of M.carta('Baleful Mastery').fx) M.executar(f, x, ctx, null);
+  igual(f.jogs[1].zonas.mao.length, n1, 'sem o alternativo: ninguém compra');
+});
+
+caso('101.4', "Gluntch: no seu fim de turno escolhe um jogador para cada parte (2 marcadores numa criatura dele, compra 1, 2 Tesouros)", () => {
+  ok(M.carta('Gluntch, the Bestower').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Gluntch, the Bestower'], [1, 'Grizzly Bears'], [1, 'Hill Giant']], passo: 'principal2' }); e.pend = [];
+  const m1 = e.jogs[1].zonas.mao.length;
+  passarAte(e, 'final'); M.avancar(e);
+  let k = 0;
+  resolveCom(e, p => p.tipo === 'jogador' ? (k++ < 2 ? p.ops.findIndex(o => o.jog === 1) : p.ops.findIndex(o => o.jog === 0)) : p.tipo === 'um' ? p.ops.findIndex(o => e.objs[o.id].n === 'Grizzly Bears') : -1);
+  const ursos = e.campo.map(id => e.objs[id]).find(o => o.n === 'Grizzly Bears');
+  igual(ursos.marc['+1/+1'], 2, 'o jogador 1 escolheu os Ursos');
+  igual(e.jogs[1].zonas.mao.length - m1, 1, 'o jogador 1 compra');
+  igual(e.campo.filter(id => e.objs[id].n === 'Treasure' && e.objs[id].ctrl === 0).length, 2, 'eu crio 2 Tesouros');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

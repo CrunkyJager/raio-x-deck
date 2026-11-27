@@ -154,7 +154,7 @@ export type RxQtd =
     };
 
 /**
- * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots)
+ * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = "choose a player": você escolhe qualquer jogador ao resolver (Gluntch)
  */
 export type RxJogador =
   | (
@@ -170,6 +170,7 @@ export type RxJogador =
       | 'atacado'
       | 'proximo'
       | 'cadaAtual'
+      | 'umJogador'
     )
   | {
       alvo: number;
@@ -271,17 +272,17 @@ export interface RxFiltro {
    */
   exiladaPorEste?: boolean;
   /**
-   * sem nenhum marcador (Damning Verdict)
+   * true = sem nenhum marcador (Damning Verdict); texto = sem marcador deste tipo (Wave Goodbye: '+1/+1')
    */
-  semMarcador?: boolean;
+  semMarcador?: boolean | string;
   /**
    * tem estas palavras-chave
    */
   kw?: string[];
   /**
-   * não tem o mesmo nome de outra permanente que você controla
+   * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
-  nomeUnico?: boolean;
+  nomeUnico?: boolean | 'criaturaOuCemiterio';
   /**
    * poder maior que o poder base
    */
@@ -359,6 +360,9 @@ export type RxObjeto =
     }
   | {
       todos: RxFiltro;
+    }
+  | {
+      um: RxFiltro;
     }
   | ('este' | 'equipada' | 'doEvento' | 'criadas' | 'escolhida' | 'anterior' | 'cadaAtual' | 'descartadaCusto');
 
@@ -601,6 +605,10 @@ export interface RxFx {
   gat?: RxGat[];
   emblema?: boolean;
   /**
+   * efeitoTemporario: vale só para a próxima mágica que você conjurar (Mistrise Village: subst anulada)
+   */
+  proximaMagica?: boolean;
+  /**
    * copiarMagica: pode escolher novos alvos
    */
   novoAlvo?: boolean;
@@ -769,7 +777,10 @@ export interface RxCond {
    * algum oponente tem vida ≤ N (Bloodghast)
    */
   vidaOponenteMax?: number;
-  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke';
+  /**
+   * alternativo: a mágica foi conjurada pagando o custo alternativo dela (est custoAlternativo afeta este; Baleful Mastery)
+   */
+  conjuradaCom?: 'sobrecarga' | 'kicker' | 'flashback' | 'madness' | 'evoke' | 'alternativo';
   /**
    * Addendum: ESTA mágica foi conjurada durante a fase principal do controlador (implica turno seu; vale o momento de conjurar, não o de resolver)
    */
@@ -1077,6 +1088,10 @@ export interface RxGat {
    * conjura: também quando copia
    */
   ouCopia?: boolean;
+  /**
+   * conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)
+   */
+  primeiraNoTurno?: boolean;
   /**
    * zona de origem do objeto que mudou de zona
    */
