@@ -2616,7 +2616,7 @@ caso('118.9', 'custo alternativo: grátis com comandante no campo (Flawless Mane
   igual(M.altDe(e, 0, fm), {}, 'com o comandante no campo: grátis');
   ok(M.podeConjurar(e, 0, fm), 'conjura sem mana de branco');
   igual(M.vmDe(M.altDe(e, 0, bm) || M.carta('Baleful Mastery').custo), 2, 'Baleful Mastery: {1}{B} no lugar de {3}{B}');
-  ok(!M.estAltOk({ modo: 'custoAlternativo', afeta: 'este', pagar: { vida: 1 } }), 'pagar vida: ainda não');
+  ok(M.estAltOk({ modo: 'custoAlternativo', afeta: 'este', pagar: { vida: 1 } }) && !M.estAltOk({ modo: 'custoAlternativo', afeta: 'este', pagar: { vida: 'X' } }), 'pagar vida: opção de conjurar (Force of Will); vida X não');
 });
 
 caso('714.2b', "saga: Urza's Saga entra com 1 (capítulo I), +1 na sua 1ª principal (II, III), habilidades ganhas e sacrifício nas ABE (714.4)", () => {
@@ -3499,6 +3499,26 @@ caso('611.3a', "Bloodghast: tem pressa só enquanto um oponente estiver com 10 o
   igual(M.temKw(e, bg, 'pressa'), false, '40 de vida');
   e.jogs[1].vida = 10; igual(M.temKw(e, bg, 'pressa'), true, 'oponente com 10');
   e.jogs[0].vida = 5; e.jogs[1].vida = 11; igual(M.temKw(e, bg, 'pressa'), false, 'a sua vida não conta');
+});
+
+caso('118.9', "custo alternativo físico: Force of Will sem mana paga 1 de vida e exila uma carta azul da mão; sem carta azul, não. Sephara por {W} vira quatro criaturas com voar", () => {
+  for (const azul of [true, false]) {
+    const e = cena({ campo: [[1, 'Island']], mao: [[0, 'Force of Will'], ...(azul ? [[0, 'Brainstorm']] : [[0, 'Lightning Bolt']])] });
+    e.pend = [];
+    e.por(1, 'Grizzly Bears', { zona: 'mao' });
+    e.turno.ativo = 1; e.turno.passo = 'principal1';
+    const alvo = e.por(1, 'Lightning Bolt', { zona: 'mao' });
+    M.mover(e, alvo.id, 'pilha'); alvo.pil = { x: 0, alvos: [[{ jog: 0 }]], ctrl: 1, opc: {} };
+    const fow = e.jogs[0].zonas.mao.find(x => e.objs[x].n === 'Force of Will');
+    igual(M.podeConjurar(e, 0, e.objs[fow]), azul, 'com carta azul na mão: ' + azul);
+    if (!azul) continue;
+    M.PROC.conjurar(e, { j: 0, id: fow }, (j, tipo, ops) => { const i = ops.findIndex(o => o.a === 'alvo' && o.o === alvo.id); return ops[i >= 0 ? i : 0]; });
+    igual([e.objs[fow].zona, e.jogs[0].vida, naZona(e, 0, 'exilio')], ['pilha', 39, ['Brainstorm']], 'pagou 1 de vida e exilou a azul');
+  }
+  const f = cena({ campo: [[0, 'Plains'], ...Array.from({ length: 4 }, () => [0, 'Vampire Nighthawk'])], mao: [[0, "Sephara, Sky's Blade"]] });
+  f.pend = []; f.jogs[0].terrenos = 1;
+  M.avancar(f); conj(f, "Sephara, Sky's Blade"); resolveCom(f, () => -1);
+  igual([noCampo(f).includes("Sephara, Sky's Blade"), f.campo.filter(id => f.objs[id].n === 'Vampire Nighthawk' && f.objs[id].virada).length], [true, 4]);
 });
 
 // ---------- rodar ----------
