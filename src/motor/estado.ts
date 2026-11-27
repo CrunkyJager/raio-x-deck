@@ -33,6 +33,9 @@ const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if
 const TIPO_EQUIP = new WeakMap<object, any[]>();
 const tipoEquip = (d): any[] => { let l: any[] | undefined = TIPO_EQUIP.get(d); if (!l) TIPO_EQUIP.set(d, (l = (d.est || []).filter(s => M.estTipoEquipOk(s)).map(s => ({ tipo: s.tipo, sub: s.sub, se: s.se })))); return l as any[]; };
 const SUB_NAO_CRIATURA = new Set(['Equipment', 'Aura', 'Vehicle', 'Saga', 'Class', 'Shrine', 'Cartouche', 'Curse', 'Role', 'Fortification']);
+// subtipos que não são de criatura (205.3g-j: terreno, artefato, mágica): metamorfo não os tem
+const SUB_NAO_CRIAT_TODOS = new Set([...SUB_NAO_CRIATURA, 'Plains', 'Island', 'Swamp', 'Mountain', 'Forest', 'Gate', 'Desert', 'Cave', 'Town', 'Sphere', 'Lair', 'Locus', 'Mine', 'Tower', 'Power-Plant', "Urza's",
+  'Food', 'Treasure', 'Clue', 'Blood', 'Map', 'Gold', 'Incubator', 'Powerstone', 'Junk', 'Attraction', 'Contraption', 'Bobblehead', 'Arcane', 'Trap', 'Lesson', 'Adventure', 'Omen', 'Room', 'Case', 'Background']);
 // a parte de tipo das estáticas que dão tipo/sub a quem bate um filtro (Ashaya: "nontoken creatures you control are
 // Forest lands"; Dryad: "lands you control are every basic land type", CR 613.1d, 305.7 "in addition")
 const TIPO_FILTRO = new WeakMap<object, any[]>();
@@ -52,6 +55,7 @@ const misto = (d, m) => {
   const novas = (m.sub || []).filter(t => ATV_BASICA[t] && !(d.sub || []).includes(t));
   if (novas.length && (r.tipos || []).includes('Land')) r.atv = [...(d.atv || []), ...novas.map(t => ATV_BASICA[t])];
   if (m.pt) r.pt = m.pt;
+  if (m.todosTipos) r.todosTipos = true;   // "is every creature type" (205.3m, Mirror Entity): lido no tiposCriatura
   if (m.kw && m.kw.length) r.kw = [...(d.kw || []), ...m.kw];
   if (m.cores !== undefined) r.cores = m.cores;
   if (m.maisCores) r.cores = [...new Set([...(r.cores || ''), ...m.maisCores])].join('');   // "in addition to its other colors" (105.3)
@@ -857,7 +861,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha) || (t === 'escolhido' && ehEscolhido(e, o, ctx)))) return false;
-  if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s))) return false;   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
+  if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s) || (!SUB_NAO_CRIAT_TODOS.has(s) && tiposCriatura(e, o) === 'todos'))) return false;   // metamorfo/todosTipos: é de todo tipo de criatura (702.73a, 205.3m)   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
   if (f.tipoTodos && !f.tipoTodos.every(t => (d.tipos || []).includes(t))) return false;            // criatura artefato (Mycosynth Golem)
   if (f.historico && !((d.tipos || []).includes('Artifact') || (d.super || []).includes('Legendary') || (d.sub || []).includes('Saga'))) return false;   // CR 700.6
@@ -894,6 +898,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
 const tiposCriatura = (e, o) => {
   const d = M.dadoDe(e, o);
   if ((d.kw || []).some(x => x.k === 'metamorfo')) return 'todos';
+  if (d.todosTipos && (d.tipos || []).includes('Creature')) return 'todos';
   return (d.tipos || []).some(t => t === 'Creature' || t === 'Kindred' || t === 'Tribal') ? d.sub || [] : [];
 };
 M.tiposCriatura = tiposCriatura;
