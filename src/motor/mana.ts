@@ -12,6 +12,11 @@ M.coresDeProd = (e, o, prod) => {
   if (Array.isArray(prod)) return [...new Set(prod.flatMap(c => c === 'escolhida' ? (esc ? [esc] : []) : [c]))];
   if (prod === 'escolhida') return esc ? [esc] : [];
   if (prod === 'qualquer') return CORES;
+  if (prod && typeof prod === 'object' && prod.coresEntre) {      // "one mana of any color among legendary creatures and planeswalkers you control" (Mox Amber)
+    const s = new Set<string>();
+    for (const x of M.objetosQue(e, { zona: 'campo', ...prod.coresEntre }, { voce: o.ctrl, este: o.id })) for (const c of M.dadoDe(e, x).cores || '') s.add(c);
+    return CORES.filter(c => s.has(c));
+  }
   if (prod === 'comandante') return CORES.filter(c => e.jogs[o.ctrl].ci.includes(c));
   // {cadaCor: filtro}: "for each color among permanents you control, add one mana of that color" (Faeburrow Elder, Bloom
   // Tender): as cores do conjunto. pacotesDe dá TODAS juntas (um pacote só), não uma à escolha
@@ -256,6 +261,7 @@ M.somaCusto = (c, extra, vezes = 1) => {
   const r = { ...c };
   if (extra.g) r.g = (r.g || 0) + extra.g * vezes;
   if (extra.p && extra.p.length) r.p = [...(r.p || []), ...Array.from({ length: vezes }, () => extra.p).flat()];
+  if (extra.x) r.x = (r.x || 0) + extra.x * vezes;                  // chute {X} (Thieving Skydiver): o X entra no custo e é anunciado
   return r;
 };
 // base: um custo alternativo no lugar do custo de mana (loucura, CR 702.35b); imposto e reduções valem igual (601.2f)
@@ -286,6 +292,9 @@ function reducoes(e, j, o, deHabil) {
   const r = { g: 0, p: [] as string[], min: 0 };
   const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
   if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
+  for (const J of e.jogs) for (const id of J.zonas.comando || []) {   // eminência (Ur-Dragon): "as long as … in the command zone or on the battlefield"
+    const C = e.objs[id]; if (C && C.id !== o.id && (M.dadoDe(e, C).est || []).some(s => s.modo === 'reduzCusto' && s.se && (s.se.esteEm || []).includes('comando'))) fontes.push(C);
+  }
   if (!deHabil) for (const k of M.dadoDe(e, o).kw || []) if (k.k === 'afinidade' && k.tipo)   // CR 702.41: {1} a menos por [tipo] seu
     r.g += M.objetosQue(e, { tipo: [k.tipo], ctrl: 'voce', zona: 'campo' }, { voce: j, este: o.id }).length;
   for (const F of fontes) for (const s of M.dadoDe(e, F).est || []) {
@@ -293,7 +302,7 @@ function reducoes(e, j, o, deHabil) {
     const ctx = { voce: F.ctrl, este: F.id };
     if (s.afeta === 'este') { if (F.id !== o.id || (s.de && o.zona !== s.de)) continue; }
     else {
-      if (F.zona !== 'campo') continue;                               // a estática com filtro só vale do campo
+      if (F.zona !== 'campo' && !(s.se && (s.se.esteEm || []).includes(F.zona))) continue;   // a estática com filtro só vale do campo (ou de onde o esteEm diz)
       const { zona, ctrl, ...f } = s.afeta;
       if (ctrl && ctrl !== 'qualquer' && (ctrl === 'voce') !== (j === F.ctrl)) continue;
       if (deHabil ? zona && zona !== 'qualquer' && o.zona !== zona : zona && zona !== 'pilha') continue;

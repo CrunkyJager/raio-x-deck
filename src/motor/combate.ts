@@ -33,11 +33,14 @@ function protegeDe(e, alvo, fonteDado) {
     if (x.k !== 'protecao') continue;
     if (x.de === 'tudo' || x.de === 'everything') return true;
     if ((x.de === 'cadaCor' || x.de === 'each color') && cores) return true;
-    if (x.de && x.de.length === 1 && cores.includes(x.de)) return true;
+    if (x.de && M.protKwBate(x.de, fonteDado)) return true;
   }
   return false;
 }
 M.protegeDe = protegeDe;
+// "de" de uma proteção bate com a fonte? cor (W/U/B/R/G), tipo de carta (Serra's Emissary) ou subtipo (Dog, Rat)
+M.protKwBate = (de, fd) => /^[WUBRG]+$/.test(de) ? [...de].some(c => (fd.cores || '').includes(c)) :   // uma cor ou várias ("each of that creature's colors")
+   (fd.tipos || []).includes(de) || (fd.sub || []).includes(de);
 
 // ---------- atacantes (CR 508.1) ----------
 // "[criaturas que batem] não podem atacar", de outra permanente (est naoPodeAtacar com afeta filtro; seJog: o controlador
@@ -62,14 +65,15 @@ function podeAtacar(e, o, a) {
 function alvosAtaque(e, a) {
   const cobra = new Set<any>();
   for (const id of e.campo) { const o = e.objs[id]; if ((M.dadoDe(e, o).est || []).some(s => s.modo === 'ataqueCusta')) cobra.add(o.ctrl); }
-  const r: any[] = [];
+  const r: any[] = [], semAtaque = new Set(M.tempDe(e, 'naoPodeAtacar').filter(({ s }) => s.contra && s.contra.jog === 'voce').map(({ t }) => t.ctrl));   // "não podem atacar você" (efeito temporário)
   for (const j of M.vivos(e)) {
     if (j === a || cobra.has(j)) continue;
-    r.push({ jog: j });
+    if (!semAtaque.has(j)) r.push({ jog: j });
     for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === j && M.temTipo(e, o, 'Planeswalker')) r.push({ o: id }); }
   }
   return r;
 }
+M.alvosAtaque = (e, a) => alvosAtaque(e, a);
 const defDe = (e, alvo) => alvo.jog !== undefined ? alvo.jog : e.objs[alvo.o].ctrl;
 // CR 508.4: permanente que entra atacando. Quem a controla escolhe um jogador ou planeswalker que ela poderia atacar
 // (508.4a); primeiro o mais atacado agora (o agente básico pega o primeiro). Não foi declarada: não dispara "ataca".
@@ -139,7 +143,7 @@ function podeBloquear(e, b, d) {
 function bloqueiaEste(e, b, at) {                                                          // 509.1b: restrições do atacante
   for (const s of M.dadoDe(e, at).est || []) {                                             // "não pode ser bloqueada (por X)"
     if (s.modo !== 'naoPodeSerBloqueada' || s.afeta !== 'este') continue;
-    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id }); } catch (_) { vale = false; }
+    let vale = !s.se; if (s.se) try { vale = M.condicao(e, s.se, { voce: at.ctrl, este: at.id, ev: { def: b.ctrl } }); } catch (_) { vale = false; }   // ev.def: "as long as defending player…" (Nightkin)
     if (vale && (!s.por || (M.filtroOk(s.por) && M.bate(e, b, s.por, { voce: at.ctrl, este: at.id })))) return false;
   }
   for (const [F, s] of M.estDaEquipada(e, at, 'naoPodeSerBloqueada')) {                   // Equipamento/Aura (Brotherhood Regalia)
@@ -295,7 +299,7 @@ function aplicarGolpes(e, golpes) {
     if (!(g.q > 0)) continue;
     const fd = M.dadoDe(e, g.fonte);
     if (g.alvo.jog !== undefined) {
-      if (M.protegeJog(e, g.alvo.jog)) continue;                                           // 702.16j: prevenido
+      if (M.protegeJog(e, g.alvo.jog, g.fonte)) continue;                                           // 702.16j: prevenido
       const J = e.jogs[g.alvo.jog];
       M.danoJogador(e, g.alvo.jog, g.q, M.kwDe(e, g.fonte));                               // 120.3a (infectar: veneno, 702.90b); 119.7
       if (g.fonte.cmd) J.danoCmd[g.fonte.id] = (J.danoCmd[g.fonte.id] || 0) + g.q;          // 903.10a
