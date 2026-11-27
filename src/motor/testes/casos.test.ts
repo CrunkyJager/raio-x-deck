@@ -3936,6 +3936,14 @@ caso('701.9', "descartar com contagem (Honden of Night's Reach): no começo da s
   igual([e.jogs[1].zonas.mao.length, e.jogs[1].zonas.cemiterio.length], [2, 2], 'dois Santuários: descarta 2');
 });
 
+caso('122.1', "Damning Verdict: destrói só as criaturas sem marcador nenhum", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
+  const b0 = objN(e, 0, 'Grizzly Bears'); b0.marc['+1/+1'] = 1;
+  const el = objN(e, 1, 'Llanowar Elves'); el.marc['-1/-1'] = 0;
+  M.executar(e, M.carta('Damning Verdict').fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => ops[0]);
+  igual(noCampo(e).sort(), ['Grizzly Bears'], 'só a com marcador fica (marcador zerado não conta)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
