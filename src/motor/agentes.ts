@@ -84,6 +84,9 @@ const basico = (e, p) => {
       });
       return b;
     }
+    // "choose a player"/"an opponent" sem alvo (Gluntch, Baleful Mastery): o que é bom fica comigo; entre oponentes, o de menos vida
+    case 'jogador': { const k = p.ops.findIndex(op => op.jog === p.j); return k >= 0 ? k : melhorOp(p.ops, op => -e.jogs[op.jog].vida); }
+    case 'um': return melhorOp(p.ops, op => M.poder(e, o(op.id)));   // "a creature you control" sem alvo: a de mais poder
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
     case 'manter': {                  // a que fica: a de mais valor (não ficha, maior valor de mana)
       let b = 0, bv = -Infinity;
@@ -97,17 +100,20 @@ const basico = (e, p) => {
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;
     }
+    case 'virar': {                   // "vire até N" (Myr Battlesphere): todas as que der
+      const k = p.ops.findIndex(op => op.a === p.tipo); return k >= 0 ? k : 0;
+    }
     case 'escolherCarta': {           // marcadores numa criatura escolhida (Finality): a de maior resistência
       if (!(p.ctx && p.ctx.op === 'marcador')) return 0;
       return melhorOp(p.ops, op => op.id === undefined ? -99 : M.resistencia(e, o(op.id)));
     }
+    case 'desvirar': {                // "desvire até N": as suas primeiro (o núcleo já põe as suas na frente)
+      const k = p.ops.findIndex(op => op.id !== undefined && o(op.id).ctrl === p.j);
+      return k >= 0 ? k : 0;
+    }
     case 'tumulto': {                 // 702.136a: pressa se ainda dá para atacar neste turno; senão o marcador (fica para sempre)
       const atacaJa = e.turno.ativo === p.j && ['principal1', 'inicioCombate'].includes(e.turno.passo);
       return p.ops.findIndex(op => op.a === (atacaJa ? 'pressa' : 'marcador'));
-    }
-    case 'virar': case 'desvirar': {   // "vire/desvire até N" (Myr Battlesphere, Snap, Frantic Search): todas as que der; desvirar: as suas primeiro
-      const m = p.tipo === 'desvirar' ? p.ops.findIndex(op => op.a === p.tipo && op.id !== undefined && o(op.id).ctrl === p.j) : -1;
-      const k = m >= 0 ? m : p.ops.findIndex(op => op.a === p.tipo); return k >= 0 ? k : 0;
     }
     case 'x': {                       // X de vida (Toxic Deluge): o menor que mata a maior criatura do oponente, sem morrer
       if (!(p.ctx && p.ctx.vida)) return 0;
@@ -159,7 +165,10 @@ const basico = (e, p) => {
       return k >= 0 ? k : 0;
     }
     case 'escolha': {
-      if (p.ops.some(op => op.a === 'tipoCarta')) return melhorOp(p.ops, op => Object.values<any>(e.objs).reduce((s, x) => s + (x.dono === p.j && !x.hab && !x.ficha && (M.dadoDe(e, x).tipos || []).includes(op.v) ? 1 : 0), 0));   // o tipo de card mais comum no deck
+      if (p.ops.some(op => op.a === 'tipoCarta')) {   // "choose a card type": redução (Cloud Key) → o tipo mais comum nas suas mágicas; proteção (Serra's Emissary) → o mais comum nos oponentes
+        const F = p.ctx && o(p.ctx.id), red = !!F && (M.dadoDe(e, F).est || []).some(s => s.modo === 'reduzCusto');
+        return melhorOp(p.ops, op => Object.values<any>(e.objs).reduce((s, x) => s + (!x.hab && (red ? x.dono === p.j && x.zona !== 'campo' : x.dono !== p.j) && M.temTipo(e, x, op.v) ? (x.zona === 'campo' ? 2 : 1) : 0), 0));
+      }
       if (p.ops.some(op => op.a === 'tipo')) return melhorOp(p.ops, op => Object.values<any>(e.objs).reduce((s, x) => s + (x.dono === p.j && !x.hab && M.temTipo(e, x, 'Creature') && (M.dadoDe(e, x).sub || []).includes(op.v) ? (x.zona === 'campo' ? 2 : 1) : 0), 0));
       const k = p.ops.findIndex(op => op.a === 'cor' && J.ci.includes(op.v)); return k >= 0 ? k : 0;
     }
