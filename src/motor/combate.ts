@@ -132,6 +132,10 @@ function bloqueiaEste(e, b, at) {                                               
   }
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
+  if (kw(e, at, 'intimidar') && !M.temTipo(e, b, 'Artifact')) {                          // 702.13b: só criatura artefato ou que divide cor
+    const ca = M.dadoDe(e, at).cores || '', cb = M.dadoDe(e, b).cores || '';
+    if (![...ca].some(c => cb.includes(c))) return false;
+  }
   if (protegeDe(e, at, M.dadoDe(e, b))) return false;                                     // 702.16b
   return true;
 }
