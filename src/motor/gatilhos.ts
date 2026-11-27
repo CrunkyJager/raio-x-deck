@@ -6,7 +6,7 @@ import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa']);
-const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre']);
+const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
 const LACO = 500;
 const memoOk = new WeakMap();
@@ -39,7 +39,7 @@ function bateEv(e, g, ev, F) {
     case 'sacrificado': return ev.ev === 'zona' && ev.de === 'campo' && !!ev.sac && q(ev.snap);   // 701.21: quem sacrifica é o controlador (snap.ctrl)
     case 'vaiCemiterio': return ev.ev === 'zona' && ev.para === 'cemiterio' && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(ev.snap || e.objs[ev.id]);
     case 'ataca': return ev.ev === 'ataca' && q(e.objs[ev.id]);
-    case 'explora': return ev.ev === 'explora' && q(e.objs[ev.id]);   // CR 701.44c: "whenever a creature you control explores"
+    case 'explora': return ev.ev === 'explora' && (g.revelaTerreno === undefined || ev.terreno === g.revelaTerreno) && q(e.objs[ev.id]);   // CR 701.44c: "whenever a creature you control explores" (revelaTerreno: "explores a land / nonland card", Nicanzil)
     case 'atacantesDeclarados': return ev.ev === 'atacantesDeclarados' && !g.quem && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'bloqueia': return ev.ev === 'bloqueia' && q(e.objs[ev.id]);
     case 'dano': return ev.ev === 'dano' && (!g.combate || ev.combate) && (!g.recebe || (ev.o !== undefined && !!e.objs[ev.o] && bate(e, e.objs[ev.o], g.recebe, ctx))) && (!g.aJogador || ev.jog !== undefined) && (!g.aJogadorOuPw || ev.jog !== undefined || (ev.o !== undefined && !!e.objs[ev.o] && M.temTipo(e, e.objs[ev.o], 'Planeswalker'))) && (!g.aOponente || (ev.jog !== undefined && ev.jog !== F.ctrl)) && q(ev.snap || e.objs[ev.fonte]);
