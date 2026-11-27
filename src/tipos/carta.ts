@@ -154,7 +154,7 @@ export type RxQtd =
     };
 
 /**
- * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = "choose a player": você escolhe qualquer jogador ao resolver (Gluntch)
+ * quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = "choose a player": você escolhe qualquer jogador ao resolver (Gluntch); feridosPorEsteNome = cada oponente que levou dano de combate nesta partida de uma criatura com o nome desta (Gollum)
  */
 export type RxJogador =
   | (
@@ -172,6 +172,7 @@ export type RxJogador =
       | 'cadaAtual'
       | 'atacadosPorEste'
       | 'umJogador'
+      | 'feridosPorEsteNome'
     )
   | {
       alvo: number;
@@ -360,6 +361,10 @@ export interface RxFiltro {
    * mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um ("a spell that targets only Zada")
    */
   soMiraEste?: true;
+  /**
+   * mágica/habilidade na pilha cujos alvos são todos UM só objeto que bate no filtro ("a spell that targets only a single creature you control", Frontline Heroism)
+   */
+  soMiraUma?: RxFiltro;
   /**
    * mana gasta para conjurar esta mágica (na pilha): "if no mana was spent to cast it" = {max:0} (Boromir, Warden of the Tower)
    */
@@ -849,6 +854,10 @@ export interface RxFx {
    */
   ficaNoTurno?: boolean;
   /**
+   * op mana: a mana não some entre as etapas do combate, até o fim do combate (firebending N: gatilho ataca → mana N {R} ficaNoCombate)
+   */
+  ficaNoCombate?: boolean;
+  /**
    * op destruir: não pode ser regenerada (Pongify, Artifact Mutation)
    */
   semRegenerar?: boolean;
@@ -946,6 +955,10 @@ export interface RxFx {
    * op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)
    */
   habilDe?: RxObjeto;
+  /**
+   * copiarMagica (em doEvento, mágica de um alvo só): a cópia mira a ficha que o efeito anterior criou (Frontline Heroism: "the copy targets that token")
+   */
+  miraCriada?: true;
   /**
    * copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)
    */
@@ -1119,9 +1132,13 @@ export interface RxCond {
         nao?: boolean;
       };
   /**
-   * o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)
+   * o jogador do evento (quem levou o dano; no atacaJogador, o atacado) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr); com contra:'algumOponente', que ALGUM outro oponente seu (Breena)
    */
   eventoMais?: 'mao' | 'terrenos' | 'vida';
+  /**
+   * eventoMais: compara com algum outro oponente seu (não o do evento) em vez de cada outro jogador
+   */
+  contra?: 'algumOponente';
   /**
    * a condição de dentro NÃO vale ("unless you have the city's blessing": {nao:{palavra:'blessing'}}; Wayward Swordtooth)
    */
@@ -1210,6 +1227,7 @@ export interface RxKw {
     | 'entraComMarcador'
     | 'tumulto'
     | 'fusao'
+    | 'aftermath'
     | 'intimidar'
     | 'decaida'
     | 'infectar'
@@ -1292,6 +1310,7 @@ export interface RxGat {
     | 'fase'
     | 'ataca'
     | 'atacantesDeclarados'
+    | 'atacaJogador'
     | 'reflexo'
     | 'bloqueia'
     | 'conjura'
@@ -1349,7 +1368,7 @@ export interface RxGat {
    */
   aJogadorOuPw?: boolean;
   /**
-   * o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity)
+   * o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity); no atacaJogador: o jogador atacado é seu oponente (Breena)
    */
   aOponente?: boolean;
   /**
@@ -1582,6 +1601,10 @@ export interface RxEst {
    * deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)
    */
   atacante?: RxObjeto;
+  /**
+   * deveBloquear: e quem controla o efeito escolhe como as afetadas bloqueiam (Brutal Hordechief, 509.1)
+   */
+  voceEscolhe?: boolean;
   /**
    * darFuga: exilar N outras do cemitério (Underworld Breach) · podeJogar: custo a mais de exilar N outras do cemitério (Kotis)
    */

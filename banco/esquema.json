@@ -361,7 +361,8 @@
       "proximo",
       "cadaAtual",
       "atacadosPorEste",
-      "umJogador"
+      "umJogador",
+      "feridosPorEsteNome"
      ]
     },
     {
@@ -378,7 +379,7 @@
      "description": "o jogador que é o alvo N (vários alvos)"
     }
    ],
-   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = \"choose a player\": você escolhe qualquer jogador ao resolver (Gluntch)"
+   "description": "quem (sem alvo): voce = controlador da carta; doEvento = o jogador do evento do gatilho; controlador/dono = do objeto afetado; {alvo:N} = o alvo N quando há vários; atacado = o jogador DEFENSOR: o que a criatura do evento (ev ataca) ou a afetada pela estática está atacando (Goblin Guide, Silumgar, Trailblazer's Boots); oponente = um oponente que você escolhe ao resolver (sem alvo); umJogador = \"choose a player\": você escolhe qualquer jogador ao resolver (Gluntch); feridosPorEsteNome = cada oponente que levou dano de combate nesta partida de uma criatura com o nome desta (Gollum)"
   },
   "filtro": {
    "type": "object",
@@ -709,6 +710,10 @@
     "soMiraEste": {
      "const": true,
      "description": "mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um (\"a spell that targets only Zada\")"
+    },
+    "soMiraUma": {
+     "$ref": "#/$defs/filtro",
+     "description": "mágica/habilidade na pilha cujos alvos são todos UM só objeto que bate no filtro (\"a spell that targets only a single creature you control\", Frontline Heroism)"
     },
     "manaGasta": {
      "$ref": "#/$defs/compara",
@@ -1635,6 +1640,10 @@
      "type": "boolean",
      "description": "op mana: a mana não some entre passos e fases até o fim do turno (Birgi, Klauth)"
     },
+    "ficaNoCombate": {
+     "type": "boolean",
+     "description": "op mana: a mana não some entre as etapas do combate, até o fim do combate (firebending N: gatilho ataca → mana N {R} ficaNoCombate)"
+    },
     "semRegenerar": {
      "type": "boolean",
      "description": "op destruir: não pode ser regenerada (Pongify, Artifact Mutation)"
@@ -1748,6 +1757,10 @@
     "habilDe": {
      "$ref": "#/$defs/objeto",
      "description": "op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)"
+    },
+    "miraCriada": {
+     "const": true,
+     "description": "copiarMagica (em doEvento, mágica de um alvo só): a cópia mira a ficha que o efeito anterior criou (Frontline Heroism: \"the copy targets that token\")"
     },
     "cadaOutroAlvo": {
      "const": true,
@@ -2072,7 +2085,13 @@
       "terrenos",
       "vida"
      ],
-     "description": "o jogador do evento (quem levou o dano) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr)"
+     "description": "o jogador do evento (quem levou o dano; no atacaJogador, o atacado) tem mais cartas na mão / terrenos / vida que cada outro jogador (Battle Angels of Tyr); com contra:'algumOponente', que ALGUM outro oponente seu (Breena)"
+    },
+    "contra": {
+     "enum": [
+      "algumOponente"
+     ],
+     "description": "eventoMais: compara com algum outro oponente seu (não o do evento) em vez de cada outro jogador"
     },
     "nao": {
      "$ref": "#/$defs/cond",
@@ -2169,6 +2188,7 @@
       "entraComMarcador",
       "tumulto",
       "fusao",
+      "aftermath",
       "intimidar",
       "decaida",
       "infectar",
@@ -2301,6 +2321,7 @@
       "fase",
       "ataca",
       "atacantesDeclarados",
+      "atacaJogador",
       "reflexo",
       "bloqueia",
       "conjura",
@@ -2379,7 +2400,7 @@
     },
     "aOponente": {
      "type": "boolean",
-     "description": "o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity)"
+     "description": "o dano/alvo é um OPONENTE de quem controla o gatilho (Curiosity); no atacaJogador: o jogador atacado é seu oponente (Breena)"
     },
     "zonaAtiva": {
      "type": "array",
@@ -2708,6 +2729,10 @@
     "atacante": {
      "$ref": "#/$defs/objeto",
      "description": "deveBloquear: o atacante que o afetado tem de bloquear se puder (doEvento = a criatura que atacou)"
+    },
+    "voceEscolhe": {
+     "type": "boolean",
+     "description": "deveBloquear: e quem controla o efeito escolhe como as afetadas bloqueiam (Brutal Hordechief, 509.1)"
     },
     "exilar": {
      "type": "integer",
