@@ -320,9 +320,9 @@ export interface RxFiltro {
    */
   comX?: boolean;
   /**
-   * tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)
+   * tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este); "sacrificada" = a primeira permanente sacrificada por este efeito (Braids, Arisen Nightmare)
    */
-  tipoCartaEmComum?: 'este' | RxFiltro;
+  tipoCartaEmComum?: 'este' | 'sacrificada' | RxFiltro;
   /**
    * não é o objeto escolhido como alvo N desta mágica/habilidade ("each other creature" depois de mirar uma: Chandra's Ignition)
    */
@@ -335,6 +335,12 @@ export interface RxFiltro {
    * Montaria selada neste turno (702.171b)
    */
   selada?: boolean;
+  /**
+   * bate em ao menos um destes (junto com os outros campos): "a Human or artifact card" = ou [{sub:[Human]}, {tipo:[Artifact]}] (Boromir, Gondor's Hope)
+   *
+   * @minItems 2
+   */
+  ou?: [RxFiltro, RxFiltro, ...RxFiltro[]];
 }
 
 export interface RxCompara {
@@ -1474,6 +1480,10 @@ export interface RxSubst {
    * compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)
    */
   naoPrimeira?: boolean;
+  /**
+   * dano com muda.prevenir: efeitos da própria substituição depois de prevenir; conta resultado = o dano prevenido (Bloatfly Swarm)
+   */
+  depois?: RxFxs;
 }
 
 /**

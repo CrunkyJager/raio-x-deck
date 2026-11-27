@@ -94,7 +94,8 @@ const SUBST: Record<string, (s) => boolean> = {
   anulada: s => !!s.muda && Object.keys(s.muda).length === 1 && s.muda.impedir === true && Object.keys(s).every(k => ['ev', 'quem', 'muda', 'se'].includes(k))
     && !!s.quem && s.quem.zona === 'pilha',   // "não pode ser anulada" (M.anular, pilha.ts)
   dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
-    && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento'),
+    && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se', 'depois'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento')
+    && (s.depois === undefined || (s.muda.prevenir === true && Array.isArray(s.depois) && s.depois.every(f => f.op === 'marcador') && M.fxSuportado(s.depois))),
 };
 // "As this enters, you may sacrifice any number of Foods. It enters with three +1/+1 counters for each" (Feasting
 // Hobbit, 614.1c): emVez [sacrificar {f, qtd ate qualquer}, marcador {em este, qtd {conta resultado, mult}}]
@@ -212,7 +213,12 @@ M.substDano = (e, q, { fonte, combate = false, jog, o }: any) => {
     if (s.por && !(fonte && M.bate(e, fonte, s.por, { voce: F.ctrl, este: F.id }))) return false;
     return substSe(e, F, s);
   });
-  if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) return 0;   // Bonecrusher Giant: prevenir não vale (615.12)
+  if (lista.some(r => r.s.muda.prevenir) && !M.danoNaoPrevenivel(e)) {   // Bonecrusher Giant: prevenir não vale (615.12)
+    // "prevent that damage, remove that many +1/+1 counters…, then give each player a rad counter for each removed" (Bloatfly
+    // Swarm, 615.5): depois = efeitos da própria substituição; resultado = o dano prevenido (e depois, quantos tirou)
+    for (const { F, s } of lista) if (s.muda.prevenir && s.depois) { const ctx: any = { voce: F.ctrl, este: F.id, resultado: q, alvos: [], ilegal: {}, lki: {} }; for (const f of s.depois) M.executar(e, f, ctx, (_j, _t, ops) => ops[0]); }
+    return 0;
+  }
   for (const r of lista) if (r.s.muda.teto !== undefined) q = Math.min(q, r.s.muda.teto);
   for (const r of lista) if (r.s.muda.mult) q *= r.s.muda.mult;
   for (const r of lista) if (r.s.muda.metade) q = Math.ceil(q / 2);
@@ -1268,7 +1274,9 @@ const H = {
         return;
       }
       if (f.em === undefined && f.quem !== undefined) { for (const j of jogsDe(e, f, ctx)) M.marcadorJogador(e, j, f.tipoMarc, q, !!f.tirar); return; }   // no jogador (122.1: poison, rad, experience)
-      for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } o.marc[t] = Math.max(0, (o.marc[t] || 0) - q1); }
+      let tirou = 0;
+      for (const o of objsDe(e, f, ctx)) { const pd = M.parteDividida(ctx, f, o), q1 = pd === null ? q : pd; const t = f.tipoMarc; if (!f.tirar) { M.porMarcadores(e, o, t, q1); continue; } const antes = o.marc[t] || 0; o.marc[t] = Math.max(0, antes - q1); tirou += antes - o.marc[t]; }
+      if (f.tirar) ctx.resultado = tirou;                            // "for each counter removed this way" (Bloatfly Swarm)
     },
   },
   // "look at target player's hand" (Gitaxian Probe, Peek): só informação; o log da Mesa mostra as cartas a quem olhou
@@ -1415,6 +1423,18 @@ const H = {
       }
     },
   },
+  // radiação (CR 729.1): gatilho inerente (masmorras.ts). Moe tantas quantos rad tem; por carta não terreno moída perde 1 de
+  // vida e tira 1 rad. "if that player has one or more rad counters" é 603.4: sem rad na resolução, não faz nada.
+  radiacao: {
+    fx(e, f, ctx) {
+      const j = ctx.voce, J = e.jogs[j], n = (J.marc || {}).rad || 0;
+      if (!n || J.saiu) return;
+      H.moer.fx(e, { op: 'moer', quem: 'voce', qtd: n }, ctx);
+      const k = (ctx.movidos || []).filter(x => !M.temTipo(e, e.objs[x.id], 'Land')).length;
+      M.log(e, J.nome, 'radiação: moe', n, '—', k, 'não terreno');
+      if (k) { M.perderVida(e, j, k); M.marcadorJogador(e, j, 'rad', k, true); }
+    },
+  },
   turnoExtra: {                                                     // CR 500.7: "take an extra turn after this one" (Timestream Navigator, Time Sieve)
     qtd: q => q === undefined || Number.isInteger(q),
     fx(e, f, ctx) { const q = f.qtd === undefined ? 1 : f.qtd; for (const j of jogsDe(e, f, ctx)) for (let i = 0; i < q; i++) { (e.turnosExtra || (e.turnosExtra = [])).push(j); M.log(e, e.jogs[j].nome, 'terá um turno extra'); } },
@@ -1485,6 +1505,8 @@ const H = {
         esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: ateOk(f.qtd) }));
       }
       ctx.resultado = esc.length;                                   // "reveal … until X Zombies" (Empty the Laboratory)
+      if (f.talvez && !esc.length) ctx.pagou = false;               // "pode sacrificar" sem nada para sacrificar: não fez (Braids: perde 2)
+      if (esc.length && !ctx.sacFx) ctx.sacFx = { id: esc[0], ts: e.objs[esc[0]].ts };   // a 1ª sacrificada do efeito (filtro tipoCartaEmComum, Braids)
       for (const id of esc) M.mover(e, id, 'cemiterio', { sac: true });
     },
   },
@@ -1606,7 +1628,7 @@ const H = {
       for (const j of jogsDe(e, f, ctx)) {
         const temMarc = o => Object.values<any>(o.marc).some(n => n > 0);
         const cand: any[] = e.campo.filter(id => temMarc(e.objs[id])).map(id => ({ a: 'proliferar', id }));
-        for (const J of e.jogs) if (!J.saiu && J.veneno > 0) cand.push({ a: 'proliferar', jog: J.i });
+        for (const J of e.jogs) if (!J.saiu && (J.veneno > 0 || Object.values<any>(J.marc || {}).some(n => n > 0))) cand.push({ a: 'proliferar', jog: J.i });   // jogador com qualquer marcador (veneno, rad, experiência: 701.34a)
         const esc: any[] = [];
         while (cand.length) {
           const x = ask(j, 'proliferar', [{ a: 'pronto' }, ...cand], {});
@@ -1614,7 +1636,7 @@ const H = {
           esc.push(x); cand.splice(cand.indexOf(x), 1);
         }
         for (const x of esc) {
-          if (x.jog !== undefined) { const ag = e.agente; e.agente = j; M.marcadorJogador(e, x.jog, 'poison', 1, false); e.agente = ag; continue; }
+          if (x.jog !== undefined) { const ag = e.agente, J = e.jogs[x.jog]; e.agente = j; if (J.veneno > 0) M.marcadorJogador(e, x.jog, 'poison', 1, false); for (const t of Object.keys(J.marc || {})) if (J.marc[t] > 0) M.marcadorJogador(e, x.jog, t, 1, false); e.agente = ag; continue; }
           const o = e.objs[x.id];
           for (const t of Object.keys(o.marc)) if (o.marc[t] > 0) M.porMarcadores(e, o, t, 1);   // 701.34a: põe (as substituições valem, 614.1)
         }

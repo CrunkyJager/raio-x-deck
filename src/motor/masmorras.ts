@@ -197,6 +197,11 @@ const MON = { n: 'Monarca', tipos: [] as any[], cores: '', kw: [] as any[], vm: 
 const G_MON_COMPRA = { ev: 'fase', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] };
 const G_MON_TOMA = { ev: 'dano', fx: [{ op: 'virarMonarca', quem: 'doEvento' }] };
 const pendMon = (e, j, k, g, ev) => e.pend.push({ fonte: -2000 - j, ts: 0, ctrl: j, k, g, n: 'Monarca', face: null, ficha: MON, lki: null, ev });
+// ---------- radiação (CR 729) ----------
+// Habilidade inerente sem fonte, controlada pelo jogador ativo (729.1): no começo da principal pré-combate de quem tem rad.
+const RAD = { n: 'Radiação', tipos: [] as any[], cores: '', kw: [] as any[], vm: 0 };
+const G_RAD = { ev: 'fase', fx: [{ op: 'radiacao' }] };
+const pendRad = (e, j) => e.pend.push({ fonte: -3000 - j, ts: 0, ctrl: j, k: 'radiacao', g: G_RAD, n: 'Radiação', face: null, ficha: RAD, lki: null, ev: { ev: 'fase', passo: 'principal1', j } });
 M.virarMonarca = (e, j) => {
   if (e.jogs[j].saiu || e.monarca === j) return;
   const de = e.monarca; e.monarca = j;
@@ -206,6 +211,7 @@ M.virarMonarca = (e, j) => {
 // eventos (chamado no fim do M.evento, gatilhos.ts)
 M.masmorrasEvento = (e, ev) => {
   if (ev.ev === 'fase') {
+    if (ev.passo === 'principal1' && ((e.jogs[ev.ativo].marc || {}).rad || 0) > 0 && !e.jogs[ev.ativo].saiu) pendRad(e, ev.ativo);   // CR 729.1: só a principal pré-combate
     if (ev.passo === 'final' && e.monarca === ev.ativo && !e.jogs[ev.ativo].saiu) pendMon(e, ev.ativo, 'monarca:final', G_MON_COMPRA, { ev: 'fase', passo: 'final', j: ev.ativo });
     if (ev.passo === 'manutencao' && e.iniciativa === ev.ativo && !e.jogs[ev.ativo].saiu) pendIni(e, ev.ativo, 'iniciativa:manutencao', G_AVENTURA, { ev: 'fase', passo: 'manutencao', j: ev.ativo });
     if (ev.passo === 'desvirar' && e.temp && e.temp.some(t => t.ate === ev.ativo)) e.temp = e.temp.filter(t => t.ate !== ev.ativo);   // "até o seu próximo turno"

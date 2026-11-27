@@ -627,10 +627,13 @@
        "const": "este"
       },
       {
+       "const": "sacrificada"
+      },
+      {
        "$ref": "#/$defs/filtro"
       }
      ],
-     "description": "tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este)"
+     "description": "tem um tipo de card (CR 205.2a) em comum com este objeto ou com algum que bate no filtro (Semblance Anvil: com a carta exilada por este); \"sacrificada\" = a primeira permanente sacrificada por este efeito (Braids, Arisen Nightmare)"
     },
     "naoAlvo": {
      "type": "integer",
@@ -643,6 +646,14 @@
     "selada": {
      "type": "boolean",
      "description": "Montaria selada neste turno (702.171b)"
+    },
+    "ou": {
+     "type": "array",
+     "minItems": 2,
+     "items": {
+      "$ref": "#/$defs/filtro"
+     },
+     "description": "bate em ao menos um destes (junto com os outros campos): \"a Human or artifact card\" = ou [{sub:[Human]}, {tipo:[Artifact]}] (Boromir, Gondor's Hope)"
     }
    }
   },
@@ -2176,7 +2187,7 @@
     },
     "primeiraNoTurno": {
      "type": "boolean",
-     "description": "conjura: só a 1ª mágica do turno daquele jogador que bate o quem (Esper Sentinel)"
+     "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
     },
     "de": {
      "$ref": "#/$defs/zona",
@@ -2201,10 +2212,6 @@
     "naoPrimeira": {
      "type": "boolean",
      "description": "ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)"
-    },
-    "primeiraNoTurno": {
-     "type": "boolean",
-     "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
     }
    }
   },
@@ -2561,6 +2568,10 @@
     "naoPrimeira": {
      "type": "boolean",
      "description": "compra: exceto a primeira carta que o jogador compra no turno/passo (Bard, como o gat naoPrimeira)"
+    },
+    "depois": {
+     "$ref": "#/$defs/fxs",
+     "description": "dano com muda.prevenir: efeitos da própria substituição depois de prevenir; conta resultado = o dano prevenido (Bloatfly Swarm)"
     }
    }
   },

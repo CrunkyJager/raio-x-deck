@@ -48,7 +48,8 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'jogadores': return o === 'quantos' ? chaves(c, []) : o === 'cemiterio' && chaves(c, ['min']) && Number.isInteger(c.min);   // "each graveyard with seven or more cards" (Master of Lake-town)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return (o === 'quantos' && (j === undefined || j === 'maiorPorDono') || (o === 'vm' && j === 'soma')) && chaves(c, ['junta']);
-    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao', 'jogadores'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
+    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || (typeof c.marc === 'string' && !!c.marc))
+      : ['quantos', 'vida', 'dano', 'poder', 'resist', 'vm', 'cores', 'mao', 'jogadores'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
@@ -68,7 +69,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc))) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -154,9 +155,11 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'vida') return vidaEv(ev) ? ev.q || 0 : 0;                    // "that much life" (Sanguine Bond)
       if (o === 'jogadores') return ev.jogs ? ev.jogs.length : ev.jog !== undefined ? 1 : 0;   // danoUmaVez: os jogadores feridos na etapa (Hordewing Skaab)
       if (o === 'dano') return ev.ev === 'dano' ? ev.q || 0 : 0;              // "that much damage"
+      const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo, JJ = jj !== undefined ? e.jogs[jj] : undefined;   // o jogador do evento
+      if (o === 'marcadores' && c.marc) return !JJ ? 0 : c.marc === 'poison' ? JJ.veneno || 0 : (JJ.marc || {})[c.marc] || 0;   // "if they don't have any rad counters" (Vexing Radgull, 122.1)
       if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;   // "that many" (Shalai and Hallar)
       if (o === 'poder' && c.junta === 'soma') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
-      if (o === 'mao') { const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo; return jj !== undefined && e.jogs[jj] ? e.jogs[jj].zonas.mao.length : 0; }   // "if that player has four or more cards in hand" (Fevered Visions)
+      if (o === 'mao') return JJ ? JJ.zonas.mao.length : 0;   // "if that player has four or more cards in hand" (Fevered Visions)
       const ob = e.objs[ev.id];
       if (o === 'poder') return !ob ? 0 : ob.zona === 'campo' || !ev.snap ? M.poder(e, ob) : M.poder(e, ev.snap);   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
       if (o === 'resist') return ob && ob.zona === 'campo' ? M.resistencia(e, ob) : ev.snap ? M.resistencia(e, ev.snap) : 0;   // Verdant Sun's Avatar

@@ -979,8 +979,8 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['comX', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada']);
-M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada']);
+M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k)) && (!f || f.ou === undefined || (Array.isArray(f.ou) && f.ou.length > 1 && f.ou.every(g => !!g && typeof g === 'object' && M.filtroOk(g))));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
   for (const k in f) if (!FILTRO_OK.has(k)) throw new Error('filtro sem suporte no motor2: ' + k);
@@ -990,6 +990,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.naoNome !== undefined && (o.n === f.naoNome || d.n === f.naoNome)) return false;   // "not named Tiamat"
   if (f.outro && o.id === ctx.este) return false;
   if (f.naoAlvo !== undefined && ((ctx.alvos || [])[f.naoAlvo] || []).some(x => x && x.o === o.id)) return false;   // "each other creature" = menos o alvo N (Chandra's Ignition)
+  if (f.ou && !f.ou.some(g => M.bate(e, o, g, ctx))) return false;   // "a Human or artifact card" (Boromir): bate em ao menos um
   if (f.lembrada && !(ctx.movidos || []).some(m => m.id === o.id && m.ts === o.ts)) return false;
   // "a creature dealt damage by this creature this turn" (Markov Enforcer): o.feridaPor guarda {id, ts, t} da fonte; no 'morre' vale o lki (snap)
   if (f.feridaPorEsteNoTurno && !(o.feridaPor || []).some(x => x.id === ctx.este && x.t === e.turno.n && (!e.objs[ctx.este] || x.ts === e.objs[ctx.este].ts || e.objs[ctx.este].zona !== 'campo'))) return false;
@@ -997,7 +998,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.exiladaPorEste && !(o.zona === 'exilio' && o.exPor && o.exPor.id === ctx.este && o.exPor.ts === ((ctx.lki && ctx.lki.este && ctx.lki.este.ts) ?? (e.objs[ctx.este] || {}).ts))) return false;   // o que o efeito anterior moveu (cavar, mover, exilar)
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t === 'escolhido' ? tipoCartaEscolhido(e, ctx) : t)))) return false;   // escolhido: o tipo de carta escolhido pela fonte ao entrar (Cloud Key)
-  if (f.tipoCartaEmComum !== undefined && !tipoCartaEmComum(e, o, f.tipoCartaEmComum, ctx)) return false;
+  if (f.tipoCartaEmComum !== undefined && f.tipoCartaEmComum !== 'sacrificada' && !tipoCartaEmComum(e, o, f.tipoCartaEmComum, ctx)) return false;
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha) || (t === 'escolhido' && ehEscolhido(e, o, ctx)))) return false;
   if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s) || (!SUB_NAO_CRIAT_TODOS.has(s) && tiposCriatura(e, o) === 'todos'))) return false;   // metamorfo/todosTipos: é de todo tipo de criatura (702.73a, 205.3m)   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
@@ -1045,6 +1046,10 @@ M.bate = (e, o, f, ctx: any = {}) => {
     || (M.temTipo(e, x, 'Enchantment') && (M.dadoDe(e, x).sub || []).includes('Aura') && x.ctrl === o.ctrl))) !== !!f.modificada) return false;
   if (f.comEquipamento !== undefined && M.anexosDe(e, o).some(x => (M.dadoDe(e, x).sub || []).includes('Equipment')) !== !!f.comEquipamento) return false;
   if (f.tipoEmComum !== undefined && !tipoEmComum(e, o, f.tipoEmComum, ctx)) return false;
+  if (f.tipoCartaEmComum === 'sacrificada') {   // "a permanent that shares a card type with it" (Braids): a 1ª sacrificada pelo efeito (o card no cemitério)
+    const S = ctx.sacFx && e.objs[ctx.sacFx.id], ts = S ? (M.dadoBase(e, S).tipos || []).filter(t => t !== 'Kindred' && t !== 'Tribal') : [];
+    if (!ts.some(t => M.temTipo(e, o, t))) return false;
+  }
   return true;
 };
 // tipos de criatura (CR 205.3m: subtipos de criatura e de Kindred); metamorfo (702.73a) = todos → 'todos'

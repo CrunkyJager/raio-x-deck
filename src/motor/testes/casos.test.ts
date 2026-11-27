@@ -5802,6 +5802,78 @@ caso('702.109', "Riders of Rohan: investida (dash) é opção de conjuração; o
   ok(M.fxSuportado(M.carta('Urza, Lord High Artificer').atv[1].fx), 'Urza aceito');
 });
 
+caso('729.1', "radiação: na principal pré-combate de quem tem rad, moe N; por não terreno moída perde 1 de vida e tira 1 rad", () => {
+  const e = cena({});
+  for (const n of ['Forest', 'Grizzly Bears', 'Sol Ring']) e.por(0, n, { zona: 'grimorio' });   // topo: Sol Ring, Bears, Forest
+  e.jogs[0].marc = { rad: 3 }; e.pend = [];
+  M.masmorrasEvento(e, { ev: 'fase', passo: 'principal2', ativo: 0 });
+  igual(e.pend.length, 0, 'principal pós-combate: não');
+  M.masmorrasEvento(e, { ev: 'fase', passo: 'principal1', ativo: 1 });
+  igual(e.pend.length, 0, 'o oponente (sem rad): não');
+  M.masmorrasEvento(e, { ev: 'fase', passo: 'principal1', ativo: 0 });
+  const p = e.pend.find(x => x.k === 'radiacao'); ok(p, 'disparou');
+  const v0 = e.jogs[0].vida;
+  for (const f of p.g.fx) M.executar(e, f, { voce: p.ctrl, alvos: [], ilegal: {}, lki: {} }, (_j, _t, o) => o[0]);
+  igual(e.jogs[0].zonas.cemiterio.length, 3, 'moeu 3');
+  igual(e.jogs[0].vida, v0 - 2, '2 não terrenos: perde 2');
+  igual(e.jogs[0].marc.rad, 1, 'tira 2 rad');
+});
+
+caso('615.5', "Bloatfly Swarm: dano nela com +1/+1 é prevenido, tira tantos marcadores e dá a cada jogador 1 rad por marcador tirado", () => {
+  ok(M.carta('Bloatfly Swarm').subst.every(s => M.substOk(s)), 'aceito');
+  const e = cena({ campo: [[0, 'Bloatfly Swarm']] });
+  const b = e.objs[e.campo[0]]; b.marc['+1/+1'] = 2;
+  igual(M.substDano(e, 3, { o: b }), 0, 'prevenido');
+  igual(b.marc['+1/+1'] || 0, 0, 'tirou os 2 que tinha');
+  igual((e.jogs[0].marc || {}).rad, 2, 'você: 2 rad'); igual((e.jogs[1].marc || {}).rad, 2, 'oponente: 2 rad');
+  igual(M.substDano(e, 3, { o: b }), 3, 'sem marcador: o dano passa');
+});
+
+caso('122.1', "Vexing Radgull: o jogador sem rad ganha 2; com rad, prolifera (conta {de:'evento', o:'marcadores', marc:'rad'})", () => {
+  const g = M.carta('Vexing Radgull').gat[0]; ok(M.gatOk(g), 'aceito');
+  const e = cena({ campo: [[0, 'Vexing Radgull']] });
+  const ask = (_j, t, o) => t === 'proliferar' ? (o.find(x => x.jog === 1 && !x._ja && (x._ja = true)) || o[0]) : o[0];   // prolifera só o oponente
+  const roda = () => { for (const f of g.fx) M.executar(e, f, { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: {}, ev: { ev: 'dano', jog: 1, q: 1, combate: true } }, ask); };
+  roda(); igual((e.jogs[1].marc || {}).rad, 2, 'sem rad: ganha 2');
+  roda(); igual(e.jogs[1].marc.rad, 3, 'com rad: proliferou (+1), não +2');
+});
+
+caso('614.1a', "Branching Evolution: dobra só marcadores +1/+1 (subst marc), não os de outro tipo", () => {
+  ok(M.carta('Branching Evolution').subst.every(s => M.substOk(s)), 'aceito');
+  const e = cena({ campo: [[0, 'Branching Evolution'], [0, 'Grizzly Bears']] });
+  const b = e.objs[e.campo[1]];
+  M.porMarcadores(e, b, '+1/+1', 2); igual(b.marc['+1/+1'], 4, '+1/+1 dobrado');
+  M.porMarcadores(e, b, 'shield', 1); igual(b.marc.shield, 1, 'outro tipo: não');
+});
+
+caso('701.21', "Braids, Arisen Nightmare: o oponente só pode sacrificar permanente com tipo de card em comum com a sacrificada (filtro tipoCartaEmComum)", () => {
+  const g = M.carta('Braids, Arisen Nightmare').gat[0]; ok(M.gatOk(g), 'aceito');
+  const e = cena({ campo: [[0, 'Braids, Arisen Nightmare'], [0, 'Sol Ring'], [1, 'Forest'], [1, 'Grizzly Bears']] });
+  const vistos: string[][] = [];
+  const ask = (_j, t, o) => {
+    if (t === 'talvez') return o[0];
+    if (t === 'sacrificar' || t === 'escolherCarta') { vistos.push(o.map(x => e.objs[x.id ?? x].n)); return o.find(x => e.objs[x.id ?? x].n === 'Sol Ring') || o[0]; }
+    return o[0];
+  };
+  const v1 = e.jogs[1].vida, m0 = e.jogs[0].zonas.mao.length;
+  const cxB: any = { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: {} };
+  for (const f of g.fx) M.executar(e, f, cxB, ask);
+  ok(objN(e, 0, 'Sol Ring') === undefined || objN(e, 0, 'Sol Ring').zona !== 'campo', 'sacrificou o Sol Ring');
+  ok(!vistos.slice(1).some(l => l.length), 'artefato: o oponente não tem com o que sacrificar');
+  igual(e.jogs[1].vida, v1 - 2, 'perde 2'); igual(e.jogs[0].zonas.mao.length, m0 + 1, 'você compra 1');
+  ok(M.bate(e, objN(e, 1, 'Grizzly Bears'), { tipoCartaEmComum: 'sacrificada' }, { sacFx: { id: e.campo.find(id => e.objs[id].n === 'Braids, Arisen Nightmare') } }), 'criatura x criatura: bate');
+  ok(!M.bate(e, objN(e, 1, 'Forest'), { tipoCartaEmComum: 'sacrificada' }, { sacFx: { id: e.campo.find(id => e.objs[id].n === 'Braids, Arisen Nightmare') } }), 'terreno x criatura: não');
+});
+
+caso('109.2', "filtro ou: 'a Human or artifact card' (Boromir, Gondor's Hope) bate em Humano ou artefato, não em outro", () => {
+  ok(M.carta("Boromir, Gondor's Hope").gat.every(g => M.gatOk(g)), 'aceito');
+  ok(!M.filtroOk({ ou: [{ sub: ['Human'] }] }) && !M.filtroOk({ ou: [{ sub: ['Human'] }, { xyz: 1 }] }), 'ou precisa de 2 filtros válidos');
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Grizzly Bears'], [0, "Boromir, Gondor's Hope"]] });
+  const f = M.carta("Boromir, Gondor's Hope").gat[0].fx[0].f;
+  igual(e.campo.map(id => e.objs[id]).filter(o => M.bate(e, o, f, { voce: 0 })).map(o => o.n).join(','), "Sol Ring,Boromir, Gondor's Hope", 'artefato e Humano; o Urso não');
+  ok(M.carta('Battle at the Helvault').gat.filter(g => g.alvos).every(g => g.alvos[0].porJogador && M.gatOk(g)), 'Helvault: 1 alvo por jogador');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
