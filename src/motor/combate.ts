@@ -72,7 +72,6 @@ M.escolherAtacado = (e, j, ask, soDe = undefined) => {
   const op = ask(j, 'atacado', alvos.map(t => ({ a: 'atacado', ...t })), {});
   return op.jog !== undefined ? { jog: op.jog } : { o: op.o };
 };
-const MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
 M.porAtacando = (e, o, alvo) => {
   const C = e.turno.combate; if (!C || !o || o.zona !== 'campo' || !M.temTipo(e, o, 'Creature')) return;   // 506.3: só criatura ataca
   if (alvo.o !== undefined && (!e.objs[alvo.o] || e.objs[alvo.o].zona !== 'campo')) return;
@@ -87,18 +86,25 @@ M.PROC.atacar = (e, P, ask) => {
   // declarações ficam no próprio processo (P.decl) e cada resposta fecha uma etapa: com centenas de fichas, refazer
   // tudo a cada resposta ficaria cúbico. Nada muda no estado até o "pronto".
   const decl = P.decl = P.decl || {};                                                     // id → alvo
+  // incitada (701.38b): ataca quem não a incitou, se puder (só sobra o incitador se não houver outro alvo)
+  const alvosDe = id => {
+    const inc = M.tempDe(e, 'incitado').filter(({ s, t }) => M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);
+    if (!inc.length) return alvos;
+    const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
+    return fora.length ? fora : alvos;
+  };
   for (;;) {
     const livres = aptos.filter(id => !decl[id]);
     // 508.1d: quem "ataca se puder" tem que atacar (qualquer alvo cumpre); só então dá para fechar
     const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false));
     const ops = devem.length ? [] : [{ a: 'pronto' }];
     if (livres.length > 1) for (const t of alvos) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
-    for (const id of livres) for (const t of alvos) ops.push({ a: 'atacar', id, ...t });
+    for (const id of livres) for (const t of alvosDe(id)) ops.push({ a: 'atacar', id, ...t });
     if (!ops.length) break;
     const op = ask(a, 'atacar', ops, { declarados: Object.keys(decl).length });
     if (op.a === 'pronto') break;
     const t = op.jog !== undefined ? { jog: op.jog } : { o: op.o };
-    if (op.a === 'todos') for (const id of livres) decl[id] = t; else decl[op.id] = t;
+    if (op.a === 'todos') { for (const id of livres) if (alvosDe(id).some(x => x.jog === t.jog && x.o === t.o)) decl[id] = t; } else decl[op.id] = t;
     ask.etapa();
   }
   e.proc = null;
@@ -106,17 +112,12 @@ M.PROC.atacar = (e, P, ask) => {
   for (const k of aptos) {
     const alvo = decl[k]; if (!alvo) continue;
     const id = k, o = e.objs[id];
-    if (!kw(e, o, 'vigilancia')) o.virada = true;                                          // 508.1f
+    if (!kw(e, o, 'vigilancia')) M.virarObj(e, o);                                          // 508.1f
     C.atk.push({ id, ts: o.ts, alvo, def: defDe(e, alvo), bloq: [] as any[], bloqueado: false });
   }
   // quem atacou quem neste turno (contas ataquesNoTurno/atacantesEmVoce; o combate some no fim do combate)
   e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def })));
   for (const r of C.atk) M.evento(e, { ev: 'ataca', id: r.id, def: r.def });          // 508.3a
-  // miríade (702.116a): "sempre que esta criatura ataca, para cada oponente além do defensor, crie uma ficha cópia virada e
-  // atacando aquele jogador; exile as fichas no fim do combate". O gatilho vem da palavra-chave (dada também: Cybermen Squadron).
-  // Simplificação: o "pode" é sempre sim. No X1 não há outro oponente: não dispara.
-  for (const r of C.atk) { const o = e.objs[r.id]; if (kw(e, o, 'miriade') && M.vivos(e).some(j => j !== a && j !== r.def))
-    e.pend.push({ fonte: o.id, ts: o.ts, ctrl: o.ctrl, k: 'miriade', g: MIRIADE, n: o.n, face: o.face ?? null, ficha: o.ficha || null, lki: M.lkiDe(e, o), ev: { ev: 'ataca', id: o.id, def: r.def } }); }
   if (C.atk.length) M.evento(e, { ev: 'atacantesDeclarados', j: a, n: C.atk.length });
   if (C.atk.length) M.log(e, e.jogs[a].nome, 'ataca com', C.atk.map(r => e.objs[r.id].n + '→' + (r.alvo.jog !== undefined ? e.jogs[r.alvo.jog].nome : e.objs[r.alvo.o].n)).join(', '));
 };
@@ -142,6 +143,7 @@ function bloqueiaEste(e, b, at) {                                               
     const ca = M.dadoDe(e, at).cores || '', cb = M.dadoDe(e, b).cores || '';
     if (![...ca].some(c => cb.includes(c))) return false;
   }
+  if (M.ehPortador(e, at) && M.poder(e, b) > M.poder(e, at)) return false;               // 701.54c: Portador não é bloqueado por poder maior
   // caminhada de terreno (702.14c): não pode ser bloqueada enquanto o defensor controla terreno daquele tipo
   for (const x of M.kwDe(e, at)) if (x.k === 'caminhadaTerreno' && typeof x.tipo === 'string'
     && M.objetosQue(e, { tipo: ['Land'], sub: [x.tipo], ctrl: 'voce', zona: 'campo' }, { voce: b.ctrl }).length) return false;
