@@ -2,6 +2,10 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.58.0 — 27/11/2026 · Motor: convocar
+Testes: check 0 erros · Vitest 382/382 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1514/1756 (eram 1508). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste de convocar: 20 partidas, 0 erros (March of the Multitudes com X=4).
+- **Convocar** (CR 702.51): Hour of Reckoning, March of the Multitudes, Lethal Scheme, Clever Concealment, Collective Inferno. Cada criatura sua desvirada que vira paga {1} ou uma mana da cor dela; primeiro as que não dão mana. Wildfire Awakener ainda trava em outro gatilho.
+
 ## v0.57.0 — 27/11/2026 · Motor: dano fora do combate é evento; "quando esta receber dano"
 Testes: check 0 erros · Vitest 381/381 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1508/1756 (eram 1502). Ivora e Masmorras: 20 partidas cada, 0 erros; deck de teste de Dinossauros: 20 partidas, 0 erros, enrage disparando.
 - **Conserto:** dano de mágica/habilidade (Lightning Bolt, Impact Tremors, Pyroclasm) não gerava o evento de dano; só o de combate. Os gatilhos "sempre que causar dano" de 86 cartas não viam esse dano.

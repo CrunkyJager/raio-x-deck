@@ -176,6 +176,10 @@ function manaMax(e, j, excluir, para) {
     const ids = new Set(fs.map(f => f.id));
     t += e.campo.filter(id => { const o = e.objs[id]; return o.ctrl === j && !o.virada && !ids.has(id) && (!excluir || !excluir.includes(id)) && M.temTipo(e, o, 'Artifact'); }).length;
   }
+  if (para && M.temKw(e, para, 'convocar')) {                       // as criaturas que não dão mana pagam 1 cada (702.51)
+    const ids = new Set(fs.map(f => f.id));
+    t += e.campo.filter(id => { const o = e.objs[id]; return o.ctrl === j && !o.virada && !ids.has(id) && (!excluir || !excluir.includes(id)) && M.temTipo(e, o, 'Creature'); }).length;
+  }
   return t;
 }
 const vidaPhy = (e, j) => M.vidaFixa(e, j) ? 0 : Math.max(0, e.jogs[j].vida - 1);   // 119.8: vida fixa não paga        // phyrexiano: o plano pode gastar vida sem morrer
@@ -183,7 +187,28 @@ const plano0 = (e, j, custo, x, excluir, para?) => M.planoMana(e, j, custo, { x,
 // improvisar (CR 702.126): cada artefato seu desvirado que você vira paga {1} genérico da mágica. Primeiro os que não
 // dão mana (virar um Sol Ring para improvisar perde 1); só se não fechar, os que dão mana, um a um. O plano leva
 // improv (os ids a virar) e custo (o que sobra em mana); pagarMana vira e paga só o resto.
+// convocar (CR 702.51): cada criatura sua desvirada que você vira paga {1} ou uma mana da cor dela. Mesma ordem do
+// improvisar (primeiro as que não dão mana); cada uma paga um símbolo colorido dela que ainda falta, senão {1}.
+const planoConvocar = (e, j, custo, x, excluir, para) => {
+  const fora = new Set(excluir || []);
+  const cs = e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && !o.virada && !fora.has(o.id) && M.temTipo(e, o, 'Creature'));
+  const fontes = new Set(M.fontesDeMana(e, j, { soVirar: true, para }).map(f => f.id));
+  const ordem = [...cs.filter(o => !fontes.has(o.id)), ...cs.filter(o => fontes.has(o.id))];
+  for (let n = 0; n <= ordem.length; n++) {
+    const c = { ...custo, p: [...(custo.p || [])] }; let ok = true;
+    for (const o of ordem.slice(0, n)) {
+      const cor = (M.dadoDe(e, o).cores || '').split('').find(k => c.p.includes(k));
+      if (cor) c.p.splice(c.p.indexOf(cor), 1); else if (c.g > 0) c.g--; else { ok = false; break; }
+    }
+    if (!ok) break;
+    const ids = ordem.slice(0, n).map(o => o.id);
+    const pl = plano0(e, j, c, x, [...(excluir || []), ...ids], para);
+    if (pl) return n ? { ...pl, improv: ids, custo: c } : pl;
+  }
+  return null;
+};
 const plano = (e, j, custo, x, excluir, para?) => {
+  if (para && M.temKw(e, para, 'convocar')) return planoConvocar(e, j, custo, x, excluir, para);
   if (!para || !custo.g || !M.temKw(e, para, 'improvisar')) return plano0(e, j, custo, x, excluir, para);
   const fora = new Set(excluir || []);
   const arts = e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && !o.virada && !fora.has(o.id) && M.temTipo(e, o, 'Artifact'));
@@ -634,7 +659,7 @@ function pagarFisico(e, j, o, c, esc) {
   if (c.devolver === 'este') M.mover(e, o.id, 'mao');              // Shigeki
 }
 function pagarMana(e, j, pl, custo, x, para?) {
-  if (pl.improv) { for (const id of pl.improv) e.objs[id].virada = true; custo = pl.custo; }   // improvisar (702.126a)
+  if (pl.improv) { for (const id of pl.improv) e.objs[id].virada = true; custo = pl.custo; }   // improvisar (702.126a) e convocar (702.51a)
   for (const p of pl.passos) M.ativarMana(e, j, p.id, p.k, p.escolha, p.para);
   const pg = M.pagarDaReserva(M.reservaCom(e, j, para), custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
