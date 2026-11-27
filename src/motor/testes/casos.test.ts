@@ -3924,6 +3924,17 @@ caso('121.1', "Fists of Flame: compra 1 e a criatura ganha +1/+0 por carta que v
   igual(M.poder(e, b), 2 + 3, '2 compradas antes + a do Fists'); ok(M.temKw(e, b, 'atropelar'));
 });
 
+caso('603.4', "Nissa, Resurgent Animist: só na 2ª resolução do gatilho de terreno no turno revela até achar Elfo/Elemental e põe na mão (conta {de:'turno', o:'resolucoesDestaHab'})", () => {
+  const e = cena({ campo: [[0, 'Nissa, Resurgent Animist']] });
+  e.por(0, 'Llanowar Elves', { zona: 'grimorio' }); e.por(0, 'Sol Ring', { zona: 'grimorio' });   // topo: Sol Ring, depois o Elfo
+  const naMao = () => e.jogs[0].zonas.mao.filter(id => e.objs[id].n === 'Llanowar Elves').length;
+  e.por(0, 'Forest'); M.avancar(e); resolveCom(e);
+  igual(naMao(), 0, '1ª resolução: só a mana');
+  e.por(0, 'Forest'); M.avancar(e); resolveCom(e);
+  igual(naMao(), 1, '2ª: o Elfo foi para a mão');
+  ok(e.jogs[0].zonas.grimorio.map(id => e.objs[id].n).indexOf('Sol Ring') === 0, 'o Sol Ring revelado foi para o fundo');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
