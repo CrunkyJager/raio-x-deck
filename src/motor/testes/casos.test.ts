@@ -3895,6 +3895,18 @@ caso('118.12', "Ripples of Undeath: mói 3 e pode pagar {1} e 3 de vida para pô
   igual(e.jogs[0].zonas.cemiterio.length, 2);
 });
 
+caso('614.1c', "Feasting Hobbit: ao entrar sacrifica as Comidas que quiser e entra com 3 marcadores +1/+1 por Comida; sem Comida, entra 2/2", () => {
+  ok(M.carta('Feasting Hobbit').subst.every(s => M.substOk(s)), 'aceito');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest']], mao: [[0, 'Feasting Hobbit']] });
+  M.criarFichas(e, 0, { nome: 'Food' }, 2);
+  M.avancar(e); conj(e, 'Feasting Hobbit'); resolveCom(e);
+  const h = objN(e, 0, 'Feasting Hobbit');
+  igual(h.marc['+1/+1'], 6, '2 Comidas × 3'); igual(e.campo.filter(id => e.objs[id].n === 'Food').length, 0, 'sacrificou as duas');
+  const f = cena({ campo: [[0, 'Forest'], [0, 'Forest']], mao: [[0, 'Feasting Hobbit']] });
+  M.avancar(f); conj(f, 'Feasting Hobbit'); resolveCom(f);
+  igual(M.poder(f, objN(f, 0, 'Feasting Hobbit')), 2, 'sem Comida: 2/2');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

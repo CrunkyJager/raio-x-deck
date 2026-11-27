@@ -64,7 +64,8 @@ M.fxSuportado = (fx, { topo = true }: any = {}) => (fx || []).every(f => {
 // dano (substDano), anulada (pilha.ts), morre/vaiCemiterio (estado.ts, M.destinoSaida).
 const SUBST: Record<string, (s) => boolean> = {
   entra: s => (!!s.muda && Object.keys(s.muda).length === 1 && s.muda.virada === true && !!s.quem && s.quem.este)
-    || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo'))),
+    || (!!s.emVez && s.emVez.every(f => f.op === 'escolher' && (f.o === 'cor' || f.o === 'tipoCriatura' || f.o === 'modo')))
+    || sacEntraOk(s),
   ganhaVida: s => !!s.muda && Object.keys(s.muda).every(k => k === 'soma' || k === 'mult'),
   compra: s => !!s.muda && Object.keys(s.muda).length === 1 && Number.isInteger(s.muda.mult) && Object.keys(s).every(k => ['ev', 'jog', 'muda', 'naoPrimeira'].includes(k)),   // estado.ts M.comprar (Bard)
   // "entra com N marcadores" (614.1c): a própria (quem.este) ou outras que entram (quem filtro); N = número, X pago, conta
@@ -83,6 +84,14 @@ const SUBST: Record<string, (s) => boolean> = {
   dano: s => !!s.muda && Object.keys(s.muda).length === 1 && (Number.isInteger(s.muda.mult) || s.muda.metade === true || s.muda.prevenir === true || Number.isInteger(s.muda.teto))
     && Object.keys(s).every(k => ['ev', 'quem', 'jog', 'por', 'combate', 'muda', 'se'].includes(k)) && (!s.por || M.filtroOk(s.por)) && (!s.jog || s.jog === 'voce' || s.jog === 'oponente' || s.jog === 'doEvento'),
 };
+// "As this enters, you may sacrifice any number of Foods. It enters with three +1/+1 counters for each" (Feasting
+// Hobbit, 614.1c): emVez [sacrificar {f, qtd ate qualquer}, marcador {em este, qtd {conta resultado, mult}}]
+function sacEntraOk(s) {
+  if (!s.emVez || s.emVez.length !== 2 || !s.quem || !s.quem.este) return false;
+  const [a, b] = s.emVez;
+  return a.op === 'sacrificar' && (a.quem === undefined || a.quem === 'voce') && !!a.f && M.filtroOk(a.f) && !!a.qtd && a.qtd.ate === 'qualquer' && Object.keys(a).every(k => ['op', 'quem', 'f', 'qtd'].includes(k))
+    && b.op === 'marcador' && b.em === 'este' && typeof b.tipoMarc === 'string' && !!b.qtd && b.qtd.conta === 'resultado' && Object.keys(b.qtd).every(k => k === 'conta' || k === 'mult') && Object.keys(b).every(k => ['op', 'em', 'tipoMarc', 'qtd'].includes(k));
+}
 function saidaOk(s) {
   if (!Object.keys(s).every(k => ['ev', 'quem', 'muda', 'emVez', 'se', 'talvez'].includes(k)) || !!s.muda === !!s.emVez) return false;
   if (s.talvez !== undefined && (s.talvez !== true || s.ev !== 'vaiCemiterio' || !s.quem || s.quem.zona !== 'mao')) return false;   // só "descartada por efeito" (Leng)
@@ -460,13 +469,21 @@ M.decidirEntrada = (e, id, ctrl, { virada = false, face = undefined }: any = {},
       }
     }
   }
-  return { id, ctrl, vir, pagaVida, escolha, face };
+  let sacEntra: any = null;                                          // Feasting Hobbit: as Comidas escolhidas e os marcadores
+  if (ask) for (const sb of d.subst || []) if (sb.ev === 'entra' && sacEntraOk(sb)) {
+    const [a, b] = sb.emVez, cand = M.objetosQue(e, { ...a.f, ctrl: 'voce', zona: 'campo' }, { voce: ctrl, este: id }).filter(x => x.id !== id).map(x => x.id);
+    const ids = cand.length ? escolherN(ask, ctrl, 'sacrificar', cand, cand.length, { podeMenos: true, ctx: { id, entra: true } }) : [];
+    if (ids.length) sacEntra = { ids, t: b.tipoMarc, q: ids.length * (b.qtd.mult || 1) };
+  }
+  return { id, ctrl, vir, pagaVida, escolha, face, ...(sacEntra ? { sacEntra } : {}) };
 };
-M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0 }) => {
+M.aplicarEntrada = (e, { id, ctrl, vir, pagaVida, escolha, face, conj = null, x = 0, sacEntra = null }: any) => {
   if (pagaVida) M.perderVida(e, ctrl, pagaVida);
+  if (sacEntra) for (const sid of sacEntra.ids) if (e.objs[sid] && e.objs[sid].zona === 'campo') M.mover(e, sid, 'cemiterio', { sac: true });   // 701.21, antes de entrar
   const o = M.mover(e, id, 'campo', { virada: vir, face, conj });
   o.ctrl = ctrl; o.escolha = escolha; e.vCamada = (e.vCamada || 0) + 1;   // camadas: refaz as fontes (estado.ts)
   entraComMarcadores(e, o, x);                                       // 614.1c: já entra com eles (antes das ABE)
+  if (sacEntra && sacEntra.q > 0) M.porMarcadores(e, o, sacEntra.t, sacEntra.q);
   M.log(e, e.jogs[ctrl].nome, 'põe no campo', o.n, vir ? '(virado)' : '');
   return o;
 };
