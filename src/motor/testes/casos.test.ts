@@ -7274,9 +7274,6 @@ caso('508.1', "Moraug, Fury of Akoum: suas criaturas +1/+0 por vez que atacaram 
   M.lote(() => igual([M.poder(e, gb), M.poder(e, le), M.poder(e, mo)], [4, 1, 6], 'no lote a conta é por objeto'));
 });
 
-
-});
-
 caso('709.5d', "Room (Funeral Room // Awakening Hall): conjurada a porta da esquerda, entra só com ela destrancada; destrancar a outra é ação especial (116.2m) pagando o custo dela; 'when you unlock this door' dispara (709.5h)", () => {
   const e = cena({ campo: terras(11, 'Swamp'), mao: [[0, 'Funeral Room']] }); e.pend = [];
   const fr = e.jogs[0].zonas.mao[0];
