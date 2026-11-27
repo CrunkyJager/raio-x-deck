@@ -2,6 +2,12 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.67.0 — 27/11/2026 · Motor: mais 26 mecânicas (adeptos A, B, C + coordenador)
+Testes: check 0 erros · Vitest 412/412 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1619/1756 (eram 1573). Selo ⓘ da Mesa atualizado.
+- Mecânicas novas: popular, tentar o Anel, mover marcador, vigiar, anexar, explorar, turno extra, mentor, prole, tripular e outras da lista do T43 (detalhe nos commits `T43:` do dia).
+- Variações de efeitos que já existiam: mover aleatório (Tomb Tyrant), revelar o topo (Descendants' Path), "compre duas no lugar de uma" (Bard, King of Dale), contar cores entre permanentes, deuses de Theros, tipos de terreno ganhos (Yavimaya, Ashaya).
+- Pendente: reestruturar as contagens (hoje um nome por caso) numa conta só de "de onde + o quê + de quem".
+
 ## v0.66.0 — 27/11/2026 · Motor: 11 mecânicas (4 adeptos em paralelo)
 Testes: check 0 erros · Vitest 395/395 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1573/1756 (eram 1539). Selo ⓘ da Mesa atualizado.
 - **Tempestade** (702.40): Grapeshot, Empty the Warrens, Brain Freeze, Flusterstorm, Radstorm. Conta as mágicas de todos os jogadores no turno.
