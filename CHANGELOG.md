@@ -2,6 +2,11 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.65.0 — 27/11/2026 · Motor: ascender
+Testes: check 0 erros · Vitest 388/388 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1539/1756 (eram 1535). Selo ⓘ da Mesa atualizado.
+- **Ascender / bênção da cidade** (CR 702.131): Ocelot Pride, Radiant Destiny, Twilight Prophet, Wayward Swordtooth e outras. Com 10 permanentes e uma com ascender, o jogador ganha a bênção e fica com ela até o fim.
+- Conserto: antes a bênção vinha com 10 permanentes mesmo sem nenhuma carta com ascender.
+
 ## v0.64.0 — 27/11/2026 · Motor: gatilho de moer
 Testes: check 0 erros · Vitest 387/387 · testa 161/161 · partida Stangg igual à linha de base (erros 0). Motor joga inteiras 1535/1756 (eram 1530).
 - **"Sempre que um jogador moer uma carta"** (CR 701.13): Glowing One, Infesting Radroach (volta do cemitério), Mirelurk Queen, Screeching Scorchbeast (uma vez pelo lote, tantas fichas quantas cartas não-terreno) e The Wise Mothman. Carta que uma substituição manda para outra zona não conta como moída.

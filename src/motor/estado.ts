@@ -895,10 +895,20 @@ const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'c
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
 // temIniciativa/completouMasmorra: valores conferidos em masmorras.ts (CR 727, 309.7)
+// ascender (CR 702.131): com uma permanente com ascender (ou a mágica com ascender resolvendo, 702.131a) e 10+ permanentes,
+// o jogador ganha a bênção da cidade e fica com ela para o resto da partida (702.131c). Checado nas ABE e ao ler a condição.
+M.bencao = (e, j, este?) => {
+  const J = e.jogs[j]; if (!J || J.bencao) return !!(J && J.bencao);
+  const meus = e.campo.filter(id => e.objs[id].ctrl === j);
+  if (meus.length < 10) return false;
+  const x = este !== undefined && e.objs[este];
+  if (meus.some(id => M.temKw(e, e.objs[id], 'ascender')) || (x && x.zona === 'pilha' && x.ctrl === j && M.temKw(e, x, 'ascender'))) { J.bencao = true; M.log(e, J.nome, 'ganha a bênção da cidade'); }
+  return !!J.bencao;
+};
 const PALAVRA: Record<string, (e, ctx) => boolean> = {
   metalcraft: (e, ctx) => M.objetosQue(e, { tipo: ['Artifact'], ctrl: 'voce', zona: 'campo' }, ctx).length >= 3,
   coven: (e, ctx) => new Set(M.objetosQue(e, { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' }, ctx).map(o => M.poder(e, o))).size >= 3,
-  blessing: (e, ctx) => { const J = e.jogs[ctx.voce]; if (!J.bencao && e.campo.filter(id => e.objs[id].ctrl === ctx.voce).length >= 10) J.bencao = true; return !!J.bencao; },
+  blessing: (e, ctx) => M.bencao(e, ctx.voce, ctx.este),
   morbid: e => M.morbido(e),
 };
 M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker') && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);

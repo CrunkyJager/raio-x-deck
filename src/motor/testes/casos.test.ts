@@ -2570,7 +2570,7 @@ caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), c
   e.por(0, 'Hill Giant');
   igual(M.condicao(e, { palavra: 'coven' }, ctx), true, '1, 2 e 3');
   igual(M.condicao(e, { palavra: 'blessing' }, ctx), false, '6 permanentes');
-  for (let i = 0; i < 4; i++) e.por(0, 'Wastes');
+  for (let i = 0; i < 3; i++) e.por(0, 'Wastes'); e.por(0, 'Wayward Swordtooth');   // 702.131b: precisa de uma com ascender
   igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
   for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
   igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
@@ -3410,6 +3410,17 @@ caso('701.13', "gatilho de moer: Glowing One ganha 1 por carta não-terreno moí
   const f = cena({ campo: [[0, 'Glowing One']] }); f.pend = [];
   M.executar(f, { op: 'moer', quem: 'voce', qtd: 2 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
   igual(f.pend.length, 0, 'só terreno moído: nada');
+});
+
+caso('702.131', "ascender: com 10 permanentes e uma com ascender ganha a bênção e fica com ela; sem a permanente com ascender, não", () => {
+  const ilhas = n => Array.from({ length: n }, () => [0, 'Island']);
+  const e = cena({ campo: [...ilhas(9), [0, 'Twilight Prophet'], [1, 'Island']] });
+  M.abe(e); ok(e.jogs[0].bencao, '10 permanentes com ascender: bênção'); ok(!e.jogs[1].bencao, 'o oponente não');
+  for (const id of e.campo.filter(id => e.objs[id].n === 'Island' && e.objs[id].ctrl === 0).slice(0, 5)) M.mover(e, id, 'cemiterio');
+  M.abe(e); ok(e.jogs[0].bencao, 'continua com a bênção com menos de 10 (702.131c)');
+  ok(M.condicao(e, { palavra: 'blessing' }, { voce: 0 }), 'a condição lê a bênção');
+  const f = cena({ campo: [...ilhas(10)] }); M.abe(f);
+  ok(!f.jogs[0].bencao && !M.condicao(f, { palavra: 'blessing' }, { voce: 0 }), 'sem permanente com ascender: nada');
 });
 
 // ---------- rodar ----------
