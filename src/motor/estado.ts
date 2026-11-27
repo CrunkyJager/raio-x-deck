@@ -606,6 +606,7 @@ M.ganharVida = (e, j, q) => {
   }
   q = (q + soma) * mult;
   e.jogs[j].vida += q;
+  { const J = e.jogs[j]; if (q > 0) J.vgT = { t: e.turno.n, n: (J.vgT && J.vgT.t === e.turno.n ? J.vgT.n : 0) + q }; }   // "life you gained this turn"
   M.evento(e, { ev: 'ganhaVida', j, q });
   return q;
 };

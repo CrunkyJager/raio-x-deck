@@ -9,92 +9,9 @@
 // Os nomes velhos continuam entrando por traduzQtd() (o cartas-rx.js de reserva, até a T45, usa os nomes velhos);
 // o banco próprio (banco/cartas) já é escrito no formato novo e o esquema não aceita mais nome velho.
 import { M } from './nucleo';
+import { traduzQtd, nova, NOMES_VELHOS, PROPS_VELHOS } from './contagem-trad';
+export { traduzQtd, NOMES_VELHOS, PROPS_VELHOS } from './contagem-trad';
 
-const A = (n: number) => ({ alvo: n });
-// nome velho → conta nova (alvo N vem do q.alvo; marc/cores vêm do q.de velho)
-const TRAD: Record<string, (q: any) => any> = {
-  poderDoAlvo: q => ({ de: A(q.alvo || 0), o: 'poder' }),
-  resistDoAlvo: q => ({ de: A(q.alvo || 0), o: 'resist' }),
-  vmDoAlvo: q => ({ de: A(q.alvo || 0), o: 'vm' }),
-  grimorioDoAlvo: q => ({ de: A(q.alvo || 0), o: 'grimorio' }),
-  vidaDoAlvo: q => ({ de: A(q.alvo || 0), o: 'vida' }),
-  maoDoAlvo: q => ({ de: A(q.alvo || 0), o: 'mao' }),
-  poderDoEste: () => ({ de: 'este', o: 'poder' }),
-  resistDoEste: () => ({ de: 'este', o: 'resist' }),
-  vmDoEste: () => ({ de: 'este', o: 'vm' }),
-  coresDoEste: () => ({ de: 'este', o: 'cores' }),
-  marcadoresNoEste: q => ({ de: 'este', o: 'marcadores', ...(q.de ? { marc: q.de } : {}) }),
-  vezesKicker: () => ({ de: 'este', o: 'kicker' }),
-  convergir: () => ({ de: 'este', o: 'coresPagas' }),
-  cartasNaMao: () => ({ de: 'voce', o: 'mao' }),
-  cartasNoGrimorio: () => ({ de: 'voce', o: 'grimorio' }),
-  suaVida: () => ({ de: 'voce', o: 'vida' }),
-  vidaInicial: () => ({ de: 'voce', o: 'vidaInicial' }),
-  devocao: q => ({ de: 'voce', o: 'devocao', cores: q.de }),
-  marcadoresSeus: q => ({ de: 'voce', o: 'marcadores', marc: q.de }),
-  energia: () => ({ de: 'voce', o: 'marcadores', marc: 'energy' }),
-  dominio: () => ({ de: 'voce', o: 'dominio' }),
-  impostoCmd: () => ({ de: 'voce', o: 'impostoCmd' }),
-  seusTurnos: () => ({ de: 'voce', o: 'turnos' }),
-  magiasNoTurno: () => ({ de: 'turno', o: 'magias' }),
-  descartadasNoTurno: () => ({ de: 'turno', o: 'descartes' }),
-  ataquesNoTurno: () => ({ de: 'turno', o: 'ataques' }),
-  resolvidasNoTurno: () => ({ de: 'turno', o: 'resolvidas' }),
-  vidaGanhaNoTurno: () => ({ de: 'turno', o: 'vidaGanha' }),
-  compradasNoTurno: () => ({ de: 'turno', o: 'compras' }),
-  vidaPerdidaNoTurno: () => ({ de: 'turno', o: 'vidaPerdida' }),
-  vidaPerdidaOpsNoTurno: () => ({ de: 'turno', o: 'vidaPerdida', quem: 'oponentes', junta: 'soma' }),
-  maiorVidaPerdidaOpNoTurno: () => ({ de: 'turno', o: 'vidaPerdida', quem: 'oponentes', junta: 'maior' }),
-  resolucoesDestaHabNoTurno: () => ({ de: 'turno', o: 'resolucoesDestaHab' }),
-  oponentesAtacados: () => ({ de: 'turno', o: 'oponentesAtacados' }),
-  entrouNoTurno: () => ({ de: 'turno', o: 'entraram' }),
-  atacantes: () => ({ de: 'combate', o: 'atacantes' }),
-  atacantesEmVoce: () => ({ de: 'combate', o: 'atacantesEmVoce' }),
-  oponentes: () => ({ de: 'oponentes', o: 'quantos' }),
-  jogadores: () => ({ de: 'jogadores', o: 'quantos' }),
-  maiorEntreJogadores: () => ({ de: 'jogadores', o: 'maior' }),
-  X: () => ({ de: 'X' }),
-  resultado: () => ({ de: 'resultado' }),
-  numeroEscolhido: () => ({ de: 'escolhido' }),
-  lembrados: () => ({ de: 'lembradas', o: 'quantos' }),
-  maiorDescarte: () => ({ de: 'lembradas', o: 'quantos', junta: 'maiorPorDono' }),
-  evento: () => ({ de: 'evento', o: 'quantos' }),
-  vidaGanha: () => ({ de: 'evento', o: 'vida' }),
-  danoCausado: () => ({ de: 'evento', o: 'dano' }),
-  marcadoresNoEvento: () => ({ de: 'evento', o: 'marcadores' }),
-  poderDoEvento: () => ({ de: 'evento', o: 'poder' }),
-  resistDoEvento: () => ({ de: 'evento', o: 'resist' }),
-  vmDoEvento: () => ({ de: 'evento', o: 'vm' }),
-  coresDoEvento: () => ({ de: 'evento', o: 'cores' }),
-  maoDoEvento: () => ({ de: 'evento', o: 'mao' }),
-  poderDoSacrificado: () => ({ de: 'sacrificadas', o: 'poder', junta: 'soma' }),
-  vmDoSacrificado: () => ({ de: 'sacrificadas', o: 'vm', junta: 'soma' }),
-  marcadoresNoCada: q => ({ de: 'cada', o: 'marcadores', marc: q.de }),
-  vidaDoAtual: () => ({ de: 'cada', o: 'vida' }),
-  tipoMaisComum: () => ({ de: 'tipoMaisComum' }),
-};
-// prop velho (com conta = filtro) → o + junta
-const PROP: Record<string, any> = {
-  somaPoder: { o: 'poder', junta: 'soma' }, maiorPoder: { o: 'poder', junta: 'maior' }, somaResist: { o: 'resist', junta: 'soma' },
-  somaVm: { o: 'vm', junta: 'soma' }, maiorVm: { o: 'vm', junta: 'maior' }, cores: { o: 'cores', junta: 'diferentes' },
-  nomesDiferentes: { o: 'nome', junta: 'diferentes' }, tiposDiferentes: { o: 'tipos', junta: 'diferentes' },
-};
-export const NOMES_VELHOS = Object.keys(TRAD);
-export const PROPS_VELHOS = Object.keys(PROP);
-const nova = c => !!c && typeof c === 'object' && 'de' in c;
-/** qtd velha → nova; o que não é contagem (número, 'X', {ate}, {dado}) volta igual. Nome desconhecido → erro. */
-export function traduzQtd(q) {
-  if (!q || typeof q !== 'object' || Array.isArray(q)) return q;
-  if ('ate' in q && q.ate && typeof q.ate === 'object') return { ...q, ate: traduzQtd(q.ate) };
-  if (!('conta' in q) || nova(q.conta)) return q;
-  const { conta, alvo, de, prop, cond, sim, nao, ...resto } = q;
-  let c;
-  if (conta === 'se') c = { de: 'se', cond, ...(sim !== undefined ? { sim } : {}), ...(nao !== undefined ? { nao } : {}) };
-  else if (typeof conta === 'string') { const t = TRAD[conta]; if (!t) throw new Error('conta velha desconhecida: ' + conta); c = t(q); }
-  else { if (prop && !PROP[prop]) throw new Error('prop velho desconhecido: ' + prop); c = { de: { f: conta }, ...(prop ? PROP[prop] : { o: 'quantos' }) }; }
-  for (const k of Object.keys(c)) if (c[k] === undefined) delete c[k];
-  return { conta: c, ...resto };
-}
 // o motor recebe a mesma qtd milhares de vezes: traduz uma vez só por objeto
 const CACHE = new WeakMap();
 M.qn = q => {
@@ -103,13 +20,15 @@ M.qn = q => {
   return v;
 };
 M.traduzQtd = traduzQtd;
+M.NOMES_VELHOS = NOMES_VELHOS;
+M.PROPS_VELHOS = PROPS_VELHOS;
 
 // ---------- o que o motor sabe contar, por lugar ----------
 // 'est' = habilidade estática/CDA/mana (sem evento nem alvo); 'cond' = condição e as leituras de M.qtd; 'efeito' = tudo
 const temF = c => !!c.de && typeof c.de === 'object' && 'f' in c.de && Object.keys(c.de).length === 1;
 const temAlvo = c => !!c.de && typeof c.de === 'object' && Number.isInteger(c.de.alvo) && Object.keys(c.de).length === 1;
 const chaves = (c, ks) => Object.keys(c).every(k => ['de', 'o', ...ks].includes(k));
-const DO_CONJ = { quantos: [undefined], poder: ['soma', 'maior'], vm: ['soma', 'maior'], cores: ['diferentes'] };
+const DO_CONJ = { quantos: [undefined], poder: ['soma', 'maior'], resist: ['soma'], vm: ['soma', 'maior'], cores: ['diferentes'], tipos: ['diferentes'], nome: ['diferentes'] };
 function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   const o = c.o, j = c.junta;
   if (temF(c)) return M.filtroOk(c.de.f) && !!DO_CONJ[o] && DO_CONJ[o].includes(j) && chaves(c, ['junta']);
@@ -118,12 +37,12 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
-    case 'turno': return ['magias', 'descartes', 'ataques'].includes(o) && chaves(c, []);
+    case 'turno': return ['magias', 'descartes', 'ataques', 'compras', 'vidaGanha', 'resolucoesDestaHab'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
-    case 'evento': return ['quantos', 'vida', 'dano', 'marcadores', 'resist', 'vm', 'cores'].includes(o) && chaves(c, []);
+    case 'evento': return ['quantos', 'vida', 'dano', 'marcadores', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
   }
@@ -133,7 +52,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 function estOk(c) {
   if (temF(c)) return true;
   if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'devocao'].includes(c.o);
-  if (c.de === 'turno') return c.o === 'magias';
+  if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
 }
@@ -142,11 +61,12 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && ((c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && c.o === 'quantos') || c.de === 'combate' || (c.de === 'turno' && c.o === 'ataques'));
+  return onde === 'cond' && ((c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
 // ---------- contar ----------
+const TIPOS_CARTA = new Set(['Artifact', 'Battle', 'Creature', 'Enchantment', 'Instant', 'Kindred', 'Tribal', 'Land', 'Planeswalker', 'Sorcery']);
 const coresN = s => new Set((s || '').replace(/[^WUBRG]/g, '')).size;
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
 /** valor cru da conta (sem mult/soma). ctx.lki presente = dentro de um efeito (alvos e 'este' pelo LKI, CR 608.2h) */
@@ -155,6 +75,9 @@ M.contar = (e, c, ctx: any = {}) => {
   if (temF(c)) {
     const os = M.objetosQue(e, c.de.f, ctx);
     if (o === 'quantos') return os.length;
+    if (o === 'tipos') return new Set(os.flatMap(x => (M.dadoDe(e, x).tipos || []).filter(t => TIPOS_CARTA.has(t)))).size;   // delirium (CR 700.x: tipos de card)
+    if (o === 'nome') return new Set(os.map(x => M.dadoDe(e, x).n || x.n)).size;
+    if (o === 'resist') return os.reduce((s, x) => s + Math.max(0, M.resistencia(e, x)), 0);
     if (o === 'cores') return new Set(os.flatMap(x => (M.dadoDe(e, x).cores || '').replace(/[^WUBRG]/g, '').split('')).filter(Boolean)).size;
     if (o === 'vm') return c.junta === 'soma' ? os.reduce((s, x) => s + (M.dadoDe(e, x).vm || 0), 0) : os.reduce((m, x) => Math.max(m, M.dadoDe(e, x).vm || 0), 0);
     return c.junta === 'soma' ? os.reduce((s, x) => s + Math.max(0, M.poder(e, x)), 0) : os.reduce((m, x) => Math.max(m, M.poder(e, x)), 0);
@@ -183,6 +106,9 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'turno':
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
+      if (o === 'compras') { const D = J.compT; return D && D.t === e.turno.n ? D.n : 0; }      // "cards you've drawn this turn" (Fists of Flame)
+      if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
+      if (o === 'resolucoesDestaHab') { const R = e.resHab; return R && R.t === e.turno.n && ctx.hk ? R.m[ctx.hk] || 0 : 0; }   // "the first/second time this ability has resolved this turn" (Omnath, CR 603.4); conta a de agora
       return M.contaAtaque(e, 'ataquesNoTurno', ctx.voce);
     case 'combate': return M.contaAtaque(e, o, ctx.voce);
     case 'oponentes': return M.vivos(e).filter(j => j !== ctx.voce).length;
@@ -201,6 +127,7 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'vida') return vidaEv(ev) ? ev.q || 0 : 0;                    // "that much life" (Sanguine Bond)
       if (o === 'dano') return ev.ev === 'dano' ? ev.q || 0 : 0;              // "that much damage"
       if (o === 'marcadores') return ev.ev === 'marcadorPosto' ? ev.n || 0 : 0;   // "that many" (Shalai and Hallar)
+      if (o === 'mao') { const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo; return jj !== undefined && e.jogs[jj] ? e.jogs[jj].zonas.mao.length : 0; }   // "if that player has four or more cards in hand" (Fevered Visions)
       const ob = e.objs[ev.id];
       if (o === 'resist') return ob && ob.zona === 'campo' ? M.resistencia(e, ob) : ev.snap ? M.resistencia(e, ev.snap) : 0;   // Verdant Sun's Avatar
       if (!ob) return 0;

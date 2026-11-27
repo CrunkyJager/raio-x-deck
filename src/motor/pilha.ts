@@ -826,10 +826,12 @@ const PROC = {
       pil.lki.alvos = (pil.alvos || []).map(l => (l || []).map(esc => esc.o !== undefined && e.objs[esc.o] ? lkiDe(e, e.objs[esc.o]) : null));
       if (tem && !legais) { e.proc = null; M.log(e, o.n, 'não resolve: alvos ilegais'); tirarDaPilha(e, o); return; }
       P.i = 0;
+      // "this ability has resolved this turn" (CR 603.4, Omnath): conta por habilidade (fonte+ts+índice) a cada resolução que começa
+      if (o.hab) { const k = o.hab.fonte + ':' + o.hab.fonteTs + ':' + (o.hab.gat ?? 'a' + o.hab.k), R = e.resHab && e.resHab.t === e.turno.n ? e.resHab : (e.resHab = { t: e.turno.n, m: {} }); R.m[k] = (R.m[k] || 0) + 1; pil.hk = k; }
       if (pil.opc && pil.opc.presente && !e.jogs[pil.opc.jog].saiu) { M.comprar(e, pil.opc.jog, 1); M.log(e, e.jogs[pil.opc.jog].nome, 'recebe o presente (compra 1)'); }   // 702.174b: antes dos efeitos
     }
     // o ctx fica no processo: o que um efeito deixa (pagou, resultado, lembrados, criadas) vale no seguinte mesmo depois de uma pergunta
-    const ctx = P.ctx = P.ctx || { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, ...(pil.mem || {}) };
+    const ctx = P.ctx = P.ctx || { voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, hk: pil.hk || null, ...(pil.mem || {}) };
     if (o.hab && o.hab.talvez && !P.talvez) {                      // CR 603.5: "you may" do gatilho inteiro, escolhido ao resolver
       if (ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'gatilho', id: o.hab.fonte, n: o.n }).a === 'nao') { e.proc = null; M.log(e, o.n, 'gatilho: escolheu não fazer'); tirarDaPilha(e, o); return; }
       P.talvez = true; ask.etapa();
