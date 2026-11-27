@@ -3437,6 +3437,24 @@ caso('702.40', "tempestade: Grapeshot depois de 2 mágicas no turno causa 3 de d
   igual(f.jogs[1].vida, 39, 'primeira mágica do turno: sem cópia');
 });
 
+caso('702.29e', "ciclo de tipo: Step Through (ciclo de Wizard {2}) procura um Wizard e embaralha; Homing Sliver dá ciclo de Sliver aos Slivers da mão", () => {
+  const e = cena({ campo: [...terras(2, 'Wastes')], mao: [[0, 'Step Through']] });
+  e.por(0, 'Vedalken Aethermage', { zona: 'grimorio' }); e.pend = [];
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(op => op.a === 'ativar' && e.objs[op.id].n === 'Step Through');
+  ok(k >= 0, 'ciclo de Wizard oferecido da mão'); M.responder(e, k); resolveCom(e);
+  igual(naZona(e, 0, 'cemiterio'), ['Step Through']);
+  igual(naZona(e, 0, 'mao'), ['Vedalken Aethermage'], 'achou o Wizard');
+  const f = cena({ campo: [...terras(3, 'Wastes'), [0, 'Homing Sliver']], mao: [[0, 'Grizzly Bears']] }); f.pend = [];
+  M.avancar(f); ok(!opsDe(f, 'ativar').some(op => f.objs[op.id].n === 'Grizzly Bears'), 'não-Sliver não cicla');
+  const g = cena({ campo: [...terras(3, 'Wastes'), [0, 'Homing Sliver']], mao: [[0, 'Blur Sliver']] }); g.pend = [];
+  M.avancar(g);
+  ok(opsDe(g, 'ativar').some(op => g.objs[op.id].n === 'Blur Sliver'), 'Sliver da mão ganha ciclo de Sliver');
+  const h = cena({ campo: [...terras(3, 'Wastes'), [1, 'Homing Sliver']], mao: [[0, 'Blur Sliver']] }); h.pend = [];
+  M.avancar(h);
+  ok(!opsDe(h, 'ativar').some(op => h.objs[op.id].n === 'Blur Sliver'), 'o Homing do oponente não dá à minha mão');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
