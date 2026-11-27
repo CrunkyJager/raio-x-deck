@@ -309,9 +309,9 @@ M.porFuga = porFuga; M.fugaDe = fugaDe;
 // pagar.mana, e 'se'. Simplificação: usa o alternativo sempre que sai mais barato (ninguém pagaria mais). Pagar vida,
 // exilar da mão ou sacrificar (Force of Will, Fling…) ainda não.
 // Dado por uma permanente sua a outras cartas (afeta filtro: Dracogenesis, Rooftop Storm, Bolas's Citadel, Demon of
-// Fate's Design): grátis, {0}, mana, ou vida (pagar.vida: número ou {conta:'vmDoEvento'} = o valor de mana da mágica;
+// Fate's Design): grátis, {0}, mana, ou vida (pagar.vida: número ou {conta:{de:'evento', o:'vm'}} = o valor de mana da mágica;
 // CR 119.4: só paga quem tem essa vida). limite 1 = uma vez por turno. Simplificação: vida só quando sobram mais de 10.
-const altVidaOk = v => Number.isInteger(v) || (!!v && typeof v === 'object' && Object.keys(v).length === 1 && v.conta === 'vmDoEvento');
+const altVidaOk = v => Number.isInteger(v) || (!!v && typeof v === 'object' && Object.keys(v).length === 1 && !!v.conta && v.conta.de === 'evento' && v.conta.o === 'vm');
 M.estAltOk = s => !!s && s.modo === 'custoAlternativo' && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
   && Object.keys(s).every(k => ['modo', 'afeta', 'gratis', 'pagar', 'se', ...(s.afeta === 'este' ? [] : ['limite'])].includes(k)) && (s.limite === undefined || s.limite === 1)
   && (s.gratis === true ? !s.pagar : !!s.pagar && (Object.keys(s.pagar).length === 0 ? s.afeta !== 'este'

@@ -3532,7 +3532,7 @@ caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores 
   M.executar(e, M.carta('Endless Ranks of the Dead').gat[0].fx[0], cx(), () => ({ a: 'nao' }));
   igual(e.campo.length, 7, '5 Zumbis → +2');
   e.jogs[0].marc = { experience: 3 };
-  igual(M.qtdDe(e, { conta: 'marcadoresSeus', de: 'experience' }, cx()), 3, '3 de experiência');
+  igual(M.qtdDe(e, { conta: { de: 'voce', o: 'marcadores', marc: 'experience' } }, cx()), 3, '3 de experiência');
   const f = cena({ campo: [[0, 'Chasm Skulker'], [0, 'Elenda, the Dusk Rose']] });
   const sk = f.campo.map(id => f.objs[id]).find(o => o.n === 'Chasm Skulker'), el = f.campo.map(id => f.objs[id]).find(o => o.n === 'Elenda, the Dusk Rose');
   sk.marc['+1/+1'] = 3; el.marc['+1/+1'] = 2;
@@ -3872,9 +3872,9 @@ caso('120.3', "dano igual ao poder da criatura do evento (Terror of the Peaks) e
   for (const c of ['Basalt Ravager', 'Terror of the Peaks', 'Warstorm Surge']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
   const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Elvish Mystic'], [0, 'Grizzly Bears'], [0, 'Hill Giant']] });
   const cx = (ev?) => ({ voce: 0, alvos: [], ilegal: {}, lki: {}, ev });
-  igual(M.qtdDe(e, { conta: 'tipoMaisComum' }, cx()), 2, 'dois Elfos');
+  igual(M.qtdDe(e, { conta: { de: 'tipoMaisComum' } }, cx()), 2, 'dois Elfos');
   const hg = e.campo.map(id => e.objs[id]).find(o => o.n === 'Hill Giant');
-  igual(M.qtdDe(e, { conta: 'poderDoEvento' }, cx({ ev: 'zona', id: hg.id, para: 'campo' })), 3, 'Hill Giant 3/3');
+  igual(M.qtdDe(e, { conta: { de: 'evento', o: 'poder' } }, cx({ ev: 'zona', id: hg.id, para: 'campo' })), 3, 'Hill Giant 3/3');
 });
 
 caso('122.5', "mover marcadores: Nesting Grounds tira um e põe no outro; Zack Fair sacrificado passa os +1/+1 que tinha; Forgotten Ancient um a um", () => {
