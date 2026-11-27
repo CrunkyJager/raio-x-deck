@@ -283,6 +283,7 @@ M.abe = e => {
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
     for (const id of sagas) if (e.objs[id].zona === 'campo') { M.mover(e, id, 'cemiterio', { sac: true }); mudou = true; }   // 714.4: é sacrifício (701.21)
+    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
     if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }
