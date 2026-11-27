@@ -1,5 +1,17 @@
 // src/motor/agentes.ts (T43: migrado de motor2/agentes.js) — agentes simples que respondem às perguntas do núcleo (a IA de verdade é a T21).
 import { M } from './nucleo';
+// tripular (702.122a): quanto custa virar esta para tripular — a que não pode atacar (enjoo, 302.6) quase nada; as outras, o poder
+const custoTripular = (e, x) => (x.doente && !M.temKw(e, x, 'pressa') ? 0 : 10 + M.poder(e, x)) + M.resistencia(e, x) / 100;
+// vale tripular? só se o Veículo ainda não é criatura, pode atacar (atacar) e o poder dele passa o das que virariam (as baratas primeiro)
+const valeTripular = (e, j, V, a, para) => {
+  if (M.temTipo(e, V, 'Creature') || e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === V.id)) return false;
+  if (para === 'atacar' && V.doente && !M.temKw(e, V, 'pressa')) return false;
+  const n = a.custo.virarOutros.poder, cs = e.campo.map(id => e.objs[id]).filter(x => x.ctrl === j && x.id !== V.id && !x.virada && M.temTipo(e, x, 'Creature') && M.poder(e, x) > 0)
+    .sort((x, y) => custoTripular(e, x) - custoTripular(e, y));
+  let soma = 0, perde = 0;
+  for (const x of cs) { if (soma >= n) break; soma += M.poder(e, x); if (para === 'bloquear' || !x.doente || M.temKw(e, x, 'pressa')) perde += para === 'bloquear' ? M.resistencia(e, x) : M.poder(e, x); }
+  return soma >= n && (para === 'atacar' ? M.poder(e, V) > perde : M.resistencia(e, V) > perde);
+};
 
 // aleatório (fuzz): sorteia com a semente do próprio estado
 // dragar (702.52a): troca a compra quando a carta de volta vale mais que uma compra às cegas e o grimório aguenta
@@ -81,6 +93,9 @@ const basico = (e, p) => {
         // selar (702.171a): antes do combate, se ainda não está selada
         const ks = e.turno.passo === 'principal1' ? p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._selar && !M.selada(e, o(op.id))) : -1;
         if (ks >= 0) return ks;
+        // tripular (702.122a): antes do combate, se o Veículo vai atacar e vale mais que as que viram
+        const kt = e.turno.passo === 'principal1' ? p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._tripular && valeTripular(e, p.j, o(op.id), M.atvDe(e, o(op.id))[op.k], 'atacar')) : -1;
+        if (kt >= 0) return kt;
         // Classe (716.2a): sobe de nível com a mana que sobrou depois das mágicas (o nível só soma habilidade)
         const kn = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._nivel
           && !e.pilha.some(h => e.objs[h].hab && e.objs[h].hab.fonte === op.id));
@@ -88,6 +103,11 @@ const basico = (e, p) => {
         // Room (709.5e): destranca a outra porta com a mana que sobrou das mágicas
         const kd = p.ops.findIndex(op => op.a === 'destrancar');
         if (kd >= 0) return kd;
+      }
+      // tripular para bloquear (702.122a): no turno do outro, atacado, se o Veículo segura mais que as que viram
+      if (!meu && e.turno.passo === 'atacantes' && e.turno.combate && e.turno.combate.atk.some(r => r.def === p.j)) {
+        const kb = p.ops.findIndex(op => op.a === 'ativar' && M.atvDe(e, o(op.id))[op.k]._tripular && valeTripular(e, p.j, o(op.id), M.atvDe(e, o(op.id))[op.k], 'bloquear'));
+        if (kb >= 0) return kb;
       }
       if (meu) {
         const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());
@@ -137,6 +157,7 @@ const basico = (e, p) => {
     case 'sacrificar': if (p.ctx && p.ctx.entra) { const k = p.ops.findIndex(op => op.a === 'sacrificar'); return k >= 0 ? k : 0; }   // Feasting Hobbit: todas as Comidas
     // falls through
     case 'custo': {
+      if (p.ctx && p.ctx.tripular) return melhorOp(p.ops, op => -custoTripular(e, o(op.id)));   // a que menos faz falta (a que não ataca primeiro)
       let b = 0, bv = Infinity;
       p.ops.forEach((op, i) => { const v = op.id ? (o(op.id).ficha ? -1 : op.a === 'descartar' && terra(op.id) ? -2 : (M.dadoDe(e, o(op.id)).vm || 0)) : 0; if (v < bv) { bv = v; b = i; } });
       return b;

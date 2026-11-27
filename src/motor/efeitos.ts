@@ -1301,6 +1301,11 @@ const H = {
   // o Anel te tenta (CR 701.54a): o emblema ganha a próxima habilidade (até 4) e você escolhe uma criatura sua como
   // Portador (pode ser a mesma; sem criatura, só o emblema). O Portador é lendário etc. (estado.ts M.ehPortador/gatAnel)
   // selar (702.171a): esta Montaria fica selada até o fim do turno (lida no filtro 'selada')
+  // 702.122c: "a Vehicle becomes crewed" quando a tripular resolve (só a do próprio tripular: op interna, não vem do banco)
+  tripulada: {
+    ok: f => Object.keys(f).length === 1,
+    fx(e, f, ctx) { const o = e.objs[ctx.este]; if (!o || o.zona !== 'campo') return; M.evento(e, { ev: 'tripulada', id: o.id, ts: o.ts }); },
+  },
   selar: {
     ok: f => f.em === undefined && f.quem === undefined,
     fx(e, f, ctx) { const o = e.objs[ctx.este]; if (!o || o.zona !== 'campo') return; o.selada = { ts: o.ts, t: e.turno.n }; M.log(e, o.n, 'fica selada'); },

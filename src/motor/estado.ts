@@ -1036,7 +1036,7 @@ const cicloTipoDe = kw => {
 const TRIP = new WeakMap<object, any>();
 const tripularDe = kw => {
   let a = TRIP.get(kw);
-  if (!a) TRIP.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, _tripular: true, fx: [{ op: 'animar', em: 'este', tipos: ['Artifact', 'Creature'], dura: 'fimDoTurno' }] }));
+  if (!a) TRIP.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, _tripular: true, fx: [{ op: 'animar', em: 'este', tipos: ['Artifact', 'Creature'], dura: 'fimDoTurno' }, { op: 'tripulada' }] }));   // 702.122c: fica tripulado ao resolver
   return a;
 };
 // selar N (CR 702.171a): "vire outras criaturas desviradas suas com poder total N ou mais: esta Montaria fica selada até o
@@ -1049,7 +1049,8 @@ const selarDe = kw => {
 };
 // estação (CR 702.184a): "vire outra criatura desvirada sua: ponha neste marcadores de carga iguais ao poder da virada.
 // Só como feitiço." Os símbolos 'N+' (722.2a: com N ou mais marcadores de carga, tem as habilidades) são atv/est com
-// se {conta: {q: {conta: {de:'este', o:'marcadores', marc:'charge'}}, min: N}}; 'N+' com P/R (722.2b, Spacecraft) ainda não.
+// se {conta: {q: {conta: {de:'este', o:'marcadores', marc:'charge'}}, min: N}}; 'N+' com P/R (722.2b, Spacecraft) = est continuo
+// afeta 'este' tipo ['Creature'] com o mesmo se (o P/R é o pt da carta, como no Veículo: Wedgelight Rammer).
 const ESTACAO = { custo: { virarOutros: { f: { tipo: ['Creature'] }, qtd: 1 } }, vel: 'feitico', _estacao: true,
   fx: [{ op: 'marcador', em: 'este', tipoMarc: 'charge', qtd: { conta: { de: 'viradas', o: 'poder', junta: 'soma' } } }] };
 M.selada = (e, o) => !!o.selada && o.selada.ts === o.ts && o.selada.t === e.turno.n && o.zona === 'campo';
