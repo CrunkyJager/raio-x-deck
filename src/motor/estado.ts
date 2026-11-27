@@ -1091,7 +1091,7 @@ const limite = (e, q, ctx) => {
     return F ? (c.o === 'poder' ? M.poder(e, F) : M.resistencia(e, F)) * (q.mult ?? 1) + (q.soma || 0) : NaN;
   const v = M.qtd(e, q, ctx); return v === null ? NaN : v;
 };
-const limites = (e, c, ctx) => typeof c === 'number' || (typeof c.min !== 'object' && typeof c.max !== 'object' && typeof c.igual !== 'object') ? c
+const limites = (e, c, ctx) => typeof c === 'number' || (![c.min, c.max, c.igual].some(v => (v && typeof v === 'object') || v === 'X')) ? c   // 'X': o X anunciado (Ruthless Technomancer)
   : { min: limite(e, c.min, ctx), max: limite(e, c.max, ctx), igual: limite(e, c.igual, ctx) };
 
 // objetos que batem num filtro (zona padrão: campo)

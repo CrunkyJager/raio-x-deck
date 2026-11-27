@@ -345,9 +345,9 @@ export interface RxAlvo {
   f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'magicaOuHab');
   min?: number;
   /**
-   * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman)
+   * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman); 'X' = exatamente X alvos, o X pago ("Return X target …", Shigeki; o X oferecido não passa dos alvos possíveis)
    */
-  max?: number | 'qualquer' | RxQtd;
+  max?: number | 'qualquer' | 'X' | RxQtd;
   /**
    * true = quem conjura divide; 'igual' = dividido igualmente, arredondado para baixo (Fireball)
    */
@@ -441,13 +441,24 @@ export interface RxCustoAtv {
     | 'este'
     | {
         f?: RxFiltro;
-        qtd?: number;
+        /**
+         * 'X' = "Sacrifice X …": o X é anunciado ao ativar (602.2b) e vale no efeito/alvos (Ruthless Technomancer)
+         */
+        qtd?: number | 'X';
+        /**
+         * qtd 'X': o menor X ("X can't be 0" = 1)
+         */
+        xMin?: number;
         /**
          * sacrifica também esta (Glass-Cast Heart: 'Sacrifice this artifact and thirteen Blood tokens')
          */
         comEste?: boolean;
       };
   descartar?: number;
+  /**
+   * com descartar: a carta descartada bate em ALGUM destes filtros ("Discard a land card or Shrine card": Sanctum of Shattered Heights)
+   */
+  descartarF?: RxFiltro[];
   revelar?: {
     f?: RxFiltro;
     qtd?: number;
@@ -740,6 +751,10 @@ export interface RxFx {
    * op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: "that share a land type")
    */
   tipoTerrenoComum?: boolean;
+  /**
+   * op buscar: procura no grimório e/ou no cemitério (Sanctum of All: "search your library and/or graveyard")
+   */
+  ouCemiterio?: boolean;
   /**
    * op jogar: conjura uma CÓPIA da carta (CR 707.12, Mizzix's Mastery); a carta fica onde está
    */
@@ -1592,7 +1607,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; manaGasta (de evento): a mana gasta para conjurar a mágica do evento conjura (Liberator, 601.2h)
    */
   o?:
     | 'quantos'
@@ -1628,7 +1643,8 @@ export interface RxContagem {
     | 'nome'
     | 'tipos'
     | 'tentacoes'
-    | 'cemiterio';
+    | 'cemiterio'
+    | 'manaGasta';
   /**
    * de turno, o entraram: só os que batem (Éowyn, Shieldmaiden: outro Humano seu)
    */

@@ -704,6 +704,9 @@
        "const": "qualquer"
       },
       {
+       "const": "X"
+      },
+      {
        "type": "object",
        "required": [
         "conta"
@@ -711,7 +714,7 @@
        "$ref": "#/$defs/qtd"
       }
      ],
-     "description": "N, 'qualquer' ou uma contagem (\"up to X targets\", X = as não-terreno moídas: The Wise Mothman)"
+     "description": "N, 'qualquer' ou uma contagem (\"up to X targets\", X = as não-terreno moídas: The Wise Mothman); 'X' = exatamente X alvos, o X pago (\"Return X target …\", Shigeki; o X oferecido não passa dos alvos possíveis)"
     },
     "dividir": {
      "oneOf": [
@@ -875,7 +878,12 @@
          "$ref": "#/$defs/filtro"
         },
         "qtd": {
-         "type": "integer"
+         "anyOf": [{"type": "integer"}, {"const": "X"}],
+         "description": "'X' = \"Sacrifice X …\": o X é anunciado ao ativar (602.2b) e vale no efeito/alvos (Ruthless Technomancer)"
+        },
+        "xMin": {
+         "type": "integer",
+         "description": "qtd 'X': o menor X (\"X can't be 0\" = 1)"
         },
         "comEste": {
          "type": "boolean",
@@ -887,6 +895,11 @@
     },
     "descartar": {
      "type": "integer"
+    },
+    "descartarF": {
+     "type": "array",
+     "items": {"$ref": "#/$defs/filtro"},
+     "description": "com descartar: a carta descartada bate em ALGUM destes filtros (\"Discard a land card or Shrine card\": Sanctum of Shattered Heights)"
     },
     "revelar": {
      "type": "object",
@@ -1441,6 +1454,10 @@
     "tipoTerrenoComum": {
      "type": "boolean",
      "description": "op buscar: as cartas achadas têm um tipo de terreno em comum (Myriad Landscape: \"that share a land type\")"
+    },
+    "ouCemiterio": {
+     "type": "boolean",
+     "description": "op buscar: procura no grimório e/ou no cemitério (Sanctum of All: \"search your library and/or graveyard\")"
     },
     "copia": {
      "type": "boolean",
@@ -2822,9 +2839,10 @@
       "nome",
       "tipos",
       "tentacoes",
-      "cemiterio"
+      "cemiterio",
+      "manaGasta"
      ],
-     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida"
+     "description": "o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; manaGasta (de evento): a mana gasta para conjurar a mágica do evento conjura (Liberator, 601.2h)"
     },
     "f": {
        "$ref": "#/$defs/filtro",

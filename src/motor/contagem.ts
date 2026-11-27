@@ -3,7 +3,7 @@
 // Agora a quantidade é  {conta: {de, o, junta?, marc?, cores?}, mult?, soma?, divCima?, metade?}:
 //   de    = DE QUEM/ONDE se conta: 'este' | {alvo:N} | 'evento' | 'sacrificadas' | 'lembradas' | 'cada' | {f: filtro} | 'atacado'
 //           | 'voce' | 'oponentes' | 'jogadores' | 'turno' | 'combate' | 'X' | 'resultado' | 'se' | 'escolhido'
-//   o     = O QUE se lê: 'quantos' | 'poder' | 'resist' | 'vm' | 'cores' | 'marcadores' (marc = tipo) | 'vida' | 'mao'
+//   o     = O QUE se lê: 'quantos' | 'poder' | 'resist' | 'vm' | 'manaGasta' (evento) | 'cores' | 'marcadores' (marc = tipo) | 'vida' | 'mao'
 //           | 'grimorio' | 'devocao' (cores) | 'magias' | 'descartes' | 'ataques' | 'atacantes' | 'atacantesEmVoce' | 'dano'
 //           | 'tipos' (tipos de card, com junta 'diferentes': delirium) | 'resolucoesDestaHab' (de 'turno': Omnath) …
 //   junta = como junta vários: 'soma' | 'maior' | 'diferentes' | 'maiorPorDono' (sem junta = quantos / o valor do único)
@@ -48,7 +48,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
       : o === 'vida' && j === 'maior' && chaves(c, ['junta']);   // a maior vida da mesa (Preacher of the Schism)
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
     case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
-    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
+    case 'evento': return o === 'poder' && j === 'soma' ? chaves(c, ['junta']) : ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao', 'manaGasta'].includes(o) && chaves(c, []);   // manaGasta: a mana gasta para conjurar a mágica do evento (Liberator, 601.2h); poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : o === 'vida' && chaves(c, []);
@@ -68,7 +68,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -99,7 +99,7 @@ M.contar = (e, c, ctx: any = {}) => {
   switch (c.de) {
     case 'este': {
       const ob = e.objs[ctx.este];
-      const este = !L ? ob : ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : L.este;
+      const este = ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : !L ? ob : L.este;   // sem lki (condição): o poder de agora, não o campo cru
       if (!este) return 0;
       if (o === 'marcadores') return c.marc ? este.marc[c.marc] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0);
       return este[o];
@@ -152,6 +152,7 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'poder' && c.junta === 'soma') return (ev.loteP || []).reduce((s, n) => s + Math.max(0, n), 0);   // "the total power of those creatures" (LKI, 603.10a)
       if (o === 'mao') { const jj = ev.ev === 'dano' ? ev.jog : ev.j ?? ev.ativo; return jj !== undefined && e.jogs[jj] ? e.jogs[jj].zonas.mao.length : 0; }   // "if that player has four or more cards in hand" (Fevered Visions)
       const ob = e.objs[ev.id];
+      if (o === 'manaGasta') return ob && ob.zona === 'pilha' && ob.pil ? ob.pil.gasto || 0 : 0;   // "the amount of mana spent to cast that spell" (Liberator): pilha.ts pagarMana
       if (o === 'poder') return !ob ? 0 : ob.zona === 'campo' || !ev.snap ? M.poder(e, ob) : M.poder(e, ev.snap);   // "that creature's power" (Terror of the Peaks); saiu: a de quando estava no campo (608.2h)
       if (o === 'resist') return ob && ob.zona === 'campo' ? M.resistencia(e, ob) : ev.snap ? M.resistencia(e, ev.snap) : 0;   // Verdant Sun's Avatar
       if (o === 'poder') return ob && ob.zona === 'campo' ? M.poder(e, ob) : ev.snap ? M.poder(e, ev.snap) : ob ? M.poder(e, ob) : 0;   // "that creature's power" (Terror of the Peaks)

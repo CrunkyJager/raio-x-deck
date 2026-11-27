@@ -5816,6 +5816,71 @@ caso('603.2', "Shared Animosity: cada atacante ganha +1/+0 por OUTRA atacante co
   igual([M.poder(e, objN(e, 0, 'Boggart Brute')), M.poder(e, objN(e, 0, "Dragonlord's Servant")), M.poder(e, objN(e, 0, 'Grizzly Bears'))], [4, 2, 2]);
 });
 
+caso('601.2c', "Shigeki: canalizar com alvos max 'X' — o X oferecido para nos alvos possíveis (2 não lendárias), e volta exatamente X", () => {
+  const e = cena({ campo: terras(8, 'Forest'), mao: [[0, 'Shigeki, Jukai Visionary']] });
+  for (const n of ['Grizzly Bears', 'Llanowar Elves', 'Mikaeus, the Unhallowed']) e.por(0, n, { zona: 'cemiterio' });
+  let xs: any = null;
+  M.avancar(e); respE(e, o => o.a === 'ativar');
+  for (let g = 0; e.perg && g < 20 && !(e.perg.tipo === 'acao' && !e.pilha.length); g++) {
+    const p = e.perg;
+    if (p.tipo === 'x') { xs = p.ops.map(o => o.v); M.responder(e, 0); continue; }
+    M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p));
+  }
+  igual(xs && Math.max(...xs), 2, 'X até 2 (a lendária não conta)');
+  igual(naZona(e, 0, 'mao').sort(), ['Grizzly Bears', 'Llanowar Elves'], 'voltaram as duas');
+});
+
+caso('601.2h', "Liberator: +1/+1 só se a mana GASTA na mágica passa do poder dele (conta {de:'evento', o:'manaGasta'}); Sol Ring (1) não, Grizzly Bears (2) sim", () => {
+  const e = cena({ campo: [...terras(3, 'Forest'), [0, "Liberator, Urza's Battlethopter"]], mao: [[0, 'Sol Ring'], [0, 'Grizzly Bears']] });
+  const lib = objN(e, 0, "Liberator, Urza's Battlethopter"), m = () => lib.marc['+1/+1'] || 0;
+  M.avancar(e); conj(e, 'Sol Ring'); resolveCom(e);
+  igual(m(), 0, 'Sol Ring: 1 gasto, poder 1');
+  e.perg = null; M.avancar(e); conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(m(), 1, 'Grizzly Bears: 2 gastos > 1');
+});
+
+caso('602.2b', "Ruthless Technomancer: {2}{B}, sacrifique X artefatos (X ≥ 1): volta criatura com poder ≤ X; o X oferecido para no maior poder possível", () => {
+  const e = cena({ campo: [...terras(3, 'Swamp'), [0, 'Ruthless Technomancer'], [0, 'Sol Ring'], [0, 'Sol Ring'], [0, 'Sol Ring']] });
+  for (const n of ['Grizzly Bears', 'Mikaeus, the Unhallowed']) e.por(0, n, { zona: 'cemiterio' });
+  ok(M.atvDe(e, objN(e, 0, 'Ruthless Technomancer')).length === 1);
+  let xs: any = null;
+  M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Ruthless Technomancer');
+  for (let g = 0; e.perg && g < 30 && !(e.perg.tipo === 'acao' && !e.pilha.length); g++) {
+    const p = e.perg;
+    if (p.tipo === 'x') { xs = p.ops.map(o => o.v); M.responder(e, 0); continue; }
+    if (p.tipo === 'alvo') { M.responder(e, p.ops.findIndex(o => o.o !== undefined && e.objs[o.o].n === 'Grizzly Bears')); continue; }
+    M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p));
+  }
+  igual(xs, [2, 1], 'X de 1 a 2 (Mikaeus tem 5; só 3 artefatos)');
+  igual([noCampo(e).filter(n => n === 'Sol Ring').length, noCampo(e).includes('Grizzly Bears')], [1, true], 'sacrificou 2, voltou o urso');
+});
+
+caso('701.19', "Sanctum of All: buscar com ouCemiterio acha o Santuário no cemitério (sem nenhum no grimório)", () => {
+  const e = cena({ campo: [[0, 'Sanctum of All']] }); e.pend = [];
+  e.por(0, 'Sanctum of Fruitful Harvest', { zona: 'cemiterio' });
+  const f = M.carta('Sanctum of All').gat[0].fx[0];
+  ok(M.fxSuportado([f]), 'aceito');
+  M.executar(e, f, { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.id !== undefined) || ops[0]);
+  ok(noCampo(e).includes('Sanctum of Fruitful Harvest'), 'veio do cemitério');
+});
+
+caso('602.2b', "Sanctum of Shattered Heights: o custo descarta só terreno OU Santuário (custoAtv descartarF); sem um deles na mão, não ativa", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Sanctum of Shattered Heights'], [1, 'Grizzly Bears']], mao: [[0, 'Llanowar Elves']] });
+  const S = objN(e, 0, 'Sanctum of Shattered Heights');
+  ok(!M.podeAtivar(e, 0, S, 0), 'só criatura na mão: não ativa');
+  e.por(0, 'Forest', { zona: 'mao' });
+  ok(M.podeAtivar(e, 0, S, 0), 'com terreno: ativa');
+  let desc: any = null;
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === S.id);
+  for (let g = 0; e.perg && g < 30 && !(e.perg.tipo === 'acao' && !e.pilha.length); g++) {
+    const p = e.perg;
+    if (p.tipo === 'custo') desc = p.ops.map(o => e.objs[o.id].n);
+    M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p));
+  }
+  ok(desc === null || JSON.stringify(desc) === '["Forest"]', 'só a Forest é opção');
+  igual([naZona(e, 0, 'cemiterio'), naZona(e, 0, 'mao'), objN(e, 1, 'Grizzly Bears').dano], [['Forest'], ['Llanowar Elves'], 1], 'descartou a Forest; 1 Santuário = 1 de dano');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
