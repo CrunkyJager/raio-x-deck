@@ -806,7 +806,7 @@ const H = {
       for (const o of os) {
         // todosTipos (Mirror Entity, 205.3m): "ganha todos os tipos de criatura" = metamorfo dado (lido em tiposCriatura)
         const kw = f.todosTipos ? [...(f.kw || []), { k: 'metamorfo' }] : f.kw;
-        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, soSub: !!f.soSub, ...(f.super ? { super: f.super } : {}), pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null, ...(f.dura === 'enquantoNoCampo' && F0 ? { src: { id: F0.id, ts: F0.ts, ctrl: ctx.voce } } : {}) });   // src: "for as long as you control [fonte]" (Welcome to . . . I)
+        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, soSub: !!f.soSub, ...(f.super ? { super: f.super } : {}), pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null, tE: e.ts, ...(f.dura === 'enquantoNoCampo' && F0 ? { src: { id: F0.id, ts: F0.ts, ctrl: ctx.voce } } : {}) });   // src: "for as long as you control [fonte]" (Welcome to . . . I)
         if (f.habil) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.habil.gat] };   // 613.1f
         M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
       }
@@ -1203,7 +1203,24 @@ const H = {
       M.log(e, e.jogs[O.ctrl].nome, O.n, 'vira cópia de', S.n, f.dura === 'fimDoTurno' ? '(até o fim do turno)' : '');
     },
   },
-  anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
+  // perdeFonte (Tishana's Tidebinder): anulada uma habilidade de [f], a fonte perde todas as habilidades enquanto esta
+  // estiver no campo (613.1f; o.anim semHab com src, lido no M.dadoDe). Fonte que já saiu, ou esta que já saiu: nada.
+  anular: {
+    campos: ['perdeFonte'],
+    ok: f => f.perdeFonte === undefined || (!!f.perdeFonte && Object.keys(f.perdeFonte).every(k => k === 'f') && M.filtroOk(f.perdeFonte.f || {})),
+    fx(e, f, ctx) {
+      for (const o of objsDe(e, f, ctx)) {
+        if (o.zona !== 'pilha') continue;
+        const h = o.hab, foi = M.anular(e, o.id);
+        if (!foi || !f.perdeFonte || !h) continue;
+        const S = e.objs[h.fonte], F0 = e.objs[ctx.este];
+        if (!S || S.zona !== 'campo' || S.ts !== h.fonteTs || !F0 || F0.zona !== 'campo' || !M.bate(e, S, { ...(f.perdeFonte.f || {}), zona: 'campo' }, ctx)) continue;
+        (S.anim || (S.anim = [])).push({ ts: S.ts, semHab: true, tE: ++e.ts, fim: null, src: { id: F0.id, ts: F0.ts } });
+        e.vCamada = (e.vCamada || 0) + 1;
+        M.log(e, S.n, 'perde todas as habilidades');
+      }
+    },
+  },   // CR 701.6
   ficha: {                                                          // CR 111
     campos: ['token', 'virada', 'atacando', 'porJogadorAtacado'],
     ok: f => (!f.token || !Array.isArray(f.token.pt) || f.token.pt.every(x => typeof x === 'number' || qtdOk(x))) && ((f.porJogadorAtacado === undefined || (f.porJogadorAtacado === true && f.atacando === true)) && (f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || f.token.copiaDe === 'sacrificada' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && (typeof f.token.copiaDe.alvo === 'number' || (!!f.token.copiaDe.um && Object.keys(f.token.copiaDe).length === 1 && M.filtroOk(f.token.copiaDe.um)))))
