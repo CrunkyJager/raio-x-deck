@@ -3562,6 +3562,109 @@ caso('614.1a', "Bard, King of Dale compra 2 no lugar de 1, menos a 1ª da etapa 
   igual(g.jogs[0].zonas.grimorio[0], topo.id, 'Sol Ring (sem tipo em comum) foi para o fundo');
 });
 
+caso('702.75a', "esconderijo: ao entrar olha 4, exila 1 ligado a ela e o resto vai para o fundo; Watcher for Tomorrow devolve o exilado à mão quando sai", () => {
+  const e = cena({ mao: [[0, 'Watcher for Tomorrow']], campo: [...terras(2, 'Island')] });
+  const g = e.jogs[0].zonas.grimorio, n0 = g.length, top = g.slice(-4);
+  const w = e.objs[e.jogs[0].zonas.mao[0]];
+  e.pend = []; M.avancar(e); conj(e, 'Watcher for Tomorrow'); resolveCom(e);
+  ok(w.zona === 'campo', 'entrou');
+  const ex = e.jogs[0].zonas.exilio.map(id => e.objs[id]);
+  igual(ex.length, 1, 'um exilado'); ok(top.includes(ex[0].id) && ex[0].exPor && ex[0].exPor.id === w.id, 'dos 4 do topo, ligado ao Watcher');
+  igual(g.length, n0 - 1); ok(g.slice(0, 3).every(id => top.includes(id)), 'os outros 3 no fundo');
+  M.mover(e, w.id, 'cemiterio'); M.avancar(e); resolveCom(e);
+  ok(e.jogs[0].zonas.mao.includes(ex[0].id), 'saiu: o exilado vai para a mão');
+  for (const c of ['Cemetery Tampering', 'Mosswort Bridge', 'Windbrisk Heights']) ok(JSON.stringify(M.carta(c)).includes('exiladaPorEste'), c);
+});
+
+caso('613.1d', "modificar: subtipo e cor além dos outros, sem prazo (Liliana −3: Zombie preto); disparada ganha para sempre (Rivaz: o Dragão do cemitério é exilado ao morrer)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] }); const gb = e.objs[e.campo[0]];
+  const X = (f, ctx: any = {}) => M.executar(e, f, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, ...ctx }, () => ({ a: 'nao' }));
+  const lil = M.carta("Liliana, Death's Majesty").atv.find(a => a.lealdade === -3).fx[1];
+  ok(M.fxSuportado([lil], { topo: false }), 'Liliana aceita');
+  X(lil, { movidos: [{ id: gb.id, ts: gb.ts }] });
+  ok(M.temTipo(e, gb, 'Creature') && (M.dadoDe(e, gb).sub || []).includes('Zombie') && (M.dadoDe(e, gb).sub || []).includes('Bear'), 'Zombie além de Bear');
+  igual([...M.dadoDe(e, gb).cores].sort().join(''), 'BG', 'preto além de verde');
+  e.turno.n++; ok((M.dadoDe(e, gb).sub || []).includes('Zombie'), 'sem prazo');
+  const r = M.carta('Rivaz of the Claw').gat[0].fx[0], cl = M.carta('Clavileño, First of the Blessed').gat[0].fx[0];
+  ok(M.fxSuportado([r], { topo: false }) && M.fxSuportado([cl], { topo: false }), 'Rivaz e Clavileño aceitos');
+  X({ op: 'modificar', em: 'este', habil: r.habil, dura: 'sempre' }, { este: gb.id });
+  M.abe(e); e.pend = [];
+  gb.dano = 9; M.abe(e); M.avancar(e); resolveCom(e);
+  ok(gb.zona === 'exilio', 'morreu e o gatilho ganho o exilou: ' + gb.zona);
+});
+
+caso('111.2', "gatilho de criar ficha: Mirkwood Bats (cada ficha criada: oponentes perdem 1); a do oponente não dispara; Rosie aceita", () => {
+  const e = cena({ campo: [[0, 'Mirkwood Bats']] }); e.pend = [];
+  M.criarFichas(e, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' }, 2);
+  igual(e.pend.filter(p => p.n === 'Mirkwood Bats').length, 2, 'uma por ficha');
+  e.pend = []; M.criarFichas(e, 1, { pt: [1, 1], tipos: ['Creature'], sub: ['Goblin'], cores: 'R' }, 1);
+  igual(e.pend.filter(p => p.n === 'Mirkwood Bats').length, 0, 'ficha do oponente: não');
+  for (const c of ['Rosie Cotton of South Lane', 'Mirkwood Bats', "Caretaker's Talent"]) ok(M.carta(c).gat.filter(g => g.ev === 'fichaCriada').every(g => M.gatOk(g)), c);
+});
+
+caso('702.14c', "caminhada de terreno: Cold-Eyed Selkie não pode ser bloqueada por quem tem Island; sem Island, pode; Lord of Atlantis dá aos Merfolk", () => {
+  const e = cena({ campo: [[0, 'Cold-Eyed Selkie'], [1, 'Grizzly Bears'], [1, 'Island']] });
+  const o = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  ok(!M.bloqueiaEste(e, o('Grizzly Bears'), o('Cold-Eyed Selkie')), 'defensor com Island: não bloqueia');
+  const f = cena({ campo: [[0, 'Cold-Eyed Selkie'], [1, 'Grizzly Bears'], [1, 'Forest']] });
+  const p = n => f.objs[f.campo.find(id => f.objs[id].n === n)];
+  ok(M.bloqueiaEste(f, p('Grizzly Bears'), p('Cold-Eyed Selkie')), 'sem Island: bloqueia');
+  const g = cena({ campo: [[0, 'Lord of Atlantis'], [0, 'Cold-Eyed Selkie'], [1, 'Island']] });
+  ok(M.kwDe(g, g.objs[g.campo[1]]).filter(x => x.k === 'caminhadaTerreno').length >= 1, 'Lord dá islandwalk');
+});
+
+caso('702.135a', "pós-vida: Ministrant of Obligation morre e cria 2 Espíritos 1/1 voadores; exilada não", () => {
+  const e = cena({ campo: [[0, 'Ministrant of Obligation']] }); e.pend = [];
+  const m = e.objs[e.campo[0]];
+  m.dano = 5; M.abe(e); M.avancar(e); resolveCom(e);
+  const sp = e.campo.map(id => e.objs[id]).filter(o => o.ficha && (o.ficha.sub || []).includes('Spirit'));
+  igual(sp.length, 2, 'dois Espíritos'); ok(M.temKw(e, sp[0], 'voar') && sp[0].ctrl === 0, 'voam, meus');
+  const f = cena({ campo: [[0, 'Orzhov Enforcer']] }); f.pend = [];
+  M.mover(f, f.campo[0], 'exilio'); igual(f.pend.length, 0, 'exilada: nada');
+});
+
+caso('702.122a', "tripular: Rolling Hamsphere (tripular 3) vira as criaturas com poder total 3 e vira criatura até o fim do turno; sem poder suficiente, não oferece", () => {
+  const e = cena({ campo: [[0, 'Rolling Hamsphere'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']] }); e.pend = [];
+  const h = e.objs[e.campo[0]];
+  ok(!M.temTipo(e, h, 'Creature'), 'parado: não é criatura');
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(op => op.a === 'ativar' && op.id === h.id);
+  ok(k >= 0, 'tripular oferecido'); M.responder(e, k); resolveCom(e);
+  ok(M.temTipo(e, h, 'Creature') && M.temTipo(e, h, 'Artifact'), 'tripulado: criatura artefato');
+  igual(e.campo.filter(id => e.objs[id].n === 'Grizzly Bears' && e.objs[id].virada).length, 2, 'virou as duas (2+2 ≥ 3)');
+  const f = cena({ campo: [[0, 'Rolling Hamsphere'], [0, 'Grizzly Bears']] }); f.pend = [];
+  M.avancar(f); ok(!f.perg.ops.some(op => op.a === 'ativar' && op.id === f.campo[0]), 'poder 2 < 3: não');
+});
+
+caso('701.19', "buscar até uma contagem (Scapeshift: tantos terrenos quanto sacrificou; The World Tree: quantos God quiser); ganhar vida igual à resistência de quem entrou (Verdant Sun's Avatar)", () => {
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Forest']] });
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  const sim = (j, t, ops) => ops.find(o => o.a !== 'pronto' && o.a !== 'nenhum') || ops[0];
+  for (const f of M.carta('Scapeshift').fx) M.executar(e, f, ctx, sim);
+  igual(e.campo.map(id => e.objs[id].n), ['Wastes', 'Wastes'], 'sacrificou as 2 Forest, buscou 2');
+  ok(['Scapeshift', 'Living Death', 'The World Tree', 'Kyoshi Island Plaza', "Verdant Sun's Avatar", 'Righteous Valkyrie'].every(c => { const d = M.carta(c); return M.fxSuportado(d.fx || []) && (d.atv || []).every(a => M.fxSuportado(a.fx, { topo: false })) && (d.gat || []).every(g => M.gatOk(g)); }), 'aceitas');
+  const lv = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Grizzly Bears']] }); lv.por(1, 'Cold-Eyed Selkie', { zona: 'cemiterio' });
+  const cl: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const x of M.carta('Living Death').fx) M.executar(lv, x, cl, () => ({ a: 'nao' }));
+  igual(lv.campo.map(id => lv.objs[id].n), ['Cold-Eyed Selkie'], 'Living Death: todas sacrificadas, a do cemitério volta');
+  igual(lv.objs[lv.campo[0]].ctrl, 1, 'para o dono');
+  const f = cena({ campo: [[0, "Verdant Sun's Avatar"]] }); f.pend = [];
+  const b = f.por(0, 'Grizzly Bears'); M.avancar(f); resolveCom(f);
+  igual(f.jogs[0].vida, 42, '+2 da Bears');
+});
+
+caso('701.36a', "popular: cria cópia de uma ficha de criatura sua; sem ficha, nada (Growing Ranks, Song of the Worldsoul, Promise of Aclazotz aceitas)", () => {
+  const e = cena({});
+  M.criarFichas(e, 0, { pt: [2, 2], tipos: ['Creature'], sub: ['Wolf'], cores: 'G' }, 1);
+  M.criarFichas(e, 1, { pt: [5, 5], tipos: ['Creature'], sub: ['Wurm'], cores: 'G' }, 1);
+  M.executar(e, { op: 'popular', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  igual(e.campo.filter(id => e.objs[id].ctrl === 0).map(id => e.objs[id].ficha.sub[0]), ['Wolf', 'Wolf'], 'copiou o Lobo');
+  const f = cena({});
+  M.executar(f, { op: 'popular', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops[0]);
+  igual(f.campo.length, 0, 'sem ficha: nada');
+  for (const c of ['Growing Ranks', 'Song of the Worldsoul', 'Promise of Aclazotz']) { const d = M.carta(c); ok([...(d.gat || []).map(g => M.gatOk(g)), M.fxSuportado(d.fx || [])].every(Boolean), c); }
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

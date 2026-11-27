@@ -43,6 +43,7 @@ const misto = (d, m) => {
   if (m.pt) r.pt = m.pt;
   if (m.kw && m.kw.length) r.kw = [...(d.kw || []), ...m.kw];
   if (m.cores !== undefined) r.cores = m.cores;
+  if (m.maisCores) r.cores = [...new Set([...(r.cores || ''), ...m.maisCores])].join('');   // "in addition to its other colors" (105.3)
   c.set(m, r);
   return r;
 };
@@ -295,7 +296,7 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
   const faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
-  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: false, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: null, exPor: null, feridaPor: null, preparada: false, previsto: null, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente) ? { kicker: !!conj.chute, presente: !!conj.presente } : null });   // como foi conjurada (702.33d)
   if (zona === 'campo' && M.dadoDe(e, o).leal) o.marc.lealdade = M.dadoDe(e, o).leal;   // CR 306.5b: entra com a lealdade impressa
   if (zona === 'campo' && M.ehClasse(M.dadoBase(e, o))) o.nivel = 1;                       // CR 716.2c: a Classe entra no nível 1
@@ -539,7 +540,7 @@ function indice(e): Idx {
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
   I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], l: null, hab: false };
   lendoTipo++;   // o dadoDe daqui não lê o tipo dado pela equipada (é o próprio índice que ele usa)
-  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && o.ganhos.gat)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
+  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && (o.ganhos.gat || o.ganhos.gatS))) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
   finally { lendoTipo--; }
   IDX.set(e, I);
   return I;
@@ -756,6 +757,14 @@ const cicloTipoDe = kw => {
     fx: [{ op: 'buscar', f: TIPO_DE_CARD.has(kw.tipo) ? { tipo: [kw.tipo] } : { sub: [kw.tipo] }, qtd: 1, para: 'mao', revelar: true }, { op: 'embaralhar', quem: 'voce' }] }));
   return a;
 };
+// tripular N (CR 702.122a): "vire criaturas desviradas que você controla com poder total N ou mais: este Veículo vira
+// criatura artefato até o fim do turno" (velocidade de instantâneo)
+const TRIP = new WeakMap<object, any>();
+const tripularDe = kw => {
+  let a = TRIP.get(kw);
+  if (!a) TRIP.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, _tripular: true, fx: [{ op: 'animar', em: 'este', tipos: ['Artifact', 'Creature'], dura: 'fimDoTurno' }] }));
+  return a;
+};
 const ehCiclo = x => (x.k === 'ciclar' && x.custo && Object.keys(x).length === 2) || (x.k === 'cicloTipo' && x.custo && typeof x.tipo === 'string' && Object.keys(x).length === 3);
 const cicloDe = x => x.k === 'ciclar' ? ciclarDe(x) : cicloTipoDe(x);
 // subir de nível (CR 716.2a): "[custo]: Nível N" — ativada como feitiço, só com a Classe no nível N−1 (pilha.ts podeAtivar)
@@ -793,8 +802,9 @@ const atvCarta = d => {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
+    const tp = (d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe);
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
-    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length || tp.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj, ...tp] : d.atv || NADA.atv));
   }
   return l as any[];
 };
@@ -813,6 +823,7 @@ M.temHabil = e => fontesCont(e).hab;
 M.loteHabil = (e, lote) => (lote || []).filter(S => (M.dadoDe(e, S).est || []).some(s => s.modo === 'continuo' && s.habil));
 M.gatDe = (e, o, lote?) => {
   let b = M.dadoDe(e, o).gat || [];
+  if (o.ganhos && o.ganhos.gatS) b = b.concat(o.ganhos.gatS);   // ganho sem prazo (Rivaz): antes do de fim de turno, que sai na limpeza
   if (o.ganhos && o.ganhos.gat) b = b.concat(o.ganhos.gat);   // ganho por resolução até o fim do turno (Demonic Gifts); o mover zera
   if (!fontesCont(e).hab && !(lote && lote.length)) return b;
   const h = camadas(e, o, lote).gat;
