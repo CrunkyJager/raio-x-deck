@@ -4026,6 +4026,23 @@ caso('702.181', "mobilizar: Zurgo ataca e cria 1 Guerreiro virado e atacando; sa
   ok(w.zona !== 'campo', 'sacrificado');
 });
 
+caso('610.3', "exilar até esta sair do campo: Grasp of Fate exila; quando sai, a carta volta sob o controle do dono; fonte que já saiu não exila", () => {
+  for (const c of ['Bronzebeak Foragers', 'Grasp of Fate']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Grasp of Fate'], [1, 'Hill Giant']] });
+  const [gf, hg] = e.campo.map(id => e.objs[id]);
+  const cx: any = { voce: 0, este: gf.id, alvos: [[{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: { este: M.lkiDe(e, gf) } };
+  M.executar(e, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, cx, () => ({ a: 'nao' }));
+  igual(hg.zona, 'exilio', 'exilado');
+  M.mover(e, gf.id, 'cemiterio');
+  ok(hg.zona === 'campo' && hg.ctrl === 1, 'voltou para o dono');
+  const f = cena({ campo: [[0, 'Grasp of Fate'], [1, 'Hill Giant']] });
+  const [g2, h2] = f.campo.map(id => f.objs[id]);
+  const c2: any = { voce: 0, este: g2.id, alvos: [[{ o: h2.id, ts: h2.ts }]], ilegal: {}, lki: { este: M.lkiDe(f, g2) } };
+  M.mover(f, g2.id, 'cemiterio');
+  M.executar(f, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, c2, () => ({ a: 'nao' }));
+  igual(h2.zona, 'campo', 'a fonte já tinha saído: nada (610.3c)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

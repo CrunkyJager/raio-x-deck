@@ -788,7 +788,18 @@ const H = {
   // semRegenerar ("can't be regenerated", 701.15c: Terminate, Putrefy): o escudo de regeneração não vale
   destruir: { campos: ['semRegenerar'], fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (!M.temKw(e, o, 'indestrutivel') && (f.semRegenerar || !M.regenera(e, o))) M.mover(e, o.id, 'cemiterio'); } },   // CR 701.8, 702.12b
   regenerar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo') M.porRegen(e, o); } },   // CR 701.15a
-  exilar: { fx(e, f, ctx) { const os = objsDe(e, f, ctx); for (const o of os) M.mover(e, o.id, 'exilio'); ctx.movidos = movidos(e, os.map(o => o.id)); } },
+  exilar: {
+    campos: ['dura'],
+    ok: f => f.dura === undefined || (f.dura === 'enquantoNoCampo' && f.em !== undefined),
+    fx(e, f, ctx) {
+      // dura 'enquantoNoCampo' (CR 610.3): "até esta sair do campo"; se a fonte já saiu, não exila nada (610.3c)
+      const F = e.objs[ctx.este], L = ctx.lki && ctx.lki.este, viva = !!F && F.zona === 'campo' && (!L || L.ts === F.ts);
+      if (f.dura && !viva) return;
+      const os = objsDe(e, f, ctx);
+      for (const o of os) { const x = M.mover(e, o.id, 'exilio'); if (f.dura && x.zona === 'exilio') (e.exAte || (e.exAte = [])).push({ id: x.id, ts: x.ts, f: F.id, fts: F.ts }); }
+      ctx.movidos = movidos(e, os.map(o => o.id));
+    },
+  },
   mover: {
     campos: ['para', 'de', 'virada', 'f', 'fundo', 'sobControle', 'transformada', 'atacando', 'comEste', 'aleatorio'],
     qtd: q => qtdOk(q) || ateOk(q),

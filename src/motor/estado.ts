@@ -335,8 +335,16 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   if (M.evento && (zDe === 'campo' || zona === 'campo' || zona === 'cemiterio' || zDe === 'cemiterio')) M.evento(e, { ev: 'zona', id, de: zDe, para: zona, snap, ...(sac && zDe === 'campo' ? { sac: true } : {}), ...(snapCem ? { snapCem } : {}) });   // snapCem: a carta como era no cemitério (saiCemiterio)   // gatilhos.js
   if (zona === 'campo' && M.capitulos(M.dadoDe(e, o))) M.porHistoria(e, o, 1);   // CR 714.3a: a saga entra com 1 marcador de história
   if (o.ficha && zona !== 'campo') (e.fichasFora = e.fichasFora || []).push(id);   // CR 704.5d: some nas ABE        // CR 903.9a olha "desde a última checagem"
+  if (zDe === 'campo' && snap && e.exAte && e.exAte.length) voltaDoExilio(e, id, snap.ts);
   return o;
 };
+// CR 610.3a: "exile … until this leaves the battlefield" — a fonte saiu: a carta volta ao campo sob o controle do dono
+// (ficha exilada já deixou de existir, 111.7). Simplificação: Aura volta sem se prender (some nas ABE).
+function voltaDoExilio(e, fid, fts) {
+  const vai = e.exAte.filter(x => x.f === fid && x.fts === fts);
+  e.exAte = e.exAte.filter(x => !(x.f === fid && x.fts === fts));
+  for (const x of vai) { const c = e.objs[x.id]; if (c && c.zona === 'exilio' && c.ts === x.ts && !c.ficha) { M.mover(e, c.id, 'campo'); M.log(e, c.n, 'volta do exílio (', e.objs[fid].n, 'saiu)'); } }
+}
 
 // regenerar (CR 701.15): escudo "a próxima vez que seria destruída neste turno, em vez disso vire-a, tire todo o dano
 // dela e tire-a do combate" (614.8). o.regen = {ts, t, n}: vale para este objeto (ts), neste turno (t), n escudos.
