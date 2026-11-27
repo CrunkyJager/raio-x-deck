@@ -6660,6 +6660,62 @@ caso('707.10', "Zada: Giant Growth só nela copia para cada outra criatura minha
   igual([M.poder(e, z), M.poder(e, b), M.poder(e, l)], [6, 8, 4], 'mirando o Urso: só ele');
 });
 
+
+caso('702.162a', "More Than Meets the Eye (Ratchet): pode conjurar convertida por {1}{W} e entra pela face de trás (702.162b); com {2}{W}, a da frente", () => {
+  const e = cena({ campo: [[0, 'Plains'], [0, 'Plains']], mao: [[0, 'Ratchet, Field Medic']] });
+  M.avancar(e); ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar'), 'com 2 terrenos dá (convertida)');
+  conj(e, 'Ratchet, Field Medic'); resolveCom(e, p => p.ops.findIndex(o => o.a === 'opcao' && o.v && o.v.converter));
+  const r = objN(e, 0, 'Ratchet, Field Medic'); ok(r && r.face === 0, 'entrou convertida'); igual(M.dadoDe(e, r).n, 'Ratchet, Rescue Racer');
+  const f = cena({ campo: terras(3, 'Plains'), mao: [[0, 'Ratchet, Field Medic']] });
+  M.avancar(f); conj(f, 'Ratchet, Field Medic'); resolveCom(f, p => p.ops.findIndex(o => o.a === 'opcao' && o.v && !o.v.converter));
+  const r2 = objN(f, 0, 'Ratchet, Field Medic'); ok(r2 && r2.face == null, 'custo cheio: a face da frente');
+});
+
+caso('603.12', "Ratchet: ganhou vida, pode converter; \"when you do\" é reflexo: o alvo (artefato com VM ≤ vida ganha no turno) só existe se converteu", () => {
+  const e = cena({ campo: [[0, 'Ratchet, Field Medic']] });
+  e.por(0, 'Sol Ring', { zona: 'cemiterio' }); e.por(0, 'Mind Stone', { zona: 'cemiterio' });
+  M.ganharVida(e, 0, 1); M.avancar(e);
+  resolveCom(e, p => p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'sim') : p.tipo === 'alvo' ? p.ops.findIndex(o => o.o !== undefined && e.objs[o.o].n === 'Sol Ring') : -1);
+  const r = objN(e, 0, 'Ratchet, Field Medic'); ok(r.face === 0, 'converteu');
+  const s = objN(e, 0, 'Sol Ring'); ok(s && s.virada, 'Sol Ring voltou virado'); ok(!objN(e, 0, 'Mind Stone'), 'Mind Stone (VM 2 > 1 de vida) não podia');
+  const f = cena({ campo: [[0, 'Ratchet, Field Medic']] }); f.por(0, 'Sol Ring', { zona: 'cemiterio' });
+  M.ganharVida(f, 0, 2); M.avancar(f);
+  resolveCom(f, p => p.tipo === 'talvez' ? p.ops.findIndex(o => o.a === 'nao') : -1);
+  ok(objN(f, 0, 'Ratchet, Field Medic').face == null && !objN(f, 0, 'Sol Ring'), 'sem converter: sem reflexo');
+});
+
+caso('602.2b', "Arcee: \"remove one or more +1/+1 counters\" — quem ativa escolhe quantos; o dano é esse número e converte", () => {
+  const e = cena({ campo: [[0, 'Arcee, Sharpshooter', { obj: { marc: { '+1/+1': 3 } } }], [0, 'Mountain'], [1, 'Hill Giant']] });
+  M.avancar(e); respE(e, o => o.a === 'ativar');
+  ok(e.perg.tipo === 'x' && e.perg.ops.length === 3, '1, 2 ou 3 marcadores'); respE(e, o => o.v === 2);
+  alvoObj(e, 'Hill Giant'); resolveCom(e);
+  const a = objN(e, 0, 'Arcee, Sharpshooter'); igual(a.marc['+1/+1'], 1, 'tirou 2'); ok(a.face === 0, 'converteu');
+  igual(objN(e, 1, 'Hill Giant').dano, 2, '2 de dano no Gigante');
+});
+
+caso('702.162', "Arcee, Acrobatic Coupe: mágica sua que mira criaturas/Veículos seus põe tantos +1/+1 quantos alvos seus e converte", () => {
+  const e = cena({ campo: [[0, 'Arcee, Sharpshooter', { obj: { face: 0 } }], [0, 'Forest'], [0, 'Grizzly Bears'], [1, 'Hill Giant']], mao: [[0, 'Giant Growth'], [0, 'Giant Growth']] });
+  e.vCamada = (e.vCamada || 0) + 1;   // face posta direto na cena
+  M.avancar(e); conj(e, 'Giant Growth'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  const a = objN(e, 0, 'Arcee, Sharpshooter'); igual(a.marc['+1/+1'], 1, '1 alvo seu: 1 marcador'); ok(a.face == null, 'converteu para a frente');
+  const f = cena({ campo: [[0, 'Arcee, Sharpshooter', { obj: { face: 0 } }], [0, 'Forest'], [1, 'Hill Giant']], mao: [[0, 'Giant Growth']] });
+  f.vCamada = (f.vCamada || 0) + 1;
+  M.avancar(f); conj(f, 'Giant Growth'); alvoObj(f, 'Hill Giant'); resolveCom(f);
+  const b = objN(f, 0, 'Arcee, Sharpshooter'); ok(!b.marc['+1/+1'] && b.face === 0, 'mirando a do oponente: nada');
+});
+
+
+caso('601.2c', "Shigeki (canalizar): \"return X target cards\" é exatamente X; o X não passa das cartas possíveis no cemitério", () => {
+  const e = cena({ campo: terras(6, 'Forest'), mao: [[0, 'Shigeki, Jukai Visionary']] });
+  e.por(0, 'Grizzly Bears', { zona: 'cemiterio' }); e.por(0, 'Krenko, Mob Boss', { zona: 'cemiterio' });
+  M.avancar(e); respE(e, o => o.a === 'ativar');
+  ok(e.perg.tipo === 'x', 'pergunta o X'); igual(e.perg.ops.map(o => o.v).sort(), [0, 1], 'só 1 não lendária: X até 1 (pagaria 2)');
+  respE(e, o => o.v === 1);
+  if (e.perg && e.perg.tipo === 'alvo') { ok(!e.perg.ops.some(o => o.a === 'pronto'), 'exatamente 1: sem "pronto" antes'); alvoObj(e, 'Grizzly Bears'); }
+  resolveCom(e);
+  ok(e.jogs[0].zonas.mao.some(id => e.objs[id].n === 'Grizzly Bears'), 'voltou para a mão');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

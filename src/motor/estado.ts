@@ -993,7 +993,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['comX', 'postaPorEste', 'entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'ou', 'tipoEmComum', 'tipoCartaEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'miraUm', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'tipoCartaEmComum', 'naoAlvo', 'naoNome', 'selada', 'soMiraEste']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k)) && (!f || f.ou === undefined || (Array.isArray(f.ou) && f.ou.length > 1 && f.ou.every(g => !!g && typeof g === 'object' && M.filtroOk(g))));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -1002,6 +1002,9 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.este && o.id !== ctx.este) return false;
   if (f.nome !== undefined && o.n !== f.nome && d.n !== f.nome) return false;   // nome exato (Ancestral Anger, Wedding Ring)
   if (f.naoNome !== undefined && (o.n === f.naoNome || d.n === f.naoNome)) return false;   // "not named Tiamat"
+  if (f.miraUm) {   // "a spell that targets one or more creatures or Vehicles you control" (Arcee): ao menos um alvo bate no filtro
+    const l = o.zona === 'pilha' && o.pil ? (o.pil.alvos || []).flat().filter(a => a && a.o !== undefined) : [];
+    if (!l.some(a => { const x = e.objs[a.o]; return x && x.ts === a.ts && M.bate(e, x, f.miraUm, ctx); })) return false; }
   if (f.soMiraEste) { const F = e.objs[ctx.este], l = o.zona === 'pilha' && o.pil ? (o.pil.alvos || []).flat().filter(Boolean) : [];   // "a spell that targets only Zada"
     if (!F || !l.length || !l.every(a => a.o === F.id && a.ts === F.ts)) return false; }
   if (f.outro === 'doEvento' ? !!ctx.ev && o.id === ctx.ev.id : f.outro && o.id === ctx.este) return false;   // 'doEvento': "each OTHER attacking creature" (Shared Animosity)

@@ -49,6 +49,7 @@ M.velFeitico = (e, j) => j === e.turno.ativo && PRINCIPAL.has(e.turno.passo) && 
 const TIPOS_ALVO_OBJ = ['Creature', 'Planeswalker', 'Battle'];
 M.alvoSuportado = a => {
   const f = a.f;
+  if (a.min !== undefined && !Number.isInteger(a.min) && a.min !== 'X') return false;   // 'X': "return X target cards" (exatamente X, Shigeki; 601.2c)
   if (a.dividir && a.dividir !== 'igual' && a.dividir !== true) return false;   // 'igual' = Fireball; true = à escolha ao pôr na pilha (601.2d)
   if (a.max !== undefined && a.max !== 'qualquer' && typeof a.max !== 'number' && !(a.max && typeof a.max === 'object' && a.max.conta && M.contaOk(M.qn(a.max).conta))) return false;   // "up to X targets", X contado (The Wise Mothman)
   if (a.opcao !== undefined && !OPCAO_OK.has(a.opcao)) return false;
@@ -554,7 +555,7 @@ function opcOk(e, j, d, usados, custo0, opc, o) {
   for (const i of usados) {
     const a = d.alvos[i];
     if (!alvoAtivo(a, opc)) continue;
-    if ((a.min ?? 1) > 0 && M.alvosPossiveis(e, a, ctx).length < (a.min ?? 1)) return false;
+    if (minAlvo(a) > 0 && M.alvosPossiveis(e, a, ctx).length < minAlvo(a)) return false;
   }
   if (opc.alt !== undefined && !custoFisicoOk(e, j, null, fisAlt(d, opc), { daMao: o.id })) return false;
   if (opc.dobra && (o.zona !== 'mao' || altUsado(e, j, o, {}))) return false;   // 702.185a: só da mão, pelo custo de dobra
@@ -587,7 +588,7 @@ M.podeAtivar = (e, j, o, k) => {
   for (const i of alvosUsados(a.fx)) {
     const al = (a.alvos || [])[i];
     if (!al || !M.alvoSuportado(al)) return false;
-    if ((al.min ?? 1) > 0 && M.alvosPossiveis(e, al, ctx).length < (al.min ?? 1)) return false;
+    if (minAlvo(al) > 0 && M.alvosPossiveis(e, al, ctx).length < minAlvo(al)) return false;
   }
   if (a.custo.mana) {
     const ex = a.custo.virar || a.custo.sacrificar === 'este' || (a.custo.sacrificar && a.custo.sacrificar.comEste) || a.custo.devolver === 'este' ? [o.id] : [];
@@ -714,12 +715,16 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 const paraSi = (fx, alvos, i) => (alvos || []).findIndex(a => a && (a.f === 'jogador' || a.f === 'qualquerAlvo')) === i && (fx || []).some(f => f && f.op === 'virarMonarca' && f.quem === 'alvoJogador');
 // de que jogador é o alvo: o próprio jogador; permanente = quem controla; carta fora do campo = o dono (Afterlife from the Loam)
 const jogDoAlvo = (e, x) => x.jog !== undefined ? x.jog : e.objs[x.o].zona === 'campo' ? e.objs[x.o].ctrl : e.objs[x.o].dono;
+// mínimo de alvos: 'X' = exatamente X (o X já foi escolhido, 601.2b antes de 601.2c); sem X (viabilidade), 0
+const minAlvo = (a, ctx?) => a.min === 'X' ? (ctx && ctx.x) || 0 : a.min ?? 1;
+// o X não passa do número de alvos possíveis quando são exatamente X
+const tetoXAlvos = (e, d, ctx, mx) => (d.alvos || []).reduce((m, a) => a && a.min === 'X' ? Math.min(m, M.alvosPossiveis(e, a, ctx).length) : m, mx);
 function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc?: any) {
   const esc: any[] = [];
   let total = 0;
   for (const i of alvosUsadosDe(d, fx)) {
     if (!alvoAtivo(d.alvos[i], opc)) { esc[i] = []; continue; }     // alvo de outra opção (chute/presente)
-    const a = d.alvos[i], min = a.min ?? 1, max = a.max === 'qualquer' ? Infinity : a.max && typeof a.max === 'object' ? Math.max(0, M.qtd(e, a.max, ctx)) : a.max ?? 1, lista: any[] = [];
+    const a = d.alvos[i], min = minAlvo(a, ctx), max = a.max === 'qualquer' ? Infinity : a.max && typeof a.max === 'object' ? Math.max(0, M.qtdDe(e, a.max, ctx)) : a.max ?? 1, lista: any[] = [];   // qtdDe: aceita o X ("up to X targets"; antes dava 0)
     while (lista.length < max) {
       let ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y)) && !(Number.isInteger(a.diferenteDe) && (esc[a.diferenteDe] || []).some(y => mesmo(x, y)))
         && !(a.ctrlDiferentes && x.o !== undefined && lista.some(y => y.o !== undefined && e.objs[y.o] && e.objs[y.o].ctrl === e.objs[x.o].ctrl))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3; diferenteDe: "another target" (Markov Retribution)
@@ -765,7 +770,7 @@ const mesmo = (x, y) => (x.jog !== undefined ? x.jog === y.jog : x.o === y.o);
 // modo dá para escolher: efeitos que o núcleo sabe e alvos com opção legal (CR 601.2c)
 function modoViavel(e, j, d, fx) {
   if (!M.fxSuportado(fx, { topo: false })) return false;
-  return alvosUsados(fx).every(i => { const a = (d.alvos || [])[i]; return a && M.alvoSuportado(a) && ((a.min ?? 1) === 0 || M.alvosPossiveis(e, a, { voce: j }).length >= (a.min ?? 1)); });
+  return alvosUsados(fx).every(i => { const a = (d.alvos || [])[i]; return a && M.alvoSuportado(a) && (minAlvo(a) === 0 || M.alvosPossiveis(e, a, { voce: j }).length >= (a.min ?? 1)); });
 }
 M.modosViaveis = (e, j, d) => d.fx[0].modos.filter(m => modoViavel(e, j, d, m)).length;
 // custo a mais pelos modos escolhidos (601.2f): custoModos = um custo por modo (Tiered, Spree); escalar = por modo além do
@@ -979,7 +984,7 @@ const PROC = {
     let custo = custoOpc(d, custo0, opc, e, o);
     let x = 0;
     if (custo.x && !(P.gratis || (M.permJogar(e, j, o) || {}).gratis)) {             // CR 601.2b: anuncia o X (grátis: X = 0, 107.3b)
-      const mx = maxX(e, j, custo, null, o), mn = opc.chute ? chuteDe(d).xMin || 0 : 0;   // "Kicker {X}. X can't be 0" (Thieving Skydiver)
+      const mx = tetoXAlvos(e, d, { voce: j, este: o.id }, maxX(e, j, custo, null, o)), mn = opc.chute ? chuteDe(d).xMin || 0 : 0;   // "Kicker {X}. X can't be 0" (Thieving Skydiver)
       if (mx < mn) { e.proc = null; o.face = null; M.log(e, e.jogs[j].nome, 'desiste de', o.n, '(X mínimo do chute não cabe)'); return; }
       x = ask(j, 'x', Array.from({ length: mx - mn + 1 }, (_, v) => ({ a: 'x', v: v + mn })).reverse(), { id: o.id }).v;
     }
@@ -1040,10 +1045,15 @@ const PROC = {
     if (a._equipar && e.turno.ativo === j) e.jogs[j].equipT = e.turno.n;                // o 1º equipar do seu turno já foi (Forge Anew)
     let x = 0;
     if (mana && mana.x) {
-      const mx = maxX(e, j, mana, ex);
+      const mx = tetoXAlvos(e, a, ctx, maxX(e, j, mana, ex));
       x = ask(j, 'x', Array.from({ length: mx + 1 }, (_, v) => ({ a: 'x', v })).reverse(), { id: o.id }).v;
     }
-    const alvos = escolherAlvos(e, j, a, a.fx, { ...ctx, x }, ask);                   // CR 602.2b → 601.2c
+    let tir = 0;                                                                      // "remove one or more +1/+1 counters" (Arcee, 602.2b/601.2f): quantos tira é escolha de quem ativa
+    if (c.tirarMarcador && c.tirarMarcador.umOuMais) {
+      const tem = o.marc[c.tirarMarcador.tipo] || 0, mn = c.tirarMarcador.qtd || 1;
+      tir = ask(j, 'x', Array.from({ length: Math.max(0, tem - mn + 1) }, (_, v) => ({ a: 'x', v: mn + v })).reverse(), { id: o.id, op: 'tirarMarcador' }).v;
+    }
+    const alvos = escolherAlvos(e, j, a, a.fx, { ...ctx, x, tirados: tir }, ask);     // CR 602.2b → 601.2c
     const imp = impostoAlvo(e, j, alvos, true);                                      // 601.2f via 602.2b: Kopala (habilidade)
     if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
@@ -1057,13 +1067,13 @@ const PROC = {
     const id = e.prox++;
     const h = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
       hab: { fonte: o.id, fonteTs: o.ts, k: P.k, fx: a.fx, alvos: a.alvos || [], ficha: o.ficha || null },
-      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) }, ...(fis.sac.length ? { sac: fis.sac.map(id => lkiDe(e, e.objs[id])) } : {}) } };   // "a sacrificada" (custo, LKI 608.2h)
+      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) }, ...(tir ? { tirados: tir } : {}), ...(fis.sac.length ? { sac: fis.sac.map(id => lkiDe(e, e.objs[id])) } : {}) } };   // "a sacrificada" (custo, LKI 608.2h)
     e.objs[id] = h; e.pilha.push(id);
     M.eventosAlvo(e, alvos, id);
     if (mana) pagarMana(e, j, pl, mana, x);
     if (imp.vida) M.perderVida(e, j, imp.vida);
     const ninja = a._ninjutsu && fis.dev.length ? (e.turno.combate.atk.find(x => x.id === fis.dev[0] && x.ts === e.objs[fis.dev[0]].ts) || {}).alvo : null;   // o defensor do que voltou (702.49c)
-    pagarFisico(e, j, o, c, fis);
+    pagarFisico(e, j, o, tir ? { ...c, tirarMarcador: { ...c.tirarMarcador, qtd: tir } } : c, fis);
     if (ninja) (h.pil as any).ninja = ninja;
     if (a._ciclar) M.evento(e, { ev: 'cicla', id: o.id, j });       // CR 702.29: "quando você ciclar" (Magmakin Artillerist)
     if (a.lealdade !== undefined) { o.marc.lealdade = (o.marc.lealdade || 0) + a.lealdade; o.lealTurno = e.turno.n; }   // CR 606.4
@@ -1118,7 +1128,7 @@ const PROC = {
       const T = e.turno, ch = o.hab.fonte + ':' + o.hab.fonteTs + ':' + (o.hab.gat !== undefined ? 'g' + o.hab.gat : 'a' + o.hab.k);
       T.resHab = T.resHab || {}; P.resHab = T.resHab[ch] = (T.resHab[ch] || 0) + 1;
     }
-    const ctx = P.ctx = P.ctx || { resHab: P.resHab, voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, ...(pil.mem || {}) };
+    const ctx = P.ctx = P.ctx || { resHab: P.resHab, voce: j, este: o.hab ? o.hab.fonte : o.id, x: pil.x, tirados: pil.tirados || 0, alvos: pil.alvos || [], defAlvos: d.alvos || [], ilegal: P.ilegal, lki: pil.lki, item: o.id, ev: pil.ev || null, opc: pil.opc || null, sac: pil.sac || null, ...(pil.mem || {}) };
     if (o.hab && o.hab.talvez && !P.talvez) {                      // CR 603.5: "you may" do gatilho inteiro, escolhido ao resolver
       if (ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'gatilho', id: o.hab.fonte, n: o.n }).a === 'nao') { e.proc = null; M.log(e, o.n, 'gatilho: escolheu não fazer'); tirarDaPilha(e, o); return; }
       P.talvez = true; ask.etapa();

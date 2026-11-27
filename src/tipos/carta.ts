@@ -352,6 +352,10 @@ export interface RxFiltro {
    * mágica/habilidade na pilha cujos alvos são todos este objeto, e ao menos um ("a spell that targets only Zada")
    */
   soMiraEste?: true;
+  /**
+   * mágica/habilidade na pilha com ao menos um alvo que bate neste filtro ("a spell that targets one or more creatures you control", Arcee)
+   */
+  miraUm?: RxFiltro;
 }
 
 export interface RxCompara {
@@ -367,7 +371,10 @@ export interface RxAlvo {
    * filtro ou: qualquerAlvo | jogador | oponente | magica | habilidade (ativada ou desencadeada na pilha: Tishana's Tidebinder)
    */
   f: RxFiltro | ('qualquerAlvo' | 'jogador' | 'oponente' | 'magica' | 'habilidade' | 'magicaOuHab');
-  min?: number;
+  /**
+   * mínimo de alvos (padrão 1); 'X' = exatamente X ("return X target cards", Shigeki): o X escolhido não passa do número de alvos possíveis
+   */
+  min?: number | 'X';
   /**
    * N, 'qualquer' ou uma contagem ("up to X targets", X = as não-terreno moídas: The Wise Mothman)
    */
@@ -509,6 +516,10 @@ export interface RxCustoAtv {
   tirarMarcador?: {
     tipo?: string;
     qtd?: number;
+    /**
+     * "remove one or more": quem ativa escolhe quantos (≥ qtd); o número vai em {conta:{de:'custo',o:'marcadores'}} (Arcee)
+     */
+    umOuMais?: boolean;
   };
   /**
    * pôr marcador neste como custo (Devoted Druid: -1/-1)
@@ -1732,6 +1743,7 @@ export interface RxContagem {
         | 'cada'
         | 'tipoMaisComum'
         | 'se'
+        | 'custo'
       )
     | {
         alvo: number;
@@ -1740,7 +1752,7 @@ export interface RxContagem {
         f: RxFiltro;
       };
   /**
-   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room)
+   * o que se lê; sem o = o próprio valor (X, resultado, escolhido, se); poderAcimaDeste (de {alvo:N}) = poder do alvo menos o deste, 0 se não for maior (Conformer Shuriken); tentacoes (de voce): quantas vezes o Anel te tentou nesta partida; jogadores (de: evento) = quantos jogadores o dano de combate do disparo único (danoUmaVez) feriu; excesso (de: turno; quem oponentes) = quantas vezes uma criatura/planeswalker sua (ou dos oponentes) levou dano excedente neste turno (120.10, Rith); aoCemiterio (de turno): cartas suas postas no seu cemitério vindas da mão ou do grimório neste turno (Welcome the Dead); cores (de voce): nº de cores da identidade dos seus comandantes (War Room); alvos (de evento, com f): quantos alvos distintos da mágica do evento batem no filtro f (Arcee: "put that many +1/+1 counters"); marcadores (de custo): os tirados no custo "remove one or more" (Arcee)
    */
   o?:
     | 'quantos'
@@ -1782,7 +1794,8 @@ export interface RxContagem {
     | 'cemiterio'
     | 'jogadores'
     | 'excesso'
-    | 'aoCemiterio';
+    | 'aoCemiterio'
+    | 'alvos';
   /**
    * só os que batem — turno/entraram (Éowyn, Shieldmaiden: outro Humano seu); turno/sacrificadas ("if you sacrificed a Food this turn": {sub:['Food']})
    */
