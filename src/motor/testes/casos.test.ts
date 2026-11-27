@@ -3499,6 +3499,16 @@ caso('603.2', "\"a segunda vez que esta habilidade resolve neste turno\": Tannuk
   entra(); igual(e.jogs[0].zonas.mao.length, mao0 + 1, '3ª: não'); igual(e.jogs[1].vida, 37);
 });
 
+caso('701.25', "vigiar: olha o topo e põe no cemitério o que quiser; o resto fica no topo", () => {
+  ok(M.fxSuportado(M.carta('Consider').fx), 'Consider aceito');
+  const e = cena({ campo: [] });
+  e.por(0, 'Grizzly Bears', { zona: 'grimorio' }); e.por(0, 'Sol Ring', { zona: 'grimorio' });   // topo: Sol Ring
+  const g = e.jogs[0].zonas.grimorio;
+  M.executar(e, { op: 'vigiar', quem: 'voce', qtd: 2 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops.find(x => x.a === (e.objs[x.id].n === 'Sol Ring' ? 'cemiterio' : 'topo')));
+  igual(naZona(e, 0, 'cemiterio'), ['Sol Ring']);
+  igual(e.objs[g[g.length - 1]].n, 'Grizzly Bears', 'Bears ficou no topo');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -1121,6 +1121,17 @@ const H = {
       for (const id of fundo) M.mover(e, id, 'grimorio', { topo: false });
     },
   },
+  vigiar: {                                                         // CR 701.25: olha N, põe qualquer número no cemitério e o resto de volta no topo
+    fx(e, f, ctx, ask) {
+      const q = qtdDe(e, f.qtd, ctx);
+      for (const j of jogsDe(e, f, ctx)) {
+        const g = e.jogs[j].zonas.grimorio, topo = g.slice(-q).reverse();
+        const cem = topo.filter(id => ask(j, 'vigiar', [{ a: 'topo', id }, { a: 'cemiterio', id }], {}).a === 'cemiterio');
+        for (const id of cem) M.mover(e, id, 'cemiterio');            // o resto fica no topo, na mesma ordem (uma das que a regra deixa)
+        M.log(e, e.jogs[j].nome, 'vigia', q, cem.length ? '(' + cem.length + ' ao cemitério)' : '');
+      }
+    },
+  },
   proliferar: {                                                     // CR 701.34: escolhe quantos quiser (permanentes e
     fx(e, f, ctx, ask) {                                            // jogadores com marcador); +1 de cada tipo que já tem
       for (const j of jogsDe(e, f, ctx)) {
