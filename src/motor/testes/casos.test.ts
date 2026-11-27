@@ -5641,6 +5641,15 @@ caso('602.5', "Drana and Linvala: as criaturas do oponente não ativam; ela ganh
   ok(!M.ativBloqueada(e, dr), 'a dela ativa');
 });
 
+caso('609.4b', "Drana and Linvala: 'you may spend mana as though it were mana of any color to activate those abilities' — o {G} do Imperious Perfect ganho por ela vira genérico; no Perfect fica {G}", () => {
+  const e = cena({ campo: [[0, 'Drana and Linvala'], [1, 'Imperious Perfect']] });
+  const pf = objN(e, 1, 'Imperious Perfect'), dr = objN(e, 0, 'Drana and Linvala');
+  const a = M.atvDe(e, dr)[0];
+  ok(a._qualquerCor && M.atvDe(e, dr)[0] === a, 'a ganha vem marcada (mesmo objeto a cada leitura)');
+  const c = M.custoAtv(e, dr, a); igual([c.g, c.p], [1, []], 'em Drana: {G} paga com qualquer mana');
+  igual(M.custoAtv(e, pf, M.atvDe(e, pf)[0]), { p: ['G'] }, 'no Perfect: {G}');
+});
+
 caso('601.2f', "tipo de card em comum / escolhido (Semblance Anvil, Cemetery Prowler, Cloud Key): reduzem só as mágicas que dividem tipo de card com o que foi exilado por ele / o tipo escolhido", () => {
   const e = cena({ campo: [[0, 'Semblance Anvil'], [0, 'Cemetery Prowler'], [0, 'Cloud Key']], mao: [[0, 'Sol Ring'], [0, 'Llanowar Elves'], [0, 'Lightning Bolt'], [0, 'Counterspell']] });
   const A = objN(e, 0, 'Semblance Anvil'), P = objN(e, 0, 'Cemetery Prowler'), K = objN(e, 0, 'Cloud Key');

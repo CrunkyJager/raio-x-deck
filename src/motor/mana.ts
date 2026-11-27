@@ -279,11 +279,15 @@ M.custoComImposto = (e, o, base?) => {
 };
 // custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
 // a.reduz: "This ability costs {1} less to activate for each …" (Voldaren Estate, Otawara) — redução da própria habilidade
-M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : comoQualquerCor(e, o, reduz({ ...a.custo.mana }, reducaoAtv(e, o, a, reducoes(e, o.ctrl, o, true))));
+M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : comoQualquerCor(e, o, reduz({ ...a.custo.mana }, reducaoAtv(e, o, a, reducoes(e, o.ctrl, o, true))), a);
 const reducaoAtv = (e, o, a, r) => { if (a.reduz !== undefined) r.g += Math.max(0, M.qtdEst(e, a.reduz, { voce: o.ctrl, este: o.id })); return r; };
 // "you may spend blue mana as though it were mana of any color to pay the activation costs of this creature's abilities"
 // (Quicksilver Elemental, CR 609.4b): cada símbolo de outra cor vira híbrido com a cor (R → R/U); incolor {C} e phyrexiano ficam
-const comoQualquerCor = (e, o, c) => {
+const comoQualquerCor = (e, o, c, a?) => {
+  if (a && a._qualquerCor && c.p && c.p.length) {   // qualquer mana paga a cor (Drana and Linvala): símbolo colorido/híbrido vira genérico; {C} e phyrexiano ficam
+    const fica = c.p.filter(p => !/^[WUBRG](\/[WUBRG])?$/.test(p));
+    return { ...c, g: (c.g || 0) + c.p.length - fica.length, p: fica };
+  }
   const s = (M.dadoDe(e, o).est || []).find(x => x.modo === 'manaComoQualquerCor' && x.afeta === 'este' && /^[WUBRG]$/.test(x.corMana || ''));
   if (!s || !c.p || !c.p.length) return c;
   return { ...c, p: c.p.map(p => /^[WUBRG]$/.test(p) && p !== s.corMana ? p + '/' + s.corMana : p) };

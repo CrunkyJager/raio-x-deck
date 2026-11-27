@@ -2819,6 +2819,10 @@
      ],
      "description": "manaComoQualquerCor: a cor da mana que vale por qualquer cor (\"spend blue mana as though it were mana of any color\")"
     },
+    "qualquerCor": {
+     "type": "boolean",
+     "description": "ganhaAtivadas: a mana paga como se fosse de qualquer cor nos custos das habilidades ganhas (Drana and Linvala: 'You may spend mana as though it were mana of any color to activate those abilities', CR 609.4b)"
+    },
     "primeiraNoSeuTurno": {
      "type": "boolean",
      "description": "reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)"
