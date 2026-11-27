@@ -133,7 +133,7 @@ function cobrarCombate(e, j, tx, ask, tipo) {                     // tx: [{k, c}
   while (fica.length && !M.planoMana(e, j, somaCusto(fica.map(x => x.c)))) sai.push(fica.pop().k);
   if (!fica.length) return sai;
   const total = somaCusto(fica.map(x => x.c));
-  const op = ask(j, 'custoCombate', [{ a: 'pagar' }, { a: 'naoPagar' }], { tipo, custo: total, n: fica.length });
+  const op = ask(j, 'custoCombate', [{ a: 'pagar' }, { a: 'naoPagar' }], { tipo, custo: total, n: fica.length, ids: fica.map(x => x.k) });
   if (op.a === 'pagar') { M.pagarComPlano(e, j, total); M.log(e, e.jogs[j].nome, 'paga', '{' + total.g + '}' + total.p.map(c => '{' + c + '}').join(''), 'para', tipo === 'atacar' ? 'atacar' : 'bloquear'); return sai; }
   return sai.concat(fica.map(x => x.k));
 }
@@ -153,11 +153,11 @@ M.PROC.atacar = (e, P, ask) => {
     const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
     return fora.length ? fora : alvos;
   };
-  // "só pode atacar sozinha" (506.5, 508.1c): declarada uma dessas, nenhuma outra; com outra declarada, ela não entra
-  const sozinha = id => estEste(e, e.objs[id], 'atacaSozinha', true);
   // "no more than one creature can attack you each combat" (Mirri, Weatherlight Duelist, 506.6): limite por jogador atacado
   const limAtk = t => t.jog === undefined ? Infinity : M.maxAtacantes(e, t.jog);
   const cabeAtk = t => Object.values<any>(decl).filter(x => x.jog !== undefined && x.jog === t.jog).length < limAtk(t);
+  // "só pode atacar sozinha" (506.5, 508.1c): declarada uma dessas, nenhuma outra; com outra declarada, ela não entra
+  const sozinha = id => estEste(e, e.objs[id], 'atacaSozinha', true);
   for (;;) {
     const ja = Object.keys(decl), soloJa = ja.some(id => sozinha(+id));
     const livres = soloJa ? [] : aptos.filter(id => !decl[id]);
@@ -190,6 +190,7 @@ M.PROC.atacar = (e, P, ask) => {
   e.turno.ataques = (e.turno.ataques || []).concat(C.atk.map(r => ({ id: r.id, ts: r.ts, j: a, def: r.def, jog: r.alvo.jog })));
   for (const r of C.atk) M.evento(e, { ev: 'ataca', id: r.id, def: r.def });          // 508.3a
   if (C.atk.length) M.evento(e, { ev: 'atacantesDeclarados', j: a, n: C.atk.length });
+  for (const d of [...new Set(C.atk.filter(r => r.alvo.jog !== undefined).map(r => r.alvo.jog))]) M.evento(e, { ev: 'atacaJogador', j: a, jog: d });   // "whenever a player attacks one of your opponents" (Breena): um por jogador atacado (não planeswalker)
   if (C.atk.length) M.log(e, e.jogs[a].nome, 'ataca com', C.atk.map(r => e.objs[r.id].n + '→' + (r.alvo.jog !== undefined ? e.jogs[r.alvo.jog].nome : e.objs[r.alvo.o].n)).join(', '));
 };
 
@@ -259,6 +260,10 @@ M.PROC.bloquear = (e, P, ask) => {
   const meus = C.atk.map((r, i) => i).filter(i => C.atk[i].def === d && emCombate(e, C.atk[i]));
   const cands = M.lote(() => e.campo.filter(id => podeBloquear(e, e.objs[id], d)));
   const bl = P.bl = P.bl || {};                                                           // bloqueador → índice do atacante
+  // "and you choose how those creatures block" (Brutal Hordechief): quem controla o efeito declara os bloqueios no lugar do
+  // defensor. Simplificação: vale para a declaração inteira desse defensor se alguma candidata está afetada
+  let quem = d;
+  for (const t of e.temp || []) for (const s of t.est || []) if (s.modo === 'deveBloquear' && s.escolhe !== undefined && s.escolhe !== d && !e.jogs[s.escolhe].saiu && cands.some(id => M.tempTem(t, e.objs[id]))) quem = s.escolhe;
   for (;;) {
     const conta: any = {}; for (const k in bl) conta[bl[k]] = (conta[bl[k]] || 0) + 1;
     // 702.110b: ameaça precisa de dois ou mais; fechar só quando nenhuma está com um só
@@ -274,7 +279,7 @@ M.PROC.bloquear = (e, P, ask) => {
     if (lim !== undefined && Object.keys(bl).length >= lim) { ops.length = 0; devem.length = 0; }
     if (!presa.length && !devem.length) ops.unshift({ a: 'pronto' });
     if (presa.length) for (const k in bl) if (presa.includes(bl[k])) ops.push({ a: 'desfazer', id: +k });
-    const op = ask(d, 'bloquear', ops, { atacantes: meus.map(i => C.atk[i].id), bl: Object.keys(bl).map(k => [+k, C.atk[bl[k]].id]), devem });
+    const op = ask(quem, 'bloquear', ops, { atacantes: meus.map(i => C.atk[i].id), bl: Object.keys(bl).map(k => [+k, C.atk[bl[k]].id]), devem, def: d });
     if (op.a === 'pronto') break;
     if (op.a === 'desfazer') delete bl[op.id];
     else bl[op.id] = meus.find(i => C.atk[i].id === op.atk);
@@ -388,6 +393,7 @@ function aplicarGolpes(e, golpes) {
       if (protegeDe(e, o, fd)) continue;                                                   // 702.16e
       M.danoEm(e, o, g.q, { ...fd, kw: M.kwDe(e, g.fonte), o: g.fonte });   // toque mortífero dado por camada conta
     }
+    if (g.alvo.jog !== undefined && g.q > 0) { const J = e.jogs[g.alvo.jog]; (J.feridoPorNome || (J.feridoPorNome = {}))[g.fonte.n] = true; }   // "dealt combat damage this game by a creature named X" (Gollum)
     M.evento(e, { ev: 'dano', fonte: g.fonte.id, combate: true, q: g.q, ...(g.alvo.jog !== undefined ? { jog: g.alvo.jog } : { o: g.alvo.o }) });   // 510.3a
     if (kw(e, g.fonte, 'vinculoVida')) vida[g.fonte.ctrl] = (vida[g.fonte.ctrl] || 0) + g.q;   // 702.15b
   }
