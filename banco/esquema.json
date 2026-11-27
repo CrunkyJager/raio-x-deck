@@ -528,6 +528,10 @@
      "type": "boolean",
      "description": "carta do topo do grimório"
     },
+    "convocou": {
+     "type": "boolean",
+     "description": "criatura que convocou a mágica que resolve (\"each creature that convoked this spell\": Lethal Scheme, CR 702.51c)"
+    },
     "lembrada": {
      "type": "boolean",
      "description": "objeto lembrado pelo efeito"
@@ -617,6 +621,10 @@
      ],
      "description": "true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)"
     },
+    "maiorPoder": {
+     "type": "boolean",
+     "description": "criatura com poder MAIOR que o de cada outra criatura no campo (estritamente; Selvala, Heart of the Wilds)"
+    },
     "poderAcimaBase": {
      "type": "boolean",
      "description": "poder maior que o poder base"
@@ -705,6 +713,17 @@
     "miraUm": {
      "$ref": "#/$defs/filtro",
      "description": "mágica/habilidade na pilha com ao menos um alvo que bate neste filtro (\"a spell that targets one or more creatures you control\", Arcee)"
+    },
+    "manaGasta": {
+     "$ref": "#/$defs/compara",
+     "description": "mana gasta para conjurar esta mágica (na pilha): \"if no mana was spent to cast it\" = {max:0} (Boromir, Warden of the Tower)"
+    },
+    "semKw": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "não tem nenhuma destas palavras-chave (\"if it didn't have decayed\": Wilhelt)"
     }
    }
   },
@@ -1179,6 +1198,7 @@
       "animar",
       "ganharControle",
       "anexar",
+      "desanexar",
       "fasear",
       "transformar",
       "efeitoTemporario",
@@ -1675,6 +1695,10 @@
      "$ref": "#/$defs/objeto",
      "description": "copiarPermanente: o objeto COPIADO (em = quem vira a cópia, 707.2). op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)"
     },
+    "presaA": {
+     "$ref": "#/$defs/filtro",
+     "description": "op desanexar sem em: solta um anexo (f, padrão Equipamento) de uma permanente que bate neste filtro; quem faz escolhe ao resolver (Akiri). Depois, em anterior = de quem soltou (CR 701.3d)"
+    },
     "noDe": {
      "$ref": "#/$defs/objeto",
      "description": "op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)"
@@ -1744,6 +1768,10 @@
     "cadaOutroAlvo": {
      "const": true,
      "description": "copiarMagica (em doEvento, mágica de um alvo só que mira esta): uma cópia para cada outra criatura sua que ela poderia mirar, cada cópia mirando uma delas (Zada, Hedron Grinder)"
+    },
+    "bloqueando": {
+     "type": "boolean",
+     "description": "ficha: entra bloqueando o atacante do evento 'bloqueia' (Brimaz: \"that's blocking that creature\")"
     }
    },
    "additionalProperties": false,
@@ -1816,6 +1844,20 @@
       "criadas",
       "este"
      ]
+    },
+    "maisTipos": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "com copiaDe: tipos de carta além dos da cópia (707.9b: \"a 1/1 Soldier creature in addition to its other types\")"
+    },
+    "maisSub": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "com copiaDe: subtipos além dos da cópia (707.9b)"
     },
     "naoLendaria": {
      "type": "boolean",
@@ -2096,6 +2138,7 @@
       "milagre",
       "reconfigurar",
       "entraPreparada",
+      "segundoDividido",
       "ninjutsu",
       "prever",
       "rondar",
@@ -2131,10 +2174,12 @@
       "agregar",
       "miriade",
       "mobilizar",
+      "aflicao",
       "eco",
       "bis",
       "prole",
       "iminente",
+      "concessao",
       "capitulo",
       "classe",
       "entraComMarcador",
@@ -2146,7 +2191,8 @@
       "fuga",
       "prototipo",
       "comecaNoCampo",
-      "converter"
+      "converter",
+      "dragar"
      ],
      "description": "comecaNoCampo: começa o jogo no campo se estiver na mão inicial (Leylines, CR 103.6a); sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -2164,7 +2210,8 @@
      "type": "string"
     },
     "n": {
-     "type": "integer"
+     "type": "integer",
+     "description": "dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b)"
     },
     "de": {
      "type": "string",
@@ -2298,7 +2345,8 @@
       "monstruosa",
       "portador",
       "ativa",
-      "gasta"
+      "gasta",
+      "danoPrevenido"
      ],
      "description": "portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você); ativa: um jogador (jog) ativa uma habilidade que não é de mana de um objeto que bate em quem (602.2, Runic Armasaur)"
     },
@@ -2418,6 +2466,14 @@
      "$ref": "#/$defs/zona",
      "description": "zona de origem do objeto que mudou de zona"
     },
+    "naoPorEste": {
+     "type": "boolean",
+     "description": "entra: não vale para o que um efeito desta permanente pôs no campo (\"if it wasn't put onto the battlefield with this ability\": Kodama of the East Tree)"
+    },
+    "ouConjurada": {
+     "type": "boolean",
+     "description": "entra com de: vale também a que foi conjurada daquela zona (\"entered from a graveyard or was cast from a graveyard\": Kotis)"
+    },
     "naoDe": {
      "$ref": "#/$defs/zona",
      "description": "\"from anywhere other than …\""
@@ -2477,11 +2533,14 @@
       "podeOlhar",
       "dobraGatilho",
       "ataqueCusta",
+      "bloqueioCusta",
       "naoPodeAtivar",
       "ganhaAtivadas",
       "deveBloquear",
       "darFuga",
       "darRetrace",
+      "darBis",
+      "semRegraLenda",
       "darLoucura",
       "oponentesNaoProcuram",
       "custoProibido",
@@ -2547,7 +2606,7 @@
     },
     "custo": {
      "$ref": "#/$defs/mana",
-     "description": "ataqueCusta: quanto paga por criatura atacante (+ qtd se for {X})"
+     "description": "ataqueCusta/bloqueioCusta: quanto o controlador paga por criatura atacante/bloqueadora (vezes qtd, se houver: Sphere of Safety). Pago ao fechar a declaração (CR 508.1d/h, 509.1d/f); quem não paga não ataca/bloqueia"
     },
     "se": {
      "$ref": "#/$defs/cond"
@@ -2659,7 +2718,7 @@
     },
     "exilar": {
      "type": "integer",
-     "description": "darFuga: exilar N outras do cemitério (Underworld Breach)"
+     "description": "darFuga: exilar N outras do cemitério (Underworld Breach) · podeJogar: custo a mais de exilar N outras do cemitério (Kotis)"
     },
     "proibe": {
      "type": "array",
@@ -2748,6 +2807,10 @@
       },
       "para": {
        "$ref": "#/$defs/zona"
+      },
+      "vidaMin": {
+       "const": 1,
+       "description": "dano (jog voce): o dano que deixaria sua vida abaixo de 1 a deixa em 1 (Serra the Benevolent, Worship)"
       },
       "prevenir": {
        "type": "boolean"

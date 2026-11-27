@@ -4,9 +4,9 @@
 // Gatilho com campo/efeito/filtro que o núcleo não lê NÃO dispara (nada joga errado em silêncio).
 import { M } from './nucleo';
 
-const EV_OK = new Set(['gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
+const EV_OK = new Set(['danoPrevenido', 'gasta', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa']);
-const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
+const CAMPOS_OK = new Set(['naoPorEste', 'ouConjurada', 'comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
 const LACO = 500;
 const memoOk = new WeakMap();
@@ -14,10 +14,10 @@ const memoOk = new WeakMap();
 M.gatOk = g => {
   if (memoOk.has(g)) return memoOk.get(g);
   if (g.ev === 'viraParaMana') { const v = M.gatManaOk(g); memoOk.set(g, v); return v; }   // habilidade de mana desencadeada: mana.ts (605.1b)
-  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' || g.ev === 'gasta' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.porAtivada || (g.porAtivada === true && g.ev === 'alvoDe')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
+  let ok = EV_OK.has(g.ev) && (g.ev === 'capitulo' || g.ev === 'nivel' || g.ev === 'gasta' ? Number.isInteger(g.n) && g.n > 0 : g.n === undefined) && Object.keys(g).every(k => CAMPOS_OK.has(k)) && (!g.grupo || g.ev === 'descarta' || g.ev === 'moe' || g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'marcadorPosto' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev)) && (!g.marc || g.ev === 'marcadorPosto') && ((!g.de && !g.naoDe) || g.ev === 'vaiCemiterio' || g.ev === 'entra' || g.ev === 'conjura' || g.ev === 'jogaTerreno') && (!g.ouCopia || (g.ouCopia === true && g.ev === 'conjura' && !g.de && !g.naoDe && !g.comManaDe)) && (!g.aOponente || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.naoMorre || g.ev === 'sai') && (!g.aJogadorOuPw || g.ev === 'dano' || g.ev === 'danoUmaVez') && (!g.limite || g.limite === 'umaPorTurno') && (!g.primeiraNoTurno || (g.primeiraNoTurno === true && g.ev === 'conjura')) && (!g.porAtivada || (g.porAtivada === true && g.ev === 'alvoDe')) && (!g.naoPrimeira || (g.naoPrimeira === true && g.ev === 'compra')) && (!g.naoPorEste || (g.naoPorEste === true && g.ev === 'entra')) && (!g.ouConjurada || (g.ouConjurada === true && g.ev === 'entra' && !!g.de)) && M.fxSuportado(g.fx)   // modal: o modo é escolhido ao pôr na pilha (603.3c, PROC.gatilhos)
     && (g.alvos || []).every(M.alvoSuportado) && M.alvosUsados(g.fx).every(i => (g.alvos || [])[i])   // {alvo:N} sem o alvo N declarado: não joga
     && (!g.quem || M.filtroOk(g.quem)) && (!g.por || M.filtroOk(g.por)) && (!g.recebe || (g.ev === 'dano' && M.filtroOk(g.recebe)));
-  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'haMonarca', 'emCombate', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'nao'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se)) && (!g.se.nao || M.seOk(g.se.nao));   // nao: "if it isn't that player's turn" (Tataru Taru)
+  if (ok && g.se) ok = Object.keys(g.se).every(k => ['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'conta', 'conjuradaCom', 'palavra', 'objBate', 'temIniciativa', 'monarca', 'haMonarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'nao', 'emCombate'].includes(k)) && M.condValorOk(g.se) && (!g.se.objBate || M.seOk(g.se)) && (!g.se.nao || M.seOk(g.se.nao));   // nao: "if it isn't that player's turn" (Tataru Taru)
   memoOk.set(g, ok);
   return ok;
 };
@@ -29,7 +29,7 @@ const cond = (e, se, ctx) => { if (!se) return true; try { return M.condicao(e, 
 function bateEv(e, g, ev, F) {
   const ctx = { voce: F.ctrl, este: F.id, movidos: F.movidos }, q = o => !g.quem || (o && bate(e, o, g.quem, ctx));   // movidos: os afetados do efeito temporário (filtro lembrada: Tamiyo +1)
   switch (g.ev) {
-    case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(e.objs[ev.id]);   // de: "enters from a graveyard" (River Kelpie, Kotis)
+    case 'entra': return ev.ev === 'zona' && ev.para === 'campo' && (!g.de || ev.de === g.de || (g.ouConjurada && ev.de === 'pilha' && !!e.objs[ev.id] && e.objs[ev.id].conjDe === g.de)) && (!g.naoDe || ev.de !== g.naoDe) && (!g.naoPorEste || ev.porFx !== F.id) && q(e.objs[ev.id]);   // naoPorEste: "if it wasn't put onto the battlefield with this ability" (Kodama of the East Tree); ouConjurada: "entered from a graveyard or was cast from a graveyard" (Kotis)   // de: "enters from a graveyard" (River Kelpie, Kotis)
     case 'ficaMonstruosa': return ev.ev === 'ficaMonstruosa' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.37b
     case 'vira': return ev.ev === 'vira' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 701.26a
     case 'fichaCriada': return ev.ev === 'fichaCriada' && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 111.2: quem cria = ev.j
@@ -53,6 +53,7 @@ function bateEv(e, g, ev, F) {
     case 'marcadorPosto': return ev.ev === 'marcadorPosto' && (!g.marc || g.marc === ev.t) && (!g.jog || relJog(g.jog, ev.j, F.ctrl))   // jog: quem pôs ("whenever you put", All Will Be One)
       && (ev.jog !== undefined ? !g.quem : !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]));   // 122.6: o evento já é o lote (grupo); em jogador (122.1) só sem 'quem' ("on a permanent or player")
     case 'prolifera': return ev.ev === 'prolifera' && relJog(g.jog || 'voce', ev.j, F.ctrl);                       // 701.34
+    case 'danoPrevenido': return ev.ev === 'danoPrevenido' && relJog(g.jog || 'qualquer', ev.jog, F.ctrl);   // 615: o dano a um jogador foi prevenido (ev.q = quanto)
     case 'gasta': return ev.ev === 'gasta' && ev.n === g.n && relJog(g.jog || 'qualquer', ev.j, F.ctrl);   // expend N (gastar): a N-ésima mana gasta em mágicas no turno
     case 'capitulo': return ev.ev === 'capitulo' && ev.id === F.id && ev.ts === F.ts && ev.de < g.n && ev.para >= g.n;   // CR 714.2b
     // masmorras.ts: entrar numa sala (309.4c), completar (309.7), tomar a iniciativa (727.2); jog: de quem (padrão: você)
@@ -348,6 +349,14 @@ M.evento = (e, ev) => {
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'prole', g: PROLE, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
   }
+  // aflição N (CR 702.130a): "sempre que esta criatura fica bloqueada, o jogador defensor perde N de vida"; uma por instância (702.130b)
+  if (ev.ev === 'bloqueada' && e.objs[ev.id]) {
+    const F = e.objs[ev.id];
+    for (const k of M.kwDe(e, F).filter(x => x.k === 'aflicao' && Number.isInteger(x.n) && x.n > 0)) {
+      const g = { ev: 'bloqueada', fx: [{ op: 'perderVida', quem: 'doEvento', qtd: k.n }] };
+      for (let v = 0; v < 1 + extras(e, F, g, ev); v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'aflicao', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
+    }
+  }
   // mentor (CR 702.134a): "quando ataca, põe um +1/+1 em uma criatura atacante alvo com poder menor"; uma por instância (702.134b).
   // Simplificação: o "poder menor" fica o do momento do ataque (na resolução vale o de então, 608.2b).
   if (ev.ev === 'ataca' && e.objs[ev.id]) {
@@ -442,4 +451,4 @@ M.porGatilhos = e => {
   return true;
 };
 // 603.4: condição de intervenção checada de novo ao resolver
-M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ev: (o.pil && o.pil.ev) || undefined });   // com o evento: o defensor do 'ataca' (Preacher)
+M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ev: (o.pil && o.pil.ev) || undefined, ...(o.pil && o.pil.ev ? { ev: o.pil.ev } : {}) });   // com o evento: o defensor do 'ataca' (Preacher)   // com o evento: "if the amount of mana spent…" (Liberator) relê o evento

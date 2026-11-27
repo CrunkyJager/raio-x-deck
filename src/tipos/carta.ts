@@ -239,6 +239,10 @@ export interface RxFiltro {
    */
   topo?: boolean;
   /**
+   * criatura que convocou a mágica que resolve ("each creature that convoked this spell": Lethal Scheme, CR 702.51c)
+   */
+  convocou?: boolean;
+  /**
    * objeto lembrado pelo efeito
    */
   lembrada?: boolean;
@@ -290,6 +294,10 @@ export interface RxFiltro {
    * true = não tem o mesmo nome de outra permanente que você controla; 'criaturaOuCemiterio' = nem de outra criatura sua nem de carta de criatura no seu cemitério (Guardian Project)
    */
   nomeUnico?: boolean | 'criaturaOuCemiterio';
+  /**
+   * criatura com poder MAIOR que o de cada outra criatura no campo (estritamente; Selvala, Heart of the Wilds)
+   */
+  maiorPoder?: boolean;
   /**
    * poder maior que o poder base
    */
@@ -356,6 +364,14 @@ export interface RxFiltro {
    * mágica/habilidade na pilha com ao menos um alvo que bate neste filtro ("a spell that targets one or more creatures you control", Arcee)
    */
   miraUm?: RxFiltro;
+  /**
+   * mana gasta para conjurar esta mágica (na pilha): "if no mana was spent to cast it" = {max:0} (Boromir, Warden of the Tower)
+   */
+  manaGasta?: RxCompara;
+  /**
+   * não tem nenhuma destas palavras-chave ("if it didn't have decayed": Wilhelt)
+   */
+  semKw?: string[];
 }
 
 export interface RxCompara {
@@ -602,6 +618,7 @@ export interface RxFx {
     | 'animar'
     | 'ganharControle'
     | 'anexar'
+    | 'desanexar'
     | 'fasear'
     | 'transformar'
     | 'efeitoTemporario'
@@ -877,6 +894,10 @@ export interface RxFx {
    */
   fonte?: RxObjeto;
   /**
+   * op desanexar sem em: solta um anexo (f, padrão Equipamento) de uma permanente que bate neste filtro; quem faz escolhe ao resolver (Akiri). Depois, em anterior = de quem soltou (CR 701.3d)
+   */
+  presaA?: RxFiltro;
+  /**
    * op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)
    */
   noDe?: RxObjeto;
@@ -941,6 +962,10 @@ export interface RxFx {
    */
   cadaOutroAlvo?: true;
   /**
+   * ficha: entra bloqueando o atacante do evento 'bloqueia' (Brimaz: "that's blocking that creature")
+   */
+  bloqueando?: boolean;
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -967,6 +992,14 @@ export interface RxToken {
   atv?: RxAtv[];
   copiaDe?: RxObjeto;
   anexadaA?: 'criadas' | 'este';
+  /**
+   * com copiaDe: tipos de carta além dos da cópia (707.9b: "a 1/1 Soldier creature in addition to its other types")
+   */
+  maisTipos?: string[];
+  /**
+   * com copiaDe: subtipos além dos da cópia (707.9b)
+   */
+  maisSub?: string[];
   /**
    * cópia sem o supertipo lendário
    */
@@ -1144,6 +1177,7 @@ export interface RxKw {
     | 'milagre'
     | 'reconfigurar'
     | 'entraPreparada'
+    | 'segundoDividido'
     | 'ninjutsu'
     | 'prever'
     | 'rondar'
@@ -1169,7 +1203,6 @@ export interface RxKw {
     | 'evoluir'
     | 'persistir'
     | 'imortal'
-    | 'segundoDividido'
     | 'desaparecer'
     | 'rebote'
     | 'dobra'
@@ -1177,10 +1210,12 @@ export interface RxKw {
     | 'agregar'
     | 'miriade'
     | 'mobilizar'
+    | 'aflicao'
     | 'eco'
     | 'bis'
     | 'prole'
     | 'iminente'
+    | 'concessao'
     | 'capitulo'
     | 'classe'
     | 'entraComMarcador'
@@ -1192,13 +1227,17 @@ export interface RxKw {
     | 'fuga'
     | 'prototipo'
     | 'comecaNoCampo'
-    | 'converter';
+    | 'converter'
+    | 'dragar';
   custo?: RxMana;
   /**
    * prototipo (CR 702.160): P/R do protótipo; custo = o custo dele; cores = as do custo (ou 'cores')
    */
   pt?: number[];
   cores?: string;
+  /**
+   * dragar: N (CR 702.52a: no cemitério, troca a compra por moer N e devolver esta carta à mão; só com ≥N no grimório, 702.52b)
+   */
   n?: number;
   /**
    * proteção de/resguardo: cor (W/U/B/R/G, ou várias: 'WB'), 'coresDoAnterior' (as cores do que o efeito anterior moveu, Éowyn), 'cadaCor' (de cada cor: uma palavra só, não 5), 'tudo', tipo
@@ -1292,7 +1331,8 @@ export interface RxGat {
     | 'monstruosa'
     | 'portador'
     | 'ativa'
-    | 'gasta';
+    | 'gasta'
+    | 'danoPrevenido';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
@@ -1376,6 +1416,14 @@ export interface RxGat {
    */
   de?: RxZona;
   /**
+   * entra: não vale para o que um efeito desta permanente pôs no campo ("if it wasn't put onto the battlefield with this ability": Kodama of the East Tree)
+   */
+  naoPorEste?: boolean;
+  /**
+   * entra com de: vale também a que foi conjurada daquela zona ("entered from a graveyard or was cast from a graveyard": Kotis)
+   */
+  ouConjurada?: boolean;
+  /**
    * "from anywhere other than …"
    */
   naoDe?: RxZona;
@@ -1430,11 +1478,14 @@ export interface RxEst {
     | 'podeOlhar'
     | 'dobraGatilho'
     | 'ataqueCusta'
+    | 'bloqueioCusta'
     | 'naoPodeAtivar'
     | 'ganhaAtivadas'
     | 'deveBloquear'
     | 'darFuga'
     | 'darRetrace'
+    | 'darBis'
+    | 'semRegraLenda'
     | 'darLoucura'
     | 'oponentesNaoProcuram'
     | 'custoProibido'
@@ -1455,7 +1506,7 @@ export interface RxEst {
   };
   qtd?: RxQtd;
   /**
-   * ataqueCusta: quanto paga por criatura atacante (+ qtd se for {X})
+   * ataqueCusta/bloqueioCusta: quanto o controlador paga por criatura atacante/bloqueadora (vezes qtd, se houver: Sphere of Safety). Pago ao fechar a declaração (CR 508.1d/h, 509.1d/f); quem não paga não ataca/bloqueia
    */
   custo?: RxMana;
   se?: RxCond;
@@ -1539,7 +1590,7 @@ export interface RxEst {
    */
   atacante?: RxObjeto;
   /**
-   * darFuga: exilar N outras do cemitério (Underworld Breach)
+   * darFuga: exilar N outras do cemitério (Underworld Breach) · podeJogar: custo a mais de exilar N outras do cemitério (Kotis)
    */
   exilar?: number;
   /**
@@ -1596,6 +1647,10 @@ export interface RxSubst {
       [k: string]: RxQtd;
     };
     para?: RxZona;
+    /**
+     * dano (jog voce): o dano que deixaria sua vida abaixo de 1 a deixa em 1 (Serra the Benevolent, Worship)
+     */
+    vidaMin?: 1;
     prevenir?: boolean;
     /**
      * o evento não acontece (não pode ser anulada)
