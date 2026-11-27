@@ -780,7 +780,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'resist']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -813,6 +813,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.ficha !== undefined && !!o.ficha !== !!f.ficha) return false;
   if (f.vm && !compara(d.vm || 0, f.vm)) return false;
   if (f.poder && !compara(M.poder(e, o), f.poder)) return false;
+  if (f.resist && !compara(M.resistencia(e, o), f.resist)) return false;
   if (f.atacando !== undefined && M.atacando(e, o) !== !!f.atacando) return false;
   if (f.conjurada !== undefined && (o.zona === 'pilha' ? !!o.pil : !!o.conjurada) !== !!f.conjurada) return false;   // "if you cast it" (601.2): a mágica na pilha ou a permanente que veio dela
   if (f.atacouNoTurno !== undefined && (e.turno.ataques || []).some(r => r.id === o.id && r.ts === o.ts) !== !!f.atacouNoTurno) return false;   // "attacked this turn" (508.1)

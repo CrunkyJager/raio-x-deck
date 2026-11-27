@@ -3548,6 +3548,22 @@ caso('702.175', "prole: pago o custo a mais, a criatura entra e cria uma ficha c
   igual(f.campo.filter(id => f.objs[id].n === 'Agate Instigator').length, 1, 'só 2 de mana: sem prole');
 });
 
+caso('701.3', "anexar ao objeto do evento: Hero's Blade se prende ao lendário que entra; Sword of the Meek volta do cemitério e equipa a 1/1", () => {
+  for (const c of ["Hero's Blade", 'Nim Deathmantle', 'Sword of the Meek']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, "Hero's Blade"]] });
+  const hb = e.objs[e.campo[0]];
+  const k = e.por(0, 'Krenko, Mob Boss');
+  const cx = { voce: 0, este: hb.id, alvos: [], ilegal: {}, lki: {}, ev: { ev: 'zona', id: k.id, para: 'campo' } };
+  M.executar(e, M.carta("Hero's Blade").gat[0].fx[0], cx, () => ({ a: 'sim' }));
+  ok(hb.anexo && hb.anexo.id === k.id, 'Blade presa ao Krenko');
+  const f = cena({ campo: [] });
+  const sw = f.por(0, 'Sword of the Meek', { zona: 'cemiterio' });
+  const el = f.por(0, 'Llanowar Elves');
+  const cy = { voce: 0, este: sw.id, alvos: [], ilegal: {}, lki: {}, ev: { ev: 'zona', id: el.id, para: 'campo' } };
+  for (const fx of M.carta('Sword of the Meek').gat[0].fx) M.executar(f, fx, cy, () => ({ a: 'sim' }));
+  ok(sw.zona === 'campo' && sw.anexo && sw.anexo.id === el.id, 'Sword voltou e equipou');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

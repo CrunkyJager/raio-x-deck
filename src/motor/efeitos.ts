@@ -917,7 +917,7 @@ const H = {
   soltar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.anexo) { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'solta (volta a ser criatura)'); } } },   // reconfigurar (702.151a)
   anexar: {
     campos: ['a', 'reconf'],
-    ok: f => f.em !== undefined && emOk(f.a) && f.a !== undefined && (f.a === 'este' || f.a === 'criadas' || typeof f.a.alvo === 'number'),   // criadas: arma viva (702.92a)
+    ok: f => f.em !== undefined && emOk(f.a) && f.a !== undefined && (f.a === 'este' || f.a === 'criadas' || f.a === 'doEvento' || typeof f.a.alvo === 'number'),   // criadas: arma viva (702.92a); doEvento: a criatura que entrou/voltou (Hero's Blade, Nim Deathmantle)
     fx(e, f, ctx) {
       const t = objsDe(e, { em: f.a }, ctx).find(o => o.zona === 'campo'); if (!t) return;
       for (const o of objsDe(e, f, ctx)) {
