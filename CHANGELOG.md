@@ -2,6 +2,13 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.72.0 — 27/11/2026 · Mecânicas novas: concessão, dragar, desanexar, custo para atacar (lotes A, B, C, D, F, G, H, I, rodada 5)
+Testes: check 0 erros · Vitest 655 passaram · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1756/1756**.
+- Mecânicas novas na Mesa: concessão (bestow: Indebted Spirit vira Aura numa criatura), dragar (Life from the Loam volta para a mão no lugar da compra), desanexar, custo para atacar/bloquear, imortal (Mikaeus), lampejo para incolor e "mana gasta para conjurar" (Liberator, Boromir).
+- Cartas acertadas: Boromir Warden of the Tower, Brimaz, Bronzebeak Foragers, Urza Prince of Kroog, Urza's Saga, Vault 12, Vaultborn Tyrant, Venser, Wilhelt, Winding Constrictor, Wizard Class, Marisi, Mesmeric Orb, Mirari's Wake, Mirri, Shared Animosity, Shigeki, Siege Smash, Sink into Stupor (mágica ou permanente), Six, Jolrael, Kotis, Lazotep Sliver, Lethal Scheme, Selvala, Serra the Benevolent, Veyran e outras.
+- Onde dois adeptos fizeram a mesma carta ficou uma versão só (a que chegou primeiro): Kotis, Lazotep Sliver, Lethal Scheme, Leyline of the Guildpact e Liberator (fica a do D); Mesmeric Orb, Mikaeus, Mirari's Wake, Mirri e Shared Animosity (fica a do C); Kodama e Sink into Stupor (ficam as da main).
+- Para testar: aba Mesa → deck com Indebted Spirit ou Life from the Loam; o registro da partida mostra "(concessão em …)" e a pergunta de dragar.
+
 ## v0.71.0 — 27/11/2026 · Motor joga todas as 1756 cartas inteiras (lotes A, B, C, D, F, G, H, I, rodada 4)
 Testes: check 0 erros · Vitest 619 passaram · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1756/1756** (eram 1755). Selo ⓘ da Mesa atualizado.
 - Cartas que ainda tinham "falta" completadas: radiação (Fallout: Mariposa Military Base, Vexing Radgull, Bloatfly Swarm), Braids Arisen Nightmare, Boromir, protótipo, Inkshield, Conformer Shuriken, Liliana of the Veil (duas pilhas), Ephemerate, Wedding Ring, Sunfrill Imitator e Sarkhan (virar cópia), Tamiyo, Wandertale Mentor (expend), Kodama of the East Tree, Halo Fountain, Progenitor's Icon, Quicksilver Elemental, Tishana's Tidebinder, Twinflame, Ugin e outras.
