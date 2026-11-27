@@ -2191,6 +2191,19 @@ caso('603.7', "Hellkite Courser: o comandante sai da zona de comando com ímpeto
   passarAte(e, 'final'); M.avancar(e); resolveCom(e);
   igual(e.objs[bear].zona, 'comando', 'voltou na etapa final');
 });
+caso('122.6', "gatilho 'marcador posto' (Simic Ascendancy: tantos de crescimento quantos +1/+1; Fathom Mage compra); proliferar também põe", () => {
+  for (const c of ['Simic Ascendancy', 'Fathom Mage', 'Exemplar of Light', 'Shalai and Hallar', 'All Will Be One', 'Benthic Biomancer', 'Evolution Witness']) ok(M.carta(c).gat.filter(g => g.ev === 'marcadorPosto').every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Simic Ascendancy'], [0, 'Fathom Mage'], [1, 'Grizzly Bears']], passo: 'principal2' }); e.pend = [];
+  const [sa, fm, gb] = e.campo, mao = () => e.jogs[0].zonas.mao.length, m0 = mao();
+  M.executar(e, { op: 'marcador', em: { alvo: 0 }, tipoMarc: '+1/+1', qtd: 2 }, { voce: 0, este: sa, alvos: [[{ o: fm, ts: e.objs[fm].ts }]], ilegal: {}, lki: { alvos: [] } }, null);
+  M.avancar(e); resolveCom(e, p => p.ops.findIndex(o => o.a === 'sim'));
+  igual([e.objs[sa].marc.growth, mao() - m0], [2, 1], '2 de crescimento e o Mago comprou 1');
+  M.porMarcadores(e, e.objs[gb], '+1/+1', 1); e.perg = null; M.avancar(e); resolveCom(e);
+  igual(e.objs[sa].marc.growth, 2, 'criatura do oponente não conta');
+  M.executar(e, { op: 'proliferar', quem: 'voce' }, { voce: 0, este: sa, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.id === fm) || ops.find(o => o.a === 'pronto'));
+  e.perg = null; M.avancar(e); resolveCom(e, p => p.ops.findIndex(o => o.a === 'sim'));
+  igual([e.objs[fm].marc['+1/+1'], e.objs[sa].marc.growth], [3, 3], 'proliferar no Mago: +1 e +1 de crescimento');
+});
 caso('613.1b', "Hellkite Tyrant: só os artefatos do jogador que levou o dano (filtro ctrl 'doEvento'), não os de todos", () => {
   const H = M.carta('Hellkite Tyrant');
   const e = cena({ jogs: 3, campo: [[0, 'Hellkite Tyrant'], [1, 'Sol Ring'], [2, 'Sol Ring']], passo: 'principal2' }); e.pend = [];
