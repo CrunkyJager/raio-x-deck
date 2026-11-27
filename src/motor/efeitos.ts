@@ -877,6 +877,19 @@ const H = {
       }
     },
   },
+  // o Anel te tenta (CR 701.54a): o emblema ganha a próxima habilidade (até 4) e você escolhe uma criatura sua como
+  // Portador (pode ser a mesma; sem criatura, só o emblema). O Portador é lendário etc. (estado.ts M.ehPortador/gatAnel)
+  tentarAnel: {
+    fx(e, f, ctx, ask) {
+      for (const j of jogsDe(e, f, ctx)) {
+        const J = e.jogs[j], A = J.anel = { n: ((J.anel && J.anel.n) || 0) + 1, p: J.anel ? J.anel.p : null };
+        const cand = M.objetosQue(e, { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' }, { ...ctx, voce: j }).map(o => o.id);
+        if (cand.length) { const [id] = escolherN(ask, j, 'escolherCarta', cand, 1, { ctx: { op: 'portador' } }); A.p = { id, ts: e.objs[id].ts }; }
+        e.vCamada = (e.vCamada || 0) + 1;
+        M.log(e, J.nome, 'é tentado pelo Anel (' + A.n + ')', A.p ? '→ ' + e.objs[A.p.id].n : '');
+      }
+    },
+  },
   // popular (CR 701.36a): escolha uma ficha de criatura que você controla e crie uma ficha que é cópia dela (sem ficha: nada, 701.36b)
   popular: {
     fx(e, f, ctx, ask) {

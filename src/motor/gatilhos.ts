@@ -214,7 +214,7 @@ function loteInfo(e, lote) {
   if (!I || I.n > lote.length) { I = { n: 0, gat: [], hab: [], set: new Set() }; LOTE.set(lote, I); }
   for (; I.n < lote.length; I.n++) {
     const S = lote[I.n]; I.set.add(S);
-    if (M.dadoDe(e, S).gat || (S.ganhos && (S.ganhos.gat || S.ganhos.gatS))) I.gat.push(S);
+    if (M.dadoDe(e, S).gat || (S.ganhos && (S.ganhos.gat || S.ganhos.gatS)) || M.ehPortador(e, S)) I.gat.push(S);
     if (daHabil(e, S)) I.hab.push(S);
   }
   return I;

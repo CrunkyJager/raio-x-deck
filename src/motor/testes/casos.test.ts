@@ -3595,6 +3595,21 @@ caso('701.36a', "popular: cria cópia de uma ficha de criatura sua; sem ficha, n
   for (const c of ['Growing Ranks', 'Song of the Worldsoul', 'Promise of Aclazotz']) { const d = M.carta(c); ok([...(d.gat || []).map(g => M.gatOk(g)), M.fxSuportado(d.fx || [])].every(Boolean), c); }
 });
 
+caso('701.54', "o Anel te tenta: escolhe o Portador (vira lendário, não é bloqueado por poder maior); na 2ª vez, ao atacar compra e descarta", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [1, 'Hill Giant'], [1, 'Llanowar Elves']] });
+  const o = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  const ctx: any = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  M.executar(e, { op: 'tentarAnel', quem: 'voce' }, ctx, (j, t, ops) => ops[0]);
+  const gb = o('Grizzly Bears');
+  ok(M.ehPortador(e, gb) && (M.dadoDe(e, gb).super || []).includes('Legendary'), 'Portador lendário');
+  ok(!M.bloqueiaEste(e, o('Hill Giant'), gb) && M.bloqueiaEste(e, o('Llanowar Elves'), gb), 'poder 3 não bloqueia o 2; poder 1 bloqueia');
+  igual(M.gatDe(e, gb).length, 0, 'nível 1: sem gatilho');
+  M.executar(e, { op: 'tentarAnel', quem: 'voce' }, ctx, (j, t, ops) => ops[0]);
+  igual(M.gatDe(e, gb).map(g => g.ev), ['ataca'], 'nível 2: ao atacar, saquear');
+  M.mover(e, gb.id, 'cemiterio'); ok(!M.ehPortador(e, gb), 'saiu: não é mais o Portador');
+  for (const c of ['Call of the Ring', 'Boromir, Warden of the Tower']) ok(M.carta(c).gat ? M.carta(c).gat.some(g => M.gatOk(g)) : (M.carta(c).atv || []).some(a => M.fxSuportado(a.fx, { topo: false })), c);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

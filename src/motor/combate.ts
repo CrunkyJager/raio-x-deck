@@ -132,6 +132,7 @@ function bloqueiaEste(e, b, at) {                                               
   }
   if (M.tempNoObj(e, at, 'naoPodeSerBloqueada')) return false;                            // efeitoTemporario (Rogue's Passage)
   if (kw(e, at, 'voar') && !kw(e, b, 'voar') && !kw(e, b, 'alcance')) return false;      // 702.9b, 702.17b
+  if (M.ehPortador(e, at) && M.poder(e, b) > M.poder(e, at)) return false;               // 701.54c: Portador não é bloqueado por poder maior
   // caminhada de terreno (702.14c): não pode ser bloqueada enquanto o defensor controla terreno daquele tipo
   for (const x of M.kwDe(e, at)) if (x.k === 'caminhadaTerreno' && typeof x.tipo === 'string'
     && M.objetosQue(e, { tipo: ['Land'], sub: [x.tipo], ctrl: 'voce', zona: 'campo' }, { voce: b.ctrl }).length) return false;

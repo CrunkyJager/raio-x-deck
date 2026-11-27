@@ -40,6 +40,7 @@ const misto = (d, m) => {
   // tiraTipo (camada 4): "isn't a creature" (deuses de Theros com pouca devoção). Sem o tipo Criatura, perde os
   // subtipos de criatura (205.1b; fica o de Equipamento/Aura etc. que é de outro tipo) e o P/R
   if (m.tiraTipo) { r.tipos = (r.tipos || []).filter(t => !m.tiraTipo.includes(t)); if (m.tiraTipo.includes('Creature')) { r.sub = (r.sub || []).filter(x => SUB_NAO_CRIATURA.has(x)); r.pt = undefined; } }
+  if (m.super) r.super = un(d.super, m.super);
   if (m.pt) r.pt = m.pt;
   if (m.kw && m.kw.length) r.kw = [...(d.kw || []), ...m.kw];
   if (m.cores !== undefined) r.cores = m.cores;
@@ -59,6 +60,16 @@ const comNivel = (d, nv) => {
   m.set(nv, r);
   return r;
 };
+// O Anel te tenta (CR 701.54): J.anel = {n: vezes (o emblema tem as habilidades 1..min(n,4)), p: {id, ts} do Portador}
+const ANEL_LEND = { super: ['Legendary'] };
+M.ehPortador = (e, o) => { const A = e.jogs[o.ctrl] && e.jogs[o.ctrl].anel; return !!A && !!A.p && A.p.id === o.id && A.p.ts === o.ts && o.zona === 'campo'; };
+// 2: "sempre que atacar, compre e depois descarte"; 4: "sempre que causar dano de combate a um jogador, cada oponente perde 3"
+// (3: "quando for bloqueado por uma criatura, o controlador dela a sacrifica no fim do combate" ainda não)
+const ANEL_GAT = [
+  { ev: 'ataca', quem: { este: true }, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }, { op: 'descartar', quem: 'voce', qtd: 1 }], _anel: 2 },
+  { ev: 'dano', combate: true, aJogador: true, quem: { este: true }, fx: [{ op: 'perderVida', quem: 'cadaOponente', qtd: 3 }], _anel: 4 }];
+const ANEL_GATS = [0, 1, 2, 3, 4].map(n => ANEL_GAT.filter(g => g._anel <= n));
+M.gatAnel = (e, o) => M.ehPortador(e, o) ? ANEL_GATS[Math.min(4, e.jogs[o.ctrl].anel.n)] : NADA.atv;
 M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
@@ -83,6 +94,7 @@ M.dadoDe = (e, o) => {
     } finally { lendoTipo--; }
   }
   if (o.anexo && (d.kw || []).some(x => x.k === 'reconfigurar')) d = semCriatura(d);   // 702.151b: anexada, não é criatura
+  if (e.jogs[o.ctrl] && e.jogs[o.ctrl].anel && M.ehPortador(e, o)) d = misto(d, ANEL_LEND);   // 701.54c: o Portador do Anel é lendário
   return d;
 };
 // reconfigurar (702.151b): enquanto anexada, perde o tipo Criatura e os subtipos de criatura (fica o Equipamento)
@@ -522,7 +534,7 @@ function indice(e): Idx {
   if (I && I.v === (e.vCamada || 0) && I.n === e.campo.length) return I;
   I = { v: e.vCamada || 0, n: e.campo.length, gat: [], est: [], sb: [], tp: [], l: null, hab: false };
   lendoTipo++;   // o dadoDe daqui não lê o tipo dado pela equipada (é o próprio índice que ele usa)
-  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && (o.ganhos.gat || o.ganhos.gatS))) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
+  try { for (const id of e.campo) { const o = e.objs[id], d = M.dadoDe(e, o); if (d.gat || (o.ganhos && (o.ganhos.gat || o.ganhos.gatS)) || M.ehPortador(e, o)) I.gat.push(id); if (d.est) I.est.push(id); if (d.subst) I.sb.push(id); if (tipoEquip(d).length) I.tp.push(id); } }
   finally { lendoTipo--; }
   IDX.set(e, I);
   return I;
@@ -805,7 +817,8 @@ M.temHabil = e => fontesCont(e).hab;
 M.loteHabil = (e, lote) => (lote || []).filter(S => (M.dadoDe(e, S).est || []).some(s => s.modo === 'continuo' && s.habil));
 M.gatDe = (e, o, lote?) => {
   let b = M.dadoDe(e, o).gat || [];
-  if (o.ganhos && o.ganhos.gatS) b = b.concat(o.ganhos.gatS);   // ganho sem prazo (Rivaz): antes do de fim de turno, que sai na limpeza
+  if (o.ganhos && o.ganhos.gatS) b = b.concat(o.ganhos.gatS);
+  if (o.zona === 'campo' && e.jogs[o.ctrl] && e.jogs[o.ctrl].anel) { const ga = M.gatAnel(e, o); if (ga.length) b = b.concat(ga); }   // ganho sem prazo (Rivaz): antes do de fim de turno, que sai na limpeza
   if (o.ganhos && o.ganhos.gat) b = b.concat(o.ganhos.gat);   // ganho por resolução até o fim do turno (Demonic Gifts); o mover zera
   if (!fontesCont(e).hab && !(lote && lote.length)) return b;
   const h = camadas(e, o, lote).gat;
