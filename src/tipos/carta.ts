@@ -541,6 +541,7 @@ export interface RxFx {
     | 'animar'
     | 'ganharControle'
     | 'anexar'
+    | 'desanexar'
     | 'fasear'
     | 'transformar'
     | 'efeitoTemporario'
@@ -791,6 +792,10 @@ export interface RxFx {
    * op dano: o objeto que CAUSA o dano (padrão: esta carta). {alvo:N} = a criatura alvo (Chandra's Ignition); doEvento = o objeto do evento: a que entrou (Warstorm Surge) ou, no ev dano com 'recebe', a que RECEBEU o dano (Wrathful Raptors)
    */
   fonte?: RxObjeto;
+  /**
+   * op desanexar sem em: solta um anexo (f, padrão Equipamento) de uma permanente que bate neste filtro; quem faz escolhe ao resolver (Akiri). Depois, em anterior = de quem soltou (CR 701.3d)
+   */
+  presaA?: RxFiltro;
   /**
    * op buscar: no grimório do jogador alvo {alvo: N} em vez do seu (Knowledge Exploitation)
    */
@@ -1272,6 +1277,7 @@ export interface RxEst {
     | 'podeOlhar'
     | 'dobraGatilho'
     | 'ataqueCusta'
+    | 'bloqueioCusta'
     | 'naoPodeAtivar'
     | 'ganhaAtivadas'
     | 'deveBloquear'
@@ -1295,7 +1301,7 @@ export interface RxEst {
   };
   qtd?: RxQtd;
   /**
-   * ataqueCusta: quanto paga por criatura atacante (+ qtd se for {X})
+   * ataqueCusta/bloqueioCusta: quanto o controlador paga por criatura atacante/bloqueadora (vezes qtd, se houver: Sphere of Safety). Pago ao fechar a declaração (CR 508.1d/h, 509.1d/f); quem não paga não ataca/bloqueia
    */
   custo?: RxMana;
   se?: RxCond;

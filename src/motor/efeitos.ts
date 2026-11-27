@@ -1332,6 +1332,26 @@ const H = {
     },
   },
   soltar: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.anexo) { o.anexo = null; e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'solta (volta a ser criatura)'); } } },   // reconfigurar (702.151a)
+  // CR 701.3d: desanexar ("unattach") — o Equipamento/Aura fica no campo, solto de quem o levava (301.5c: Equipamento
+  // solto continua no campo). em: os anexos a soltar; ou f (o que solta, padrão Equipamento) + presaA (filtro de quem
+  // o leva), e quem faz escolhe um ao resolver, sem alvo (Akiri, Fearless Voyager). Depois: em 'anterior' = as
+  // permanentes de que soltou ("tap that creature"); com talvez, se.pagou = soltou algum ("if you do").
+  desanexar: {
+    campos: ['f', 'presaA'],
+    ok: f => f.em !== undefined ? f.f === undefined && f.presaA === undefined
+      : !!f.presaA && typeof f.presaA === 'object' && M.filtroOk(f.presaA) && (f.qtd === undefined || f.qtd === 1),
+    fx(e, f, ctx, ask) {
+      const preso = o => o.zona === 'campo' && !!M.anexadoA(e, o);
+      let os = f.em !== undefined ? objsDe(e, f, ctx).filter(preso)
+        : M.objetosQue(e, { ...(f.f || { sub: ['Equipment'] }), zona: 'campo' }, ctx).filter(o => preso(o) && M.bate(e, M.anexadoA(e, o), { ...f.presaA, zona: 'campo' }, ctx));
+      if (f.em === undefined && os.length > 1) { const id = ask(ctx.voce, 'um', os.map(o => ({ a: 'um', id: o.id })), { op: 'desanexar' }).id; os = os.filter(o => o.id === id); }
+      else if (f.em === undefined) os = os.slice(0, 1);
+      const de: any[] = [];
+      for (const o of os) { const t = M.anexadoA(e, o); o.anexo = null; de.push(t.id); e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'desanexado de', t.n); }
+      ctx.movidos = movidos(e, [...new Set(de)]);
+      if (!de.length && f.talvez) ctx.pagou = false;
+    },
+  },
   anexar: {
     campos: ['a', 'reconf'],
     ok: f => f.em !== undefined && emOk(f.a) && f.a !== undefined && (f.a === 'este' || f.a === 'criadas' || f.a === 'doEvento' || typeof f.a.alvo === 'number'),   // criadas: arma viva (702.92a); doEvento: a criatura que entrou/voltou (Hero's Blade, Nim Deathmantle)

@@ -61,13 +61,11 @@ function podeAtacar(e, o, a) {
 }
 // quem pode ser atacado: oponentes vivos e seus planeswalkers (506.2, 508.1b). Batalha precisa do protetor
 // (CR 310.8), que só existe quando a batalha entra pelo motor (T18): por ora não é atacada.
-// Custo de atacar (Ghostly Prison, 508.1g–h) ainda não é pago: quem tem essa estática não é atacado (anotado).
+// Custo de atacar (Ghostly Prison) é pago no fim da declaração (cobrarCombate, abaixo).
 function alvosAtaque(e, a) {
-  const cobra = new Set<any>();
-  for (const id of e.campo) { const o = e.objs[id]; if ((M.dadoDe(e, o).est || []).some(s => s.modo === 'ataqueCusta')) cobra.add(o.ctrl); }
   const r: any[] = [], semAtaque = new Set(M.tempDe(e, 'naoPodeAtacar').filter(({ s }) => s.contra && s.contra.jog === 'voce').map(({ t }) => t.ctrl));   // "não podem atacar você" (efeito temporário)
   for (const j of M.vivos(e)) {
-    if (j === a || cobra.has(j)) continue;
+    if (j === a) continue;
     if (!semAtaque.has(j)) r.push({ jog: j });
     for (const id of e.campo) { const o = e.objs[id]; if (o.ctrl === j && M.temTipo(e, o, 'Planeswalker')) r.push({ o: id }); }
   }
@@ -94,6 +92,48 @@ M.porAtacando = (e, o, alvo) => {
   M.log(e, o.n, 'entra atacando', alvo.jog !== undefined ? e.jogs[alvo.jog].nome : e.objs[alvo.o].n);
 };
 
+// ---------- custo para atacar/bloquear (CR 508.1d, 508.1g–h; 509.1d, 509.1f–g) ----------
+// est ataqueCusta (contra: o jogador e/ou os planeswalkers dele) / bloqueioCusta, de qualquer permanente: o controlador
+// da criatura paga custo (× qtd, se houver: Sphere of Safety) por cada uma que bate em afeta. Condição que o núcleo
+// não lê → o custo vale (restrição nunca some sem ler a regra).
+function custoCombate(e, modo, o, alvo?) {
+  const r = { g: 0, p: [] as string[] };
+  for (const id of M.indiceCampo(e).est) {
+    const F = e.objs[id]; if (!F || F.zona !== 'campo') continue;
+    for (const s of M.dadoDe(e, F).est || []) {
+      if (s.modo !== modo || !s.custo) continue;
+      const ctx = { voce: F.ctrl, este: F.id };
+      if (s.se) { let v = true; try { v = M.condicao(e, s.se, ctx); } catch (_) { v = true; } if (!v) continue; }
+      if (s.afeta && typeof s.afeta === 'object' && !bateF(e, o, s.afeta, ctx)) continue;
+      if (modo === 'ataqueCusta') {
+        const c = s.contra || { jog: 'voce' };
+        const ok = alvo.jog !== undefined ? c.jog === 'voce' && alvo.jog === F.ctrl
+          : !!c.f && !!e.objs[alvo.o] && bateF(e, e.objs[alvo.o], c.f, ctx);
+        if (!ok) continue;
+      }
+      let n = 1; if (s.qtd !== undefined) { try { n = M.qtd(e, s.qtd, ctx) ?? 1; } catch (_) { n = 1; } }
+      if (!(n > 0)) continue;
+      r.g += (s.custo.g || 0) * n;
+      for (let k = 0; k < n; k++) r.p.push(...(s.custo.p || []));
+    }
+  }
+  return r;
+}
+M.custoCombate = custoCombate;
+const somaCusto = cs => ({ g: cs.reduce((s, c) => s + c.g, 0), p: cs.flatMap(c => c.p) });
+// fim da declaração: total das criaturas taxadas. Se não fecha, tira a de custo maior até fechar; depois pergunta
+// pagar ou não (sem pagar, as taxadas saem — a declaração com elas seria ilegal, 508.1d/509.1d). Devolve as que saem.
+// Simplificação: o motor tira as taxadas em vez de refazer a declaração inteira.
+function cobrarCombate(e, j, tx, ask, tipo) {                     // tx: [{k, c}] chave + custo de cada taxada
+  const fica = tx.filter(x => x.c.g || x.c.p.length).sort((a, b) => (a.c.g + a.c.p.length) - (b.c.g + b.c.p.length));
+  const sai: any[] = [];
+  while (fica.length && !M.planoMana(e, j, somaCusto(fica.map(x => x.c)))) sai.push(fica.pop().k);
+  if (!fica.length) return sai;
+  const total = somaCusto(fica.map(x => x.c));
+  const op = ask(j, 'custoCombate', [{ a: 'pagar' }, { a: 'naoPagar' }], { tipo, custo: total, n: fica.length });
+  if (op.a === 'pagar') { M.pagarComPlano(e, j, total); M.log(e, e.jogs[j].nome, 'paga', '{' + total.g + '}' + total.p.map(c => '{' + c + '}').join(''), 'para', tipo === 'atacar' ? 'atacar' : 'bloquear'); return sai; }
+  return sai.concat(fica.map(x => x.k));
+}
 M.PROC.atacar = (e, P, ask) => {
   const a = P.j, alvos = alvosAtaque(e, a);
   const aptos = alvos.length ? M.lote(() => e.campo.filter(id => podeAtacar(e, e.objs[id], a))) : [];
@@ -121,6 +161,7 @@ M.PROC.atacar = (e, P, ask) => {
     if (op.a === 'todos') { for (const id of livres) if (alvosDe(id).some(x => x.jog === t.jog && x.o === t.o)) decl[id] = t; } else decl[op.id] = t;
     ask.etapa();
   }
+  for (const k of cobrarCombate(e, a, Object.keys(decl).map(k => ({ k, c: custoCombate(e, 'ataqueCusta', e.objs[k], decl[k]) })), ask, 'atacar')) delete decl[k];
   e.proc = null;
   const C = e.turno.combate = { atk: [] as any[], etapa: 0, duas: false, deu1: {} as any };
   for (const k of aptos) {
@@ -209,6 +250,9 @@ M.PROC.bloquear = (e, P, ask) => {
     else bl[op.id] = meus.find(i => C.atk[i].id === op.atk);
     ask.etapa();
   }
+  for (const k of cobrarCombate(e, d, Object.keys(bl).map(k => ({ k, c: custoCombate(e, 'bloqueioCusta', e.objs[k]) })), ask, 'bloquear')) delete bl[k];
+  { const conta: any = {}; for (const k in bl) conta[bl[k]] = (conta[bl[k]] || 0) + 1;   // 702.110b: ameaça que ficou com um só bloqueador → ele sai também
+    for (const k in bl) if (conta[bl[k]] === 1 && kw(e, e.objs[C.atk[bl[k]].id], 'ameaca')) delete bl[k]; }
   e.proc = null;
   const pares = cands.filter(id => bl[id] !== undefined).map(id => [id, bl[id]]);
   for (const [id, i] of pares) M.evento(e, { ev: 'bloqueia', id, atk: C.atk[i].id });   // 509.3

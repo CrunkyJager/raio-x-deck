@@ -148,6 +148,7 @@ const basico = (e, p) => {
       if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura
       return meu ? k : 0;
     }
+    case 'custoCombate': return 0;   // custo para atacar/bloquear (Ghostly Prison, Archangel of Tithes): já escolheu atacar/bloquear, paga
     case 'atacar': return atacarBasico(e, p);
     case 'bloquear': return bloquearBasico(e, p);
     case 'ordemDano': {               // o mais caro leva o letal primeiro
