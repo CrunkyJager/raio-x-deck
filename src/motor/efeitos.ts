@@ -818,6 +818,20 @@ const H = {
   } },
   perderJogo: { fx(e, f, ctx) { for (const j of jogsDe(e, f, ctx)) if (!e.jogs[j].saiu) M.sair(e, j, 'efeito: perde o jogo'); } },   // CR 104.3e/800.4a
   perderVida: { fx(e, f, ctx) { const q = qtdDe(e, f.qtd, ctx); for (const j of jogsDe(e, f, ctx)) if (!M.vidaFixa(e, j)) M.perderVida(e, j, q); } },   // 119.7
+  copiarMagica: {                                                   // CR 707.10: "copy that spell" (pilha.ts: M.alvosDaCopia/M.criarCopia)
+    campos: ['novoAlvo'],
+    fx(e, f, ctx, ask) {
+      let o: any = null;
+      if (f.em === 'doEvento') o = objsDe(e, { em: 'doEvento', de: 'pilha' }, ctx)[0];          // a mágica conjurada (Archmage, Zada)
+      else if (f.em === 'este') { const S = e.objs[ctx.este]; o = S && S.zona === 'pilha' && !S.hab && (!ctx.lki.este || S.ts === ctx.lki.este.ts) ? S : null; }   // ela mesma na pilha (Bygone Marvels)
+      else o = objsDe(e, f, ctx).find(x => x.zona === 'pilha') || null;                      // a mágica alvo (Dualcaster)
+      if (!o || o.zona !== 'pilha' || o.hab || !o.pil) return;
+      const n = f.qtd === undefined ? 1 : Math.max(0, qtdDe(e, f.qtd, ctx));
+      const planos: any[] = [];
+      for (let k = 0; k < n; k++) planos.push(M.alvosDaCopia(e, o, ctx.voce, !!f.novoAlvo, ask));   // pergunta tudo antes de mexer
+      for (const pl of planos) M.criarCopia(e, o, ctx.voce, pl);
+    },
+  },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
     campos: ['token', 'virada', 'atacando'],

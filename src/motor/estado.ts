@@ -274,6 +274,10 @@ function substCemiterio(e, o, opc: any = {}) {
 }
 M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = null, ask = null, efeito = false, sac = false }: any = {}) => {   // sac: sacrifício (701.21), vai no evento
   const o = e.objs[id];
+  if (o.copia && zona !== 'pilha') {                                // cópia de mágica fora da pilha deixa de existir (704.5e)
+    const l = M.listaDe(e, o), k = l.lastIndexOf(id); if (k >= 0) l.splice(k, 1);
+    o.zona = 'fora'; o.pil = null; return o;
+  }
   if (o.copiaPrep && zona !== 'pilha' && zona !== 'exilio') {        // cópia da mágica preparada: fora da pilha e do exílio deixa de existir (707.10a)
     const l = M.listaDe(e, o), k = l.lastIndexOf(id); if (k >= 0) l.splice(k, 1);
     o.zona = 'fora'; return o;

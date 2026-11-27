@@ -802,6 +802,10 @@ M.PROC = PROC;
 
 // CR 608.3 (permanente entra no campo), 608.2n (instantânea/feitiço vai ao cemitério do dono), 113.7 (habilidade some)
 function tirarDaPilha(e, o, resolveu?, ask?) {
+  if (o.copia && !(resolveu && M.ehPermanente(e, o))) {              // 707.10a/704.5e: a cópia some (resolvida ou anulada)
+    const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); o.pil = null; o.zona = 'fora'; return;
+  }
+  if (o.copia) { o.ficha = { ...M.dadoBase(e, o), n: o.n }; delete o.copia; }   // 608.3f: a cópia de permanente entra como ficha
   if (o.flash && !o.hab) { delete o.flash; o.pil = null; M.mover(e, o.id, 'exilio'); M.log(e, o.n, 'vai para o exílio (recapitular)'); return; }   // 702.34a (resolvida ou anulada)
   if (o.hab) { const k = e.pilha.indexOf(o.id); if (k >= 0) e.pilha.splice(k, 1); delete e.objs[o.id]; return; }
   if (resolveu && M.ehPermanente(e, o)) {
@@ -822,6 +826,31 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
   M.mover(e, o.id, 'cemiterio');
 }
 M.tirarDaPilha = tirarDaPilha;
+
+// CR 707.10: copiar uma mágica na pilha. A cópia leva as escolhas da original (modo, X, alvos, chute, custos pagos:
+// 707.10), é controlada por quem copiou e NÃO é conjurada (707.10c: sem evento 'conjura', não dispara Zada/Archmage
+// de novo). novoAlvo: "you may choose new targets for the copy" — mesmo número de alvos (707.10c). Fora da pilha a
+// cópia deixa de existir (704.5e, no M.mover); cópia de mágica de permanente vira ficha ao resolver (608.3f).
+// Duas partes por causa do processo com perguntas: M.alvosDaCopia pergunta (antes de mexer), M.criarCopia mexe.
+M.alvosDaCopia = (e, o, j, novoAlvo, ask) => {
+  const alvos = (o.pil.alvos || []).map(l => (l || []).map(a => ({ ...a })));
+  if (!novoAlvo || !alvos.some(l => l.length)) return { alvos, novos: false };
+  if (ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'novoAlvo', id: o.id, n: o.n }).a === 'nao') return { alvos, novos: false };
+  const d = M.dadoDe(e, o), fx = fxEfetivo(d, d.fx || [], o.pil.modos);
+  const dFixo = { ...d, alvos: (d.alvos || []).map((a, i) => a && { ...a, min: alvos[i] ? alvos[i].length : 0, max: alvos[i] ? alvos[i].length : 0, dividir: false }) };
+  const esc = escolherAlvos(e, j, dFixo, fx, { voce: j, este: o.id, x: o.pil.x }, ask, undefined, o.pil.opc);
+  return { alvos: alvos.map((l, i) => esc[i] && esc[i].length === l.length ? esc[i] : l), novos: true };
+};
+M.criarCopia = (e, o, j, { alvos, novos }) => {
+  const id = e.prox++;
+  e.objs[id] = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false, face: o.face ?? null, copia: true,
+    ...(o.ficha ? { ficha: o.ficha } : {}), ...(o.copiaPrep ? { copiaPrep: o.copiaPrep } : {}),
+    pil: { ...o.pil, ctrl: j, alvos, opc: o.pil.opc ? { ...o.pil.opc } : o.pil.opc, lki: undefined } };
+  e.pilha.push(id);
+  if (novos) M.eventosAlvo(e, alvos, id);                           // "becomes the target" vale para a cópia (ward)
+  M.log(e, e.jogs[j].nome, 'copia', o.n, descAlvos(e, alvos));
+  return e.objs[id];
+};
 
 M.resolverTopo = e => {
   const id = e.pilha[e.pilha.length - 1];

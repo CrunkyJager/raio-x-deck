@@ -2711,8 +2711,7 @@ caso('603.7c', 'gatilho atrasado "neste turno" que não disparou acaba; o que di
 caso('702.21a', 'resguardo {2}: Lightning Bolt do oponente no Ultra Magnus é anulado a menos que ele pague {2}', () => {
   for (const [terrasOp, paga] of [[3, true], [1, false]] as any[]) {
     const e = cena({ campo: [[0, 'Ultra Magnus, Tactician'], ...terras(terrasOp).map(([, n]) => [1, n])], mao: [] });
-    e.cfg.log = true;
-    e.por(1, 'Lightning Bolt', { zona: 'mao' });
+      e.por(1, 'Lightning Bolt', { zona: 'mao' });
     e.turno.ativo = 1;
     M.avancar(e);
     conj(e, 'Lightning Bolt'); alvoObj(e, 'Ultra Magnus, Tactician');
@@ -3338,6 +3337,36 @@ caso('702.51', "convocar: Hour of Reckoning ({4}{W}{W}{W}) com 3 Planícies + 4 
   igual(e.campo.map(id => e.objs[id]).filter(o => o.n === 'Grizzly Bears' && o.virada).length + e.jogs[0].zonas.cemiterio.filter(id => e.objs[id].n === 'Grizzly Bears').length, 4, 'as 4 criaturas pagaram');
   const f = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears']], mao: [[0, 'Hour of Reckoning']] });
   ok(!M.opcoesPrioridade(f, 0).some(o => o.a === 'conjurar'), '3 criaturas + 3 terrenos = 6 de 7');
+});
+
+caso('707.10', "copiar mágica: Zada copia o Bolt por criatura; Dualcaster copia o Bolt na pilha; a cópia some (não vai ao cemitério) e não é conjurada", () => {
+  const e = cena({ campo: [[0, 'Zada, Hedron Grinder'], [0, 'Grizzly Bears'], [0, 'Grizzly Bears'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt']] });
+  e.cfg.log = true;
+  M.avancar(e); conj(e, 'Lightning Bolt'); alvoJog(e, 1);
+  const ag = M.agenteBasico();
+  while (e.perg && e.perg.tipo !== 'acao') M.responder(e, ag(e, e.perg), x => x.turno.passo !== 'principal1');
+  igual(e.jogs[1].vida, 31, 'Bolt + 2 cópias (2 outras criaturas)');
+  igual(naZona(e, 0, 'cemiterio'), ['Lightning Bolt'], 'só a original no cemitério');
+  igual(e.pilha.length, 0, 'pilha limpa');
+  igual(e.jogs[0].conjT.n, 1, 'as cópias não contam como conjuradas');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Lightning Bolt'], [0, 'Dualcaster Mage']] });
+  M.avancar(f); respE(f, o => o.a === 'conjurar' && f.objs[o.id].n === 'Lightning Bolt'); alvoJog(f, 1);
+  ok(f.pilha.length === 1 && f.perg && f.perg.j === 0, 'Bolt na pilha, prioridade de volta');
+  conj(f, 'Dualcaster Mage');
+  while (f.perg && f.perg.tipo !== 'acao') M.responder(f, ag(f, f.perg), x => x.turno.passo !== 'principal1');
+  igual(f.jogs[1].vida, 34, 'Bolt + cópia do Dualcaster');
+  ok(noCampo(f).includes('Dualcaster Mage'), 'Dualcaster no campo');
+});
+
+caso('707.10', "cópia de mágica de permanente vira ficha (608.3f): Archmage of Echoes copia o Wizard conjurado", () => {
+  const e = cena({ campo: [[0, 'Archmage of Echoes'], [0, 'Island'], [0, 'Island']], mao: [[0, 'Vodalian Hexcatcher']] });
+  M.avancar(e); conj(e, 'Vodalian Hexcatcher');
+  const ag = M.agenteBasico();
+  while (e.perg && e.perg.tipo !== 'acao') M.responder(e, ag(e, e.perg), x => x.turno.passo !== 'principal1');
+  const hx = e.campo.map(id => e.objs[id]).filter(o => o.n === 'Vodalian Hexcatcher');
+  igual(hx.length, 2, 'original + cópia');
+  igual(hx.filter(o => o.ficha).length, 1, 'a cópia é ficha');
+  igual(e.jogs[0].conjT.n, 1, 'a cópia não dispara o Archmage de novo');
 });
 
 // ---------- rodar ----------
