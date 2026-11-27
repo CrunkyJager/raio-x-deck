@@ -3936,6 +3936,15 @@ caso('601.2f', "custo a mais para o oponente que mira: Lightning Bolt no Terror 
   ok(t, 'Terror (5/4) segue no campo depois de 3 de dano');
 });
 
+caso('111.4', "ficha com habilidade própria: o alvo da habilidade da ficha não conta como alvo do gatilho que a cria (Weapons Manufacturing → Munitions); gatilho da ficha que o motor não lê trava a carta", () => {
+  ok(M.carta('Weapons Manufacturing').gat.every(g => M.gatOk(g)), 'Weapons Manufacturing aceito');
+  ok(!M.carta('Wildfire Awakener').gat.every(g => M.gatOk(g)), 'Wildfire Awakener: "quando vira" da ficha ainda não');
+  const e = cena({ campo: [[0, 'Weapons Manufacturing']] });
+  M.executar(e, M.carta('Weapons Manufacturing').gat[0].fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  const mu = e.campo.map(id => e.objs[id]).find(o => o.n === 'Munitions');
+  ok(mu && M.gatDe(e, mu).some(g => g.ev === 'sai'), 'Munitions com o gatilho de sair');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
