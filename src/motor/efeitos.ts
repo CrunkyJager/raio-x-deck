@@ -542,7 +542,9 @@ M.criarFicha = criarFicha;
 // o que o token trouxer além do copiaDe vale por cima (707.9b). Fonte que saiu: o objeto guarda o nome e a face.
 function copiaDe(e, token, ctx) {
   const { copiaDe: de, ...resto } = token;
-  const src = de === 'doEvento' ? ctx.ev && e.objs[ctx.ev.id] : de === 'este' ? e.objs[ctx.este] : objsDe(e, { em: de }, ctx)[0];
+  // sacrificada: a sacrificada no custo (Cleaver Skaab), como estava ao sair (LKI: a face; 707.2 valores copiáveis)
+  const sac = de === 'sacrificada' && ctx.sac && ctx.sac[0] && e.objs[ctx.sac[0].id] ? { ...e.objs[ctx.sac[0].id], face: ctx.sac[0].face } : null;
+  const src = de === 'sacrificada' ? sac : de === 'doEvento' ? ctx.ev && e.objs[ctx.ev.id] : de === 'este' ? e.objs[ctx.este] : objsDe(e, { em: de }, ctx)[0];
   if (!src || src.hab) return null;
   const { faces, forma, ...base } = M.dadoBase(e, src);
   return { ...base, ...resto, n: src.n };
@@ -916,12 +918,19 @@ const H = {
   },
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
-    campos: ['token', 'virada', 'atacando'],
-    ok: f => (f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'),
+    campos: ['token', 'virada', 'atacando', 'porJogadorAtacado'],
+    ok: f => (f.porJogadorAtacado === undefined || (f.porJogadorAtacado === true && f.atacando === true)) && (f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || f.token.copiaDe === 'sacrificada' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'),
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx); ctx.criadas = [];
       const tok = f.token && f.token.copiaDe !== undefined ? copiaDe(e, f.token, ctx) : f.token;
       if (!tok) return;
+      // "para cada jogador que você está atacando, crie … virada e atacando aquele jogador" (Soaring Lightbringer, 506.2)
+      if (f.porJogadorAtacado) {
+        const C = e.turno.combate; if (!C) return;
+        const defs = [...new Set(C.atk.filter(r => r.alvo && r.alvo.jog !== undefined && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog))];
+        for (const d of defs) for (const j of jogsDe(e, f, ctx)) for (const o of M.criarFichas(e, j, tok, q, { virada: true })) { ctx.criadas.push({ id: o.id, ts: o.ts }); M.porAtacando(e, o, { jog: d }); }
+        return;
+      }
       for (const j of jogsDe(e, f, ctx)) for (const o of M.criarFichas(e, j, tok, q, { virada: !!f.virada })) {
         ctx.criadas.push({ id: o.id, ts: o.ts });
         // CR 508.4: "virada e atacando" — fora do combate só entra virada; no "para cada oponente", ataca aquele jogador

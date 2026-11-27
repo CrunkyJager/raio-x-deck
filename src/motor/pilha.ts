@@ -804,7 +804,7 @@ const PROC = {
     const id = e.prox++;
     const h = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
       hab: { fonte: o.id, fonteTs: o.ts, k: P.k, fx: a.fx, alvos: a.alvos || [], ficha: o.ficha || null },
-      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) } } };
+      pil: { x, alvos, ctrl: j, lki: { este: lkiDe(e, o) }, ...(fis.sac.length ? { sac: fis.sac.map(id => lkiDe(e, e.objs[id])) } : {}) } };   // "a sacrificada" (custo, LKI 608.2h)
     e.objs[id] = h; e.pilha.push(id);
     M.eventosAlvo(e, alvos, id);
     if (mana) pagarMana(e, j, pl, mana, x);

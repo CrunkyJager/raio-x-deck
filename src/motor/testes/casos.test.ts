@@ -3963,6 +3963,28 @@ caso('118.12', "Masked Vandal: ao entrar pode exilar um card de criatura do seu 
   }
 });
 
+caso('707.2', "Cleaver Skaab: {3},{T}, sacrifique outro Zumbi: cria duas fichas cópia da sacrificada", () => {
+  const e = cena({ campo: [...terras(3, 'Island'), [0, 'Cleaver Skaab'], [0, 'Hordewing Skaab']] }); e.pend = [];
+  M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Cleaver Skaab'); resolveCom(e);
+  const fichas = e.campo.map(id => e.objs[id]).filter(o => o.ficha);
+  igual([fichas.length, fichas.map(o => o.n), naZona(e, 0, 'cemiterio')], [2, ['Hordewing Skaab', 'Hordewing Skaab'], ['Hordewing Skaab']]);
+  ok(fichas.every(o => M.temKw(e, o, 'voar')), 'cópias com o texto da carta');
+});
+
+caso('506.2', "Soaring Lightbringer: quando você ataca, uma ficha Glimmer 1/1 virada e atacando cada jogador que você ataca", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Soaring Lightbringer'], [0, 'Grizzly Bears']] });
+  const sl = objN(e, 0, 'Soaring Lightbringer'), gb = objN(e, 0, 'Grizzly Bears');
+  const BLQ = x => x.turno.passo === 'bloqueadores';
+  ate(e, 'atacar');
+  M.responder(e, e.perg.ops.findIndex(x => x.a === 'atacar' && x.id === sl.id && x.jog === 1), BLQ);
+  M.responder(e, e.perg.ops.findIndex(x => x.a === 'atacar' && x.id === gb.id && x.jog === 2), BLQ);
+  if (e.perg && e.perg.tipo === 'atacar') M.responder(e, e.perg.ops.findIndex(x => x.a === 'pronto'), BLQ);
+  resolveCom(e);
+  const C = e.turno.combate, gl = C.atk.filter(r => e.objs[r.id].ficha);
+  igual(gl.map(r => r.alvo.jog).sort(), [1, 2], 'uma em cada jogador atacado');
+  ok(gl.every(r => e.objs[r.id].virada && M.temKw(e, e.objs[r.id], 'voar')), 'viradas e com voar (é encantamento criatura)');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
