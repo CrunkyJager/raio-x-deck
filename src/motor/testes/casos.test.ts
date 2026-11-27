@@ -3553,6 +3553,20 @@ caso('702.121a', "corpo-a-corpo: atacando dois oponentes, cada um com corpo-a-co
   igual([M.poder(f, sk2), M.poder(f, b2)], [3, 2], 'um oponente: +1 só no Skyhunter');
 });
 
+caso('702.135a', "pós-vida: Indebted Spirit morre e cria 1 Espírito 1/1 voador; preso a outra criatura (a Aura escrita como equipada) ela também tem pós-vida", () => {
+  const e = cena({ campo: [[0, 'Indebted Spirit'], [0, 'Grizzly Bears']] });
+  const sp = objN(e, 0, 'Indebted Spirit'), b = objN(e, 0, 'Grizzly Bears');
+  M.mover(e, sp.id, 'cemiterio'); resolvePilha(e); M.abe(e); if (e.pend.length) { M.avancar(e); resolvePilha(e); }
+  const esp = () => e.campo.map(id => e.objs[id]).filter(o => o.ficha && (o.ficha.sub || []).includes('Spirit'));
+  igual(esp().length, 1, 'um Espírito'); ok(M.temKw(e, esp()[0], 'voar'), 'voa');
+  const f = cena({ campo: [[0, 'Indebted Spirit'], [0, 'Grizzly Bears']] });
+  const sp2 = objN(f, 0, 'Indebted Spirit'), b2 = objN(f, 0, 'Grizzly Bears');
+  sp2.anexo = { id: b2.id, ts: b2.ts }; f.vCamada = (f.vCamada || 0) + 1;
+  ok(M.temKw(f, b2, 'posVida'), 'o Urso tem pós-vida'); igual(M.poder(f, b2), 3);
+  f.pend = []; M.mover(f, b2.id, 'cemiterio');
+  igual(f.pend.filter(p => p.k === 'posVida').length, 1, 'o Urso dispara pós-vida');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

@@ -172,6 +172,11 @@ function extras(e, F, g, ev) {
 const fabricarDe = d => { const k = (d.kw || []).find(x => x.k === 'fabricar'); return k ? { ev: 'entra', quem: { este: true }, fx: [{ op: 'fabricar', qtd: k.n || 1 }] } : null; };
 // corpo-a-corpo (CR 702.121a): "sempre que atacar, +1/+0 por oponente que você atacou neste combate"; uma por instância (702.121b)
 const MELEE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'modificar', em: 'este', p: { conta: 'oponentesAtacados' }, dura: 'fimDoTurno' }] };
+// pós-vida N (CR 702.135a): "quando morrer, crie N fichas 1/1 brancas e pretas de Espírito com voar"; cada instância
+// dispara (702.135b), lida no LKI (a dada pela equipada/Aura também, 603.10a)
+const ESPIRITO = { pt: [1, 1], cores: 'WB', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] };
+const POS_VIDA = new Map<number, any>();
+const posVidaDe = n => { let g = POS_VIDA.get(n); if (!g) POS_VIDA.set(n, (g = { ev: 'morre', quem: { este: true }, fx: [{ op: 'ficha', quem: 'voce', qtd: n, token: ESPIRITO }] })); return g; };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
 M.gatilhoDe = (p) => p.g || (p.ficha || M.dadoFace(M.carta(p.n), p.face)).gat[p.k];
 
@@ -265,6 +270,13 @@ M.evento = (e, ev) => {
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
+  if (ev.ev === 'zona' && ev.de === 'campo' && ev.para === 'cemiterio' && ev.snap && M.temTipo(e, ev.snap, 'Creature')) {
+    const S = ev.snap;
+    for (const x of M.kwDe(e, S)) if (x.k === 'posVida') {
+      const g = posVidaDe(Number.isInteger(x.n) ? x.n : 1);
+      for (let v = 0; v < 1 + extras(e, S, g, ev); v++) e.pend.push({ fonte: S.id, ts: S.ts, ctrl: S.ctrl, k: 'posVida', g, n: S.n, ficha: S.ficha || null, lki: M.lkiDe(e, S), ev: { ...ev, snap: undefined } });
+    }
+  }
   if (ev.ev === 'ataca' && e.objs[ev.id]) {
     const F = e.objs[ev.id], n = M.kwDe(e, F).filter(x => x.k === 'corpo-a-corpo').length;
     for (let v = 0; v < n * (1 + (n ? extras(e, F, MELEE, ev) : 0)); v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'corpoACorpo', g: MELEE, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
