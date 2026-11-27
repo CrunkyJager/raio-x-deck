@@ -1441,14 +1441,15 @@ caso('111.10c', 'Blood ({1},{T}, descarte, sacrifique: compra); o agente só usa
   igual(naZona(e, 0, 'cemiterio'), ['Forest'], 'descartou o terreno');
   igual(e.jogs[0].zonas.mao.length, 3, '3 − 1 + 1');
 });
-caso('111.10d', 'Powerstone: {C} só para mágica de artefato; Map/Junk existem mas não ativam; nome fora da tabela fica só com o nome', () => {
+caso('111.10d', 'Powerstone: {C} só para mágica de artefato; Map ativa, Junk ainda não; nome fora da tabela fica só com o nome', () => {
   const p = cena({ mao: [[0, 'Sol Ring']] }); ficha(p, 0, 'Powerstone');
   ok(M.opcoesPrioridade(p, 0).some(o => o.a === 'conjurar' && p.objs[o.id].n === 'Sol Ring'), 'Sol Ring sim');
   const q = cena({ mao: [[0, 'Grizzly Bears']], campo: [[0, 'Forest']] }); ficha(q, 0, 'Powerstone');
   ok(!M.opcoesPrioridade(q, 0).some(o => o.a === 'conjurar'), 'criatura não-artefato não');
   const r = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Wastes']] }); const mp = ficha(r, 0, 'Map'); ficha(r, 0, 'Junk');
   igual(M.dadoDe(r, mp).sub, ['Map']);
-  ok(!M.opcoesPrioridade(r, 0).some(o => o.a === 'ativar'), 'explorar/jogar do exílio ainda não');
+  const at = M.opcoesPrioridade(r, 0).filter(o => o.a === 'ativar').map(o => r.objs[o.id].n);
+  ok(at.includes('Map') && !at.includes('Junk'), 'Map explora (701.44); Junk (jogar do exílio) ainda não: ' + at);
   const x = ficha(r, 0, 'Wicked Role');
   igual(x.n, 'Wicked Role');
   igual(M.fichaDe({ nome: 'Treasure', virada: 1 }).sub, ['Treasure']);
@@ -3880,6 +3881,16 @@ caso('702.79a', "persistir: Puppeteer Clique morre e volta com -1/-1; morrendo c
   ok(p.zona === 'campo' && p.marc['-1/-1'] === 1, 'voltou com -1/-1: ' + p.zona);
   e.pend = []; M.mover(e, p.id, 'cemiterio'); igual(e.pend.filter(x => x.k === 'persistir').length, 0, 'com o marcador: não persiste');
   ok(M.carta('River Kelpie').kw.some(x => x.k === 'persistir'));
+});
+
+caso('701.44a', "explorar: terreno no topo vai para a mão; não-terreno dá +1/+1 e pode ir ao cemitério (Path of Discovery, Hakbal)", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] }); const b = e.objs[e.campo[0]];
+  const X = (ask) => M.executar(e, { op: 'explorar', em: 'este' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] }, este: b.id }, ask);
+  const l = e.por(0, 'Forest', { zona: 'grimorio' }); X(() => ({ a: 'nao' }));
+  ok(l.zona === 'mao' && !b.marc['+1/+1'], 'terreno: mão, sem marcador');
+  const s = e.por(0, 'Sol Ring', { zona: 'grimorio' }); X((j, t, ops) => ops[0]);
+  ok(s.zona === 'cemiterio' && b.marc['+1/+1'] === 1, 'não-terreno: +1/+1 e cemitério');
+  for (const c of ['Path of Discovery', 'Hakbal of the Surging Soul']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c);
 });
 
 // ---------- rodar ----------

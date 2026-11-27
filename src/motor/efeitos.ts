@@ -491,7 +491,7 @@ function escolherN(ask, j, tipo, ids, n, { podeMenos = false, ctx = {} }: any = 
 // Fichas predefinidas (CR 111.10): o banco escreve só {nome:'Treasure'}; o tipo e as habilidades vêm daqui,
 // escritos a partir do texto Oracle da ficha. O que o token trouxer além do nome vale por cima.
 // Powerstone: a restrição vira so {tipo:Artifact} (paga mágica de artefato; ainda não paga habilidade).
-// Map (explorar) e Junk (exila o topo e pode jogar) usam ops que o motor não tem: a ficha existe, a habilidade não é ativada.
+// Junk (exila o topo e pode jogar) usa op que o motor não tem: a ficha existe, a habilidade não é ativada.
 const art = (sub, atv) => ({ tipos: ['Artifact'], sub: [sub], cores: '', vm: 0, atv });
 const sacE = (c: any = {}) => ({ ...c, sacrificar: 'este' });
 M.FICHAS = {
@@ -800,6 +800,24 @@ const H = {
     fx(e, f, ctx, ask) {
       const o = e.objs[ctx.este]; if (!o || o.zona !== 'cemiterio' || !ctx.ev || o.ts !== ctx.ev.tsCem) return;
       M.aplicarEntrada(e, { ...M.decidirEntrada(e, o.id, o.dono, {}, ask), marc: { '-1/-1': 1 } });
+    },
+  },
+  // explorar (CR 701.44a): revela o topo; terreno vai para a mão; senão, +1/+1 na criatura e o controlador pode pôr a
+  // revelada no cemitério (senão fica no topo). A que saiu do campo ainda explora, sem marcador (701.44b). Uma por vez (701.44c).
+  explorar: {
+    fx(e, f, ctx, ask) {
+      const feitos = ctx.expl || (ctx.expl = new Map());           // o processo roda de novo a cada pergunta: quem já explorou não repete
+      const lista = feitos.get(f) || (feitos.set(f, { ids: objsDe(e, f, ctx).map(o => o.id), n: 0 }), feitos.get(f));
+      for (; lista.n < lista.ids.length; lista.n++) {
+        const o = e.objs[lista.ids[lista.n]], j = o.ctrl, g = e.jogs[j].zonas.grimorio, top = g[g.length - 1];
+        if (top === undefined) { if (o.zona === 'campo') M.porMarcadores(e, o, '+1/+1', 1); continue; }   // grimório vazio: nada revelado, não é terreno
+        const t = e.objs[top];
+        if (M.temTipo(e, t, 'Land')) { M.mover(e, top, 'mao'); M.log(e, o.n, 'explora: terreno', t.n); continue; }
+        const r = ask(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'explorarCemiterio', id: top });   // pergunta antes de mexer
+        if (o.zona === 'campo') M.porMarcadores(e, o, '+1/+1', 1);
+        if (r.a === 'sim') M.mover(e, top, 'cemiterio');
+        M.log(e, o.n, 'explora:', t.n, r.a === 'sim' ? '→ cemitério' : '(fica no topo)');
+      }
     },
   },
   // CR 603.12: gatilho reflexo ("when you do, …"): criado na resolução, dispara na hora; vai à pilha da próxima vez que
