@@ -820,6 +820,15 @@ const tripularDe = kw => {
   if (!a) TRIP.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, _tripular: true, fx: [{ op: 'animar', em: 'este', tipos: ['Artifact', 'Creature'], dura: 'fimDoTurno' }] }));
   return a;
 };
+// selar N (CR 702.171a): "vire outras criaturas desviradas suas com poder total N ou mais: esta Montaria fica selada até o
+// fim do turno. Só como feitiço." (o.selada {ts, t}: mudou de zona ou passou o turno, não está mais)
+const SELA = new WeakMap<object, any>();
+const selarDe = kw => {
+  let a = SELA.get(kw);
+  if (!a) SELA.set(kw, (a = { custo: { virarOutros: { f: { tipo: ['Creature'] }, poder: kw.n } }, vel: 'feitico', _selar: true, fx: [{ op: 'selar' }] }));
+  return a;
+};
+M.selada = (e, o) => !!o.selada && o.selada.ts === o.ts && o.selada.t === e.turno.n && o.zona === 'campo';
 // eternizar (CR 702.129a): "[custo], exile esta carta do cemitério: crie uma ficha cópia dela, exceto que é uma Zombie
 // 4/4 preta além dos outros tipos e não tem custo de mana. Ative só como feitiço."
 const ETERN = new WeakMap<object, any>();
@@ -874,7 +883,7 @@ const atvCarta = d => {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
-    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'eternizar' && x.custo).map(eternizarDe), ...(d.kw || []).filter(x => x.k === 'bis' && x.custo).map(bisDe)];
+    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'eternizar' && x.custo).map(eternizarDe), ...(d.kw || []).filter(x => x.k === 'bis' && x.custo).map(bisDe), ...(d.kw || []).filter(x => x.k === 'selar' && Number.isInteger(x.n)).map(selarDe)];
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
     ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length || tp.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj, ...tp] : d.atv || NADA.atv));
   }
@@ -905,7 +914,7 @@ M.gatDe = (e, o, lote?) => {
 
 // ---- filtro RX (campos somam em E; listas dentro de um campo são OU) — o que ainda não existe falha alto ----
 const FILTRO_OK = new Set(['entrouNoTurno', 'conjurada', 'atacouNoTurno', 'este', 'outro', 'ouEste', 'tipo', 'nao', 'sub', 'super', 'ctrl', 'dono', 'cor', 'zona', 'virada', 'comandante', 'ficha', 'vm', 'poder', 'atacando',
-  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist']);
+  'equipada', 'anexadoA', 'encantada', 'comEquipamento', 'nome', 'tipoEmComum', 'tipoTodos', 'historico', 'lembrada', 'kw', 'comMarcador', 'semMarcador', 'exiladaPorEste', 'feridaPorEsteNoTurno', 'naoBloqueada', 'modificada', 'topo', 'nomeUnico', 'poderAcimaBase', 'resist', 'selada']);
 M.filtroOk = f => Object.keys(f || {}).every(k => FILTRO_OK.has(k));
 const COR_NOME = { White: 'W', Blue: 'U', Black: 'B', Red: 'R', Green: 'G' };
 M.bate = (e, o, f, ctx: any = {}) => {
@@ -948,6 +957,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   // encantada / comEquipamento = com pelo menos uma Aura / um Equipamento preso a ele
   if (f.equipada !== undefined) { const F = e.objs[ctx.este], A = F && F.anexo; if ((!!A && A.id === o.id && A.ts === o.ts) !== !!f.equipada) return false; }
   if (f.anexadoA === 'este') { const F = e.objs[ctx.este]; if (!F || !o.anexo || o.anexo.id !== F.id || o.anexo.ts !== F.ts) return false; }
+  if (f.selada !== undefined && M.selada(e, o) !== !!f.selada) return false;   // 702.171b
   if (f.encantada !== undefined && M.anexosDe(e, o).some(x => M.temTipo(e, x, 'Enchantment') && (M.dadoDe(e, x).sub || []).includes('Aura')) !== !!f.encantada) return false;
   if (f.topo !== undefined) { const g = e.jogs[o.dono].zonas.grimorio; if ((o.zona === 'grimorio' && g[g.length - 1] === o.id) !== !!f.topo) return false; }   // a carta do topo do grimório (o fim da lista)
   // CR 700.9: modificada = com marcador, equipada, ou encantada por Aura que o controlador dela controla
@@ -1064,6 +1074,7 @@ const PALAVRA: Record<string, (e, ctx) => boolean> = {
   coven: (e, ctx) => new Set(M.objetosQue(e, { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' }, ctx).map(o => M.poder(e, o))).size >= 3,
   blessing: (e, ctx) => M.bencao(e, ctx.voce, ctx.este),
   morbid: e => M.morbido(e),
+  solved: (e, ctx) => { const o = e.objs[ctx.este]; return !!o && o.zona === 'campo' && o.solved === o.ts; },   // Caso resolvido (719.3b; mudou de zona: objeto novo)
 };
 M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker' || se.conjuradaCom === 'flashback' || se.conjuradaCom === 'alternativo') && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
 M.condicao = (e, se, ctx) => {

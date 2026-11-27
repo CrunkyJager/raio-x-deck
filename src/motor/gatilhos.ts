@@ -5,7 +5,7 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'reflexo', 'bloqueia', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'portador']);
 const CAMPOS_OK = new Set(['comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
 const LACO = 500;
@@ -54,6 +54,7 @@ function bateEv(e, g, ev, F) {
     case 'capitulo': return ev.ev === 'capitulo' && ev.id === F.id && ev.ts === F.ts && ev.de < g.n && ev.para >= g.n;   // CR 714.2b
     // masmorras.ts: entrar numa sala (309.4c), completar (309.7), tomar a iniciativa (727.2); jog: de quem (padrão: você)
     case 'sala': case 'completaMasmorra': case 'tomaIniciativa': return ev.ev === g.ev && relJog(g.jog || 'voce', ev.j, F.ctrl);
+    case 'portador': return ev.ev === 'portador' && relJog(g.jog || 'voce', ev.j, F.ctrl) && q(e.objs[ev.id]);   // 701.54a: "whenever you choose a creature as your Ring-bearer" (mesmo a de antes)
     case 'nivel': return ev.ev === 'nivel' && ev.id === F.id && ev.ts === F.ts && ev.n === g.n;   // CR 716.2b: "quando esta Classe vira nível N"
     case 'fase': return ev.ev === 'fase' && ev.passo === g.passo && relJog(g.deQuem || 'voce', ev.ativo, F.ctrl);
     case 'compra': return ev.ev === 'compra' && (!g.quem || relJog(g.quem.ctrl || 'qualquer', ev.j, F.ctrl)) && (!g.jog || relJog(g.jog, ev.j, F.ctrl));

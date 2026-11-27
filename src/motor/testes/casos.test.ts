@@ -1324,7 +1324,7 @@ caso('702.33d', 'conjuradaCom kicker (Goblin Bushwhacker): o gatilho de entrar s
     for (let i = 0; i < 6 && e.perg && (e.pilha.length || e.pend.length); i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
     igual(M.poder(e, objN(e, 0, 'Grizzly Bears')), 2 + esp, `${terras} Montanha(s): ` + JSON.stringify(e.log.slice(-4)));
   }
-  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'solved' } }));
+  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'maxspeed' } }));
 });
 db['Cena Desgaste'] = { n: 'Cena Desgaste', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Sorcery'], vm: 2, ci: 'G', kw: [{ k: 'ofertaPresente', tipo: 'carta' }],
   alvos: [{ f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, opcao: 'semPresente' }, { f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, min: 2, max: 2, opcao: 'presente' }],
@@ -2558,7 +2558,7 @@ caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you d
   igual(e.objs[e.campo.find(id => e.objs[id].n === 'Llanowar Elves')].zona, 'campo');
 });
 
-caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; solved continua recusada', () => {
+caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; maxspeed continua recusada', () => {
   const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Grizzly Bears']] });
   const ctx = { voce: 0, este: e.campo[0] };
   ok(M.fxSuportado(M.carta('Dispatch').fx), 'Dispatch lido');
@@ -2575,7 +2575,7 @@ caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), c
   igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
   for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
   igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
-  ok(!M.condValorOk({ palavra: 'solved' }));
+  ok(!M.condValorOk({ palavra: 'maxspeed' }));
 });
 caso('502.3', 'Unwinding Clock: seus artefatos desviram na etapa de desvirar dos outros; as criaturas não', () => {
   const e = cena({ campo: [[0, 'Unwinding Clock'], [0, 'Sol Ring'], [0, 'Grizzly Bears']] });
@@ -4474,6 +4474,65 @@ caso('101.4', "Gluntch: no seu fim de turno escolhe um jogador para cada parte (
   igual(ursos.marc['+1/+1'], 2, 'o jogador 1 escolheu os Ursos');
   igual(e.jogs[1].zonas.mao.length - m1, 1, 'o jogador 1 compra');
   igual(e.campo.filter(id => e.objs[id].n === 'Treasure' && e.objs[id].ctrl === 0).length, 2, 'eu crio 2 Tesouros');
+});
+
+caso('205.4', "Cacophony Unleashed: vira criatura LENDÁRIA 6/6 até o fim do turno (animar super); Captivating Vampire: a roubada vira Vampire além dos outros tipos", () => {
+  const e = cena({ campo: [[0, 'Cacophony Unleashed'], [1, 'Grizzly Bears']] });
+  const c = objN(e, 0, 'Cacophony Unleashed'), u = objN(e, 1, 'Grizzly Bears');
+  ok(M.carta('Cacophony Unleashed').gat.every(g => M.gatOk(g)), 'aceito');
+  const ctx = { voce: 0, este: c.id, alvos: [], ilegal: {}, lki: {} };
+  M.executar(e, M.carta('Cacophony Unleashed').gat[1].fx[0], ctx, null);
+  ok(M.temTipo(e, c, 'Creature') && (M.dadoDe(e, c).super || []).includes('Legendary') && M.poder(e, c) === 6, 'lendária 6/6');
+  const v = M.carta('Captivating Vampire').atv[0];
+  ok(M.fxSuportado(v.fx), 'Vampire aceito');
+  for (const f of v.fx) M.executar(e, f, { voce: 0, este: -1, alvos: [[{ o: u.id, ts: u.ts }]], ilegal: {}, lki: {} }, null);
+  ok(u.ctrl === 0 && (M.dadoDe(e, u).sub || []).includes('Vampire') && (M.dadoDe(e, u).sub || []).includes('Bear'), 'minha e Vampire Bear');
+});
+
+caso('701.54a', "Call of the Ring: escolher o Portador dispara 'pode pagar 2 de vida: compre'", () => {
+  const e = cena({ campo: [[0, 'Call of the Ring'], [0, 'Grizzly Bears']] });
+  ok(M.carta('Call of the Ring').gat.every(g => M.gatOk(g)), 'aceito');
+  M.executar(e, { op: 'tentarAnel', quem: 'voce' }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => ops[0]);
+  igual(e.pend.filter(p => p.ev && p.ev.ev === 'portador' && p.n === 'Call of the Ring').length, 1, 'disparou');
+});
+
+caso('707.2', "Calix: cópia de um encantamento não lendário seu, escolhido ao resolver (copiaDe {um}); Caretaker's Talent no nível 2 copia uma ficha alvo", () => {
+  ok(M.carta('Calix, Guided by Fate').gat.every(g => M.gatOk(g)), 'Calix aceito');
+  const e = cena({ campo: [[0, 'Calix, Guided by Fate'], [0, 'Dragon Tempest'], [0, 'Cacophony Unleashed'], [0, 'Call of the Ring']] });
+  const cx = objN(e, 0, 'Calix, Guided by Fate');
+  const fx = M.carta('Calix, Guided by Fate').gat[1].fx[0];
+  const f = cena({ campo: [[0, 'Dragon Tempest'], [0, 'Call of the Ring']] });
+  M.executar(f, { ...fx }, { voce: 0, este: -1, alvos: [], ilegal: {}, lki: {} }, (j, t, ops) => ops.find(o => f.objs[o.id] && f.objs[o.id].n === 'Call of the Ring') || ops[0]);
+  igual(f.campo.filter(id => f.objs[id].n === 'Call of the Ring').length, 2, 'copiou a escolhida');
+  ok(M.carta("Caretaker's Talent").niveis[0].gat.every(g => M.gatOk(g)), 'Caretaker aceito');
+});
+
+caso('719.3', "Case of the Locked Hothouse: no seu passo final com 7+ terrenos fica resolvido (dali em diante joga do topo); com 6, não", () => {
+  for (const n of [6, 7]) {
+    const e = cena({ campo: [[0, 'Case of the Locked Hothouse'], ...terras(n, 'Forest')], passo: 'principal2' }); e.pend = [];
+    const c = objN(e, 0, 'Case of the Locked Hothouse');
+    passarAte(e, 'final'); M.avancar(e); resolveCom(e);
+    igual(M.condicao(e, { palavra: 'solved' }, { voce: 0, este: c.id }), n === 7, n + ' terrenos');
+  }
+});
+
+caso('702.171', "Caustic Bronco: ao atacar revela e põe na mão; sem selar você perde o valor de mana, selada cada oponente perde; Selar 3 só como feitiço", () => {
+  ok(M.carta('Caustic Bronco').gat.every(g => M.gatOk(g)), 'aceito');
+  for (const sela of [false, true]) {
+    const e = cena({ campo: [[0, 'Caustic Bronco'], [0, 'Hill Giant']] });
+    const b = objN(e, 0, 'Caustic Bronco');
+    e.por(0, 'Dragon Tempest', { zona: 'grimorio' });
+    if (sela) {
+      const k = M.atvDe(e, b).findIndex(a => a._selar);
+      ok(k >= 0 && M.podeAtivar(e, 0, b, k), 'pode selar');
+      M.executar(e, M.atvDe(e, b)[k].fx[0], { voce: 0, este: b.id, alvos: [], ilegal: {}, lki: {} }, null);
+      ok(M.selada(e, b), 'selada');
+    }
+    const ctx: any = { voce: 0, este: b.id, alvos: [], ilegal: {}, lki: {} };
+    for (const f of M.carta('Caustic Bronco').gat[0].fx) M.executar(e, f, ctx, null);
+    igual([e.jogs[0].vida, e.jogs[1].vida], sela ? [40, 38] : [38, 40], sela ? 'selada: o oponente perde 2' : 'sem selar: eu perco 2');
+    ok(naZona(e, 0, 'mao').includes('Dragon Tempest'), 'foi para a mão');
+  }
 });
 
 // ---------- rodar ----------

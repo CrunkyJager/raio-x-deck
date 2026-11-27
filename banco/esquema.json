@@ -607,6 +607,10 @@
       }
      ],
      "description": "compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)"
+    },
+    "selada": {
+     "type": "boolean",
+     "description": "Montaria selada neste turno (702.171b)"
     }
    }
   },
@@ -1010,9 +1014,11 @@
       "incitar",
       "fundir",
       "tomarIniciativa",
-      "aventurar"
+      "aventurar",
+      "resolverCaso",
+      "selar"
      ],
-     "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)"
+     "description": "fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade)"
     },
     "talvez": {
      "type": "boolean"
@@ -1406,6 +1412,13 @@
     "soNaoDesvira": {
      "type": "boolean",
      "description": "op virar com naoDesvira: NÃO vira, só impede de desvirar no próximo passo de desvirar do controlador (Fifty Feet of Rope: Tie Up)"
+    },
+    "super": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "animar: supertipos a mais (\"becomes a legendary 6/6…\", Cacophony Unleashed)"
     }
    },
    "additionalProperties": false,
@@ -1622,7 +1635,7 @@
     },
     "palavra": {
      "type": "string",
-     "description": "condição nomeada: metalcraft, blessing, maxspeed…"
+     "description": "condição nomeada: metalcraft, blessing, maxspeed… solved (este Caso está resolvido, 719.3)"
     },
     "monarca": {
      "type": "boolean",
@@ -1764,7 +1777,8 @@
       "intimidar",
       "decaida",
       "infectar",
-      "fuga"
+      "fuga",
+      "selar"
      ],
      "description": "sobrecarga: o motor troca 'alvo' por 'cada' (CR 702.96); aventura/loucura/flashback idem pela regra, não pelo fx"
     },
@@ -1892,8 +1906,10 @@
       "completaMasmorra",
       "sala",
       "tomaIniciativa",
-      "nivel"
-     ]
+      "nivel",
+      "portador"
+     ],
+     "description": "portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você)"
     },
     "naoMorre": {
      "type": "boolean",

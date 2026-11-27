@@ -41,7 +41,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
-    case 'lembradas': return o === 'quantos' && (j === undefined || j === 'maiorPorDono') && chaves(c, ['junta']);
+    case 'lembradas': return (o === 'quantos' && (j === undefined || j === 'maiorPorDono') || (o === 'vm' && j === 'soma')) && chaves(c, ['junta']);
     case 'evento': return ['quantos', 'vida', 'dano', 'marcadores', 'poder', 'resist', 'vm', 'cores', 'mao'].includes(o) && chaves(c, []);
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
@@ -119,6 +119,8 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'X': return ctx.x || 0;
     case 'resultado': return ctx.resultado || 0;
     case 'lembradas': {
+      // "lose life equal to that card's mana value" (Caustic Bronco): as do efeito anterior (descartadas, ou as que ele moveu)
+      if (o === 'vm') return (ctx.lembrados || (ctx.movidos || []).map(m => m.id)).reduce((t, id) => t + ((e.objs[id] && M.dadoDe(e, e.objs[id]).vm) || 0), 0);
       if (c.junta !== 'maiorPorDono') return (ctx.lembrados || []).length;
       // "the greatest number of cards a player discarded this way" (Windfall): das lembradas, por dono
       const n = {}; for (const id of ctx.lembrados || []) { const ob = e.objs[id]; if (ob) n[ob.dono] = (n[ob.dono] || 0) + 1; }

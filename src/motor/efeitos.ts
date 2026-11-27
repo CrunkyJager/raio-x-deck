@@ -688,11 +688,11 @@ const H = {
   // CR 613.1d/613.4b: vira um P/R com tipos (camada 4 e 7b), "além dos outros tipos". Preso ao objeto (o.anim, mesmo ts);
   // fimDoTurno sai na limpeza (514.2). Os números são lidos na resolução (611.2c). Lido no M.dadoDe (estado.ts).
   animar: {
-    campos: ['p', 'r', 'tipos', 'sub', 'kw', 'cores', 'dura', 'todosTipos', 'tiraKw'],
+    campos: ['p', 'r', 'tipos', 'sub', 'super', 'kw', 'cores', 'dura', 'todosTipos', 'tiraKw'],   // super: "becomes a legendary …" (Cacophony Unleashed)
     qtd: q => q === undefined,
     ok: f => f.em !== undefined && (f.dura === 'fimDoTurno' || f.dura === 'sempre') && (f.p === undefined) === (f.r === undefined)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw) && M.kwListaOk(f.tiraKw) && (f.todosTipos === undefined || f.todosTipos === true)
-      && (f.p !== undefined || (f.tipos || []).length > 0 || (f.kw || []).length > 0 || (f.tiraKw || []).length > 0),
+      && (f.p !== undefined || (f.tipos || []).length > 0 || (f.sub || []).length > 0 || (f.kw || []).length > 0 || (f.tiraKw || []).length > 0),
     fx(e, f, ctx) {
       const os = objsDe(e, f, ctx).filter(o => o.zona === 'campo'); if (!os.length) return;
       const n = q => typeof q === 'number' ? q : qtdDe(e, q, ctx);
@@ -700,7 +700,7 @@ const H = {
       for (const o of os) {
         // todosTipos (Mirror Entity, 205.3m): "ganha todos os tipos de criatura" = metamorfo dado (lido em tiposCriatura)
         const kw = f.todosTipos ? [...(f.kw || []), { k: 'metamorfo' }] : f.kw;
-        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null });
+        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, ...(f.super ? { super: f.super } : {}), pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null });
         M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
       }
       e.vCamada = (e.vCamada || 0) + 1;
@@ -1008,7 +1008,7 @@ const H = {
   anular: { fx(e, f, ctx) { for (const o of objsDe(e, f, ctx)) if (o.zona === 'pilha') M.anular(e, o.id); } },   // CR 701.6
   ficha: {                                                          // CR 111
     campos: ['token', 'virada', 'atacando'],
-    ok: f => ((f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && typeof f.token.copiaDe.alvo === 'number'))
+    ok: f => ((f.atacando === undefined || (f.atacando === true && f.virada === true)) && !f.token || f.token.copiaDe === undefined || f.token.copiaDe === 'doEvento' || f.token.copiaDe === 'este' || (f.token.copiaDe === 'cadaAtual' && dentroObj > 0) || (typeof f.token.copiaDe === 'object' && (typeof f.token.copiaDe.alvo === 'number' || (!!f.token.copiaDe.um && Object.keys(f.token.copiaDe).length === 1 && M.filtroOk(f.token.copiaDe.um)))))
       && (!f.token || !f.token.gat || f.token.gat.every(g => M.gatOk(g))),   // a habilidade desencadeada da ficha também tem que ser lida (Munitions, Elemental do Wildfire Awakener)
     fx(e, f, ctx, ask) {
       const q = qtdDe(e, f.qtd, ctx); ctx.criadas = [];
@@ -1023,6 +1023,16 @@ const H = {
   },
   // o Anel te tenta (CR 701.54a): o emblema ganha a próxima habilidade (até 4) e você escolhe uma criatura sua como
   // Portador (pode ser a mesma; sem criatura, só o emblema). O Portador é lendário etc. (estado.ts M.ehPortador/gatAnel)
+  // selar (702.171a): esta Montaria fica selada até o fim do turno (lida no filtro 'selada')
+  selar: {
+    ok: f => f.em === undefined && f.quem === undefined,
+    fx(e, f, ctx) { const o = e.objs[ctx.este]; if (!o || o.zona !== 'campo') return; o.selada = { ts: o.ts, t: e.turno.n }; M.log(e, o.n, 'fica selada'); },
+  },
+  // CR 719.3: "To solve — [condição]" = no começo do seu passo final, se a condição vale, este Caso fica resolvido
+  resolverCaso: {
+    ok: f => f.em === undefined && f.quem === undefined,
+    fx(e, f, ctx) { const o = e.objs[ctx.este]; if (!o || o.zona !== 'campo' || o.solved === o.ts) return; o.solved = o.ts; e.vCamada = (e.vCamada || 0) + 1; M.log(e, o.n, 'resolvido'); },
+  },
   tentarAnel: {
     fx(e, f, ctx, ask) {
       for (const j of jogsDe(e, f, ctx)) {
@@ -1031,6 +1041,7 @@ const H = {
         if (cand.length) { const [id] = escolherN(ask, j, 'escolherCarta', cand, 1, { ctx: { op: 'portador' } }); A.p = { id, ts: e.objs[id].ts }; }
         e.vCamada = (e.vCamada || 0) + 1;
         M.log(e, J.nome, 'é tentado pelo Anel (' + A.n + ')', A.p ? '→ ' + e.objs[A.p.id].n : '');
+        if (A.p && M.evento && cand.length) M.evento(e, { ev: 'portador', j, id: A.p.id });   // 701.54a (Call of the Ring)
       }
     },
   },

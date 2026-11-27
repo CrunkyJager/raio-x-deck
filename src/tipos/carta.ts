@@ -311,6 +311,10 @@ export interface RxFiltro {
    * compartilha ao menos um tipo de criatura com: esta carta (Folk Hero, Wolf-Skull Shaman), o seu comandante (Path of Ancestry), o objeto do evento (Shared Animosity) ou alguma permanente do filtro (Descendants' Path: criatura sua)
    */
   tipoEmComum?: ('este' | 'comandante' | 'doEvento') | RxFiltro;
+  /**
+   * Montaria selada neste turno (702.171b)
+   */
+  selada?: boolean;
 }
 
 export interface RxCompara {
@@ -445,7 +449,7 @@ export type RxFxs = RxFx[];
  */
 export interface RxFx {
   /**
-   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra)
+   * fundir: exila esta e uma permanente que bate em f (sua, de que você é dono) e põe no campo a carta fundida (faces[0], forma fundir); virada/atacando valem para ela (Mishra); resolverCaso: este Caso fica resolvido (719.3; o 'Solved —' lê se {palavra:'solved'}); selar: esta Montaria fica selada até o fim do turno (702.171; a kw selar já dá a habilidade)
    */
   op:
     | 'mana'
@@ -502,7 +506,9 @@ export interface RxFx {
     | 'incitar'
     | 'fundir'
     | 'tomarIniciativa'
-    | 'aventurar';
+    | 'aventurar'
+    | 'resolverCaso'
+    | 'selar';
   talvez?: boolean;
   quem?: RxJogador;
   em?: RxObjeto;
@@ -713,6 +719,10 @@ export interface RxFx {
    */
   soNaoDesvira?: boolean;
   /**
+   * animar: supertipos a mais ("becomes a legendary 6/6…", Cacophony Unleashed)
+   */
+  super?: string[];
+  /**
    * This interface was referenced by `RxFx`'s JSON-Schema definition
    * via the `patternProperty` "^_".
    */
@@ -812,7 +822,7 @@ export interface RxCond {
     nao?: boolean;
   };
   /**
-   * condição nomeada: metalcraft, blessing, maxspeed…
+   * condição nomeada: metalcraft, blessing, maxspeed… solved (este Caso está resolvido, 719.3)
    */
   palavra?: string;
   /**
@@ -934,7 +944,8 @@ export interface RxKw {
     | 'intimidar'
     | 'decaida'
     | 'infectar'
-    | 'fuga';
+    | 'fuga'
+    | 'selar';
   custo?: RxMana;
   n?: number;
   /**
@@ -978,6 +989,9 @@ export interface RxAtv {
 }
 
 export interface RxGat {
+  /**
+   * portador: você escolhe uma criatura como Portador do Anel (701.54a; jog: de quem, padrão você)
+   */
   ev:
     | 'cicla'
     | 'desvira'
@@ -1013,7 +1027,8 @@ export interface RxGat {
     | 'completaMasmorra'
     | 'sala'
     | 'tomaIniciativa'
-    | 'nivel';
+    | 'nivel'
+    | 'portador';
   /**
    * com ev 'sai': só quando NÃO foi para o cemitério vindo do campo por morte (Dour Port-Mage)
    */
