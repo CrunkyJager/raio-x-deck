@@ -3884,6 +3884,17 @@ caso('122.1', "Wave Goodbye: volta para a mão cada criatura sem marcador +1/+1 
   igual(e.campo.filter(id => M.temTipo(e, e.objs[id], 'Creature')).map(id => e.objs[id].n), ['Serra Angel']);
 });
 
+caso('118.12', "Ripples of Undeath: mói 3 e pode pagar {1} e 3 de vida para pôr uma delas na mão", () => {
+  ok(M.carta('Ripples of Undeath').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Swamp'], [0, 'Ripples of Undeath']] });
+  for (const n of ['Grizzly Bears', 'Sol Ring', 'Lightning Bolt']) e.por(0, n, { zona: 'grimorio' });
+  const g = M.carta('Ripples of Undeath').gat[0], cx = { voce: 0, este: objN(e, 0, 'Ripples of Undeath').id, alvos: [], ilegal: {}, lki: {} };
+  for (const f of g.fx) M.executar(e, f, cx, (j, t, ops) => ops.findIndex(o => o.a === 'sim' || o.a === 'pagar' || o.a === 'mover') >= 0 ? ops[ops.findIndex(o => o.a === 'sim' || o.a === 'pagar' || o.a === 'mover')] : ops[0]);
+  igual(e.jogs[0].vida, 37, 'pagou 3 de vida'); ok(objN(e, 0, 'Swamp').virada, 'e {1}');
+  igual(e.jogs[0].zonas.mao.filter(id => ['Grizzly Bears', 'Sol Ring', 'Lightning Bolt'].includes(e.objs[id].n)).length, 1, 'uma das moídas na mão');
+  igual(e.jogs[0].zonas.cemiterio.length, 2);
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

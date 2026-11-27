@@ -35,7 +35,9 @@ M.seOk = seOk;
 M.modosDe = d => { const l: string[] = []; const ver = x => { if (!x || typeof x !== 'object') return; if (Array.isArray(x)) { x.forEach(ver); return; } for (const [k, v] of Object.entries<any>(x)) { if (k === 'modoEscolhido' && typeof v === 'string' && !l.includes(v)) l.push(v); else ver(v); } }; ver([d.gat, d.est, d.atv]); return l; };
 // aMenosQue (CR 118.12): "X unless [quem] pays [custo]". Custo: mana fixa, {x:1} com qtd (Esper Sentinel), vida, sacrificar {f, qtd}
 const amqOk = a => !!a && typeof a === 'object' && Object.keys(a).every(k => ['quem', 'custo', 'qtd'].includes(k))
-  && (QUEM_OK.has(a.quem) || quemAlvo(a.quem)) && (a.quem !== 'cadaAtual' || dentroCada > 0) && !!a.custo && typeof a.custo === 'object' && Object.keys(a.custo).length === 1
+  && (QUEM_OK.has(a.quem) || quemAlvo(a.quem)) && (a.quem !== 'cadaAtual' || dentroCada > 0) && !!a.custo && typeof a.custo === 'object'
+  // mana + vida juntos ("pay {1} and 3 life", Ripples of Undeath); fora isso, um custo só
+  && (Object.keys(a.custo).length === 1 || (Object.keys(a.custo).length === 2 && !!a.custo.mana && Number.isInteger(a.custo.vida)))
   && (a.custo.mana ? Object.keys(a.custo.mana).every(k => k === 'g' || k === 'x' || /^[WUBRGC]$/.test(k) || k === 'p') && (!a.custo.mana.x || (a.qtd !== undefined && qtdOk(a.qtd)))
     : a.custo.vida ? Number.isInteger(a.custo.vida)
     : a.custo.sacrificar === 'este' ? true                                         // "unless you sacrifice this" (Withercrown dá à encantada)
@@ -374,14 +376,14 @@ function pagouParaImpedir(e, f, ctx, ask) {
   for (const j of jogsDe(e, { ...f, quem: a.quem }, ctx)) {
     const J = e.jogs[j], ops: any[] = [{ a: 'naoPagar' }];
     let mana: any = null, x = 0;
-    if (c.mana) { mana = { ...c.mana }; if (mana.x) { x = qtdDe(e, a.qtd, ctx); } if (M.planoMana(e, j, mana, { x })) ops.push({ a: 'pagar' }); }
+    if (c.mana) { mana = { ...c.mana }; if (mana.x) { x = qtdDe(e, a.qtd, ctx); } if (M.planoMana(e, j, mana, { x }) && (!c.vida || (J.vida >= c.vida && !M.vidaFixa(e, j)))) ops.push({ a: 'pagar' }); }
     else if (c.vida) { if (J.vida >= c.vida && !M.vidaFixa(e, j)) ops.push({ a: 'pagar' }); }   // CR 119.4, 119.8
     else if (c.sacrificar === 'este') { const o = e.objs[ctx.este]; if (o && o.zona === 'campo' && o.ctrl === j) ops.push({ a: 'pagar' }); }
     else if (c.sacrificar) { if (M.temPeloMenos(e, { ...(c.sacrificar.f || {}), ctrl: 'voce', zona: 'campo' }, { voce: j, este: ctx.este }, c.sacrificar.qtd || 1)) ops.push({ a: 'pagar' }); }
     const fo = e.objs[ctx.item] || e.objs[ctx.este];
     const r = ask(j, 'aMenosQuePagar', ops, { op: f.op, fonte: fo ? fo.n : '?', de: ctx.voce, custo: c, x });
     if (r.a !== 'pagar') continue;
-    if (mana) M.pagarComPlano(e, j, mana, { x });
+    if (mana) { M.pagarComPlano(e, j, mana, { x }); if (c.vida) M.perderVida(e, j, c.vida); }
     else if (c.vida) M.perderVida(e, j, c.vida);                                                      // CR 119.4
     else if (c.sacrificar === 'este') M.mover(e, ctx.este, 'cemiterio', { sac: true });
     else {
@@ -1103,6 +1105,7 @@ const H = {
   moer: { fx(e, f, ctx) {   // CR 701.13. Depois de mover: 'moe' por carta {id, j} e o lote 'moeGrupo' {ids, n} ("uma ou mais", Scorchbeast)
     const q = qtdDe(e, f.qtd, ctx), ids: any[] = [];
     for (const j of jogsDe(e, f, ctx)) { const g = e.jogs[j].zonas.grimorio; for (let i = 0; i < q && g.length; i++) { const id = g[g.length - 1]; M.mover(e, id, 'cemiterio'); if (e.objs[id].zona === 'cemiterio') ids.push(id); } }   // substituída para outra zona (Rest in Peace): não foi moída
+    ctx.movidos = movidos(e, ids);                                   // "put a card from among them" (Ripples of Undeath: f.lembrada)
     if (M.evento && ids.length) { for (const id of ids) M.evento(e, { ev: 'moe', id, j: e.objs[id].dono }); M.evento(e, { ev: 'moeGrupo', ids, n: ids.length }); }
   } },
   // qtd 'tudo' = "sacrifica todas" (Living Death, sem escolha); {ate:N|'qualquer'} = "quantas quiser" (Scapeshift)
