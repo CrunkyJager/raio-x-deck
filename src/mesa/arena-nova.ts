@@ -327,6 +327,7 @@ export function novaSessao(Ds: any[], seed: number, cfg: any = {}) {
       case 'sala': return `Ir para a sala ${op.n} (o efeito dela acontece)`;
       case 'perder': return `Perder ${op.q} de vida`;
       case 'virar': return `Virar ${nomeOp(ob)} (custo)`;
+      case 'desvirar': return `Desvirar ${nomeOp(ob)} (custo)`;
       case 'descartar': case 'sacrificar': if (p.tipo === 'evitarPerda') return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)} (e não perde vida)`; return `${op.a === 'descartar' ? 'Descartar' : 'Sacrificar'} ${nomeOp(ob)}`;
       case 'devolver': return `Devolver ${nomeOp(ob)} para a mão (custo)`;
       case 'custo': return p.ctx && p.ctx.o === 'exilar' ? `Exilar ${nomeOp(ob)} do cemitério` : nomeOp(ob);
