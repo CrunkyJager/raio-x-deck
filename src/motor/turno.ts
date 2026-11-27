@@ -231,10 +231,11 @@ const RESP = {
     else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id, op.face);
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
     else if (op.a === 'manaEsc') M.manaEsc(e, p.j, op.id, op.k, op.escolha);          // CR 605.3a com escolha no custo
-    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face);
+    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face, op.baixo);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
     else if (op.a === 'prever') M.prever(e, p.j, op.id);
     else if (op.a === 'suspender') M.suspender(e, p.j, op.id);
+    else if (op.a === 'virarParaCima') M.virarParaCima(e, p.j, op.id);   // 116.2b
     else if (op.a === 'destrancar') M.destrancar(e, p.j, op.id, op.porta);
   },
   descartar(e, p, op) {
@@ -290,6 +291,7 @@ M.abe = e => {
       if (!v) { roles.set(k, o); continue; }
       if (v.ts < o.ts) { morrem.push(v.id); roles.set(k, o); } else morrem.push(id);
     }
+    for (const id of e.campo) { const o = e.objs[id]; if (o.par && !M.parDe(e, o)) { delete o.par; e.vCamada = (e.vCamada || 0) + 1; } }   // 702.95e: o par quebrou (não volta)
     // preparar: a cópia no exílio deixa de existir se a criatura saiu do campo ou não está mais preparada
     for (const J of e.jogs) for (const id of [...J.zonas.exilio]) { const c = e.objs[id]; if (c.copiaPrep && !M.prepValida(e, c)) { M.mover(e, id, 'cemiterio'); mudou = true; } }
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
@@ -301,7 +303,8 @@ M.abe = e => {
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
     for (const id of sagas) if (e.objs[id].zona === 'campo') { M.mover(e, id, 'cemiterio', { sac: true }); mudou = true; }   // 714.4: é sacrifício (701.21)
-    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
+    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);
+    M.ligarMotores(e);                                                 // 702.179a: Start your engines!           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
     if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }

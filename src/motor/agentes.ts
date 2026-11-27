@@ -65,6 +65,7 @@ const basico = (e, p) => {
       let b = -1, bv = -1;
       p.ops.forEach((op, i) => {
         if (op.a !== 'conjurar') return;
+        if (op.baixo) { if (meu && !p.ops.some(x => x.a === 'conjurar' && x.id === op.id && !x.baixo) && 3 > bv) { bv = 3; b = i; } return; }   // 702.37c: virada por {3} só quando não dá para conjurar normal
         const d = dOp(op), inst = (d.tipos || []).includes('Instant');
         if (!meu && !inst) return;
         if (inst && !d.alvos && !meu) return;            // instantânea sem alvo: no próprio turno
@@ -88,6 +89,9 @@ const basico = (e, p) => {
         // Room (709.5e): destranca a outra porta com a mana que sobrou das mágicas
         const kd = p.ops.findIndex(op => op.a === 'destrancar');
         if (kd >= 0) return kd;
+        // desvirar (116.2b): com a mana que sobrou das mágicas
+        const kv = p.ops.findIndex(op => op.a === 'virarParaCima');
+        if (kv >= 0) return kv;
       }
       if (meu) {
         const k3 = p.ops.findIndex(op => op.a === 'ativar' && (() => { const a = M.atvDe(e, o(op.id))[op.k]; return a.lealdade !== undefined || (a.custo.virar && !(o(op.id).ficha && a.custo.sacrificar === 'este')); })());
@@ -124,6 +128,9 @@ const basico = (e, p) => {
     case 'concessao': return melhorOp(p.ops, op => { const x = o(op.o); return (x.ctrl === p.j ? 100 : -100) + M.poder(e, x) + M.resistencia(e, x); });   // a minha maior
     // "choose a player"/"an opponent" sem alvo (Gluntch, Baleful Mastery): o que é bom fica comigo; entre oponentes, o de menos vida
     case 'jogador': { const k = p.ops.findIndex(op => op.jog === p.j); return k >= 0 ? k : melhorOp(p.ops, op => -e.jogs[op.jog].vida); }
+    case 'modo': if (p.ctx && p.ctx.pontos) return melhorOp(p.ops, op => op.a === 'modo' ? p.ctx.pontos[op.m] ?? 1 : 0); return 0;   // {P}: o modo mais caro que ainda cabe (pronto quando não cabe nada)
+    case 'parear': return melhorOp(p.ops, op => op.a !== 'parear' ? -1 : 100 + M.poder(e, o(op.id)));   // 702.95a: parear sempre (o par só dá), com a mais forte
+    case 'cifrar': return melhorOp(p.ops, op => op.a !== 'cifrar' ? -1 : 100 + (M.temKw(e, o(op.id), 'voar') ? 10 : 0) + M.poder(e, o(op.id)));   // 702.99a: codifica na que mais passa (voa) e bate
     case 'um': return melhorOp(p.ops, op => M.poder(e, o(op.id)));   // "a creature you control" sem alvo: a de mais poder
     case 'buscar': case 'cavar': case 'destino': return p.ops.length > 1 && p.ops[0].a === 'nenhum' ? 1 : 0;
     case 'manter': {                  // a que fica: a de mais valor (não ficha, maior valor de mana)
@@ -187,7 +194,17 @@ const basico = (e, p) => {
       if (c.sacrificar === 'este' && p.ctx.op === 'perderVida') return J.vida <= 3 ? k : 0;   // Withercrown: 1 de vida vale menos que a criatura
       return meu ? k : 0;
     }
-    case 'custoCombate': return 0;   // custo para atacar/bloquear (Ghostly Prison, Archangel of Tithes): já escolheu atacar/bloquear, paga
+    // custo para atacar/bloquear (Ghostly Prison, Archangel of Tithes): já escolheu atacar/bloquear, paga. Só não paga
+    // o de atacar quando a mana é a de uma mágica da mão que ainda cabe na principal 2 e deixaria de caber (ataque
+    // letal paga sempre). Bloquear: é no turno do outro, a mana sobraria.
+    case 'custoCombate': {
+      const pg = p.ops.findIndex(op => op.a === 'pagar'), np = p.ops.findIndex(op => op.a === 'naoPagar');
+      if (pg < 0 || np < 0 || !p.ctx || p.ctx.tipo !== 'atacar') return Math.max(0, pg);
+      const dano = (p.ctx.ids || []).reduce((s, id) => s + Math.max(0, e.objs[id] ? M.poder(e, o(id)) : 0), 0);
+      if (M.vivos(e).some(x => x !== p.j && e.jogs[x].vida <= dano)) return pg;
+      const mata = J.zonas.mao.some(id => { const d = M.dadoDe(e, o(id)); return !terra(id) && d.custo && M.planoMana(e, p.j, d.custo) && !M.planoMana(e, p.j, M.somaCusto(d.custo, p.ctx.custo)); });
+      return mata ? np : pg;
+    }
     case 'atacar': return atacarBasico(e, p);
     case 'bloquear': return bloquearBasico(e, p);
     case 'ordemDano': {               // o mais caro leva o letal primeiro
@@ -283,9 +300,21 @@ function atacarBasico(e, p) {
 // bloqueio: bloqueia quando o bloqueador sobrevive ou troca por algo que vale mais; bloqueia "de sacrifício" quando
 // o dano que passa mata
 function bloquearBasico(e, p) {
-  const d = p.j, o = id => e.objs[id], vm = x => M.dadoDe(e, x).vm || 0;
+  const d = p.ctx.def ?? p.j, o = id => e.objs[id], vm = x => M.dadoDe(e, x).vm || 0;
   const ja = new Set(p.ctx.bl.map(x => x[1]));
   const pronto = p.ops.findIndex(op => op.a === 'pronto');
+  if (d !== p.j) {                                                                // quem escolhe é o atacante (Brutal Hordechief): o pior bloqueio para o defensor
+    if (pronto >= 0) return pronto;
+    let k = -1, kv = -Infinity;
+    p.ops.forEach((op, i) => {
+      if (op.a !== 'bloquear') return;
+      const b = o(op.id), at = o(op.atk), pa = M.poder(e, at), pb = M.poder(e, b);
+      const mata = pa >= M.resistencia(e, b) || (M.temKw(e, at, 'toqueMortifero') && pa > 0), troca = pb >= M.resistencia(e, at) || (M.temKw(e, b, 'toqueMortifero') && pb > 0);
+      const v = (mata ? 3 + vm(b) / 10 : 0) - (troca ? 4 + vm(at) / 10 : 0) - (p.ctx.devem.includes(op.id) ? 0 : 10);
+      if (v > kv) { kv = v; k = i; }
+    });
+    return k >= 0 ? k : Math.max(0, p.ops.findIndex(op => op.a === 'desfazer'));
+  }
   if (pronto < 0 && (p.ctx.devem || []).length) {                                // bloqueio obrigatório (509.1c)
     const k = p.ops.findIndex(op => op.a === 'bloquear' && p.ctx.devem.includes(op.id));
     if (k >= 0) return k;
