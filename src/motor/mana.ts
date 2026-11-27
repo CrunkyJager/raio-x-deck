@@ -270,7 +270,14 @@ M.custoComImposto = (e, o, base?) => {
   return reduz(c, reducoes(e, o.dono, o, false));
 };
 // custo de mana de uma habilidade ativada (só a parte de mana) com as reduções deHabil (Sanctum of Tranquil Light, Otawara)
-M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true));
+M.custoAtv = (e, o, a) => !a.custo.mana ? a.custo.mana : equipGratis(e, o, a) ? {} : comoQualquerCor(e, o, reduz({ ...a.custo.mana }, reducoes(e, o.ctrl, o, true)));
+// "you may spend blue mana as though it were mana of any color to pay the activation costs of this creature's abilities"
+// (Quicksilver Elemental, CR 609.4b): cada símbolo de outra cor vira híbrido com a cor (R → R/U); incolor {C} e phyrexiano ficam
+const comoQualquerCor = (e, o, c) => {
+  const s = (M.dadoDe(e, o).est || []).find(x => x.modo === 'manaComoQualquerCor' && x.afeta === 'este' && /^[WUBRG]$/.test(x.corMana || ''));
+  if (!s || !c.p || !c.p.length) return c;
+  return { ...c, p: c.p.map(p => /^[WUBRG]$/.test(p) && p !== s.corMana ? p + '/' + s.corMana : p) };
+};
 // Forge Anew: "you may pay {0} rather than pay the equip cost of the first equip ability you activate each of your turns"
 const equipGratis = (e, o, a) => !!a._equipar && e.turno.ativo === o.ctrl && e.jogs[o.ctrl].equipT !== e.turno.n && M.estSeu(e, o.ctrl, 'primeiroEquiparGratis');
 /** j controla uma permanente com a estática deste modo (sem filtro: Forge Anew) */

@@ -709,6 +709,10 @@
      "type": "boolean",
      "description": "um alvo para cada oponente (até 1 de cada)"
     },
+    "vmTotal": {
+     "$ref": "#/$defs/qtd",
+     "description": "\"with total mana value N or less\": a soma do valor de mana dos escolhidos neste alvo não passa de N (Rampaging Yao Guai; CR 601.2c)"
+    },
     "diferenteDe": {
      "type": "integer",
      "description": "\"another target\": não pode ser o escolhido no alvo N"
@@ -1267,6 +1271,10 @@
     "cores": {
      "type": "string"
     },
+    "habilDe": {
+     "$ref": "#/$defs/objeto",
+     "description": "op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)"
+    },
     "habil": {
      "type": "object",
      "properties": {
@@ -1411,6 +1419,14 @@
         "type": "string"
        },
        "description": "N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)"
+      },
+      "marcaFicam": {
+       "type": "string",
+       "description": "põe 1 marcador deste tipo em cada uma que fica (Promise of Loyalty: 'vow')"
+      },
+      "votoContra": {
+       "type": "boolean",
+       "description": "as que ficam não podem atacar você (quem resolve) nem seus planeswalkers enquanto tiverem o marcador de marcaFicam (Promise of Loyalty)"
       }
      },
      "description": "op sacrificar: cada jogador escolhe N que ficam e sacrifica o resto do filtro (Archfiend of Depravity, Ajani Nacatl Pariah, Promise of Loyalty)"
@@ -2083,6 +2099,10 @@
     "primeiraNoTurno": {
      "type": "boolean",
      "description": "ev conjura: só a primeira mágica daquele jogador no turno que bate o quem (Esper Sentinel: \"their first noncreature spell each turn\")"
+    },
+    "porAtivada": {
+     "type": "boolean",
+     "description": "ev alvoDe: só quando o que mira é uma habilidade ATIVADA (\"becomes the target of an activated ability\", Professor Hojo)"
     }
    }
   },
@@ -2124,9 +2144,10 @@
       "darLoucura",
       "oponentesNaoProcuram",
       "equiparComoInstantanea",
-      "primeiroEquiparGratis"
+      "primeiroEquiparGratis",
+      "manaComoQualquerCor"
      ],
-     "description": "oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
+     "description": "manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)"
     },
     "afeta": {
      "oneOf": [
@@ -2251,7 +2272,15 @@
     },
     "aoMirar": {
      "type": "boolean",
-     "description": "aumentaCusto: só mágicas/habilidades que miram o afetado"
+     "description": "aumentaCusto/reduzCusto: só mágicas/habilidades que miram o afetado (reduzCusto aoMirar: só com deHabil, Professor Hojo)"
+    },
+    "corMana": {
+     "enum": ["W", "U", "B", "R", "G"],
+     "description": "manaComoQualquerCor: a cor da mana que vale por qualquer cor (\"spend blue mana as though it were mana of any color\")"
+    },
+    "primeiraNoSeuTurno": {
+     "type": "boolean",
+     "description": "reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)"
     },
     "quem": {
      "$ref": "#/$defs/jogador",

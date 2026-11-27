@@ -313,6 +313,8 @@ function fonteOutra(e, fo, ctx) {
 }
 
 // modificar 'enquantoNoCampo' (Urza's Saga): só 'este' ganhando habilidade ativada que o motor ativa
+const habilDeOk = f => f.dura === 'fimDoTurno' && f.em === 'este' && !!f.habilDe && typeof f.habilDe === 'object' && Number.isInteger(f.habilDe.alvo) && Object.keys(f.habilDe).length === 1
+  && ['p', 'r', 'kw', 'est', 'habil', 'gat', 'sub', 'cores', 'trocaCor'].every(k => f[k] === undefined);
 const ganhoOk = f => f.em === 'este' && f.p === undefined && f.r === undefined && !(f.kw || []).length && !(f.est || []).length
   && !!f.habil && Object.keys(f.habil).length === 1 && Array.isArray(f.habil.atv) && f.habil.atv.length > 0 && f.habil.atv.every(a => !!a && M.custoSuportado(a.custo || {}) && M.fxSuportado(a.fx, { topo: false }));
 const gatSempre = f => f.dura === 'sempre' && !!f.habil && Array.isArray(f.habil.gat);
@@ -631,14 +633,21 @@ const H = {
   // o.anim preso ao objeto, sem prazo: 611.2a). habil.gat com dura 'sempre': habilidade disparada ganha enquanto o
   // objeto estiver no campo (o.ganhos.gatS; o mover zera) — Rivaz, Clavileño.
   modificar: {
-    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat', 'sub', 'cores', 'trocaCor'],
+    campos: ['p', 'r', 'kw', 'dura', 'est', 'habil', 'gat', 'sub', 'cores', 'trocaCor', 'habilDe'],
     qtd: q => q === undefined,
-    ok: f => f.sub !== undefined || f.cores !== undefined || gatSempre(f) ? modTipoOk(f) : (f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
+    ok: f => f.habilDe !== undefined ? habilDeOk(f) : f.sub !== undefined || f.cores !== undefined || gatSempre(f) ? modTipoOk(f) : (f.dura === 'enquantoNoCampo' && f.habil !== undefined ? ganhoOk(f) && f.gat === undefined : f.habil === undefined && (f.dura === 'fimDoTurno' || (['sempre', 'proximoTurnoSeu', 'enquantoNoCampo'].includes(f.dura) && !(f.est || []).length && f.gat === undefined)) && f.em !== undefined && (f.p !== undefined || f.r !== undefined || (f.kw || []).length > 0 || (f.est || []).length > 0 || (f.gat || []).length > 0)
       && (f.gat === undefined || (Array.isArray(f.gat) && f.gat.every(g => M.gatOk(g))))   // "ganha 'quando morrer, …'" até o fim do turno (Demonic Gifts)
       && [f.p, f.r].every(q => q === undefined || (qtdOk(q) && !dadoOk(q))) && M.kwListaOk(f.kw)
       && (f.est || []).every(s => s.afeta === 'este' && (s.modo === 'deveBloquear' ? Object.keys(s).every(k => ['modo', 'afeta', 'atacante'].includes(k)) && (s.atacante === undefined || s.atacante === 'doEvento')
         : EST_REGRA.includes(s.modo) && Object.keys(s).every(k => ['modo', 'afeta'].includes(k))))),
     fx(e, f, ctx) {
+      if (f.habilDe !== undefined) {   // "gains all activated abilities of target creature until end of turn" (Quicksilver Elemental): as que o alvo tem agora
+        const ia = f.habilDe.alvo, a = (ctx.alvos[ia] || [])[0], T = a && !(ctx.ilegal && ctx.ilegal[ia + ':0']) ? e.objs[a.o] : null, F = e.objs[ctx.este];
+        if (!T || T.zona !== 'campo' || !F || F.zona !== 'campo') return;
+        const atv = M.atvDe(e, T);
+        if (atv.length) F.ganhos = { ...(F.ganhos || {}), atvT: [...((F.ganhos && F.ganhos.atvT) || []), ...atv] };   // sai na limpeza (514.2) ou ao mudar de zona
+        return;
+      }
       if (gatSempre(f) && f.em === 'doEvento' && ctx.ev) for (const o of [e.objs[ctx.ev.id]]) if (o && o.zona === 'pilha' && !o.hab && (ctx.ev.ts === undefined || o.ts === ctx.ev.ts)) o.gatPilha = [...(o.gatPilha || []), ...f.habil.gat];   // a mágica: a permanente que ela vira tem (Rivaz)
       // "target instant or sorcery card in your graveyard gains flashback until end of turn" (Flashback, Snapcaster Mage):
       // a carta no cemitério, presa por id+ts no e.efTemp; custo = o custo de mana dela (lido no flashDe, pilha.ts)
@@ -1368,7 +1377,7 @@ const H = {
     qtd: q => qtdOk(q) || q === 'tudo' || (ateOk(q) && q.ate !== 'X'),
     // exceto: "sacrifica todas menos N" (Promise of Loyalty, Archfiend) ou "escolhe uma de cada tipo e sacrifica o resto"
     // (porTipo: Ajani; cada escolhida vale para um tipo só). Quem sacrifica escolhe as que ficam (o agente: as de menos valor vão).
-    ok: f => f.exceto === undefined || (!!f.exceto && typeof f.exceto === 'object' && Object.keys(f.exceto).every(k => k === 'qtd' || k === 'porTipo') && Number.isInteger(f.exceto.qtd) && f.qtd === undefined
+    ok: f => f.exceto === undefined || (!!f.exceto && typeof f.exceto === 'object' && Object.keys(f.exceto).every(k => ['qtd', 'porTipo', 'marcaFicam', 'votoContra'].includes(k)) && (!f.exceto.votoContra || typeof f.exceto.marcaFicam === 'string') && Number.isInteger(f.exceto.qtd) && f.qtd === undefined
       && (f.exceto.porTipo === undefined || (Array.isArray(f.exceto.porTipo) && f.exceto.porTipo.every(t => typeof t === 'string')))),
     fx(e, f, ctx, ask) {
       const esc: any[] = [];
@@ -1376,6 +1385,7 @@ const H = {
         for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo' && o.ctrl === ctx.voce) esc.push(o.id);
         ctx.resultado = esc.length; for (const id of esc) M.mover(e, id, 'cemiterio', { sac: true }); return;
       }
+      const ficam: number[] = [];
       for (const j of jogsDe(e, f, ctx)) {
         const cand = M.objetosQue(e, { ...(f.f || {}), ctrl: 'voce', zona: 'campo' }, { ...ctx, voce: j }).map(o => o.id);
         if (f.exceto && f.exceto.porTipo) {
@@ -1384,13 +1394,16 @@ const H = {
             const ops = cand.filter(id => !fica.has(id) && M.temTipo(e, e.objs[id], t));
             for (let n = 0; n < f.exceto.qtd && ops.length; n++) { const v = ops.filter(id => !fica.has(id)); if (!v.length) break; fica.add(escolherN(ask, j, 'manter', v, 1)[0]); }
           }
-          esc.push(...cand.filter(id => !fica.has(id)));
+          esc.push(...cand.filter(id => !fica.has(id))); ficam.push(...fica);
           continue;
         }
-        if (f.exceto) { esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.max(0, cand.length - f.exceto.qtd))); continue; }
+        if (f.exceto) { esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.max(0, cand.length - f.exceto.qtd))); { const sai = new Set(esc); ficam.push(...cand.filter(id => !sai.has(id))); } continue; }
         if (f.qtd === 'tudo') { esc.push(...cand); continue; }
         esc.push(...escolherN(ask, j, 'sacrificar', cand, Math.min(qtdDe(e, f.qtd, ctx), cand.length), { podeMenos: ateOk(f.qtd) }));
       }
+      // marcaFicam/votoContra (Promise of Loyalty): o marcador vai antes do sacrifício (é a mesma ação, mas a ordem não muda nada);
+      // "can't attack you … for as long as it has a vow counter": preso ao objeto (o mover zera o.voto), lido em combate.ts
+      if (f.exceto && f.exceto.marcaFicam) for (const id of ficam) { const o = e.objs[id]; M.porMarcadores(e, o, f.exceto.marcaFicam, 1); if (f.exceto.votoContra) o.voto = { marc: f.exceto.marcaFicam, js: [...((o.voto && o.voto.js) || []), ctx.voce] }; }
       ctx.resultado = esc.length;                                   // "reveal … until X Zombies" (Empty the Laboratory)
       for (const id of esc) M.mover(e, id, 'cemiterio', { sac: true });
     },

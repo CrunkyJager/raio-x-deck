@@ -5174,6 +5174,68 @@ caso('601.3e', "Progenitor's Icon: só a PRÓXIMA mágica do tipo escolhido tem 
   M.evento(e, { ev: 'conjura', id: b1.id, j: 0 }); ok(!M.lampejoDado(e, 0, b2), 'depois do 1º Urso, o 2º não');
 });
 
+caso('107.3m', "Rampaging Yao Guai: X=2 entra com 2 marcadores e o gatilho de entrada só deixa alvos com valor de mana somado ≤ 2", () => {
+  const e = cena({ campo: [...terras(5, 'Forest'), [1, 'Sol Ring'], [1, 'Arcane Signet'], [1, 'Mind Stone'], [1, 'Smothering Tithe']], mao: [[0, 'Rampaging Yao Guai']] });
+  M.avancar(e); conj(e, 'Rampaging Yao Guai');
+  const esc: string[][] = []; let k = 0;
+  resolveCom(e, p => {
+    if (p.tipo === 'x') return p.ops.findIndex(o => o.v === 2);
+    if (p.tipo === 'alvo') { esc.push(p.ops.filter(o => o.o !== undefined).map(o => e.objs[o.o].n).sort()); const i = p.ops.findIndex(o => o.o !== undefined); return i >= 0 && k++ < 5 ? i : p.ops.findIndex(o => o.a === 'pronto'); }
+    return -1;
+  });
+  const y = objN(e, 0, 'Rampaging Yao Guai');
+  igual(y.marc['+1/+1'], 2, 'X marcadores');
+  ok(esc.length && !esc[0].includes('Smothering Tithe'), 'vm 4 nunca é opção com X=2: ' + JSON.stringify(esc));
+  const vmFora = ['Sol Ring', 'Arcane Signet', 'Mind Stone'].filter(n => !e.campo.some(id => e.objs[id].n === n)).reduce((t, n) => t + M.carta(n).vm, 0);
+  ok(vmFora > 0 && vmFora <= 2, 'destruiu com soma ≤ 2: ' + vmFora);
+});
+
+caso('508.1c', "Promise of Loyalty: cada jogador fica com 1 criatura com marcador de voto e sacrifica o resto; a do oponente não ataca você nem seu planeswalker enquanto tiver o voto", () => {
+  ok(M.fxSuportado(M.carta('Promise of Loyalty').fx), 'aceito');
+  const e = cena({ campo: [[0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [1, 'Serra Angel'], [1, 'Grizzly Bears'], [0, 'Jace Beleren']] });
+  const ag = M.agenteBasico(), ask = (j, tipo, ops, cx) => ops[ag(e, { j, tipo, ops, ctx: cx })];
+  M.executar(e, M.carta('Promise of Loyalty').fx[0], { voce: 0, este: -1, alvos: [], ilegal: {}, lki: {} }, ask);
+  const cr = j => e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && M.temTipo(e, o, 'Creature'));
+  igual([cr(0).length, cr(1).length], [1, 1], 'uma de cada');
+  const a = cr(1)[0]; igual(a.marc.vow, 1, 'voto');
+  ok(e.campo.some(id => e.objs[id].n === 'Jace Beleren'), 'planeswalker não é sacrificado');
+  a.doente = false; e.turno.ativo = 1; e.turno.passo = 'declararAtacantes';
+  const P: any = { j: 1 }; let vistos: any[] = [];
+  M.PROC.atacar(e, P, (j, tipo, ops) => { vistos = ops; return ops.find(o => o.a === 'pronto'); });
+  ok(!vistos.some(o => o.a === 'atacar' && o.id === a.id), 'sem alvo possível para a do voto (2 jogadores): ' + JSON.stringify(vistos));
+  a.marc.vow = 0;
+  M.PROC.atacar(e, P, (j, tipo, ops) => { vistos = ops; return ops.find(o => o.a === 'pronto'); });
+  ok(vistos.some(o => o.a === 'atacar' && o.id === a.id), 'sem o marcador, ataca');
+});
+
+caso('602.2b', "Professor Hojo: a 1ª habilidade ativada do seu turno que mira criatura sua custa {2} a menos; mirada por habilidade ativada compra 1 (uma vez por turno)", () => {
+  const H = M.carta('Professor Hojo'); ok(H.gat.every(g => M.gatOk(g)) && M.estReduzMiraOk(H.est[0]), 'aceito');
+  const e = cena({ campo: [[0, 'Professor Hojo'], [0, 'Grizzly Bears'], [0, 'Basilisk Collar'], [0, 'Forest']] });
+  const m0 = e.jogs[0].zonas.mao.length;
+  M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Basilisk Collar'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  const col = objN(e, 0, 'Basilisk Collar'), ur = objN(e, 0, 'Grizzly Bears');
+  igual(col.anexo && col.anexo.id, ur.id, 'equipou (equipar {2} − 2)');
+  igual(e.jogs[0].zonas.mao.length - m0, 1, 'Hojo comprou 1');
+  igual(e.campo.filter(id => e.objs[id].n === 'Forest' && e.objs[id].virada).length, 0, 'não gastou mana');
+  M.avancar(e);
+  ok(!e.perg.ops.some(o => o.a === 'ativar' && e.objs[o.id].n === 'Basilisk Collar'), 'a 2ª já não tem desconto (só 1 Floresta)');
+});
+
+caso('613.1f', "Quicksilver Elemental: {U} ganha as ativadas da criatura alvo até o fim do turno; azul paga qualquer cor nelas", () => {
+  const Q = M.carta('Quicksilver Elemental'); ok(M.fxSuportado(Q.atv[0].fx, { topo: false }), 'aceito');
+  const e = cena({ campo: [[0, 'Quicksilver Elemental'], [1, 'Prodigal Pyromancer'], [0, 'Island'], [0, 'Island']] });
+  const q = objN(e, 0, 'Quicksilver Elemental'), py = objN(e, 1, 'Prodigal Pyromancer'); q.doente = false;
+  M.executar(e, Q.atv[0].fx[0], { voce: 0, este: q.id, alvos: [[{ o: py.id, ts: py.ts }]], ilegal: {}, lki: {} }, null);
+  igual(M.atvDe(e, q).length, 2, 'a dele + a do Pyromancer');
+  const vir = { ...M.atvDe(e, py)[0], custo: { ...M.atvDe(e, py)[0].custo, mana: { p: ['R'] } } };
+  igual(M.custoAtv(e, q, vir).p, ['R/U'], 'R vira R/U');
+  igual(M.custoAtv(e, py, vir).p, ['R'], 'no Pyromancer não');
+  const t0 = e.turno.n;
+  for (let g = 0; g < 400 && e.turno.n === t0 && !e.fim; g++) { M.avancar(e); if (e.perg) M.responder(e, e.perg.tipo === 'acao' ? e.perg.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, e.perg)); }
+  ok(e.turno.n > t0, 'turno seguinte');
+  igual(M.atvDe(e, q).length, 1, 'some no fim do turno');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

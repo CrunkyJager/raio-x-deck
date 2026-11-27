@@ -53,6 +53,7 @@ M.alvoSuportado = a => {
   if (a.max !== undefined && a.max !== 'qualquer' && typeof a.max !== 'number') return false;
   if (a.opcao !== undefined && !OPCAO_OK.has(a.opcao)) return false;
   if (a.diferenteDe !== undefined && !Number.isInteger(a.diferenteDe)) return false;
+  if (a.vmTotal !== undefined && typeof a.vmTotal !== 'number' && a.vmTotal !== 'X') return false;   // vmTotal: número ou X
   if (typeof f === 'string') return ['qualquerAlvo', 'jogador', 'oponente', 'magica'].includes(f);
   return M.filtroOk(f);
 };
@@ -519,7 +520,10 @@ M.podeAtivar = (e, j, o, k) => {
   }
   if (a.custo.mana) {
     const ex = a.custo.virar || a.custo.sacrificar === 'este' || a.custo.devolver === 'este' ? [o.id] : [];
-    if (!plano(e, j, M.custoAtv(e, o, a), 0, ex)) return false;
+    let mana = M.custoAtv(e, o, a);
+    const red = mana && mana.g ? reducaoAlvo(e, j, alvosUsados(a.fx).map(i => M.alvosPossiveis(e, a.alvos[i], ctx))).g : 0;   // Hojo: pode mirar uma que dá o desconto
+    if (red) mana = { ...mana, g: Math.max(0, mana.g - red) };
+    if (!plano(e, j, mana, 0, ex)) return false;
   }
   return true;
 };
@@ -643,6 +647,7 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
     while (lista.length < max) {
       let ops = M.alvosPossiveis(e, a, ctx).filter(x => !lista.some(y => mesmo(x, y)) && !(Number.isInteger(a.diferenteDe) && (esc[a.diferenteDe] || []).some(y => mesmo(x, y)))).map(x => ({ a: 'alvo', ...x }));   // CR 115.3; diferenteDe: "another target" (Markov Retribution)
       if (a.porJogador || a.porOponente) ops = ops.filter(x => { const jx = jogDoAlvo(e, x); return (!a.porOponente || jx !== ctx.voce) && !lista.some(y => jogDoAlvo(e, y) === jx); });   // "for each player/opponent, up to one target … that player controls/owns" (até 1 de cada)
+      if (a.vmTotal !== undefined) { const lim = M.qtd(e, a.vmTotal, ctx) ?? 0, ja = lista.reduce((t, y) => t + (y.o !== undefined ? M.dadoDe(e, e.objs[y.o]).vm || 0 : 0), 0); ops = ops.filter(x => x.o === undefined || ja + (M.dadoDe(e, e.objs[x.o]).vm || 0) <= lim); }   // "total mana value N or less" (601.2c)
       if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
       if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto' && max === Infinity)) break;
@@ -821,6 +826,24 @@ const impostoAlvo = (e, j, alvos, deHabil) => {
   return r;
 };
 M.impostoAlvo = impostoAlvo;
+// "the first activated ability you activate during your turn that targets [f] costs {N} less" (Professor Hojo, 601.2f via 602.2b):
+// reduzCusto deHabil aoMirar; primeiraNoSeuTurno = só a 1ª habilidade do turno que mira um afetado (J.habMiraT guarda o turno)
+M.estReduzMiraOk = s => !!s && s.modo === 'reduzCusto' && s.aoMirar === true && s.deHabil === true && Number.isInteger(s.qtd) && s.qtd > 0
+  && Object.keys(s).every(k => ['modo', 'afeta', 'aoMirar', 'deHabil', 'qtd', 'primeiraNoSeuTurno'].includes(k)) && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta);
+const reducaoAlvo = (e, j, alvos) => {
+  const os = (alvos || []).flat().filter(a => a && a.o !== undefined).map(a => e.objs[a.o]).filter(Boolean), J = e.jogs[j];
+  let g = 0, primeira = false;
+  if (!os.length) return { g: 0, marca: false };
+  for (const id of M.indiceCampo(e).est) {
+    const F = e.objs[id]; if (!F || F.ctrl !== j) continue;
+    for (const s of M.dadoDe(e, F).est || []) {
+      if (!M.estReduzMiraOk(s) || !os.some(o => M.bate(e, o, s.afeta, { voce: F.ctrl, este: F.id }))) continue;
+      if (s.primeiraNoSeuTurno) { primeira = true; if (e.turno.ativo !== j || J.habMiraT === e.turno.n) continue; }
+      g += s.qtd;
+    }
+  }
+  return { g, marca: primeira && e.turno.ativo === j };
+};
 
 const PROC = {
   conjurar(e, P, ask) {
@@ -898,10 +921,12 @@ const PROC = {
     const imp = impostoAlvo(e, j, alvos, true);                                      // 601.2f via 602.2b: Kopala (habilidade)
     if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
+    const red = reducaoAlvo(e, j, alvos); if (red.g && mana && mana.g) mana = { ...mana, g: Math.max(0, mana.g - red.g) };   // Professor Hojo
     const fis = escolherCustoFisico(e, j, c, o.id, c.descartarEste ? o.id : null, ask);
     const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac, ...fis.dev, ...fis.vir]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
+    if (red.marca) e.jogs[j].habMiraT = e.turno.n;                                    // a 1ª do turno que mira (Hojo) já foi
     // a habilidade vai para a pilha independente da fonte (CR 113.7a): leva o texto e o que sabia da fonte
     const id = e.prox++;
     const h = { id, n: o.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
@@ -996,7 +1021,7 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
     const conj = o.pil.opc, x = o.pil.x || 0, fuga = o.pil.fuga;
     o.pil = null;
     const ent = M.aplicarEntrada(e, { ...plano, conj, x });
-    if (ent) ent.conjurada = true;     // filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
+    if (ent) { ent.conjurada = true; ent.xConj = x; }   // xConj: o X da mágica para o gatilho/substituição de entrada (CR 107.3m)     // filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
     if (conj && conj.iminente && ent) { const k = iminenteDe(M.dadoBase(e, ent)); if (k) ent.marc.time = (ent.marc.time || 0) + k.n; }   // 702.176a: entra com N marcadores de tempo
     if (fuga && typeof fuga === 'object') for (const m in fuga) ent.marc[m] = (ent.marc[m] || 0) + fuga[m];   // 702.138c: "foge com"                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
     return;

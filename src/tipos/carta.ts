@@ -348,6 +348,10 @@ export interface RxAlvo {
    */
   porOponente?: boolean;
   /**
+   * "with total mana value N or less": a soma do valor de mana dos escolhidos neste alvo não passa de N (Rampaging Yao Guai; CR 601.2c)
+   */
+  vmTotal?: RxQtd;
+  /**
    * "another target": não pode ser o escolhido no alvo N
    */
   diferenteDe?: number;
@@ -620,6 +624,10 @@ export interface RxFx {
   tipos?: string[];
   sub?: string[];
   cores?: string;
+  /**
+   * op modificar (em 'este', dura fimDoTurno): ganha as habilidades ativadas que o alvo tem na resolução (Quicksilver Elemental)
+   */
+  habilDe?: RxObjeto;
   habil?: {
     atv?: unknown[];
     gat?: unknown[];
@@ -721,6 +729,14 @@ export interface RxFx {
      * N de CADA um destes tipos (Archfiend: 2 criaturas; Promise of Loyalty: 1)
      */
     porTipo?: string[];
+    /**
+     * põe 1 marcador deste tipo em cada uma que fica (Promise of Loyalty: 'vow')
+     */
+    marcaFicam?: string;
+    /**
+     * as que ficam não podem atacar você (quem resolve) nem seus planeswalkers enquanto tiverem o marcador de marcaFicam (Promise of Loyalty)
+     */
+    votoContra?: boolean;
   };
   /**
    * op ficha: cria qtd fichas PARA CADA jogador atacado, cada grupo atacando aquele jogador (Adeline, Ainok Strike Leader, Soaring Lightbringer)
@@ -1158,11 +1174,15 @@ export interface RxGat {
    * ev compra: exceto a primeira carta que o jogador compra no passo de compra dele (Orcish Bowmasters, Bard)
    */
   naoPrimeira?: boolean;
+  /**
+   * ev alvoDe: só quando o que mira é uma habilidade ATIVADA ("becomes the target of an activated ability", Professor Hojo)
+   */
+  porAtivada?: boolean;
 }
 
 export interface RxEst {
   /**
-   * oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
+   * manaComoQualquerCor (afeta 'este', cor): a mana daquela cor paga qualquer cor nos custos das habilidades ativadas desta (Quicksilver Elemental); oponentesNaoProcuram: mágicas e habilidades dos seus oponentes não fazem o controlador delas procurar no grimório (Ashiok, Dream Render); darLoucura: as cartas de afeta que não estão no campo têm loucura com custo = o custo de mana delas (Falkenrath Gorger); naoPodeAtivar: os objetos de 'afeta' não ativam habilidades (Linvala, Keeper of Silence; Myrel); 'semMana' em nenhum caso: escrever na falta; deveBloquear: os afetados bloqueiam se puderem (Brutal Hordechief), e com 'atacante' bloqueiam aquele atacante (Fighter Class, Tolsimir) equiparComoInstantanea: no seu turno, equipar na velocidade de instantânea; primeiroEquiparGratis: o 1º equipar de cada turno seu custa {0} (Forge Anew)
    */
   modo:
     | 'continuo'
@@ -1194,7 +1214,8 @@ export interface RxEst {
     | 'darLoucura'
     | 'oponentesNaoProcuram'
     | 'equiparComoInstantanea'
-    | 'primeiroEquiparGratis';
+    | 'primeiroEquiparGratis'
+    | 'manaComoQualquerCor';
   afeta?: RxFiltro | RxJogador | ('este' | 'equipada');
   p?: RxQtd;
   r?: RxQtd;
@@ -1255,9 +1276,17 @@ export interface RxEst {
     f?: RxFiltro;
   };
   /**
-   * aumentaCusto: só mágicas/habilidades que miram o afetado
+   * aumentaCusto/reduzCusto: só mágicas/habilidades que miram o afetado (reduzCusto aoMirar: só com deHabil, Professor Hojo)
    */
   aoMirar?: boolean;
+  /**
+   * manaComoQualquerCor: a cor da mana que vale por qualquer cor ("spend blue mana as though it were mana of any color")
+   */
+  corMana?: 'W' | 'U' | 'B' | 'R' | 'G';
+  /**
+   * reduzCusto aoMirar: só a primeira habilidade ativada que você ativa no seu turno mirando o afetado (Professor Hojo)
+   */
+  primeiraNoSeuTurno?: boolean;
   /**
    * aumentaCusto: de quem são as mágicas
    */
