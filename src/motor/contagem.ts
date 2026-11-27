@@ -33,7 +33,7 @@ const DO_CONJ = { quantos: [undefined], poder: ['soma', 'maior'], resist: ['soma
 function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   const o = c.o, j = c.junta;
   if (temF(c)) return M.filtroOk(c.de.f) && !!DO_CONJ[o] && DO_CONJ[o].includes(j) && chaves(c, ['junta']);
-  if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida'].includes(o) && chaves(c, []);
+  if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida', 'manaGasta'].includes(o) && chaves(c, []);
   switch (c.de) {
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
@@ -57,7 +57,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 // estática: só o que não depende de evento/alvo/efeito anterior (é o CONTA_EST + PROP_EST de antes)
 function estOk(c) {
   if (temF(c)) return true;
-  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes'].includes(c.o);
+  if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes', 'marcadores'].includes(c.o);   // marcadores: os do jogador (rad, energia…)
   if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   return c.de === 'oponentes' || c.de === 'jogadores';
@@ -92,7 +92,7 @@ M.contar = (e, c, ctx: any = {}) => {
     const i = c.de.alvo;
     if (o === 'vida' || o === 'grimorio') { const jj = M.jogsAlvo(e, i, ctx)[0]; return jj === undefined ? 0 : o === 'vida' ? e.jogs[jj].vida : e.jogs[jj].zonas.grimorio.length; }
     const a = L && L.alvos && L.alvos[i] && L.alvos[i][0];
-    return a ? a[o] : 0;
+    return a ? a[o] || 0 : 0;   // manaGasta: a mana gasta para conjurar a mágica alvo (LKI na pilha, Mana Sculpt)
   }
   const J = e.jogs[ctx.voce];
   switch (c.de) {

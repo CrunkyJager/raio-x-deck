@@ -749,6 +749,10 @@ export interface RxFx {
    */
   paraObj?: RxObjeto;
   /**
+   * mover para o grimório: N-ésima a partir do topo ("fourth from the top" = 4, Lost to Legend)
+   */
+  posicao?: number;
+  /**
    * mover para o campo: entra sem estes tipos ("It's an enchantment. (It's not a creature.)", Enduring Courage)
    */
   tiraTipo?: string[];
@@ -1593,6 +1597,7 @@ export interface RxContagem {
     | 'resolucoesDestaHab'
     | 'oponentesAtacados'
     | 'sacrificadas'
+    | 'manaGasta'
     | 'entraram'
     | 'atacantes'
     | 'atacantesEmVoce'

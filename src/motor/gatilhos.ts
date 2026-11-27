@@ -176,6 +176,7 @@ function extras(e, F, g, ev) {
 }
 // fabricar N (CR 702.123a): gatilho de entrar implícito da palavra-chave
 const GAT_PERSISTIR = { ev: 'morre', fx: [{ op: 'persistir' }] };
+const GAT_RADIACAO = { ev: 'fase', passo: 'principal1', fx: [{ op: 'radiacao' }] };   // 725.1
 const GAT_DESAPARECER = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'desaparecer' }] };   // 702.63a
 const GAT_MIRIADE = { ev: 'ataca', quem: { este: true }, fx: [{ op: 'miriade' }] };
 const ESPIRITO = { pt: [1, 1], cores: 'WB', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] };
@@ -290,6 +291,10 @@ M.evento = (e, ev) => {
   M.masmorrasEvento(e, ev);                                                             // iniciativa, morbid, "até o seu próximo turno" (masmorras.ts)
   if (ev.ev === 'alvoDe') resguardo(e, ev);
   if (ev.ev === 'conjura') proeza(e, ev);
+  if (ev.ev === 'fase' && ev.passo === 'principal1' && ev.ativo !== undefined && e.jogs[ev.ativo] && ((e.jogs[ev.ativo].marc || {}).rad || 0) > 0 && !e.turno.radFeito) {   // 725.1: só a 1ª principal do turno
+    e.turno.radFeito = true;
+    e.pend.push({ fonte: -1, ts: 0, ctrl: ev.ativo, k: 'radiacao', g: GAT_RADIACAO, n: 'Radiação', face: null, ficha: null, lki: null, ev: { ...ev } });
+  }
   if (ev.ev === 'fase' && ev.passo === 'manutencao') {
     for (const id of e.campo) {   // desaparecer (702.63a): "if there's a time counter on it" (603.4)
       const F = e.objs[id]; if (!F || F.ctrl !== ev.ativo || !(F.marc.time > 0)) continue;

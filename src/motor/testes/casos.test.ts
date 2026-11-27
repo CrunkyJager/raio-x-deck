@@ -5768,6 +5768,48 @@ caso('602.2b', "Timestream Navigator: pôr no fundo do grimório é custo (fundo
   igual([e.turno.n, e.turno.ativo], [n + 1, 0], 'o próximo turno é meu de novo (500.7)');
 });
 
+caso('607.2a', "Lobelia: ao entrar exila o topo de cada oponente (cavar comEste); depois a ativada acha 'uma carta exilada com Lobelia'", () => {
+  const e = cena({ campo: [[0, 'Swamp']] });
+  e.por(1, 'Grizzly Bears', { zona: 'grimorio' });
+  const lo = e.por(0, 'Lobelia, Defender of Bag End', { zona: 'mao' }); M.mover(e, lo.id, 'campo'); M.avancar(e); resolvePilha(e);
+  const ex = e.jogs[1].zonas.exilio.map(id => e.objs[id]);
+  igual(ex.map(o => o.n), ['Grizzly Bears'], 'exilou o topo do oponente');
+  ok(M.objetosQue(e, { exiladaPorEste: true, zona: 'exilio' }, { voce: 0, este: lo.id, lki: {} }).length === 1, 'exilada com Lobelia');
+});
+
+caso('401.4', "mover posicao (Lost to Legend): a permanente histórica vai para o grimório do dono como a quarta do topo", () => {
+  const e = cena({ campo: [[1, 'Sol Ring']] });
+  for (const n of ['Forest', 'Island', 'Mountain', 'Swamp', 'Plains']) e.por(1, n, { zona: 'grimorio' });
+  const sr = objN(e, 1, 'Sol Ring');
+  M.executar(e, M.carta('Lost to Legend').fx[0], { ...ctxDe(e), alvos: [[{ o: sr.id, ts: sr.ts }]] }, (j, t, ops) => ops[0]);
+  const g = e.jogs[1].zonas.grimorio; igual(e.objs[g[g.length - 4]].n, 'Sol Ring', 'quarta do topo');
+});
+
+caso('601.2h', "contagem {de:{alvo:0}, o:'manaGasta'} (Mana Sculpt): a mana gasta na mágica alvo (com X), lida do LKI da pilha", () => {
+  const e = cena({ campo: [...terras(4, 'Mountain')], mao: [[0, 'Fireball']] });
+  M.avancar(e); const naPilha = x => x.pilha.length > 0;
+  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && e.objs[o.id].n === 'Fireball'), naPilha);
+  M.responder(e, e.perg.ops.findIndex(o => o.v === 3), naPilha); M.responder(e, e.perg.ops.findIndex(o => o.a === 'alvo' && o.jog === 1), naPilha);
+  const fb = e.objs[e.pilha[e.pilha.length - 1]];
+  igual(M.lkiDe(e, fb).manaGasta, 4, 'X=3 + {R}');
+  igual(M.qtdDe(e, { conta: { de: { alvo: 0 }, o: 'manaGasta' } }, { voce: 0, alvos: [[{ o: fb.id, ts: fb.ts }]], lki: { alvos: [[M.lkiDe(e, fb)]] } }), 4, 'pela contagem');
+  ok(M.contaOk({ de: { alvo: 0 }, o: 'manaGasta' }), 'aceita');
+});
+
+caso('725.1', "Mariposa Military Base: pode entrar virada e ganhar 2 rad; a compra custa {1} a menos por rad; radiação na 1ª principal moe e tira rad por não-terreno", () => {
+  ok(M.carta('Mariposa Military Base').gat.every(g => M.gatOk(g)), 'aceito');
+  const e = cena({ campo: [[0, 'Forest']] });
+  const mp = e.por(0, 'Mariposa Military Base', { zona: 'mao' });
+  M.aplicarEntrada(e, M.decidirEntrada(e, mp.id, 0, {}, (j, t, ops, c) => c && c.op === 'entraVirada' ? ops[0] : ops[0]));
+  ok(mp.virada, 'entrou virada (escolheu)'); M.avancar(e); resolvePilha(e);
+  igual((e.jogs[0].marc || {}).rad, 2, '2 rad');
+  igual(M.vmDe(M.custoAtv(e, mp, M.atvDe(e, mp)[1])), 3, 'a compra custa {3}');
+  for (const n of ['Forest', 'Grizzly Bears', 'Hill Giant']) e.por(0, n, { zona: 'grimorio' });
+  const v0 = e.jogs[0].vida; e.perg = null; e.turno.radFeito = false;
+  M.evento(e, { ev: 'fase', passo: 'principal1', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  igual(e.jogs[0].vida, v0 - 2, 'moeu Hill Giant e Bears: perde 2'); igual(e.jogs[0].marc.rad, 0, 'tirou 2 rad');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

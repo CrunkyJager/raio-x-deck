@@ -1458,6 +1458,11 @@
      "$ref": "#/$defs/objeto",
      "description": "moverMarcador: o objeto que recebe os marcadores (o `em` é de onde saem; Forgotten Ancient)"
     },
+    "posicao": {
+     "type": "integer",
+     "minimum": 2,
+     "description": "mover para o grimório: N-ésima a partir do topo (\"fourth from the top\" = 4, Lost to Legend)"
+    },
     "tiraTipo": {
      "type": "array",
      "items": {
@@ -2789,6 +2794,7 @@
       "resolucoesDestaHab",
       "oponentesAtacados",
       "sacrificadas",
+      "manaGasta",
       "entraram",
       "atacantes",
       "atacantesEmVoce",
