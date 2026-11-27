@@ -446,7 +446,8 @@ M.executar = (e, f, ctx, ask) => {
   if (f.talvez) ctx.pagou = true;                                    // "se fizer" (se.pagou) do efeito seguinte
   const ag = e.agente; e.agente = ctx.voce;                          // quem faz o efeito (o "you put counters" de All Will Be One)
   const a0 = askAtual; askAtual = ask;
-  try { h.fx(e, f, ctx, ask); } finally { e.agente = ag; askAtual = a0; }
+  const ff = e.fxFonte; e.fxFonte = ctx.este;                        // de quem é o efeito que move ("put onto the battlefield with this ability", Kodama)
+  try { h.fx(e, f, ctx, ask); } finally { e.agente = ag; askAtual = a0; e.fxFonte = ff; }
 };
 
 // entrar no campo (CR 110.2: sob o controle de quem conjurou/pôs; 614.1c "entra virado"; 614.12 escolha ao entrar)
@@ -1364,7 +1365,7 @@ const H = {
       }
       const feitas: any[] = [];
       for (const [j, ids] of por) feitas.push(...M.descartar(e, j, ids, { ask, efeito: true }));
-      ctx.lembrados = feitas; ctx.pagou = feitas.length > 0;
+      ctx.lembrados = feitas; ctx.pagou = feitas.length > 0; ctx.movidos = movidos(e, feitas);   // em 'anterior': as descartadas ("if you discarded a nonland card", conivir 701.50a)
     },
   },
   // loucura (CR 702.35): o gatilho da carta exilada pela loucura. O dono pode conjurá-la pagando o custo de loucura

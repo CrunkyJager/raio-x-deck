@@ -212,6 +212,7 @@ M.PROC.bloquear = (e, P, ask) => {
   e.proc = null;
   const pares = cands.filter(id => bl[id] !== undefined).map(id => [id, bl[id]]);
   for (const [id, i] of pares) M.evento(e, { ev: 'bloqueia', id, atk: C.atk[i].id });   // 509.3
+  for (const i of new Set<number>(pares.map(([, i]) => i as number))) if (!C.atk[i].bloqueado) M.evento(e, { ev: 'bloqueada', id: C.atk[i].id, j: C.atk[i].def });   // 509.3c: "becomes blocked", uma vez por atacante (aflição)
   for (const [id, i] of pares) { C.atk[i].bloq.push({ id, ts: e.objs[id].ts }); C.atk[i].bloqueado = true; }   // 509.1h
   C.bloqueou = C.bloqueou || {}; C.bloqueou[d] = true;
   if (pares.length) M.log(e, e.jogs[d].nome, 'bloqueia:', pares.map(([id, i]) => e.objs[id].n + '×' + e.objs[C.atk[i].id].n).join(', '));

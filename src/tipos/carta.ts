@@ -236,6 +236,10 @@ export interface RxFiltro {
    */
   topo?: boolean;
   /**
+   * criatura que convocou a mágica que resolve ("each creature that convoked this spell": Lethal Scheme, CR 702.51c)
+   */
+  convocou?: boolean;
+  /**
    * objeto lembrado pelo efeito
    */
   lembrada?: boolean;
@@ -1040,6 +1044,7 @@ export interface RxKw {
     | 'agregar'
     | 'miriade'
     | 'mobilizar'
+    | 'aflicao'
     | 'eco'
     | 'bis'
     | 'prole'
@@ -1228,6 +1233,14 @@ export interface RxGat {
    */
   de?: RxZona;
   /**
+   * entra: não vale para o que um efeito desta permanente pôs no campo ("if it wasn't put onto the battlefield with this ability": Kodama of the East Tree)
+   */
+  naoPorEste?: boolean;
+  /**
+   * entra com de: vale também a que foi conjurada daquela zona ("entered from a graveyard or was cast from a graveyard": Kotis)
+   */
+  ouConjurada?: boolean;
+  /**
    * "from anywhere other than …"
    */
   naoDe?: RxZona;
@@ -1384,7 +1397,7 @@ export interface RxEst {
    */
   atacante?: RxObjeto;
   /**
-   * darFuga: exilar N outras do cemitério (Underworld Breach)
+   * darFuga: exilar N outras do cemitério (Underworld Breach) · podeJogar: custo a mais de exilar N outras do cemitério (Kotis)
    */
   exilar?: number;
   /**
