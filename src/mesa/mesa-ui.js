@@ -400,6 +400,8 @@ async function jogaPartida() {
 }
 // ---------- T27: você joga (o motor pergunta, a tela responde e o motor refaz a partida do zero com a mesma semente) ----------
 let JG = null;
+let X1EU = 0;                                                         // T47: o lugar desta tela no X1 (o convidado é o 1); fora do X1, 0
+const MEU_LUGAR = () => (JG && JG.eu !== undefined ? JG.eu : X1EU);
 async function jogaEu() {
   await pronto; parar(); JOGO = null;
   const ops = listaOps(); const ids = $$('[data-vop]').map(x => x.value); store.set('vivoOps', ids);
@@ -433,8 +435,8 @@ async function avancaEu() {
   // acabou: vira a Mesa ao vivo normal, para rever a partida inteira lance a lance
   const G = JG; JG = null;
   JOGO = r.fim; JOGO.Ms = G.Ms; JOGO.cmdNome = G.cmdNome; PASSO = 0; PREV = null;
-  const v = JOGO.venc, txt = v === 0 ? 'Você venceu!' : v >= 0 ? `Venceu ${NOMES[v]}.` : 'Ninguém venceu em 20 turnos.';
-  box.innerHTML = `<div class="verdict ${v === 0 ? 'v-good' : 'v-bad'}">${esc(txt)} Reveja a partida abaixo, lance a lance.</div>` + mesaHTML();
+  const v = JOGO.venc, txt = v === MEU_LUGAR() ? 'Você venceu!' : v >= 0 ? `Venceu ${NOMES[v]}.` : 'Ninguém venceu em 20 turnos.';
+  box.innerHTML = `<div class="verdict ${v === MEU_LUGAR() ? 'v-good' : 'v-bad'}">${esc(txt)} Reveja a partida abaixo, lance a lance.</div>` + mesaHTML();
   ligaControles(); vaiPara(JOGO.quadros.length - 1);
   const g = $('#v-eu'); if (g) g.textContent = 'Jogar você mesmo';
 }
@@ -462,7 +464,7 @@ function placar(p) { const cri = p.perm.filter(x => x.p != null), pod = cri.redu
 function resumoHTML() { const R0 = (JG.resumo || []).filter(e => e.tp !== 'turno'), R = R0.filter(e => regMostra(e.tp)); if (!R0.length) return '';
   if (!R.length) return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span><ul>${semTipo}</ul></div>`;
   const por = new Map(); R.forEach(e => { if (!por.has(e.k)) por.set(e.k, []); por.get(e.k).push(e); });
-  return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span>${[...por].map(([k, es]) => `<div><b>${esc(k === 0 ? 'Você' : NOMES[k] || '')}</b><ul>${es.map(e => `<li><span class="vt ${esc(e.tp)}">${TP[e.tp] || '•'}</span>${esc(e.txt)}</li>`).join('')}</ul></div>`).join('')}</div>`; }
+  return `<div class="ja-res"><span class="c-k">Desde a sua última decisão</span>${[...por].map(([k, es]) => `<div><b>${esc(k === MEU_LUGAR() ? 'Você' : NOMES[k] || '')}</b><ul>${es.map(e => `<li><span class="vt ${esc(e.tp)}">${TP[e.tp] || '•'}</span>${esc(e.txt)}</li>`).join('')}</ul></div>`).join('')}</div>`; }
 function desenhaEu() { $('#v-mesa').innerHTML = mesaEuHTML(JG.q.quadro, { q: JG.q }); ligaMesaEu(); }
 // no começo da partida a mesa rola para a tela inteira, longe do cabeçalho
 function rolaMesa() { const m = $('.ja'); if (m && !JG.rolou) { JG.rolou = true; const nav = document.querySelector('nav, .tabs'), h = nav ? nav.getBoundingClientRect().height : 0; window.scrollTo({ top: m.getBoundingClientRect().top + scrollY - h - 16, behavior: 'smooth' }); } }
@@ -526,7 +528,7 @@ function escolheFundo(k) {
 const ORIENT = { 2: [[0, 1], [1, 1]], 3: [[0, 1], [1, 1], [1, 0]], 4: [[0, 1], [1, 1], [1, 0], [0, 0]] };
 const LUGAR = { 2: ['s0', 's1'], 3: ['s0', 's1', 's2'], 4: ['s0', 's1', 's2', 's3'] };
 function jaLugarHTML(k, p, c) {
-  const G = JG, M = G.Ms[k], eu = k === 0, cmd = G.cmdNome[k], ci = cmd ? imgDe(cmd) : null, q = c.q, ev = c.ev;
+  const G = JG, M = G.Ms[k], eu = k === MEU_LUGAR(), cmd = G.cmdNome[k], ci = cmd ? imgDe(cmd) : null, q = c.q, ev = c.ev;
   const pp = c.prev ? c.prev.j[k] : null, d = pp ? p.vida - pp.vida : 0;
   const vez = ev ? ev.k === k : c.Q && c.Q.k === k, alvo = (ev && ev.a === k && ev.k !== k) || (!eu && c.alvoOk && G.alvo === k);
   const escolhe = !eu && c.alvoOk && q.alvos.some(a => a.v === k);
@@ -574,7 +576,7 @@ function mesaEuHTML(Q, o) {
   if (q && ['terreno', 'lanca', 'descarte'].includes(q.tipo)) q.ops.forEach(x => { if (typeof x.v === 'number' && x.v >= 0) okMao.add(x.v); });
   if (q && (q.tipo === 'ataque' || q.tipo === 'bloqueio' || q.tipo === 'equipar' || q.tipo === 'sacrificar')) q.ops.forEach(x => { if (x.pi >= 0) okPi.add(x.pi); });
   const atkSel = new Set(q && q.tipo === 'ataque' ? [...G.sel].map(j => q.ops[j].pi) : []);
-  const P = Q ? Q.j : null, me = P ? P[0] : null;
+  const P = Q ? Q.j : null, me = P ? P[MEU_LUGAR()] : null;
   const cmdOk = !!(q && q.tipo === 'lanca' && q.ops.some(x => x.v === 'cmd'));
   const prev = G.ultQ && G.ultQ !== Q ? G.ultQ : null; G.ultQ = Q;
   const c = { Q, q, ev, okPi, atkSel, alvoOk, cmdOk, prev };
@@ -610,7 +612,7 @@ function mesaEuHTML(Q, o) {
       <div class="j-ops"><button class="btn small" data-b="desf" ${G.esc.length ? '' : 'disabled'}>↶ Desfazer</button><button class="btn small" ${/[?&]dev=1/.test(location.search) ? "" : "hidden"} data-b="motor" title="Lê de novo motor/*.js e forge-motor.js do servidor e refaz a partida com as mesmas escolhas, sem recarregar a página">↻ Recarregar motor</button><button class="btn small" data-b="sai">Desistir</button></div></div>`;
   } else if (ev) {
     const Mk = G.Ms[ev.k] || [], nc = ev.c >= 0 && Mk[ev.c] ? (Mk[ev.c].frente || Mk[ev.c].nome) : null, im = nc ? imgDe(nc) : null;
-    const quem = ev.k === 0 ? 'Você' : NOMES[ev.k] || '';
+    const quem = ev.k === MEU_LUGAR() ? 'Você' : NOMES[ev.k] || '';
     const pausado = paraAqui(ev) && jVel() !== 'clique';
     const ctl = `<div class="j-ops"><button class="btn primary" data-b="prox">${pausado ? 'Continuar ▶' : 'Próximo ▶'}${o.fila ? ` (faltam ${o.fila})` : ''}</button><select class="vsel" id="ja-vel" aria-label="Velocidade">${Object.keys(JVEL).map(k => `<option value="${k}" ${jVel() === k ? 'selected' : ''}>${JVN[k]}</option>`).join('')}</select>
       <button class="btn small" data-b="pula">Pular para minha vez ⏭</button>${pausaHTML()}</div>${pausado ? '<p class="vpausou">Parado neste lance (parar em gatilho/efeito ligado).</p>' : ''}`;
@@ -755,14 +757,14 @@ function vaiPara(i) {
 }
 function txtLance(ev, quem) {
   if (ev.tp === 'turno') return `Vez de <b>${esc(quem)}</b>`;
-  const nm = ev.k === 0 ? 'Você' : NOMES[ev.k] || '';
+  const nm = ev.k === MEU_LUGAR() ? 'Você' : NOMES[ev.k] || '';
   return nm && ev.txt.startsWith(nm) ? `<b>${esc(nm)}</b>${esc(ev.txt.slice(nm.length))}` : esc(ev.txt);
 }
 function centroHTML(Q, ev) {
   if (!ev) return `<div class="c-vazio"><span class="c-k">Turno 0</span><p>Mãos compradas.<br>A partida vai começar.</p></div>`;
   const M = JOGO.Ms[ev.k]; const nomeC = ev.c >= 0 && M[ev.c] ? (M[ev.c].frente || M[ev.c].nome) : null;
   const im = nomeC ? imgDe(nomeC) : null;
-  const quem = ev.k >= 0 ? (ev.k === 0 ? 'Você' : NOMES[ev.k]) : '';
+  const quem = ev.k >= 0 ? (ev.k === MEU_LUGAR() ? 'Você' : NOMES[ev.k]) : '';
   return `<div class="c-ev ${esc(ev.tp)}">
     <span class="c-k"><span class="vt ${esc(ev.tp)}">${TP[ev.tp] || '•'}</span>${esc(TPN[ev.tp] || ev.tp)} · turno ${Q.t}</span>
     ${im ? `<button class="c-card" data-card="${esc(nomeC)}"><img src="${esc(im[1])}" alt="${esc(nomeC)}"></button>` : nomeC ? `<button class="c-card" data-card="${esc(nomeC)}"><span class="mtok big"><b>${esc(nomeC)}</b></span></button>` : ''}
@@ -778,7 +780,7 @@ function lugarHTML(p, k, ev, pv) {
   const vez = ev && ev.k === k, alvo = ev && ev.a === k && ev.k !== k;
   const dv = pv ? p.vida - pv.vida : 0;
   const cmd = G.cmdNome[k]; const cmdIm = cmd ? imgDe(cmd) : null;
-  const me = k === 0;
+  const me = k === MEU_LUGAR();
   // terrenos: as cartas de verdade, agrupadas por nome (×2, ×3…), com quantas estão viradas
   const pvT = pv ? pv.tl.length : p.tl.length;
   const grupos = new Map(); let tap = 0;
