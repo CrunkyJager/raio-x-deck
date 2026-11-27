@@ -3523,6 +3523,21 @@ caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispar
   igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
 });
 
+caso('603.2', "Esper Sentinel dispara só na 1ª mágica não-criatura do oponente no turno; Xyris não conta a 1ª compra da etapa de compra dele", () => {
+  for (const c of ['Esper Sentinel', 'Xyris, the Writhing Storm']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[1, 'Esper Sentinel']], mao: [[0, 'Grizzly Bears'], [0, 'Sol Ring'], [0, 'Lightning Bolt']] });
+  const [urso, anel, bolt] = ['Grizzly Bears', 'Sol Ring', 'Lightning Bolt'].map(n => e.jogs[0].zonas.mao.map(id => e.objs[id]).find(o => o.n === n));
+  const conjura = o => { M.mover(e, o.id, 'pilha'); const J = e.jogs[0]; J.conjH = { t: e.turno.n, l: [...(J.conjH ? J.conjH.l : []), { ...o }] }; e.pend = []; M.evento(e, { ev: 'conjura', id: o.id, j: 0 }); return e.pend.filter(p => p.n === 'Esper Sentinel').length; };
+  igual(conjura(urso), 0, 'criatura: não');
+  igual(conjura(anel), 1, '1ª não-criatura: dispara');
+  igual(conjura(bolt), 0, '2ª não-criatura: não');
+  const f = cena({ campo: [[0, 'Xyris, the Writhing Storm']], passo: 'compra' });
+  f.turno.ativo = 1; f.pend = [];
+  M.comprar(f, 1, 1); igual(f.pend.filter(p => p.n === 'Xyris, the Writhing Storm').length, 0, 'a da etapa de compra não');
+  M.comprar(f, 1, 1); igual(f.pend.filter(p => p.n === 'Xyris, the Writhing Storm').length, 1, 'a 2ª sim');
+  f.turno.passo = 'principal1'; M.comprar(f, 1, 1); igual(f.pend.filter(p => p.n === 'Xyris, the Writhing Storm').length, 2, 'fora da etapa sim');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

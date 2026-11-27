@@ -378,7 +378,10 @@ M.comprar = (e, j, qtd = 1) => {
     J.compT = { t: e.turno.n, n: (J.compT && J.compT.t === e.turno.n ? J.compT.n : 0) + 1 };
     // milagre (702.94): a primeira compra do turno com milagre é revelada (simplificação: sempre) e o gatilho vai para a pilha
     if (J.compT.n === 1 && e.pend && e.turno.passo !== 'mulligan' && M.milagreDe(e, e.objs[id])) { const o = e.objs[id]; e.pend.push({ fonte: id, ts: o.ts, ctrl: j, k: 'milagre', g: GAT_MILAGRE, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'compra', j } }); M.log(e, J.nome, 'revela', o.n, '(milagre)'); }
-    if (M.evento) M.evento(e, { ev: 'compra', j });
+    // a 1ª compra na própria etapa de compra (Xyris: "except the first one they draw in each of their draw steps", 504.1)
+    const etapa = e.turno.passo === 'compra' && e.turno.ativo === j;
+    if (etapa) J.compEt = { t: e.turno.n, n: (J.compEt && J.compEt.t === e.turno.n ? J.compEt.n : 0) + 1 };
+    if (M.evento) M.evento(e, { ev: 'compra', j, ...(etapa && J.compEt.n === 1 ? { primeiraEtapa: true } : {}) });
   }
 };
 
