@@ -690,6 +690,17 @@ M.kwDe = (e, o) => {
   if (o.zona === 'campo' && o.marc) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
   return b;
 };
+// "cada card de Sliver na sua mão tem ciclo de Sliver {3}" (Homing Sliver): as camadas só olham o campo, então a
+// palavra-chave de ciclo dada à mão (afeta.zona 'mao') vira a ativada aqui, só para os cards do controlador da fonte
+const cicloNaMao = (e, o) => {
+  const r: any[] = [];
+  for (const [id, s] of fontesCont(e).l) {
+    if (!s.afeta || typeof s.afeta !== 'object' || s.afeta.zona !== 'mao' || !(s.kw || []).some(ehCiclo)) continue;
+    const F = e.objs[id]; if (!F || F.ctrl !== o.dono || !M.bate(e, o, s.afeta, { voce: F.ctrl, este: id })) continue;
+    for (const x of s.kw) if (ehCiclo(x)) r.push(cicloDe(x));
+  }
+  return r;
+};
 /** habilidades ativadas: as da carta, as de equipar (palavra-chave) e as dadas pelas camadas, nessa ordem (k estável) */
 const ATV_CARTA = new WeakMap<object, any[]>();   // atv da carta + equipar, por dado (não muda na partida)
 // ciclar N (CR 702.29a): "[custo], descarte esta carta: compre um card", ativada da mão. O descarte dispara 'descarta'.
@@ -699,6 +710,17 @@ const ciclarDe = kw => {
   if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }));
   return a;
 };
+// ciclo de tipo (CR 702.29e/f): "[custo], descarte esta carta: procure no grimório um card [tipo], revele, ponha na mão,
+// embaralhe". É ciclar (dispara 'cicla'). tipo é tipo de card (Creature…) ou subtipo (Plains, Wizard, Sliver).
+const TIPO_DE_CARD = new Set(['Creature', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle', 'Instant', 'Sorcery']);
+const cicloTipoDe = kw => {
+  let a = CICLAR.get(kw);
+  if (!a) CICLAR.set(kw, (a = { custo: { mana: kw.custo || {}, descartarEste: true }, zona: 'mao', _ciclar: true,
+    fx: [{ op: 'buscar', f: TIPO_DE_CARD.has(kw.tipo) ? { tipo: [kw.tipo] } : { sub: [kw.tipo] }, qtd: 1, para: 'mao', revelar: true }, { op: 'embaralhar', quem: 'voce' }] }));
+  return a;
+};
+const ehCiclo = x => (x.k === 'ciclar' && x.custo && Object.keys(x).length === 2) || (x.k === 'cicloTipo' && x.custo && typeof x.tipo === 'string' && Object.keys(x).length === 3);
+const cicloDe = x => x.k === 'ciclar' ? ciclarDe(x) : cicloTipoDe(x);
 // subir de nível (CR 716.2a): "[custo]: Nível N" — ativada como feitiço, só com a Classe no nível N−1 (pilha.ts podeAtivar)
 const SUBIR = new WeakMap<object, any>();
 const subirDe = l => {
@@ -733,9 +755,9 @@ const atvCarta = d => {
   if (!l) {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
-    const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(x => x.k === 'ciclar' && x.custo && Object.keys(x).length === 2);
+    const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
-    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(ciclarDe), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
+    ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj] : d.atv || NADA.atv));
   }
   return l as any[];
 };
@@ -744,6 +766,7 @@ M.atvDe = (e, o) => {
   let b = atvCarta(M.dadoDe(e, o));
   if (o.ganhos && o.ganhos.atv) b = b.concat(o.ganhos.atv);
   const h = fontesCont(e).hab ? camadas(e, o).atv : NADA.atv;
+  if (o.zona === 'mao') b = b.concat(cicloNaMao(e, o));
   return h.length ? b.concat(h) : b;
 };
 /** alguém no campo dá habilidade (habil)? sem isso gatDe/atvDe são só os da carta */
