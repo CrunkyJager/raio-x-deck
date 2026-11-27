@@ -963,6 +963,23 @@ const H = {
       H.gatilhoAtrasado.fx(e, { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'sacrificar', em: 'criadas' }] } }, ctx);
     },
   },
+  // fundir (CR 701.42, 712.4): se você é dono e controla as duas, exila esta e a parceira (f) e põe no campo a carta
+  // fundida (faces[0] desta). A parceira fica no exílio ligada a ela (o.fundidaCom); quando a fundida sai do campo, as
+  // duas vão juntas (712.4c). Simplificação: o valor de mana da fundida é o da face de trás (não a soma das duas, 712.8g).
+  fundir: {
+    campos: ['f', 'virada', 'atacando'],
+    ok: f => !!f.f && M.filtroOk(f.f) && f.em === undefined,
+    fx(e, f, ctx, ask) {
+      const F = e.objs[ctx.este], j = ctx.voce;
+      if (!F || F.zona !== 'campo' || F.ctrl !== j || F.dono !== j || M.formaDe(e, F) !== 'fundir' || F.ficha) return;
+      const P = M.objetosQue(e, f.f, ctx).find(o => o.id !== F.id && o.ctrl === j && o.dono === j && !o.ficha); if (!P) return;
+      M.mover(e, F.id, 'exilio'); M.mover(e, P.id, 'exilio');
+      const o = M.mover(e, F.id, 'campo', { face: 0, virada: !!f.virada });
+      o.fundidaCom = { id: P.id, ts: P.ts };
+      M.log(e, F.n, 'e', P.n, 'se fundem em', M.dadoDe(e, o).n);
+      if (f.atacando && e.turno.combate) { const t = M.escolherAtacado(e, j, ask || ((_j, _t, ops) => ops[0])); if (t) M.porAtacando(e, o, t); }   // 508.4
+    },
+  },
   // popular (CR 701.36a): escolha uma ficha de criatura que você controla e crie uma ficha que é cópia dela (sem ficha: nada, 701.36b)
   popular: {
     fx(e, f, ctx, ask) {
