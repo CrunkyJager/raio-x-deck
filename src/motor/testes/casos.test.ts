@@ -3837,6 +3837,16 @@ caso('603.6a', "entra vindo de uma zona: River Kelpie dispara com permanente que
   ok(M.carta('Kotis, Sibsig Champion').gat.every(g => M.gatOk(g)), 'Kotis aceito');
 });
 
+caso('201.2', "filtros de gatilho: Guardian Project só compra com nome que não tenho no campo nem no cemitério; Kutzil olha poder acima do base", () => {
+  const e = cena({ campo: [[0, 'Guardian Project'], [0, 'Grizzly Bears']] });
+  const g = M.carta('Guardian Project').gat[0].quem, ctx = { voce: 0 };
+  const b2 = e.por(0, 'Grizzly Bears'); ok(!M.bate(e, b2, g, ctx), 'Bears repetida: não');
+  const el = e.por(0, 'Llanowar Elves'); ok(M.bate(e, el, g, ctx), 'nome novo: sim');
+  e.por(0, 'Hill Giant', { zona: 'cemiterio' }); const hg = e.por(0, 'Hill Giant'); ok(!M.bate(e, hg, g, ctx), 'mesmo nome no cemitério: não');
+  const k = M.carta('Kutzil, Malamet Exemplar').gat[0].quem;
+  ok(!M.bate(e, el, k, ctx), 'poder base: não'); el.marc['+1/+1'] = 1; ok(M.bate(e, el, k, ctx), 'com marcador: sim');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
