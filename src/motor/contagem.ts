@@ -38,7 +38,8 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida'].includes(o) && chaves(c, []);
-    case 'turno': return ['magias', 'descartes', 'ataques', 'compras', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
+    case 'turno': return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
+      : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados'].includes(o) && chaves(c, []);
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'oponentes': case 'jogadores': return o === 'quantos' && chaves(c, []);
     case 'X': case 'resultado': return chaves(c, []) && o === undefined;
@@ -108,10 +109,13 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'turno':
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
-      if (o === 'compras') { const D = J.compT; return D && D.t === e.turno.n ? D.n : 0; }      // "cards you've drawn this turn" (Fists of Flame)
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
-      if (o === 'compras') { const C = J.compT; return C && C.t === e.turno.n ? C.n : 0; }   // "for each card you've drawn this turn" (Fists of Flame, 121.1)
+      if (o === 'vidaPerdida' || o === 'compras') {   // de você, do jogador da vez (cadaAtual, no repetirCada) ou dos oponentes (soma/maior)
+        const de = jj => { const T = o === 'vidaPerdida' ? e.jogs[jj].perdT : e.jogs[jj].compT; return T && T.t === e.turno.n ? T.n : 0; };
+        if (c.quem === 'oponentes') { const v = M.vivos(e).filter(x => x !== ctx.voce).map(de); return c.junta === 'soma' ? v.reduce((a, b) => a + b, 0) : Math.max(0, ...v); }
+        return de(c.quem === 'cadaAtual' ? ctx.cadaAtual ?? ctx.voce : ctx.voce);
+      }
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       // corpo-a-corpo (702.121a): os oponentes que você atacou com criatura neste combate (jogador, não planeswalker), na resolução
       if (o === 'oponentesAtacados') return new Set(((e.turno.combate || {}).atk || []).filter(r => r.alvo && r.alvo.jog !== undefined && r.alvo.jog !== ctx.voce && e.objs[r.id] && e.objs[r.id].ctrl === ctx.voce).map(r => r.alvo.jog)).size;   // "the second time this ability has resolved this turn" (contando esta)

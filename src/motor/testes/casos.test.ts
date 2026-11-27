@@ -1379,7 +1379,7 @@ caso('205.3m', 'tipoEmComum: tipo de criatura em comum com este, filtro ou coman
   const [le, em, gb, me, fo] = ['Llanowar Elves', 'Elvish Mystic', 'Grizzly Bears', 'Mirror Entity', 'Forest'].map(n => objN(e, 0, n));
   const b = (o, ref, este) => M.bate(e, o, { tipoEmComum: ref }, { voce: 0, este: este.id });
   igual([b(em, 'este', le), b(gb, 'este', le), b(me, 'este', gb), b(fo, 'este', me)], [true, false, true, false]);
-  igual(M.bate(e, gb, { tipoEmComum: { sub: ['Elf'] } }, { voce: 0, este: gb.id }), false);
+  igual(M.bate(e, gb, { tipoEmComum: { sub: ['Elf'] } }, { voce: 0, este: gb.id }), true, 'Mirror Entity (metamorfo) é Elfo e Urso (702.73a)');
   igual(M.bate(e, le, { tipoEmComum: { tipo: ['Creature'] } }, { voce: 0, este: le.id }), true, 'Elvish Mystic e Mirror Entity');
   gb.cmd = true;
   igual([b(me, 'comandante', le), b(em, 'comandante', le)], [true, false]);
@@ -3829,7 +3829,6 @@ caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispar
   igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
 });
 
-// ---------- contagens num formato só (27/11): {conta:{de, o, junta}} ----------
 caso('603.6a', "entra vindo de uma zona: River Kelpie dispara com permanente que volta do cemitério, não com a que vem da mão", () => {
   const e = cena({ campo: [[0, 'River Kelpie']] }); e.pend = [];
   const b = e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
@@ -4761,6 +4760,100 @@ caso('611.2', "Mistrise Village: a próxima mágica que você conjurar neste tur
   ok(!M.anular(e, b) && M.anular(e, c), 'anular respeita');
 });
 
+caso('205.3m', "Mirror Entity (X=4): as suas criaturas viram 4/4 e de todos os tipos de criatura (contam como Goblin); a do oponente, não", () => {
+  ok(M.fxSuportado(M.carta('Mirror Entity').atv[0].fx), 'animar com todosTipos aceito');
+  const e = cena({ campo: [[0, 'Mirror Entity'], [0, 'Grizzly Bears'], [1, 'Grizzly Bears'], [0, 'Forest']] });
+  const me = objN(e, 0, 'Mirror Entity'), u = e.campo.map(id => e.objs[id]).find(o => o.n === 'Grizzly Bears' && o.ctrl === 0);
+  M.executar(e, M.carta('Mirror Entity').atv[0].fx[0], { ...ctxDe(e), este: me.id, item: me.id, x: 4 }, (j, t, ops) => ops[0]);
+  igual([M.poder(e, u), M.resistencia(e, u)], [4, 4], 'Urso 4/4');
+  ok(M.tiposCriatura(e, u) === 'todos', 'Urso de todos os tipos');
+  ok(M.bate(e, u, { sub: ['Goblin'] }, ctxDe(e)), 'conta como Goblin');
+  ok(!M.bate(e, objN(e, 0, 'Forest'), { sub: ['Goblin'] }, ctxDe(e)), 'terreno não');
+  const o = e.campo.map(id => e.objs[id]).find(x => x.n === 'Grizzly Bears' && x.ctrl === 1);
+  ok(M.tiposCriatura(e, o) !== 'todos' && M.poder(e, o) === 2, 'a do oponente fica igual');
+  ok(!M.bate(e, u, { sub: ['Forest'] }, ctxDe(e)), 'não ganha tipo de terreno');
+});
+
+caso('702.34a', "Increasing Devotion: da mão cria 5 Humanos; conjurada do cemitério (flashback) cria 10 e vai ao exílio", () => {
+  const e = cena({ campo: terras(9, 'Plains'), mao: [[0, 'Increasing Devotion']] }); e.pend = [];
+  const [id] = e.jogs[0].zonas.mao;
+  const humanos = () => e.campo.filter(x => e.objs[x].ficha && e.objs[x].ctrl === 0).length;
+  M.avancar(e); conj(e, 'Increasing Devotion'); resolveCom(e);
+  igual([humanos(), e.objs[id].zona], [5, 'cemiterio'], 'da mão: 5');
+  for (const x of e.campo) e.objs[x].virada = false;
+  M.avancar(e); respE(e, o => o.a === 'conjurar' && o.id === id); resolveCom(e);
+  igual([humanos(), e.objs[id].zona], [15, 'exilio'], 'do cemitério: mais 10');
+});
+
+caso('701.26a', "Myr Battlesphere ataca: vira 2 dos 3 Myr desvirados (escolhe), ganha +2/+0 e causa 2 ao atacado", () => {
+  ok(M.fxSuportado(M.carta('Myr Battlesphere').gat[1].fx), 'virar com qtd {ate} aceito');
+  const e = combate([[0, 'Myr Battlesphere']]);
+  const mb = objN(e, 0, 'Myr Battlesphere');
+  const myr = M.criarFichas(e, 0, { pt: [1, 1], tipos: ['Artifact', 'Creature'], sub: ['Myr'] }, 3, {});
+  ate(e, 'atacar'); atacaCom(e, mb); fecha(e, 'atacar');
+  let viradas = 0;
+  for (let g = 0; g < 200 && e.turno.passo !== 'principal2'; g++) {
+    M.avancar(e, PARA2); if (!e.perg) continue;
+    const t = e.perg.tipo;
+    const k = t === 'talvez' ? e.perg.ops.findIndex(x => x.a === 'sim') : t === 'virar' ? (viradas++ < 2 ? e.perg.ops.findIndex(x => x.a === 'virar') : e.perg.ops.findIndex(x => x.a === 'nenhum')) : 0;
+    M.responder(e, k, PARA2);
+  }
+  igual(myr.filter(o => o.virada).length, 2, '2 Myr virados');
+  igual(e.jogs[1].vida, 40 - 2 - 6, '2 do gatilho + 6 do combate (4+2)');
+});
+
+caso('603.4', "Belladonna Took: 3 fichas entram; 1ª resolução ganha 1, 2ª compra 1, 3ª põe +1/+1 em cada criatura sua", () => {
+  ok(M.fxSuportado(M.carta('Belladonna Took').gat[0].fx), 'contagem turno/resolucoesDestaHab aceita');
+  const e = cena({ campo: [[0, 'Belladonna Took']] }); e.pend = [];
+  const bt = objN(e, 0, 'Belladonna Took'), mao0 = e.jogs[0].zonas.mao.length;
+  M.criarFichas(e, 0, { pt: [1, 1], tipos: ['Creature'], sub: ['Human'] }, 3, {});
+  M.avancar(e); resolveCom(e);
+  igual([e.jogs[0].vida, e.jogs[0].zonas.mao.length - mao0, bt.marc['+1/+1'] || 0], [41, 1, 1], 'vida, compra, marcador');
+});
+caso('601.2', "Unbreakable Formation (Addendum): na sua principal dá indestrutível, +1/+1 e vigilância; fora da principal só indestrutível", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears'], ...terras(3, 'Plains')], mao: [[0, 'Unbreakable Formation']] }); e.pend = [];
+  const gb = objN(e, 0, 'Grizzly Bears');
+  M.avancar(e); conj(e, 'Unbreakable Formation'); resolveCom(e);
+  ok(M.temKw(e, gb, 'indestrutivel') && M.temKw(e, gb, 'vigilancia') && gb.marc['+1/+1'] === 1, 'na principal: tudo');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }), uf = f.por(0, 'Unbreakable Formation', { zona: 'mao' });
+  M.mover(f, uf.id, 'pilha'); uf.conjPrinc = false;
+  ok(!M.condicao(f, { conjuradaNaPrincipal: true }, { voce: 0, este: uf.id }), 'fora da principal: não');
+  uf.conjPrinc = true; ok(M.condicao(f, { conjuradaNaPrincipal: true }, { voce: 0, este: uf.id }), 'na principal: sim');
+});
+
+// ---------- contagens num formato só (27/11): {conta:{de, o, junta}} ----------
+caso('119.3', "Archfiend of Despair: no final, cada oponente perde o que ELE perdeu no turno (3 jogadores: um perdeu 5, outro 0; o seu dano não conta)", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Archfiend of Despair']] });
+  const af = objN(e, 0, 'Archfiend of Despair');
+  M.perderVida(e, 1, 5); M.perderVida(e, 0, 4);
+  M.executar(e, M.carta('Archfiend of Despair').gat[0].fx[0], { ...ctxDe(e), este: af.id, item: af.id }, (j, t, ops) => ops[0]);
+  igual(e.jogs.map(j => j.vida), [36, 30, 40], 'o 1 perde mais 5; o 2 nada; você não');
+  e.turno.n++; M.executar(e, M.carta('Archfiend of Despair').gat[0].fx[0], { ...ctxDe(e), este: af.id, item: af.id }, (j, t, ops) => ops[0]);
+  igual(e.jogs[1].vida, 30, 'turno novo: zera');
+});
+caso('120.3', "Molten Psyche: cada um embaralha a mão e compra o mesmo tanto; com metalcraft, dano a cada oponente = o que ele comprou no turno", () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [0, 'Arcane Signet']], mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears']] });
+  for (let i = 0; i < 3; i++) e.por(1, 'Forest', { zona: 'mao' });
+  const fx = M.carta('Molten Psyche').fx;
+  ok(M.fxSuportado(fx), 'aceito');
+  for (const f of fx) M.executar(e, f, ctxDe(e), (j, t, ops) => ops[0]);
+  igual([e.jogs[0].zonas.mao.length, e.jogs[1].zonas.mao.length], [2, 3], 'mesmo tanto na mão');
+  igual(e.jogs[1].vida, 37, '3 de dano (comprou 3)');
+});
+
+caso('500.7', "turno extra: dois extras, o último criado vem primeiro; depois volta à ordem (Time Sieve)", () => {
+  ok(M.fxSuportado(M.carta('Time Sieve').atv[0].fx), 'turnoExtra aceito');
+  const e = cena({ jogs: 3 });
+  M.executar(e, { op: 'turnoExtra', quem: 'voce' }, { ...ctxDe(e), voce: 0 }, null);
+  M.executar(e, { op: 'turnoExtra', quem: 'voce' }, { ...ctxDe(e), voce: 2 }, null);
+  const vez: number[] = [];
+  for (let t = 0; t < 4; t++) {
+    const a = e.turno.n, pr = x => x.turno.n !== a;
+    for (let g = 0; g < 300 && e.turno.n === a && !e.fim; g++) { M.avancar(e, pr); if (e.perg && e.turno.n === a) M.responder(e, e.perg.tipo === 'acao' ? 0 : M.agenteBasico()(e, e.perg), pr); }
+    vez.push(e.turno.ativo);
+  }
+  igual(vez, [2, 0, 1, 2], 'extra do 2 (último criado), extra do 0, e segue do 0: 1, 2');
+});
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.

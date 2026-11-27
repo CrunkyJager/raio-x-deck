@@ -1533,6 +1533,7 @@
       "sobrecarga",
       "kicker",
       "flashback",
+      "cemiterio",
       "madness",
       "evoke"
      ]
@@ -2588,9 +2589,10 @@
     },
     "quem": {
      "enum": [
-      "oponentes"
+      "oponentes",
+      "cadaAtual"
      ],
-     "description": "de: turno — de quem (padrão: você)"
+     "description": "de: turno — de quem (padrão: você; cadaAtual = o jogador da vez no repetirCada)"
     },
     "cond": {
      "type": "string",

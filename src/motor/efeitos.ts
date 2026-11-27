@@ -12,7 +12,7 @@ const comCada = fn => { dentroCada++; try { return fn(); } finally { dentroCada-
 const comObj = fn => { dentroObj++; try { return fn(); } finally { dentroObj--; } };
 // contagens: formato único em contagem.ts (M.contaOk / M.contar); nome velho entra traduzido por M.qn
 const vidaEv = ev => ev.ev === 'ganhaVida' || ev.ev === 'perdeVida';
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal']);
 
 // ---------- suporte (estático, olhando só o dado) ----------
 // quem: {alvo: N} = o jogador escolhido no alvo N ("target player discards", Kolaghan's Command)
@@ -1168,6 +1168,8 @@ const H = {
   // qtd {ate: N|'qualquer'} ("tap X untapped Myr you control", Myr Battlesphere): quem resolve escolhe quantas, entre as
   // desviradas do em; resultado = quantas virou (o "se fizer" lê ctx.pagou do talvez)
   virar: {
+    // qtd {ate: N | 'qualquer'}: "tap X untapped Myr you control" (Myr Battlesphere): escolhe quais entre as desviradas
+    // que batem; ctx.resultado = quantas virou (o "+X/+0" e o "X de dano" do efeito seguinte)
     campos: ['naoDesvira', 'soNaoDesvira'],
     qtd: q => q === undefined || (ateOk(q) && q.ate !== 'X'),
     ok: f => (!f.soNaoDesvira || f.naoDesvira === true) && (f.qtd === undefined || !f.naoDesvira),
@@ -1287,6 +1289,11 @@ const H = {
         if (o.zona === 'pilha') M.log(e, e.jogs[o.dono].nome, 'conjura', o.n, 'pelo milagre');
       }
     },
+  },
+  turnoExtra: {                                                     // CR 500.7: "take an extra turn after this one" (pilha: o último criado vem primeiro)
+    qtd: q => q === undefined,
+    ok: f => f.quem === 'voce' || f.quem === undefined,
+    fx(e, f, ctx) { (e.turnosExtra || (e.turnosExtra = [])).push(ctx.voce); M.log(e, e.jogs[ctx.voce].nome, 'vai ter um turno extra depois deste'); },
   },
   faseExtra: {                                                      // CR 500.8: "after this phase, there is an additional combat phase [followed by an additional main phase]"
     campos: ['fase'],

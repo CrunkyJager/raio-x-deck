@@ -36,6 +36,9 @@ const tipoEste = (d): any[] => { let l: any[] | undefined = TIPO_ESTE.get(d); if
 const TIPO_EQUIP = new WeakMap<object, any[]>();
 const tipoEquip = (d): any[] => { let l: any[] | undefined = TIPO_EQUIP.get(d); if (!l) TIPO_EQUIP.set(d, (l = (d.est || []).filter(s => M.estTipoEquipOk(s)).map(s => ({ tipo: s.tipo, sub: s.sub, se: s.se })))); return l as any[]; };
 const SUB_NAO_CRIATURA = new Set(['Equipment', 'Aura', 'Vehicle', 'Saga', 'Class', 'Shrine', 'Cartouche', 'Curse', 'Role', 'Fortification']);
+// subtipos que não são de criatura (205.3g-j: terreno, artefato, mágica): metamorfo não os tem
+const SUB_NAO_CRIAT_TODOS = new Set([...SUB_NAO_CRIATURA, 'Plains', 'Island', 'Swamp', 'Mountain', 'Forest', 'Gate', 'Desert', 'Cave', 'Town', 'Sphere', 'Lair', 'Locus', 'Mine', 'Tower', 'Power-Plant', "Urza's",
+  'Food', 'Treasure', 'Clue', 'Blood', 'Map', 'Gold', 'Incubator', 'Powerstone', 'Junk', 'Attraction', 'Contraption', 'Bobblehead', 'Arcane', 'Trap', 'Lesson', 'Adventure', 'Omen', 'Room', 'Case', 'Background']);
 // a parte de tipo das estáticas que dão tipo/sub a quem bate um filtro (Ashaya: "nontoken creatures you control are
 // Forest lands"; Dryad: "lands you control are every basic land type", CR 613.1d, 305.7 "in addition")
 const TIPO_FILTRO = new WeakMap<object, any[]>();
@@ -680,7 +683,8 @@ M.ganharVida = (e, j, q) => {
 // por aqui e soltam o evento 'perdeVida' (Mindcrank, Exquisite Blood, Vilis). Quem chama já olhou a vida fixa (119.8).
 M.perderVida = (e, j, q) => {
   if (!(q > 0)) return 0;
-  e.jogs[j].vida -= q;
+  const J = e.jogs[j]; J.vida -= q;
+  J.perdT = { t: e.turno.n, n: (J.perdT && J.perdT.t === e.turno.n ? J.perdT.n : 0) + q };   // "the life that player lost this turn"
   M.evento(e, { ev: 'perdeVida', j, q });
   return q;
 };
@@ -948,7 +952,7 @@ M.bate = (e, o, f, ctx: any = {}) => {
   if (f.zona && f.zona !== 'qualquer' && o.zona !== f.zona) return false;
   if (f.tipo && !f.tipo.some(t => t === 'Card' || (t === 'Permanent' ? M.ehPermanente(e, o) : t === 'Token' ? !!o.ficha : (d.tipos || []).includes(t)))) return false;
   if (f.nao && f.nao.some(t => (COR_NOME[t] ? (d.cores || '').includes(COR_NOME[t]) : t === 'Colorless' ? !(d.cores || '') : false) || (d.tipos || []).includes(t) || (d.sub || []).includes(t) || (d.super || []).includes(t) || (t === 'Token' && o.ficha) || (t === 'escolhido' && ehEscolhido(e, o, ctx)))) return false;
-  if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s))) return false;   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
+  if (f.sub && !f.sub.some(s => s === 'escolhido' ? ehEscolhido(e, o, ctx) : (d.sub || []).includes(s) || (!SUB_NAO_CRIAT_TODOS.has(s) && tiposCriatura(e, o) === 'todos'))) return false;   // metamorfo/todosTipos: é de todo tipo de criatura (702.73a, 205.3m)   // tipo escolhido pela fonte ao entrar (Morophon, Herald's Horn)
   if (f.super && !f.super.every(s => (d.super || []).includes(s))) return false;
   if (f.tipoTodos && !f.tipoTodos.every(t => (d.tipos || []).includes(t))) return false;            // criatura artefato (Mycosynth Golem)
   if (f.historico && !((d.tipos || []).includes('Artifact') || (d.super || []).includes('Legendary') || (d.sub || []).includes('Saga'))) return false;   // CR 700.6
@@ -1072,7 +1076,7 @@ M.devocao = (e, j, cores) => {
   return n;
 };
 // ---- condição RX ('se') — só o que já existe; o resto falha alto para não jogar errado em silêncio ----
-const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal']);
+const COND_OK = new Set(['existe', 'controla', 'turno', 'vidaMin', 'vidaMax', 'vidaOponenteMax', 'conta', 'conjuradaCom', 'palavra', 'pagou', 'objBate', 'esteEm', 'temIniciativa', 'monarca', 'completouMasmorra', 'desceu', 'maisTerrenosOponente', 'modoEscolhido', 'primeiroCombate', 'fasePrincipal', 'conjuradaNaPrincipal']);
 // conjuradaCom 'kicker' e palavra 'promisedgift' (chute/presente pagos); palavras de habilidade lidas do estado agora
 // (PALAVRA): metalcraft (3+ artefatos), coven (3+ poderes diferentes), blessing (bênção da cidade, 702.131: 10+
 // permanentes uma vez = para sempre), morbid (criatura morreu neste turno, masmorras.ts). Fora daqui a condição é recusada.
@@ -1093,7 +1097,7 @@ const PALAVRA: Record<string, (e, ctx) => boolean> = {
   blessing: (e, ctx) => M.bencao(e, ctx.voce, ctx.este),
   morbid: e => M.morbido(e),
 };
-M.condValorOk = se => (se.conjuradaCom === undefined || se.conjuradaCom === 'kicker' || se.conjuradaCom === 'flashback') && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
+M.condValorOk = se => (se.conjuradaCom === undefined || ['kicker', 'flashback', 'cemiterio'].includes(se.conjuradaCom)) && (se.palavra === undefined || se.palavra === 'promisedgift' || !!PALAVRA[se.palavra]) && M.condMasmorraOk(se);
 M.condicao = (e, se, ctx) => {
   if (!se) return true;
   for (const k in se) if (!COND_OK.has(k)) throw new Error('condição sem suporte no motor2: ' + k);
@@ -1107,11 +1111,13 @@ M.condicao = (e, se, ctx) => {
   if (se.turno && (se.turno === 'seu') !== (e.turno.ativo === ctx.voce)) return false;
   if (se.primeiroCombate !== undefined && ((e.turno.combates || 0) <= 1) !== !!se.primeiroCombate) return false;   // "if it's the first combat phase of the turn"
   if (se.fasePrincipal !== undefined && (['principal1', 'principal2'].includes(e.turno.passo) && e.turno.ativo === ctx.voce) !== !!se.fasePrincipal) return false;   // "if it's your main phase" (Moraug)
+  if (se.conjuradaNaPrincipal !== undefined) { const E = e.objs[ctx.este]; if (!!(E && E.zona === 'pilha' && E.conjPrinc) !== !!se.conjuradaNaPrincipal) return false; }   // Addendum: esta mágica foi conjurada na sua fase principal
   if (se.conjuradaCom !== undefined || se.palavra !== undefined) {   // a mágica resolvendo (ctx.opc) ou a permanente que ela virou
     if (!M.condValorOk(se)) throw new Error('condição sem suporte no motor2: ' + (se.conjuradaCom || se.palavra));
     const E = e.objs[ctx.este], cc = E && E.zona === 'campo' ? E.conjCom : null, op = ctx.opc;
     if (se.conjuradaCom === 'kicker' && !((op && op.chute) || (cc && cc.kicker))) return false;
     if (se.conjuradaCom === 'flashback' && !(E && E.zona === 'pilha' && E.flash)) return false;   // "if this spell was cast with flashback" (702.34a: o.flash na pilha)
+    if (se.conjuradaCom === 'cemiterio' && !(E && E.zona === 'pilha' && E.conjDe === 'cemiterio')) return false;   // "if this spell was cast from a graveyard" (cópia não foi conjurada, 707.10)
     if (se.palavra === 'promisedgift' && !((op && op.presente) || (cc && cc.presente))) return false;
     if (se.palavra && PALAVRA[se.palavra] && !PALAVRA[se.palavra](e, ctx)) return false;
   }
