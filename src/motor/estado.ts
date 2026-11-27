@@ -819,6 +819,14 @@ const ninjutsuDe = kw => {
   if (!a) NINJA.set(kw, (a = { zona: 'mao', custo: { mana: kw.custo || {}, devolver: { f: { tipo: ['Creature'], naoBloqueada: true } } }, _ninjutsu: true, fx: [{ op: 'ninjutsu' }] }));
   return a;
 };
+// bis (CR 702.141a): "[custo], exile esta carta do seu cemitério: para cada oponente, uma ficha cópia que ataca esse
+// oponente neste turno se puder; ganham ímpeto; sacrifique-as no começo da próxima etapa final" — só como feitiço
+const BIS = new WeakMap<object, any>();
+const bisDe = kw => {
+  let a = BIS.get(kw);
+  if (!a) BIS.set(kw, (a = { zona: 'cemiterio', custo: { mana: kw.custo || {}, exilarEste: true }, vel: 'feitico', _bis: true, fx: [{ op: 'bis' }] }));
+  return a;
+};
 const RECONF = new WeakMap<object, any>();
 const reconfDe = kw => {
   let a = RECONF.get(kw);
@@ -833,7 +841,7 @@ const atvCarta = d => {
     const rc = (d.kw || []).filter(x => x.k === 'reconfigurar' && x.custo).flatMap(reconfDe);
     const nj = (d.kw || []).filter(x => x.k === 'ninjutsu' && x.custo).map(ninjutsuDe);
     const eq = (d.kw || []).filter(x => x.k === 'equipar'), ci = (d.kw || []).filter(ehCiclo);
-    const tp = (d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe);
+    const tp = [...(d.kw || []).filter(x => x.k === 'tripular' && Number.isInteger(x.n)).map(tripularDe), ...(d.kw || []).filter(x => x.k === 'bis' && x.custo).map(bisDe)];
     const nv = M.ehClasse(d) && Array.isArray(d.niveis) ? d.niveis.filter(x => Number.isInteger(x.n) && x.n >= 2) : [];
     ATV_CARTA.set(d, (l = eq.length || ci.length || nv.length || rc.length || nj.length || tp.length ? [...(d.atv || []), ...eq.map(equiparDe), ...ci.map(cicloDe), ...nv.map(subirDe), ...rc, ...nj, ...tp] : d.atv || NADA.atv));
   }

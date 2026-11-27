@@ -991,6 +991,17 @@ const H = {
       }
     },
   },
+  // bis (CR 702.141a): uma ficha cópia por oponente, com ímpeto e "ataca se puder" (simplificação: ataca qualquer um,
+  // não necessariamente aquele oponente); todas sacrificadas no começo da próxima etapa final (gatilho atrasado)
+  bis: {
+    fx(e, f, ctx) {
+      const base = copiaDe(e, { copiaDe: 'este' }, ctx); if (!base) return;
+      const tok = { ...base, kw: [...(base.kw || []).filter(x => x.k !== 'bis'), { k: 'pressa' }], est: [...(base.est || []), { modo: 'deveAtacar', afeta: 'este' }] };
+      ctx.criadas = [];
+      for (const j of M.vivos(e)) if (j !== ctx.voce) for (const o of M.criarFichas(e, ctx.voce, tok, 1)) ctx.criadas.push({ id: o.id, ts: o.ts });
+      H.gatilhoAtrasado.fx(e, { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'sacrificar', em: 'criadas' }] } }, ctx);
+    },
+  },
   // popular (CR 701.36a): escolha uma ficha de criatura que você controla e crie uma ficha que é cópia dela (sem ficha: nada, 701.36b)
   popular: {
     fx(e, f, ctx, ask) {
@@ -1159,6 +1170,10 @@ const H = {
       && (f.exceto.porTipo === undefined || (Array.isArray(f.exceto.porTipo) && f.exceto.porTipo.every(t => typeof t === 'string')))),
     fx(e, f, ctx, ask) {
       const esc: any[] = [];
+      if (f.em !== undefined) {                                     // "sacrifique-o(s)": os objetos ditos, se ainda estão no campo sob o controle de quem resolve (701.21a)
+        for (const o of objsDe(e, f, ctx)) if (o.zona === 'campo' && o.ctrl === ctx.voce) esc.push(o.id);
+        ctx.resultado = esc.length; for (const id of esc) M.mover(e, id, 'cemiterio', { sac: true }); return;
+      }
       for (const j of jogsDe(e, f, ctx)) {
         const cand = M.objetosQue(e, { ...(f.f || {}), ctrl: 'voce', zona: 'campo' }, { ...ctx, voce: j }).map(o => o.id);
         if (f.exceto && f.exceto.porTipo) {

@@ -268,6 +268,7 @@ function valorFx(e, j, f) {
     case 'videncia': return 0.25 * q;
     case 'vigiar': return 0.25 * q;
     case 'explorar': return 0.7;
+    case 'bis': return 1.5 * Math.max(1, nOp);
     case 'ganharVida': return (J.vida <= 15 ? 0.3 : 0.15) * q;
     case 'perderVida': return f.quem === 'cadaOponente' ? 0.35 * q * nOp : f.quem === 'cadaJogador' ? 0.35 * q * nOp - meuPonto * q : 0.5 * q;
     case 'marcador': return f.em && f.em.alvo !== undefined ? (temCriatura(e, j, true) ? 0.8 * q : 0) : 0;

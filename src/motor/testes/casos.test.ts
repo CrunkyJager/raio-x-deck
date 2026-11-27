@@ -3970,6 +3970,22 @@ caso('508.3a', "\"sempre que uma ou mais atacam\" (grupo): Meriadoc dispara uma 
   igual(e.pend.length, 2, 'um disparo por Meriadoc, não por atacante');
 });
 
+caso('702.141', "bis: do cemitério, exila a carta e cria uma ficha cópia por oponente, com ímpeto e que deve atacar; sacrificadas na etapa final", () => {
+  const e = cena({ jogs: 3, campo: enche(7, 'Island').map(n => [0, n]) });
+  const md = e.por(0, 'Mist Dancer', { zona: 'cemiterio' });
+  M.avancar(e);
+  const op = e.perg.ops.findIndex(o => o.a === 'ativar' && o.id === md.id); ok(op >= 0, 'bis oferecido do cemitério');
+  respE(e, o => o.a === 'ativar' && o.id === md.id);
+  for (let g = 0; e.pilha.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar');
+  igual(md.zona, 'exilio', 'a carta foi exilada');
+  const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha && o.n === 'Mist Dancer');
+  igual(fs.length, 2, 'uma ficha por oponente');
+  ok(fs.every(o => M.temKw(e, o, 'pressa')), 'com ímpeto');
+  igual(e.atras.length, 1, 'sacrifício atrasado');
+  M.executar(e, e.atras[0].g.fx[0], { voce: 0, alvos: [], ilegal: {}, lki: {}, criadas: e.atras[0].mem.criadas }, () => ({ a: 'nao' }));
+  igual(e.campo.filter(id => e.objs[id].n === 'Mist Dancer').length, 0, 'sacrificadas');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
