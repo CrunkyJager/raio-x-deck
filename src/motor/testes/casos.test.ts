@@ -3513,6 +3513,16 @@ caso('118.9', "Flare of Fortitude: sem mana, conjura sacrificando uma criatura b
   M.avancar(f); ok(!opsDe(f, 'conjurar').length, 'sem criatura branca e sem mana: não');
 });
 
+caso('603.2d', "Ancient Greenwarden: o gatilho de terreno entrando (Aesi) dispara uma vez a mais; sem ele, uma", () => {
+  ok(M.carta('Ancient Greenwarden').est.some(s => s.modo === 'dobraGatilho'), 'como dobraGatilho (evs entra, causa terreno)');
+  const e = cena({ campo: [[0, 'Ancient Greenwarden'], [0, 'Aesi, Tyrant of Gyre Strait']] }); e.pend = [];
+  e.por(0, 'Forest');
+  igual(e.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 2, 'Aesi 2 vezes');
+  const f = cena({ campo: [[0, 'Aesi, Tyrant of Gyre Strait']] }); f.pend = [];
+  f.por(0, 'Forest');
+  igual(f.pend.filter(p => p.n === 'Aesi, Tyrant of Gyre Strait').length, 1, 'sem o Greenwarden: 1');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
