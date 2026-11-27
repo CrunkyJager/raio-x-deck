@@ -3423,6 +3423,20 @@ caso('702.131', "ascender: com 10 permanentes e uma com ascender ganha a bênç�
   ok(!f.jogs[0].bencao && !M.condicao(f, { palavra: 'blessing' }, { voce: 0 }), 'sem permanente com ascender: nada');
 });
 
+caso('702.40', "tempestade: Grapeshot depois de 2 mágicas no turno causa 3 de dano (a original + 2 cópias); primeira do turno não copia", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Shock'], [0, 'Shock'], [0, 'Grapeshot']] });
+  M.avancar(e);
+  for (let i = 0; i < 2; i++) { conj(e, 'Shock'); alvoJog(e, 1); M.avancar(e); }
+  igual(e.jogs[1].vida, 40 - 4, 'dois Shock');
+  conj(e, 'Grapeshot'); alvoJog(e, 1);
+  M.avancar(e);
+  for (let i = 0; i < 20 && e.perg && e.perg.tipo === 'talvez' && e.perg.ctx.op === 'novoAlvo'; i++) { respE(e, o => o.a === 'nao'); M.avancar(e); }   // as cópias ficam com o mesmo alvo
+  igual(e.jogs[1].vida, 40 - 4 - 3, 'Grapeshot + 2 cópias');
+  const f = cena({ campo: [[0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Grapeshot']] });
+  M.avancar(f); conj(f, 'Grapeshot'); alvoJog(f, 1); M.avancar(f);
+  igual(f.jogs[1].vida, 39, 'primeira mágica do turno: sem cópia');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
