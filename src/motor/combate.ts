@@ -260,12 +260,12 @@ M.PROC.bloquear = (e, P, ask) => {
   const meus = C.atk.map((r, i) => i).filter(i => C.atk[i].def === d && emCombate(e, C.atk[i]));
   const cands = M.lote(() => e.campo.filter(id => podeBloquear(e, e.objs[id], d)));
   const bl = P.bl = P.bl || {};                                                           // bloqueador → índice do atacante
-  // 509.1b: "can't be blocked by more than one creature" (est bloqueadaPorUmSo, da própria ou da Aura/Equipamento: Alpha Authority)
-  const umSo = i => estEste(e, e.objs[C.atk[i].id], 'bloqueadaPorUmSo', false);
   // "and you choose how those creatures block" (Brutal Hordechief): quem controla o efeito declara os bloqueios no lugar do
   // defensor. Simplificação: vale para a declaração inteira desse defensor se alguma candidata está afetada
   let quem = d;
   for (const t of e.temp || []) for (const s of t.est || []) if (s.modo === 'deveBloquear' && s.escolhe !== undefined && s.escolhe !== d && !e.jogs[s.escolhe].saiu && cands.some(id => M.tempTem(t, e.objs[id]))) quem = s.escolhe;
+  // 509.1b: "can't be blocked by more than one creature" (est bloqueadaPorUmSo, da própria ou da Aura/Equipamento: Alpha Authority)
+  const umSo = i => estEste(e, e.objs[C.atk[i].id], 'bloqueadaPorUmSo', false);
   for (;;) {
     const conta: any = {}; for (const k in bl) conta[bl[k]] = (conta[bl[k]] || 0) + 1;
     // 702.110b: ameaça precisa de dois ou mais; fechar só quando nenhuma está com um só
