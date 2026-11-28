@@ -1,11 +1,12 @@
 {
- "_nota": "27/11/2026: mana por elfo, menace com lembrete, tipos das fichas, Lathril ganha 10 (motor velho). Antes: Linha de base da T08 (24/11/2026: custo de sacrifício e trava no motor). Melhorou de propósito → atualizar aqui no mesmo commit.",
+ "_nota": "27/11/2026 (varredura do motor velho, ferramentas/varre-motor-velho.js): ficha de gatilho com tipo e sem dobrar (Edgar/Lys Alana criavam ficha sem tipo em toda mágica), 'for each' vira contagem, conjurar noncreature/cor/histórico, mana por poder, ward com custo de vida. Antes: 20.5/32.5/8.0/38.0 t8.6 (mana por elfo, menace, tipos das fichas). Melhorou de propósito → atualizar aqui no mesmo commit.",
  "testa": "161/161",
- "partida": {"Stangg": 20.5,
-  "Krenko": 32.5,
-  "Lathril": 8.0,
-  "Edgar Markov": 38.0,
-  "turno": 8.6
+ "partida": {
+  "Stangg": 22.5,
+  "Krenko": 34.5,
+  "Lathril": 9.0,
+  "Edgar Markov": 32.5,
+  "turno": 8.7
  },
  "gabarito": {
   "exato": 10,

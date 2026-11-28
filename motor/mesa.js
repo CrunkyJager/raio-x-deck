@@ -132,7 +132,7 @@ function arena(Ds,seed,cfg){
     for(const l of p.terr)if(!l.tap){if(l.mana)l.mana.slice(l.usou||0).forEach(c=>u.push({s:lant?ANY:c,o:l,n:l.mana.length}));else u.push({s:lant?ANY:l.cor,o:l});}
     for(const x of p.perm){if(x.tok||x.tap)continue;const m=p.M[x.i];
       if(m.mana&&!(m.cri&&x.sick))for(let j=0;j<m.mana;j++)u.push({s:m.cor||'',o:x,n:m.mana});
-      if(m.manaX&&!(m.cri&&x.sick)){const n=m.manaX==='enc'?p.perm.filter(z=>z.i>=0&&mOf(z).ench).length:(m.manaXq==='eu'?[p]:P).reduce((s,o)=>s+(o.vivo?o.perm.filter(z=>z.cri&&ehTipo(o,z,m.manaX)).length:0),0);for(let j=0;j<n;j++)u.push({s:m.cor||ANY,o:x,n});}
+      if(m.manaX&&!(m.cri&&x.sick)){const n=m.manaX==='cont'?(x.cont||0):m.manaX==='poder'?poderDe(p,x):m.manaX==='enc'?p.perm.filter(z=>z.i>=0&&mOf(z).ench).length:(m.manaXq==='eu'?[p]:P).reduce((s,o)=>s+(o.vivo?o.perm.filter(z=>z.cri&&ehTipo(o,z,m.manaX)).length:0),0);for(let j=0;j<n;j++)u.push({s:m.cor||ANY,o:x,n});}
       if(m.opal&&na>=3)u.push({s:ANY,o:x});
       if(m.ugin&&x.uMana)for(let j=0;j<3;j++)u.push({s:'',o:x,n:3});
       if(m.amber&&p.perm.some(y=>y.cri&&!y.tok&&p.M[y.i].leg))u.push({s:ANY,o:x});}
@@ -196,7 +196,7 @@ function arena(Ds,seed,cfg){
     return x;
   }
   /* ficha da carta (m.tok): com os tipos do texto e, se for o caso, uma por permanente do tipo ("for each Elf you control") */
-  function fichaDe(p,m){const n=(m.tokN||1)*(m.tokPor?p.perm.filter(x=>x.cri&&ehTipo(p,x,m.tokPor)).length:1);if(n>0)ficha(p,n,m.tokP||1,m.tokT||1,null,{tipos:m.tokTipos||[]});}
+  function fichaDe(p,m,z){const n=(m.tokN||1)*(m.tokPor?contN(p,z||null,m.tokPor,{}):1);if(n>0)ficha(p,n,m.tokP||1,m.tokT||1,null,{tipos:m.tokTipos||[]});}
   function ficha(p,n,pw,tg,nome,o,semGat){
     o=o||{};let mult=1;for(const z of p.perm)if(z.i>=0&&!z.tok&&p.M[z.i].dobraFicha)mult*=2;n=Math.min(60,n*mult);
     const out=[];
@@ -245,6 +245,16 @@ function arena(Ds,seed,cfg){
     if(String(n).startsWith('tipo:')){const t=n.slice(5);return q.perm.filter(w=>w.cri&&ehTipo(q,w,t)).length;}
     if(String(n).startsWith('atk:')){const t=n.slice(4);return q.perm.filter(w=>w.cri&&w.atk&&ehTipo(q,w,t)).length;}
     if(n==='cri')return q.perm.filter(w=>w.cri).length;
+    /* contagens do "for each" (engine.js porCadaDe) */
+    {const sn=String(n);let a;
+      if((a=sn.match(/^(\d+)\*(.+)$/)))return +a[1]*contN(q,z,a[2],ctx);
+      if(sn.startsWith('op:'))return opsDe(q).reduce((s,o)=>s+contN(o,null,sn.slice(3),ctx),0);
+      if(sn.startsWith('outro:')){const r=sn.slice(6),t=contN(q,z,r,ctx);const conta=z&&q.perm.includes(z)&&(r==='perm'||r==='ficha'&&z.tok||r==='art'&&z.i>=0&&mOf(z)&&mOf(z).a||r==='cri'&&z.cri||r.startsWith('perm:')&&ehTipo(q,z,r.slice(5)));return Math.max(0,t-(conta?1:0));}
+      if(sn==='terr')return q.terr.length;
+      if(sn==='art')return q.perm.filter(w=>w.i>=0&&!w.tok&&mOf(w)&&mOf(w).a).length;
+      if(sn==='ficha')return q.perm.filter(w=>w.tok).length;
+      if(sn==='perm')return q.perm.length+q.terr.length;
+      if(sn.startsWith('perm:')){const t=sn.slice(5);return q.perm.filter(w=>{const ts=tiposX(w);return ts.includes(t)||w.cri&&ts.includes('*');}).length;}}
     if(n==='maiorTipo'){const c={};let b=0;for(const w of q.perm)if(w.cri)for(const t of tiposX(w))if(t!=='*'){c[t]=(c[t]||0)+1;if(c[t]>b)b=c[t];}return b;}
     return 1;}
   function melhorMeu(q,f){if(pergH(q)){const cs=q.perm.filter(x=>x.cri&&!x.sacFim&&(!f||f(x))).map(x=>({n:`${nomeX(q,x)} (${poderDe(q,x)}/${resDe(q,x)})`,val:x}));return cs.length?escolhe(q,`${ORIG||'Efeito'}: escolha uma criatura sua`,cs,false):null;}
@@ -331,7 +341,10 @@ function arena(Ds,seed,cfg){
   }
   function lancou(p,i){
     const c=p.M[i];
-    const ok=h=>h.tipo==='*'||(h.tipo==='enchantment'?c.ench:h.tipo==='creature'?c.cri:h.tipo==='artifact'?c.a:(c.tipos||[]).includes(h.tipo));
+    /* tipo da mágica conjurada (601.2, 700.6 histórico): noncreature/histórico/cor/instantâneo-ou-feitiço; antes só criatura/artefato/encantamento/subtipo
+       (Coruscation Mage, Vivi, Jhoira, Runaway Steam-Kin nunca disparavam) */
+    const COR={white:'W',blue:'U',black:'B',red:'R',green:'G'};
+    const ok=h=>h.tipo==='*'||(h.tipo==='enchantment'?c.ench:h.tipo==='creature'?c.cri:h.tipo==='artifact'?c.a:h.tipo==='noncreature'?!c.cri:h.tipo==='historic'?!!c.hist:h.tipo==='instsorc'?!!c.sp:COR[h.tipo]?new RegExp('\\{[^}]*'+COR[h.tipo]+'[^}]*\\}').test(c.custoTxt||''):(c.tipos||[]).includes(h.tipo));
     for(const z of p.perm.slice())for(const h of habs(z))if(h.q==='conj'&&ok(h)&&!(h.outro&&z.i===i))faz(p,z,h.e,{});
     if(p.zona&&p.cmdI>=0&&p.cmdI!==i)for(const h of p.M[p.cmdI].hab||[])if(h.q==='conj'&&h.zona&&ok(h))faz(p,null,h.e,{});
   }
@@ -499,12 +512,12 @@ function arena(Ds,seed,cfg){
     /* gatilhos de quem ja esta em campo */
     for(const x of p.perm){if(x.tok)continue;const g=p.M[x.i].gat;if(!g||!g.cast)continue;
       const t=g.t;if(t==='*'||(t==='a'&&m.a)||(t==='c'&&m.cri)||(t==='h'&&(m.hist||m.a))||(t==='n'&&!m.cri))compra(p,1);}
-    for(const x of p.perm){if(x.tok)continue;const r=p.M[x.i].tokR;if(r&&/cast/.test(p.M[x.i].txt.toLowerCase()))ficha(p,1,r.p,r.t);}
+    for(const x of p.perm){if(x.tok)continue;const r=p.M[x.i].tokR;if(r&&r.q==='cast')ficha(p,r.n,r.p,r.t,null,{tipos:r.tipos});}
     if(m.sp){
       if(m.wip){wipe(p,i);}
       if(m.rem&&!(m.remMetal&&p.perm.filter(x=>!x.tok&&p.M[x.i].a).length<3)){const a=melhorAlvo(p,false,tipoRem(m));if(a&&remove(p,a,i)&&m.giveLand)a.o.terr.push({cor:a.o.ci||'',tap:true,b:1});}
       if(m.wake){const vol=p.gy.filter(j=>p.M[j].a&&!p.M[j].sp);for(const j of vol){p.gy.splice(p.gy.indexOf(j),1);const e=entra(p,j);e.sick=false;}diz(p.k,'magia',`${nomeC(p,i)} devolve ${vol.length} artefatos do cemitério`);}
-      if(m.dr)compra(p,m.dr);
+      if(m.dr)compra(p,m.drPor?Math.min(10,contN(p,null,m.drPor,{})):m.dr);
       if(m.sham)compra(p,p.perm.filter(x=>x.cri).length);
       if(m.ret)compra(p,Math.max(0,...p.perm.filter(x=>x.cri).map(x=>poderDe(p,x))));
       if(m.ferocious)ganha(p,4*p.perm.filter(x=>x.cri&&poderDe(p,x)>=4).length);
@@ -519,9 +532,9 @@ function arena(Ds,seed,cfg){
       const x=entra(p,i,ehCmd,!!m.aura);
       if(host){anexa(x,host);diz(p.k,'magia',`${nomeC(p,i)} entra em ${nomeX(host.k===p.k?p:P[host.k],host)}`,i);entrou(p,x);if(m.morde)morde(p,host,i);checa();}
       if(m.lifeETB)ganha(p,m.lifeETB);
-      if(m.dr)compra(p,m.dr);
+      if(m.dr)compra(p,m.drPor?Math.min(10,contN(p,x,m.drPor,{})):m.dr);
       if(m.ramp){for(let j=0;j<m.ramp;j++)p.terr.push({cor:p.ci||'',tap:true,b:1});}
-      if(m.tok)fichaDe(p,m);
+      if(m.tok)fichaDe(p,m,x);
       if(m.remEtb){const a=melhorAlvo(p,false,tipoRem(m));if(a)remove(p,a,i);}
       if(m.tut)tutor(p,m.tut);
       if(m.iron){const j=p.gy.findIndex(j=>p.M[j].a&&!p.M[j].sp);if(j>=0){const c=p.gy.splice(j,1)[0];entra(p,c);diz(p.k,'magia',`devolve ${nomeC(p,c)} do cemitério`);}}
@@ -774,7 +787,7 @@ function arena(Ds,seed,cfg){
       if(m.ugin&&!x.uMana){x.uL=(x.uL||7)+2;compra(p,1,nomeC(p,x.i));ganha(p,3);
         if(x.uL>=11&&!x.uU){x.uU=1;x.uL-=11;const ok=[];for(let j=p.lib.length-1;j>=0;j--){const mm=p.M[p.lib[j]];if(!mm.land&&!mm.sp&&!mm.pw&&!(mm.pip&&mm.pip.length)){ok.push(p.lib[j]);p.lib.splice(j,1);}}for(const j of ok){const e=entra(p,j);e.sick=false;}diz(p.k,'magia',`${nomeC(p,x.i)}: -11 solta ${ok.length} artefatos incolores`);}}
       if(m.tithe)p.tes+=Math.round(opsDe(p).length*0.6);
-      if(m.tokR&&/upkeep|end step/.test(m.txt.toLowerCase()))ficha(p,m.tokR.n,m.tokR.p,m.tokR.t);
+      if(m.tokR&&m.tokR.q==='upk')ficha(p,m.tokR.n,m.tokR.p,m.tokR.t,null,{tipos:m.tokR.tipos});
       if(m.tome&&p.mao.length<3&&!x.tomeU){x.tomeU=(x.tomeU||0)+1;if(x.tomeU<=4)compra(p,1,nomeC(p,x.i));}}
     if(!p.vivo)return;
     /* terreno: o que da a cor que falta na mao */
