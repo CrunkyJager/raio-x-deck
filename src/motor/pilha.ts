@@ -1209,12 +1209,13 @@ const PROC = {
     if (opc.replicar) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'replicar', g: { ev: 'conjura', fx: [{ op: 'copiarMagica', em: 'este', novoAlvo: true, qtd: opc.replicar }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.56a: "when you cast this spell, copy it for each time you paid its replicate cost"
     if (M.temKw(e, o, 'tempestade') && antes > 0) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'tempestade', g: { ev: 'conjura', fx: [{ op: 'copiarMagica', em: 'este', novoAlvo: true, qtd: antes }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.40a: copia uma vez por mágica conjurada antes neste turno
     for (let c = M.cascatas(e, o); c > 0; c--) e.pend.push({ fonte: o.id, ts: o.ts, ctrl: j, k: 'cascata', g: { ev: 'conjura', fx: [{ op: 'descobrir', qtd: Math.max(-1, (M.dadoDe(e, o).vm || 0) - 1), cascata: true }] }, n: o.n, face: o.face ?? null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'conjura', id: o.id, j } });   // CR 702.85a/c: cada instância dispara
-    o.manaGasta = M.manaDoCusto(pl.improv || pl.delve ? pl.custo : custo, x);       // o gatilho "if the amount of mana spent…" (603.4) é visto já no evento; o pagarMana grava o exato
+    const firVida = Math.floor((pl.vida || 0) / 2);                                  // firexiana que o plano paga com vida não é mana gasta (601.2h, 107.4f)
+    o.manaGasta = Math.max(0, M.manaDoCusto(pl.improv || pl.delve ? pl.custo : custo, x) - firVida);   // o gatilho "if the amount of mana spent…" (603.4) é visto já no evento; o pagarMana grava o exato
     M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, conc ? [...alvos, [conc]] : alvos, o.id);
     gastar(e, j, pagarMana(e, j, pl, custo, x, o));                                   // CR 601.2h (expend: Wandertale Mentor)
     if (o.pil) o.pil.manaGasta = M.vmDe(pl.custo || custo) + (custo && custo.x ? custo.x * x : 0);   // "the amount of mana spent to cast that spell" (Mana Sculpt; 601.2h)
-    o.manaGasta ??= M.vmDe(custo) + x * (custo.x || 0);                                // "if no mana was spent to cast it" (Boromir, Warden; 601.2h). Firexiana paga com vida conta como mana (aproximação)
+    o.manaGasta ??= Math.max(0, M.vmDe(custo) + x * (custo.x || 0) - firVida);        // "if no mana was spent to cast it" (Boromir, Warden; 601.2h)
     if (imp.vida) M.perderVida(e, j, imp.vida);
     if (alt && alt.F) { if (alt.vida) M.perderVida(e, j, alt.vida); if (alt.s.limite) alt.F.altUso = { t: e.turno.n, ts: alt.F.ts }; }   // 119.4: vida paga; "uma vez por turno"
     if (cad) pagarFisico(e, j, o, cad, fis);

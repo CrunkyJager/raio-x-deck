@@ -1397,7 +1397,7 @@ const H = {
   },
   // fundir (CR 701.42, 712.4): se você é dono e controla as duas, exila esta e a parceira (f) e põe no campo a carta
   // fundida (faces[0] desta). A parceira fica no exílio ligada a ela (o.fundidaCom); quando a fundida sai do campo, as
-  // duas vão juntas (712.4c). Simplificação: o valor de mana da fundida é o da face de trás (não a soma das duas, 712.8g).
+  // duas vão juntas (712.4c). O valor de mana da fundida é a soma das duas frentes (712.8g, no dadoDe).
   fundir: {
     campos: ['f', 'virada', 'atacando'],
     ok: f => !!f.f && M.filtroOk(f.f) && f.em === undefined,

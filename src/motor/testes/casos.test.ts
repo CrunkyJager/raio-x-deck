@@ -4042,7 +4042,21 @@ caso('702.134', "mentor: ao atacar, +1/+1 numa atacante com poder menor (Legion 
   M.evento(e, { ev: 'ataca', id: W.id, def: 1 });
   const p = e.pend.find(x => x.k === 'mentor'); ok(p, 'mentor disparou');
   const f = p.g.alvos[0].f;
-  ok(M.bate(e, Gg, f, { voce: 0 }) && !M.bate(e, B, f, { voce: 0 }) && !M.bate(e, W, f, { voce: 0 }), 'só a de poder menor é alvo');
+  const cx = { voce: 0, este: W.id };
+  ok(M.bate(e, Gg, f, cx) && !M.bate(e, B, f, cx) && !M.bate(e, W, f, cx), 'só a de poder menor é alvo');
+});
+caso('608.2b', "mentor: o 'poder menor' é revisto ao resolver; se a mentora encolheu até o poder da mirada, o alvo fica ilegal", () => {
+  const e = cena({ campo: [[0, 'Legion Warboss'], [0, 'Llanowar Elves']] });
+  const os = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  const W = os('Legion Warboss'), Gg = os('Llanowar Elves');
+  e.turno.combate = { atk: [W, Gg].map(o => ({ id: o.id, ts: o.ts, def: 1 })) };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: W.id, def: 1 });
+  const f = e.pend.find(x => x.k === 'mentor').g.alvos[0].f, cx = { voce: 0, este: W.id };
+  ok(M.bate(e, Gg, f, cx), 'ao mirar: 1 < 2');
+  W.marc = { ...(W.marc || {}), '-1/-1': 1 }; e.vCamada = (e.vCamada || 0) + 1;
+  ok(M.poder(e, W) === 1, 'Warboss encolheu para 1: ' + M.poder(e, W));
+  ok(!M.bate(e, Gg, f, cx), 'ao resolver: 1 não é menor que 1');
 });
 caso('702.175', "prole: pago o custo a mais, a criatura entra e cria uma ficha cópia 1/1 dela; sem pagar, não", () => {
   const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Agate Instigator']] });
@@ -4883,6 +4897,7 @@ caso('701.42', "fundir: Gisela com Bruna no campo vira Brisela (9/10); quando Br
   igual(e.campo.length, 1, 'um permanente só');
   const b = e.objs[e.campo[0]];
   igual(M.dadoDe(e, b).n, 'Brisela, Voice of Nightmares'); igual([M.poder(e, b), M.resistencia(e, b)], [9, 10]);
+  igual(M.dadoDe(e, b).vm, 11, '712.8g: VM da fundida = 4 (Gisela) + 7 (Bruna)');
   M.mover(e, b.id, 'cemiterio');
   igual(naZona(e, 0, 'cemiterio').sort(), ['Bruna, the Fading Light', 'Gisela, the Broken Blade']);
   const f = cena({ campo: [[0, 'Gisela, the Broken Blade'], [1, 'Bruna, the Fading Light']] });
@@ -5365,6 +5380,21 @@ caso('118.3', "Angel of Jubilation: ninguém sacrifica criatura (Viscera Seer) n
   ok(!M.podeConjurar(e, 0, probe), 'com o anjo: não paga vida pelo phyrexiano');
   const lp = e.por(0, 'Lotus Petal');
   ok(M.fontesDeMana(e, 0).some(f => f.id === lp.id), 'Lotus Petal: sacrificar artefato vale');
+});
+
+caso('601.2h', "firexiana paga com vida não é mana gasta: Gitaxian Probe sem terreno tem manaGasta 0 e o Boromir do oponente dispara; pago com mana, não", () => {
+  const e = cena({ campo: [[1, 'Boromir, Warden of the Tower']], mao: [[0, 'Gitaxian Probe']] });
+  M.avancar(e); conj(e, 'Gitaxian Probe');
+  const p = Object.values<any>(e.objs).find(o => o.n === 'Gitaxian Probe');
+  for (let g = 0; e.perg && p.zona !== 'pilha' && g < 6; g++) respE(e, o => o.a !== 'cancelar');
+  igual(p.zona, 'pilha', 'conjurada'); igual(p.manaGasta, 0, 'vida no lugar da {U/P}');
+  ok(e.pend.some(x => e.objs[x.fonte] && e.objs[x.fonte].n === 'Boromir, Warden of the Tower') || e.pilha.some(id => e.objs[id] && e.objs[id].hab && e.objs[id].n === 'Boromir, Warden of the Tower'), 'Boromir disparou');
+  const f = cena({ campo: [[1, 'Boromir, Warden of the Tower'], [0, 'Island']], mao: [[0, 'Gitaxian Probe']] });
+  f.jogs[0].vida = 1; M.avancar(f); conj(f, 'Gitaxian Probe');
+  const q = Object.values<any>(f.objs).find(o => o.n === 'Gitaxian Probe');
+  for (let g = 0; f.perg && q.zona !== 'pilha' && g < 6; g++) respE(f, o => o.a !== 'cancelar');
+  igual(q.manaGasta, 1, 'pagou com a Island');
+  ok(!f.pend.some(x => f.objs[x.fonte] && f.objs[x.fonte].n === 'Boromir, Warden of the Tower'), 'Boromir não dispara');
 });
 
 caso('607.2a', "Angel of Serenity: exila criaturas do campo e/ou cartas de criatura de cemitérios (até 3) e, ao sair, elas voltam à mão dos donos", () => {

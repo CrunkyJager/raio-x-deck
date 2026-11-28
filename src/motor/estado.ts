@@ -117,10 +117,17 @@ M.gatAnel = (e, o) => M.ehPortador(e, o) ? ANEL_GATS[Math.min(4, e.jogs[o.ctrl].
 M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 // animar enquantoNoCampo: vale enquanto a fonte (mesmo objeto, ts) está no campo sob o mesmo controlador (611.2b)
 const animFonteOk = (e, s) => { const F = e.objs[s.id]; return !!F && F.zona === 'campo' && F.ts === s.ts && (s.ctrl === undefined || F.ctrl === s.ctrl); };   // sem ctrl: "enquanto esta permanecer no campo" (Tidebinder)
+// fundida (712.8g): o valor de mana é a soma dos das duas frentes (a dela e a da parceira exilada), não o da face de trás
+const VM_FUND = new WeakMap<any, Map<number, any>>();
+const comVmFundida = (d, o, P) => {
+  const vm = (M.carta(o.n).vm || 0) + (P ? M.carta(P.n).vm || 0 : 0); if (d.vm === vm) return d;
+  let m = VM_FUND.get(d); if (!m) VM_FUND.set(d, (m = new Map())); let r = m.get(vm); if (!r) m.set(vm, (r = { ...d, vm })); return r;
+};
 M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
   if (o.zona !== 'campo') return o.zona === 'pilha' && o.pil && o.pil.conc ? comoAura(d) : d;
   if (o.proto) d = comProto(d);   // 702.103b: mágica concedida é de Aura
+  if (o.fundidaCom) d = comVmFundida(d, o, e.objs[o.fundidaCom.id]);   // 712.8g: VM da fundida = soma das frentes
   if (o.nivel > 1 && d.niveis) d = comNivel(d, o.nivel);
   const A = o.anim;
   if (A && A.length) for (const a of A) if (a.ts === o.ts && !a.semHab && (!a.src || animFonteOk(e, a.src))) d = misto(d, a);
