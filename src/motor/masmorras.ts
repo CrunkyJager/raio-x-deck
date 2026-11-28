@@ -33,8 +33,8 @@ M.marcadorJogador = (e, j, tipo, q, tirar) => {
 //   _ateSeuTurno: P/R ou palavra-chave "até o seu próximo turno" (Fungi Cavern, Throne of the Dead Three);
 //   _perdeAMenosQue: "cada jogador perde N a menos que descarte / sacrifique" (Veils of Fear, Sandfall Cell);
 //   _comprarLembra: compra e lembra as compradas para o efeito seguinte (Mad Wizard's Lair).
-// Simplificações anotadas: a Oubliette sacrifica um de cada vez (uma criatura artefato paga só um dos dois); a Throne põe os
-// marcadores logo depois de entrar (não "entra com").
+// Simplificação anotada: a Oubliette sacrifica um de cada vez (uma criatura artefato paga só um dos dois). A Throne põe a
+// criatura no campo já com os marcadores (614.1c: cavar com _entraMarc).
 const tok = (pt, cores, sub, kw?) => ({ pt, cores, tipos: ['Creature'], sub, ...(kw ? { kw } : {}) });
 const TESOURO = { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } };
 const ALVO_CRIATURA = [{ f: { tipo: ['Creature'], zona: 'campo' } }];
@@ -77,8 +77,8 @@ export const MASMORRAS: Record<string, { undercity?: boolean; salas: { n: string
     { n: 'Stash', fx: [TESOURO], vai: [7] },
     { n: 'Archives', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], vai: [8] },
     { n: 'Catacombs', fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: tok([4, 1], 'B', ['Skeleton'], [{ k: 'ameaca' }]) }], vai: [8] },
-    { n: 'Throne of the Dead Three', fx: [{ op: 'cavar', quem: 'voce', olha: 10, pega: 1, f: { tipo: ['Creature'] }, para: 'campo', revelar: true, resto: 'grimorio' },
-      { op: 'marcador', em: 'anterior', tipoMarc: '+1/+1', qtd: 3 }, { op: '_ateSeuTurno', em: 'anterior', kw: [{ k: 'antimagia' }] }, { op: 'embaralhar', quem: 'voce' }], vai: [] },
+    { n: 'Throne of the Dead Three', fx: [{ op: 'cavar', quem: 'voce', olha: 10, pega: 1, f: { tipo: ['Creature'] }, para: 'campo', revelar: true, resto: 'grimorio', _entraMarc: { '+1/+1': 3 } },
+      { op: '_ateSeuTurno', em: 'anterior', kw: [{ k: 'antimagia' }] }, { op: 'embaralhar', quem: 'voce' }], vai: [] },
   ] },
 };
 M.MASMORRAS = MASMORRAS;
