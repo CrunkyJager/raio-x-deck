@@ -4306,6 +4306,9 @@ caso('613.1f', "animar: Shadowspear tira antimagia e indestrutível das permanen
   const cx = { voce: 0, este: objN(e, 0, 'Shadowspear').id, alvos: [], ilegal: {}, lki: {} };
   M.executar(e, M.carta('Shadowspear').atv[0].fx[0], cx, null);
   ok(!M.temKw(e, b, 'antimagia') && !M.temKw(e, b, 'indestrutivel'), 'perdeu as duas');
+  // 613.7: a perda só vale contra o que veio antes; Botas novas (timestamp depois do Shadowspear) dão antimagia de novo
+  const sb2 = e.por(1, 'Swiftfoot Boots', { zona: 'mao' }); M.mover(e, sb2.id, 'campo'); sb2.anexo = { id: b.id, ts: b.ts }; e.vCamada = (e.vCamada || 0) + 1;
+  ok(M.temKw(e, b, 'antimagia') && !M.temKw(e, b, 'indestrutivel'), 'antimagia das Botas novas vale (613.7a); indestrutível da carta, não');
   const f = cena({ campo: [[0, 'Mirror Entity'], [0, 'Grizzly Bears']] });
   M.executar(f, M.carta('Mirror Entity').atv[0].fx[0], { voce: 0, este: objN(f, 0, 'Mirror Entity').id, x: 3, alvos: [], ilegal: {}, lki: {} }, null);
   const b2 = objN(f, 0, 'Grizzly Bears');
