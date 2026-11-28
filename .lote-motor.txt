@@ -1,0 +1,27 @@
+custoAd.revelar
+custoAtv.exilarDe
+est continuo
+est continuo cores
+est continuo tipo+pt+habil
+est continuo.cores
+est continuo.se
+est custoAlternativo mana+virarOutros
+est custoAlternativo vida+exilarDe
+gat.aOponente
+gat.naoMorre
+kw dada cicloTipo
+kw dada miriade
+kw dada tumulto
+kw intimidar
+op animar.habil
+op buscar.se
+op descartar.qtd
+op destruir.em
+op desvirar.qtd
+op exilar.pagando
+op ficha.porJogadorAtacado
+op ficha.token
+op mana.se
+op marcador.f
+op modificar.cores
+op modificar.se

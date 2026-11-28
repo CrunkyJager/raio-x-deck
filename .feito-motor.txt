@@ -1,0 +1,26 @@
+custoAd.revelar | Thunderherd Migration | 1539→1540
+custoAtv.exilarDe | Drivnod, Carnage Dominus | 1540→1541
+est continuo | Faeburrow Elder (+1 com prop cores) | 1541→1543
+est continuo cores + est continuo.cores | Leyline of the Guildpact, Nim Deathmantle (seguem travadas por 'est continuo sub' e 'op anexar', fora do lote) | 1543→1543
+kw intimidar | Mikaeus, the Unhallowed (falta: undying dado às outras, sem kw no motor) | 1543→1544
+est continuo tipo+pt+habil | Bello, Bard of the Brambles (JSON: tirei 'Creature' do nao, pus sub Elemental) | 1544→1545
+est continuo.se | Bloodghast | 1545→1546
+est custoAlternativo mana+virarOutros + vida+exilarDe | Sephara, Sky's Blade; Force of Will (+1 outra) | 1546→1549 — simplificação: o agente usa o custo normal se der, o alternativo físico só quando o normal não fecha
+gat.aOponente + gat.naoMorre | Hordewing Skaab (falta: compra = nº de oponentes; X1 = 1, certo), Dour Port-Mage (JSON: faltava 'só uma vez por turno') | 1549→1551
+kw dada cicloTipo + miriade + tumulto | Homing Sliver, Cybermen Squadron, Rhythm of the Wild (+ 'kw cicloTipo' das outras 4 cartas de ciclagem de tipo e tumulto próprio) | 1551→1560 — simplificação: miríade sempre cria (o 'pode' é sim)
+op animar.habil | Den of the Bugbear | 1560→1561
+NOTA: antes da regra das 17:00 criei PROP_EST 'cores' (estado.ts, Faeburrow Elder: cores entre as permanentes) — entra na reestruturação das contagens
+MERGE origin/main (v0.67.0) | inteiras 1634 depois do merge | altSac (main) absorvido pelo alternativo físico {alt}; cicloTipo/prop cores ficaram os da main
+PRECISA CONTA: tipos de card diferentes no cemitério (delirium) — Demonic Counsel (op buscar.se). Também falta negação na condição ('se não tiver delirium')
+op descartar.qtd | Honden of Night's Reach | 1634→1635
+op destruir.em | Damning Verdict | 1635→1636
+op desvirar.qtd | Frantic Search | 1637→1638
+op exilar.pagando | Masked Vandal | 1638→1639
+op ficha.porJogadorAtacado + op ficha.token | Soaring Lightbringer; Cleaver Skaab (JSON: copiaDe 'anterior' → 'sacrificada', novo valor de objeto no esquema) | 1639→1641
+PRECISA CONTA: quantas vezes esta habilidade resolveu neste turno (resolucoesDestaHabNoTurno) — Omnath, Locus of Creation (op mana.se/dano.se/ganharVida.se)
+op marcador.f | Find // Finality | 1641→1642
+op modificar.cores + op modificar.se | Crimson Wisps (campo novo trocaCor no modificar, no esquema); Unbreakable Formation (JSON: conjuradaNaPrincipal → fasePrincipal existente, equivalente porque a pilha esvazia antes de trocar de etapa) | 1642→1644
+MERGE origin/main (v0.67.1) sem conflito | 1644
+FIM DO LOTE: 30 motivos — feitos 25 (3 já tinham sido resolvidos por outro adepto e saíram do .lote.txt); pulados 2 (PRECISA CONTA: Demonic Counsel, Omnath). Inteiras 1539→1644 (o merge da v0.67.0 trouxe a maior parte do salto).
+MERGE origin/contagens | conflitos: Faeburrow (P/R no formato novo + prod 'cadaCorSuas' no esquema) e qtdEst (ficou o da contagem.ts; M.coresEntre mantido para a mana) | contagens-converte 0 a converter, valida 0 erros | 1644
+conta {f}.tipos junta diferentes (delirium) + conta turno.resolucoesDestaHab | Demonic Counsel; Omnath, Locus of Creation (contador por habilidade+objeto no turno, conta a que resolve; vale em condição) — os 2 PRECISA CONTA do lote | 1644→1650
