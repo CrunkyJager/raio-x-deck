@@ -1,0 +1,11 @@
+op animar.todosTipos | Mirror Entity | 1619→1620 (filtro sub agora vê metamorfo: caso 205.3m antigo corrigido)
+op ficha.se | Increasing Devotion | 1620→1621 (conjuradaCom flashback e cemiterio novos; carta corrigida para cemiterio, como o Oracle)
+op virar.qtd | Myr Battlesphere | 1621→1622 (carta corrigida: X de gatilho é 'qualquer', não X pago)
+op marcador.se | Belladonna Took, Unbreakable Formation | 1622→1629 (resolucoesDestaHab + conjuradaNaPrincipal liberaram mais 5 cartas)
+MERGE main v0.68.0: animar.todosTipos, ficha.se, virar.qtd o ADEPTO-C também fez; nos conflitos ficou o código da main (metamorfo dado, escolherAte). Repostos daqui: conjuradaCom 'cemiterio' (Increasing Devotion = "cast from a graveyard"), filtro sub reconhece metamorfo, conjuradaNaPrincipal. Inteiras 1715 depois do merge.
+op repetirCada | Archfiend of Despair, Molten Psyche | 1715→1718 (contagem turno vidaPerdida/compras com quem cadaAtual; Archfiend ainda tem falta 'oponentes não ganham vida')
+op turnoExtra | Time Sieve, Timestream Navigator | 1718→1720 (SIMPLIFICAÇÃO: Navigator 'pôr no fundo' segue como efeito, não custo — falta na carta)
+subst entra escolher/tipo | Cloud Key, Serra's Emissary | 1723→1725 (feito na rodada seguinte: escolha.tipoCarta, filtro tipo escolhido, proteção contra tipo de carta/subtipo nas criaturas e no jogador; proteção agora também impede ser alvo, 702.16b — antes só bloqueio/dano)
+FIM DA RODADA: 6 de 7 feitos (3 deles a main já tinha pelo ADEPTO-C); ramo t43-lote-f no ar, verde (check 0, vitest 431, partida igual à base). Inteiras: 1619 → 1720 (com o merge da main).
+MERGE origin/contagens (fceb098): conflitos resolvidos mantendo os dois lados (turno compras/vidaPerdida com quem/junta + vidaGanha). Inteiras 1720→1723 com o merge.
+MERGE origin/main (v0.69.0) no t43-lote-f: conflito em estado.ts (KW_ESC × COR_EST, mantidos os dois). Check 0, vitest 483, partida igual, inteiras 1751→1753. Só falta a main levar o 980e3ba.

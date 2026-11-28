@@ -1,0 +1,7 @@
+op animar.todosTipos
+op ficha.se
+op virar.qtd
+op marcador.se
+op repetirCada
+op turnoExtra
+subst entra escolher/tipo
