@@ -896,7 +896,7 @@ M.perderVida = (e, j, q) => {
 const ptFiltroOk = s => s.modo === 'ptDefinido' && !!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta) && Number.isInteger(s.pBase) && Number.isInteger(s.rBase) && Object.keys(s).every(k => ['modo', 'afeta', 'pBase', 'rBase', 'se'].includes(k));
 // velocidade (CR 702.179d): o jogador com velocidade tem "sempre que um ou mais oponentes perdem vida durante o seu turno,
 // se sua velocidade for menor que 4, ela sobe 1; só dispara uma vez por turno". Sobe na hora (gatilho sem fonte; sem pilha:
-// simplificação). Nada tira a velocidade quando a permanente sai; "Max speed" = velocidade 4 (702.179e, 702.178a: 'maxspeed').
+// simplificação). A velocidade não some quando a permanente sai (é do jogador até o fim do jogo, 702.179); "Max speed" = velocidade 4 (702.179e, 702.178a: 'maxspeed').
 M.subirVelocidade = (e, j) => {
   const a = e.turno && e.turno.ativo, P = e.jogs[a];
   if (a === undefined || a === j || !P || !P.vel || P.vel >= 4 || P.velT === e.turno.n) return;
