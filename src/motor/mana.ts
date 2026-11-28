@@ -220,7 +220,7 @@ M.somaMana = soma; M.fmtMana = fmt;
 // ---- custo de mana → símbolos (CR 107.4) ----
 // retorna {cor:[...], hib:[[a,b]...], fir:[cor...], dois:[cor...], g:n}
 const simbolos = (custo, x = 0) => {
-  const s = { cor: [] as any[], hib: [] as any[], fir: [] as any[], dois: [] as any[], g: (custo.g || 0) + (custo.x || 0) * x, neve: 0 };
+  const s = { cor: [] as any[], hib: [] as any[], fir: [] as any[], dois: [] as any[], g: (custo.g || 0) + Math.max(0, (custo.x || 0) * x - (custo.redX || 0)), neve: 0 };   // redX: redução que sobrou para o X (601.2f)
   for (const p of custo.p || []) {
     if (/^[WUBRGC]$/.test(p)) s.cor.push(p);
     else if (p === 'S') s.neve++;
@@ -304,7 +304,7 @@ M.estSeu = (e, j, modo) => e.campo.some(id => { const F = e.objs[id]; return F.c
 // ---- reduzCusto (CR 601.2f): depois dos aumentos (imposto), tira genérico; custo.p tira símbolos coloridos (Morophon).
 // Fontes: as estáticas do campo (afeta filtro: a mágica que você conjura, ou o permanente dono da habilidade) e a da
 // própria carta (afeta 'este', de 'mao' = só da mão: Ghalta, Otawara). O filtro com zona 'pilha' fala da mágica que
-// está sendo conjurada (ainda na mão quando o custo é calculado). Redução de genérico não mexe no X (simplificação).
+// está sendo conjurada (ainda na mão quando o custo é calculado). A redução de genérico que sobra abate do X (redX).
 const RED_OK = new Set(['modo', 'afeta', 'de', 'qtd', 'custo', 'deHabil', 'se', 'minimo']);
 M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => RED_OK.has(k) || k.startsWith('_'))
   && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
@@ -339,6 +339,9 @@ function reducoes(e, j, o, deHabil) {
   return r;
 }
 function reduz(c, r) {
+  // 601.2f: o X já entra no total antes das reduções — o que sobra da redução de genérico abate do X (c.redX, lido no
+  // plano quando o X é escolhido). Com mínimo (Forensic Gadgeteer) não abate do X.
+  if (r.g && c.x && !r.min && r.g > (c.g || 0)) c.redX = (c.redX || 0) + r.g - (c.g || 0);
   if (r.g && c.g) c.g = Math.max(r.min ? Math.min(c.g, r.min - (c.p || []).length) : 0, c.g - r.g);   // minimo: o total não fica abaixo (simplificação: vale para todas as reduções juntas)
   if (r.p.length && c.p && c.p.length) { const p = c.p.slice(); for (const x of r.p) { const i = p.indexOf(x); if (i >= 0) p.splice(i, 1); } c.p = p; }
   return c;

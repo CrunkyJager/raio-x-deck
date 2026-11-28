@@ -231,7 +231,7 @@ const kwEntraDe = d => {
 };
 // eco (CR 702.30a): "no começo da sua manutenção, se veio para o seu controle desde a sua última manutenção, sacrifique
 // a menos que pague o eco". o.eco marca a entrada no campo; a 1ª manutenção de quem controla dispara e apaga a marca.
-// Simplificação: troca de controle não remarca.
+// Troca de controle remarca (M.recalcCtrl, estado.ts): o novo controlador paga na manutenção dele.
 const ECO = new WeakMap<object, any>();
 const ecoDe = kw => { let g = ECO.get(kw); if (!g) ECO.set(kw, (g = { ev: 'fase', passo: 'manutencao', fx: [{ op: 'sacrificar', em: 'este', aMenosQue: { quem: 'voce', custo: { mana: kw.custo } } }] })); return g; };
 // p.face: a face que estava para cima quando disparou (dupla face transformada tem outros gatilhos, 712.6d)
