@@ -3497,6 +3497,17 @@ caso('701.47', "amassar: sem Armada cria a ficha 0/0 com o tipo e põe os marcad
   igual(M.poder(e, a), 3, '+2 na mesma');
   ok(M.dadoDe(e, a).sub.includes('Zombie'), 'virou Zombie também');
 });
+caso('701.47a', "amassar numa Armada que não é ficha (Grizzly Bears que virou Army): ela ganha o tipo também; ao sair do campo e voltar, não", () => {
+  const e = cena({ campo: [[0, 'Grizzly Bears']] });
+  const b = objN(e, 0, 'Grizzly Bears'); (b.anim || (b.anim = [])).push({ ts: b.ts, sub: ['Army'], fim: null, tE: ++e.ts });
+  M.executar(e, { op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 2 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  igual(e.campo.length, 1, 'não cria ficha: já tem Armada');
+  igual(M.poder(e, b), 4, '+2');
+  ok(M.dadoDe(e, b).sub.includes('Orc'), 'virou Orc: ' + JSON.stringify(M.dadoDe(e, b).sub));
+  ok(!M.carta('Grizzly Bears').sub.includes('Orc'), 'a carta não muda');
+  M.mover(e, b.id, 'mao'); M.mover(e, b.id, 'campo');
+  ok(!(M.dadoDe(e, b).sub || []).includes('Orc'), 'objeto novo (400.7): sem o tipo');
+});
 
 caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores de experiência seus, poder e marcadores da que morreu (LKI)", () => {
   for (const c of ['Chasm Skulker', 'Elenda, the Dusk Rose', "Elenda's Hierophant", 'Endless Ranks of the Dead', "Otharri, Suns' Glory"]) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');

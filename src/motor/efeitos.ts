@@ -1361,7 +1361,8 @@ const H = {
   },
   // CR 701.47: amassar [tipo] N. Sem Armada (criatura Army) sua, cria uma ficha 0/0 preta [tipo] Army; depois escolhe
   // uma Armada sua (a maior), põe N marcadores +1/+1 e, se não for do [tipo], ela passa a ser também (701.47a).
-  // Simplificação: o tipo a mais vai para os valores da ficha (fica numa cópia dela); Armada que não é ficha não ganha o tipo.
+  // O tipo a mais é efeito de camada 4 sem prazo (611.2a), preso ao objeto (o.anim, mesmo ts): vale para ficha ou não, e
+  // uma cópia dela não o herda (não é valor copiável, 707.2).
   amassar: {
     campos: ['sub'],
     ok: f => (f.quem === undefined || f.quem === 'voce') && Array.isArray(f.sub) && f.sub.length <= 1 && f.sub.every(x => typeof x === 'string') && f.em === undefined,
@@ -1372,7 +1373,7 @@ const H = {
       const a = armadas().sort((x, y) => M.poder(e, y) + M.resistencia(e, y) - M.poder(e, x) - M.resistencia(e, x))[0];
       if (!a) return;                                               // a ficha pode ter sido trocada (substituição) ou morrido antes: nada a escolher
       if (q > 0) M.porMarcadores(e, a, '+1/+1', q);
-      if (sub && a.ficha && !(a.ficha.sub || []).includes(sub)) a.ficha.sub = [...(a.ficha.sub || []), sub];
+      if (sub && (t => t !== 'todos' && !t.includes(sub))(M.tiposCriatura(e, a))) { (a.anim || (a.anim = [])).push({ ts: a.ts, sub: [sub], fim: null, tE: ++e.ts }); e.vCamada = (e.vCamada || 0) + 1; }
       M.log(e, 'amassar', sub || '', q, '→', a.n);
     },
   },
