@@ -2989,6 +2989,19 @@ caso('701.49b', 'na Undercity (iniciativa) um aventurar comum avança nela: a re
   morreEsqueleto(e); seguir(e); resolveCom(e, escolheM(null, 'Lost Well'));
   igual(masm(e), 'Undercity:Lost Well');
 });
+caso('701.38b', 'Undercity, Arena ("Goad target creature"): incitada de verdade — tem que atacar e ataca outro jogador, não quem aventurou (antes era só "ataca se puder")', () => {
+  const e = cena({ jogs: 3, campo: [[1, 'Grizzly Bears']] });
+  const b = objN(e, 1, 'Grizzly Bears'); b.doente = false;
+  e.jogs[0].masm = { nome: 'Undercity', sala: 1, ts: ++e.ts };   // Forge: a seta 4 leva à Arena
+  morreEsqueleto(e); seguir(e); resolveCom(e, p => escolheM(null, 'Arena')(p) >= 0 ? escolheM(null, 'Arena')(p) : p.ops.findIndex(o => o.o === b.id));
+  igual(masm(e), 'Undercity:Arena');
+  ok(M.tempDe(e, 'incitado').some(({ s, t }) => t.ctrl === 0 && M.tempAfeta(e, b, s, t)), 'incitada por mim');
+  e.turno.ativo = 1; e.turno.combate = { atk: [], etapa: 0, duas: false, deu1: {} };
+  const ops: any[] = []; const ask: any = (j, t, o) => { ops.push(o); return o.find(x => x.a === 'atacar') || o[0]; }; ask.etapa = () => {};
+  M.PROC.atacar(e, { j: 1 }, ask);
+  ok(!ops[0].some(o => o.a === 'pronto'), 'tem que atacar');
+  ok(ops[0].filter(o => o.a === 'atacar').every(o => o.jog === 2 || (o.o !== undefined && e.objs[o.o].ctrl === 2)), 'só o jogador 2: ' + JSON.stringify(ops[0]));
+});
 caso('702.124k', 'Zombie Ogre (morbid): na etapa final aventura só se uma criatura morreu neste turno', () => {
   for (const morreu of [true, false]) {
     const e = cena({ campo: [[0, 'Zombie Ogre'], [0, 'Grizzly Bears']] });

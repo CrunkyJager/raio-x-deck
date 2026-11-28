@@ -33,8 +33,7 @@ M.marcadorJogador = (e, j, tipo, q, tirar) => {
 //   _ateSeuTurno: P/R ou palavra-chave "até o seu próximo turno" (Fungi Cavern, Throne of the Dead Three);
 //   _perdeAMenosQue: "cada jogador perde N a menos que descarte / sacrifique" (Veils of Fear, Sandfall Cell);
 //   _comprarLembra: compra e lembra as compradas para o efeito seguinte (Mad Wizard's Lair).
-// Simplificações anotadas: incitar (Arena, 701.15) vira só "ataca se puder até o seu próximo turno" (sem "um jogador que
-// não você"); a Oubliette sacrifica um de cada vez (uma criatura artefato paga só um dos dois); a Throne põe os
+// Simplificações anotadas: a Oubliette sacrifica um de cada vez (uma criatura artefato paga só um dos dois); a Throne põe os
 // marcadores logo depois de entrar (não "entra com").
 const tok = (pt, cores, sub, kw?) => ({ pt, cores, tipos: ['Creature'], sub, ...(kw ? { kw } : {}) });
 const TESOURO = { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } };
@@ -74,7 +73,7 @@ export const MASMORRAS: Record<string, { undercity?: boolean; salas: { n: string
     { n: 'Forge', alvos: ALVO_CRIATURA, fx: [{ op: 'marcador', em: { alvo: 0 }, tipoMarc: '+1/+1', qtd: 2 }], vai: [3, 4] },
     { n: 'Lost Well', fx: [vid(2)], vai: [4, 5] },
     { n: 'Trap!', alvos: [{ f: 'jogador' }], fx: [{ op: 'perderVida', quem: { alvo: 0 }, qtd: 5 }], vai: [6] },
-    { n: 'Arena', alvos: ALVO_CRIATURA, fx: [{ op: 'efeitoTemporario', em: { alvo: 0 }, dura: 'proximoTurnoSeu', est: [{ modo: 'deveAtacar' }] }], vai: [6, 7] },
+    { n: 'Arena', alvos: ALVO_CRIATURA, fx: [{ op: 'incitar', em: { alvo: 0 } }], vai: [6, 7] },   // "Goad target creature" (701.38)
     { n: 'Stash', fx: [TESOURO], vai: [7] },
     { n: 'Archives', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], vai: [8] },
     { n: 'Catacombs', fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: tok([4, 1], 'B', ['Skeleton'], [{ k: 'ameaca' }]) }], vai: [8] },
