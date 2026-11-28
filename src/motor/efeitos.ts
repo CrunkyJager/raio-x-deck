@@ -828,7 +828,7 @@ const H = {
       for (const o of os) {
         // todosTipos (Mirror Entity, 205.3m): "ganha todos os tipos de criatura" = metamorfo dado (lido em tiposCriatura)
         const kw = f.todosTipos ? [...(f.kw || []), { k: 'metamorfo' }] : f.kw;
-        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, soSub: !!f.soSub, ...(f.super ? { super: f.super } : {}), pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null, tE: e.ts, ...(f.dura === 'enquantoNoCampo' && F0 ? { src: { id: F0.id, ts: F0.ts, ctrl: ctx.voce } } : {}) });   // src: "for as long as you control [fonte]" (Welcome to . . . I)
+        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, soSub: !!f.soSub, ...(f.super ? { super: f.super } : {}), pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null, tE: ++e.ts, ...(f.dura === 'enquantoNoCampo' && F0 ? { src: { id: F0.id, ts: F0.ts, ctrl: ctx.voce } } : {}) });   // src: "for as long as you control [fonte]" (Welcome to . . . I)
         if (f.habil) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.habil.gat] };   // 613.1f
         M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
       }
@@ -1339,7 +1339,7 @@ const H = {
   },
   // CR 701.47: amassar [tipo] N. Sem Armada (criatura Army) sua, cria uma ficha 0/0 preta [tipo] Army; depois escolhe
   // uma Armada sua (a maior), põe N marcadores +1/+1 e, se não for do [tipo], ela passa a ser também (701.47a).
-  // Simplificação: o tipo a mais vai para os valores da ficha (fica numa cópia dela); Armada que não é ficha não ganha o tipo.
+  // O tipo a mais é um efeito de camada 4 preso ao objeto (o.anim, sem duração): vale para ficha ou não, e a cópia não o leva.
   amassar: {
     campos: ['sub'],
     ok: f => (f.quem === undefined || f.quem === 'voce') && Array.isArray(f.sub) && f.sub.length <= 1 && f.sub.every(x => typeof x === 'string') && f.em === undefined,
@@ -1350,7 +1350,7 @@ const H = {
       const a = armadas().sort((x, y) => M.poder(e, y) + M.resistencia(e, y) - M.poder(e, x) - M.resistencia(e, x))[0];
       if (!a) return;                                               // a ficha pode ter sido trocada (substituição) ou morrido antes: nada a escolher
       if (q > 0) M.porMarcadores(e, a, '+1/+1', q);
-      if (sub && a.ficha && !(a.ficha.sub || []).includes(sub)) a.ficha.sub = [...(a.ficha.sub || []), sub];
+      if (sub && (t => t !== 'todos' && !t.includes(sub))(M.tiposCriatura(e, a))) { (a.anim || (a.anim = [])).push({ ts: a.ts, sub: [sub], fim: null, tE: ++e.ts }); e.vCamada = (e.vCamada || 0) + 1; }   // efeito na camada 4, não valor copiável
       M.log(e, 'amassar', sub || '', q, '→', a.n);
     },
   },
@@ -1397,7 +1397,7 @@ const H = {
   },
   // fundir (CR 701.42, 712.4): se você é dono e controla as duas, exila esta e a parceira (f) e põe no campo a carta
   // fundida (faces[0] desta). A parceira fica no exílio ligada a ela (o.fundidaCom); quando a fundida sai do campo, as
-  // duas vão juntas (712.4c). Simplificação: o valor de mana da fundida é o da face de trás (não a soma das duas, 712.8g).
+  // duas vão juntas (712.4c). O valor de mana da fundida é a soma das duas frentes (712.8g, no M.dadoBase).
   fundir: {
     campos: ['f', 'virada', 'atacando'],
     ok: f => !!f.f && M.filtroOk(f.f) && f.em === undefined,
