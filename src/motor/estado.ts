@@ -553,7 +553,7 @@ M.regenera = (e, o) => {
 // descartar (CR 701.9): o único caminho do descarte (efeito, custo, limpeza). Cada carta dispara 'descarta' {id, j, ts}
 // e o lote todo 'descartaGrupo' {j, n, ids} (gatilho com grupo: "uma ou mais cartas", Marauding Mako).
 // Loucura (702.35a): a carta vai para o exílio em vez do cemitério e o gatilho da loucura vai para a pilha.
-// Simplificação: o exílio da loucura é sempre escolhido; quem não quer conjurar recusa no gatilho e ela vai ao cemitério.
+// O exílio não é opcional (702.35a: "exiles it instead"); quem não quer conjurar recusa no gatilho e ela vai ao cemitério.
 M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte por efeito (substituição com talvez)
   const feitas: any[] = [];
   for (const id of ids) {
