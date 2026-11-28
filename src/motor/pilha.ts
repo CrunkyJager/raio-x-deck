@@ -1393,7 +1393,7 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
       M.executar(e, { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'mover', em: 'este', para: 'mao' }] } }, { voce: ent.ctrl, este: ent.id, alvos: [], ilegal: {}, lki: { este: M.lkiDe(e, ent) } }, null);
     }
     if (ent && conj && conj.dobra) (e.atras || (e.atras = [])).push({ g: GAT_DOBRA, ctrl: ent.ctrl, fonte: ent.id, n: ent.n, t: e.turno.n, lki: null, mem: { movidos: [{ id: ent.id, ts: ent.ts }] } });   // 702.185a     // conjDe: de que zona ("if you cast it from your hand", Cyclone Summoner); filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
-    if (susp && ent && M.temTipo(e, ent, 'Creature')) { (ent.anim || (ent.anim = [])).push({ ts: ent.ts, kw: [{ k: 'pressa' }], fim: null }); e.vCamada = (e.vCamada || 0) + 1; }   // 702.62a: conjurada pelo suspender, ímpeto (simplificação: enquanto estiver no campo, não só enquanto você controla)
+    if (susp && ent && M.temTipo(e, ent, 'Creature')) { (ent.anim || (ent.anim = [])).push({ ts: ent.ts, kw: [{ k: 'pressa' }], fim: null, ateCtrl: ent.ctrl }); e.vCamada = (e.vCamada || 0) + 1; }   // 702.62a: conjurada pelo suspender, ímpeto "until you lose control of it" (ateCtrl: sai no M.recalcCtrl, não volta)
     if (fuga && typeof fuga === 'object') for (const m in fuga) ent.marc[m] = (ent.marc[m] || 0) + fuga[m];   // 702.138c: "foge com"                    // x: "entra com X marcadores" (614.1c)                       // "se foi chutada" depois de entrar (Goblin Bushwhacker)
     return;
   }

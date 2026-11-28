@@ -694,6 +694,7 @@ M.recalcCtrl = e => {
       const ult = e.ctrlEf.filter(c => c.id === id && c.ts === o.ts).pop(), novo = ult ? ult.j : o.ctrl0;
       if (novo === o.ctrl || e.jogs[novo].saiu) continue;
       o.ctrl = novo; o.doente = true; mudou = true;
+      if (o.anim && o.anim.some(a => a.ateCtrl !== undefined)) o.anim = o.anim.filter(a => a.ateCtrl === undefined);   // "until you lose control of it" (suspender 702.62a): perdeu uma vez, acabou
       const C = e.turno.combate;
       if (C) { C.atk = C.atk.filter(a => a.id !== id); for (const a of C.atk) if (a.bloq) a.bloq = a.bloq.filter(b => b.id !== id); }
       M.log(e, e.jogs[novo].nome, 'ganha o controle de', o.n);

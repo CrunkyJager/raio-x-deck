@@ -7667,6 +7667,12 @@ caso('702.62c', 'suspender de criatura: conjurada ao tirar o último marcador ga
       ateTurno(e, 4, 'principal1');
       igual(e.objs[c].zona, 'campo', 'entrou');
       ok(M.temKw(e, e.objs[c], 'pressa'), 'com ímpeto');
+      if (quer) {   // 702.62a: "it gains haste until you lose control of it"
+        const o = e.objs[c]; o.ctrl0 = o.ctrl; (e.ctrlEf || (e.ctrlEf = [])).push({ id: o.id, ts: o.ts, j: 1, fim: 'turno' }); M.recalcCtrl(e);
+        igual([o.ctrl, M.temKw(e, o, 'pressa')], [1, false], 'o oponente tomou: sem ímpeto');
+        e.ctrlEf = []; M.recalcCtrl(e);
+        igual([o.ctrl, M.temKw(e, o, 'pressa')], [0, false], 'voltou: o ímpeto não volta');
+      }
     }
   } finally { delete (banco.db as any)[nm]; }
 });
