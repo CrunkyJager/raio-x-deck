@@ -2909,6 +2909,18 @@ caso('701.49c', 'aventurar na última sala (a habilidade dela ainda na pilha): c
   M.aventurar(e, 0, (j, t, ops) => t === 'masmorra' ? ops.find(o => o.nome === 'Dungeon of the Mad Mage') : ops[0]);
   igual([e.jogs[0].completas, masm(e)], [['Tomb of Annihilation'], 'Dungeon of the Mad Mage:Yawning Portal']);
 });
+caso('614.1c', "Throne of the Dead Three: a criatura vai ao campo já com três marcadores +1/+1 (\"onto the battlefield with\"), com antimagia; o resto volta e embaralha", () => {
+  const e = cena();
+  for (const n of ['Forest', 'Wastes', 'Grizzly Bears', 'Wastes']) e.por(0, n, { zona: 'grimorio' });
+  const g0 = e.jogs[0].zonas.grimorio.length;
+  const sala = M.MASMORRAS['Undercity'].salas.find(s => s.n === 'Throne of the Dead Three');
+  ok(!sala.fx.some(f => f.op === 'marcador'), 'sem marcador depois de entrar');
+  const ctx = { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  for (const f of sala.fx) M.executar(e, f, ctx, (j, t, ops) => ops[0]);
+  const b = objN(e, 0, 'Grizzly Bears');
+  igual([b.zona, b.marc['+1/+1'], M.poder(e, b), M.temKw(e, b, 'antimagia')], ['campo', 3, 5, true]);
+  igual(e.jogs[0].zonas.grimorio.length, g0 - 1, 'o resto voltou ao grimório');
+});
 caso('114.4', 'emblema com gatilho (Chandra, Torch of Defiance): cada mágica que você conjura dá 5 de dano a um alvo, toda vez', () => {
   const e = cena({ campo: terras(4, 'Forest'), mao: [[0, 'Grizzly Bears'], [0, 'Grizzly Bears']] });
   const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };

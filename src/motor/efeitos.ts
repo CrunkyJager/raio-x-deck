@@ -1828,7 +1828,7 @@ const H = {
     },
   },
   cavar: {                                                          // olhar/revelar do topo (CR 701.16 revelar), pegar o que bate, o resto vai para outra zona
-    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'comEste', 'umDeCada', 'faceBaixo'],
+    campos: ['olha', 'pega', 'f', 'para', 'resto', 'revelar', 'virada', 'fundo', 'destinos', 'ateAchar', 'sobControle', 'aleatorio', 'comEste', 'umDeCada', 'faceBaixo', '_entraMarc'],   // _entraMarc: só das masmorras (Throne of the Dead Three), fora do esquema
     talvezDentro: true,                                             // "you may put…": o resto vai para a zona dele mesmo se não pegar nada
     ok: f => {
       const Z = ['mao', 'campo', 'cemiterio', 'exilio'];
@@ -1875,7 +1875,7 @@ const H = {
         resto.push(...vistos.filter(id => !pegou.has(id)));
       }
       pegos = plano.length;
-      const ent = plano.map(p => p.para === 'campo' ? M.decidirEntrada(e, p.id, f.sobControle === 'voce' ? ctx.voce : p.j, { virada: p.virada }, ask) : null);
+      const ent = plano.map(p => p.para === 'campo' ? { ...M.decidirEntrada(e, p.id, f.sobControle === 'voce' ? ctx.voce : p.j, { virada: p.virada }, ask), ...(f._entraMarc ? { marc: f._entraMarc } : {}) } : null);   // _entraMarc: "onto the battlefield with N counters" (614.1c)
       plano.forEach((p, k) => { if (p.para === 'grimorio') return; if (ent[k]) M.aplicarEntrada(e, ent[k]); else M.mover(e, p.id, p.para); });
       ctx.movidos = movidos(e, plano.map(p => p.id));
       if (f.faceBaixo && f.para === 'exilio') for (const p of plano) { const X = e.objs[p.id]; if (X.zona === 'exilio') { X.faceBaixo = true; X.olham = [ctx.voce]; } }   // 406.3: olhou e exilou virada: só quem olhou continua vendo
