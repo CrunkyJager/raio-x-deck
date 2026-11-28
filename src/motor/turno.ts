@@ -254,6 +254,7 @@ const RESP = {
 // ---------- ações baseadas em estado (CR 704.3: todas de uma vez, repete até nada mudar) ----------
 M.abe = e => {
   for (let volta = 0; volta < 100; volta++) {
+    e.nAcao = (e.nAcao || 0) + 1;                                   // uma verificação = uma ação (704.3: tudo ao mesmo tempo)
     let mudou = false;
     // jogadores (CR 704.5a–c, 903.10a): perdem todos juntos
     const perdem: any[] = [];

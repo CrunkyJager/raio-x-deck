@@ -451,7 +451,16 @@ function pagouParaImpedir(e, f, ctx, ask) {
 }
 
 // ---------- executar um efeito ----------
+// e.nAcao: número da ação (eventos ao mesmo tempo, 603.2c/603.3: "uma ou mais" dispara uma vez por ação). Cada efeito de
+// topo é uma ação nova; os de dentro (cada, se) são parte dela. Só cresce: o processo que refaz o passo a cada resposta
+// só pula números, nunca junta duas ações.
+let profExec = 0;
 M.executar = (e, f, ctx, ask) => {
+  if (!profExec) e.nAcao = (e.nAcao || 0) + 1;
+  profExec++;
+  try { executar0(e, f, ctx, ask); } finally { profExec--; }
+};
+const executar0 = (e, f, ctx, ask) => {
   if (ctx.rep && ctx.rep.f === f) { H.repetirCada.fx(e, f, ctx, ask); return; }   // repetirCada no meio (voltou de uma pergunta): condição já lida
   if (f.se && !M.condicao(e, f.se, ctx)) return;                     // CR 608.2c: condição lida na hora
   // "pode" ANTES de qualquer pagamento: o processo repete o passo a cada resposta, e uma pergunta depois de pagar via

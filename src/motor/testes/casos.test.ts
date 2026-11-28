@@ -6016,6 +6016,15 @@ caso('119.3', "vida ganha neste turno ({de:'turno', o:'vidaGanha'}): soma os gan
 });
 
 // ---------- contagens num formato só (27/11): {conta:{de, o, junta}} ----------
+caso('603.2c', "\"uma ou mais\" uma vez por ação: duas moagens na mesma resolução (frases diferentes) dão dois gatilhos da Mothman; a mesma moagem, um só", () => {
+  const e = cena({ campo: [[0, 'The Wise Mothman']], grimorio: 0 }); e.pend = [];
+  for (const n of ['Grizzly Bears', 'Serra Angel', 'Llanowar Elves', 'Grizzly Bears']) e.por(1, n, { zona: 'grimorio' });
+  const ctx = { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  M.executar(e, { op: 'moer', quem: 'cadaOponente', qtd: 2 }, ctx, null);
+  igual(e.pend.filter(p => p.n === 'The Wise Mothman').length, 1, 'uma moagem de 2: um gatilho');
+  M.executar(e, { op: 'moer', quem: 'cadaOponente', qtd: 2 }, ctx, null);
+  igual(e.pend.filter(p => p.n === 'The Wise Mothman').length, 2, 'outra moagem (outra ação) antes da pilha: outro gatilho');
+});
 caso('115.1d', "The Wise Mothman: moer 3 com 2 não-terreno → um gatilho com até 2 alvos (max contado do evento); +1/+1 em cada", () => {
   ok(M.carta('The Wise Mothman').gat.every(g => M.gatOk(g)) && M.carta('The Wise Mothman').gat[2].alvos.every(a => M.alvoSuportado(a)), 'aceita');
   const e = cena({ campo: [[0, 'The Wise Mothman'], [0, 'Grizzly Bears'], [0, 'Llanowar Elves'], [0, 'Serra Angel']], grimorio: 0 }); e.pend = [];
