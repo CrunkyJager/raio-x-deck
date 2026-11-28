@@ -410,11 +410,12 @@ M.evento = (e, ev) => {
     }
   }
   // mentor (CR 702.134a): "quando ataca, põe um +1/+1 em uma criatura atacante alvo com poder menor"; uma por instância (702.134b).
-  // Simplificação: o "poder menor" fica o do momento do ataque (na resolução vale o de então, 608.2b).
+  // "Poder menor" é relativo ao poder do mentor (conta de 'este'): o alvo é escolhido com o poder de agora e rechecado ao
+  // resolver com o de então (608.2b; se o mentor cresceu ou o alvo encolheu ao contrário, o alvo fica ilegal).
   if (ev.ev === 'ataca' && e.objs[ev.id]) {
     const F = e.objs[ev.id], n = M.kwDe(e, F).filter(x => x.k === 'mentor').length;
     if (n) {
-      const g = { ev: 'ataca', alvos: [{ f: { tipo: ['Creature'], atacando: true, poder: { max: M.poder(e, F) - 1 }, zona: 'campo' } }], fx: [{ op: 'marcador', em: { alvo: 0 }, tipoMarc: '+1/+1', qtd: 1 }] };
+      const g = { ev: 'ataca', alvos: [{ f: { tipo: ['Creature'], atacando: true, poder: { max: { conta: { de: 'este', o: 'poder' }, soma: -1 } }, zona: 'campo' } }], fx: [{ op: 'marcador', em: { alvo: 0 }, tipoMarc: '+1/+1', qtd: 1 }] };
       const vezes = n * (1 + extras(e, F, g, ev));
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: 'mentor', g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }

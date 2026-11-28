@@ -421,7 +421,8 @@ M.porFuga = porFuga; M.fugaDe = fugaDe;
 // com parte física (Force of Will, Sephara, Flare of Fortitude): estAltFisOk, uma opção de conjurar {alt: i}.
 // Dado por uma permanente sua a outras cartas (afeta filtro: Dracogenesis, Rooftop Storm, Bolas's Citadel, Demon of
 // Fate's Design): grátis, {0}, mana, ou vida (pagar.vida: número ou {conta:{de:'evento', o:'vm'}} = o valor de mana da mágica;
-// CR 119.4: só paga quem tem essa vida). limite 1 = uma vez por turno. Simplificação: vida só quando sobram mais de 10.
+// CR 119.4: só paga quem tem essa vida). limite 1 = uma vez por turno. Pagar vida ou não é decisão de quem conjura: a ação
+// 'conjurar' com semVida conjura pelo custo normal (o agente básico só paga vida se sobrar mais de 10, agentes.ts).
 const altVidaOk = v => { if (Number.isInteger(v)) return true; const q = M.qn(v); return !!q && typeof q === 'object' && Object.keys(q).length === 1 && !!q.conta && q.conta.de === 'evento' && q.conta.o === 'vm' && Object.keys(q.conta).length === 2; };   // nome velho vmDoEvento entra por M.qn (contagem.ts)
 // só mana/grátis desta carta, ou dado por permanente sua (afeta filtro; pode ser {0}, mana ou vida)
 const estAltManaOk = s => !!s && s.modo === 'custoAlternativo' && (s.afeta === 'este' || (!!s.afeta && typeof s.afeta === 'object' && M.filtroOk(s.afeta)))
@@ -438,7 +439,7 @@ const altFis = (e, j, o, d) => (d.est || []).map((s, i) => [s, i]).filter(([s]) 
   if (!s.se) return true; try { return M.condicao(e, s.se, { voce: j, este: o.id }); } catch (_) { return false; } }).map(([, i]) => i);
 const fisAlt = (d, opc) => { const { mana, ...r } = d.est[opc.alt].pagar; return r; };
 // o alternativo dado pelas permanentes de j que vale para o (com o F e a estática, para marcar o limite)
-const altDados = (e, j, o) => {
+const altDados = (e, j, o, semVida = false) => {
   const r: any[] = [];
   for (const id of e.campo) {
     const F = e.objs[id]; if (F.ctrl !== j || F.id === o.id) continue;
@@ -448,7 +449,7 @@ const altDados = (e, j, o) => {
       try { if (!M.bate(e, o, s.afeta, cx) || (s.se && !M.condicao(e, s.se, cx))) continue; } catch (_) { continue; }
       if (s.limite && F.altUso && F.altUso.t === e.turno.n && F.altUso.ts === F.ts) continue;
       const vida = s.pagar && s.pagar.vida !== undefined ? (Number.isInteger(s.pagar.vida) ? s.pagar.vida : M.dadoDe(e, o).vm || 0) : 0;
-      if (vida && e.jogs[j].vida - vida <= 10) continue;
+      if (vida && (semVida || e.jogs[j].vida < vida)) continue;   // 119.4: só paga quem tem essa vida
       r.push({ custo: s.gratis ? {} : s.pagar.mana || {}, vida, F, s });
     }
   }
@@ -482,8 +483,8 @@ const replicarDe = (e, j, o) => {
 };
 M.replicarDe = replicarDe;
 const REPLICAR_MAX = 4;   // o agente não vai além disso (a mana raramente dá)
-const altDe = (e, j, o) => altInfo(e, j, o)?.custo;
-const altInfo = (e, j, o) => {
+const altDe = (e, j, o, semVida = false) => altInfo(e, j, o, semVida)?.custo;
+const altInfo = (e, j, o, semVida = false) => {
   let melhor: any = null, info: any = null;
   for (const s of M.dadoDe(e, o).est || []) {
     if (s.afeta !== 'este' || !estAltManaOk(s) || !(s.gratis || s.pagar.mana)) continue;
@@ -491,7 +492,7 @@ const altInfo = (e, j, o) => {
     const c = s.gratis ? {} : s.pagar.mana;
     if (!melhor || M.vmDe(c) < M.vmDe(melhor)) melhor = c;
   }
-  for (const a of altDados(e, j, o)) if (!melhor || M.vmDe(a.custo) < M.vmDe(melhor) || (M.vmDe(a.custo) === M.vmDe(melhor) && info && a.vida < info.vida)) { melhor = a.custo; info = a; }
+  for (const a of altDados(e, j, o, semVida)) if (!melhor || M.vmDe(a.custo) < M.vmDe(melhor) || (M.vmDe(a.custo) === M.vmDe(melhor) && info && a.vida < info.vida)) { melhor = a.custo; info = a; }
   // rondar (702.76a): custo alternativo se neste turno você causou dano de combate a um jogador com uma fonte que tem um tipo de criatura desta
   // ou dado por permanente seu (est darRondar {afeta, custo}: Hunting Velociraptor, "Dinosaur spells you cast have prowl {2}{R}")
   const D = e.jogs[j].danoCombT, ro = (M.dadoDe(e, o).kw || []).find(x => x.k === 'rondar' && x.custo) || (() => {
@@ -505,8 +506,8 @@ const altInfo = (e, j, o) => {
 };
 M.altDe = (e, j, o) => altDe(e, j, o);
 // o custo alternativo que o custoBase usa (o mesmo encadeamento): para pagar a vida e marcar o limite na conjuração
-const altUsado = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? (p => ({ custo: {}, vida: M.dadoDe(e, o).vm || 0, F: e.objs[p.ctx.este], s: p.s }))(permVida(e, j, o)) : opts.loucura || opts.milagre || (porFlash(e, j, o) && !opts.gratis) || (porFuga(e, j, o) && !opts.gratis) || (porPrevisao(e, j, o) && !opts.gratis) || opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? undefined : altInfo(e, j, o);
-const custoBase = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? {} : opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o);
+const altUsado = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? (p => ({ custo: {}, vida: M.dadoDe(e, o).vm || 0, F: e.objs[p.ctx.este], s: p.s }))(permVida(e, j, o)) : opts.loucura || opts.milagre || (porFlash(e, j, o) && !opts.gratis) || (porFuga(e, j, o) && !opts.gratis) || (porPrevisao(e, j, o) && !opts.gratis) || opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? undefined : altInfo(e, j, o, !!opts.semVida);
+const custoBase = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? {} : opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o, !!opts.semVida);
 // a permissão (est podeJogar) que deixa jogar o daqui; limite 1 = "once during each of your turns" (Kess): a fonte guarda o turno do uso
 const permDe = (e, j, o) => ((o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j) || (o.zona === 'exilio' && !o.ficha) ? permissoes(e, j).find(({ s, ctx }) => {   // do exílio: de qualquer dono (Valgavoth)
   if (s.de !== o.zona) return false;
@@ -649,6 +650,12 @@ M.porPorta = (e, o, k, aberta) => {
 const porPreparo = (e, j, o) => !!o.copiaPrep && o.zona === 'exilio' && M.prepValida(e, o) && e.objs[o.copiaPrep.id].ctrl === j;
 // só a face que vai ficar para cima é avaliada (712.8c, 709.3a, 716.3a): avalia com o.face trocada e devolve
 // opts.loucura: a carta exilada pela loucura, conjurada na resolução do gatilho (CR 702.35b), sem olhar a velocidade
+// a vida que a conjuração paga no lugar da mana (118.9, 119.4): alternativo de vida dado por permanente (Bolas's Citadel) ou
+// a permissão do exílio da Valgavoth; com semVida, o alternativo de vida fica de fora (paga o normal)
+M.vidaConj = (e, j, o, face?, opts: any = {}) => {
+  const antes = o.face; o.face = face ?? null;
+  try { const a = altUsado(e, j, o, opts); return a && a.vida || 0; } finally { o.face = antes; }
+};
 M.podeConjurar = (e, j, o, face?, opts?) => {
   const antes = o.face;
   o.face = face ?? null;
@@ -674,7 +681,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   const agora = !!opts.agora && o.zona !== 'campo' && o.zona !== 'pilha';   // op jogar sem dura: na resolução, de onde estiver
   const d = M.dadoDe(e, o);
   if (o.dono !== j && !agora && !M.permJogar(e, j, o) && !(o.zona === 'exilio' && permDe(e, j, o))) return false;
-  if (!opts.gratis && permVida(e, j, o) && e.jogs[j].vida - (d.vm || 0) <= 10) return false;   // 119.4 pede vida ≥ vm; a IA não paga abaixo de 10 (como altDados)
+  if (!opts.gratis && permVida(e, j, o) && e.jogs[j].vida < (d.vm || 0)) return false;   // 119.4: só paga vida quem tem essa vida (se vale a pena é do agente)
   if (M.temTipo(e, o, 'Land') || (!d.custo && !opts.gratis)) return false;   // sem custo de mana: só "sem pagar" (suspender 702.62a, cascata)          // terreno não é conjurado (CR 305.9); sem custo = só alternativo (T19)
   if (M.naoConjura(e, j)) return false;
   if (d.conjurarSo && !conjurarSoOk(e, j, d.conjurarSo)) return false;   // "cast this spell only during …" (307.5, Illusionist's Gambit)
@@ -825,7 +832,11 @@ function opcoes(e, j) {
     for (const id of doPerm) { const p = M.permJogar(e, j, e.objs[id]); if (p && !p.soConjurar && M.temTipo(e, e.objs[id], 'Land')) ops.push({ a: 'terreno', id }); }
   for (const id of [...J.zonas.mao, ...J.zonas.comando, ...doCem, ...doTopo, ...doExilio, ...doExPerm, ...doFlash, ...doPerm])
     for (const face of M.facesParaConjurar(e, j, e.objs[id]))
-      if (M.podeConjurar(e, j, e.objs[id], face)) ops.push(face === undefined ? { a: 'conjurar', id } : { a: 'conjurar', id, face });
+      if (M.podeConjurar(e, j, e.objs[id], face)) {
+        const op: any = face === undefined ? { a: 'conjurar', id } : { a: 'conjurar', id, face };
+        ops.push(op);
+        if (M.vidaConj(e, j, e.objs[id], face) && !permVida(e, j, e.objs[id]) && M.podeConjurar(e, j, e.objs[id], face, { semVida: true })) ops.push({ ...op, semVida: true });   // 118.9: pagar vida é opcional
+      }
   for (const id of e.campo) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
     M.atvDe(e, o).forEach((a, k) => { if (!a.deMana && M.podeAtivar(e, j, o, k)) ops.push({ a: 'ativar', id, k }); });
@@ -879,6 +890,19 @@ const danoNoAlvo = (e, fx, i, ctx) => {
   return Number.isInteger(n) && n > 0 ? { dano: n } : {};
 };
 const paraSi = (fx, alvos, i) => (alvos || []).findIndex(a => a && (a.f === 'jogador' || a.f === 'qualquerAlvo')) === i && (fx || []).some(f => f && f.op === 'virarMonarca' && f.quem === 'alvoJogador');
+// o efeito traz o alvo i de volta (cemitério/exílio → campo ou mão: Marshal's Anthem, reanimar, Raise Dead)? 'voce' = sob o
+// controle de quem conjura (sobControle voce), 'dono' = volta para o dono (campo ou mão dele). O agente então mira a carta que volta
+// para ele em vez da do oponente (agentes.ts, caso 'alvo').
+const trazDeVolta = (fx, alvos, i) => {
+  const a = (alvos || [])[i], z = a && a.f && typeof a.f === 'object' ? a.f.zona : null;
+  if (z !== 'cemiterio' && z !== 'exilio') return null;
+  let r: any = null;
+  const anda = v => { if (r || !v || typeof v !== 'object') return; if (Array.isArray(v)) return v.forEach(anda);
+    if (v.op === 'mover' && v.em && v.em.alvo === i && (v.para === 'campo' || v.para === 'mao')) { r = v.para === 'campo' && v.sobControle === 'voce' ? 'voce' : 'dono'; return; }
+    Object.values(v).forEach(anda); };
+  anda(fx);
+  return r;
+};
 // de que jogador é o alvo: o próprio jogador; permanente = quem controla; carta fora do campo = o dono (Afterlife from the Loam)
 const jogDoAlvo = (e, x) => x.jog !== undefined ? x.jog : e.objs[x.o].zona === 'campo' ? e.objs[x.o].ctrl : e.objs[x.o].dono;
 // mínimo de alvos: 'X' = exatamente X (o X já foi escolhido, 601.2b antes de 601.2c); sem X (viabilidade), 0
@@ -906,7 +930,7 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
       if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
       if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto' && max === Infinity)) break;
-      const r = ask(j, 'alvo', ops, { i, de: ctx.este, ...(paraSi(fx, d.alvos, i) ? { paraSi: true } : {}), ...danoNoAlvo(e, fx, i, ctx) });
+      const r = ask(j, 'alvo', ops, { i, de: ctx.este, ...(paraSi(fx, d.alvos, i) ? { paraSi: true } : {}), ...danoNoAlvo(e, fx, i, ctx), ...(trazDeVolta(fx, d.alvos, i) ? { traz: trazDeVolta(fx, d.alvos, i) } : {}) });
       if (r.a === 'pronto') break;
       lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts }); total++;
     }
@@ -1441,7 +1465,7 @@ M.resolverTopo = e => {
   const id = e.pilha[e.pilha.length - 1];
   M.iniciarProc(e, { tp: 'resolver', id });
 };
-M.conjurar = (e, j, id, face?, baixo?) => M.iniciarProc(e, baixo ? { tp: 'conjurar', j, id, baixo } : face === undefined ? { tp: 'conjurar', j, id } : { tp: 'conjurar', j, id, face });
+M.conjurar = (e, j, id, face?, baixo?, semVida?) => M.iniciarProc(e, baixo ? { tp: 'conjurar', j, id, baixo } : { tp: 'conjurar', j, id, ...(face === undefined ? {} : { face }), ...(semVida ? { semVida: true } : {}) });
 // face de terreno de uma carta modal cuja frente não é terreno (Bala Ged Recovery → Bala Ged Sanctuary); 712.9
 M.faceTerreno = (e, o) => M.formaDe(e, o) === 'modal' && ((M.carta(o.n).faces[0] || {}).tipos || []).includes('Land');
 M.ativar = (e, j, id, k) => M.iniciarProc(e, { tp: 'ativar', j, id, k });

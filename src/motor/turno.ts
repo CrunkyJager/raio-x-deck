@@ -89,11 +89,13 @@ function passoMulligan(e) {
     e.perg = { j, tipo: 'fundo', ops: e.jogs[j].zonas.mao.map(id => ({ a: 'fundo', id })) };
     return;
   }
-  e.mull = null;
   // CR 103.6a (Leylines): "se esta carta estiver na sua mão inicial, você pode começar o jogo com ela no campo" —
-  // na ordem do turno, depois dos mulligans. Simplificação: sempre começa (é o que todo mundo faz).
+  // na ordem do turno, depois dos mulligans; cada jogador decide carta a carta (pergunta 'comecaNoCampo', o agente diz sim).
+  m.leyVistas = m.leyVistas || [];
   for (let i = 0; i < n; i++) { const j = (e.turno.primeiro + i) % n, J = e.jogs[j];
-    for (const id of J.zonas.mao.slice()) if ((M.dadoDe(e, e.objs[id]).kw || []).some(x => x.k === 'comecaNoCampo')) { M.mover(e, id, 'campo'); M.log(e, J.nome, 'começa o jogo com', e.objs[id].n, 'no campo'); } }
+    const id = J.zonas.mao.find(x => !m.leyVistas.includes(x) && (M.dadoDe(e, e.objs[x]).kw || []).some(k => k.k === 'comecaNoCampo'));
+    if (id !== undefined) { m.leyVistas.push(id); e.perg = { j, tipo: 'comecaNoCampo', ops: [{ a: 'sim', id }, { a: 'nao', id }], ctx: { de: id } }; return; } }
+  e.mull = null;
   Object.assign(e.turno, { n: 1, passo: 'desvirar', feito: false, passar: false });
 }
 
@@ -226,12 +228,13 @@ M.jogarTerreno = jogarTerreno;
 const RESP = {
   mulligan(e, p, op) { const m = e.mull; if (op.a === 'mulligan') m.querem.push(p.j); m.i++; },
   fundo(e, p, op) { M.mover(e, op.id, 'grimorio', { topo: false }); e.mull.fundo[p.j]--; },
+  comecaNoCampo(e, p, op) { if (op.a === 'sim') { M.mover(e, op.id, 'campo'); M.log(e, e.jogs[p.j].nome, 'começa o jogo com', e.objs[op.id].n, 'no campo'); } },   // 103.6a
   acao(e, p, op) {
     if (op.a === 'passar') M.passar(e);
     else if (op.a === 'terreno') jogarTerreno(e, p.j, op.id, op.face);
     else if (op.a === 'mana') { M.ativarMana(e, p.j, op.id, op.k, op.escolha); M.agiu(e, p.j); }   // CR 605.3a
     else if (op.a === 'manaEsc') M.manaEsc(e, p.j, op.id, op.k, op.escolha);          // CR 605.3a com escolha no custo
-    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face, op.baixo);
+    else if (op.a === 'conjurar') M.conjurar(e, p.j, op.id, op.face, op.baixo, op.semVida);
     else if (op.a === 'ativar') M.ativar(e, p.j, op.id, op.k);
     else if (op.a === 'prever') M.prever(e, p.j, op.id);
     else if (op.a === 'suspender') M.suspender(e, p.j, op.id);
