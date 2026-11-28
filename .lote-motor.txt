@@ -1,0 +1,31 @@
+kw cicloTipo
+op comprar.qtd
+op regenerar
+est continuo tiraTipo
+kw esconderijo
+op modificar
+gat ev fichaCriada
+kw dada caminhadaTerreno
+kw posVida
+kw tripular
+op buscar.qtd
+op ganharVida.qtd
+op popular
+op tentarAnel
+carta.impostoPorAlvo
+est naoPodeAtivar
+gat ev capitulo
+gat ev vira
+gat.de
+gat.quem
+kw caminhadaTerreno
+kw eternizar
+kw miriade
+kw persistir
+op dano.se
+op explorar
+op ganharVida.se
+op incitar
+op perderVida.qtd
+op sacrificar.qtd
+subst entra copiarPermanente

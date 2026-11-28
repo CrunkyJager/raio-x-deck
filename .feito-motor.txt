@@ -1,0 +1,34 @@
+kw cicloTipo | Angel of the Ruins, Hobbit Hole, Homing Sliver, Step Through, Vedalken Aethermage | 1539→1544
+op comprar.qtd | Jace's Archivist, One with the Machine, Peer into the Abyss, Whispering Madness, Windfall | 1544→1549 (Peer: metade→divCima 2, arredonda p/ cima)
+op regenerar | Asceticism, Crypt Sliver, Goblin Chirurgeon, Nightscape Familiar, Zombie Master (este ainda tem kw dada caminhadaTerreno) | 1549→1553 (agente não sabe a hora boa de regenerar)
+est continuo tiraTipo | Athreos, Iroas, Nylea, Purphoros | 1553→1557 (deus que deixa de ser criatura no combate não sai do combate: 506.4 não feito)
+kw esconderijo | Cemetery Tampering, Mosswort Bridge, Watcher for Tomorrow, Windbrisk Heights | 1557→1561 (JSON: 'lembrada' → 'exiladaPorEste', que é o vínculo da CR 607.2a; jogar do esconderijo ainda não joga terreno)
+op modificar | Clavileño, Liliana Death's Majesty, Rivaz (Tamiyo fica: habil.gat até o seu próximo turno + efeitoTemporario) | 1561→1564
+gat ev fichaCriada | Caretaker's Talent, Mirkwood Bats, Rosie Cotton | 1564→1567
+kw dada caminhadaTerreno + kw caminhadaTerreno | Lord of Atlantis, Master of the Pearl Trident, Zombie Master, Cold-Eyed Selkie, Stonybrook Banneret | 1567→1572
+kw posVida (+ kw dada posVida) | Indebted Spirit, Ministrant of Obligation, Orzhov Enforcer | 1572→1575 (kw dada lida da camada que ainda vale depois da saída: se a fonte que dava saiu junto, não conta)
+kw tripular | Esika's Chariot, Hedge Shredder, Rolling Hamsphere | 1575→1578 (sem gatilho 'quando tripulado'; agente tripula sem critério)
+op buscar.qtd | Kyoshi Island Plaza, Scapeshift, The World Tree | 1578→1585 (junto c/ os 2 abaixo; World Tree: qtd "tudo"→{ate:'qualquer'} — "any number of")
+op ganharVida.qtd | Righteous Valkyrie, Verdant Sun's Avatar (Selvala fica: o JSON tem 'metade' e falta Parley; dado a reescrever) | idem
+op sacrificar.qtd | Living Death, Scapeshift | idem
+op popular | Growing Ranks, Promise of Aclazotz, Song of the Worldsoul | 1585→1588
+op tentarAnel | Boromir, Call of the Ring (Frodo ainda tem comprar.se) | 1588→1590 — SIMPLIFICAÇÃO: habilidade 3 do Anel (bloqueador sacrificado no fim do combate) não feita; sem evento 'escolhe Portador' (falta do Call of the Ring)
+carta.impostoPorAlvo | Fireball, Twinflame | 1590→1592 (o motor já jogava; a cobertura agora pergunta M.CARTA_OK. Twinflame ainda tem falta: uma cópia só p/ o alvo 0)
+est naoPodeAtivar | Linvala Keeper of Silence, Myrel Shield of Argive | 1592→1594
+gat ev capitulo | Awaken the Honored Dead, Battle at the Helvault (+ Grasp of Fate, Bronzebeak Foragers) | 1594→1598 (o rótulo da cobertura enganava: era fx — 'pagando descartar' e exilar dura enquantoNoCampo. A volta usa o agente padrão p/ escolhas de entrada)
+gat ev vira | Deeproot Pilgrimage, Dionus | 1598→1600 (M.virarObj central: todo virar dispara 'vira')
+MERGE origin/main v0.67.0 (17:00) ok; inteiras 1631.
+AVISO CONTAS: antes da regra das 17:00 criei contas com nome próprio — maiorDescarte, grimorioDoAlvo, vidaDoAlvo, resistDoEvento (efeitos.ts CONTA_OK/qtdDe) e prop maiorVm (PROP_EST). Ficam para a reestruturação.
+gat.de | Kotis, River Kelpie (Kelpie ainda: persistir) | 1631→1632
+gat.quem | Guardian Project, Kutzil (+ Yenna, filtro nomeUnico) | 1632→1634 (Guardian: nomeUnico 'criaturaOuCemiterio', tirei a falta; Yenna: nomeUnico true = outra permanente sua)
+kw eternizar | Fanatic of Rhonas, Timeless Witness | 1634→1636 (agora o motor oferece atv do cemitério com exilarEste: Kheru Goldkeeper, Nyx Weaver passam a ativar de lá)
+kw miriade | Battle Angels of Tyr, Scion of Calamity | 1636→1639 — SIMPLIFICAÇÃO: a cópia ataca só o jogador, nunca um planeswalker dele
+kw persistir | Puppeteer Clique, River Kelpie | 1639→1641
+PRECISA CONTA: cartas na mão do jogador do evento (maoDoEvento) — Fevered Visions  [motivo op dano.se, PULEI]
+PRECISA CONTA: quantas vezes esta habilidade resolveu neste turno (resolucoesDestaHabNoTurno) — Omnath Locus of Creation, Belladonna Took  [motivos op dano.se / op ganharVida.se, PULEI]
+op explorar | Hakbal of the Surging Soul, Path of Discovery (+ ficha Map ativa) | 1641→1643
+op incitar | Marisi, Taunt from the Rampart | 1643→1645
+PRECISA CONTA: vida que você ganhou neste turno (vidaGanhaNoTurno) — Gollum, Obsessed Stalker (Frodo usa no se)  [motivo op perderVida.qtd, PULEI]
+subst entra copiarPermanente | Phyrexian Metamorph, Sculpting Steel | 1645→1647 — SIMPLIFICAÇÃO: o clone não repete as escolhas 'ao entrar' do original (cor/tipo) nem a substituição 'entra virado' dele
+MERGE origin/main (fim) ok — check 0, vitest 393 verdes, partida igual.
+FIM DO LOTE A: inteiras 1539→1647 (pós-merge v0.67). Sobraram do lote: op modificar só em Tamiyo (habil.gat "até o seu próximo turno" + efeitoTemporario, fora do lote); op dano.se, op ganharVida.se, op perderVida.qtd = PRECISA CONTA (acima).
