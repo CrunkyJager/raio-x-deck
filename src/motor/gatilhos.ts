@@ -4,7 +4,7 @@
 // Gatilho com campo/efeito/filtro que o núcleo não lê NÃO dispara (nada joga errado em silêncio).
 import { M } from './nucleo';
 
-const EV_OK = new Set(['danoPrevenido', 'gasta', 'destranca', 'viradaParaCima', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'atacaJogador', 'reflexo', 'bloqueia', 'naoBloqueada', 'dano',
+const EV_OK = new Set(['tripulada', 'danoPrevenido', 'gasta', 'destranca', 'viradaParaCima', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'atacaJogador', 'reflexo', 'bloqueia', 'naoBloqueada', 'dano',
   'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa']);
 const CAMPOS_OK = new Set(['naoPorEste', 'ouConjurada', 'comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
@@ -73,6 +73,7 @@ function bateEv(e, g, ev, F) {
     case 'danoUmaVez': return bateEv(e, { ...g, ev: 'dano' }, ev, F);
     case 'conjura': return (ev.ev === 'conjura' || (g.ouCopia && ev.ev === 'copia')) && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && (!g.comManaDe || (ev.fontes || []).includes(F.id)) && q(e.objs[ev.id]);   // comManaDe 'este': a mana desta pagou (Tecutlan; só a do plano de pagamento, não a que já estava na reserva)   // de/naoDe: de onde foi conjurada
     case 'cicla': return ev.ev === 'cicla' && relJog(g.jog || 'voce', ev.j, F.ctrl) && q(e.objs[ev.id]);          // 702.29
+    case 'tripulada': return ev.ev === 'tripulada' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // 702.122c: "whenever this Vehicle becomes crewed" (Mobilizer Mech)
     case 'desvira': return ev.ev === 'desvira' && q(e.objs[ev.id]);                                                 // 701.26b
     case 'jogaTerreno': return ev.ev === 'jogaTerreno' && relJog(g.jog || 'voce', ev.j, F.ctrl) && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(e.objs[ev.id]);
     case 'marcadorPosto': return ev.ev === 'marcadorPosto' && (!g.marc || g.marc === ev.t) && (!g.jog || relJog(g.jog, ev.j, F.ctrl))   // jog: quem pôs ("whenever you put", All Will Be One)
@@ -378,7 +379,8 @@ M.evento = (e, ev) => {
       for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k: g._k, g, n: F.n, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined } });
     }
     // evoluir (CR 702.100a): "sempre que uma criatura entra sob seu controle, se ela tem poder ou resistência maior que
-    // esta, +1/+1 nesta". Simplificação: a condição (603.4) é vista só ao disparar, não de novo ao resolver.
+    // esta, +1/+1 nesta". A condição (603.4) é vista ao disparar e de novo ao resolver (M.gatilhoAindaVale; 702.100b:
+    // se a que entrou já saiu, vale o último P/R conhecido, guardado aqui em ev.evo).
     // soulbond (CR 702.95a), a outra metade: outra criatura entra sob o seu controle → cada soulbond seu sem par pode parear com ela
     const fSb = M.temTipo(e, F, 'Creature') && !M.parDe(e, F);
     if (M.temTipo(e, F, 'Creature')) for (const id of e.campo) {
@@ -387,7 +389,7 @@ M.evento = (e, ev) => {
       if (fSb && !M.parDe(e, X) && kws.some(x => x.k === 'soulbond')) e.pend.push({ fonte: X.id, ts: X.ts, ctrl: X.ctrl, k: 'soulbond', g: SOULBOND_OUTRA, n: X.n, ficha: X.ficha || null, lki: M.lkiDe(e, X), ev: { ...ev, snap: undefined } });
       const n = kws.filter(x => x.k === 'evoluir').length; if (!n) continue;
       if (!(M.poder(e, F) > M.poder(e, X) || M.resistencia(e, F) > M.resistencia(e, X))) continue;
-      for (let v = 0; v < n * (1 + extras(e, X, EVOLUIR, ev)); v++) e.pend.push({ fonte: X.id, ts: X.ts, ctrl: X.ctrl, k: 'evoluir', g: EVOLUIR, n: X.n, ficha: X.ficha || null, lki: M.lkiDe(e, X), ev: { ...ev, snap: undefined } });
+      for (let v = 0; v < n * (1 + extras(e, X, EVOLUIR, ev)); v++) e.pend.push({ fonte: X.id, ts: X.ts, ctrl: X.ctrl, k: 'evoluir', g: EVOLUIR, n: X.n, ficha: X.ficha || null, lki: M.lkiDe(e, X), ev: { ...ev, snap: undefined, evo: { ts: F.ts, p: M.poder(e, F), r: M.resistencia(e, F) } } });
     }
     // soulbond (CR 702.95a): "você pode parear esta com outra criatura sua não pareada quando uma das duas entra": a que
     // entra com soulbond, sem par → escolhe ao resolver (a outra metade está no laço do evoluir, acima)
@@ -502,4 +504,11 @@ M.porGatilhos = e => {
   return true;
 };
 // 603.4: condição de intervenção checada de novo ao resolver
-M.gatilhoAindaVale = (e, o) => !o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ev: (o.pil && o.pil.ev) || undefined, ...(o.pil && o.pil.ev ? { ev: o.pil.ev } : {}) });   // com o evento: o defensor do 'ataca' (Preacher)   // com o evento: "if the amount of mana spent…" (Liberator) relê o evento
+// evoluir (702.100b): compara de novo o P/R da que entrou (ou o último conhecido, se saiu) com o desta agora
+const evoluirVale = (e, o) => {
+  const v = o.pil && o.pil.ev && o.pil.ev.evo, X = e.objs[o.hab.fonte]; if (!v || !X || X.zona !== 'campo' || X.ts !== o.hab.fonteTs) return true;   // saiu: o efeito não acha "este" (608.2b)
+  const F = e.objs[o.pil.ev.id], noCampo = F && F.zona === 'campo' && F.ts === v.ts;
+  if (noCampo) { v.p = M.poder(e, F); v.r = M.resistencia(e, F); }
+  return v.p > M.poder(e, X) || v.r > M.resistencia(e, X);
+};
+M.gatilhoAindaVale = (e, o) => (!o.hab || o.hab.gat !== 'evoluir' || evoluirVale(e, o)) && (!o.hab || !o.hab.se || cond(e, o.hab.se, { voce: o.ctrl, este: o.hab.fonte, ev: (o.pil && o.pil.ev) || undefined, ...(o.pil && o.pil.ev ? { ev: o.pil.ev } : {}) }));   // com o evento: o defensor do 'ataca' (Preacher)   // com o evento: "if the amount of mana spent…" (Liberator) relê o evento

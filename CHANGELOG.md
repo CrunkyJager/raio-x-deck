@@ -2,6 +2,17 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.75.0 — 27/11/2026 · Mesa mais justa: erros de regra e combos falsos do motor velho corrigidos; trocar texto, espaçonave, multichute (lotes A, B, C, D, F, G, H, I, rodada 8)
+Testes: check 0 erros · Vitest 736 passaram · banco valida 0 erros. Motor joga inteiras **1761/1761**.
+**Linha de base nova, de propósito:** partida Stangg 23.0 | Krenko 29.5 | Lathril 8.5 | Edgar 38.0 | turno 8.9 | erros 0 (era 26.5 | 29.5 | 7.0 | 36.0 | turno 8.7). Duas causas:
+- Lote A — erros de regra do motor velho: mana contada por Elfo, palavra-chave com texto de lembrete (menace) agora lida, fichas criadas sem tipo, Lathril ganhando 10 de vida.
+- Lote D — atalhos de combo que não eram combo: Sanguine Bond + Vito (não é laço), Krenko + Skirk Prospector + Impact Tremors (nada desvira o Krenko); os drenos (Exquisite Blood + Vito/Sanguine Bond) não ganham mais só por baixar, sem um evento que comece o laço (603.2).
+- Mecânicas novas na Mesa: trocar texto (New Blood: troca o tipo de criatura no texto), espaçonave com P/R ao chegar no nível e tripulada, multichute (Marshal's Anthem: paga o chute várias vezes), evoluir confere de novo ao resolver.
+- Cartas acertadas: Coat of Arms (conta as criaturas que dividem tipo), Alpha Authority (só uma criatura bloqueia), Abomination of Llanowar (Elfos no campo e no cemitério); o jogador automático mira o dano na criatura que mais vale.
+- Jogador automático testado em mais escolhas (estação, velocidade, soulbond, cifrar, modos com {P}, copiar habilidade, Room, metamorfose, desanexar, laço falso).
+- Duplicatas: do lote G só entrou o evoluir; Marshal's Anthem fica a do I, Ruthless Technomancer e Sanctums a do F, Shigeki a do C, Spiteful Sliver a que já estava.
+- Para testar: aba Mesa → deck do Lathril ou do Edgar (vida e fichas certas), deck com Sanguine Bond/Exquisite Blood (não ganha mais "de graça"), Marshal's Anthem, New Blood, Coat of Arms.
+
 ## v0.74.0 — 27/11/2026 · Mecânicas novas: virada para baixo (metamorfose, disfarce), velocidade, estação, copiar habilidade, cifrar, soulbond (lotes A, B, C, D, F, H, I, rodada 7)
 Testes: check 0 erros · Vitest 707 passaram · partida Stangg igual à linha de base (26.5 | 29.5 | 7.0 | 36.0 | turno 8.7 | erros 0) · banco valida 0 erros. Motor joga inteiras **1756/1756**.
 - Mecânicas novas na Mesa: carta virada para baixo no campo (metamorfose, disfarce; o oponente não vê qual é), velocidade ("Start your engines!") e estação, copiar habilidade, cifrar, soulbond, desenterrar pago com energia (Salvation Colossus).

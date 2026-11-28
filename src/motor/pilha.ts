@@ -871,6 +871,13 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 // vai para a pilha quando tudo fecha — o resultado é o mesmo (nada do jogo muda entre um passo e outro).
 // cabe(n): o custo ainda fecha com n alvos no total (impostoPorAlvo, CR 601.2f); sem ele, qualquer número.
 // o alvo-jogador i é o primeiro de jogador e o efeito que o usa é bom para quem ganha (Éomer: "target player becomes the monarch")
+// quanto dano o efeito põe no alvo i (op dano em {alvo:i}, quantidade lida agora: o X já foi escolhido) — o agente usa
+// para ver se a criatura morre; sem dano conhecido, nada
+const danoNoAlvo = (e, fx, i, ctx) => {
+  const f = (fx || []).find(f => f && f.op === 'dano' && f.em && f.em.alvo === i && !f.dividir); if (!f) return {};
+  let n; try { n = M.qtd(e, f.qtd, ctx); } catch (_) { return {}; }
+  return Number.isInteger(n) && n > 0 ? { dano: n } : {};
+};
 const paraSi = (fx, alvos, i) => (alvos || []).findIndex(a => a && (a.f === 'jogador' || a.f === 'qualquerAlvo')) === i && (fx || []).some(f => f && f.op === 'virarMonarca' && f.quem === 'alvoJogador');
 // de que jogador é o alvo: o próprio jogador; permanente = quem controla; carta fora do campo = o dono (Afterlife from the Loam)
 const jogDoAlvo = (e, x) => x.jog !== undefined ? x.jog : e.objs[x.o].zona === 'campo' ? e.objs[x.o].ctrl : e.objs[x.o].dono;
@@ -899,7 +906,7 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
       if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
       if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto' && max === Infinity)) break;
-      const r = ask(j, 'alvo', ops, { i, de: ctx.este, ...(paraSi(fx, d.alvos, i) ? { paraSi: true } : {}) });
+      const r = ask(j, 'alvo', ops, { i, de: ctx.este, ...(paraSi(fx, d.alvos, i) ? { paraSi: true } : {}), ...danoNoAlvo(e, fx, i, ctx) });
       if (r.a === 'pronto') break;
       lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts }); total++;
     }
@@ -1010,7 +1017,7 @@ function escolherAd(e, j, o, c, ask, custo?, x = 0) {
   if (alts.length <= 1) return alts[0] || c;
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
-function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
+function escolherCustoFisico(e, j, c, fonte, daMao, ask, porPoder = false) {   // porPoder: o efeito conta o poder das viradas (estação): a de mais poder
   const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], desv: [] as any[], rev: [] as any[], exi: [] as any[] };
   if (c.exilarDe) {
     for (let i = 0; i < (c.exilarDe.qtd || 1); i++) {
@@ -1029,12 +1036,12 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
     while (soma < c.virarOutros.poder) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id) && M.poder(e, o) > 0).map(o => ({ a: 'virar', id: o.id }));
       if (!ops.length) break;
-      const id = ask(j, 'custo', ops, { o: 'virar' }).id; r.vir.push(id); soma += M.poder(e, e.objs[id]);
+      const id = ask(j, 'custo', ops, { o: 'virar', tripular: true }).id; r.vir.push(id); soma += M.poder(e, e.objs[id]);
     }
   } else if (c.virarOutros) {
     for (let i = 0; i < (c.virarOutros.qtd || 1); i++) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id)).map(o => ({ a: 'virar', id: o.id }));
-      r.vir.push(ask(j, 'custo', ops, { o: 'virar' }).id);
+      r.vir.push(ask(j, 'custo', ops, { o: 'virar', ...(porPoder ? { porPoder: true } : {}) }).id);
     }
   }
   if (c.desvirarOutros) for (let i = 0; i < (c.desvirarOutros.qtd || 1); i++) {
@@ -1252,7 +1259,7 @@ const PROC = {
     if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
     const red = reducaoAlvo(e, j, alvos); if (red.g && mana && mana.g) mana = { ...mana, g: Math.max(0, mana.g - red.g) };   // Professor Hojo
-    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask);
+    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask, (a.fx || []).some(f => f && f.qtd && f.qtd.conta && f.qtd.conta.de === 'viradas' && f.qtd.conta.o === 'poder'));
     const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac, ...fis.dev, ...fis.vir]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
