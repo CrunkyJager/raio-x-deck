@@ -307,10 +307,10 @@ M.evento = (e, ev) => {
       if (onde === 'pilha' && !(g.quem && g.quem.este)) continue;
       if (!bateEv(e, g, ev, F)) continue;
       if (!cond(e, g.se, { voce: F.ctrl, este: F.id, ev })) continue;                      // 603.4 (com o evento: objBate doEvento lê quem morreu)
-      // "uma ou mais entram" (grupo): uma vez pelo que entra junto. Simplificação: o lote = o que ainda não foi para a
-      // pilha (e.pend esvazia antes de cada prioridade), então duas entradas na mesma resolução contam como uma.
+      // "uma ou mais entram" (grupo): uma vez pelo que entra junto (603.2c), na mesma ação (e.nAcao): duas entradas na
+      // mesma resolução, em frases diferentes, disparam duas vezes.
       if (g.grupo && (g.ev === 'entra' || g.ev === 'ataca' || g.ev === 'fichaCriada' || g.ev === 'vira' || g.ev === 'saiCemiterio' || SAIDA.has(g.ev))) {   // "uma ou mais vão ao cemitério" (Ratchet)
-        const P = e.pend.find(p => p.fonte === F.id && p.ts === F.ts && p.k === k);
+        const P = e.pend.find(p => p.fonte === F.id && p.ts === F.ts && p.k === k && p.acao === e.nAcao);
         if (P) { if (P.ev.loteP && ev.snap) P.ev.loteP.push(M.poder(e, ev.snap)); continue; }   // "the total power of those creatures" (Skullspore Nexus): o lote soma no pendente
       }
       if (g.recebe && ev.combate && e.pend.some(p => p.fonte === F.id && p.ts === F.ts && p.k === k && p.ev.combate && p.ev.o === ev.o)) continue;   // várias fontes ao mesmo tempo: o enrage dispara uma vez (510.2)
@@ -333,7 +333,7 @@ M.evento = (e, ev) => {
         } }
       const vezes = 1 + extras(e, F, g, ev);
       const dada = k >= nb || mudado ? { g } : {};                                                // habilidade dada (camadas): leva o texto
-      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(g.grupo && SAIDA.has(g.ev) && ev.snap ? { loteP: [M.poder(e, ev.snap)] } : {}), ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem
+      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, acao: e.nAcao, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(g.grupo && SAIDA.has(g.ev) && ev.snap ? { loteP: [M.poder(e, ev.snap)] } : {}), ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem
     }
   }
   atrasados(e, ev);
