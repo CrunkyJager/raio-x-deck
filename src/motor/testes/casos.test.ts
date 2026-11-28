@@ -3518,6 +3518,11 @@ caso('701.47', "amassar: sem Armada cria a ficha 0/0 com o tipo e põe os marcad
   igual(ars().length, 1, 'não cria outra');
   igual(M.poder(e, a), 3, '+2 na mesma');
   ok(M.dadoDe(e, a).sub.includes('Zombie'), 'virou Zombie também');
+  ok(!(a.ficha.sub || []).includes('Zombie'), '701.47a: o tipo a mais não é valor copiável da ficha');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }), gb = objN(f, 0, 'Grizzly Bears');
+  gb.anim = [{ ts: gb.ts, sub: ['Army'], fim: null, tE: ++f.ts }]; f.vCamada = (f.vCamada || 0) + 1;
+  M.executar(f, { op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  igual([f.campo.length, gb.marc['+1/+1'], M.dadoDe(f, gb).sub.includes('Orc')], [1, 1, true], '701.47a: Armada que não é ficha também vira Orc');
 });
 
 caso('111.1', "quantidade de fichas: metade dos Zumbis (para baixo), marcadores de experiência seus, poder e marcadores da que morreu (LKI)", () => {
@@ -4321,6 +4326,20 @@ caso('613.1f', "animar: Shadowspear tira antimagia e indestrutível das permanen
   igual([M.poder(f, b2), M.resistencia(f, b2)], [3, 3]); igual(M.tiposCriatura(f, b2), 'todos', 'todos os tipos');
 });
 
+caso('613.7', "camada 6 em ordem de timestamp: a Shadowspear tira antimagia/indestrutível, mas o Heroic Intervention conjurado depois devolve as duas; o Colossus Hammer tira o voar impresso, mas não o voar ganho depois", () => {
+  const e = cena({ campo: [[0, 'Shadowspear'], [1, 'Darksteel Myr']] });
+  const b = objN(e, 1, 'Darksteel Myr');
+  M.executar(e, M.carta('Shadowspear').atv[0].fx[0], { voce: 0, este: objN(e, 0, 'Shadowspear').id, alvos: [], ilegal: {}, lki: {} }, null);
+  ok(!M.temKw(e, b, 'indestrutivel'), 'a Shadowspear tirou o indestrutível impresso');
+  M.executar(e, M.carta('Heroic Intervention').fx[0], { voce: 1, este: -1, alvos: [], ilegal: {}, lki: {} }, null);
+  ok(M.temKw(e, b, 'indestrutivel') && M.temKw(e, b, 'antimagia'), 'o Heroic Intervention é mais novo: ganha as duas');
+  const f = cena({ campo: [[0, 'Serra Angel'], [0, 'Colossus Hammer']] });
+  const A = objN(f, 0, 'Serra Angel'), H = objN(f, 0, 'Colossus Hammer'); H.anexo = { id: A.id, ts: A.ts }; f.vCamada = (f.vCamada || 0) + 1;
+  ok(!M.temKw(f, A, 'voar'), 'equipada: perde o voar impresso');
+  M.executar(f, { op: 'modificar', em: 'este', kw: [{ k: 'voar' }], dura: 'fimDoTurno' }, { voce: 0, este: A.id, alvos: [], ilegal: {}, lki: {} }, null);
+  ok(M.temKw(f, A, 'voar'), 'o voar ganho depois do martelo fica');
+});
+
 caso('701.26', "virar/desvirar 'até N': Snap devolve a criatura e desvira até 2 terrenos; Myr Battlesphere atacando vira os Myr desvirados e ganha +X/+0 e causa X", () => {
   for (const c of ['Snap', 'Myr Battlesphere']) ok(M.fxSuportado(M.carta(c).fx || []) && (M.carta(c).gat || []).every(g => M.gatOk(g)), c + ' aceito');
   const e = cena({ campo: [[0, 'Island', { virada: true }], [0, 'Island', { virada: true }], [0, 'Island', { virada: true }], [0, 'Island'], [0, 'Island'], [1, 'Grizzly Bears']], mao: [[0, 'Snap']] });
@@ -4934,6 +4953,23 @@ caso('610.3', "exilar até esta sair do campo: Grasp of Fate exila; quando sai, 
   M.mover(f, g2.id, 'cemiterio');
   M.executar(f, { op: 'exilar', em: { alvo: 0 }, dura: 'enquantoNoCampo' }, c2, () => ({ a: 'nao' }));
   igual(h2.zona, 'campo', 'a fonte já tinha saído: nada (610.3c)');
+});
+
+
+caso('701.42', "fundir: Gisela com Bruna no campo vira Brisela (9/10); quando Brisela sai, as duas cartas vão para o cemitério", () => {
+  for (const c of ['Gisela, the Broken Blade', 'Mishra, Claimed by Gix']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Gisela, the Broken Blade'], [0, 'Bruna, the Fading Light']] });
+  const [gi, br] = e.campo.map(id => e.objs[id]);
+  M.executar(e, M.carta('Gisela, the Broken Blade').gat[0].fx[0], { voce: 0, este: gi.id, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(e.campo.length, 1, 'um permanente só');
+  const b = e.objs[e.campo[0]];
+  igual(M.dadoDe(e, b).n, 'Brisela, Voice of Nightmares'); igual([M.poder(e, b), M.resistencia(e, b)], [9, 10]);
+  igual(M.dadoDe(e, b).vm, M.carta('Gisela, the Broken Blade').vm + M.carta('Bruna, the Fading Light').vm, '712.8g: valor de mana = soma das frentes (4 + 7)');
+  M.mover(e, b.id, 'cemiterio');
+  igual(naZona(e, 0, 'cemiterio').sort(), ['Bruna, the Fading Light', 'Gisela, the Broken Blade']);
+  const f = cena({ campo: [[0, 'Gisela, the Broken Blade'], [1, 'Bruna, the Fading Light']] });
+  M.executar(f, M.carta('Gisela, the Broken Blade').gat[0].fx[0], { voce: 0, este: f.campo[0], alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(f.campo.length, 2, 'Bruna do oponente: não funde');
 });
 
 caso('603.7', "Arcane Denial: anula; no começo da manutenção do próximo turno o dono da mágica compra até 2 (escolhe) e você compra 1", () => {
@@ -7683,6 +7719,20 @@ caso('702.62a', 'suspender (Resurgent Belief, sem custo de mana): da mão paga {
   igual(e.objs[rb].zona, 'cemiterio', 'tirou o último: conjurou e resolveu');
   ok(['Phyrexian Arena', 'Rhystic Study'].every(n => noCampo(e).includes(n)), 'os encantamentos voltaram');
 });
+caso('702.62a', "suspender: a criatura conjurada pelo último marcador tem ímpeto só enquanto quem a conjurou a controlar", () => {
+  const c: any = M.carta('Grizzly Bears'), kw0 = c.kw;
+  c.kw = [...(kw0 || []), { k: 'suspender', n: 1, custo: { g: 1 } }];
+  try {
+    const e = cena({ campo: [[0, 'Grizzly Bears', { zona: 'exilio' }]] }); e.pend = [];
+    const gb = e.objs[e.jogs[0].zonas.exilio.find(id => e.objs[id].n === 'Grizzly Bears')]; gb.suspensa = true; gb.marc.time = 1;
+    for (let t = 2; t <= 8 && gb.zona !== 'campo'; t++) ateTurno(e, t);
+    igual(gb.zona, 'campo', 'tirou o último marcador: conjurou e entrou');
+    ok(M.temKw(e, gb, 'pressa'), 'com ímpeto');
+    gb.ctrl0 = gb.ctrl; gb.ctrl = 1; e.vCamada = (e.vCamada || 0) + 1;
+    ok(!M.temKw(e, gb, 'pressa'), 'outro jogador ganhou o controle: sem ímpeto');
+  } finally { c.kw = kw0; }
+});
+
 caso('702.62b', 'suspensa = no exílio com marcador de tempo e suspender; sem custo de suspender pagável não suspende; outra carta no exílio com marcador de tempo não dispara', () => {
   const e = cena({ campo: terras(1, 'Plains'), mao: [[0, 'Resurgent Belief']] }); e.pend = [];
   const rb = e.jogs[0].zonas.mao[0];

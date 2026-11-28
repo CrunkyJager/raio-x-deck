@@ -554,7 +554,8 @@ M.regenera = (e, o) => {
 // descartar (CR 701.9): o único caminho do descarte (efeito, custo, limpeza). Cada carta dispara 'descarta' {id, j, ts}
 // e o lote todo 'descartaGrupo' {j, n, ids} (gatilho com grupo: "uma ou mais cartas", Marauding Mako).
 // Loucura (702.35a): a carta vai para o exílio em vez do cemitério e o gatilho da loucura vai para a pilha.
-// Simplificação: o exílio da loucura é sempre escolhido; quem não quer conjurar recusa no gatilho e ela vai ao cemitério.
+// O exílio é opcional ("you may"), mas o motor sempre o escolhe: recusar a conjuração no gatilho põe a carta no cemitério
+// (702.35a), o mesmo fim de não exilar, só que depois do gatilho resolver.
 M.descartar = (e, j, ids, opc: any = {}) => {   // opc {ask, efeito}: descarte por efeito (substituição com talvez)
   const feitas: any[] = [];
   for (const id of ids) {
@@ -667,7 +668,8 @@ M.comprar = (e, j, qtd = 1, opc: any = {}) => {
     const id = g[g.length - 1];
     M.mover(e, id, 'mao');
     J.compT = { t: e.turno.n, n: (J.compT && J.compT.t === e.turno.n ? J.compT.n : 0) + 1 };
-    // milagre (702.94): a primeira compra do turno com milagre é revelada (simplificação: sempre) e o gatilho vai para a pilha
+    // milagre (702.94a): a primeira compra do turno com milagre é revelada e o gatilho vai para a pilha; revelar é opcional,
+    // mas não revelar só equivale a recusar a conjuração no gatilho (o "may cast" da resolução)
     if (J.compT.n === 1 && e.pend && e.turno.passo !== 'mulligan' && M.milagreDe(e, e.objs[id])) { const o = e.objs[id]; e.pend.push({ fonte: id, ts: o.ts, ctrl: j, k: 'milagre', g: GAT_MILAGRE, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'compra', j } }); M.log(e, J.nome, 'revela', o.n, '(milagre)'); }
     // a 1ª compra na própria etapa de compra (Xyris: "except the first one they draw in each of their draw steps", 504.1)
     const etapa = e.turno.passo === 'compra' && e.turno.ativo === j;
@@ -994,7 +996,7 @@ function camadas(e, o, lote?: any[]) {
   if (!fontes.length && !temp.length) return NADA;
   lendoCamada++;
   try {
-    let p = 0, r = 0, base: number[] | undefined; const kw: any[] = [], gat: any[] = [], atv: any[] = [], tira: string[] = [];
+    let p = 0, r = 0, base: number[] | undefined; const kw: any[] = [], kts: number[] = [], gat: any[] = [], atv: any[] = [], tira: string[] = [], tiraTs: number[] = [];
     const P = FC.ph.length || o.anim ? perdeTs(e, o, FC) : 0;   // perdeu tudo (613.1f): o dado antes disso não vale (613.7)
     for (const [x, s] of fontes) {
       const F = typeof x === 'object' ? x : e.objs[x];
@@ -1007,13 +1009,13 @@ function camadas(e, o, lote?: any[]) {
       if (s.p !== undefined) p += qtdCamada(e, s, s.p, F, ctx, o);
       if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx, o);
       if (P && (F.ts || 0) < P) continue;   // camada 6 mais velha que a perda
-      for (const x of s.kw || []) { if (x.de !== 'escolhido') { kw.push(x); continue; } const v = F.escolha && (F.escolha.tipoCarta || F.escolha.cor); if (v) kw.push(kwEscolhido(x, v)); }   // "protection from the chosen card type/color" (Serra's Emissary): o que a fonte escolheu ao entrar
-      for (const x of s.tiraKw || []) tira.push(x.k);
+      for (const x of s.kw || []) { if (x.de !== 'escolhido') { kw.push(x); kts.push(F.ts || 0); continue; } const v = F.escolha && (F.escolha.tipoCarta || F.escolha.cor); if (v) { kw.push(kwEscolhido(x, v)); kts.push(F.ts || 0); } }   // "protection from the chosen card type/color" (Serra's Emissary): o que a fonte escolheu ao entrar
+      for (const x of s.tiraKw || []) { tira.push(x.k); tiraTs.push(F.ts || 0); }
       if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
     const T = temp.length ? somaTemp(temp).get(o.id + ':' + o.ts) : undefined;
-    if (T) { p += T.p; r += T.r; T.kw.forEach((x, k) => { if (!P || T.kts[k] >= P) kw.push(x); }); }
-    return { p, r, kw, gat, atv, ...(tira.length ? { tira } : {}), ...(T && T.base ? { base: T.base } : base ? { base } : {}) };   // o de resolução (Sephiroth) é o mais novo
+    if (T) { p += T.p; r += T.r; T.kw.forEach((x, k) => { if (!P || T.kts[k] >= P) { kw.push(x); kts.push(T.kts[k] || 0); } }); }
+    return { p, r, kw, kts, gat, atv, ...(tira.length ? { tira, tiraTs } : {}), ...(T && T.base ? { base: T.base } : base ? { base } : {}) };   // o de resolução (Sephiroth) é o mais novo
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
@@ -1031,14 +1033,22 @@ M.qtdEst = (e, q0, ctx) => {
 const MARC_KW = { flying: 'voar', 'first strike': 'primeiroAtaque', 'double strike': 'golpeDuplo', deathtouch: 'toqueMortifero', haste: 'pressa', hexproof: 'antimagia',
   indestructible: 'indestrutivel', lifelink: 'vinculoVida', menace: 'ameaca', reach: 'alcance', trample: 'atropelar', vigilance: 'vigilancia' };
 M.MARC_KW = MARC_KW;
+// Camada 6 em ordem de timestamp (CR 613.7, 613.1f): "perde X" só tira o X dado antes dele (impresso, estática de fonte
+// mais velha, efeito de resolução anterior); o X dado depois (Heroic Intervention depois da Shadowspear) fica.
+// Perdas: estática tiraKw (ts da fonte, Colossus Hammer) e o.anim.tiraKw (tE da resolução, Shadowspear).
 M.kwDe = (e, o) => {
-  let b = M.dadoDe(e, o).kw || []; const C = camadas(e, o), c = C.kw;
-  if (c.length) b = b.concat(c);
-  if ((C as any).tira) b = b.filter(x => !(C as any).tira.includes(x.k));   // perde (613.1f; simplificação: também a ganha depois, como o tiraKw do animar)
-  if (o.zona === 'campo' && o.marc && !perdeu(e, o)) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);   // perdeu tudo: o marcador ficou, a palavra-chave não (simplificação: marcador posto antes)
-  // "perde antimagia e indestrutível até o fim do turno" (Shadowspear, 613.1f): o.anim.tiraKw. Simplificação: tira também a
-  // palavra-chave ganha depois (613.7 diria que a mais nova vale)
-  if (o.anim && o.zona === 'campo') for (const a of o.anim) if (a.ts === o.ts && a.tiraKw) b = b.filter(x => !a.tiraKw.includes(x.k));
+  const d = M.dadoDe(e, o); let b = d.kw || []; const C: any = camadas(e, o), c = C.kw;
+  const tiras: [string, number][] = (C.tira || []).map((k, i) => [k, C.tiraTs[i]]);
+  const anim = o.anim && o.zona === 'campo' ? o.anim.filter(a => a.ts === o.ts) : [];
+  for (const a of anim) if (a.tiraKw) for (const k of a.tiraKw) tiras.push([k, a.tE || 0]);
+  if (tiras.length) {
+    const tsAnim = new Map<any, number>(); for (const a of anim) if (a.kw && !a.semHab) for (const x of a.kw) tsAnim.set(x, a.tE || 0);
+    const vive = (x, t) => !tiras.some(([k, T]) => k === x.k && t < T);
+    b = b.filter(x => vive(x, tsAnim.get(x) || 0)).concat(c.filter((x, i) => vive(x, C.kts[i] || 0)));
+  } else if (c.length) b = b.concat(c);
+  // marcador de palavra-chave (122.1b): perdeu tudo, o marcador fica e a palavra-chave não; a perda de uma palavra-chave
+  // não tira a do marcador (o momento em que o marcador foi posto não é guardado)
+  if (o.zona === 'campo' && o.marc && !perdeu(e, o)) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
   return b;
 };
 // "cada card de Sliver na sua mão tem ciclo de Sliver {3}" (Homing Sliver): as camadas só olham o campo, então a
