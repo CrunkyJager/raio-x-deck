@@ -303,7 +303,8 @@ Antes cada carta nova criava um nome de contagem (poderDoAlvo, vmDoEvento, maior
 7. Avisar o Edgar que o motor do Raio-X deixou de ser cópia do Grimório (ver "Motor próprio").
 
 ## Como testar
-`node ferramentas/lacunas.js` mede o que o motor ignora (ver pendência 7).
+`node ferramentas/lacunas-novo.mjs` é a régua do **motor novo** (src/motor + banco/cartas; ~0,2 s, sem rodar o motor): resumo + top 20 do que falta ou é aproximado, somando em quantos dos 30 decks (`ferramentas/calibra/banco.json`) cada carta aparece. Duas fontes: as frases `falta` das cartas e os comentários "Simplificação/aproxima" de `src/motor/*.ts`, ligados às cartas que usam o op/ev/palavra-chave/modo/campo citado (por nome: indica, não prova). `--tudo` a fila inteira; `"Nome"` uma carta; `--confere` é o teste rápido que o `ferramentas/ci/verifica.py` roda. Comentário novo de simplificação no motor: escrever "Simplificação:" e citar entre aspas o campo/op que ele afeta, para a régua ligar às cartas.
+`node ferramentas/lacunas.js` mede o motor ANTIGO (motor/engine.js); não serve mais de régua.
 `node ferramentas/partida.js Stangg` joga uma partida com log (Stangg contra os outros 3 exemplos); `node ferramentas/partida.js Stangg 200 5` joga 200 (taxa de vitória, erros, tempo). Rodar depois de mexer no motor: erros tem que dar 0.
 `npx vite` na pasta e abrir o endereço que ele mostra (T43: o `http.server` não serve mais a página). Clicar num deck de exemplo, passar pelas abas, jogar na Mesa simulada (200 partidas) e uma partida na Mesa ao vivo.
 
