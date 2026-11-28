@@ -1,0 +1,31 @@
+mistrise-village.json | (no merge ficou a versão da main: efeitoTemporario proximaMagica; meu código dela saiu) | não
+mizzixs-mastery.json | jogar em anterior com copia:true; a Mastery se exila | esquema jogar.copia; motor: cópia conjurada (707.12), exilar/mover em este na mágica que resolve (608.2n) + tirarDaPilha respeita
+molten-gatekeeper.json | desenterrar como atv do cemitério (vel feitico): mover exilaAoSair + pressa + atrasado no final | esquema mover.exilaAoSair; motor: ativar do cemitério (opções de prioridade) + exílio ao sair
+PULEI: moraug-fury-of-akoum.json — "+1/+0 por cada vez que ELA atacou neste turno": precisa contador de ataque por criatura e contagem relativa ao objeto afetado numa estática (não existe de: para isso)
+mox-amber.json | prod {coresEntre: lendárias criaturas/planeswalkers suas} (tirado o se) | esquema prod.coresEntre; motor coresDeProd
+mutational-advantage.json | comMarcador true (qualquer marcador) | esquema/motor filtro comMarcador aceita true
+myriad-landscape.json | buscar tipoTerrenoComum | esquema buscar.tipoTerrenoComum; motor: 2ª escolha só com tipo de terreno da 1ª
+PULEI: new-blood.json — trocar o texto da criatura (tipo de criatura → Vampire) exige efeito de troca de texto (CR 612), não existe
+nicanzil-current-conductor.json | gat explora com revelaTerreno true/false | esquema gat.revelaTerreno; motor: ev explora leva terreno
+nightkin-ambusher.json | est naoPodeSerBloqueada se conta {de:'atacado', o:'marcadores', marc:'rad'} min 1 | contagem nova de:'atacado' (base/contar/cond) + bloqueiaEste passa ev.def
+nim-deathmantle.json | est equipada trocaSub (só Zumbi) + cores B agora aplicadas | intimidar no bloqueio (702.13b); esquema est.trocaSub; motor: tipo/cor dados à equipada (misto trocaSub, cores na estática de equipada)
+otawara-soaring-city.json | reduzCusto de:'mao' (o motor já lia a redução da própria carta na mão) | não
+overlord-of-the-boilerbilges.json | kw iminente {n:4, custo} + est tiraTipo Creature se conjuradaCom impending e marcador time ≥1 + gat final tira 1 time | kw iminente (opção de conjurar, entra com N time, conjCom.iminente), conjuradaCom 'impending'
+overlord-of-the-hauntwoods.json | idem (iminente {1}{G}{G}) | idem
+owyn-fearless-knight.json | modificar lendárias suas kw protecao de:'coresDoAnterior' fimDoTurno | motor: de 'coresDoAnterior' resolvido na resolução; proteção de várias cores ('WB')
+owyn-shieldmaiden.json | se conta {de:'turno', o:'entraram', f:{Humano seu, outro}} min 1 | contagem turno/entraram com f (registro de quem entrou no turno, M.registraEntrada)
+padeem-consul-of-innovation.json | gat manutenção se controla artefato e maior vm seu ≥ maior vm de todos | não (só dado)
+patriarchs-bidding.json | repetirCada cadaJogador escolher tipoCriatura quem cadaAtual; mover sub escolhido (qualquer escolhido) | motor: escolher quem cadaAtual junta escolha.tipos; ehEscolhido lê tipos
+perch-protection.json | exilar em este no fim | não (exilar este na mágica que resolve já feito na Mizzix)
+phelia-exuberant-shepherd.json | no atrasado: marcador em este se objBate em anterior ctrl voce | não (só dado)
+platinum-angel.json | est naoPerdeJogo afeta voce | esquema est.modo naoPerdeJogo; motor: ABE/perderJogo/ganharJogo (M.naoPerde/M.naoVence)
+preacher-of-the-schism.json | se conta {de:'atacado',o:'vida'} / {de:'voce',o:'vida'} min {de:'jogadores',o:'vida',junta:'maior'} | contagem atacado/vida e jogadores/vida/maior; gatilhoAindaVale passa o evento (pil.ev)
+pride-sovereign.json | custo exercer | esquema custoAtv.exercer; motor: pagar exercer = naoDesv (701.43a)
+progenitors-icon.json | efeitoTemporario proximaMagica com est conjurarComLampejo | motor: proximaMagica aceita lampejo; prende só à próxima mágica do tipo; depois não dá lampejo
+FIQUEI AQUI (contexto ~150k): faltam professor-hojo, promise-of-loyalty, quicksilver-elemental, rampaging-yao-guai (moraug e new-blood: PULEI acima)
+rampaging-yao-guai.json | alvos vmTotal 'X' no gatilho de entrada | esquema alvo.vmTotal; motor: escolherAlvos limita a soma de vm; o.xConj = X da mágica e gatilho de entrada usa esse X (CR 107.3m)
+promise-of-loyalty.json | sacrificar exceto {qtd 1, marcaFicam 'vow', votoContra true} | esquema exceto.marcaFicam/votoContra; motor: marcador nas que ficam + o.voto (não ataca quem conjurou nem os PW dele enquanto tiver o marcador; combate.ts alvosDe)
+professor-hojo.json | gat alvoDe porAtivada + est reduzCusto deHabil aoMirar primeiraNoSeuTurno qtd 2 | esquema gat.porAtivada, est.primeiraNoSeuTurno; motor: reducaoAlvo em PROC.ativar e na checagem de ativar (M.estReduzMiraOk); cobertura reconhece
+quicksilver-elemental.json | atv {U}: modificar em este fimDoTurno habilDe {alvo:0}; est manaComoQualquerCor corMana U | esquema fx.habilDe, est.corMana + modo manaComoQualquerCor; motor: ganhos.atvT (some na limpeza), custoAtv troca cor por híbrido com azul
+LOTE COMPLETO (exceto PULEI moraug-fury-of-akoum e new-blood)
+MERGE 4196ddc (origin/main; contagens já contida) — verde: vitest 548/33 pulados, partida igual, valida 0
