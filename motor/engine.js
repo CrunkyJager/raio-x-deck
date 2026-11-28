@@ -220,7 +220,7 @@ function modelo(r){
   /* "1/1 token copy of it" (prole, 702.175): a ficha tem os tipos da carta (707.2) */
   if(m.tok&&!(m.tokTipos||[]).length&&/token copy of (?:it|this creature)/i.test(m.txt))m.tokTipos=(m.tipos||[]).slice();
   forgeMotor(m);
-  m.kws=kw?kw.split(/,\s*/).map(k=>k.replace(/ \{\d\}$/,'')):[];
+  m.kws=m.kws||(kw?kw.split(/,\s*/).map(k=>k.replace(/ \{\d\}$/,'')):[]);   /* forgeMotor pode já ter posto (Abomination of Llanowar) */
   m.lac=lacunas(m);
   /* trava (23/11): mágica com texto que o motor não entende não é lançada pela IA (antes gastava a mana e não fazia nada) */
   if(TRAVA&&m.sp&&!m.fm&&m.lac.length)m.r=true;

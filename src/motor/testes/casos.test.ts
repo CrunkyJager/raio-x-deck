@@ -7545,13 +7545,14 @@ caso('119.4', "pagar vida no lugar da mana (118.9): a regra só pede vida ≥ pa
 });
 
 caso('115.1', "alvo que volta do cemitério (Marshal's Anthem, Reanimate): o agente básico mira a carta que fica com ele, não a do oponente nem 'pronto'", () => {
-  const e = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Plains']], mao: [[0, "Marshal's Anthem"]] });
+  const e = cena({ campo: enche(8, 'Plains').map(n => [0, n]), mao: [[0, "Marshal's Anthem"]] });   // 8: o multichute cabe (702.33c)
   e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
-  M.avancar(e);
+  M.avancar(e); conj(e, "Marshal's Anthem");
+  if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v && o.v.chute === 1);   // multichute uma vez (702.33c)
   const ag = M.agenteBasico(); let viu = false;
-  for (let g = 0; e.perg && g < 40 && !(g > 0 && e.perg.tipo === 'acao' && !e.pilha.length); g++) {
+  for (let g = 0; e.perg && g < 40 && !(e.perg.tipo === 'acao' && !e.pilha.length); g++) {
     if (e.perg.tipo === 'alvo') { viu = true; ok(!!(e.perg.ctx && e.perg.ctx.traz), 'o pedido diz que o efeito traz de volta'); }
-    M.responder(e, g === 0 ? e.perg.ops.findIndex(o => o.a === 'conjurar') : ag(e, e.perg));
+    M.responder(e, ag(e, e.perg));
   }
   ok(viu, 'pediu o alvo'); ok(noCampo(e).includes('Grizzly Bears'), 'a Bears voltou (antes: pronto)');
   const f = cena({ campo: [[0, 'Swamp']], mao: [[0, 'Reanimate']] });
