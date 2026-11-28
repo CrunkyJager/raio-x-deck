@@ -76,6 +76,10 @@ function modelo(r){
      a mana é o número de permanentes do tipo, não 1 (106.1, 605.1a) */
   if(a&&(ax=a[1].match(/^\{[WUBRGC]\} for each ([A-Za-z]+?)(?: creature)?s? (you control|on the battlefield)$/i))){
     const tp=ax[1].toLowerCase();m.manaX=tp==='creature'?'*':tipoNorm(tp);m.manaXq=/you control/i.test(ax[2])?'eu':'todos';m.mana=0;}
+  /* "Add {G} for each +1/+1 counter on ~" (Gyre Sage) e "an amount of {G} equal to ~'s power" / "X mana..., where X is ~'s power" (Marwyn, Cradle
+     Clearcutter, Kami of Whispered Hopes): mana = marcadores / poder (106.1); antes 1 fixa */
+  else if(a&&/^\{[WUBRGC]\} for each \+1\/\+1 counter on /i.test(a[1])){m.manaX='cont';m.manaXq='eu';m.mana=0;}
+  else if(a&&(/^an amount of \{[WUBRGC]\} equal to [^.]*power$/i.test(a[1])||/^X mana of any one color, where X is (?:this creature's|its) power$/i.test(a[1]))){m.manaX='poder';m.manaXq='eu';m.mana=0;}
   else if(a){const s=a[1];
     if(/\btwo mana\b/i.test(s))m.mana=2;else if(/\bthree mana\b/i.test(s))m.mana=3;
     else if(/\bmana\b/i.test(s))m.mana=1;
@@ -101,6 +105,8 @@ function modelo(r){
   const de=low.match(/\bdraw (a|one|two|three|four|five|\d+) cards?\b/);
   const etb=/when[^.\n]*enters[^.\n]*draw/.test(low);
   if(de&&(m.sp||etb))m.dr=n_(de[1]);
+  /* "draw a card for each Human you control" (Mass Appeal, Distant Melody fica 1): compra = contagem (porCadaDe) */
+  if(m.dr===1){const fr=low.slice(de.index).split(/\.|\n/)[0];const q=porCadaDe(fr);if(q&&/^draw (?:a|one) card for each|^draw (?:a|one) card where/.test(fr.slice(0)))m.drPor=q.c;}
   if(/draw a card for each creature you control/.test(low))m.sham=1;
   if(/draw cards equal to the greatest power/.test(low))m.ret=1;
   a=low.match(/whenever you cast an? (artifact|creature|historic|noncreature|legendary)?(?: creature)? ?spell[^.\n]*draw a card/);
@@ -113,13 +119,20 @@ function modelo(r){
     /* a ficha tem os tipos que o texto dá (111.4: "1/1 red Goblin" é Goblin) e "for each Elf you control" multiplica (Elvish Promenade) */
     const b=low.slice(a.index).match(/^[^.\n]*?create (?:a|one|two|three|four|\d+) \d+\/\d+ ([a-z ]+?) (?:artifact )?creature tokens?([^.\n]*)/);
     if(b){m.tokTipos=b[1].replace(/\b(?:red|green|black|white|blue|colorless)\b/g,'').trim().split(/\s+/).filter(w=>w&&w!=='and').map(tipoNorm);
-      const q=b[2].match(/for each ([a-z]+?)s? you control/);if(q)m.tokPor=q[1]==='creature'?'*':tipoNorm(q[1]);}}
-  {const q=low.match(/whenever [^.\n]*(?:attack|cast|upkeep|end step)[^.\n]*create (a|one|two|three|\d+) (\d+)\/(\d+)/);if(q&&!m.sp){m.tokR={n:n_(q[1]),p:+q[2],t:+q[3]};}}
+      const ci=a.index+a[0].indexOf('create'),ini=Math.max(low.lastIndexOf('.',ci),low.lastIndexOf('\n',ci))+1;const q=porCadaDe(b[2])||porCadaDe(low.slice(ini,ci));if(q)m.tokPor=q.c;}}
+  {const q=low.match(/whenever [^.\n]*(?:attack|cast|upkeep|end step)[^.\n]*create (a|one|two|three|\d+) (\d+)\/(\d+)(?: ([a-z ]+?) (?:artifact )?creature tokens?)?/);if(q&&!m.sp){m.tokR={n:n_(q[1]),p:+q[2],t:+q[3],tipos:(q[4]||'').replace(/\b(?:red|green|black|white|blue|colorless)\b/g,'').trim().split(/\s+/).filter(w=>w&&w!=='and').map(tipoNorm)};
+    /* quando dispara (111.4, 603.2): só "whenever you cast a spell" (qualquer mágica sua) e início de manutenção/final; o resto ("artifact spell",
+       "an opponent casts", ataque) ou o leitor de habilidades lê com o tipo certo, ou fica lacuna (antes: disparava em toda mágica, sem tipo) */
+    const fr=low.slice(q.index,q.index+q[0].length);m.tokR.q=/^whenever you cast a spell,/.test(fr)?'cast':/upkeep|end step/.test(fr)?'upk':'';}}
   a=low.match(/when [^.\n]*dies, create (a|one|two|three|\d+) (\d+)\/(\d+)/);
   if(a)m.morte=n_(a[1])*(+a[2])*(/for each \+1\/\+1 counter/.test(low)?2:1);
 
   /* palavras-chave do proprio corpo */
-  const kw=txt.split('\n').map(l=>l.replace(/\s*\([^)]*\)/g,'')).filter(l=>/^(?:(?:flying|haste|vigilance|trample|reach|lifelink|menace|first strike|double strike|deathtouch|indestructible|defender|hexproof|shroud|flash|infect|ward \{\d\})(?:, |$))+$/i.test(l.trim())).join(', ').toLowerCase();
+  /* linha de palavras-chave (702): todas as conhecidas da linha valem, mesmo junto de outra que o motor não sabe ("Flying, myriad") e
+     o resguardo com custo que não é mana ("Ward—Pay 2 life"); antes a linha inteira era descartada (Battle Angels of Tyr sem voar) */
+  const KW_L=/^(?:flying|haste|vigilance|trample|reach|lifelink|menace|first strike|double strike|deathtouch|indestructible|defender|hexproof|shroud|flash|infect|ward \{\d\})$/i;
+  const kw=txt.split('\n').map(l=>l.replace(/\s*\([^)]*\)/g,'').trim().replace(/^ward—[^,]+$/i,'ward {2}')).filter(l=>l&&!/[.:"]/.test(l)&&l.split(/, /).some(k=>KW_L.test(k))&&l.split(/, /).every(k=>KW_L.test(k)||/^[a-z]+(?: \d+| \{[^}]+\})?$/i.test(k)))
+    .map(l=>l.split(/, /).filter(k=>KW_L.test(k)).join(', ')).join(', ').toLowerCase();
   if(/indestructible/.test(kw))m.ind=1;
   if(/hexproof|shroud/.test(kw))m.hex=1;
   if(/double strike/.test(kw))m.ds=1;
@@ -201,6 +214,11 @@ function modelo(r){
   m.r=m.sp&&!m.dr&&!m.ramp&&!m.sham&&!m.ret&&!m.tok&&!m.pr&&!m.rem&&!m.wip&&!m.tut&&!m.wake;
   if(m.x&&m.sp&&!m.tut)m.r=true;
   lerHab(m);
+  /* ficha de gatilho que o leitor de habilidades já cria (m.hab com fic): o tokR é só valor, não dispara de novo (antes: Sigil of the Empty Throne,
+     Sai, Deeproot Waters, Primeval Bounty, Rin and Seri criavam a ficha duas vezes, uma delas sem tipo) */
+  if(m.tokR&&(m.hab||[]).some(h=>h.e&&h.e.fic))m.tokR.q='';
+  /* "1/1 token copy of it" (prole, 702.175): a ficha tem os tipos da carta (707.2) */
+  if(m.tok&&!(m.tokTipos||[]).length&&/token copy of (?:it|this creature)/i.test(m.txt))m.tokTipos=(m.tipos||[]).slice();
   forgeMotor(m);
   m.kws=kw?kw.split(/,\s*/).map(k=>k.replace(/ \{\d\}$/,'')):[];
   m.lac=lacunas(m);
@@ -295,7 +313,25 @@ function efeito(s){
   if(/return any number of aura cards from your graveyard to the battlefield attached/.test(s))e.tempestade=1;
   if(/its controller creates a 3\/3/.test(s))e.fichaDono=1;
   if(/untap all modified creatures/.test(s))e.desvMod=1;
+  porCadaEf(s,e);
   return Object.keys(e).length?e:null;
+}
+/* "for each X you control" (e "where X is the number of X you control"): a quantidade é a contagem, não o número fixo do texto
+   (107.3, 608.2h). Código da contagem para o contN do mesa.js: 'cri', 'terr', 'art', 'ficha', 'perm', 'perm:<subtipo>', 'op:<código>' (oponentes),
+   'outro:<código>' (sem contar o próprio), 'N*<código>' (N por cada). Antes: Avenger of Zendikar 1 planta, Mass Appeal 1 carta, Honden 1 por turno. */
+function porCadaCod(w){w=w.trim();if(/^creatures?$/.test(w))return'cri';if(/^lands?$/.test(w))return'terr';if(/^artifacts?$/.test(w))return'art';if(/^tokens?$/.test(w))return'ficha';if(/^permanents?$/.test(w))return'perm';
+  if(/^[a-z]+$/.test(w))return'perm:'+tipoNorm(w).replace(/s$/,'');return null;}
+function porCadaDe(s){
+  const a=s.match(/(?:for each|where x is the number of) (other |another )?([a-z]+?)s? (you control|your opponents control)(?! with| that)/);if(!a)return null;
+  let c=porCadaCod(a[2]);if(!c)return null;if(a[3]==='your opponents control')c='op:'+c;if(a[1])c='outro:'+c;return{c,i:a.index};}
+function porCadaEf(s,e){
+  const q=porCadaDe(s);if(!q)return;const c=q.c,ant=s.slice(0,q.i),dep=s.slice(q.i);const mult=k=>k===1?c:k+'*'+c;let a;
+  if(e.dr!=null&&/draws? (?:a|one) card $/.test(ant)){e.dr=c;return;}
+  if(e.vida!=null&&typeof e.vida==='number'&&(a=ant.match(/gain (\d+) life $/))){e.vida=mult(+a[1]);return;}
+  if(e.dren!=null&&typeof e.dren==='number'&&(a=ant.match(/loses (\d+) life $/))){e.dren=mult(+a[1]);return;}
+  for(const k of ['danoOp','danoAlvo'])if(typeof e[k]==='number'&&/damage to [a-z ]+ $/.test(ant)){e[k]=mult(e[k]);return;}
+  if(e.fic&&typeof e.fic.n==='number'&&(/creature tokens? (?:with [a-z, ]+ )?$/.test(ant)||/^for each [^,]+, (?:you )?create/.test(dep)||/where x is/.test(dep)&&e.fic.n===1)){e.fic.n=mult(e.fic.n);return;}
+  if(e.cont&&typeof e.cont.n==='number'&&(/counters? on [^,]+? $/.test(ant)||/where x is/.test(dep))){e.cont.n=mult(e.cont.n);return;}
 }
 /* quem dispara o gatilho */
 function quando(s,m){
@@ -322,6 +358,7 @@ function quando(s,m){
   if(/^when(?:ever)? (?:enchanted|equipped) creature dies/.test(s))return{q:'hostMorre'};
   if(/^when (?:this aura|~) is put into a graveyard from the battlefield/.test(s))return{q:'auraSai'};
   if(/^whenever enchanted creature or another modified creature you control dies/.test(s))return{q:'morre',meu:1,mod:1,tipo:'*'};
+  if(/^whenever you cast an instant or sorcery spell,/.test(s))return{q:'conj',tipo:'instsorc'};
   if((a=s.match(/^whenever you cast (?:a|an) ([a-z]+)? ?spell/))){return{q:'conj',tipo:a[1]?tipoNorm(a[1]):'*'};}
   if(/^whenever you cast another ([a-z]+) spell/.test(s))return{q:'conj',tipo:tipoNorm(s.match(/another ([a-z]+) spell/)[1]),outro:1};
   if(/^at the beginning of (?:your|each) upkeep/.test(s))return{q:'upkeep',todos:/each upkeep/.test(s)};
