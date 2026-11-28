@@ -663,6 +663,7 @@ M.recalcCtrl = e => {
       const ult = e.ctrlEf.filter(c => c.id === id && c.ts === o.ts).pop(), novo = ult ? ult.j : o.ctrl0;
       if (novo === o.ctrl || e.jogs[novo].saiu) continue;
       o.ctrl = novo; o.doente = true; mudou = true;
+      if ((M.dadoDe(e, o).kw || []).some(x => x.k === 'eco')) o.eco = true;   // 702.30a: "came under your control since your last upkeep" vale para troca de controle
       const C = e.turno.combate;
       if (C) { C.atk = C.atk.filter(a => a.id !== id); for (const a of C.atk) if (a.bloq) a.bloq = a.bloq.filter(b => b.id !== id); }
       M.log(e, e.jogs[novo].nome, 'ganha o controle de', o.n);

@@ -1384,14 +1384,14 @@ const H = {
         for (const [t, n] of Object.entries<any>(ctx.lki.este.marc || {})) if (n > 0) M.porMarcadores(e, para, t, n);
     },
   },
-  // bis (CR 702.141a): uma ficha cópia por oponente, com ímpeto e "ataca se puder" (simplificação: ataca qualquer um,
-  // não necessariamente aquele oponente); todas sacrificadas no começo da próxima etapa final (gatilho atrasado)
+  // bis (CR 702.141a): uma ficha cópia por oponente, com ímpeto e "ataca aquele oponente neste turno se puder" (o.bisJog
+  // + o.bisT, lidos em combate.ts); todas sacrificadas no começo da próxima etapa final (gatilho atrasado)
   bis: {
     fx(e, f, ctx) {
       const base = copiaDe(e, { copiaDe: 'este' }, ctx); if (!base) return;
-      const tok = { ...base, kw: [...(base.kw || []).filter(x => x.k !== 'bis'), { k: 'pressa' }], est: [...(base.est || []), { modo: 'deveAtacar', afeta: 'este' }] };
+      const tok = { ...base, kw: [...(base.kw || []).filter(x => x.k !== 'bis'), { k: 'pressa' }] };
       ctx.criadas = [];
-      for (const j of M.vivos(e)) if (j !== ctx.voce) for (const o of M.criarFichas(e, ctx.voce, tok, 1)) ctx.criadas.push({ id: o.id, ts: o.ts });
+      for (const j of M.vivos(e)) if (j !== ctx.voce) for (const o of M.criarFichas(e, ctx.voce, tok, 1)) { o.bisJog = j; o.bisT = e.turno.n; ctx.criadas.push({ id: o.id, ts: o.ts }); }
       H.gatilhoAtrasado.fx(e, { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'sacrificar', em: 'criadas' }] } }, ctx);
     },
   },

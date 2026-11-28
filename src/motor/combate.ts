@@ -147,12 +147,15 @@ M.PROC.atacar = (e, P, ask) => {
   const alvosDe = id => {
     const inc = M.tempDe(e, 'incitado').filter(({ s, t }) => M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);
     const nao = M.tempDe(e, 'naoPodeAtacar').filter(({ s, t }) => s.contra && t.ids && M.tempAfeta(e, e.objs[id], s, t)).map(({ t }) => t.ctrl);   // "they can't attack you or planeswalkers you control" (Illusionist's Gambit)
-    if (nao.length) return alvos.filter(t => !nao.includes(defDe(e, t)));
-    const v = votoDe(e.objs[id]); if (v.length) { const ok = alvos.filter(t => !v.includes(defDe(e, t))); return ok; }   // voto (Promise of Loyalty): não ataca aquele jogador nem os planeswalkers dele
-    if (!inc.length) return alvos;
-    const fora = alvos.filter(t => !inc.includes(defDe(e, t)));
-    return fora.length ? fora : alvos;
+    let ls = alvos;
+    if (nao.length) ls = alvos.filter(t => !nao.includes(defDe(e, t)));
+    else { const v = votoDe(e.objs[id]); if (v.length) ls = alvos.filter(t => !v.includes(defDe(e, t)));   // voto (Promise of Loyalty): não ataca aquele jogador nem os planeswalkers dele
+      else if (inc.length) { const fora = alvos.filter(t => !inc.includes(defDe(e, t))); ls = fora.length ? fora : alvos; } }
+    const bj = bisDe(id); if (bj !== undefined && ls.some(t => t.jog === bj)) return ls.filter(t => t.jog === bj);   // bis (702.141a): aquele oponente, se puder
+    return ls;
   };
+  // bis (702.141a): "that token attacks that opponent this turn if able" — o requisito é aquele jogador; sem poder, nenhum
+  const bisDe = id => { const o = e.objs[id]; return o && o.bisJog !== undefined && o.bisT === e.turno.n && !e.jogs[o.bisJog].saiu ? o.bisJog : undefined; };
   // "no more than one creature can attack you each combat" (Mirri, Weatherlight Duelist, 506.6): limite por jogador atacado
   const limAtk = t => t.jog === undefined ? Infinity : M.maxAtacantes(e, t.jog);
   const cabeAtk = t => Object.values<any>(decl).filter(x => x.jog !== undefined && x.jog === t.jog).length < limAtk(t);
@@ -162,7 +165,7 @@ M.PROC.atacar = (e, P, ask) => {
     const ja = Object.keys(decl), soloJa = ja.some(id => sozinha(+id));
     const livres = soloJa ? [] : aptos.filter(id => !decl[id]);
     // 508.1d: quem "ataca se puder" tem que atacar (qualquer alvo cumpre); só então dá para fechar
-    const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false));
+    const devem = livres.filter(id => estEste(e, e.objs[id], 'deveAtacar', false) || (bisDe(id) !== undefined && alvosDe(id).some(t => t.jog === bisDe(id) && cabeAtk(t))));
     const ops = devem.length ? [] : [{ a: 'pronto' }];
     const juntas = livres.filter(id => !sozinha(id));
     if (juntas.length > 1) for (const t of alvos) if (limAtk(t) === Infinity) ops.push({ a: 'todos', ...t });         // atalho: todas as livres no mesmo alvo
@@ -238,9 +241,16 @@ M.maxAtacantes = (e, j) => {
 // 509.1c: requisitos de bloqueio ("bloqueia neste turno se puder", "bloqueia aquela criatura se puder"). Fontes: est
 // deveBloquear afeta 'este' da carta e as do modificar até o fim do turno (e.temp: atk = o atacante preso na resolução).
 // Devolve null (sem requisito), 'qualquer' ou a lista de atacantes (índices em meus) que cumprem.
-// Simplificação: atacante com ameaça não força (bloqueá-lo sozinho é ilegal e o máximo de requisitos pediria
-// escolher outro bloqueador junto, 509.1c); o defensor ainda pode bloqueá-lo.
-function requisitoBloqueio(e, b, meus, C) {
+// Ameaça (702.110b + 509.1c, máximo de requisitos sem violar restrição): bloquear o atacante com ameaça sozinho é ilegal,
+// mas se outra candidata pode bloqueá-lo junto (livre ou já nele), o requisito vale — a declaração tem que levar as duas.
+// Sem cands/bl (chamada de fora) o atacante com ameaça não força. Simplificação: a ajudante pode ir para outro atacante
+// (aí o requisito cai), em vez de escolher a declaração com mais requisitos cumpridos.
+function ajudaAmeaca(e, b, i, C, cands, bl) {
+  const at = e.objs[C.atk[i].id], d = C.atk[i].def, lim = (C.limBloq || {})[d];
+  if (lim !== undefined && Object.keys(bl).filter(k => +k !== b.id && bl[k] !== i).length + 2 > lim) return false;
+  return cands.some(c => c !== b.id && (bl[c] === undefined || bl[c] === i) && bloqueiaEste(e, e.objs[c], at));
+}
+function requisitoBloqueio(e, b, meus, C, cands?, bl?) {
   let geral = estEste(e, b, 'deveBloquear', false);
   const atks: any[] = [];
   for (const t of e.temp || []) {
@@ -248,7 +258,7 @@ function requisitoBloqueio(e, b, meus, C) {
     for (const s of t.est) if (s.modo === 'deveBloquear') { if (s.atk) atks.push(s.atk); else geral = true; }
   }
   if (!geral && !atks.length) return null;
-  const pode = i => { const at = e.objs[C.atk[i].id]; return !kw(e, at, 'ameaca') && bloqueiaEste(e, b, at); };
+  const pode = i => { const at = e.objs[C.atk[i].id]; return bloqueiaEste(e, b, at) && (!kw(e, at, 'ameaca') || (!!cands && ajudaAmeaca(e, b, i, C, cands, bl))); };
   const esp = meus.filter(i => atks.some(a => a.id === C.atk[i].id && a.ts === C.atk[i].ts) && pode(i));
   if (esp.length) return esp;                                      // aquele atacante, se der; senão o "se puder" geral
   if (geral && meus.some(pode)) return 'qualquer';
@@ -271,14 +281,20 @@ M.PROC.bloquear = (e, P, ask) => {
     const devem: any[] = [], ops: any[] = [];
     M.lote(() => { for (const id of cands) {
       if (bl[id] !== undefined) continue;
-      const rq = requisitoBloqueio(e, e.objs[id], meus, C);
+      const rq = requisitoBloqueio(e, e.objs[id], meus, C, cands, bl);
       if (rq) devem.push(id);
       for (const i of meus) if ((!Array.isArray(rq) || rq.includes(i)) && bloqueiaEste(e, e.objs[id], e.objs[C.atk[i].id])) ops.push({ a: 'bloquear', id, atk: C.atk[i].id });
     } });
     const lim = (C.limBloq || {})[d];                                                    // "can't block with more than one creature this combat" (Mirri, 509.1c)
     if (lim !== undefined && Object.keys(bl).length >= lim) { ops.length = 0; devem.length = 0; }
     if (!presa.length && !devem.length) ops.unshift({ a: 'pronto' });
-    if (presa.length) for (const k in bl) if (presa.includes(bl[k])) ops.push({ a: 'desfazer', id: +k });
+    // quem tem requisito para aquele atacante com ameaça não desfaz enquanto há ajudante (509.1c): falta outra se juntar
+    if (presa.length) for (const k in bl) if (presa.includes(bl[k])) {
+      const sem = { ...bl }; delete sem[k];
+      const rq = requisitoBloqueio(e, e.objs[k], meus, C, cands, sem);
+      if (rq && (rq === 'qualquer' || rq.includes(bl[k])) && ajudaAmeaca(e, e.objs[k], bl[k], C, cands, sem)) continue;
+      ops.push({ a: 'desfazer', id: +k });
+    }
     const op = ask(quem, 'bloquear', ops, { atacantes: meus.map(i => C.atk[i].id), bl: Object.keys(bl).map(k => [+k, C.atk[bl[k]].id]), devem, def: d });
     if (op.a === 'pronto') break;
     if (op.a === 'desfazer') delete bl[op.id];
