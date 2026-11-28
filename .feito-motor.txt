@@ -1,0 +1,33 @@
+op amassar | Dreadhorde Invasion, Gleaming Overseer, Lazotep Plating, Lazotep Sliver (falta afflict), Orcish Bowmasters | 1539→1543 (simplificação: o tipo a mais da Armada vai para os valores da ficha; Armada não-ficha não ganha o tipo)
+op ficha.qtd | Chasm Skulker, Elenda the Dusk Rose, Elenda's Hierophant (JSON: X da própria = marcadoresNoEste/poderDoEste via LKI), Endless Ranks of the Dead (conta metade), Otharri (conta marcadoresSeus) | 1543→1550
+est continuo sub | Metallic Mimic, Roaming Throne (sub escolhido), Yavimaya (todo terreno Floresta + {T}: G, 305.7), Leyline of the Guildpact (parte dos terrenos; falta a parte de cores) | 1550→1554
+est custoAlternativo afeta filtro | Bolas's Citadel, Demon of Fate's Design, Dracogenesis, Rooftop Storm | 1554→1558 (simplificação: alternativo por vida só quando sobram mais de 10 de vida; usa o alternativo sempre que é mais barato)
+op comprar.se | Belladonna Took, Ms. Bumbleflower, Tannuk (conta resolucoesDestaHabNoTurno); Frodo segue travado por op tentarAnel | 1558→1563
+op vigiar | Consider, Lush Portico, Search for Azcanta, Thundering Falls | 1563→1567 (agente: terreno vai ao cemitério com 5+ terrenos; sem gatilho 'quando vigiar')
+gat.ouCopia | Archmage Emeritus, Storm-Kiln Artist, Veyran | 1567→1570 (novo evento 'copia' no M.criarCopia)
+kw mentor | Danny Pink, Legion Warboss, Tributary Instructor | (junto com prole) (simplificação: o "poder menor" é o do momento do ataque)
+kw prole | Agate Instigator, Coruscation Mage, Warren Warleader | 1570→1576 (mentor+prole num commit só: mexem no mesmo trecho do M.evento; agente paga a prole sempre que a mana fecha)
+op anexar | Hero's Blade, Sword of the Meek (+ filtro resist), Nim Deathmantle (ainda trava em est continuo.cores) | 1576→1579
+op dano.qtd | Basalt Ravager, Warstorm Surge, Terror of the Peaks (ainda trava em est aumentaCusto) | 1579→1581
+op moverMarcador | Forgotten Ancient, Nesting Grounds, Zack Fair | 1581→1584 (agente não move no Forgotten Ancient: responde 'pronto')
+op sacrificar.exceto | Ajani Nacatl Pariah, Archfiend of Depravity, Promise of Loyalty | 1584→1587 (porTipo: cada escolhida vale para um tipo só)
+subst entra virada | Authority of the Consuls, Kinjalli's Sunwing, Spelunking | 1587→1590 (vale para ficha também; substsDe passou a usar o índice do campo)
+MERGE origin/main (v0.67.0) | conflitos em efeitos/estado/gatilhos/pilha/testes resolvidos mantendo os dois lados (tipo por filtro: ficou a versão da main + meu 'escolhido') | 1590→1657 (com o trabalho dos outros). Aviso: antes da regra nova eu criei as contas marcadoresSeus (já estava no esquema; a main também tinha), resolucoesDestaHabNoTurno, poderDoEvento, tipoMaisComum — todas já previstas em banco/esquema.json
+est aumentaCusto | Kopala, Terror of the Peaks | 1657→1659 (simplificação: o agente não prevê o custo a mais ao escolher a mágica; se não fecha, desiste — 727)
+gat entra (vários campos) | Weapons Manufacturing (alvo da habilidade da ficha não é do gatilho) | 1659→1661. Wildfire Awakener agora trava honesto em 'op ficha.token' (gatilho 'vira' da ficha: evento novo de virar, não fiz)
+gat ev explora | Merfolk Cave-Diver, Nicanzil (+ op explorar, que não existia; a ficha Map passa a ativar) | 1661→1665
+PRECISA CONTA: vida que você ganhou neste turno (vidaGanhaNoTurno, já no esquema) — Gwaihir, Greatest of the Eagles (motivo 'gat fase (vários campos)'; pulei)
+gat.grupo | Mavren Fein, Meriadoc Brandybuck ('uma ou mais atacam' = um disparo por declaração) | 1665→1667
+kw bis | Mist Dancer, Sliver Gravemother (o JSON da Gravemother só tem o bis próprio; conferir no Oracle se dá bis às Slivers do cemitério) | 1667→1669 (simplificação: a ficha 'deve atacar' qualquer um, não necessariamente o oponente dela; sacrificar ganhou 'em')
+kw corpo-a-corpo | Skyhunter Strike Force, Tifa | 1669→1671 (motor-cobertura.mjs: a regex de 'citado' passou a aceitar hífen)
+kw evoluir | Fathom Mage, Gyre Sage | 1671→1673 (simplificação: a condição 'maior' só é vista ao disparar, não ao resolver — 603.4)
+kw mobilizar | Voice of Victory, Zurgo Stormrender | 1673→1675
+PULEI: op comprar.quem — Baleful Mastery precisa de condição "pagou o custo alternativo" (estender conjuradaCom com 'alternativo' + guardar opc no altInfo) e "um oponente à sua escolha"; Gluntch está com o JSON errado (o Oracle escolhe 3 jogadores, um para cada parte: marcadores, compra, Tesouros) e precisa de op "escolher jogador". Os dois têm "falta".
+PAREI AQUI (conversa perto de 150k). Faltam do lote: op exilar.dura, op fundir, op gatilhoAtrasado, op marcador.se, op repetirCada, op turnoExtra, subst entra escolher/tipo. Ramo t43-lote-b em dia com a main (v0.67.0), tudo verde: check 0 erros, vitest 400 ok, partida 26.5/29.5/7.0/36.0 turno 8.7 erros 0; inteiras 1675.
+MERGE origin/main (v0.67.1) + origin/contagens | conflitos: fiquei com o formato único; portei para contagem.ts {de:'evento',o:'poder'}, {de:'turno',o:'resolucoesDestaHab'} (também em 'cond'), {de:'tipoMaisComum'} (valor que já estava no esquema); Bolas's Citadel lê pagar.vida {de:'evento',o:'vm'}; testes meus sem nome velho; valida 0 erros | 1675→1675
+op exilar.dura | Grasp of Fate, Bronzebeak Foragers (este ainda tem 'falta': a habilidade {X}{W} que tira do exílio) | 1675→1678 (simplificação: Aura que volta não se prende)
+op fundir | Gisela, Mishra Claimed by Gix | 1678→1680 (simplificação: valor de mana da fundida = o da face de trás, não a soma, 712.8g)
+PAREI AQUI (2ª vez, pedido do FARSEER: conversa passou de 150k). Falta do lote só: op gatilhoAtrasado. Ramo t43-lote-b com main v0.67.1 + origin/contagens; check 0 erros, vitest 402 ok, valida 0 erros, partida 26.5/29.5/7.0/36.0 turno 8.7 erros 0; inteiras 1680.
+MERGE origin/main (v0.68.0) | exilar.dura ficou o da main (e.volta), saiu o meu exAte (os dois testes 610.3 passam); estado.ts junta clone (main) + fundidaCom (meu); Esper Sentinel/Myr Battlesphere combinados (primeiraNoTurno, ate qualquer, conta no formato único); Feasting Hobbit: o validador do 'subst entra sacrificar+marcador' passou a aceitar {conta:{de:'resultado'}} | 1720
+op gatilhoAtrasado | Arcane Denial, Mistrise Village | 1720→1722 (Mistrise saiu do atrasado: CR 611.2, efeitoTemporario proximaMagica preso na conjuração; o agente compra sempre o máximo no "até N")
+LOTE ACABOU. Ramo t43-lote-b com main v0.68.0; check 0 erros, vitest 429 ok/32 pulados, valida 0 erros, partida 26.5/29.5/7.0/36.0 turno 8.7 erros 0; inteiras 1722.

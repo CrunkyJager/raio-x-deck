@@ -1,0 +1,27 @@
+op amassar
+op ficha.qtd
+est continuo sub
+est custoAlternativo afeta filtro
+op comprar.se
+op vigiar
+gat.ouCopia
+kw mentor
+kw prole
+op anexar
+op dano.qtd
+op moverMarcador
+op sacrificar.exceto
+subst entra virada
+est aumentaCusto
+gat entra (vários campos)
+gat ev explora
+gat fase (vários campos)
+gat.grupo
+kw bis
+kw corpo-a-corpo
+kw evoluir
+kw mobilizar
+op comprar.quem
+op exilar.dura
+op fundir
+op gatilhoAtrasado
