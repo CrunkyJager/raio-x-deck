@@ -56,6 +56,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
       : ['quantos', 'vida', 'dano', 'poder', 'resist', 'vm', 'cores', 'mao', 'jogadores', 'manaGasta'].includes(o) && chaves(c, []);   // poder+soma: o lote do "uma ou mais morrem" (Skullspore Nexus)
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
+    case 'viradas': return o === 'poder' && j === 'soma' && chaves(c, ['junta']);   // as viradas para pagar o custo (estação, 702.184a)
     case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist', 'ataques', 'tipoEmComum'].includes(o) && chaves(c, []);   // ataques: quantas vezes o objeto da vez atacou neste turno (Moraug)   // poder/resist: o objeto da vez (Unnatural Growth)
   }
   return false;
@@ -74,7 +75,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || c.de === 'resultado' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -193,6 +194,7 @@ M.contar = (e, c, ctx: any = {}) => {
       for (const t of cs) if (t !== 'todos') for (const s of new Set<string>(t)) n[s] = (n[s] || 0) + 1;
       return Math.max(0, ...Object.values(n)) + todos;   // metamorfo é de todos os tipos (702.73a)
     }
+    case 'viradas': return (ctx.vir || []).reduce((s, l) => { const x = e.objs[l.id]; return s + Math.max(0, x && x.zona === 'campo' && x.ts === l.ts ? M.poder(e, x) : l.poder); }, 0);   // ainda no campo: o poder de agora; senão LKI (608.2h)
     case 'sacrificadas': return (ctx.sac || []).reduce((s, l) => s + (o === 'poder' ? Math.max(0, l.poder) : l.vm || 0), 0);   // LKI, 608.2h
     case 'cada':
       if (o === 'vida') return ctx.cadaAtual !== undefined ? e.jogs[ctx.cadaAtual].vida : 0;   // o jogador da vez (Dire Fleet Ravager)

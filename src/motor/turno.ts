@@ -208,7 +208,7 @@ M.PROC.terreno = (e, P, ask) => {
   const j = P.j, o = e.objs[P.id];
   const terra = P.face === undefined ? M.temTipo(e, o, 'Land') : M.faceTerreno(e, o);
   const pj = M.permJogar(e, j, o);
-  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj) || !terra) throw new Error('terreno ilegal');
+  if (!(o.zona === 'mao' || (pj && !pj.soConjurar) || (!pj && M.podeJogarDe(e, j, o))) || (o.dono !== j && !pj && !(o.zona === 'exilio' && M.podeJogarDe(e, j, o))) || !terra) throw new Error('terreno ilegal');
   const plano = M.decidirEntrada(e, P.id, j, P.face === undefined ? {} : { face: P.face }, ask);
   e.proc = null;
   e.jogs[j].terrenos++;
@@ -291,6 +291,7 @@ M.abe = e => {
       if (!v) { roles.set(k, o); continue; }
       if (v.ts < o.ts) { morrem.push(v.id); roles.set(k, o); } else morrem.push(id);
     }
+    for (const id of e.campo) { const o = e.objs[id]; if (o.par && !M.parDe(e, o)) { delete o.par; e.vCamada = (e.vCamada || 0) + 1; } }   // 702.95e: o par quebrou (não volta)
     // preparar: a cópia no exílio deixa de existir se a criatura saiu do campo ou não está mais preparada
     for (const J of e.jogs) for (const id of [...J.zonas.exilio]) { const c = e.objs[id]; if (c.copiaPrep && !M.prepValida(e, c)) { M.mover(e, id, 'cemiterio'); mudou = true; } }
     // CR 714.4: saga com história ≥ capítulo final e sem capítulo dela esperando ou na pilha é sacrificada
@@ -302,7 +303,8 @@ M.abe = e => {
     }
     for (const id of [...new Set(morrem)]) { M.mover(e, id, 'cemiterio'); mudou = true; }
     for (const id of sagas) if (e.objs[id].zona === 'campo') { M.mover(e, id, 'cemiterio', { sac: true }); mudou = true; }   // 714.4: é sacrifício (701.21)
-    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
+    for (const J of e.jogs) if (!J.saiu) M.bencao(e, J.i);
+    M.ligarMotores(e);                                                 // 702.179a: Start your engines!           // 702.131b: a bênção chega assim que há 10 permanentes (não é ABE, mas é o mesmo momento)
     if (M.abeMasmorras(e)) mudou = true;                             // 704.5t masmorra completada; 727.4 iniciativa de quem saiu
     // CR 704.5q: marcadores +1/+1 e −1/−1 se anulam
     for (const id of e.campo) { const m = e.objs[id].marc, a = Math.min(m['+1/+1'] || 0, m['-1/-1'] || 0); if (a) { m['+1/+1'] -= a; m['-1/-1'] -= a; mudou = true; } }

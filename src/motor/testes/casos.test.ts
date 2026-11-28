@@ -1324,7 +1324,7 @@ caso('702.33d', 'conjuradaCom kicker (Goblin Bushwhacker): o gatilho de entrar s
     for (let i = 0; i < 6 && e.perg && (e.pilha.length || e.pend.length); i++) respE(e, o => o.a === 'passar' || o.a === 'gatilho');
     igual(M.poder(e, objN(e, 0, 'Grizzly Bears')), 2 + esp, `${terras} Montanha(s): ` + JSON.stringify(e.log.slice(-4)));
   }
-  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'maxspeed' } }));
+  ok(M.gatOk(db['Cena Emboscador'].gat[0]) && !M.gatOk({ ...db['Cena Emboscador'].gat[0], se: { palavra: 'semNome' } }));
 });
 db['Cena Desgaste'] = { n: 'Cena Desgaste', custo: { g: 1, p: ['G'] }, cores: 'G', tipos: ['Sorcery'], vm: 2, ci: 'G', kw: [{ k: 'ofertaPresente', tipo: 'carta' }],
   alvos: [{ f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, opcao: 'semPresente' }, { f: { tipo: ['Artifact', 'Enchantment'], zona: 'campo' }, min: 2, max: 2, opcao: 'presente' }],
@@ -2558,25 +2558,6 @@ caso('608.2c', "pode + pagar (Leaf-Crowned Visionary: 'you may pay {G}. If you d
   igual(e.objs[e.campo.find(id => e.objs[id].n === 'Llanowar Elves')].zona, 'campo');
 });
 
-caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; maxspeed continua recusada', () => {
-  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Grizzly Bears']] });
-  const ctx = { voce: 0, este: e.campo[0] };
-  ok(M.fxSuportado(M.carta('Dispatch').fx), 'Dispatch lido');
-  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), false, '2 artefatos');
-  e.por(0, 'Arcane Signet');
-  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), true, '3 artefatos');
-  igual(M.condicao(e, { palavra: 'metalcraft' }, { voce: 1, este: e.campo[0] }), false, 'são do outro');
-  e.por(0, 'Llanowar Elves'); e.por(0, 'Grizzly Bears');
-  igual(M.condicao(e, { palavra: 'coven' }, ctx), false, 'poderes 1 e 2');
-  e.por(0, 'Hill Giant');
-  igual(M.condicao(e, { palavra: 'coven' }, ctx), true, '1, 2 e 3');
-  igual(M.condicao(e, { palavra: 'blessing' }, ctx), false, '6 permanentes');
-  for (let i = 0; i < 3; i++) e.por(0, 'Wastes'); e.por(0, 'Wayward Swordtooth');   // 702.131b: precisa de uma com ascender
-  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
-  for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
-  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
-  ok(!M.condValorOk({ palavra: 'maxspeed' }));
-});
 caso('502.3', 'Unwinding Clock: seus artefatos desviram na etapa de desvirar dos outros; as criaturas não', () => {
   const e = cena({ campo: [[0, 'Unwinding Clock'], [0, 'Sol Ring'], [0, 'Grizzly Bears']] });
   const [sr, gb] = [objN(e, 0, 'Sol Ring'), objN(e, 0, 'Grizzly Bears')];
@@ -3841,6 +3822,19 @@ caso('702.84a', "Molten Gatekeeper: desenterrar {R} do cemitério como feitiço;
   ok(!M.podeAtivar(f, 0, h, 0), 'fora da principal: não'); f.turno.passo = 'principal1'; ok(M.podeAtivar(f, 0, h, 0), 'na principal: sim');
 });
 
+caso('107.14', "Salvation Colossus: desenterrar pagando oito {E} (702.84a) — sem 8 de energia não ativa; pagando, tira os 8 marcadores de você e volta com pressa", () => {
+  const e = cena({});
+  const c = e.por(0, 'Salvation Colossus', { zona: 'cemiterio' });
+  ok(!(M.carta('Salvation Colossus').falta || []).length, 'sem falta');
+  M.marcadorJogador(e, 0, 'energy', 7);
+  ok(!M.podeAtivar(e, 0, c, 0), 'com 7 de energia: não');
+  M.marcadorJogador(e, 0, 'energy', 2);
+  ok(M.podeAtivar(e, 0, c, 0), 'com 9: sim');
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === c.id); resolvePilha(e);
+  igual(e.jogs[0].marc.energy, 1, 'pagou 8');
+  ok(c.zona === 'campo' && M.temKw(e, c, 'pressa'), 'no campo com pressa');
+  M.mover(e, c.id, 'cemiterio'); igual(c.zona, 'exilio', 'iria sair: exílio');
+});
 // ---------- contagens num formato só (27/11): {conta:{de, o, junta}} ----------
 caso('107.3', 'contagens: o nome velho e o formato novo dão o mesmo número (mão, vida, oponentes, filtro, soma do poder)', () => {
   const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Llanowar Elves'], [0, 'Forest']], mao: [[0, 'Forest'], [0, 'Sol Ring']] });
@@ -4262,7 +4256,7 @@ caso('702.30a', "eco: Mogg War Marshal dispara na 1ª manutenção de quem contr
   e.pend = []; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); igual(e.pend.length, 0, 'a próxima: não');
   const f = cena({ campo: [[0, 'Mogg War Marshal']] }); f.pend = [];
   const m2 = objN(f, 0, 'Mogg War Marshal');
-  M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolvePilha(f);
+  M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolveCom(f);
   igual(m2.zona, 'cemiterio', 'sem mana: sacrificado');
 });
 
@@ -5650,6 +5644,31 @@ caso('609.4b', "Drana and Linvala: 'you may spend mana as though it were mana of
   igual(M.custoAtv(e, pf, M.atvDe(e, pf)[0]), { p: ['G'] }, 'no Perfect: {G}');
 });
 
+caso('614.1a', "Valgavoth, Terror Eater: carta que você não controlava iria ao cemitério do oponente → exílio; no seu turno, conjura a exilada pagando vida = valor de mana (118.9)", () => {
+  const e = cena({ campo: [[0, 'Valgavoth, Terror Eater'], [1, 'Grizzly Bears']], mao: [[1, 'Lightning Bolt'], [0, 'Llanowar Elves']] });
+  const b = objN(e, 1, 'Grizzly Bears'), raio = naMao(e, 1, 'Lightning Bolt'), el = naMao(e, 0, 'Llanowar Elves');
+  M.mover(e, b.id, 'cemiterio'); M.mover(e, raio.id, 'cemiterio'); M.mover(e, el.id, 'cemiterio');
+  igual([b.zona, raio.zona, el.zona], ['exilio', 'exilio', 'cemiterio'], 'as do oponente vão para o exílio; a minha, para o meu cemitério');
+  e.turno.ativo = 1; ok(!M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === b.id), 'no turno do oponente: não');
+  e.turno.ativo = 0; M.avancar(e);
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar' && o.id === b.id), 'no meu turno, sem terreno: conjura pagando vida');
+  const v0 = e.jogs[0].vida; conj(e, 'Grizzly Bears'); resolveCom(e);
+  igual(e.jogs[0].vida, v0 - 2, 'pagou 2 de vida'); igual([b.zona, b.ctrl], ['campo', 0], 'entrou sob meu controle');
+  M.mover(e, b.id, 'cemiterio'); igual(b.zona, 'cemiterio', 'eu a controlava: vai ao cemitério do dono normalmente');
+});
+
+caso('122.1', "Call the Spirit Dragons: na manutenção, um +1/+1 por cor num Dragão daquela cor; se foram cinco Dragões distintos, vence (104.2b). Tiamat de 5 cores fica com a cor que sobrar", () => {
+  const ds = ['Tiamat', 'Ancient Gold Dragon', 'Ancient Silver Dragon', 'Silumgar, the Drifting Death', 'Savage Ventmaw'];
+  const e = cena({ campo: [[0, 'Call the Spirit Dragons'], ...ds.map(n => [0, n])] }); e.pend = [];
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolveCom(e);
+  igual(ds.map(n => objN(e, 0, n).marc['+1/+1'] || 0), [1, 1, 1, 1, 1], 'um marcador em cada um dos cinco');
+  ok(e.fim && e.fim.vencedor === 0, 'cinco Dragões: vence');
+  const f = cena({ campo: [[0, 'Call the Spirit Dragons'], [0, 'Tiamat'], [0, 'Ancient Gold Dragon']] }); f.pend = [];
+  M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolveCom(f);
+  igual([objN(f, 0, 'Tiamat').marc['+1/+1'], objN(f, 0, 'Ancient Gold Dragon').marc['+1/+1']], [4, 1], 'Tiamat recebe U, B, R, G; o Ouro, o W');
+  ok(!f.fim, 'dois Dragões: não vence');
+});
+
 caso('601.2f', "tipo de card em comum / escolhido (Semblance Anvil, Cemetery Prowler, Cloud Key): reduzem só as mágicas que dividem tipo de card com o que foi exilado por ele / o tipo escolhido", () => {
   const e = cena({ campo: [[0, 'Semblance Anvil'], [0, 'Cemetery Prowler'], [0, 'Cloud Key']], mao: [[0, 'Sol Ring'], [0, 'Llanowar Elves'], [0, 'Lightning Bolt'], [0, 'Counterspell']] });
   const A = objN(e, 0, 'Semblance Anvil'), P = objN(e, 0, 'Cemetery Prowler'), K = objN(e, 0, 'Cloud Key');
@@ -6045,9 +6064,9 @@ caso('702.63a', "desaparecer 2 (Dreamtide Whale): entra com 2 de tempo; cada man
   const w = e.por(0, 'Dreamtide Whale', { zona: 'mao' }); M.mover(e, w.id, 'campo');
   igual(w.marc.time, 2, 'entra com 2');
   e.pend = []; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 1 }); igual(e.pend.length, 0, 'a do oponente: não');
-  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolveCom(e);
   igual(w.marc.time, 1, 'tira 1'); igual(w.zona, 'campo', 'fica');
-  e.perg = null; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolvePilha(e);
+  e.perg = null; M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(e); resolveCom(e);
   igual(w.zona, 'cemiterio', 'o último: sacrificada');
 });
 
@@ -6111,6 +6130,79 @@ caso('702.88a', "rebote (Ephemerate): da mão, exila ao resolver e na sua próxi
   }
   igual(ep.zona, 'cemiterio', 'conjurada do exílio: agora vai ao cemitério');
   ok(objN(e, 0, 'Grizzly Bears').ts > ts, 'piscou de novo');
+});
+
+caso('700.2h', 'Season of the Burrow: até 5 {P} de modos; o de 1 {P} repete; o de 2 {P} com alvo vem duas vezes, cada uma com o seu alvo; o que não cabe não é oferecido', () => {
+  const W = Array(5).fill(0).map(() => [0, 'Plains']);
+  const e = cena({ campo: [...W, [1, 'Hill Giant'], [1, 'Grizzly Bears']], mao: [[0, 'Season of the Burrow']] });
+  const ofertas: any[] = [];
+  const pega = [0, 1, 2];   // coelho (1) + exilar (2) + exilar de novo (2) = 5
+  M.avancar(e); conj(e, 'Season of the Burrow');
+  resolveCom(e, p => {
+    if (p.tipo === 'modo') { ofertas.push(p.ops.filter(o => o.a === 'modo').map(o => o.m)); const m = pega.shift(); return m === undefined ? p.ops.findIndex(o => o.a === 'pronto') : p.ops.findIndex(o => o.m === m); }
+    if (p.tipo === 'alvo') { const n = p.ctx.i === 0 ? 'Hill Giant' : 'Grizzly Bears'; return p.ops.findIndex(o => o.o !== undefined && e.objs[o.o].n === n); }
+    return -1;
+  });
+  igual(ofertas[0], [0, 1, 2], 'começo: o de 3 {P} sem alvo no cemitério não é oferecido');
+  igual(ofertas[1], [0, 1, 2], 'sobram 4');
+  igual(ofertas[2], [0, 2], 'sobram 2: coelho ou o outro exilar');
+  igual(ofertas.length, 3, 'com 5 gastos não pergunta mais');
+  ok(!objN(e, 1, 'Hill Giant') && !objN(e, 1, 'Grizzly Bears'), 'exilou as duas');
+  igual(e.jogs[1].zonas.mao.length, 2, 'o controlador comprou 2');
+  igual(e.campo.filter(id => e.objs[id].ficha).length, 1, '1 coelho');
+  const f = cena({ campo: W.map(x => [...x]), mao: [[0, 'Season of the Burrow']] });
+  M.avancar(f); conj(f, 'Season of the Burrow'); resolveCom(f, p => p.tipo === 'modo' ? p.ops.findIndex(o => o.m === 0) : -1);
+  igual(f.campo.filter(id => f.objs[id].ficha).length, 5, 'o mesmo modo 5 vezes: 5 coelhos');
+  ok(M.agenteBasico()(f, { tipo: 'modo', j: 0, ops: [{ a: 'pronto' }, { a: 'modo', m: 0 }, { a: 'modo', m: 3 }], ctx: { pontos: [1, 2, 2, 3] } }) === 2, 'o agente pega o mais caro que cabe');
+});
+
+caso('702.95a', 'soulbond (Tandem Lookout): entra e pareia com outra criatura sua; as duas ganham "dano a oponente → compre"; uma sai, o par quebra (702.95e) e a que volta pode parear de novo pelo gatilho da outra', () => {
+  ok(M.estContOk(M.carta('Tandem Lookout').est[0]), 'aceita');
+  const e = cena({ campo: [[0, 'Island'], [0, 'Island'], [0, 'Island'], [0, 'Grizzly Bears'], [1, 'Hill Giant']], mao: [[0, 'Tandem Lookout']] });
+  M.avancar(e); conj(e, 'Tandem Lookout');
+  let perguntou = 0; resolveCom(e, p => p.tipo === 'parear' ? (perguntou++, p.ops.findIndex(o => o.a === 'parear')) : -1);
+  const T = objN(e, 0, 'Tandem Lookout'), B = objN(e, 0, 'Grizzly Bears');
+  igual(perguntou, 1, 'perguntou uma vez'); ok(M.parDe(e, T) === B && M.parDe(e, B) === T, 'pareadas');
+  const temG = o => M.gatDe(e, o).some(g => g.ev === 'dano' && g.aOponente);
+  ok(temG(T) && temG(B) && !temG(objN(e, 1, 'Hill Giant')), 'as duas ganharam o gatilho; a do oponente não');
+  const m0 = e.jogs[0].zonas.mao.length;
+  e.perg = null; M.evento(e, { ev: 'dano', fonte: B.id, combate: true, q: 2, jog: 1 }); M.avancar(e); resolveCom(e);
+  igual(e.jogs[0].zonas.mao.length, m0 + 1, 'o Urso causou dano: comprou');
+  M.mover(e, B.id, 'mao'); e.perg = null; M.avancar(e);
+  ok(!M.parDe(e, T) && !T.par, 'o Urso saiu: o par quebrou');
+  ok(!temG(T), 'sem par, sem gatilho');
+  M.mover(e, B.id, 'campo'); e.perg = null; M.avancar(e);
+  perguntou = 0; resolveCom(e, p => p.tipo === 'parear' ? (perguntou++, p.ops.findIndex(o => o.a === 'parear')) : -1);
+  ok(perguntou === 1 && M.parDe(e, T) === objN(e, 0, 'Grizzly Bears'), 'outra criatura entrou: o Lookout pareou de novo');
+  e.por(0, 'Hill Giant'); e.perg = null; M.avancar(e);
+  igual(e.pend.filter(p => p.k === 'soulbond').length + e.pilha.length, 0, 'já pareada: o soulbond não dispara');
+  const B2 = objN(e, 0, 'Grizzly Bears'); B2.ctrl = 1; e.vCamada = (e.vCamada || 0) + 1;
+  ok(!M.parDe(e, T), 'mudou de controlador: não estão mais pareadas');
+});
+
+caso('702.99a', "cifrar (Whispering Madness): ao resolver pode exilar codificada numa criatura sua; dano de combate a jogador → pode conjurar uma cópia de graça (a carta fica no exílio); a criatura sai do campo, acaba a ligação (702.99c)", () => {
+  const e = cena({ campo: [[0, 'Island'], [0, 'Island'], [0, 'Swamp'], [0, 'Swamp'], [0, 'Grizzly Bears']], mao: [[0, 'Whispering Madness'], [1, 'Forest'], [1, 'Forest']] });
+  const w = e.jogs[0].zonas.mao.map(id => e.objs[id]).find(o => o.n === 'Whispering Madness');
+  let perguntou = false;
+  M.avancar(e); conj(e, 'Whispering Madness'); resolveCom(e, p => { if (p.tipo !== 'cifrar') return -1; perguntou = true; return p.ops.findIndex(o => o.a === 'cifrar'); });
+  ok(perguntou, 'perguntou onde codificar'); igual(w.zona, 'exilio', 'exilada codificada');
+  const B = objN(e, 0, 'Grizzly Bears'); ok(M.gatDe(e, B).some(g => g.fx[0].em === 'cifrada'), 'o Urso ganhou o gatilho');
+  igual(e.jogs[1].zonas.mao.length, 2, 'descartou 2 e comprou 2'); const g1 = e.jogs[1].zonas.grimorio.length;
+  e.perg = null; M.evento(e, { ev: 'dano', fonte: B.id, combate: true, q: 2, jog: 1 }); M.avancar(e);
+  let conjurou = false;
+  resolveCom(e, p => { if (p.tipo !== 'jogar') return -1; conjurou = true; return p.ops.findIndex(o => o.a === 'jogar'); });
+  ok(conjurou, 'ofereceu conjurar a cópia');
+  igual(w.zona, 'exilio', 'a carta continua codificada no exílio');
+  igual(e.jogs[1].zonas.grimorio.length, g1 - 2, 'a cópia resolveu: comprou 2 de novo');
+  ok(!e.pilha.length, 'a cópia sumiu da pilha');
+  const ex = e.jogs[0].zonas.exilio.length;
+  M.mover(e, B.id, 'mao');
+  ok(!(e.objs[B.id].ganhos && e.objs[B.id].ganhos.gatS), 'saiu do campo: perde o gatilho');
+  igual(e.jogs[0].zonas.exilio.length, ex, 'a carta fica no exílio, sem ligação');
+  const f = cena({ campo: [[0, 'Island'], [0, 'Island'], [0, 'Swamp'], [0, 'Swamp']], mao: [[0, 'Whispering Madness']] });
+  const w2 = f.jogs[0].zonas.mao.map(id => f.objs[id]).find(o => o.n === 'Whispering Madness');
+  M.avancar(f); conj(f, 'Whispering Madness'); resolveCom(f);
+  igual(w2.zona, 'cemiterio', 'sem criatura: vai ao cemitério');
 });
 
 caso('702.185a', "dobra/warp (Exalted Sunborn): da mão por {1}{W}; no final é exilada e depois pode ser conjurada do exílio", () => {
@@ -7059,6 +7151,172 @@ caso('122.1', "radiação: no começo da 1ª principal, mói N (rad); por não-t
   }
 });
 
+caso('207.2c', 'palavras de habilidade lidas do estado: metalcraft (Dispatch), coven e bênção da cidade; palavra desconhecida recusada', () => {
+  const e = cena({ campo: [[0, 'Sol Ring'], [0, 'Mind Stone'], [1, 'Grizzly Bears']] });
+  const ctx = { voce: 0, este: e.campo[0] };
+  ok(M.fxSuportado(M.carta('Dispatch').fx), 'Dispatch lido');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), false, '2 artefatos');
+  e.por(0, 'Arcane Signet');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, ctx), true, '3 artefatos');
+  igual(M.condicao(e, { palavra: 'metalcraft' }, { voce: 1, este: e.campo[0] }), false, 'são do outro');
+  e.por(0, 'Llanowar Elves'); e.por(0, 'Grizzly Bears');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), false, 'poderes 1 e 2');
+  e.por(0, 'Hill Giant');
+  igual(M.condicao(e, { palavra: 'coven' }, ctx), true, '1, 2 e 3');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), false, '6 permanentes');
+  for (let i = 0; i < 3; i++) e.por(0, 'Wastes'); e.por(0, 'Wayward Swordtooth');   // 702.131b: precisa de uma com ascender
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, '10 permanentes');
+  for (const id of e.campo.filter(id => e.objs[id].n === 'Wastes')) M.mover(e, id, 'cemiterio');
+  igual(M.condicao(e, { palavra: 'blessing' }, ctx), true, 'a bênção fica (702.131c)');
+  ok(!M.condValorOk({ palavra: 'semNome' }));
+  ok(M.condValorOk({ palavra: 'maxspeed' }), 'maxspeed lida agora (702.179e)');
+});
+caso('702.179', "velocidade: Start your engines! dá velocidade 1; sobe 1 por turno seu em que um oponente perde vida (uma vez por turno, até 4); Max speed liga a mana da Howlsquad Heavy", () => {
+  const e = cena({ campo: [[0, 'Howlsquad Heavy'], [0, 'Goblin Guide']] }); e.pend = [];
+  const h = objN(e, 0, 'Howlsquad Heavy'), J = e.jogs[0];
+  e.turno.ativo = 0; M.ligarMotores(e);
+  igual(J.vel, 1, '702.179a: sem velocidade, passa a 1');
+  igual(e.jogs[1].vel || 0, 0, 'o outro não tem a palavra-chave');
+  M.perderVida(e, 1, 2); M.perderVida(e, 1, 1);
+  igual(J.vel, 2, 'oponente perdeu vida no seu turno: +1, só uma vez por turno');
+  M.perderVida(e, 0, 1); e.turno.n++; M.perderVida(e, 0, 1);
+  igual(J.vel, 2, 'perder você mesmo não conta');
+  e.turno.ativo = 1; M.perderVida(e, 1, 1); igual(J.vel, 2, 'no turno do outro não sobe');
+  e.turno.ativo = 0; const a = M.atvDe(e, h).find(x => x.deMana);
+  ok(!M.atvSeOk(e, a, h), 'velocidade 2: sem Max speed');
+  for (let i = 0; i < 4; i++) { e.turno.n++; M.perderVida(e, 1, 1); }
+  igual(J.vel, 4, 'para em 4');
+  ok(M.atvSeOk(e, a, h), 'Max speed (702.179e, 702.178a): a mana liga');
+  M.mover(e, h.id, 'cemiterio'); M.ligarMotores(e); igual(J.vel, 4, 'a velocidade fica quando a permanente sai');
+});
+
+caso('702.184a', "estação: Uthros vira outra criatura sua e ganha marcadores de carga = poder dela (só como feitiço); com 12+ a habilidade de mana liga", () => {
+  const e = cena({ campo: [[0, 'Uthros, Titanic Godcore'], [0, 'Hill Giant']] }); e.pend = [];
+  const u = objN(e, 0, 'Uthros, Titanic Godcore'), g = objN(e, 0, 'Hill Giant'); u.virada = false;
+  M.avancar(e);
+  const k = e.perg.ops.findIndex(op => op.a === 'ativar' && op.id === u.id && M.atvDe(e, u)[op.k] && M.atvDe(e, u)[op.k]._estacao);
+  ok(k >= 0, 'estação oferecida'); M.responder(e, k); resolveCom(e);
+  ok(g.virada, 'virou o Hill Giant'); igual(u.marc.charge, 3, 'poder 3 → 3 de carga');
+  const a = M.atvDe(e, u).find(x => x.deMana && x.se);
+  ok(!M.atvSeOk(e, a, u), '3 < 12: a 12+ não vale');
+  u.marc.charge = 12; ok(M.atvSeOk(e, a, u), '12+ (722.2a): vale');
+});
+
+caso('602.2b', "Ruthless Technomancer: {2}{B}, sacrifique X artefatos (X ≥ 1): volta criatura com poder ≤ X; o X oferecido para no maior poder possível", () => {
+  const e = cena({ campo: [...terras(3, 'Swamp'), [0, 'Ruthless Technomancer'], [0, 'Sol Ring'], [0, 'Sol Ring'], [0, 'Sol Ring']] });
+  for (const n of ['Grizzly Bears', 'Mikaeus, the Unhallowed']) e.por(0, n, { zona: 'cemiterio' });
+  ok(M.atvDe(e, objN(e, 0, 'Ruthless Technomancer')).length === 1);
+  let xs: any = null;
+  M.avancar(e); respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Ruthless Technomancer');
+  for (let g = 0; e.perg && g < 30 && !(e.perg.tipo === 'acao' && !e.pilha.length); g++) {
+    const p = e.perg;
+    if (p.tipo === 'x') { xs = p.ops.map(o => o.v); M.responder(e, 0); continue; }
+    if (p.tipo === 'alvo') { M.responder(e, p.ops.findIndex(o => o.o !== undefined && e.objs[o.o].n === 'Grizzly Bears')); continue; }
+    M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p));
+  }
+  igual(xs, [2, 1], 'X de 1 a 2 (Mikaeus tem 5; só 3 artefatos)');
+  igual([noCampo(e).filter(n => n === 'Sol Ring').length, noCampo(e).includes('Grizzly Bears')], [1, true], 'sacrificou 2, voltou o urso');
+});
+
+caso('701.19', "Sanctum of All: buscar com ouCemiterio acha o Santuário no cemitério (sem nenhum no grimório)", () => {
+  const e = cena({ campo: [[0, 'Sanctum of All']] }); e.pend = [];
+  e.por(0, 'Sanctum of Fruitful Harvest', { zona: 'cemiterio' });
+  const f = M.carta('Sanctum of All').gat[0].fx[0];
+  ok(M.fxSuportado([f]), 'aceito');
+  M.executar(e, f, { voce: 0, este: e.campo[0], alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => o.id !== undefined) || ops[0]);
+  ok(noCampo(e).includes('Sanctum of Fruitful Harvest'), 'veio do cemitério');
+});
+
+caso('602.2b', "Sanctum of Shattered Heights: o custo descarta só terreno OU Santuário (custoAtv descartarF); sem um deles na mão, não ativa", () => {
+  const e = cena({ campo: [[0, 'Mountain'], [0, 'Sanctum of Shattered Heights'], [1, 'Grizzly Bears']], mao: [[0, 'Llanowar Elves']] });
+  const S = objN(e, 0, 'Sanctum of Shattered Heights');
+  ok(!M.podeAtivar(e, 0, S, 0), 'só criatura na mão: não ativa');
+  e.por(0, 'Forest', { zona: 'mao' });
+  ok(M.podeAtivar(e, 0, S, 0), 'com terreno: ativa');
+  let desc: any = null;
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === S.id);
+  for (let g = 0; e.perg && g < 30 && !(e.perg.tipo === 'acao' && !e.pilha.length); g++) {
+    const p = e.perg;
+    if (p.tipo === 'custo') desc = p.ops.map(o => e.objs[o.id].n);
+    M.responder(e, p.tipo === 'acao' ? p.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, p));
+  }
+  ok(desc === null || JSON.stringify(desc) === '["Forest"]', 'só a Forest é opção');
+  igual([naZona(e, 0, 'cemiterio'), naZona(e, 0, 'mao'), objN(e, 1, 'Grizzly Bears').dano], [['Forest'], ['Llanowar Elves'], 1], 'descartou a Forest; 1 Santuário = 1 de dano');
+});
+
+caso('508.1', "Breena, the Demagogue: quando um jogador ataca um oponente seu que tem mais vida que outro oponente seu, o atacante compra 1 e você põe 2 marcadores +1/+1 numa criatura sua (ev atacaJogador)", () => {
+  ok(!M.carta('Breena, the Demagogue').falta && M.gatOk(M.carta('Breena, the Demagogue').gat[0]), 'aceito');
+  for (const [vida2, dispara] of [[30, true], [40, false]] as const) {
+    const e = combate([[0, 'Grizzly Bears'], [2, 'Breena, the Demagogue']], { jogs: 3 });
+    e.jogs[1].vida = 40; e.jogs[0].vida = vida2;   // o 2 tem a Breena; o 0 (também oponente dela) ataca o 1
+    const m0 = e.jogs[0].zonas.mao.length, br = objN(e, 2, 'Breena, the Demagogue');
+    ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears'), { jog: 1 }); fecha(e, 'atacar'); resolveCom(e);
+    igual([e.jogs[0].zonas.mao.length - m0, br.marc['+1/+1'] || 0], dispara ? [1, 2] : [0, 0], dispara ? 'o 1 tem 40 > 30: dispara' : '40 = 40: não');
+  }
+});
+
+caso('509.1', "Brutal Hordechief: 'and you choose how those creatures block' — quem ativou declara os bloqueios do oponente (voceEscolhe) e o agente escolhe o pior para o defensor", () => {
+  ok(!M.carta('Brutal Hordechief').falta, 'saiu do falta');
+  const e = combate([...enche(4, 'Mountain').map(n => [0, n]), [0, 'Brutal Hordechief'], [0, 'Grizzly Bears'], [1, 'Hill Giant'], [1, 'Elvish Mystic']]);
+  M.avancar(e);
+  respE(e, o => o.a === 'ativar' && e.objs[o.id].n === 'Brutal Hordechief'); resolve(e);
+  const bh = objN(e, 0, 'Brutal Hordechief'), gb = objN(e, 0, 'Grizzly Bears'), hg = objN(e, 1, 'Hill Giant'), em = objN(e, 1, 'Elvish Mystic');
+  ate(e, 'atacar'); atacaCom(e, bh); atacaCom(e, gb); fecha(e, 'atacar');
+  if (!(e.perg && e.perg.tipo === 'bloquear')) ate(e, 'bloquear');
+  igual([e.perg.j, e.perg.ctx.def], [0, 1], 'quem escolhe é o atacante');
+  for (let i = 0; i < 6 && e.perg && e.perg.tipo === 'bloquear'; i++) M.responder(e, M.agenteBasico()(e, e.perg));
+  const de = id => e.turno.combate.atk.find(r => r.bloq.some(b => b.id === id));
+  igual([e.objs[de(hg.id).id].n, !!de(em.id)], ['Brutal Hordechief', true], 'o Gigante troca com o Hordechief em vez de matar o Urso; o Mystic bloqueia e morre');
+});
+
+caso('702.127', "aftermath (Dusk // Dawn): da mão só Dusk; do cemitério só Dawn, que devolve as criaturas de poder ≤ 2 e vai para o exílio", () => {
+  ok(!M.carta('Dusk').faces[0].falta, 'saiu do falta');
+  const pl = enche(5, 'Plains').map(n => [0, n]);
+  const e = cena({ campo: [...pl, [0, 'Dusk', { zona: 'cemiterio' }], [0, 'Grizzly Bears', { zona: 'cemiterio' }], [0, 'Hill Giant', { zona: 'cemiterio' }]], mao: [[0, 'Dusk']] });
+  M.avancar(e);
+  const mao = naMao(e, 0, 'Dusk'), cem = e.jogs[0].zonas.cemiterio.map(id => e.objs[id]).find(o => o.n === 'Dusk');
+  igual(opsDe(e, 'conjurar').filter(o => o.id === mao.id).map(o => o.face ?? null), ['esq'], 'da mão: só Dusk');
+  igual(opsDe(e, 'conjurar').filter(o => o.id === cem.id).map(o => o.face ?? null), [0], 'do cemitério: só Dawn');
+  respE(e, o => o.a === 'conjurar' && o.id === cem.id && o.face === 0); resolveCom(e);
+  igual([naMao(e, 0, 'Grizzly Bears') ? 1 : 0, e.jogs[0].zonas.mao.some(id => e.objs[id].n === 'Hill Giant') ? 1 : 0, cem.zona], [1, 0, 'exilio'], 'o Urso volta, o Gigante não; Dawn vai para o exílio');
+});
+
+caso('106.4', "firebending 1 (ficha da Firebender Ascension): ao atacar, {R} que fica até o fim do combate (op mana ficaNoCombate)", () => {
+  const e = combate([[0, 'Firebender Ascension']]), A = objN(e, 0, 'Firebender Ascension');
+  M.executar(e, M.carta('Firebender Ascension').gat[0].fx[0], { voce: 0, este: A.id, alvos: [], ilegal: {}, lki: { alvos: [] } }, null);
+  const f = e.campo.map(id => e.objs[id]).find(o => o.ficha && o.ctrl === 0); ok(!!f, 'a ficha 2/2');
+  ate(e, 'atacar'); const pare = x => x.jogs[0].reserva.R > 0 || x.turno.passo === 'principal2';
+  M.responder(e, e.perg.ops.findIndex(x => x.a === 'atacar' && x.id === f.id), pare); if (e.perg && e.perg.tipo === 'atacar') M.responder(e, e.perg.ops.findIndex(x => x.a === 'pronto'), pare);
+  igual(e.jogs[0].reserva.R, 1, 'firebending: +R');
+  e.turno.passo = 'atacantes'; M.esvaziarReservas(e); igual(e.jogs[0].reserva.R, 1, 'fica entre etapas do combate');
+  e.turno.passo = 'fimCombate'; M.esvaziarReservas(e); igual(e.jogs[0].reserva.R, 0, 'some no fim do combate');
+});
+
+caso('707.10', "Frontline Heroism: mágica que mira só UMA criatura sua (filtro soMiraUma) → ficha 1/1 com pressa e a cópia mira a ficha (copiarMagica miraCriada); mirando a do oponente, não", () => {
+  ok(!M.carta('Frontline Heroism').falta && M.gatOk(M.carta('Frontline Heroism').gat[1]), 'aceito');
+  const e = cena({ campo: [[0, 'Forest'], [0, 'Frontline Heroism'], [0, 'Grizzly Bears']], mao: [[0, 'Giant Growth']] });
+  M.avancar(e); conj(e, 'Giant Growth'); alvoObj(e, 'Grizzly Bears'); resolveCom(e);
+  const t = e.campo.map(id => e.objs[id]).find(o => o.ficha && o.ctrl === 0), gb = objN(e, 0, 'Grizzly Bears');
+  ok(!!t && M.temKw(e, t, 'pressa'), 'a ficha 1/1 com pressa');
+  igual([M.poder(e, gb), M.poder(e, t)], [5, 4], 'o Urso e a ficha +3/+3');
+  const f = cena({ campo: [[0, 'Forest'], [0, 'Frontline Heroism'], [1, 'Grizzly Bears']], mao: [[0, 'Giant Growth']] });
+  M.avancar(f); conj(f, 'Giant Growth'); alvoObj(f, 'Grizzly Bears'); resolveCom(f);
+  ok(!f.campo.some(id => f.objs[id].ficha), 'criatura do oponente: não dispara');
+});
+
+caso('510.2', "Gollum, Obsessed Stalker: no seu passo final, só o oponente que levou dano de combate de um Gollum nesta partida perde a vida que você ganhou no turno (quem feridosPorEsteNome)", () => {
+  ok(!M.carta('Gollum, Obsessed Stalker').falta, 'saiu do falta');
+  const e = combate([[0, 'Gollum, Obsessed Stalker']], { jogs: 3 });
+  const g = objN(e, 0, 'Gollum, Obsessed Stalker');
+  ate(e, 'atacar'); atacaCom(e, g, { jog: 1 }); fecha(e, 'atacar');
+  ok(!!e.jogs[1].feridoPorNome['Gollum, Obsessed Stalker'] && !e.jogs[2].feridoPorNome, 'o 1 levou dano do Gollum');
+  const f = cena({ jogs: 3, passo: 'principal2', campo: [[0, 'Gollum, Obsessed Stalker']] }); f.pend = [];
+  f.jogs[1].feridoPorNome = { 'Gollum, Obsessed Stalker': true }; M.ganharVida(f, 0, 3);
+  const v1 = f.jogs[1].vida, v2 = f.jogs[2].vida;
+  passarAte(f, 'final'); M.avancar(f, x => x.turno.passo !== 'final'); if (f.perg && f.pilha.length) resolve(f);
+  igual([v1 - f.jogs[1].vida, v2 - f.jogs[2].vida], [3, 0], 'só o 1 perde 3');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
@@ -7097,6 +7355,67 @@ caso('603.4', 'contagens pedidas: quantas vezes ESTA habilidade resolveu neste t
   ok(M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'cond') && !M.contaOk({ de: 'turno', o: 'resolucoesDestaHab' }, 'est'), 'só em efeito/condição');
 });
 
+
+caso('613.1f', "Tishana's Tidebinder: anulada a habilidade de uma criatura, ela perde todas as habilidades (voar, ativadas) enquanto a Tidebinder estiver no campo; o dado antes some, o dado depois fica (613.7); a Tidebinder sai, volta tudo", () => {
+  ok(M.gatOk(M.carta("Tishana's Tidebinder").gat[0]), 'aceita');
+  const e = cena({ campo: [[0, "Tishana's Tidebinder"], [1, 'Serra Angel'], [1, 'Llanowar Elves']] });
+  const T = objN(e, 0, "Tishana's Tidebinder"), S = objN(e, 1, 'Serra Angel'), L = objN(e, 1, 'Llanowar Elves');
+  const cx: any = { voce: 0, este: T.id, alvos: [], ilegal: {}, lki: { alvos: [] } };
+  M.executar(e, { op: 'modificar', em: 'este', kw: [{ k: 'atropelar' }], dura: 'fimDoTurno' }, { ...cx, voce: 1, este: S.id }, null);   // antes: some
+  const hab = (F) => { const h = { id: e.prox++, n: 'teste', dono: 1, ctrl: 1, zona: 'pilha', ts: ++e.ts, hab: { fonte: F.id, fonteTs: F.ts, k: 0, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], alvos: [] }, marc: {} }; e.objs[h.id] = h; e.pilha.push(h.id); return h; };
+  const h = hab(S);
+  M.executar(e, M.carta("Tishana's Tidebinder").gat[0].fx[0], { ...cx, alvos: [[{ o: h.id, ts: h.ts }]] }, null);
+  igual(e.pilha.length, 0, 'anulada');
+  ok(!M.temKw(e, S, 'voar') && !M.temKw(e, S, 'vigilancia') && !M.temKw(e, S, 'atropelar'), 'sem voar/vigilância e sem o atropelar dado antes');
+  igual([M.poder(e, S), M.resistencia(e, S)], [4, 4], 'P/R impressos ficam');
+  M.executar(e, { op: 'modificar', em: 'este', kw: [{ k: 'ameaca' }], dura: 'fimDoTurno' }, { ...cx, voce: 1, este: S.id }, null);
+  ok(M.temKw(e, S, 'ameaca'), 'o dado depois fica (613.7)');
+  ok(M.atvDe(e, L).length > 0, 'o Elfo não foi anulado: tem a de mana');
+  const h2 = hab(L); M.executar(e, M.carta("Tishana's Tidebinder").gat[0].fx[0], { ...cx, alvos: [[{ o: h2.id, ts: h2.ts }]] }, null);
+  igual(M.atvDe(e, L).length, 0, 'Elfo sem a de mana');
+  M.mover(e, T.id, 'cemiterio');
+  ok(M.temKw(e, S, 'voar') && M.atvDe(e, L).length > 0, 'a Tidebinder saiu: volta tudo');
+  const f = cena({ campo: [[0, "Tishana's Tidebinder"], [1, 'Grizzly Bears']] }), T2 = objN(f, 0, "Tishana's Tidebinder");
+  const h3 = { id: f.prox++, n: 'teste', dono: 1, ctrl: 1, zona: 'pilha', ts: ++f.ts, hab: { fonte: 999, fonteTs: 0, k: 0, fx: [], alvos: [] }, marc: {} }; f.objs[h3.id] = h3; f.pilha.push(h3.id);
+  M.executar(f, M.carta("Tishana's Tidebinder").gat[0].fx[0], { ...cx, este: T2.id, alvos: [[{ o: h3.id, ts: h3.ts }]] }, null);
+  igual(f.pilha.length, 0, 'fonte fora do campo: só anula');
+});
+
+caso('707.10', 'Weaver of Harmony: copia habilidade ativada/desencadeada SUA de fonte encantamento (não a de criatura comum, não a do oponente); a cópia é sua, mesma fonte, resolve antes; copiar não é ativar', () => {
+  const W = M.carta('Weaver of Harmony').atv[0]; ok(M.fxSuportado(W.fx) && W.alvos.every(M.alvoSuportado), 'aceita');
+  const e = cena({ campo: [[0, 'Weaver of Harmony'], [0, 'Forest'], [0, 'Weaver of Harmony'], [0, 'Grizzly Bears'], [1, 'Weaver of Harmony']] });
+  const ws = e.campo.map(id => e.objs[id]).filter(o => o.n === 'Weaver of Harmony'), Wa = ws.find(o => o.ctrl === 0), Wb = ws.filter(o => o.ctrl === 0)[1], Wo = ws.find(o => o.ctrl === 1);
+  const hab = (F, ctrl) => { const h = { id: e.prox++, n: F.n, dono: ctrl, ctrl, zona: 'pilha', ts: ++e.ts, hab: { fonte: F.id, fonteTs: F.ts, k: 0, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], alvos: [] }, pil: { ctrl, alvos: [], x: 0, lki: { este: M.lkiDe(e, F) } }, marc: {} }; e.objs[h.id] = h; e.pilha.push(h.id); return h; };
+  const hE = hab(Wb, 0), hC = hab(objN(e, 0, 'Grizzly Bears'), 0), hO = hab(Wo, 1);
+  const pos = M.alvosPossiveis(e, W.alvos[0], { voce: 0, este: Wa.id }).map(a => a.o);
+  igual(pos, [hE.id], 'só a minha de fonte encantamento');
+  M.mover(e, Wb.id, 'cemiterio');
+  igual(M.alvosPossiveis(e, W.alvos[0], { voce: 0, este: Wa.id }).map(a => a.o), [hE.id], 'a fonte saiu do campo: vale o que ela era');
+  e.pilha = [hE.id];
+  M.executar(e, W.fx[0], { voce: 0, este: Wa.id, alvos: [[{ o: hE.id, ts: hE.ts }]], ilegal: {}, lki: { alvos: [] } }, () => ({ a: 'nao' }));
+  igual(e.pilha.length, 2, 'cópia na pilha');
+  const c = e.objs[e.pilha[1]];
+  ok(c.copia && c.hab && c.hab.fonte === Wb.id && c.pil.ctrl === 0, 'cópia: habilidade, mesma fonte, minha');
+  const m0 = e.jogs[0].zonas.mao.length;
+  M.resolverTopo(e); let g = 0; while (e.proc && ++g < 50) M.avancar(e);
+  igual(e.jogs[0].zonas.mao.length, m0 + 1, 'a cópia resolveu: comprou');
+  igual(e.pilha, [hE.id], 'a original fica');
+  ok(!e.objs[c.id], 'a cópia some (habilidade não vai a zona nenhuma)');
+});
+
+caso('613.1f', "Poppet Factory: as fichas de criatura suas perdem todas as habilidades (voar da ficha) e são 3/3; a criatura que não é ficha e a ficha do oponente, não; a estática dada por quem entrou depois vale (613.7a)", () => {
+  const F = M.carta('Poppet Stitcher').faces[0]; ok(F.est.every(s => M.estContOk(s) || s.modo === 'ptDefinido'), 'aceita');
+  const e = cena({ campo: [[0, 'Poppet Stitcher', { obj: { face: 0 } }], [0, 'Serra Angel']] });
+  e.vCamada = (e.vCamada || 0) + 1;
+  M.criarFichas(e, 0, { pt: [1, 1], cores: 'W', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] }, 1);
+  M.criarFichas(e, 1, { pt: [1, 1], cores: 'W', tipos: ['Creature'], sub: ['Spirit'], kw: [{ k: 'voar' }] }, 1); e.pend = [];
+  const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha), meu = fs.find(o => o.ctrl === 0), dele = fs.find(o => o.ctrl === 1);
+  ok(!M.temKw(e, meu, 'voar'), 'a minha ficha perde voar'); igual([M.poder(e, meu), M.resistencia(e, meu)], [3, 3], 'base 3/3');
+  ok(M.temKw(e, dele, 'voar'), 'a do oponente voa');
+  ok(M.temKw(e, objN(e, 0, 'Serra Angel'), 'voar'), 'não ficha: voa');
+  ok(M.perdeTs(e, meu) > 0 && !M.perdeTs(e, objN(e, 0, 'Serra Angel')), 'perdeTs');
+});
+
 caso('702.52a', 'dragar (Life from the Loam): na etapa de compra pergunta [comprar, dragar 3]; dragando moe 3 e a carta volta à mão sem ser compra', () => {
   const e = cena({ passo: 'manutencao', campo: [[0, 'Life from the Loam', { zona: 'cemiterio' }], [0, 'Forest', { zona: 'cemiterio' }]] });
   const J = e.jogs[0], g0 = J.zonas.grimorio.length, m0 = J.zonas.mao.length;
@@ -7125,6 +7444,46 @@ caso('702.52b', 'dragar: com menos de N cartas no grimório não dá; carta com 
   ok(ops2[1].includes(g[g.length - 2]), 'a moída na 1ª é opção na 2ª');
   M.comprar(e2, 0, 2, { plano: pl });
   igual(naZona(e2, 0, 'mao').filter(n => n === 'Life from the Loam').length, 2, 'as duas na mão');
+});
+
+caso('702.103', "Indebted Spirit: concessão {2}{W} vira Aura na Grizzly Bears (+1/+1 e pós-vida); a encantada sai e o Spirit volta a ser criatura (702.103f); alvo ilegal ao resolver entra como criatura (702.103e)", () => {
+  ok(M.carta('Indebted Spirit').est.every(s => M.estContOk(s)), 'estática aceita');
+  const mesa = () => cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Grizzly Bears'], [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] });
+  const concede = (e, alvo) => {                     // conjura com concessão e para com a mágica na pilha
+    M.avancar(e); conj(e, 'Indebted Spirit');
+    respE(e, o => o.a === 'opcao' && o.v.concessao);
+    M.responder(e, e.perg.ops.findIndex(o => o.o === alvo.id), x => x.pilha.length > 0);
+  };
+  const e = mesa(), ursos = objN(e, 0, 'Grizzly Bears');
+  concede(e, ursos);
+  const sp = e.objs[e.pilha[e.pilha.length - 1]];
+  ok(sp.n === 'Indebted Spirit' && !M.temTipo(e, sp, 'Creature') && (M.dadoDe(e, sp).sub || []).includes('Aura'), 'na pilha: mágica de Aura, não de criatura (702.103b)');
+  M.avancar(e, x => !x.pilha.length);
+  const s = objN(e, 0, 'Indebted Spirit');
+  ok(s && M.anexadoA(e, s) === ursos, 'entrou anexada à Grizzly Bears');
+  ok(!M.temTipo(e, s, 'Creature'), 'concedida não é criatura');
+  igual([M.poder(e, ursos), M.resistencia(e, ursos)], [3, 3], '+1/+1');
+  ok(M.temKw(e, ursos, 'posVida'), 'a encantada tem pós-vida');
+  M.mover(e, ursos.id, 'cemiterio'); M.abe(e);
+  const s2 = objN(e, 0, 'Indebted Spirit');
+  ok(s2 && s2.id === s.id && !s2.anexo, 'ficou no campo, solta (exceção ao 704.5m)');
+  ok(M.temTipo(e, s2, 'Creature') && M.poder(e, s2) === 1, 'voltou a ser criatura 1/1');
+  // 702.103e: o alvo sai antes de resolver → resolve como criatura
+  const f = mesa(), u2 = objN(f, 0, 'Grizzly Bears');
+  concede(f, u2);
+  M.mover(f, u2.id, 'cemiterio');
+  M.avancar(f, x => !x.pilha.length);
+  const s3 = objN(f, 0, 'Indebted Spirit');
+  ok(s3 && !s3.anexo && M.temTipo(f, s3, 'Creature'), 'entrou como criatura');
+  // agente básico: com criatura boa, concede (na minha); sem ela, conjura normal
+  const g = mesa();
+  M.avancar(g); conj(g, 'Indebted Spirit');
+  ok(g.perg.ops[M.agenteBasico()(g, g.perg)].v.concessao, 'agente concede tendo a Grizzly Bears');
+  respE(g, o => o.a === 'opcao' && o.v.concessao);
+  igual(g.perg.ops[M.agenteBasico()(g, g.perg)].o, objN(g, 0, 'Grizzly Bears').id, 'na própria criatura, não na do oponente');
+  const h = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] });
+  M.avancar(h); conj(h, 'Indebted Spirit');
+  ok(!h.perg || h.perg.tipo !== 'opcao' || !h.perg.ops[M.agenteBasico()(h, h.perg)].v.concessao, 'sem criatura minha: normal');
 });
 
 caso('702.62a', 'suspender (Resurgent Belief, sem custo de mana): da mão paga {1}{W} e exila com 2 de tempo; não dá para conjurar; tira 1 em cada manutenção sua; no último conjura de graça', () => {
@@ -7282,79 +7641,6 @@ caso('406.3', "Lobelia: exila o topo de cada oponente virado para baixo (faceBai
   ok(sr.objs[k].faceBaixo && sr.objs[k].olham.join() === '0', 'prever: virada, o dono olha (702.143a)');
 });
 
-caso('702.103', "Indebted Spirit: concessão {2}{W} vira Aura na Grizzly Bears (+1/+1 e pós-vida); a encantada sai e o Spirit volta a ser criatura (702.103f); alvo ilegal ao resolver entra como criatura (702.103e)", () => {
-  ok(M.carta('Indebted Spirit').est.every(s => M.estContOk(s)), 'estática aceita');
-  const mesa = () => cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [0, 'Grizzly Bears'], [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] });
-  const concede = (e, alvo) => {                     // conjura com concessão e para com a mágica na pilha
-    M.avancar(e); conj(e, 'Indebted Spirit');
-    respE(e, o => o.a === 'opcao' && o.v.concessao);
-    M.responder(e, e.perg.ops.findIndex(o => o.o === alvo.id), x => x.pilha.length > 0);
-  };
-  const e = mesa(), ursos = objN(e, 0, 'Grizzly Bears');
-  concede(e, ursos);
-  const sp = e.objs[e.pilha[e.pilha.length - 1]];
-  ok(sp.n === 'Indebted Spirit' && !M.temTipo(e, sp, 'Creature') && (M.dadoDe(e, sp).sub || []).includes('Aura'), 'na pilha: mágica de Aura, não de criatura (702.103b)');
-  M.avancar(e, x => !x.pilha.length);
-  const s = objN(e, 0, 'Indebted Spirit');
-  ok(s && M.anexadoA(e, s) === ursos, 'entrou anexada à Grizzly Bears');
-  ok(!M.temTipo(e, s, 'Creature'), 'concedida não é criatura');
-  igual([M.poder(e, ursos), M.resistencia(e, ursos)], [3, 3], '+1/+1');
-  ok(M.temKw(e, ursos, 'posVida'), 'a encantada tem pós-vida');
-  M.mover(e, ursos.id, 'cemiterio'); M.abe(e);
-  const s2 = objN(e, 0, 'Indebted Spirit');
-  ok(s2 && s2.id === s.id && !s2.anexo, 'ficou no campo, solta (exceção ao 704.5m)');
-  ok(M.temTipo(e, s2, 'Creature') && M.poder(e, s2) === 1, 'voltou a ser criatura 1/1');
-  // 702.103e: o alvo sai antes de resolver → resolve como criatura
-  const f = mesa(), u2 = objN(f, 0, 'Grizzly Bears');
-  concede(f, u2);
-  M.mover(f, u2.id, 'cemiterio');
-  M.avancar(f, x => !x.pilha.length);
-  const s3 = objN(f, 0, 'Indebted Spirit');
-  ok(s3 && !s3.anexo && M.temTipo(f, s3, 'Creature'), 'entrou como criatura');
-  // agente básico: com criatura boa, concede (na minha); sem ela, conjura normal
-  const g = mesa();
-  M.avancar(g); conj(g, 'Indebted Spirit');
-  ok(g.perg.ops[M.agenteBasico()(g, g.perg)].v.concessao, 'agente concede tendo a Grizzly Bears');
-  respE(g, o => o.a === 'opcao' && o.v.concessao);
-  igual(g.perg.ops[M.agenteBasico()(g, g.perg)].o, objN(g, 0, 'Grizzly Bears').id, 'na própria criatura, não na do oponente');
-  const h = cena({ campo: [[0, 'Plains'], [0, 'Plains'], [0, 'Plains'], [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] });
-  M.avancar(h); conj(h, 'Indebted Spirit');
-  ok(!h.perg || h.perg.tipo !== 'opcao' || !h.perg.ops[M.agenteBasico()(h, h.perg)].v.concessao, 'sem criatura minha: normal');
-});
-
-caso('702.37', "Grim Haruspex: metamorfose — da mão por {3} virada para baixo (2/2 sem nome nem habilidade, 708.2a), só quem controla olha (708.5); desvirar pagando {B} é ação especial sem pilha (116.2b), mesmo objeto (708.8); sai do campo revelada (708.9)", () => {
-  ok(M.gatOk({ ev: 'viradaParaCima', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }), 'evento viradaParaCima aceito');
-  const e = cena({ campo: [...terras(3, 'Island'), [0, 'Grizzly Bears'], [0, 'Grizzly Bears']], mao: [[0, 'Grim Haruspex']] }); e.pend = [];
-  M.avancar(e);
-  ok(!e.perg.ops.some(o => o.a === 'conjurar' && !o.baixo && e.objs[o.id].n === 'Grim Haruspex'), 'sem {B}: não conjura normal');
-  igual(M.agenteBasico()(e, e.perg), e.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo), 'o agente conjura virada');
-  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo === 'metamorfose'), x => x.pilha.length > 0);
-  const sp = e.objs[e.pilha[e.pilha.length - 1]];
-  ok(sp.faceBaixo && M.dadoDe(e, sp).n === '' && M.temTipo(e, sp, 'Creature'), 'na pilha: mágica de criatura 2/2 virada (708.4)');
-  M.avancar(e, x => !x.pilha.length);
-  const h = objN(e, 0, 'Grim Haruspex'), d = M.dadoDe(e, h);
-  ok(h && h.faceBaixo, 'entrou virada');
-  igual([M.poder(e, h), M.resistencia(e, h), d.n, (d.sub || []).length, d.vm, d.cores], [2, 2, '', 0, 0, ''], '2/2 sem nome, subtipo, custo nem cor');
-  ok(!M.bate(e, h, { nome: 'Grim Haruspex' }, { voce: 0 }), 'não tem o nome');
-  const u1 = e.campo.find(id => e.objs[id].n === 'Grizzly Bears');
-  M.mover(e, u1, 'cemiterio');
-  ok(!e.pend.some(p => p.fonte === h.id), 'virada: sem a habilidade, não dispara');
-  ok(!M.podeVirarParaCima(e, 1, h), 'o oponente não desvira');
-  e.por(0, 'Swamp');
-  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'virarParaCima' && o.id === h.id), 'opção de desvirar com {B}');
-  const ts = h.ts, pil = e.pilha.length;
-  M.virarParaCima(e, 0, h.id);
-  ok(!h.faceBaixo && h.ts === ts && e.pilha.length === pil, 'para cima, mesmo objeto, sem usar a pilha');
-  igual([M.poder(e, h), M.resistencia(e, h)], [3, 2], 'agora é a Grim Haruspex 3/2');
-  e.pend = [];
-  M.mover(e, e.campo.find(id => e.objs[id].n === 'Grizzly Bears'), 'cemiterio');
-  ok(e.pend.some(p => p.fonte === h.id), 'para cima: a outra que morre faz comprar');
-  const f = cena({ campo: terras(3, 'Island'), mao: [[0, 'Grim Haruspex']] }); M.avancar(f);
-  respE(f, o => o.a === 'conjurar' && o.baixo); M.avancar(f, x => !x.pilha.length);
-  const h2 = objN(f, 0, 'Grim Haruspex'); M.mover(f, h2.id, 'mao');
-  ok(!f.objs[h2.id].faceBaixo, 'na mão: revelada, sem a virada (708.9)');
-});
-
 caso('508.1c', "Master of Cruelties: só pode atacar sozinha (506.5); atacou um jogador e não foi bloqueada (509.3g) → a vida dele vira 1 (119.5) e ela não causa dano de combate", () => {
   const M0 = M.carta('Master of Cruelties'); ok(M0.gat.every(g => M.gatOk(g)), 'gatilho aceito');
   {
@@ -7439,6 +7725,115 @@ caso('117.3', "Springheart Nantuko: concedida, terreno entra → pode pagar {1}{
   igual(conta(e3, 'Insect'), 1, 'solta (criatura): Inseto, sem pergunta de pagar');
 });
 
+caso('702.37', "Grim Haruspex: metamorfose — da mão por {3} virada para baixo (2/2 sem nome nem habilidade, 708.2a), só quem controla olha (708.5); desvirar pagando {B} é ação especial sem pilha (116.2b), mesmo objeto (708.8); sai do campo revelada (708.9)", () => {
+  ok(M.gatOk({ ev: 'viradaParaCima', fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }] }), 'evento viradaParaCima aceito');
+  const e = cena({ campo: [...terras(3, 'Island'), [0, 'Grizzly Bears'], [0, 'Grizzly Bears']], mao: [[0, 'Grim Haruspex']] }); e.pend = [];
+  M.avancar(e);
+  ok(!e.perg.ops.some(o => o.a === 'conjurar' && !o.baixo && e.objs[o.id].n === 'Grim Haruspex'), 'sem {B}: não conjura normal');
+  igual(M.agenteBasico()(e, e.perg), e.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo), 'o agente conjura virada');
+  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && o.baixo === 'metamorfose'), x => x.pilha.length > 0);
+  const sp = e.objs[e.pilha[e.pilha.length - 1]];
+  ok(sp.faceBaixo && M.dadoDe(e, sp).n === '' && M.temTipo(e, sp, 'Creature'), 'na pilha: mágica de criatura 2/2 virada (708.4)');
+  M.avancar(e, x => !x.pilha.length);
+  const h = objN(e, 0, 'Grim Haruspex'), d = M.dadoDe(e, h);
+  ok(h && h.faceBaixo, 'entrou virada');
+  igual([M.poder(e, h), M.resistencia(e, h), d.n, (d.sub || []).length, d.vm, d.cores], [2, 2, '', 0, 0, ''], '2/2 sem nome, subtipo, custo nem cor');
+  ok(!M.bate(e, h, { nome: 'Grim Haruspex' }, { voce: 0 }), 'não tem o nome');
+  const u1 = e.campo.find(id => e.objs[id].n === 'Grizzly Bears');
+  M.mover(e, u1, 'cemiterio');
+  ok(!e.pend.some(p => p.fonte === h.id), 'virada: sem a habilidade, não dispara');
+  ok(!M.podeVirarParaCima(e, 1, h), 'o oponente não desvira');
+  e.por(0, 'Swamp');
+  ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'virarParaCima' && o.id === h.id), 'opção de desvirar com {B}');
+  const ts = h.ts, pil = e.pilha.length;
+  M.virarParaCima(e, 0, h.id);
+  ok(!h.faceBaixo && h.ts === ts && e.pilha.length === pil, 'para cima, mesmo objeto, sem usar a pilha');
+  igual([M.poder(e, h), M.resistencia(e, h)], [3, 2], 'agora é a Grim Haruspex 3/2');
+  e.pend = [];
+  M.mover(e, e.campo.find(id => e.objs[id].n === 'Grizzly Bears'), 'cemiterio');
+  ok(e.pend.some(p => p.fonte === h.id), 'para cima: a outra que morre faz comprar');
+  const f = cena({ campo: terras(3, 'Island'), mao: [[0, 'Grim Haruspex']] }); M.avancar(f);
+  respE(f, o => o.a === 'conjurar' && o.baixo); M.avancar(f, x => !x.pilha.length);
+  const h2 = objN(f, 0, 'Grim Haruspex'); M.mover(f, h2.id, 'mao');
+  ok(!f.objs[h2.id].faceBaixo, 'na mão: revelada, sem a virada (708.9)');
+});
+
+
+
+// ---------- escolhas do agente básico nas mecânicas novas (T43 mecânica: dragar, suspender, desaparecer, concessão,
+// custo para atacar/bloquear, replicar, More Than Meets the Eye, perder habilidades) ----------
+const escolha = e => { const p = e.perg; return p.ops[M.agenteBasico()(e, p)]; };
+caso('702.52a', 'agente: draga o Life from the Loam com 2+ terrenos no cemitério; grimório curto (sobrariam < 10) ou sem terreno para voltar, compra', () => {
+  const mk = (terrasCem, grim) => { const e = cena({ passo: 'manutencao', grimorio: grim, campo: [[0, 'Life from the Loam', { zona: 'cemiterio' }], ...Array.from({ length: terrasCem }, () => [0, 'Forest', { zona: 'cemiterio' }])] }); ate(e, 'dragar'); return e; };
+  igual(escolha(mk(2, 30)).a, 'dragar', '2 terrenos no cemitério, grimório cheio: draga');
+  igual(escolha(mk(2, 12)).a, 'comprar', 'grimório 12: moer 3 deixa 9, compra');
+  igual(escolha(mk(0, 30)).a, 'comprar', 'sem terreno no cemitério: o Loam não faz nada, compra');
+});
+caso('702.62a', 'agente: suspende a carta sem custo de mana (Resurgent Belief) com a mana que tem; sem mana para o custo de suspender, nem tem a opção', () => {
+  const e = cena({ campo: terras(2, 'Plains'), mao: [[0, 'Resurgent Belief']] }); e.pend = [];
+  M.avancar(e); igual(e.perg.tipo, 'acao');
+  const op = escolha(e); igual([op.a, e.objs[op.id].n], ['suspender', 'Resurgent Belief'], 'suspende');
+  const f = cena({ campo: terras(1, 'Plains'), mao: [[0, 'Resurgent Belief']] }); f.pend = [];
+  M.avancar(f); ok(!opsDe(f, 'suspender').length, 'com 1 terreno não paga {1}{W}: ' + JSON.stringify(f.perg.ops)); ok(escolha(f).a !== 'suspender');
+  const g = cena({ campo: terras(2, 'Plains'), mao: [[0, 'Resurgent Belief']] }); g.pend = [];
+  const rb = g.jogs[0].zonas.mao[0];
+  M.avancar(g); respE(g, o => o.a === 'suspender'); igual(g.objs[rb].zona, 'exilio');
+  ok(!opsDe(g, 'suspender').length && !opsDe(g, 'conjurar').some(o => o.id === rb), 'suspensa: não volta a ser opção');
+});
+caso('702.63a', 'agente: Dreamtide Whale (desaparecer) é conjurada como criatura comum; o desaparecer não pergunta nada', () => {
+  const e = cena({ campo: terras(3, 'Island'), mao: [[0, 'Dreamtide Whale']] }); e.pend = [];
+  M.avancar(e); const op = escolha(e); igual([op.a, e.objs[op.id].n], ['conjurar', 'Dreamtide Whale']);
+  M.responder(e, M.agenteBasico()(e, e.perg)); resolveCom(e);
+  const w = objN(e, 0, 'Dreamtide Whale'); ok(w && w.marc.time === 2, 'entrou com 2 de tempo');
+});
+caso('702.103', 'agente: concessão só com criatura minha de poder 2+ (Grizzly Bears); com Llanowar Elves (1/1) ou só a do oponente, conjura normal', () => {
+  const mk = minha => { const e = cena({ campo: [...terras(3, 'Plains'), ...(minha ? [[0, minha]] : []), [1, 'Hill Giant']], mao: [[0, 'Indebted Spirit']] }); M.avancar(e); conj(e, 'Indebted Spirit'); return e; };
+  const e = mk('Grizzly Bears'); igual(e.perg.tipo, 'opcao'); ok(escolha(e).v.concessao, 'Bears: concede');
+  respE(e, o => o.a === 'opcao' && o.v.concessao); igual(e.objs[escolha(e).o].n, 'Grizzly Bears', 'na minha, não no Hill Giant');
+  const f = mk('Llanowar Elves'); ok(!f.perg || f.perg.tipo !== 'opcao' || !escolha(f).v.concessao, 'Elves 1/1: normal (dois corpos valem mais)');
+  const g = mk(null); ok(!g.perg || g.perg.tipo !== 'opcao' || !escolha(g).v.concessao, 'só criatura do oponente: normal');
+});
+caso('508.1h', 'agente: paga o Ghostly Prison com a mana que sobrou; não paga se a mana é a de uma mágica da mão para a principal 2 (salvo ataque letal)', () => {
+  const mk = n => { const e = cena({ campo: [[0, 'Mountain'], [1, 'Ghostly Prison'], [0, 'Grizzly Bears'], ...terras(n)] }); e.campo.forEach(id => { if (e.objs[id].ctrl === 0 && e.objs[id].n === 'Mountain') e.objs[id].virada = false; }); return e; };
+  const e = mk(1); ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Grizzly Bears')); fecha(e, 'atacar');
+  igual(e.perg.tipo, 'custoCombate'); igual(escolha(e).a, 'pagar', 'sobra mana: paga');
+  const f = mk(1); ate(f, 'atacar'); f.por(0, 'Hill Giant', { zona: 'mao' }); atacaCom(f, objN(f, 0, 'Grizzly Bears')); fecha(f, 'atacar');
+  ok(f.perg && f.perg.tipo === 'custoCombate'); igual(escolha(f).a, 'pagar', 'Hill Giant {3}{R} não cabe nem sem pagar: paga');
+  const g = mk(1); ate(g, 'atacar'); g.por(0, 'Sol Ring', { zona: 'mao' }); atacaCom(g, objN(g, 0, 'Grizzly Bears')); fecha(g, 'atacar');
+  igual(escolha(g).a, 'naoPagar', 'Sol Ring {1} na mão: pagar {2} das 2 terras mata a principal 2');
+  const h = mk(1); h.jogs[1].vida = 2; ate(h, 'atacar'); h.por(0, 'Sol Ring', { zona: 'mao' }); atacaCom(h, objN(h, 0, 'Grizzly Bears')); fecha(h, 'atacar');
+  igual(escolha(h).a, 'pagar', 'o ataque mata: paga');
+});
+caso('509.1d', 'agente: bloquear com taxa (Archangel of Tithes) — o defensor paga no turno do outro (a mana dele sobraria)', () => {
+  const e = combate([[0, 'Archangel of Tithes'], [1, 'Giant Spider'], [1, 'Forest']]);
+  ate(e, 'atacar'); atacaCom(e, objN(e, 0, 'Archangel of Tithes')); fecha(e, 'atacar');
+  ate(e, 'bloquear'); bloqueia(e, objN(e, 1, 'Giant Spider'), objN(e, 0, 'Archangel of Tithes')); fecha(e, 'bloquear');
+  igual(e.perg.tipo, 'custoCombate'); igual(escolha(e).a, 'pagar');
+});
+caso('702.56a', 'agente: replicar — paga quantas cópias a mana deixa (4 Forests: 1 cópia; 2 Forests: nenhuma)', () => {
+  const run = n => { const e = cena({ campo: enche(n, 'Forest').map(x => [0, x]), mao: [[0, 'Hatchery Sliver']] }); const ag = M.agenteBasico();
+    M.avancar(e); conj(e, 'Hatchery Sliver'); for (let i = 0; i < 20 && e.perg && e.perg.tipo !== 'acao'; i++) M.responder(e, ag(e, e.perg)); resolvePilha(e);
+    return e.campo.filter(id => e.objs[id].n === 'Hatchery Sliver').length; };
+  igual(run(4), 2, '4 terrenos: a carta + 1 cópia'); igual(run(2), 1, '2 terrenos: só a carta');
+});
+caso('702.162a', 'agente: Ratchet — com {2}{W} conjura pela frente; com só {1}{W}, convertida (a opção que fecha)', () => {
+  const run = n => { const e = cena({ campo: terras(n, 'Plains'), mao: [[0, 'Ratchet, Field Medic']] }); M.avancar(e); conj(e, 'Ratchet, Field Medic'); resolveCom(e); return objN(e, 0, 'Ratchet, Field Medic'); };
+  const a = run(3); ok(a && a.face == null, '3 terrenos: frente');
+  const b = run(2); ok(b && b.face === 0, '2 terrenos: convertida');
+});
+caso('613.1f', "agente: Tishana's Tidebinder mira a habilidade do oponente; a minha, não (\"up to one\": nenhuma)", () => {
+  const g = M.carta("Tishana's Tidebinder").gat[0];
+  const mk = dono => {
+    const e = cena({ campo: [[0, "Tishana's Tidebinder"], [dono, 'Llanowar Elves']] });
+    const h = { id: e.prox++, n: 'Llanowar Elves', dono, ctrl: dono, zona: 'pilha', ts: ++e.ts, hab: { fonte: e.campo[1], fonteTs: 0, k: 0, fx: [{ op: 'comprar', quem: 'voce', qtd: 1 }], alvos: [] }, marc: {} };
+    e.objs[h.id] = h; e.pilha.push(h.id);
+    const ops = [...M.alvosPossiveis(e, g.alvos[0], { voce: 0, este: e.campo[0] }).map(x => ({ a: 'alvo', ...x })), { a: 'pronto' }];
+    e.perg = { tipo: 'alvo', j: 0, ops, ctx: { de: e.campo[0] } };
+    return [e, h];
+  };
+  const [e, h] = mk(1); igual(escolha(e).o, h.id, 'a do oponente');
+  const [f] = mk(0); igual(escolha(f).a, 'pronto', 'só a minha: não anula');
+});
 caso('613.4c', "Coat of Arms: cada criatura ganha +1/+1 por OUTRA criatura no campo (de qualquer jogador) que divide um tipo de criatura com ela; sem tipo em comum, nada", () => {
   const e = cena({ campo: [[0, 'Coat of Arms'], [0, 'Krenko, Mob Boss'], [0, 'Goblin Guide'], [1, 'Goblin Guide'], [0, 'Grizzly Bears'], [1, 'Llanowar Elves']] });
   const kr = objN(e, 0, 'Krenko, Mob Boss'), gg = objN(e, 1, 'Goblin Guide'), gb = objN(e, 0, 'Grizzly Bears'), le = objN(e, 1, 'Llanowar Elves');
