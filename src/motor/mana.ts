@@ -313,7 +313,7 @@ M.estReduzOk = s => !!s && s.modo === 'reduzCusto' && Object.keys(s).every(k => 
     : s.qtd === undefined && Object.keys(s.custo).every(k => k === 'p') && Array.isArray(s.custo.p))
   && (!s.se || M.seOk(s.se));
 function reducoes(e, j, o, deHabil) {
-  const r = { g: 0, p: [] as string[], min: 0 };
+  const r = { g: 0, p: [] as string[], lim: [] as { g: number, min: number }[] };   // lim: reduções de genérico com mínimo, cada uma com o seu
   const fontes = M.indiceCampo(e).est.map(id => e.objs[id]);
   if (o.zona !== 'campo' && M.dadoDe(e, o).est) fontes.push(o);
   for (const J of e.jogs) for (const id of J.zonas.comando || []) {   // eminência (Ur-Dragon): "as long as … in the command zone or on the battlefield"
@@ -333,16 +333,20 @@ function reducoes(e, j, o, deHabil) {
       if (!M.bate(e, o, f, ctx)) continue;
     }
     if (s.se) { let ok = false; try { ok = M.condicao(e, s.se, ctx); } catch (_) { ok = false; } if (!ok) continue; }
-    if (s.custo) r.p.push(...s.custo.p); else r.g += Math.max(0, M.qtdEst(e, s.qtd, ctx));
-    if (s.minimo) r.min = Math.max(r.min, s.minimo);   // "can't reduce the mana in that cost to less than one mana" (Forensic Gadgeteer)
+    if (s.custo) r.p.push(...s.custo.p);
+    else if (s.minimo) r.lim.push({ g: Math.max(0, M.qtdEst(e, s.qtd, ctx)), min: s.minimo });   // "can't reduce the mana in that cost to less than one mana" (Forensic Gadgeteer)
+    else r.g += Math.max(0, M.qtdEst(e, s.qtd, ctx));
   }
   return r;
 }
 function reduz(c, r) {
   // 601.2f: o X já entra no total antes das reduções — o que sobra da redução de genérico abate do X (c.redX, lido no
   // plano quando o X é escolhido). Com mínimo (Forensic Gadgeteer) não abate do X.
-  if (r.g && c.x && !r.min && r.g > (c.g || 0)) c.redX = (c.redX || 0) + r.g - (c.g || 0);
-  if (r.g && c.g) c.g = Math.max(r.min ? Math.min(c.g, r.min - (c.p || []).length) : 0, c.g - r.g);   // minimo: o total não fica abaixo (simplificação: vale para todas as reduções juntas)
+  // O mínimo é de cada efeito, não do total (601.2f: quem paga aplica as reduções na ordem que quiser): as com mínimo vêm
+  // primeiro, com o custo ainda cheio (cada uma só baixa até o seu mínimo); as sem mínimo depois, até zero.
+  for (const l of r.lim) if (l.g && c.g) c.g = Math.max(Math.min(c.g, l.min - (c.p || []).length), c.g - l.g);
+  if (r.g && c.x && r.g > (c.g || 0)) c.redX = (c.redX || 0) + r.g - (c.g || 0);
+  if (r.g && c.g) c.g = Math.max(0, c.g - r.g);
   if (r.p.length && c.p && c.p.length) { const p = c.p.slice(); for (const x of r.p) { const i = p.indexOf(x); if (i >= 0) p.splice(i, 1); } c.p = p; }
   return c;
 }

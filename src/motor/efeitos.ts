@@ -984,8 +984,8 @@ const H = {
     },
   },
   // miríade (CR 702.116a): para cada oponente que não é o defensor, pode criar uma ficha cópia desta, virada e atacando
-  // esse jogador; as fichas são exiladas no fim do combate (gatilho atrasado). Simplificação: ataca o jogador, nunca
-  // um planeswalker dele. Pergunta tudo antes de mexer (o processo roda de novo a cada pergunta).
+  // esse jogador ou um planeswalker que ele controla (escolherAtacado com soDe: também batalha que ele protege); as fichas
+  // são exiladas no fim do combate (gatilho atrasado). Pergunta tudo antes de mexer (o processo roda de novo a cada pergunta).
   miriade: {
     ok: () => false,                                                // só o gatilho da palavra-chave (gatilhos.ts)
     fx(e, f, ctx, ask) {
@@ -994,9 +994,10 @@ const H = {
       const quem = M.vivos(e).filter(j => j !== ctx.voce && j !== def)
         .filter(j => ask(ctx.voce, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'miriade', jog: j }).a === 'sim');
       if (!quem.length) return;
+      const onde = quem.map(j => M.escolherAtacado(e, ctx.voce, ask || ((_j, _t, ops) => ops[0]), j) || { jog: j });   // 702.116a: "that player or a planeswalker they control"
       const tok = copiaDe(e, { copiaDe: 'este' }, ctx); if (!tok) return;
       const criadas: any[] = [];
-      for (const j of quem) for (const t of M.criarFichas(e, ctx.voce, tok, 1, { virada: true })) { M.porAtacando(e, t, { jog: j }); criadas.push({ id: t.id, ts: t.ts }); }
+      quem.forEach((_j, i) => { for (const t of M.criarFichas(e, ctx.voce, tok, 1, { virada: true })) { M.porAtacando(e, t, onde[i]); criadas.push({ id: t.id, ts: t.ts }); } });
       H.gatilhoAtrasado.fx(e, { quando: { ev: 'fase', passo: 'fimCombate', deQuem: 'voce', nesteTurno: true, fx: [{ op: 'exilar', em: 'criadas' }] } }, { ...ctx, criadas });
     },
   },
