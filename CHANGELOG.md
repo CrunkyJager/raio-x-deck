@@ -2,6 +2,14 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.77.0 — 27/11/2026 · Vangloriar, encantar jogador, miríade contra planeswalker (lotes C, D, I, rodada 10)
+Testes: check 0 erros · Vitest 758 passaram · partida igual à linha de base (24.0 | 30.0 | 9.5 | 34.5 | turno 9.0 | erros 0) · banco valida 0 erros. Motor joga inteiras **1762/1762**.
+- Mecânicas novas na Mesa (lote C): vangloriar (Birgi, God of Storytelling), Aura que encanta jogador (Fraying Sanity), gatilho "quando ataca" que copia aquela habilidade (Firebender Ascension).
+- Lote D: miríade ataca o jogador ou um planeswalker dele; o mínimo de custo vale para cada redução, não para o total (Forensic Gadgeteer junto com outra redução).
+- Lote I: velocidade é do jogador, não some quando a permanente sai.
+- Duplicatas (ficaram as que já estavam na v0.76.0): redução de genérico no X (D), amassar e ímpeto do suspender e perder palavra-chave por timestamp e loucura (H).
+- Para testar: aba Mesa → deck com Birgi, Fraying Sanity ou Firebender Ascension; Fireball com Goblin Electromancer/Ruby Medallion.
+
 ## v0.76.0 — 27/11/2026 · Motor velho sem fichas fantasma; ameaça, eco, bis e fundir pela regra completa (lotes A, D, F, G, H, I, rodada 9)
 Testes: check 0 erros · Vitest 753 passaram · banco valida 0 erros. Motor joga inteiras **1761/1761**.
 **Linha de base nova, de propósito (lote A):** partida Stangg 24.0 | Krenko 30.0 | Lathril 9.5 | Edgar 34.5 | turno 9.0 | erros 0 (era 23.0 | 29.5 | 8.5 | 38.0 | turno 8.9). O Edgar (e Lys Alana, Sigil of the Empty Throne, Primeval Bounty…) criava uma ficha a mais, sem tipo, a cada mágica; "para cada X que você controla" agora conta de verdade (Avenger of Zendikar, Mass Appeal); conjurar por tipo/cor, mana por poder, ward com custo de vida.
