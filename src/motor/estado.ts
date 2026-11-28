@@ -504,12 +504,13 @@ M.mover = (e, id, zona, { topo = true, virada = false, face = undefined, conj = 
   const de = M.listaDe(e, o), k = de.lastIndexOf(id);   // id único na lista; o fim (topo, ficha nova) é o mais comum
   if (k >= 0) de.splice(k, 1);
   if (zDe === 'campo' && k >= 0) M.campoSai(e, id);
+  if (zona === 'cemiterio' && zDe !== 'cemiterio' && !o.ficha) { const J = e.jogs[o.dono]; J.cemTodasT = { t: e.turno.n, n: (J.cemTodasT && J.cemTodasT.t === e.turno.n ? J.cemTodasT.n : 0) + 1 }; }   // "cards put into their graveyard from anywhere this turn" (Fraying Sanity): carta (ficha não é carta), de qualquer zona
   if (zona === 'cemiterio' && (zDe === 'mao' || zDe === 'grimorio') && !o.ficha) { const J = e.jogs[o.dono]; J.cemT = { t: e.turno.n, n: (J.cemT && J.cemT.t === e.turno.n ? J.cemT.n : 0) + 1 }; }   // "cards put into your graveyard from your hand or library this turn" (Welcome the Dead)
   let faceNova = zona !== 'campo' ? null : face !== undefined ? face : zDe === 'pilha' ? o.face ?? null : null;
   // 709.5d: a Room entra com a porta conjurada destrancada; posta no campo sem ser conjurada, com as duas trancadas
   const portas = zona === 'campo' && !o.ficha && !clone && M.ehRoom(M.carta(o.n)) ? { e: zDe === 'pilha' && faceNova === 'esq', d: zDe === 'pilha' && faceNova === 0 } : null;
   if (portas) faceNova = M.facePortas(portas);
-  Object.assign(o, { clone: zona === 'campo' ? clone : null, clone0: null, cloneFim: null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && (!!conjDe || !!conjurada), conjDe: zona === 'campo' ? conjDe : null, xConj: 0, voto: null, lealTurno: 0, usos: null, face: faceNova, aventura: null, anexo: zona === 'campo' && conc ? { id: conc.o, ts: conc.ts } : null, concedida: zona === 'campo' && !!conc, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, suspensa: false, faceBaixo: zona === 'campo' && !!baixo, viradaComo: zona === 'campo' && baixo ? baixo : null, olham: null, portas, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
+  Object.assign(o, { clone: zona === 'campo' ? clone : null, clone0: null, cloneFim: null, zona, ts: ++e.ts, virada: zona === 'campo' && virada, dano: 0, marc: {} as any, doente: true, ctrl: o.dono, ctrl0: undefined, escolha: null, mortal: false, conjurada: zona === 'campo' && (!!conjDe || !!conjurada), conjDe: zona === 'campo' ? conjDe : null, xConj: 0, voto: null, lealTurno: 0, usos: null, face: faceNova, aventura: null, encJog: undefined, anexo: zona === 'campo' && conc ? { id: conc.o, ts: conc.ts } : null, concedida: zona === 'campo' && !!conc, exPor: null, feridaPor: null, fundidaCom: null, preparada: false, previsto: null, suspensa: false, faceBaixo: zona === 'campo' && !!baixo, viradaComo: zona === 'campo' && baixo ? baixo : null, olham: null, portas, loucura: false, ganhos: zDe === 'pilha' && zona === 'campo' && o.gatPilha ? { gatS: o.gatPilha } : null, gatPilha: null, nivel: null, tEntrou: zona === 'campo' ? e.turno.n : null,
     conjCom: zona === 'campo' && conj && (conj.chute || conj.presente || conj.prole || conj.iminente) ? { kicker: typeof conj.chute === 'number' ? conj.chute : !!conj.chute, presente: !!conj.presente, prole: !!conj.prole, iminente: !!conj.iminente } : null,
     proto: zona === 'campo' && !!conj && !!conj.prototipo });   // 702.160: conjurada como protótipo, entra com o custo/cor/P-R dele   // como foi conjurada (702.33d)
   if (zona === 'campo' && anim) o.anim = anim.map(a => ({ ...a, ts: o.ts, fim: null }));   // entra já mudada ("It's an enchantment. It's not a creature", Enduring Courage): antes dos gatilhos de entrar
@@ -678,6 +679,10 @@ M.comprar = (e, j, qtd = 1, opc: any = {}) => {
   }
 };
 M.vivos = e => e.jogs.filter(j => !j.saiu).map(j => j.i);
+// encantar jogador (303.4a, Curse): o jogador que a Aura ctx.este encanta (o.encJog; LKI se ela já saiu); undefined se nenhum
+M.encantadoDe = (e, ctx) => { const F = e.objs[ctx.este], L = ctx.lki && ctx.lki.este; const j = F && F.zona === 'campo' ? F.encJog : L ? L.encJog : undefined; return j !== undefined && M.vivos(e).includes(j) ? j : undefined; };
+// a Aura encanta jogador? kw encantar {jog: 'jogador' | 'oponente'} ("Enchant player" / "Enchant opponent")
+M.encantarJog = d => { const k = (d.kw || []).find(x => x.k === 'encantar'); return k && k.jog && !k.f ? k.jog : null; };
 
 // ---------- controle (CR 613.1b, camada 2; 800.4) ----------
 // e.ctrlEf: [{id, ts, j, fim}] na ordem em que foram criados (o mais novo vale, 613.7). fim: 'turno' (sai na limpeza),

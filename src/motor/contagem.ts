@@ -42,6 +42,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'turno': if (o === 'entraram' || o === 'sacrificadas') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
       if (o === 'excesso') return chaves(c, ['quem']) && (c.quem === undefined || c.quem === 'oponentes');   // objetos (criatura/planeswalker) que levaram dano excedente (120.10)
       return ['vidaPerdida', 'compras'].includes(o) ? chaves(c, ['quem', 'junta']) && (c.quem === undefined || c.quem === 'cadaAtual' ? j === undefined : c.quem === 'oponentes' && (j === 'soma' || j === 'maior'))
+      : o === 'cartasAoCemiterio' ? chaves(c, ['quem']) && (c.quem === undefined || c.quem === 'encantado' || c.quem === 'cadaAtual')   // de qualquer zona (Fraying Sanity)
       : ['magias', 'descartes', 'ataques', 'vidaGanha', 'resolucoesDestaHab', 'oponentesAtacados', 'aoCemiterio'].includes(o) && chaves(c, []);   // aoCemiterio: cartas suas que foram da mão/grimório ao cemitério (Welcome the Dead)
     case 'combate': return ['atacantes', 'atacantesEmVoce'].includes(o) && chaves(c, []);
     case 'atacado': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : o === 'vida' && chaves(c, []);   // o jogador defensor (Nightkin Ambusher: rad; Preacher: vida)
@@ -65,7 +66,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
 function estOk(c) {
   if (temF(c)) return true;
   if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes', 'marcadores', 'cores'].includes(c.o);   // marcadores: os do jogador (rad, energia…)
-  if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'excesso', 'aoCemiterio'].includes(c.o);
+  if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'excesso', 'aoCemiterio', 'cartasAoCemiterio'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
   if (c.de === 'cada') return c.o === 'ataques' || c.o === 'tipoEmComum';   // tipoEmComum: Coat of Arms   // na estática, 'cada' = o objeto afetado (camadas põem ctx.cadaObj)
   return c.de === 'oponentes' || c.de === 'jogadores';
@@ -133,6 +134,7 @@ M.contar = (e, c, ctx: any = {}) => {
       if (o === 'magias') return M.magiasT(e, ctx);
       if (o === 'entraram') { const R = e.turno.entraram; if (!R || R.t !== e.turno.n) return 0; const { zona, ...f } = c.f || {}; return R.l.filter(x => M.bate(e, x, f, ctx)).length; }   // como era ao entrar (Éowyn, Shieldmaiden)
       if (o === 'descartes') { const D = J.descT; return D && D.t === e.turno.n ? D.n : 0; }
+      if (o === 'cartasAoCemiterio') { const jj = c.quem === 'encantado' ? M.encantadoDe(e, ctx) : c.quem === 'cadaAtual' ? ctx.cadaAtual ?? ctx.voce : ctx.voce; const D = jj === undefined ? null : e.jogs[jj].cemTodasT; return D && D.t === e.turno.n ? D.n : 0; }   // estado.ts M.mover
       if (o === 'aoCemiterio') { const D = J.cemT; return D && D.t === e.turno.n ? D.n : 0; }   // da mão ou do grimório (estado.ts M.mover)
       if (o === 'vidaGanha') { const D = J.vgT; return D && D.t === e.turno.n ? D.n : 0; }     // "life you gained this turn" (Gwaihir, Gollum)
       if (o === 'resolucoesDestaHab') return ctx.resHab || 0;
