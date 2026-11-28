@@ -85,7 +85,8 @@ M.escolherAtacado = (e, j, ask, soDe = undefined) => {
   const n = t => C.atk.filter(r => t.jog !== undefined ? r.alvo.jog === t.jog : r.alvo.o === t.o).length;
   alvos.sort((a, b) => n(b) - n(a));
   const op = ask(j, 'atacado', alvos.map(t => ({ a: 'atacado', ...t })), {});
-  return op.jog !== undefined ? { jog: op.jog } : { o: op.o };
+  const ok = alvos.find(t => op && (t.jog !== undefined ? op.jog === t.jog : op.o === t.o)) || alvos[0];   // resposta fora da lista: o primeiro
+  return ok.jog !== undefined ? { jog: ok.jog } : { o: ok.o };
 };
 M.porAtacando = (e, o, alvo) => {
   const C = e.turno.combate; if (!C || !o || o.zona !== 'campo' || !M.temTipo(e, o, 'Creature')) return;   // 506.3: só criatura ataca

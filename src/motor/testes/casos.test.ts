@@ -3965,6 +3965,19 @@ caso('702.116a', "miríade: atacando um de 3 jogadores, cria cópias viradas e a
   ok(M.carta('Battle Angels of Tyr').kw.some(x => x.k === 'miriade'));
 });
 
+caso('702.116a', "miríade: a ficha ataca aquele jogador OU um planeswalker que ele controla (nunca o de outro jogador)", () => {
+  const e = cena({ jogs: 3, campo: [[0, 'Scion of Calamity'], [1, 'Chandra, Torch of Defiance'], [2, 'Jace Beleren']], passo: 'principal1' });
+  const s = e.objs[e.campo[0]], jace = e.objs[e.campo[2]]; s.doente = false; e.pend = [];
+  e.turno.combate = { atk: [], etapa: 0, duas: false, deu1: {} }; M.porAtacando(e, s, { jog: 1 }); e.pend = [];
+  const vistos: any[] = [];
+  M.executar(e, { op: 'miriade' }, { voce: 0, alvos: [], ilegal: {}, lki: { alvos: [], este: M.lkiDe(e, s) }, este: s.id },
+    (_j, t, ops) => { if (t === 'atacado') { vistos.push(...ops); return ops.find(x => x.o === jace.id) || ops[0]; } return { a: 'sim' }; });
+  ok(vistos.some(x => x.jog === 2) && vistos.some(x => x.o === jace.id), 'pode escolher o jogador 2 ou o Jace dele');
+  ok(!vistos.some(x => x.jog === 1 || x.o === e.campo[1]), 'nem o jogador 1 nem a Chandra dele');
+  const tok = e.campo.map(id => e.objs[id]).filter(o => o.ficha);
+  igual(tok.length, 1); ok(e.turno.combate.atk.some(a => a.id === tok[0].id && a.alvo.o === jace.id && a.def === 2), 'ataca o Jace');
+});
+
 caso('702.79a', "persistir: Puppeteer Clique morre e volta com -1/-1; morrendo com o marcador, fica no cemitério", () => {
   const e = cena({ campo: [[0, 'Puppeteer Clique']] }); e.pend = [];
   const p = e.objs[e.campo[0]];
@@ -5153,6 +5166,14 @@ caso('601.2f', "Forensic Gadgeteer: habilidade de artefato custa {1} a menos, ma
   const m = objN(e, 0, 'Mind Stone'), w = objN(e, 0, "Wayfarer's Bauble");
   igual(M.custoAtv(e, m, M.atvDe(e, m)[1]), { g: 1 }, '{1} fica {1}');
   igual(M.custoAtv(e, w, M.atvDe(e, w)[0]), { g: 1 }, '{2} vira {1}');
+});
+
+caso('601.2f', "mínimo de custo é de cada efeito: Forensic Gadgeteer (não abaixo de 1) + outra redução de {1} sem mínimo leva o {1} da Mind Stone a {0}", () => {
+  const e = cena({ campo: [[0, 'Forensic Gadgeteer'], [0, 'Mind Stone'], [0, "Wayfarer's Bauble"]] });
+  const m = objN(e, 0, 'Mind Stone'), w = objN(e, 0, "Wayfarer's Bauble");
+  igual(M.custoAtv(e, m, { ...M.atvDe(e, m)[1], reduz: 1 }).g || 0, 0, '{1}: o Gadgeteer não baixa, a outra baixa até zero');
+  igual(M.custoAtv(e, w, { ...M.atvDe(e, w)[0], reduz: 1 }).g || 0, 0, '{2}: Gadgeteer primeiro ({1}), a outra depois ({0})');
+  igual(M.custoAtv(e, w, { ...M.atvDe(e, w)[0], reduz: 3 }).g || 0, 0, 'sobra da redução não vai abaixo de zero');
 });
 
 caso('702.6a', "Forge Anew: o 1º equipar do seu turno custa {0}, o 2º paga; no seu turno equipa fora da velocidade de feitiço", () => {
