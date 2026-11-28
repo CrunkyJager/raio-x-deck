@@ -1,0 +1,26 @@
+wizard-class.json | PULEI: feita pelo ADEPTO-B (t43-lote-b 7c1fcf0)
+wrath-of-god.json | destruir semRegenerar | não
+wrathful-raptors.json | alvo criatura/PW/batalha nao Dinosaur + jogador | não
+wrenn-and-seven.json | 0: mover f terreno da mão qtd {ate:qualquer} virada | não
+wrens-run-packmaster.json | campeão: entra → mover outro Elfo p/ exílio comEste talvez, senão sacrificar; sai → volta exiladaPorEste | não (caso 702.72)
+yuffie-materia-hunter.json | kw ninjutsu {1}{R}; anexar em {um: Equipment seu} (sem alvo); enquantoNoCampo já é "enquanto controlar" | não
+zack-fair.json | moverMarcador qtd 'tudo' (cada tipo do LKI); anexar em {um: anexadoA este} via LKI | motor: lkiDe guarda anexos; anexadoA 'este' lê o LKI; moverMarcador qtd 'tudo' (caso 608.2h)
+zada-hedron-grinder.json | gatilho quem soMiraEste; copiarMagica cadaOutroAlvo | esquema+motor: filtro soMiraEste, copiarMagica.cadaOutroAlvo (caso 707.10; corrigido o caso antigo que copiava Bolt no jogador)
+vincent-vengeful-atoner.json | dano quem cadaOutroOponente | não
+siege-smash.json | PULEI: feita pelo ADEPTO-C (t43-lote-c 4f04203/eeb20b6)
+sink-into-stupor.json | PULEI: feita pelo ADEPTO-C (t43-lote-c 4f04203/eeb20b6)
+six.json | PULEI: feita pelo ADEPTO-C (t43-lote-c 4f04203/eeb20b6)
+siege-smash.json | kw segundoDividido | esquema+motor: kw segundoDividido, M.segundoDividido; opcoes só mana/prever com ela na pilha (caso 702.61a)
+sink-into-stupor.json | alvo nao Land ctrl oponente + ouZona pilha (mágica ou permanente) | não (caso 115.1)
+six.json | est darRetrace afeta permanente não-terreno, se turno seu | motor: darRetrace lê se (caso 702.81a)
+sliver-gravemother.json | est semRegraLenda (Fractius seus) + est darBis (bis {vm}) | esquema+motor: semRegraLenda (turno.ts 704.5j), darBis (estado.ts atvDe no cemitério) (caso 704.5j)
+spelunking.json | ganharVida 4 se objBate anterior sub Cave | não
+spiteful-sliver.json | alvo Planeswalker + jog jogador | não
+springheart-nantuko.json | PULEI: concessão (bestow, 702.103) não existe no motor — conjurar como Aura e virar criatura ao soltar é mudança grande; o pagar {1}{G} para copiar depende dela
+starfield-of-nyx.json | continuo outros encantamentos não-Aura: tipo Creature, pt 'vm', se controla 5+ | esquema+motor: est pt 'vm' (caso 613.1d)
+strong-the-brutish-thespian.json | est radiacaoGanhaVida | esquema+motor: radiação implementada (turno.ts, 1ª principal: mói rad, perde 1 por não-terreno) + radiacaoGanhaVida (caso 122.1)
+AVISO: siege-smash/sink-into-stupor/six escritas aqui E no t43-lote-c (eeb20b6), 1 linha diferente em cada; quem juntar escolhe uma (a do C, pela regra do FARSEER 18:48).
+baleful-mastery.json | já estava (adepto-a): conjuradaCom 'alternativo' (altPago, 118.9) + um oponente à escolha compra 1 (Oracle diz 1, não 2); testes 118.9 existentes
+tamiyo-field-researcher.json | já estava (adepto-b): −7 emblema custoAlternativo grátis da mão + +1 efeitoTemporario com gatilho; teste 114.4 existente
+moraug-fury-of-akoum.json | est continuo p {conta:{de:'cada',o:'ataques'}} | motor: conta por objeto afetado nas camadas (ctx.cadaObj; chave do lote por objeto), entrar atacando não conta (508.4); teste 508.1
+MECÂNICA ACABOU

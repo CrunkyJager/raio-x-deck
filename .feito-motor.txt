@@ -1,0 +1,32 @@
+tevals-judgment.json | modal escolhe.naoRepeteNoTurno | não (campo existia)
+thassas-oracle.json | cavar aleatorio:true (resto ao fundo em ordem aleatória) | motor: cavar lê aleatorio
+the-book-of-exalted-deeds.json | modificar {em alvo, dura sempre, est naoPerdeJogo afeta voce} | esquema: modo naoPerdeJogo; motor: M.naoPerde (ABE, perderJogo, ganharJogo do oponente), o.ganhos.est
+the-first-sliver.json | kw cascata + est continuo afeta {sub Sliver, zona pilha, ctrl voce} kw cascata | esquema: kw cascata, fx.cascata; motor: M.cascatas (pilha.ts), descobrir cascata (vm−1, não conjurada vai ao fundo)
+the-master-of-lake-town.json | comprar qtd {conta:{de:jogadores, o:cemiterio, min:7}} | contagem: jogadores+cemiterio+min (base/contar)
+the-master-transcendent.json | animar em anterior 3/3 sub Mutant soSub cores G dura sempre | esquema+motor: animar soSub (troca subtipos de criatura)
+the-skullspore-nexus.json | token pt [{conta:{de:evento,o:poder,junta:soma}}]×2 | contagem evento+poder+soma (ev.loteP: o pendente do "uma ou mais morrem" soma o poder LKI do lote); motor: ficha resolve pt por contagem ao criar (antes não resolvia: Entmoot também)
+the-ur-dragon.json | reduzCusto se {esteEm:[campo,comando]} | motor: reducoes lê a zona de comando (eminência)
+the-water-crystal.json | subst {ev:moer, jog:oponente, muda:{soma:4}} | esquema subst ev moer; motor SUBST.moer + op moer
+(extra) contagem turno+vidaGanha: ficou a do ramo contagens (J.vgT) no merge; destrava Entmoot
+the-wise-mothman.json | gat moe grupo, alvos max {conta:{de:evento,o:quantos}} | esquema alvo.max aceita contagem; motor: escolherAlvos conta o max (ctx do gatilho leva ev)
+thickest-in-the-thicket.json | se {existe minha criatura, conta maior poder meu ≥ maior poder da mesa} | não
+thieving-skydiver.json | kw chute xMin 1 | esquema kw.xMin; motor: somaCusto leva o x (o X do chute nunca era anunciado), opção de chute some se X mínimo não cabe
+thousand-moons-smithy.json | transformar pagando {virarOutros {f artefato/criatura, qtd 5}}; face: conjura comManaDe este | motor: pagando/aMenosQue com virarOutros
+thunderherd-migration.json | custoAd {ou:[revelar Dinosaur, mana {1}]} | motor: custo revelar (não existia), mana do custoAd entra no total, opção de mana que não fecha sai
+tiamat.json | buscar f.naoNome Tiamat + nomesDiferentes | esquema filtro.naoNome, fx.nomesDiferentes; motor: escolherN distinto
+tifa-martial-artist.json | gat ev danoUmaVez (sem limite) | não
+timestream-navigator.json | custo fundoEste + turnoExtra | esquema custo.fundoEste; motor: op turnoExtra (não existia! Time Sieve também) e e.turnosExtra no turno.ts (500.7)
+tishanas-tidebinder.json | gat entra alvo 'habilidade' (0..1) + anular | esquema alvo.f habilidade; motor alvo habilidade. FALTA ainda: "loses all abilities while this remains" (camadas sem perder habilidades)
+tolsimir-midnights-light.json | se objBate este atacouNoTurno | não
+topography-tracker.json | subst {ev explorar, quem criatura sua, muda mult 2} | esquema subst explorar; motor SUBST.explorar + op explorar repete
+tortured-existence.json | custo descartar 1 + descartarF {tipo Creature} | esquema custo.descartarF; motor candDesc com filtro
+trailtracker-scout.json | gat ev gasta n 8 + alvo 0..1 permanente do cemitério → mão | esquema ev gasta; motor: pagarMana de mágica conta J.gastoT e emite 'gasta' (CR 701.63)
+(extra) wandertale-mentor.json | gat ev gasta n 4 + marcador (mesma frase, não era do lote)
+twenty-toed-toad.json | falta velho: {de este, o marcadores} sem marc já soma todos os tipos | não (caso de teste)
+twilight-prophet.json | perderVida cadaOponente + ganharVida com {conta:{de:{f:{lembrada, zona mao}}, o vm, junta soma}} | não
+twinflame.json | repetirCada cada {alvo:0} + ficha copiaDe cadaAtual | esquema repetirCada.cada {alvo}; motor repetirCada sobre os alvos legais
+ugin-eye-of-the-storms.json | falta velho: o filtro cor 'C' já é incolor no motor | não (caso de teste)
+ultimate-magic-holy.json | efeitoTemporario subst dano jog voce prevenir, se conjuradaCom exilio | esquema conjuradaCom exilio; motor condição
+ultra-magnus-tactician.json | kw converter custo {2}{R}{G}{W} | esquema kw converter; motor: opção converter (custo alternativo) e entra na face de trás (CR 702.162)
+unnatural-growth.json | gat inicioCombate cadaJogador + repetirCada minhas criaturas modificar p/r {conta:{de:cada, o:poder/resist}} | contagem: de cada o poder/resist
+--- LOTE TERMINADO (27/11 ~18:35). Falta só a frase do Tishana (perder habilidades) anotada acima.
