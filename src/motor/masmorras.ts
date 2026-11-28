@@ -33,8 +33,8 @@ M.marcadorJogador = (e, j, tipo, q, tirar) => {
 //   _ateSeuTurno: P/R ou palavra-chave "até o seu próximo turno" (Fungi Cavern, Throne of the Dead Three);
 //   _perdeAMenosQue: "cada jogador perde N a menos que descarte / sacrifique" (Veils of Fear, Sandfall Cell);
 //   _comprarLembra: compra e lembra as compradas para o efeito seguinte (Mad Wizard's Lair).
-// Simplificação anotada: a Oubliette sacrifica um de cada vez (uma criatura artefato paga só um dos dois). A Throne põe a
-// criatura no campo já com os marcadores (614.1c: cavar com _entraMarc).
+//   _sacUmDeCada: "sacrifica um artefato, uma criatura e um terreno" (Oubliette), escolhidos juntos e sacrificados juntos.
+// A Throne põe a criatura no campo já com os marcadores (614.1c: cavar com _entraMarc).
 const tok = (pt, cores, sub, kw?) => ({ pt, cores, tipos: ['Creature'], sub, ...(kw ? { kw } : {}) });
 const TESOURO = { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } };
 const ALVO_CRIATURA = [{ f: { tipo: ['Creature'], zona: 'campo' } }];
@@ -64,7 +64,7 @@ export const MASMORRAS: Record<string, { undercity?: boolean; salas: { n: string
     { n: 'Trapped Entry', fx: [{ op: 'perderVida', quem: 'cadaJogador', qtd: 1 }], vai: [1, 3] },
     { n: 'Veils of Fear', fx: [{ op: '_perdeAMenosQue', qtd: 2, custo: 'descartar' }], vai: [2] },
     { n: 'Sandfall Cell', fx: [{ op: '_perdeAMenosQue', qtd: 2, custo: { sacrificar: { f: { tipo: ['Creature', 'Artifact', 'Land'] } } } }], vai: [4] },
-    { n: 'Oubliette', fx: [{ op: 'descartar', quem: 'voce', qtd: 1 }, ...['Creature', 'Artifact', 'Land'].map(t => ({ op: 'sacrificar', quem: 'voce', qtd: 1, f: { tipo: [t] } }))], vai: [4] },
+    { n: 'Oubliette', fx: [{ op: 'descartar', quem: 'voce', qtd: 1 }, { op: '_sacUmDeCada', tipos: ['Artifact', 'Creature', 'Land'] }], vai: [4] },
     { n: 'Cradle of the Death God', fx: [{ op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'The Atropal', super: ['Legendary'], ...tok([4, 4], 'B', ['God', 'Horror'], [{ k: 'toqueMortifero' }]) } }], vai: [] },
   ] },
   // "You can't enter this dungeon unless you 'venture into Undercity'" (só pela iniciativa, 727.2 e 701.49d)
@@ -297,6 +297,20 @@ H._perdeAMenosQue = {
       else if (r.a === 'sacrificar') { if (e.objs[r.id] && e.objs[r.id].zona === 'campo') M.mover(e, r.id, 'cemiterio', { sac: true }); }
       else if (!M.vidaFixa(e, j)) { M.perderVida(e, j, q); M.log(e, e.jogs[j].nome, 'perde', q, 'de vida'); }
     }
+  },
+};
+// "sacrifique um artefato, uma criatura e um terreno" (Oubliette): cada permanente paga um tipo só (a criatura artefato é
+// um OU outro), escolhidas juntas e sacrificadas juntas (701.21a). Faz o máximo que dá (609.3): o escolherN com vagas só
+// aceita conjunto que cabe nos tipos, e todo conjunto que não cresce mais tem o tamanho máximo (matroide transversal).
+H._sacUmDeCada = {
+  campos: ['tipos'], ok: () => false,
+  fx(e, f, ctx, ask) {
+    const j = ctx.voce, tipos: string[] = f.tipos;
+    const cand = M.objetosQue(e, { tipo: tipos, ctrl: 'voce', zona: 'campo' }, { voce: j }).map(o => o.id);
+    const vagas = id => tipos.filter(t => M.temTipo(e, e.objs[id], t));
+    const esc = M.escolherN(ask, j, 'sacrificar', cand, tipos.length, { vagas });
+    ctx.resultado = esc.length;
+    for (const id of esc) M.mover(e, id, 'cemiterio', { sac: true });
   },
 };
 H._comprarLembra = {
