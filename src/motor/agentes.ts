@@ -410,6 +410,7 @@ function valorFx(e, j, f) {
     case 'descartar': return J.zonas.mao.length ? -0.7 : 0;
     case 'sacrificar': { const l = e.campo.map(id => e.objs[id]).filter(o => o.ctrl === j && M.bate(e, o, { ...(f.f || {}), zona: 'campo' }, { voce: j })); return !l.length ? 0 : l.some(o => o.ficha) ? -0.3 : -1.5; }
     case '_perdeAMenosQue': return 0.4 * nOp - 0.5;
+    case '_sacUmDeCada': return f.tipos.reduce((s, t) => s + valorFx(e, j, { op: 'sacrificar', f: { tipo: [t] } }), 0);
   }
   return 0;
 }

@@ -2909,6 +2909,19 @@ caso('701.49c', 'aventurar na última sala (a habilidade dela ainda na pilha): c
   M.aventurar(e, 0, (j, t, ops) => t === 'masmorra' ? ops.find(o => o.nome === 'Dungeon of the Mad Mage') : ops[0]);
   igual([e.jogs[0].completas, masm(e)], [['Tomb of Annihilation'], 'Dungeon of the Mad Mage:Yawning Portal']);
 });
+caso('701.21a', 'Oubliette: artefato, criatura e terreno escolhidos juntos; a criatura artefato paga um tipo só e o resto completa (609.3)', () => {
+  const sala = M.MASMORRAS['Tomb of Annihilation'].salas.find(s => s.n === 'Oubliette');
+  const roda = (campo, esc) => {
+    const e = cena({ campo: campo.map(n => [0, n]) });
+    const sac = sala.fx.find(f => f.op === '_sacUmDeCada');
+    M.executar(e, sac, { voce: 0, este: -1, alvos: [], ilegal: {}, lki: { alvos: [] } }, (j, t, ops) => ops.find(o => e.objs[o.id].n === esc[0] && esc.shift()) || ops[0]);
+    return noCampo(e).sort();
+  };
+  // Simulacrum e Sol Ring escolhidos (um é o artefato, o outro a criatura): Bears não cabe mais, a Forest é o terreno
+  igual(roda(['Solemn Simulacrum', 'Sol Ring', 'Forest', 'Grizzly Bears'], ['Solemn Simulacrum', 'Sol Ring', 'Grizzly Bears']), ['Grizzly Bears'], 'Bears fica, a Forest vai');
+  igual(roda(['Solemn Simulacrum', 'Forest'], []), [], 'só a criatura artefato: ela paga um, o terreno outro');
+  igual(roda(['Solemn Simulacrum', 'Sol Ring', 'Grizzly Bears', 'Forest'], ['Sol Ring', 'Grizzly Bears']).length, 1, 'três sacrificadas, nunca quatro');
+});
 caso('614.1c', "Throne of the Dead Three: a criatura vai ao campo já com três marcadores +1/+1 (\"onto the battlefield with\"), com antimagia; o resto volta e embaralha", () => {
   const e = cena();
   for (const n of ['Forest', 'Wastes', 'Grizzly Bears', 'Wastes']) e.por(0, n, { zona: 'grimorio' });
