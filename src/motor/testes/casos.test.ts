@@ -3784,6 +3784,14 @@ caso('614.1a', "troca de ficha: Academy Manufactor faz Pista+Comida+Tesouro (×2
   ok(f.campo.filter(id => f.objs[id].n === 'Cat Token').every(id => M.temKw(f, f.objs[id], 'pressa')), 'Gato com pressa');
   M.executar(f, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), null);
   igual(conta(f, 'Treasure'), 1, 'Tesouro fica (talvez)');
+  // 614.1a "you may": quem cria decide (pergunta talvez/trocaFicha); quem quiser troca até o Tesouro
+  const g = cena({ campo: [[0, "Jinnie Fay, Jetmir's Second"]] }); const vistas: any[] = [];
+  M.executar(g, { op: 'ficha', quem: 'voce', qtd: 1, token: { nome: 'Treasure' } }, cx(), (j, t, ops, c) => { if (t === 'talvez' && c && c.op === 'trocaFicha') vistas.push(j); return ops[0]; });
+  ok(vistas.length >= 1 && vistas.every(j => j === 0), 'perguntou a quem cria');
+  igual([conta(g, 'Treasure'), g.campo.filter(id => g.objs[id].ctrl === 0 && g.objs[id].ficha).length], [0, 1], 'escolheu trocar: uma ficha no lugar do Tesouro');
+  const p0 = { j: 0, tipo: 'talvez', ops: [{ a: 'sim' }, { a: 'nao' }] };
+  igual([M.agenteBasico()(g, { ...p0, ctx: { op: 'trocaFicha', de: { nome: 'Treasure' }, por: [{ pt: [2, 2], tipos: ['Creature'], sub: ['Cat'] }] } }),
+    M.agenteBasico()(g, { ...p0, ctx: { op: 'trocaFicha', de: { pt: [1, 1], tipos: ['Creature'], sub: ['Servo'] }, por: [{ pt: [2, 2], tipos: ['Creature'], sub: ['Cat'] }] } })], [1, 0], 'agente: Tesouro fica, Servo vira Gato');
 });
 
 caso('601.2b', "Toxic Deluge: anuncia X, paga X de vida (custo adicional) e todas as criaturas ganham −X/−X; o agente escolhe o X que mata a maior do oponente", () => {

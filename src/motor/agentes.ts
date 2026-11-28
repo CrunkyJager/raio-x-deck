@@ -59,7 +59,8 @@ const basico = (e, p) => {
     case 'talvez': {                  // "pode descartar": sim quando há o que filtrar ou gatilho de descarte
       // 104.4b: gatilho opcional que já disparou centenas de vezes no turno (laço que só eu mantenho): paro, senão vira empate
       if (p.ctx && p.ctx.op === 'gatilho' && Object.entries((e.turno && e.turno.disp) || {}).some(([ch, n]) => ch.startsWith(p.ctx.id + ':') && (n as number) > 400)) return 1;
-      if (p.ctx && p.ctx.op === 'entraVirada') return 1;   // "you may have this enter tapped": desvirada (o "se fizer" é o preço, Mariposa)
+      if (p.ctx && p.ctx.op === 'entraVirada') return 1;
+      if (p.ctx && p.ctx.op === 'trocaFicha') return M.valeTrocarFicha(p.ctx.de, p.ctx.por) ? 0 : 1;   // Jinnie Fay: criatura maior, sim; Tesouro/Pista fica   // "you may have this enter tapped": desvirada (o "se fizer" é o preço, Mariposa)
       if (p.ctx && p.ctx.op === 'descartar') return querDescartar(e, p.j) ? 0 : 1;
       if (p.ctx && p.ctx.op === 'subst' && p.ctx.para === 'grimorio') return terra(p.ctx.id) || !!M.loucuraDe(e, o(p.ctx.id)) ? 1 : 0;   // Leng: carta boa volta ao topo; terreno/loucura não
       return 0;
