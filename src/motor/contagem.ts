@@ -36,7 +36,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
   if (temF(c)) return M.filtroOk(c.de.f) && !!DO_CONJ[o] && DO_CONJ[o].includes(j) && chaves(c, ['junta']);
   if (temAlvo(c)) return ['poder', 'resist', 'vm', 'grimorio', 'vida', 'manaGasta', 'poderAcimaDeste'].includes(o) && chaves(c, []);
   switch (c.de) {
-    case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist'].includes(o) && chaves(c, []);
+    case 'este': return o === 'marcadores' ? chaves(c, ['marc']) && (c.marc === undefined || typeof c.marc === 'string') : ['poder', 'resist', 'kicker'].includes(o) && chaves(c, []);   // kicker: quantas vezes pagou o chute (multikicker, 702.33c)
     case 'voce': return o === 'devocao' ? chaves(c, ['cores']) && /^[WUBRG]+$/.test(c.cores || '')
       : o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' && !!c.marc : ['mao', 'grimorio', 'vida', 'vidaInicial', 'tentacoes', 'cores'].includes(o) && chaves(c, []);   // cores: da identidade dos seus comandantes (903.4; War Room)
     case 'turno': if (o === 'entraram' || o === 'sacrificadas') return chaves(c, ['f']) && (c.f === undefined || M.filtroOk(c.f));   // os que entraram no campo neste turno (filtro f)
@@ -57,7 +57,7 @@ function base(c) {   // o que existe hoje no motor, sem olhar o lugar
     case 'tipoMaisComum': return chaves(c, []) && o === undefined;
     case 'sacrificadas': return ['poder', 'vm'].includes(o) && j === 'soma' && chaves(c, ['junta']);
     case 'viradas': return o === 'poder' && j === 'soma' && chaves(c, ['junta']);   // as viradas para pagar o custo (estação, 702.184a)
-    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist', 'ataques'].includes(o) && chaves(c, []);   // ataques: quantas vezes o objeto da vez atacou neste turno (Moraug)   // poder/resist: o objeto da vez (Unnatural Growth)
+    case 'cada': return o === 'marcadores' ? chaves(c, ['marc']) && typeof c.marc === 'string' : ['vida', 'poder', 'resist', 'ataques', 'tipoEmComum'].includes(o) && chaves(c, []);   // ataques: quantas vezes o objeto da vez atacou neste turno (Moraug)   // poder/resist: o objeto da vez (Unnatural Growth)
   }
   return false;
 }
@@ -67,7 +67,7 @@ function estOk(c) {
   if (c.de === 'voce') return ['mao', 'grimorio', 'vida', 'vidaInicial', 'devocao', 'tentacoes', 'marcadores', 'cores'].includes(c.o);   // marcadores: os do jogador (rad, energia…)
   if (c.de === 'turno') return ['magias', 'compras', 'vidaGanha', 'excesso', 'aoCemiterio'].includes(c.o);
   if (c.de === 'este') return c.o === 'marcadores';
-  if (c.de === 'cada') return c.o === 'ataques';   // na estática, 'cada' = o objeto afetado (camadas põem ctx.cadaObj)
+  if (c.de === 'cada') return c.o === 'ataques' || c.o === 'tipoEmComum';   // tipoEmComum: Coat of Arms   // na estática, 'cada' = o objeto afetado (camadas põem ctx.cadaObj)
   return c.de === 'oponentes' || c.de === 'jogadores';
 }
 /** a conta (já nova) é jogável neste lugar? */
@@ -75,7 +75,7 @@ M.contaOk = (c, onde: 'efeito' | 'est' | 'cond' = 'efeito') => {
   if (!nova(c) || !base(c)) return false;
   if (onde === 'efeito') return true;
   if (estOk(c)) return true;
-  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || c.de === 'resultado' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
+  return onde === 'cond' && (c.de === 'atacado' || c.de === 'X' || c.de === 'resultado' || (c.de === 'este' && (c.o === 'poder' || c.o === 'resist' || c.o === 'kicker')) || (c.de === 'lembradas' && c.junta === undefined) || (c.de === 'evento' && (c.o === 'quantos' || c.o === 'mao' || (c.o === 'marcadores' && !!c.marc) || c.o === 'vm' || c.o === 'manaGasta')) || c.de === 'combate' || (c.de === 'turno' && (c.o === 'ataques' || c.o === 'sacrificadas' || c.o === 'resolucoesDestaHab' || c.o === 'entraram' || c.o === 'vidaGanha')));
 };
 M.contaEstOk = c => M.contaOk(c, 'est');
 
@@ -111,6 +111,10 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'este': {
       const ob = e.objs[ctx.este];
       const este = !L ? ob : ob && ob.zona === 'campo' ? M.lkiDe(e, ob) : L.este;
+      if (o === 'kicker') {                       // vezes que o chute foi pago: na pilha o.pil.opc / ctx.opc; no campo o conjCom guardado ao entrar
+        const q = ctx.opc && ctx.opc.chute !== undefined ? ctx.opc.chute : ob && ob.zona === 'pilha' && ob.pil && ob.pil.opc ? ob.pil.opc.chute : ob && ob.conjCom ? ob.conjCom.kicker : 0;
+        return q === true ? 1 : typeof q === 'number' ? q : 0;
+      }
       if (!este) return 0;
       if (o === 'marcadores') return c.marc ? este.marc[c.marc] || 0 : Object.values<any>(este.marc).reduce((s, n) => s + n, 0);
       if (!L && (o === 'poder' || o === 'resist')) return o === 'poder' ? M.poder(e, ob) : M.resistencia(e, ob);   // fora da resolução (condição do gatilho): o de agora
@@ -199,6 +203,7 @@ M.contar = (e, c, ctx: any = {}) => {
     case 'cada':
       if (o === 'vida') return ctx.cadaAtual !== undefined ? e.jogs[ctx.cadaAtual].vida : 0;   // o jogador da vez (Dire Fleet Ravager)
       { const cc = ctx.cadaObj, ob = cc && e.objs[cc.id]; if (!ob || ob.ts !== cc.ts) return 0;
+        if (o === 'tipoEmComum') return M.comTipoEmComum(e, ob);   // as outras criaturas que dividem tipo com ela (Coat of Arms)
         if (o === 'ataques') return (e.turno.ataques || []).filter(r => r.id === ob.id && r.ts === ob.ts && !r.entrou).length;   // "each time it has attacked this turn" (508.1; entrar atacando não é atacar, 508.4)
         return o === 'poder' ? M.poder(e, ob) : o === 'resist' ? M.resistencia(e, ob) : ob.marc[c.marc] || 0; }   // o objeto da vez; poder pode ser negativo (dobrar, 701.10e)
   }

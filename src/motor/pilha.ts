@@ -92,7 +92,7 @@ M.fxSobrecarga = (d, fx) => {
 };
 function opcoesConj(e, j, d, o?) {
   let l: any[] = [{}];
-  if (chuteDe(d)) l = [{ chute: true }, {}];
+  if (chuteDe(d)) l = chuteDe(d).multi ? [...Array.from({ length: 5 }, (_, k) => ({ chute: 5 - k })), {}] : [{ chute: true }, {}];   // multikicker (702.33c): N vezes, o mais alto que fecha primeiro (até 5)
   if (d.fx && M.fxSobrecarga(d, d.fx)) l = [{ sobrecarga: true }, ...l];   // o agente básico pega a primeira que fecha
   if (presenteDe(d) && M.vivos(e).some(x => x !== j)) l = l.flatMap(o => [{ ...o, presente: true }, o]);
   if (o) { const alts = altFis(e, j, o, d); if (alts.length) l = [...l, ...alts.flatMap(i => l.filter(x => !x.sobrecarga).map(x => ({ ...x, alt: i })))]; }   // 118.9: depois da normal
@@ -107,7 +107,8 @@ function opcoesConj(e, j, d, o?) {
   if (concessaoDe(d)) l = l.flatMap(o => o.sobrecarga || o.alt !== undefined || o.iminente ? [o] : [o, { ...o, concessao: true }]);   // 702.103a: alternativo (118.9a: um só)
   return l;
 }
-const custoOpc = (d, custo, opc, e?, o?) => { const c = opc.dobra ? (e ? M.custoComImposto(e, o, dobraDe(d).custo) : dobraDe(d).custo) : opc.investida ? (e ? M.custoComImposto(e, o, investidaDe(d).custo) : investidaDe(d).custo) : opc.converter ? (e ? M.custoComImposto(e, o, converterDe(d).custo) : converterDe(d).custo) : opc.concessao ? (e ? M.custoComImposto(e, o, concessaoDe(d).custo) : concessaoDe(d).custo) : opc.iminente ? (e ? M.custoComImposto(e, o, iminenteDe(d).custo) : iminenteDe(d).custo) : opc.alt !== undefined ? (b => opc.chute ? M.somaCusto(b, chuteDe(d).custo) : b)(e ? M.custoComImposto(e, o, d.est[opc.alt].pagar.mana || {}) : d.est[opc.alt].pagar.mana || {}) : opc.prototipo ? (e ? M.custoComImposto(e, o, M.prototipoDe(d).custo) : M.prototipoDe(d).custo) : opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? M.somaCusto(custo, chuteDe(d).custo) : custo; const c2 = opc.prole ? M.somaCusto(c, proleDe(d).custo) : c; let r = c2; for (let i = 0; i < (opc.replicar || 0); i++) r = M.somaCusto(r, opc.repC); return r; };   // replicar: N vezes (702.56a)
+const somaChute = (c, d, opc) => { for (let k = 0; k < (typeof opc.chute === 'number' ? opc.chute : 1); k++) c = M.somaCusto(c, chuteDe(d).custo); return c; };
+const custoOpc = (d, custo, opc, e?, o?) => { const c = opc.dobra ? (e ? M.custoComImposto(e, o, dobraDe(d).custo) : dobraDe(d).custo) : opc.investida ? (e ? M.custoComImposto(e, o, investidaDe(d).custo) : investidaDe(d).custo) : opc.converter ? (e ? M.custoComImposto(e, o, converterDe(d).custo) : converterDe(d).custo) : opc.concessao ? (e ? M.custoComImposto(e, o, concessaoDe(d).custo) : concessaoDe(d).custo) : opc.iminente ? (e ? M.custoComImposto(e, o, iminenteDe(d).custo) : iminenteDe(d).custo) : opc.alt !== undefined ? (b => opc.chute ? somaChute(b, d, opc) : b)(e ? M.custoComImposto(e, o, d.est[opc.alt].pagar.mana || {}) : d.est[opc.alt].pagar.mana || {}) : opc.prototipo ? (e ? M.custoComImposto(e, o, M.prototipoDe(d).custo) : M.prototipoDe(d).custo) : opc.sobrecarga ? (e ? M.custoComImposto(e, o, sobrecargaDe(d).custo) : sobrecargaDe(d).custo) : opc.chute ? somaChute(custo, d, opc) : custo; const c2 = opc.prole ? M.somaCusto(c, proleDe(d).custo) : c; let r = c2; for (let i = 0; i < (opc.replicar || 0); i++) r = M.somaCusto(r, opc.repC); return r; };   // replicar: N vezes (702.56a)
 // pode ser alvo de quem controla a mágica/habilidade? antimagia (CR 702.11b) e manto (CR 702.18a); proteção = T18
 const alcancavel = (e, o, voce) => !(M.temKw(e, o, 'manto') || (M.temKw(e, o, 'antimagia') && o.ctrl !== voce));
 // "activated or triggered ability you control from an enchantment source" (Weaver of Harmony): quem controla a
@@ -870,6 +871,13 @@ M.agiu = (e, j) => { const P = e.turno.prio; if (P) { P.n = 0; P.j = j; } };   /
 // vai para a pilha quando tudo fecha — o resultado é o mesmo (nada do jogo muda entre um passo e outro).
 // cabe(n): o custo ainda fecha com n alvos no total (impostoPorAlvo, CR 601.2f); sem ele, qualquer número.
 // o alvo-jogador i é o primeiro de jogador e o efeito que o usa é bom para quem ganha (Éomer: "target player becomes the monarch")
+// quanto dano o efeito põe no alvo i (op dano em {alvo:i}, quantidade lida agora: o X já foi escolhido) — o agente usa
+// para ver se a criatura morre; sem dano conhecido, nada
+const danoNoAlvo = (e, fx, i, ctx) => {
+  const f = (fx || []).find(f => f && f.op === 'dano' && f.em && f.em.alvo === i && !f.dividir); if (!f) return {};
+  let n; try { n = M.qtd(e, f.qtd, ctx); } catch (_) { return {}; }
+  return Number.isInteger(n) && n > 0 ? { dano: n } : {};
+};
 const paraSi = (fx, alvos, i) => (alvos || []).findIndex(a => a && (a.f === 'jogador' || a.f === 'qualquerAlvo')) === i && (fx || []).some(f => f && f.op === 'virarMonarca' && f.quem === 'alvoJogador');
 // de que jogador é o alvo: o próprio jogador; permanente = quem controla; carta fora do campo = o dono (Afterlife from the Loam)
 const jogDoAlvo = (e, x) => x.jog !== undefined ? x.jog : e.objs[x.o].zona === 'campo' ? e.objs[x.o].ctrl : e.objs[x.o].dono;
@@ -898,7 +906,7 @@ function escolherAlvos(e, j, d, fx, ctx, ask, cabe?: (n: number) => boolean, opc
       if (lista.length >= min && cabe && !cabe(total + 1)) ops = [];   // mais um alvo não dá para pagar
       if (lista.length >= min) ops.unshift({ a: 'pronto' });
       if (!ops.length || (ops.length === 1 && ops[0].a === 'pronto' && max === Infinity)) break;
-      const r = ask(j, 'alvo', ops, { i, de: ctx.este, ...(paraSi(fx, d.alvos, i) ? { paraSi: true } : {}) });
+      const r = ask(j, 'alvo', ops, { i, de: ctx.este, ...(paraSi(fx, d.alvos, i) ? { paraSi: true } : {}), ...danoNoAlvo(e, fx, i, ctx) });
       if (r.a === 'pronto') break;
       lista.push(r.jog !== undefined ? { jog: r.jog } : { o: r.o, ts: r.ts }); total++;
     }
@@ -1009,7 +1017,7 @@ function escolherAd(e, j, o, c, ask, custo?, x = 0) {
   if (alts.length <= 1) return alts[0] || c;
   return ask(j, 'custoOu', alts.map(v => ({ a: 'custoOu', v })), { id: o.id }).v;
 }
-function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
+function escolherCustoFisico(e, j, c, fonte, daMao, ask, porPoder = false) {   // porPoder: o efeito conta o poder das viradas (estação): a de mais poder
   const r = { sac: [] as any[], desc: [] as any[], dev: [] as any[], vir: [] as any[], desv: [] as any[], rev: [] as any[], exi: [] as any[] };
   if (c.exilarDe) {
     for (let i = 0; i < (c.exilarDe.qtd || 1); i++) {
@@ -1028,12 +1036,12 @@ function escolherCustoFisico(e, j, c, fonte, daMao, ask) {
     while (soma < c.virarOutros.poder) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id) && M.poder(e, o) > 0).map(o => ({ a: 'virar', id: o.id }));
       if (!ops.length) break;
-      const id = ask(j, 'custo', ops, { o: 'virar' }).id; r.vir.push(id); soma += M.poder(e, e.objs[id]);
+      const id = ask(j, 'custo', ops, { o: 'virar', tripular: true }).id; r.vir.push(id); soma += M.poder(e, e.objs[id]);
     }
   } else if (c.virarOutros) {
     for (let i = 0; i < (c.virarOutros.qtd || 1); i++) {
       const ops = candVir(e, j, c, fonte).filter(o => !r.vir.includes(o.id)).map(o => ({ a: 'virar', id: o.id }));
-      r.vir.push(ask(j, 'custo', ops, { o: 'virar' }).id);
+      r.vir.push(ask(j, 'custo', ops, { o: 'virar', ...(porPoder ? { porPoder: true } : {}) }).id);
     }
   }
   if (c.desvirarOutros) for (let i = 0; i < (c.desvirarOutros.qtd || 1); i++) {
@@ -1222,7 +1230,7 @@ const PROC = {
     if (descRetr != null) M.descartar(e, j, [descRetr]);
     if (doComando) e.jogs[j].imposto[o.id] = (e.jogs[j].imposto[o.id] || 0) + 1;      // CR 903.8
     e.turno.magias = (e.turno.magias || 0) + 1;
-    M.log(e, e.jogs[j].nome, 'conjura', o.copiaPrep ? M.dadoDe(e, o).n + ' (cópia preparada de ' + o.n + ')' : o.n, x ? `(X=${x})` : '', opc.chute ? '(com chute)' : '', opc.prole ? '(com prole)' : '', opc.iminente ? '(iminente)' : '', conc ? '(concessão em ' + e.objs[conc.o].n + ')' : '', opc.investida ? '(investida)' : '', opc.converter ? '(convertida)' : '', opc.prototipo ? '(protótipo)' : '', opc.replicar ? `(replicar ×${opc.replicar})` : '', opc.sobrecarga ? '(sobrecarga)' : '', opc.alt !== undefined ? '(custo alternativo)' : '', fuga ? '(fuga: exila ' + exFuga.length + ' do cemitério)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
+    M.log(e, e.jogs[j].nome, 'conjura', o.copiaPrep ? M.dadoDe(e, o).n + ' (cópia preparada de ' + o.n + ')' : o.n, x ? `(X=${x})` : '', opc.chute ? (typeof opc.chute === 'number' ? `(chute ${opc.chute}x)` : '(com chute)') : '', opc.prole ? '(com prole)' : '', opc.iminente ? '(iminente)' : '', conc ? '(concessão em ' + e.objs[conc.o].n + ')' : '', opc.investida ? '(investida)' : '', opc.converter ? '(convertida)' : '', opc.prototipo ? '(protótipo)' : '', opc.replicar ? `(replicar ×${opc.replicar})` : '', opc.sobrecarga ? '(sobrecarga)' : '', opc.alt !== undefined ? '(custo alternativo)' : '', fuga ? '(fuga: exila ' + exFuga.length + ' do cemitério)' : '', opc.presente ? `(presente para ${e.jogs[opc.jog].nome})` : '', descAlvos(e, alvos));
     if (!P.loucura && !P.milagre && !P.agora) M.agiu(e, j);                                                     // CR 601.2i → 117.3c (loucura: no meio da resolução)
   },
 
@@ -1250,7 +1258,7 @@ const PROC = {
     if (imp.g) mana = M.somaCusto(mana || {}, { g: imp.g });
     if (imp.vida && e.jogs[j].vida < imp.vida) { e.proc = null; M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
     const red = reducaoAlvo(e, j, alvos); if (red.g && mana && mana.g) mana = { ...mana, g: Math.max(0, mana.g - red.g) };   // Professor Hojo
-    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask);
+    const fis = escolherCustoFisico(e, j, c.sacrificar && c.sacrificar.qtd === 'X' ? { ...c, sacrificar: { ...c.sacrificar, qtd: x } } : c, o.id, c.descartarEste ? o.id : null, ask, (a.fx || []).some(f => f && f.qtd && f.qtd.conta && f.qtd.conta.de === 'viradas' && f.qtd.conta.o === 'poder'));
     const pl = mana ? plano(e, j, mana, x, [...ex, ...fis.sac, ...fis.dev, ...fis.vir]) : { passos: [] as any[], vida: 0 };
     e.proc = null;
     if (!pl) { M.log(e, e.jogs[j].nome, 'desiste de ativar', o.n); return; }
