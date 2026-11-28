@@ -5,7 +5,7 @@
 import { M } from './nucleo';
 
 const EV_OK = new Set(['danoPrevenido', 'gasta', 'destranca', 'viradaParaCima', 'entra', 'morre', 'sai', 'vaiCemiterio', 'ataca', 'atacantesDeclarados', 'atacaJogador', 'reflexo', 'bloqueia', 'naoBloqueada', 'dano',
-  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa']);
+  'conjura', 'fase', 'compra', 'ganhaVida', 'perdeVida', 'alvoDe', 'descarta', 'capitulo', 'nivel', 'sala', 'completaMasmorra', 'tomaIniciativa', 'danoUmaVez', 'cicla', 'desvira', 'jogaTerreno', 'prolifera', 'marcadorPosto', 'sacrificado', 'saiCemiterio', 'moe', 'fichaCriada', 'vira', 'explora', 'ficaMonstruosa', 'portador', 'ativa', 'disparaAtacando']);
 const CAMPOS_OK = new Set(['naoPorEste', 'ouConjurada', 'comManaDe', 'ev', 'fx', 'quem', 'alvos', 'se', 'zonaAtiva', 'jog', 'passo', 'deQuem', 'aJogador', 'combate', 'por', 'grupo', 'n', 'talvez', 'limite', 'aOponente', 'de', 'naoDe', 'aJogadorOuPw', 'marc', 'recebe', 'ouCopia', 'primeiraNoTurno', 'naoPrimeira', 'naoMorre', 'revelaTerreno', 'porAtivada']);
 const SAIDA = new Set(['morre', 'sai', 'vaiCemiterio', 'sacrificado']);   // sacrificado sai do campo: olha para trás (603.10a)
 // CR 104.4b/732: laço obrigatório = empate. Muitos disparos não bastam (Krenko com 700 goblins + Purphoros é finito):
@@ -62,6 +62,7 @@ function bateEv(e, g, ev, F) {
     case 'sacrificado': return ev.ev === 'zona' && ev.de === 'campo' && !!ev.sac && q(ev.snap);   // 701.21: quem sacrifica é o controlador (snap.ctrl)
     case 'vaiCemiterio': return ev.ev === 'zona' && ev.para === 'cemiterio' && (!g.de || ev.de === g.de) && (!g.naoDe || ev.de !== g.naoDe) && q(ev.snap || e.objs[ev.id]);
     case 'ataca': return ev.ev === 'ataca' && q(e.objs[ev.id]);
+    case 'disparaAtacando': return ev.ev === 'disparaAtacando' && !!e.objs[ev.id] && e.objs[ev.id].ts === ev.ts && q(e.objs[ev.id]);   // "a creature you control attacking causes a triggered ability of that creature to trigger" (Firebender Ascension)
     case 'explora': return ev.ev === 'explora' && (g.revelaTerreno === undefined || ev.terreno === g.revelaTerreno) && q(e.objs[ev.id]);   // CR 701.44c: "whenever a creature you control explores" (revelaTerreno: "explores a land / nonland card", Nicanzil)
     case 'atacantesDeclarados': return ev.ev === 'atacantesDeclarados' && !g.quem && (!g.jog || relJog(g.jog, ev.j, F.ctrl));
     case 'atacaJogador': return ev.ev === 'atacaJogador' && !g.quem && relJog(g.jog || 'qualquer', ev.j, F.ctrl) && (!g.aOponente || ev.jog !== F.ctrl);   // ev.j atacou ev.jog
@@ -280,7 +281,7 @@ M.evento = (e, ev) => {
   if (!e.pend || (e.turno.passo === 'mulligan')) return;
   const saida = ev.ev === 'zona' && ev.de === 'campo';
   if (saida) (e.lote = e.lote || []).push(ev.snap);
-  const fontes: any[] = [];
+  const fontes: any[] = [], atacando: any[] = [];
   const hab = M.temHabil(e);                                                            // caminho comum: sem habilidade dada
   if (hab) { for (const id of e.campo) { const o = e.objs[id]; if (M.gatDe(e, o).length) fontes.push(o); } }
   else for (const id of M.indiceCampo(e).gat) fontes.push(e.objs[id]);                  // índice: só quem tem gatilho
@@ -332,9 +333,12 @@ M.evento = (e, ev) => {
         } }
       const vezes = 1 + extras(e, F, g, ev);
       const dada = k >= nb || mudado ? { g } : {};                                                // habilidade dada (camadas): leva o texto
-      for (let v = 0; v < vezes; v++) e.pend.push({ fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(g.grupo && SAIDA.has(g.ev) && ev.snap ? { loteP: [M.poder(e, ev.snap)] } : {}), ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem
+      const tag = g.ev === 'ataca' && ev.id === F.id && F.zona === 'campo' && M.temTipo(e, F, 'Creature') ? (e.tagG = (e.tagG || 0) + 1) : undefined;   // o atacar desta criatura dispara uma habilidade dela
+      if (tag !== undefined) atacando.push({ F, tag });
+      for (let v = 0; v < vezes; v++) e.pend.push({ ...(tag !== undefined ? { tag } : {}), fonte: F.id, ts: F.ts, ctrl: F.ctrl, k, ...dada, n: F.n, face: F.face ?? null, ficha: F.ficha || null, lki: M.lkiDe(e, F), ev: { ...ev, snap: undefined, ...(g.grupo && SAIDA.has(g.ev) && ev.snap ? { loteP: [M.poder(e, ev.snap)] } : {}), ...(ev.ev === 'moeGrupo' ? { n: ev.ids.filter(id => relJog(g.jog || 'qualquer', e.objs[id].dono, F.ctrl) && (!g.quem || bate(e, e.objs[id], g.quem, { voce: F.ctrl, este: F.id }))).length } : {}) } });   // "that many": só as do lote que batem
     }
   }
+  for (const { F, tag } of atacando) M.evento(e, { ev: 'disparaAtacando', id: F.id, ts: F.ts, j: F.ctrl, tag });   // Firebender Ascension: "that ability" = o pendente com esta tag
   atrasados(e, ev);
   temporarios(e, ev);
   if (ev.ev === 'fase' && ev.passo === 'manutencao') M.suspensoEvento(e, ev.ativo);       // suspender (702.62a): as cartas suspensas do ativo
@@ -483,7 +487,7 @@ M.PROC.gatilhos = (e, P, ask) => {
       if (falta) { M.log(e, p.n, 'gatilho sem alvo legal: sai (603.3d)'); ask.etapa(); continue; }
       const id = e.prox++;
       e.objs[id] = { id, n: p.n, dono: j, ctrl: j, zona: 'pilha', ts: ++e.ts, virada: false, dano: 0, marc: {} as any, doente: false, cmd: false,
-        hab: { fonte: p.fonte, fonteTs: p.ts, gat: p.k, fx: g.fx, alvos: g.alvos || [], ficha: p.ficha, se: g.se || null, talvez: !!g.talvez },
+        hab: { ...(p.tag !== undefined ? { tag: p.tag } : {}), fonte: p.fonte, fonteTs: p.ts, gat: p.k, fx: g.fx, alvos: g.alvos || [], ficha: p.ficha, se: g.se || null, talvez: !!g.talvez },
         pil: { x: xg, alvos, modos, ctrl: j, lki: { este: p.lki, ...(p.mem && p.mem.lkiAlvos ? { alvos: p.mem.lkiAlvos } : {}) }, ev: p.ev, mem: p.mem || null } };
       e.pilha.push(id);
       M.eventosAlvo(e, alvos, id);

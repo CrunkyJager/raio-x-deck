@@ -4,7 +4,7 @@
 import { M } from './nucleo';
 
 const BASE = new Set(['op', 'em', 'quem', 'qtd', 'se', 'talvez', 'aMenosQue', 'pagando', 'xAte']);
-const QUEM_OK = new Set(['cadaOutroOponente', 'voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual', 'atacadosPorEste', 'oponente', 'umJogador', 'feridosPorEsteNome']);
+const QUEM_OK = new Set(['encantado', 'cadaOutroOponente', 'voce', 'cadaOponente', 'cadaJogador', 'alvoJogador', 'controlador', 'dono', 'doEvento', 'atacado', 'cadaAtual', 'atacadosPorEste', 'oponente', 'umJogador', 'feridosPorEsteNome']);
 // oponente/umJogador: "an opponent" / "choose a player" sem alvo — quem controla escolhe ao resolver (askAtual)
 let askAtual: any = null;
 // cadaAtual (o jogador da vez) só vale dentro de um repetirCada: fora dele seria um jogador que não existe
@@ -305,6 +305,7 @@ function jogsDe(e, f, ctx) {
     case 'atacadosPorEste': { const F = e.objs[ctx.este]; return F ? vivos.filter(j => (e.turno.ataques || []).some(r => r.id === F.id && r.ts === F.ts && r.jog === j)) : []; }   // "each player this creature attacked this turn" (Angel of Destiny; o jogador, não o planeswalker dele)
     case 'atacado': return ctx.ev && ctx.ev.def !== undefined && vivos.includes(ctx.ev.def) ? [ctx.ev.def] : [];   // o jogador defensor do ataque (Kozilek, Ulamog: 508.5)
     case 'cadaJogador': return vivos;
+    case 'encantado': { const jj = M.encantadoDe(e, ctx); return jj === undefined ? [] : [jj]; }   // o jogador que esta Aura encanta (303.4a)
     case 'feridosPorEsteNome': { const F = e.objs[ctx.este] || ctx.lki.este; return F ? vivos.filter(j => j !== ctx.voce && !!(e.jogs[j].feridoPorNome || {})[F.n]) : []; }   // "each opponent dealt combat damage this game by a creature named [este]" (Gollum)
     case 'oponente': case 'umJogador': {   // "an opponent draws" (Baleful Mastery), "choose a player" (Gluntch): sem alvo, escolhe ao resolver
       const ops = f.quem === 'oponente' ? vivos.filter(j => j !== ctx.voce) : vivos;
@@ -1245,11 +1246,17 @@ const H = {
   // CR 707.10: "copy target activated or triggered ability [you control]" (Weaver of Harmony): a cópia vai para a pilha
   // controlada por quem copiou, com os mesmos alvos/modos/X; novoAlvo = "you may choose new targets for the copy".
   // Copiar não é ativar (602.1): não dispara "whenever you activate", não paga custo de novo.
+  // doEvento (sem em): "copy that ability" — a habilidade desencadeada cujo disparo é o evento (disparaAtacando: Firebender
+  // Ascension). Simplificação: se ela já saiu da pilha, não há o que copiar.
   copiarHabilidade: {
-    campos: ['novoAlvo'],
+    campos: ['novoAlvo', 'doEvento'],
+    ok: f => f.doEvento ? f.doEvento === true && f.em === undefined : f.em !== undefined,
     fx(e, f, ctx, ask) {
       const n = f.qtd === undefined ? 1 : Math.max(0, qtdDe(e, f.qtd, ctx));
-      for (const o of objsDe(e, f, ctx)) {
+      const tag = ctx.ev && ctx.ev.tag;
+      const os = f.doEvento ? (tag === undefined ? [] : e.pilha.map(id => e.objs[id]).filter(o => o && o.hab && o.hab.tag === tag)) : objsDe(e, f, ctx);
+      if (f.doEvento && !os.length) M.log(e, 'a habilidade já saiu da pilha: nada a copiar');
+      for (const o of os) {
         if (o.zona !== 'pilha' || !o.hab || !o.pil || o.id === ctx.item) continue;
         const planos: any[] = [];
         for (let k = 0; k < n; k++) planos.push(M.alvosDaCopia(e, o, ctx.voce, !!f.novoAlvo, ask));

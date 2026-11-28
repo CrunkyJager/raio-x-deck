@@ -274,7 +274,9 @@ M.abe = e => {
     // CR 704.5m/n: Aura presa a nada (ou a objeto ilegal) vai ao cemitério; Equipamento preso a nada ou a não-criatura
     // (ou que virou criatura, 301.5c) se solta e fica no campo
     for (const id of e.campo) {
-      const o = e.objs[id]; if (!o.anexo) continue;
+      const o = e.objs[id];
+      if (o.encJog !== undefined && !M.vivos(e).includes(o.encJog)) { morrem.push(id); continue; }   // 704.5m: Aura num jogador que saiu do jogo (800.4a)
+      if (!o.anexo) continue;
       const t = M.anexadoA(e, o), aura = (M.dadoDe(e, o).sub || []).includes('Aura');
       if (o.concedida && (!t || !M.temTipo(e, t, 'Creature'))) {     // 702.103f: concedida solta (ou em ilegal) fica no campo e volta a ser criatura
         o.anexo = null; o.concedida = false; e.vCamada = (e.vCamada || 0) + 1; mudou = true; M.log(e, o.n, 'solta: volta a ser criatura (702.103f)'); continue;

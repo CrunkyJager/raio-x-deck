@@ -679,7 +679,7 @@ function podeConjurarFace(e, j, o, face, opts: any = {}) {
   if (d.conjurarSo && !conjurarSoOk(e, j, d.conjurarSo)) return false;   // "cast this spell only during …" (307.5, Illusionist's Gambit)
   if (face === 0 && !o.ficha && temAftermath(M.carta(o.n)) && o.zona !== 'cemiterio') return false;   // 702.127a
   if (!(louc || agora || porAftermath(e, j, o, face) || porFlash(e, j, o) || porFuga(e, j, o) || o.zona === 'mao' || (o.zona === 'comando' && o.cmd) || M.podeJogarDe(e, j, o) || (daAventura(e, j, o) && face == null) || porPreparo(e, j, o) || porPrevisao(e, j, o))) return false;   // mão, comando, permissão (podeJogar), aventura ou loucura
-  if ((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) return false;   // Aura mira ao conjurar: anexar = T18
+  if (((d.sub || []).includes('Aura') || M.temKw(e, o, 'encantar')) && !(M.encantarJog(d) && jogsEncantaveis(e, j, d).length)) return false;   // Aura mira ao conjurar: anexar = T18; encantar jogador (303.4a) já
   const inst = M.temTipo(e, o, 'Instant') || M.temKw(e, o, 'lampejo') || M.lampejoDado(e, j, o);
   if (!inst && !louc && !milag && !agora && !M.velFeitico(e, j)) return false;
   if (d.fx && !M.fxSuportado(d.fx)) return false;
@@ -714,6 +714,15 @@ const modalTopo = d => d.fx && d.fx.length === 1 && d.fx[0].op === 'modal';
 // atv.se = "ative só se …" (602.5b; também na de mana: Mox Opal, Sarevok's Tome). Condição que o motor não lê: não ativa.
 M.atvSeOk = (e, a, o) => { if (!a.se) return true; if (!M.seOk(a.se)) return false; try { return M.condicao(e, a.se, { voce: o.ctrl, este: o.id }); } catch (_) { return false; } };
 const saiDoCem = a => (a.fx || []).some(f => f.op === 'mover' && f.em === 'este' && f.para && f.para !== 'cemiterio');
+// vangloriar (Boast, 702.142a): "activate only if this creature attacked this turn and only once each turn"; Birgi (est
+// vangloriarDuas do controlador): duas vezes em cada turno dele. Conta por habilidade (cada boast da criatura tem o seu)
+// encantar jogador (303.4a): os jogadores que a Aura pode encantar, oponentes primeiro (a IA pega o 1º: Curse no oponente)
+const jogsEncantaveis = (e, j, d) => { const vivos = M.vivos(e), op = vivos.filter(x => x !== j); return M.encantarJog(d) === 'oponente' ? op : [...op, ...(vivos.includes(j) ? [j] : [])]; };
+M.podeVangloriar = (e, o, k) => {
+  if (!(e.turno.ataques || []).some(r => r.id === o.id && r.ts === o.ts && !r.entrou)) return false;   // entrou atacando não atacou (508.4)
+  const u = (o.vang || {})[k], usou = u && u.t === e.turno.n ? u.n : 0;
+  return usou < (e.turno.ativo === o.ctrl && M.estSeu(e, o.ctrl, 'vangloriarDuas') ? 2 : 1);
+};
 M.podeAtivar = (e, j, o, k) => {
   const d = M.dadoDe(e, o), a = M.atvDe(e, o)[k];
   if (!a || a.deMana || o.ctrl !== j || o.zona !== (a.zona || 'campo')) return false;
@@ -726,6 +735,7 @@ M.podeAtivar = (e, j, o, k) => {
     if (a.lealdade < 0 && (o.marc.lealdade || 0) < -a.lealdade) return false;
   } else if (a.vel === 'feitico' && !M.velFeitico(e, j) && !(a._equipar && e.turno.ativo === j && M.estSeu(e, j, 'equiparComoInstantanea'))) return false;   // Forge Anew: no seu turno, equipar na velocidade de instantânea
   if (a.limite === 'umaPorTurno' && (o.usos || {})[k] === e.turno.n) return false;
+  if (a.limite === 'vangloriar' && !M.podeVangloriar(e, o, k)) return false;   // 702.142a
   if (a._nivel && (o.nivel || 1) !== a._nivel - 1) return false;      // CR 716.2a: só do nível N−1
   if (a._soltar && !o.anexo) return false;                            // reconfigurar: soltar só se anexada (702.151a)
   if (!custoFisicoOk(e, j, o, a.custo, { daMao: a.custo.descartarEste ? o.id : undefined })) return false;
@@ -1176,6 +1186,7 @@ const PROC = {
     const cabe = d.impostoPorAlvo ? n => !!plano(e, j, comAlvos(n), x, null, o) : undefined;
     const alvos = escolherAlvos(e, j, d, fx, { ...ctx, x }, ask, cabe, opc);          // CR 601.2c
     custo = comAlvos(alvos.reduce((s, l) => s + (l ? l.length : 0), 0));
+    const encJ = M.ehPermanente(e, o) && M.encantarJog(d) ? ask(j, 'jogador', jogsEncantaveis(e, j, d).map(jj => ({ a: 'jogador', jog: jj })), { id: o.id, encantar: true }).jog : undefined;   // 303.4a/601.2c: a Aura mira o jogador que vai encantar
     const conc = opc.concessao ? (r => ({ o: r.o, ts: r.ts }))(ask(j, 'concessao', M.alvosPossiveis(e, ALVO_CONC, ctx).map(x => ({ a: 'alvo', ...x })), { id: o.id })) : null;   // 702.103b: a criatura que vai encantar
     const imp = impostoAlvo(e, j, alvos, false);                                     // 601.2f: Kopala, Terror of the Peaks
     if (imp.g) custo = M.somaCusto(custo, { g: imp.g });
@@ -1201,7 +1212,7 @@ const PROC = {
     const sacLki = (fis.sac || []).map(id => M.lkiDe(e, e.objs[id]));                 // "o poder da sacrificada" (custo adicional): LKI
     if (o.copiaPrep) { const cr = e.objs[o.copiaPrep.id]; if (cr) cr.preparada = false; }   // conjurar a cópia desprepara
     M.mover(e, o.id, 'pilha'); o.ctrl = j; o.face = P.face ?? null; if (flash) o.flash = true; if (pjU) { const F = e.objs[pjU.ctx.este]; if (pjU.s.limite && F) F.pjUso = { t: e.turno.n, ts: F.ts }; if (pjU.s.exilaAoSair) o.exPerm = true; } if (de === 'cemiterio' && P.face === 0 && temAftermath(M.carta(o.n))) o.exPerm = true; o.conjDe = de; o.conjPrinc = e.turno.ativo === j && ['principal1', 'principal2'].includes(e.turno.passo);   // CR 601.2a (o mover zera a face); conjDe: de que zona foi conjurada
-    o.pil = { x, alvos, modos, ctrl: j, opc, de, ...(conc ? { conc } : {}), ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}), ...(P.suspensa ? { susp: true } : {}) };
+    o.pil = { x, alvos, modos, ctrl: j, opc, de, ...(conc ? { conc } : {}), ...(encJ !== undefined ? { encJog: encJ } : {}), ...(sacLki.length ? { sac: sacLki } : {}), ...(fuga ? { fuga: fuga.comMarc || true } : {}), ...(P.suspensa ? { susp: true } : {}) };
     { const J = e.jogs[j]; J.conjT = { t: e.turno.n, n: (J.conjT && J.conjT.t === e.turno.n ? J.conjT.n : 0) + 1 };
       J.conjH = { t: e.turno.n, l: [...(J.conjH && J.conjH.t === e.turno.n ? J.conjH.l : []), { ...o }] }; }   // as mágicas do turno (cópia rasa na pilha): "a primeira mágica não-criatura" (Esper Sentinel)   // conta magiasNoTurno (Aetherflux, Dreamtide Whale)
     const antes = e.conjTodas && e.conjTodas.t === e.turno.n ? e.conjTodas.n : 0; e.conjTodas = { t: e.turno.n, n: antes + 1 };   // de todos os jogadores (tempestade, 702.40a)
@@ -1270,6 +1281,7 @@ const PROC = {
     if (a._ciclar) M.evento(e, { ev: 'cicla', id: o.id, j });       // CR 702.29: "quando você ciclar" (Magmakin Artillerist)
     if (a.lealdade !== undefined) { o.marc.lealdade = (o.marc.lealdade || 0) + a.lealdade; o.lealTurno = e.turno.n; }   // CR 606.4
     if (a.limite === 'umaPorTurno') (o.usos = o.usos || {})[P.k] = e.turno.n;
+    if (a.limite === 'vangloriar') { const u = (o.vang = o.vang || {})[P.k]; o.vang[P.k] = { t: e.turno.n, n: u && u.t === e.turno.n ? u.n + 1 : 1 }; }
     M.log(e, e.jogs[j].nome, 'ativa', o.n, descAlvos(e, alvos));
     M.evento(e, { ev: 'ativa', id: o.id, j });                        // 602.2: ativou (não de mana: aquela vai por manaEsc/mana.ts) — Runic Armasaur
     M.agiu(e, j);
@@ -1352,8 +1364,11 @@ function tirarDaPilha(e, o, resolveu?, ask?) {
     const baixo = o.faceBaixo ? o.viradaComo || 'metamorfose' : null;   // 708.4: a mágica virada entra virada
     const conc = c0 && M.alvoLegal(e, ALVO_CONC, c0, { voce: o.pil.ctrl, este: o.id }) ? c0 : null;   // 702.103e: alvo ilegal → resolve como criatura
     if (c0 && !conc) M.log(e, o.n, 'alvo da concessão ilegal: entra como criatura (702.103e)');
+    const encJ = o.pil.encJog;
+    if (encJ !== undefined && !M.vivos(e).includes(encJ)) { o.pil = null; M.mover(e, o.id, 'cemiterio'); M.log(e, o.n, 'alvo ilegal: não resolve (608.2b)'); return; }   // o jogador saiu do jogo
     o.pil = null;
     const ent = M.aplicarEntrada(e, { ...plano, conj, x, conjDe: deZ || 'mao', conjurada: true, conc, baixo });   // conjurada já na entrada: o "if you cast it" do gatilho de entrar é lido aí (603.4)
+    if (ent && encJ !== undefined) { ent.encJog = encJ; M.log(e, ent.n, 'encanta', e.jogs[encJ].nome); }   // 303.4a
     if (ent) { ent.conjurada = true; ent.conjDe = deZ || 'mao'; ent.xConj = x; }   // xConj: o X da mágica para o gatilho de entrada (CR 107.3m);     // conjDe: de que zona ("if you cast it from your hand", Cyclone Summoner); filtro conjurada: The One Ring, Tiamat, Zacama ("when you cast it" / "if you cast it")
     if (conj && conj.iminente && ent) { const k = iminenteDe(M.dadoBase(e, ent)); if (k) ent.marc.time = (ent.marc.time || 0) + k.n; }   // 702.176a: entra com N marcadores de tempo
     if (conj && conj.investida && ent) {   // 702.109a: pressa enquanto estiver no campo; no começo do próximo passo final volta à mão do dono
@@ -1463,7 +1478,7 @@ M.anular = (e, id) => {
 
 function lkiDe(e, o) {
   return { id: o.id, ts: o.ts, n: o.n, ctrl: o.ctrl, dono: o.dono, poder: M.poder(e, o), resist: M.resistencia(e, o), vm: M.dadoDe(e, o).vm || 0, marc: { ...o.marc }, transf: o.transf || 0, face: o.face ?? null, ...(o.zona === 'pilha' && o.pil && o.pil.manaGasta !== undefined ? { manaGasta: o.pil.manaGasta } : {}),
-    ...(o.zona === 'campo' ? { anexos: M.anexosDe(e, o).map(x => ({ id: x.id, ts: x.ts })) } : {}) };   // os presos a ela ("attached to [it]" depois que saiu)
+    ...(o.zona === 'campo' ? { anexos: M.anexosDe(e, o).map(x => ({ id: x.id, ts: x.ts })) } : {}), ...(o.encJog !== undefined ? { encJog: o.encJog } : {}) };   // encJog: o jogador que a Aura encantava (303.4a)   // os presos a ela ("attached to [it]" depois que saiu)
 }
 M.lkiDe = lkiDe;
 function descAlvos(e, alvos) {

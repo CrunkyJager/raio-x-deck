@@ -7300,6 +7300,7 @@ caso('106.4', "firebending 1 (ficha da Firebender Ascension): ao atacar, {R} que
   const f = e.campo.map(id => e.objs[id]).find(o => o.ficha && o.ctrl === 0); ok(!!f, 'a ficha 2/2');
   ate(e, 'atacar'); const pare = x => x.jogs[0].reserva.R > 0 || x.turno.passo === 'principal2';
   M.responder(e, e.perg.ops.findIndex(x => x.a === 'atacar' && x.id === f.id), pare); if (e.perg && e.perg.tipo === 'atacar') M.responder(e, e.perg.ops.findIndex(x => x.a === 'pronto'), pare);
+  for (let g = 0; g < 20 && !pare(e) && e.perg; g++) M.responder(e, e.perg.tipo === 'acao' ? e.perg.ops.findIndex(o => o.a === 'passar') : M.agenteBasico()(e, e.perg), pare);   // a Ascension também dispara (disparaAtacando): ordem dos gatilhos
   igual(e.jogs[0].reserva.R, 1, 'firebending: +R');
   e.turno.passo = 'atacantes'; M.esvaziarReservas(e); igual(e.jogs[0].reserva.R, 1, 'fica entre etapas do combate');
   e.turno.passo = 'fimCombate'; M.esvaziarReservas(e); igual(e.jogs[0].reserva.R, 0, 'some no fim do combate');
@@ -7328,6 +7329,46 @@ caso('510.2', "Gollum, Obsessed Stalker: no seu passo final, só o oponente que 
   const v1 = f.jogs[1].vida, v2 = f.jogs[2].vida;
   passarAte(f, 'final'); M.avancar(f, x => x.turno.passo !== 'final'); if (f.perg && f.pilha.length) resolve(f);
   igual([v1 - f.jogs[1].vida, v2 - f.jogs[2].vida], [3, 0], 'só o 1 perde 3');
+});
+
+caso('702.142a', "vangloriar (Axgard Braggart): só depois de atacar e uma vez por turno; com Birgi, duas no seu turno (desvira e +1/+1 cada vez)", () => {
+  for (const comBirgi of [false, true]) {
+    const e = combate([...terras(5, 'Plains'), [0, 'Axgard Braggart'], ...(comBirgi ? [[0, 'Birgi, God of Storytelling']] : [])]);
+    const a = objN(e, 0, 'Axgard Braggart'), k = M.atvDe(e, a).findIndex(x => x.limite === 'vangloriar');
+    ok(k >= 0, 'tem o boast'); ok(!M.podeAtivar(e, 0, a, k), 'não atacou: não ativa');
+    ate(e, 'atacar'); atacaCom(e, a, { jog: 1 }); fecha(e, 'atacar');
+    ok(a.virada && M.podeAtivar(e, 0, a, k), 'atacou: ativa');
+    respE(e, o => o.a === 'ativar' && o.id === a.id); resolveCom(e);
+    igual([a.virada, a.marc['+1/+1']], [false, 1], 'desvirou e ganhou o marcador');
+    igual(M.podeAtivar(e, 0, a, k), comBirgi, comBirgi ? 'Birgi: a 2ª pode' : 'uma vez por turno');
+    if (comBirgi) { respE(e, o => o.a === 'ativar' && o.id === a.id); resolveCom(e); igual(a.marc['+1/+1'], 2, 'duas'); ok(!M.podeAtivar(e, 0, a, k), 'a 3ª nunca'); }
+  }
+});
+
+caso('303.4a', "encantar jogador (Fraying Sanity): mira o oponente ao conjurar; no passo final ele mói o tanto de cartas que foram ao cemitério dele neste turno, de qualquer zona (ficha não conta); some se ele sai do jogo (704.5m)", () => {
+  const e = cena({ jogs: 3, campo: [...terras(3, 'Island'), [1, 'Grizzly Bears']], mao: [[0, 'Fraying Sanity']] });
+  M.avancar(e); ok(M.opcoesPrioridade(e, 0).some(o => o.a === 'conjurar'), 'Aura de jogador conjura');
+  conj(e, 'Fraying Sanity'); resolveCom(e, p => p.tipo === 'jogador' ? p.ops.findIndex(o => o.jog === 1) : -1);
+  const fs = objN(e, 0, 'Fraying Sanity'); ok(fs, 'no campo'); igual(fs.encJog, 1, 'encanta o jogador 1');
+  const g = e.jogs[1].zonas.grimorio;
+  M.mover(e, objN(e, 1, 'Grizzly Bears').id, 'cemiterio'); M.mover(e, g[g.length - 1], 'cemiterio');   // do campo e do grimório: 2
+  const ctx = { voce: 0, este: fs.id };
+  igual(M.contar(e, { de: 'turno', o: 'cartasAoCemiterio', quem: 'encantado' }, ctx), 2, 'X = 2');
+  const c0 = e.jogs[1].zonas.cemiterio.length, c2 = e.jogs[2].zonas.cemiterio.length;
+  passarAte(e, 'final'); M.avancar(e, x => x.turno.passo !== 'final'); if (e.perg && e.pilha.length) resolveCom(e);
+  igual([e.jogs[1].zonas.cemiterio.length - c0, e.jogs[2].zonas.cemiterio.length - c2], [2, 0], 'o encantado mói 2, o outro nada');
+  e.jogs[1].saiu = true; M.abe(e); igual(fs.zona, 'cemiterio', 'o encantado saiu: a Aura vai ao cemitério');
+});
+
+caso('603.2', "Firebender Ascension: o atacar de uma criatura sua dispara uma habilidade dela → marcador de missão; com 4+, copia aquela habilidade (Audacious Thief compra 2)", () => {
+  for (const marc of [2, 3]) {
+    const e = combate([[0, 'Firebender Ascension', { obj: {} }], [0, 'Audacious Thief']]);
+    const fa = objN(e, 0, 'Firebender Ascension'), th = objN(e, 0, 'Audacious Thief'); fa.marc.quest = marc; th.doente = false;
+    const m0 = e.jogs[0].zonas.mao.length;
+    ate(e, 'atacar'); atacaCom(e, th, { jog: 1 }); fecha(e, 'atacar'); resolveCom(e);
+    igual(fa.marc.quest, marc + 1, 'um marcador');
+    igual(e.jogs[0].zonas.mao.length - m0, marc + 1 >= 4 ? 2 : 1, marc + 1 >= 4 ? 'copiou: compra 2' : 'sem cópia: compra 1');
+  }
 });
 
 // ---------- rodar ----------
