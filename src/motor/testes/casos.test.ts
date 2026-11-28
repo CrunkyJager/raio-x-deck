@@ -7400,6 +7400,14 @@ caso('115.1', "alvo que volta do cemitério (Marshal's Anthem, Reanimate): o age
   igual(f.objs[p.ops[ag(f, p)].o].n, 'Serra Angel', 'fica comigo: a mais cara de qualquer cemitério');
 });
 
+caso('601.2f', "redução de genérico alcança o X: Ruby Medallion + Fireball com 2 Mountains dá X = 2 (paga {R} + {1}); sem a Medallion, X = 1", () => {
+  const xMax = campo => { const e = cena({ campo: campo.map(n => [0, n]), mao: [[0, 'Fireball']] }); M.avancar(e); conj(e, 'Fireball');
+    for (let g = 0; e.perg && e.perg.tipo !== 'x' && g < 5; g++) M.responder(e, 0);
+    ok(e.perg && e.perg.tipo === 'x', 'pergunta o X'); return Math.max(...e.perg.ops.map(o => o.v)); };
+  igual(xMax(['Mountain', 'Mountain']), 1, 'sem redução');
+  igual(xMax(['Ruby Medallion', 'Mountain', 'Mountain']), 2, 'o {1} a menos sai do X');
+});
+
 // ---------- rodar ----------
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado

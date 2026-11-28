@@ -1125,7 +1125,7 @@ function pagarMana(e, j, pl, custo, x, para?, mag = false) {
   const R0 = M.reservaCom(e, j, para), pg = M.pagarDaReserva(R0, custo, { x, vidaDisp: pl.vida });   // mana restrita (106.6) que bate a mágica
   if (para && pg) { const soma = r => Object.values<number>(r || {}).reduce((a, b) => a + (+b || 0), 0); para.manaGasta = soma(R0) - soma(pg.resto); }   // "the amount of mana spent to cast that spell" (Liberator, 601.2h)
   M.acertarRestrita(e, j, para, pg.resto); M.perderVida(e, j, pg.vida);
-  const sm = (custo.g || 0) + (custo.x || 0) * x + (custo.p || []).length - Math.floor((pg.vida || 0) / 2);   // manas gastas (phyrexiano pago em vida não conta)
+  const sm = Math.max(0, (custo.g || 0) + (custo.x || 0) * x - (custo.xRed || 0)) + (custo.p || []).length - Math.floor((pg.vida || 0) / 2);   // manas gastas (phyrexiano pago em vida não conta)
   return Math.max(0, sm);
 }
 // expend N: "as you spend your Nth total mana to cast spells during a turn" — um evento por limite cruzado
@@ -1236,8 +1236,8 @@ const PROC = {
     M.evento(e, { ev: 'conjura', id: o.id, j, de, fontes: (pl.passos || []).map(p => p.id) });                                      // 601.2i: "quando conjura"
     M.eventosAlvo(e, conc ? [...alvos, [conc]] : alvos, o.id);
     gastar(e, j, pagarMana(e, j, pl, custo, x, o));                                   // CR 601.2h (expend: Wandertale Mentor)
-    if (o.pil) o.pil.manaGasta = M.vmDe(pl.custo || custo) + (custo && custo.x ? custo.x * x : 0);   // "the amount of mana spent to cast that spell" (Mana Sculpt; 601.2h)
-    o.manaGasta ??= M.vmDe(custo) + x * (custo.x || 0);                                // "if no mana was spent to cast it" (Boromir, Warden; 601.2h). Firexiana paga com vida conta como mana (aproximação)
+    if (o.pil) o.pil.manaGasta = M.vmDe(pl.custo || custo) + (custo && custo.x ? Math.max(0, custo.x * x - (custo.xRed || 0)) : 0);   // "the amount of mana spent to cast that spell" (Mana Sculpt; 601.2h)
+    o.manaGasta ??= M.vmDe(custo) + Math.max(0, x * (custo.x || 0) - (custo.xRed || 0));                                // "if no mana was spent to cast it" (Boromir, Warden; 601.2h). Firexiana paga com vida conta como mana (aproximação)
     if (imp.vida) M.perderVida(e, j, imp.vida);
     if (alt && alt.F) { if (alt.vida) M.perderVida(e, j, alt.vida); if (alt.s.limite) alt.F.altUso = { t: e.turno.n, ts: alt.F.ts }; }   // 119.4: vida paga; "uma vez por turno"
     if (cad) pagarFisico(e, j, o, cad, fis);
