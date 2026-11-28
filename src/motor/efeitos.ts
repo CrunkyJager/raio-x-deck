@@ -180,9 +180,11 @@ function entraComMarcadores(e, o, x) {
 // vale uma vez por ficha, 614.5), depois "mais uma" e multiplicar (a ordem boa para o controlador, 616.1). O filtro de
 // cada substituição olha uma amostra do molde (sem entrar no campo).
 const amostraFicha = (j, tok0) => { const tok = M.fichaDe(tok0), n = tok.n || ((tok.sub || []).join(' ') + ' Token').trim(); return { id: -1, n, dono: j, ctrl: j, zona: 'pilha', ts: 0, dano: 0, marc: {}, ficha: { ...tok, n } }; };
-// "you may instead" (Jinnie Fay): a IA troca só ficha de criatura por uma criatura maior (P+R, depois nº de palavras-chave);
-// Tesouro/Pista/Comida ficam (simplificação da escolha, não da regra)
+// "you may instead" (Jinnie Fay, 614.1a): quem cria escolhe (pergunta talvez, op trocaFicha, uma por fonte que bate; a 1ª
+// aceita vale). Sem pergunta (fora de um efeito) e no agente: troca só ficha de criatura por uma criatura maior (P+R, depois
+// nº de palavras-chave) — Tesouro/Pista/Comida ficam.
 const valorFicha = t => { const x = M.fichaDe(t) || {}; return (x.tipos || []).includes('Creature') && x.pt ? (+x.pt[0] || 0) + (+x.pt[1] || 0) + (x.kw || []).length / 10 : -1; };
+M.valeTrocarFicha = (t, por) => { const v = valorFicha(t); return v >= 0 && Math.min(...por.map(valorFicha)) > v; };
 M.criarFichas = (e, j, tok, q, opc: any = {}) => {
   const out: any[] = [];
   if (!(q > 0)) return out;
@@ -196,6 +198,7 @@ M.criarFichas = (e, j, tok, q, opc: any = {}) => {
       const ok = grupo.filter(r => bateM(r, t));
       const obrig = ok.find(r => !r.s.talvez);
       if (obrig) return obrig.s.muda.trocaPor;
+      if (askAtual) { for (const r of ok) if (askAtual(j, 'talvez', [{ a: 'sim' }, { a: 'nao' }], { op: 'trocaFicha', id: r.F.id, de: t, por: r.s.muda.trocaPor }).a === 'sim') return r.s.muda.trocaPor; return [t]; }
       let melhor: any = null, v = valorFicha(t);
       for (const r of ok) { const w = Math.min(...r.s.muda.trocaPor.map(valorFicha)); if (v >= 0 && w > v) { v = w; melhor = r; } }
       return melhor ? melhor.s.muda.trocaPor : [t];
