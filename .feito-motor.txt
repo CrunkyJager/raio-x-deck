@@ -1,0 +1,36 @@
+subst ficha trocaPor | Academy Manufactor, Jinnie Fay | 1539→1541
+custoAd.vida | Toxic Deluge (e −X/−X de Olivia's Wrath/Meathook, que virava 0) | 1541→1542
+custoAtv.porMarcador | Devoted Druid | 1542→1543
+est continuo afeta equipada: conta cores | Conqueror's Flail | 1543→1545
+est continuo tipo e tipo+sub com filtro | Dryad of the Ilysian Grove (JSON: tipo→sub), Ashaya, + outras 1 com o mesmo padrão | 1545→1548
+  nota: dependência 613.8 entre mudanças de tipo com filtro não tratada (Dryad não vê criatura que a Ashaya fez terreno)
+est continuo.kw / continuo.sub: tipo e palavra-chave na mesma estática | Skyknight Squire | 1548→1549
+est custoAlternativo sacrificar | Flare of Fortitude | 1549→1550
+est dobraGatilhoEntrar → dobraGatilho evs entra/causa terreno | Ancient Greenwarden (só JSON) | 1550→1551
+gat.limite / gat.naoPrimeira: primeira mágica não-criatura do turno e compra fora da 1ª da etapa | Esper Sentinel (JSON: limite→primeiraNoTurno), Xyris | 1551→1553
+kw corpo-a-corpo, inclusive dada | Skyhunter Strike Force, Tifa (cobertura: nome de kw com hífen agora é reconhecido) | 1553→1555
+kw posVida, inclusive dada | Indebted Spirit, Ministrant of Obligation, Orzhov Enforcer | 1555→1558
+  AVISO (antes da regra das contagens): já criei PROP_EST 'cores' (Conqueror's Flail, estado.ts) e conta 'oponentesAtacados' (corpo-a-corpo, efeitos.ts) — reestruturar junto
+(merge da main v0.67.0: 1558→1624)
+kw eco | Mogg War Marshal | 1624→1625
+  simplificação: eco não remarca em troca de controle (702.30a fala em 'came under your control')
+op animar (tiraKw) e animar.todosTipos | Shadowspear, Mirror Entity | 1625→1627
+  simplificação: tiraKw tira também kw ganha depois (613.7)
+PRECISA CONTA: quantas vezes esta habilidade resolveu no turno (resolucoesDestaHabNoTurno) — Nissa, Resurgent Animist (op cavar.se) → FEITO depois das contagens: {de:turno, o:resolucoesDestaHab}, contado no PROC.resolver
+op desvirar / virar.qtd: até N escolhidos | Snap (JSON: em todos viradas), Myr Battlesphere (JSON: ate X→qualquer) | 1627→1630
+PULEI: op efeitoTemporario (Tamiyo, Field Researcher) — o −7 é emblema de custoAlternativo grátis com filtro (= motivo 'est custoAlternativo afeta filtro', não meu) e o +1 precisa de gatilho temporário ligado a 2 alvos ('sempre que uma delas causar dano de combate, VOCÊ compra'); dois mecanismos novos, a carta continuaria travada com só um
+op exilar.se / ficha.se: conjuradaCom flashback e 'na sua principal' | Increasing Devotion, Return to Dust (JSON: conjuradaNaPrincipal→fasePrincipal, equivale: a mágica resolve na mesma fase) | 1630→1632
+op mana.so: mana restrita de efeito, com ficaNoTurno | Klauth, Unrivaled Ancient | 1632→1633
+  simplificação: Klauth 'any combination of colors' → uma cor só para toda a mana
+PRECISA CONTA: cartas compradas no turno (compradasNoTurno; J.compT já guarda) — Fists of Flame (op modificar.p) → FEITO depois das contagens: {de:turno, o:compras}
+op mover: filtro semMarcador | Wave Goodbye (JSON: semMarcador:'+1/+1', tirei a falta) | 1633→1635
+op mover.pagando: custo mana + vida; moer lembra as moídas | Ripples of Undeath | 1635→1636
+subst entra sacrificar+marcador | Feasting Hobbit | 1636→1637
+já resolvidos pela main antes de eu chegar: op descobrir.qtd, op mana.qtd, op marcador.qtd
+  correções de passagem: modificar {conta, mult:-1} virava 0 (Olivia's Wrath, Meathook Massacre agora dão −X/−X); moer não guardava as moídas (ctx.movidos)
+  simplificação (escolha da IA, não regra): Jinnie Fay só troca ficha de criatura menor; Tesouro/Pista/Comida ficam
+FIM DO LOTE C: 1539→1637 inteiras no banco (com o merge); partida.js inalterado em todos os commits (26.5/29.5/7.0/36.0, turno 8.7, erros 0)
+AVISO 18:00: op animar.todosTipos (Mirror Entity), op ficha.se (Increasing Devotion) e op virar.qtd (Myr Battlesphere) já estavam feitos e no ar por mim antes da troca (commits 'op animar…', 'op exilar.se / ficha.se…', 'op desvirar / virar.qtd…') — o ADEPTO-F não precisa refazer
+op modificar.p: contagem {de:'turno', o:'compras'} | Fists of Flame | 1637→1639
+op cavar.se: contagem {de:'turno', o:'resolucoesDestaHab'} | Nissa, Resurgent Animist | 1639→1644
+DEPOIS DAS CONTAGENS (18:20): merge origin/main + origin/contagens feito, converte + valida 0 erros; semMarcador agora aceita true (Damning Verdict, já estava no esquema mas o motor não lia) ou tipo; Fists of Flame e Nissa feitos no formato novo. Lote C: 1539→1644. Pendente só Tamiyo (PULEI).

@@ -1,0 +1,28 @@
+subst ficha trocaPor
+custoAd.vida
+custoAtv.porMarcador
+est continuo afeta equipada
+est continuo tipo
+est continuo tipo+sub
+est continuo.kw
+est continuo.sub
+est custoAlternativo sacrificar
+est dobraGatilhoEntrar
+gat.limite
+gat.naoPrimeira
+kw dada corpo-a-corpo
+kw dada posVida
+kw eco
+op animar
+op cavar.se
+op descobrir.qtd
+op desvirar
+op efeitoTemporario
+op exilar.se
+op mana.qtd
+op mana.so
+op marcador.qtd
+op modificar.p
+op mover
+op mover.pagando
+subst entra sacrificar+marcador
