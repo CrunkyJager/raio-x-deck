@@ -2,6 +2,14 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.76.0 — 27/11/2026 · Motor velho sem fichas fantasma; ameaça, eco, bis e fundir pela regra completa (lotes A, D, F, G, H, I, rodada 9)
+Testes: check 0 erros · Vitest 753 passaram · banco valida 0 erros. Motor joga inteiras **1761/1761**.
+**Linha de base nova, de propósito (lote A):** partida Stangg 24.0 | Krenko 30.0 | Lathril 9.5 | Edgar 34.5 | turno 9.0 | erros 0 (era 23.0 | 29.5 | 8.5 | 38.0 | turno 8.9). O Edgar (e Lys Alana, Sigil of the Empty Throne, Primeval Bounty…) criava uma ficha a mais, sem tipo, a cada mágica; "para cada X que você controla" agora conta de verdade (Avenger of Zendikar, Mass Appeal); conjurar por tipo/cor, mana por poder, ward com custo de vida.
+- Mesa (motor novo): ameaça com bloqueio obrigatório, eco depois de trocar de controle, bis ataca aquele oponente, redução de custo genérico abate o X (lote D); pagar vida é decisão do jogador, Leyline na mão inicial é opcional, mentor confere o poder de novo ao resolver, valor de mana da carta fundida = soma das duas (lote F); camada 6 por ordem de chegada, amassar dá o tipo à Armada, ímpeto do suspender só para quem controla (lote H); mana firexiana paga com vida não conta como mana gasta (Boromir dispara), a sala Arena da Undercity incita de verdade (lote I).
+- Ferramenta nova (lote G): `ferramentas/lacunas-novo.mjs` mede o que o motor novo ainda simplifica.
+- Duplicatas: fundir e mentor ficaram os do F (H e I tinham refeito).
+- Para testar: aba Mesa → deck do Edgar Markov (sem ficha sem tipo a cada vampiro), Avenger of Zendikar, carta com mana firexiana contra Boromir, Brisela (Gisela + Bruna).
+
 ## v0.75.0 — 27/11/2026 · Mesa mais justa: erros de regra e combos falsos do motor velho corrigidos; trocar texto, espaçonave, multichute (lotes A, B, C, D, F, G, H, I, rodada 8)
 Testes: check 0 erros · Vitest 736 passaram · banco valida 0 erros. Motor joga inteiras **1761/1761**.
 **Linha de base nova, de propósito:** partida Stangg 23.0 | Krenko 29.5 | Lathril 8.5 | Edgar 38.0 | turno 8.9 | erros 0 (era 26.5 | 29.5 | 7.0 | 36.0 | turno 8.7). Duas causas:

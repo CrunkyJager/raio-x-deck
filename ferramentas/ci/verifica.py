@@ -46,6 +46,11 @@ for dk in ('Stangg', 'Krenko', 'Lathril', 'Edgar'):
     linhas.append(f"| jogável {dk} | {m.group(0) if m else 'falhou'} | 20/20, erros 0 | {'✔' if ok else '✘'} |")
     if not ok: falhas.append(f'jogavel.js {dk} falhou:\n' + out[-1500:])
 
+# 2c) régua do motor novo (lacunas-novo.mjs --confere, ~0,2 s): lê o banco, os 30 decks e as simplificações de src/motor
+rc, out = roda(['node', 'ferramentas/lacunas-novo.mjs', '--confere'])
+linhas.append(f"| lacunas-novo (régua) | {out.strip().splitlines()[-1][:80] if out.strip() else 'falhou'} | ✔ | {'✔' if rc == 0 else '✘'} |")
+if rc: falhas.append('lacunas-novo.mjs --confere falhou:\n' + out[-1500:])
+
 # 3) gabarito de planos (T05/T06): não pode cair
 gab = os.path.join(RAIZ, 'ferramentas/gabarito')
 guarda = {f: open(os.path.join(gab, f), encoding='utf-8').read() for f in ('linha-base.json', 'linha-base.md')}

@@ -1,11 +1,12 @@
 {
- "_nota": "27/11/2026: mana por elfo, menace com lembrete, tipos das fichas, Lathril ganha 10 (motor velho, lote A) + combos falsos do motor velho fora (Sanguine Bond+Vito, drenos sem evento 603.2, Krenko+Skirk+Tremors, lote D): 23.0|29.5|8.5|38.0 turno 8.9. Antes: Linha de base da T08 (24/11/2026: custo de sacrifício e trava no motor). Melhorou de propósito → atualizar aqui no mesmo commit.",
+ "_nota": "27/11/2026 rodada 9 (lote A, varredura do motor velho, ferramentas/varre-motor-velho.js): ficha de gatilho com tipo e sem dobrar (Edgar/Lys Alana criavam ficha sem tipo em toda mágica), 'for each' vira contagem, conjurar noncreature/cor/histórico, mana por poder, ward com custo de vida; Abomination of Llanowar com vigilância/ameaça no motor velho: 24.0|30.0|9.5|34.5 turno 9.0. Antes: 23.0|29.5|8.5|38.0 t8.9 (combos falsos fora, lote D). Melhorou de propósito → atualizar aqui no mesmo commit.",
  "testa": "161/161",
- "partida": {"Stangg": 23.0,
-  "Krenko": 29.5,
-  "Lathril": 8.5,
-  "Edgar Markov": 38.0,
-  "turno": 8.9
+ "partida": {
+  "Stangg": 24.0,
+  "Krenko": 30.0,
+  "Lathril": 9.5,
+  "Edgar Markov": 34.5,
+  "turno": 9.0
  },
  "gabarito": {
   "exato": 10,

@@ -30,7 +30,15 @@ const VIRADA = { n: '', tipos: ['Creature'], pt: [2, 2], custo: {}, vm: 0, cores
 const VIRADA_RESG = { ...VIRADA, kw: [{ k: 'resguardo', custo: { g: 2 } }] };
 M.dadoVirada = o => o.viradaComo === 'disfarce' || o.viradaComo === 'ocultar' ? VIRADA_RESG : VIRADA;
 M.viradaBaixo = o => !!o && !!o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha');
-M.dadoBase = (e, o) => o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha') ? M.dadoVirada(o) : o.ficha ? o.ficha : o.clone ? o.clone : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
+M.dadoBase = (e, o) => o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha') ? M.dadoVirada(o) : o.ficha ? o.ficha : o.clone ? o.clone : o.face == null ? M.carta(o.n) : o.fundidaCom && o.zona === 'campo' ? dadoFundida(e, o) : M.dadoFace(M.carta(o.n), o.face);
+// fundida (meld, 712.8g): o valor de mana é a soma dos das frentes das duas cartas (a face de trás não tem custo)
+const FUNDIDA = new Map<string, any>();
+const dadoFundida = (e, o) => {
+  const d = M.dadoFace(M.carta(o.n), o.face), P = e.objs[o.fundidaCom.id]; if (!P) return d;
+  const k = o.n + '\u0000' + P.n + '\u0000' + o.face;
+  let r = FUNDIDA.get(k); if (!r) FUNDIDA.set(k, (r = { ...d, vm: (M.carta(o.n).vm || 0) + (M.carta(P.n).vm || 0) }));
+  return r;
+};
 // camada 4 (tipo) e 7b (P/R fixado), só no campo: o.anim (op animar, preso ao objeto: mesmo ts) e a estática
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
 // que muda é guardado por dado base + mudança (WeakMap), então ler continua sem alocar.
@@ -117,12 +125,6 @@ M.gatAnel = (e, o) => M.ehPortador(e, o) ? ANEL_GATS[Math.min(4, e.jogs[o.ctrl].
 M.ehClasse = d => (d.kw || []).some(x => x.k === 'classe');
 // animar enquantoNoCampo: vale enquanto a fonte (mesmo objeto, ts) está no campo sob o mesmo controlador (611.2b)
 const animFonteOk = (e, s) => { const F = e.objs[s.id]; return !!F && F.zona === 'campo' && F.ts === s.ts && (s.ctrl === undefined || F.ctrl === s.ctrl); };   // sem ctrl: "enquanto esta permanecer no campo" (Tidebinder)
-// fundida (712.8g): o valor de mana é a soma dos das duas frentes (a dela e a da parceira exilada), não o da face de trás
-const VM_FUND = new WeakMap<any, Map<number, any>>();
-const comVmFundida = (d, o, P) => {
-  const vm = (M.carta(o.n).vm || 0) + (P ? M.carta(P.n).vm || 0 : 0); if (d.vm === vm) return d;
-  let m = VM_FUND.get(d); if (!m) VM_FUND.set(d, (m = new Map())); let r = m.get(vm); if (!r) m.set(vm, (r = { ...d, vm })); return r;
-};
 // troca de texto (CR 612, camada 3 = 613.1c): o.texto [{ts, de, para}] troca a palavra de tipo de criatura em todo o
 // dado (linha de tipo e texto: sub, filtros, fichas criadas); o nome não muda. Guardado por dado + troca (WeakMap)
 const TEXTO = new WeakMap<object, Map<string, any>>();
@@ -149,7 +151,6 @@ M.dadoDe = (e, o) => {
   let d = M.dadoBase(e, o);
   if (o.zona !== 'campo') return o.zona === 'pilha' && o.pil && o.pil.conc ? comoAura(d) : d;
   if (o.proto) d = comProto(d);   // 702.103b: mágica concedida é de Aura
-  if (o.fundidaCom) d = comVmFundida(d, o, e.objs[o.fundidaCom.id]);   // 712.8g: VM da fundida = soma das frentes
   if (o.nivel > 1 && d.niveis) d = comNivel(d, o.nivel);
   if (o.texto) for (const t of o.texto) if (t.ts === o.ts) d = comTexto(d, t.de, t.para);   // camada 3 (613.1c), antes da 4
   const A = o.anim;
@@ -666,7 +667,8 @@ M.comprar = (e, j, qtd = 1, opc: any = {}) => {
     const id = g[g.length - 1];
     M.mover(e, id, 'mao');
     J.compT = { t: e.turno.n, n: (J.compT && J.compT.t === e.turno.n ? J.compT.n : 0) + 1 };
-    // milagre (702.94): a primeira compra do turno com milagre é revelada (simplificação: sempre) e o gatilho vai para a pilha
+    // milagre (702.94a): a primeira compra do turno com milagre é revelada e o gatilho vai para a pilha; revelar é opcional,
+    // mas não revelar só equivale a recusar a conjuração no gatilho (o "may cast" da resolução)
     if (J.compT.n === 1 && e.pend && e.turno.passo !== 'mulligan' && M.milagreDe(e, e.objs[id])) { const o = e.objs[id]; e.pend.push({ fonte: id, ts: o.ts, ctrl: j, k: 'milagre', g: GAT_MILAGRE, n: o.n, face: null, ficha: null, lki: M.lkiDe(e, o), ev: { ev: 'compra', j } }); M.log(e, J.nome, 'revela', o.n, '(milagre)'); }
     // a 1ª compra na própria etapa de compra (Xyris: "except the first one they draw in each of their draw steps", 504.1)
     const etapa = e.turno.passo === 'compra' && e.turno.ativo === j;
@@ -693,6 +695,7 @@ M.recalcCtrl = e => {
       const ult = e.ctrlEf.filter(c => c.id === id && c.ts === o.ts).pop(), novo = ult ? ult.j : o.ctrl0;
       if (novo === o.ctrl || e.jogs[novo].saiu) continue;
       o.ctrl = novo; o.doente = true; mudou = true;
+      if ((M.dadoDe(e, o).kw || []).some(x => x.k === 'eco')) o.eco = true;   // 702.30a: "came under your control since your last upkeep" vale para troca de controle
       const C = e.turno.combate;
       if (C) { C.atk = C.atk.filter(a => a.id !== id); for (const a of C.atk) if (a.bloq) a.bloq = a.bloq.filter(b => b.id !== id); }
       M.log(e, e.jogs[novo].nome, 'ganha o controle de', o.n);
@@ -992,7 +995,7 @@ function camadas(e, o, lote?: any[]) {
   if (!fontes.length && !temp.length) return NADA;
   lendoCamada++;
   try {
-    let p = 0, r = 0, base: number[] | undefined; const kw: any[] = [], kts: number[] = [], gat: any[] = [], atv: any[] = [], tira: { k: string; ts: number }[] = [];   // kts/tira.ts: timestamp de cada ganho/perda (613.7)
+    let p = 0, r = 0, base: number[] | undefined; const kw: any[] = [], kts: number[] = [], gat: any[] = [], atv: any[] = [], tira: string[] = [], tiraTs: number[] = [];
     const P = FC.ph.length || o.anim ? perdeTs(e, o, FC) : 0;   // perdeu tudo (613.1f): o dado antes disso não vale (613.7)
     for (const [x, s] of fontes) {
       const F = typeof x === 'object' ? x : e.objs[x];
@@ -1006,12 +1009,12 @@ function camadas(e, o, lote?: any[]) {
       if (s.r !== undefined) r += qtdCamada(e, s, s.r, F, ctx, o);
       if (P && (F.ts || 0) < P) continue;   // camada 6 mais velha que a perda
       for (const x of s.kw || []) { if (x.de !== 'escolhido') { kw.push(x); kts.push(F.ts || 0); continue; } const v = F.escolha && (F.escolha.tipoCarta || F.escolha.cor); if (v) { kw.push(kwEscolhido(x, v)); kts.push(F.ts || 0); } }   // "protection from the chosen card type/color" (Serra's Emissary): o que a fonte escolheu ao entrar
-      for (const x of s.tiraKw || []) tira.push({ k: x.k, ts: F.ts || 0 });   // estática: o timestamp da fonte (613.7a)
+      for (const x of s.tiraKw || []) { tira.push(x.k); tiraTs.push(F.ts || 0); }
       if (s.habil) { for (const g of s.habil.gat || []) gat.push(g); for (const a of s.habil.atv || []) atv.push(a); }
     }
     const T = temp.length ? somaTemp(temp).get(o.id + ':' + o.ts) : undefined;
-    if (T) { p += T.p; r += T.r; T.kw.forEach((x, k) => { if (!P || T.kts[k] >= P) { kw.push(x); kts.push(T.kts[k]); } }); }
-    return { p, r, kw, kts, gat, atv, ...(tira.length ? { tira } : {}), ...(T && T.base ? { base: T.base } : base ? { base } : {}) };   // o de resolução (Sephiroth) é o mais novo
+    if (T) { p += T.p; r += T.r; T.kw.forEach((x, k) => { if (!P || T.kts[k] >= P) { kw.push(x); kts.push(T.kts[k] || 0); } }); }
+    return { p, r, kw, kts, gat, atv, ...(tira.length ? { tira, tiraTs } : {}), ...(T && T.base ? { base: T.base } : base ? { base } : {}) };   // o de resolução (Sephiroth) é o mais novo
   } finally { lendoCamada--; }
 }
 M.camadas = camadas;
@@ -1029,22 +1032,22 @@ M.qtdEst = (e, q0, ctx) => {
 const MARC_KW = { flying: 'voar', 'first strike': 'primeiroAtaque', 'double strike': 'golpeDuplo', deathtouch: 'toqueMortifero', haste: 'pressa', hexproof: 'antimagia',
   indestructible: 'indestrutivel', lifelink: 'vinculoVida', menace: 'ameaca', reach: 'alcance', trample: 'atropelar', vigilance: 'vigilancia' };
 M.MARC_KW = MARC_KW;
+// Camada 6 em ordem de timestamp (CR 613.7, 613.1f): "perde X" só tira o X dado antes dele (impresso, estática de fonte
+// mais velha, efeito de resolução anterior); o X dado depois (Heroic Intervention depois da Shadowspear) fica.
+// Perdas: estática tiraKw (ts da fonte, Colossus Hammer) e o.anim.tiraKw (tE da resolução, Shadowspear).
 M.kwDe = (e, o) => {
-  let b = M.dadoDe(e, o).kw || []; const C: any = camadas(e, o), c = C.kw;
-  // camada 6 em ordem de timestamp (613.7): "perde X" tira o X impresso e os dados antes dele; o ganho depois vale.
-  // ts de cada palavra-chave: a da carta = −∞; a do animar (o.anim, mesmo objeto) = tE; estática = fonte; temporária = efeito
+  const d = M.dadoDe(e, o); let b = d.kw || []; const C: any = camadas(e, o), c = C.kw;
+  const tiras: [string, number][] = (C.tira || []).map((k, i) => [k, C.tiraTs[i]]);
   const anim = o.anim && o.zona === 'campo' ? o.anim.filter(a => a.ts === o.ts) : [];
-  const tira: { k: string; ts: number }[] = [...(C.tira || [])];
-  for (const a of anim) if (a.tiraKw) for (const k of a.tiraKw) tira.push({ k, ts: a.tE || 0 });   // "perde antimagia e indestrutível" (Shadowspear)
-  if (!tira.length) {
-    if (c.length) b = b.concat(c);
-  } else {
-    const tsAnim = new Map<any, number>(); for (const a of anim) for (const x of a.kw || []) tsAnim.set(x, a.tE || 0);
-    const vale = (x, ts) => !tira.some(t => t.k === x.k && t.ts >= ts);   // empate: a perda vale (mesmo efeito/fonte)
-    b = b.filter(x => vale(x, tsAnim.has(x) ? tsAnim.get(x) : -Infinity));
-    c.forEach((x, i) => { if (vale(x, C.kts[i])) b = b.concat([x]); });
-  }
-  if (o.zona === 'campo' && o.marc && !perdeu(e, o)) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m] && !tira.some(t => t.k === MARC_KW[m])) b = b.concat([{ k: MARC_KW[m] }]);   // perdeu tudo/perde X: o marcador ficou, a palavra-chave não (simplificação: marcador posto antes, 122.1b)
+  for (const a of anim) if (a.tiraKw) for (const k of a.tiraKw) tiras.push([k, a.tE || 0]);
+  if (tiras.length) {
+    const tsAnim = new Map<any, number>(); for (const a of anim) if (a.kw && !a.semHab) for (const x of a.kw) tsAnim.set(x, a.tE || 0);
+    const vive = (x, t) => !tiras.some(([k, T]) => k === x.k && t < T);
+    b = b.filter(x => vive(x, tsAnim.get(x) || 0)).concat(c.filter((x, i) => vive(x, C.kts[i] || 0)));
+  } else if (c.length) b = b.concat(c);
+  // marcador de palavra-chave (122.1b): perdeu tudo, o marcador fica e a palavra-chave não; a perda de uma palavra-chave
+  // não tira a do marcador (o momento em que o marcador foi posto não é guardado)
+  if (o.zona === 'campo' && o.marc && !perdeu(e, o)) for (const m in o.marc) if (o.marc[m] > 0 && MARC_KW[m]) b = b.concat([{ k: MARC_KW[m] }]);
   return b;
 };
 // "cada card de Sliver na sua mão tem ciclo de Sliver {3}" (Homing Sliver): as camadas só olham o campo, então a

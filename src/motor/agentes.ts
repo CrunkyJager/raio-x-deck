@@ -82,6 +82,9 @@ const basico = (e, p) => {
         if (op.baixo) { if (meu && !p.ops.some(x => x.a === 'conjurar' && x.id === op.id && !x.baixo) && 3 > bv) { bv = 3; b = i; } return; }   // 702.37c: virada por {3} só quando não dá para conjurar normal
         const d = dOp(op), inst = (d.tipos || []).includes('Instant');
         if (!meu && !inst) return;
+        const vida = op.semVida ? 0 : M.vidaConj(e, p.j, o(op.id), op.face);   // 118.9/119.4: pagar vida no lugar da mana só se sobrar mais de 10
+        if (vida && e.jogs[p.j].vida - vida <= 10) return;
+        if (op.semVida && e.jogs[p.j].vida - M.vidaConj(e, p.j, o(op.id), op.face) > 10 && p.ops.some(x => x.a === 'conjurar' && x.id === op.id && x.face === op.face && !x.semVida)) return;   // com vida sobrando, paga a vida e guarda a mana
         if (inst && !d.alvos && !meu) return;            // instantânea sem alvo: no próprio turno
         if ((d.vm || 0) > bv) { bv = d.vm || 0; b = i; }
       });
@@ -140,6 +143,7 @@ const basico = (e, p) => {
         let v;
         if (op.a === 'pronto') v = -1;
         else if (op.jog !== undefined) v = p.ctx && p.ctx.paraSi ? (op.jog === p.j ? 1000 : 0) : op.jog === p.j ? -5 : 100 - e.jogs[op.jog].vida;   // paraSi: virar monarca (Éomer)
+        else if (p.ctx && p.ctx.traz) { const x = o(op.o); v = (p.ctx.traz === 'voce' || x.dono === p.j ? 10 + (M.dadoDe(e, x).vm || 0) : -100); }   // traz de volta: a minha (ou qualquer, se fica comigo), a mais cara
         else { const x = o(op.o); v = (x.ctrl === p.j ? -10 : 10) + (M.dadoDe(e, x).vm || 0); }
         if (v > bv) { bv = v; b = i; }
       });

@@ -1193,6 +1193,17 @@ caso('601.2f', 'reduzCusto do campo: a mágica do filtro custa {1} a menos, só 
   M.avancar(e); conj(e, 'Cena Goblin');
   ok(noCampo(e).includes('Cena Goblin') || e.pilha.some(id => e.objs[id].n === 'Cena Goblin'), 'conjurou com uma Montanha: ' + JSON.stringify(e.log.slice(-4)));
 });
+caso('601.2f', 'redução de genérico abate do X (o X entra no total antes das reduções): Fireball {X}{R} com {2} a menos, X=2 com uma Montanha', () => {
+  db['Cena Redutor'] = { n: 'Cena Redutor', custo: { g: 2 }, tipos: ['Artifact'], vm: 2, ci: '',
+    est: [{ modo: 'reduzCusto', afeta: { tipo: ['Sorcery'], ctrl: 'voce', zona: 'pilha' }, qtd: 2 }] };
+  const e = cena({ campo: [[0, 'Cena Redutor'], [0, 'Mountain']], mao: [[0, 'Fireball']] });
+  const c = M.custoComImposto(e, naMao(e, 0, 'Fireball'));
+  igual([c.redX, c.g || 0, c.p], [2, 0, ['R']]);
+  ok(!!M.planoMana(e, 0, c, { x: 2 }), 'X=2 cabe com uma Montanha');
+  ok(!M.planoMana(e, 0, c, { x: 3 }), 'X=3 não');
+  M.avancar(e); conj(e, 'Fireball');
+  if (e.perg && e.perg.tipo === 'x') igual(e.perg.ops.map(o => o.v)[0], 2, 'o maior X oferecido é 2');
+});
 caso('601.2f', 'reduzCusto afeta este de mao: conta o campo; fora da mão não vale; qtd com prop não é lida', () => {
   db['Cena Grandão'] = { n: 'Cena Grandão', custo: { g: 6, p: ['G'] }, cores: 'G', tipos: ['Creature'], pt: [8, 8], vm: 7, ci: 'G',
     est: [{ modo: 'reduzCusto', afeta: 'este', de: 'mao', qtd: { conta: { tipo: ['Creature'], ctrl: 'voce', zona: 'campo' } } }] };
@@ -1373,6 +1384,30 @@ caso('509.1c', 'bloqueio obrigatório: deveBloquear de modificar (Brutal Hordech
   if (!(f.perg && f.perg.tipo === 'bloquear')) ate(f, 'bloquear');
   igual([opsDe(f, 'pronto').length, opsDe(f, 'bloquear').filter(o => o.id === hg.id).map(o => f.objs[o.atk].n)], [0, ['Llanowar Elves']]);
   const k = M.agenteBasico()(f, f.perg); igual(f.perg.ops[k].a, 'bloquear', 'o agente cumpre');
+});
+db['Cena Ameacador'] = { n: 'Cena Ameacador', custo: { g: 1, p: ['R'] }, cores: 'R', tipos: ['Creature'], sub: ['Goblin'], pt: [2, 2], vm: 2, ci: 'R', kw: [{ k: 'ameaca' }] };
+caso('509.1c', 'bloqueio obrigatório contra ameaça (702.110b): com outra candidata, as duas bloqueiam; sozinha, não força', () => {
+  const monta = defs => {
+    const e = combate([[0, 'Cena Ameacador'], ...defs.map(n => [1, n])]);
+    ate(e, 'atacar');
+    const hg = objN(e, 1, 'Hill Giant');
+    M.executar(e, { op: 'modificar', em: { alvo: 0 }, est: [{ modo: 'deveBloquear', afeta: 'este' }], dura: 'fimDoTurno' },
+      { voce: 0, este: hg.id, alvos: [[{ o: hg.id, ts: hg.ts }]], ilegal: {}, lki: { alvos: [] }, ev: {} }, null);
+    atacaCom(e, objN(e, 0, 'Cena Ameacador')); fecha(e, 'atacar');
+    if (!(e.perg && e.perg.tipo === 'bloquear')) ate(e, 'bloquear');
+    return e;
+  };
+  const e = monta(['Hill Giant', 'Elvish Mystic']);
+  igual([opsDe(e, 'pronto').length, e.perg.ctx.devem.length], [0, 1], 'com ajudante, o requisito vale');
+  bloqueia(e, objN(e, 1, 'Hill Giant'), objN(e, 0, 'Cena Ameacador'));
+  if (e.perg && e.perg.tipo === 'bloquear') igual([opsDe(e, 'pronto').length, opsDe(e, 'desfazer').length], [0, 0], 'presa sozinha: não fecha nem desfaz');
+  if (e.perg && e.perg.tipo === 'bloquear') bloqueia(e, objN(e, 1, 'Elvish Mystic'), objN(e, 0, 'Cena Ameacador'));
+  if (e.perg && e.perg.tipo === 'bloquear') pronto(e);
+  igual(e.turno.combate.atk[0].bloq.length, 2, 'as duas bloquearam (opção única: o núcleo junta a outra)');
+  const f = monta(['Hill Giant']);
+  igual(opsDe(f, 'pronto').length, 1, 'sem ajudante: bloquear sozinha é ilegal, o requisito cai');
+  const g = monta(['Hill Giant', 'Elvish Mystic']);
+  const k = M.agenteBasico()(g, g.perg); igual(g.perg.ops[k].a, 'bloquear', 'o agente cumpre');
 });
 caso('205.3m', 'tipoEmComum: tipo de criatura em comum com este, filtro ou comandante; metamorfo tem todos; não-criatura não tem', () => {
   const e = cena({ campo: [[0, 'Llanowar Elves'], [0, 'Elvish Mystic'], [0, 'Grizzly Bears'], [0, 'Mirror Entity'], [0, 'Forest']] });
@@ -3496,6 +3531,11 @@ caso('701.47', "amassar: sem Armada cria a ficha 0/0 com o tipo e põe os marcad
   igual(ars().length, 1, 'não cria outra');
   igual(M.poder(e, a), 3, '+2 na mesma');
   ok(M.dadoDe(e, a).sub.includes('Zombie'), 'virou Zombie também');
+  ok(!(a.ficha.sub || []).includes('Zombie'), '701.47a: o tipo a mais não é valor copiável da ficha');
+  const f = cena({ campo: [[0, 'Grizzly Bears']] }), gb = objN(f, 0, 'Grizzly Bears');
+  gb.anim = [{ ts: gb.ts, sub: ['Army'], fim: null, tE: ++f.ts }]; f.vCamada = (f.vCamada || 0) + 1;
+  M.executar(f, { op: 'amassar', quem: 'voce', sub: ['Orc'], qtd: 1 }, { voce: 0, alvos: [], ilegal: {}, lki: {} }, () => ({ a: 'nao' }));
+  igual([f.campo.length, gb.marc['+1/+1'], M.dadoDe(f, gb).sub.includes('Orc')], [1, 1, true], '701.47a: Armada que não é ficha também vira Orc');
 });
 caso('701.47a', "amassar numa Armada que não é ficha (Grizzly Bears que virou Army): ela ganha o tipo também; ao sair do campo e voltar, não", () => {
   const e = cena({ campo: [[0, 'Grizzly Bears']] });
@@ -4057,31 +4097,6 @@ caso('707.10', "magecraft (\"conjura ou copia\"): Archmage Emeritus dispara ao c
   igual(e.pend.length, 0, 'cópia do oponente: não');
 });
 
-caso('702.134', "mentor: ao atacar, +1/+1 numa atacante com poder menor (Legion Warboss 2/2 → a 1/1); a de poder igual não serve", () => {
-  const e = cena({ campo: [[0, 'Legion Warboss'], [0, 'Llanowar Elves'], [0, 'Grizzly Bears']] });
-  const os = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
-  const W = os('Legion Warboss'), Gg = os('Llanowar Elves'), B = os('Grizzly Bears');
-  e.turno.combate = { atk: [W, Gg, B].map(o => ({ id: o.id, ts: o.ts, def: 1 })) };
-  e.pend = [];
-  M.evento(e, { ev: 'ataca', id: W.id, def: 1 });
-  const p = e.pend.find(x => x.k === 'mentor'); ok(p, 'mentor disparou');
-  const f = p.g.alvos[0].f;
-  const cx = { voce: 0, este: W.id };
-  ok(M.bate(e, Gg, f, cx) && !M.bate(e, B, f, cx) && !M.bate(e, W, f, cx), 'só a de poder menor é alvo');
-});
-caso('608.2b', "mentor: o 'poder menor' é revisto ao resolver; se a mentora encolheu até o poder da mirada, o alvo fica ilegal", () => {
-  const e = cena({ campo: [[0, 'Legion Warboss'], [0, 'Llanowar Elves']] });
-  const os = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
-  const W = os('Legion Warboss'), Gg = os('Llanowar Elves');
-  e.turno.combate = { atk: [W, Gg].map(o => ({ id: o.id, ts: o.ts, def: 1 })) };
-  e.pend = [];
-  M.evento(e, { ev: 'ataca', id: W.id, def: 1 });
-  const f = e.pend.find(x => x.k === 'mentor').g.alvos[0].f, cx = { voce: 0, este: W.id };
-  ok(M.bate(e, Gg, f, cx), 'ao mirar: 1 < 2');
-  W.marc = { ...(W.marc || {}), '-1/-1': 1 }; e.vCamada = (e.vCamada || 0) + 1;
-  ok(M.poder(e, W) === 1, 'Warboss encolheu para 1: ' + M.poder(e, W));
-  ok(!M.bate(e, Gg, f, cx), 'ao resolver: 1 não é menor que 1');
-});
 caso('702.175', "prole: pago o custo a mais, a criatura entra e cria uma ficha cópia 1/1 dela; sem pagar, não", () => {
   const e = cena({ campo: [[0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain'], [0, 'Mountain']], mao: [[0, 'Agate Instigator']] });
   M.avancar(e); respE(e, o => o.a === 'conjurar');
@@ -4230,6 +4245,20 @@ caso('702.141', "bis: do cemitério, exila a carta e cria uma ficha cópia por o
   igual(e.campo.filter(id => e.objs[id].n === 'Mist Dancer').length, 0, 'sacrificadas');
 });
 
+caso('702.141a', 'bis: cada ficha ataca aquele oponente se puder (não qualquer um); sem as duas declaradas não fecha', () => {
+  const e = cena({ jogs: 3, campo: enche(7, 'Island').map(n => [0, n]) });
+  const md = e.por(0, 'Mist Dancer', { zona: 'cemiterio' });
+  M.avancar(e); respE(e, o => o.a === 'ativar' && o.id === md.id);
+  for (let g = 0; e.pilha.length && e.perg && g < 10; g++) respE(e, o => o.a === 'passar');
+  const fs = e.campo.map(id => e.objs[id]).filter(o => o.ficha && o.n === 'Mist Dancer');
+  igual(fs.map(o => o.bisJog).sort(), [1, 2], 'uma para cada oponente');
+  ate(e, 'atacar');
+  igual(opsDe(e, 'pronto').length, 0, 'não fecha sem as fichas atacarem');
+  for (const o of fs) igual([...new Set(opsDe(e, 'atacar').filter(x => x.id === o.id).map(x => x.jog))], [o.bisJog], 'só aquele oponente');
+  const ag = M.agenteBasico();
+  for (let g = 0; g < 10 && e.perg && e.perg.tipo === 'atacar'; g++) M.responder(e, ag(e, e.perg), PARA2);
+  igual(fs.map(o => ((e.turno.ataques || []).find(r => r.id === o.id) || {}).def), fs.map(o => o.bisJog), 'o agente cumpre: cada uma no seu');
+});
 caso('702.121', "corpo a corpo: atacando dois oponentes, Tifa ganha +2/+2; atacar só um dá +1/+1", () => {
   const e = cena({ jogs: 3, campo: [[0, 'Tifa, Martial Artist'], [0, 'Grizzly Bears']] });
   const [t, b] = e.campo.map(id => e.objs[id]);
@@ -4297,6 +4326,15 @@ caso('702.30a', "eco: Mogg War Marshal dispara na 1ª manutenção de quem contr
   M.evento(f, { ev: 'fase', passo: 'manutencao', ativo: 0 }); M.avancar(f); resolveCom(f);
   igual(m2.zona, 'cemiterio', 'sem mana: sacrificado');
 });
+caso('702.30a', 'eco depois de troca de controle: quem ganha o controle paga o eco na manutenção dele (veio para o controle dele)', () => {
+  const e = cena({ campo: [[0, 'Mogg War Marshal']] }); e.pend = [];
+  const m = objN(e, 0, 'Mogg War Marshal');
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 0 }); e.pend = [];   // o dono já passou pela manutenção (o eco dele foi)
+  m.ctrl0 = m.ctrl; e.ctrlEf = [{ id: m.id, ts: m.ts, j: 1, fim: 'nunca' }]; M.recalcCtrl(e);
+  igual(m.ctrl, 1, 'o oponente controla');
+  M.evento(e, { ev: 'fase', passo: 'manutencao', ativo: 1 });
+  igual(e.pend.filter(p => p.k === 'eco').map(p => p.ctrl), [1], 'dispara na manutenção do novo controlador');
+});
 
 caso('613.1f', "animar: Shadowspear tira antimagia e indestrutível das permanentes do oponente até o fim do turno; Mirror Entity X=3 faz as suas 3/3 com todos os tipos de criatura", () => {
   for (const c of ['Shadowspear', 'Mirror Entity']) ok(M.carta(c).atv.every(a => M.fxSuportado(a.fx)), c + ' aceito');
@@ -4313,6 +4351,20 @@ caso('613.1f', "animar: Shadowspear tira antimagia e indestrutível das permanen
   M.executar(f, M.carta('Mirror Entity').atv[0].fx[0], { voce: 0, este: objN(f, 0, 'Mirror Entity').id, x: 3, alvos: [], ilegal: {}, lki: {} }, null);
   const b2 = objN(f, 0, 'Grizzly Bears');
   igual([M.poder(f, b2), M.resistencia(f, b2)], [3, 3]); igual(M.tiposCriatura(f, b2), 'todos', 'todos os tipos');
+});
+
+caso('613.7', "camada 6 em ordem de timestamp: a Shadowspear tira antimagia/indestrutível, mas o Heroic Intervention conjurado depois devolve as duas; o Colossus Hammer tira o voar impresso, mas não o voar ganho depois", () => {
+  const e = cena({ campo: [[0, 'Shadowspear'], [1, 'Darksteel Myr']] });
+  const b = objN(e, 1, 'Darksteel Myr');
+  M.executar(e, M.carta('Shadowspear').atv[0].fx[0], { voce: 0, este: objN(e, 0, 'Shadowspear').id, alvos: [], ilegal: {}, lki: {} }, null);
+  ok(!M.temKw(e, b, 'indestrutivel'), 'a Shadowspear tirou o indestrutível impresso');
+  M.executar(e, M.carta('Heroic Intervention').fx[0], { voce: 1, este: -1, alvos: [], ilegal: {}, lki: {} }, null);
+  ok(M.temKw(e, b, 'indestrutivel') && M.temKw(e, b, 'antimagia'), 'o Heroic Intervention é mais novo: ganha as duas');
+  const f = cena({ campo: [[0, 'Serra Angel'], [0, 'Colossus Hammer']] });
+  const A = objN(f, 0, 'Serra Angel'), H = objN(f, 0, 'Colossus Hammer'); H.anexo = { id: A.id, ts: A.ts }; f.vCamada = (f.vCamada || 0) + 1;
+  ok(!M.temKw(f, A, 'voar'), 'equipada: perde o voar impresso');
+  M.executar(f, { op: 'modificar', em: 'este', kw: [{ k: 'voar' }], dura: 'fimDoTurno' }, { voce: 0, este: A.id, alvos: [], ilegal: {}, lki: {} }, null);
+  ok(M.temKw(f, A, 'voar'), 'o voar ganho depois do martelo fica');
 });
 
 caso('701.26', "virar/desvirar 'até N': Snap devolve a criatura e desvira até 2 terrenos; Myr Battlesphere atacando vira os Myr desvirados e ganha +X/+0 e causa X", () => {
@@ -4930,6 +4982,7 @@ caso('610.3', "exilar até esta sair do campo: Grasp of Fate exila; quando sai, 
   igual(h2.zona, 'campo', 'a fonte já tinha saído: nada (610.3c)');
 });
 
+
 caso('701.42', "fundir: Gisela com Bruna no campo vira Brisela (9/10); quando Brisela sai, as duas cartas vão para o cemitério", () => {
   for (const c of ['Gisela, the Broken Blade', 'Mishra, Claimed by Gix']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
   const e = cena({ campo: [[0, 'Gisela, the Broken Blade'], [0, 'Bruna, the Fading Light']] });
@@ -4938,7 +4991,7 @@ caso('701.42', "fundir: Gisela com Bruna no campo vira Brisela (9/10); quando Br
   igual(e.campo.length, 1, 'um permanente só');
   const b = e.objs[e.campo[0]];
   igual(M.dadoDe(e, b).n, 'Brisela, Voice of Nightmares'); igual([M.poder(e, b), M.resistencia(e, b)], [9, 10]);
-  igual(M.dadoDe(e, b).vm, 11, '712.8g: VM da fundida = 4 (Gisela) + 7 (Bruna)');
+  igual(M.dadoDe(e, b).vm, M.carta('Gisela, the Broken Blade').vm + M.carta('Bruna, the Fading Light').vm, '712.8g: valor de mana = soma das frentes (4 + 7)');
   M.mover(e, b.id, 'cemiterio');
   igual(naZona(e, 0, 'cemiterio').sort(), ['Bruna, the Fading Light', 'Gisela, the Broken Blade']);
   const f = cena({ campo: [[0, 'Gisela, the Broken Blade'], [1, 'Bruna, the Fading Light']] });
@@ -6379,14 +6432,6 @@ caso('701.43', "exert / monarca ausente / diferença de poder / metade para cima
   igual([1, 2, 3].map(x => M.qtdDe(h, r, { voce: 0, x, lki: {} })), [1, 1, 2], 'X=1→1, 2→1, 3→2');
 });
 
-caso('103.6a', "Leyline of the Guildpact na mão inicial começa o jogo no campo (depois dos mulligans)", () => {
-  const e = M.novoJogo([{ cartas: Array(40).fill('Leyline of the Guildpact') }, { cartas: enche(40) }], { semente: 3 });
-  M.avancar(e);
-  while (e.perg && (e.perg.tipo === 'mulligan' || e.perg.tipo === 'fundo')) M.responder(e, 0);
-  const n = e.campo.filter(id => e.objs[id].n === 'Leyline of the Guildpact').length;
-  ok(n >= 6 && e.campo.every(id => e.objs[id].ctrl === 0), 'as 7 da mão inicial (menos a comprada depois) no campo: ' + n);
-});
-
 caso('615.1', "Inkshield: previne o dano de combate a você e cria uma Inkling 2/1 voadora para cada 1 prevenido; dano fora de combate passa", () => {
   const ach = x => { if (!x || typeof x !== 'object') return null; if (x.op === 'efeitoTemporario') return x; for (const v of Object.values(x)) { const r = ach(v); if (r) return r; } return null; };
   const e = cena(); e.pend = [];
@@ -7450,6 +7495,87 @@ caso('702.33c', "multikicker (Marshal's Anthem): paga o chute N vezes (opções 
   igual(M.contar(e, { de: 'este', o: 'kicker' }, { voce: 0, este: objN(e, 0, "Marshal's Anthem").id }), 2, 'no campo: chutado 2 vezes');
 });
 
+caso('702.134', "mentor: ao atacar, +1/+1 numa atacante com poder menor (Legion Warboss 2/2 → a 1/1); a de poder igual não serve; o poder menor é rechecado ao resolver (608.2b)", () => {
+  const e = cena({ campo: [[0, 'Legion Warboss'], [0, 'Llanowar Elves'], [0, 'Grizzly Bears']] });
+  const os = n => e.objs[e.campo.find(id => e.objs[id].n === n)];
+  const W = os('Legion Warboss'), Gg = os('Llanowar Elves'), B = os('Grizzly Bears');
+  e.turno.combate = { atk: [W, Gg, B].map(o => ({ id: o.id, ts: o.ts, def: 1 })) };
+  e.pend = [];
+  M.evento(e, { ev: 'ataca', id: W.id, def: 1 });
+  const p = e.pend.find(x => x.k === 'mentor'); ok(p, 'mentor disparou');
+  const f = p.g.alvos[0].f;
+  const cx = { voce: 0, este: W.id };
+  ok(M.bate(e, Gg, f, cx) && !M.bate(e, B, f, cx) && !M.bate(e, W, f, cx), 'só a de poder menor é alvo');
+  Gg.marc['+1/+1'] = 1;   // 608.2b: na resolução vale o poder de então — a Elves 2/2 não é mais menor que o Warboss 2/2
+  ok(!M.bate(e, Gg, f, cx), 'cresceu antes de resolver: alvo ilegal');
+});
+caso('701.42', "fundir: Gisela com Bruna no campo vira Brisela (9/10); quando Brisela sai, as duas cartas vão para o cemitério; valor de mana = soma (712.8g)", () => {
+  for (const c of ['Gisela, the Broken Blade', 'Mishra, Claimed by Gix']) ok(M.carta(c).gat.every(g => M.gatOk(g)), c + ' aceito');
+  const e = cena({ campo: [[0, 'Gisela, the Broken Blade'], [0, 'Bruna, the Fading Light']] });
+  const [gi, br] = e.campo.map(id => e.objs[id]);
+  M.executar(e, M.carta('Gisela, the Broken Blade').gat[0].fx[0], { voce: 0, este: gi.id, alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(e.campo.length, 1, 'um permanente só');
+  const b = e.objs[e.campo[0]];
+  igual(M.dadoDe(e, b).n, 'Brisela, Voice of Nightmares'); igual([M.poder(e, b), M.resistencia(e, b)], [9, 10]);
+  igual(M.dadoDe(e, b).vm, M.carta('Gisela, the Broken Blade').vm + M.carta('Bruna, the Fading Light').vm, '712.8g: valor de mana = soma das frentes (4 + 7)');
+  M.mover(e, b.id, 'cemiterio');
+  igual(naZona(e, 0, 'cemiterio').sort(), ['Bruna, the Fading Light', 'Gisela, the Broken Blade']);
+  const f = cena({ campo: [[0, 'Gisela, the Broken Blade'], [1, 'Bruna, the Fading Light']] });
+  M.executar(f, M.carta('Gisela, the Broken Blade').gat[0].fx[0], { voce: 0, este: f.campo[0], alvos: [], ilegal: {}, lki: {} }, (_j, _t, ops) => ops[0]);
+  igual(f.campo.length, 2, 'Bruna do oponente: não funde');
+});
+
+caso('103.6a', "Leyline of the Guildpact na mão inicial: o jogador escolhe começar o jogo com ela no campo (depois dos mulligans)", () => {
+  const e = M.novoJogo([{ cartas: Array(40).fill('Leyline of the Guildpact') }, { cartas: enche(40) }], { semente: 3 });
+  M.avancar(e);
+  let perguntas = 0;
+  while (e.perg && (e.perg.tipo === 'mulligan' || e.perg.tipo === 'fundo' || e.perg.tipo === 'comecaNoCampo')) { if (e.perg.tipo === 'comecaNoCampo') perguntas++; M.responder(e, e.perg.tipo === 'comecaNoCampo' ? M.agenteBasico()(e, e.perg) : 0); }
+  const n = e.campo.filter(id => e.objs[id].n === 'Leyline of the Guildpact').length;
+  ok(n >= 6 && e.campo.every(id => e.objs[id].ctrl === 0), 'as 7 da mão inicial (menos a comprada depois) no campo: ' + n);
+  igual(perguntas, 7, 'pergunta carta a carta ("you may", 103.6a); o agente diz sim');
+  const f = M.novoJogo([{ cartas: Array(40).fill('Leyline of the Guildpact') }, { cartas: enche(40) }], { semente: 3 });
+  M.avancar(f);
+  while (f.perg && (f.perg.tipo === 'mulligan' || f.perg.tipo === 'fundo' || f.perg.tipo === 'comecaNoCampo')) M.responder(f, f.perg.tipo === 'comecaNoCampo' ? f.perg.ops.findIndex(o => o.a === 'nao') : 0);
+  igual(f.campo.filter(id => f.objs[id].n === 'Leyline of the Guildpact').length, 0, 'dizendo não, ficam na mão');
+});
+
+caso('119.4', "pagar vida no lugar da mana (118.9): a regra só pede vida ≥ pagamento; pagar ou não é do agente (Demon of Fate's Design)", () => {
+  const cena2 = (vida, terras) => { const e = cena({ campo: [[0, "Demon of Fate's Design"], ...terras.map(t => [0, t])], mao: [[0, 'Dragon Tempest']] }); e.jogs[0].vida = vida; M.avancar(e); return e; };
+  const conjs = e => (e.perg.ops as any[]).filter(o => o.a === 'conjurar');
+  const escolha = e => e.perg.ops[M.agenteBasico()(e, e.perg)];
+  igual(conjs(cena2(1, [])).length, 0, '1 de vida: não paga 2 (119.4)');
+  const a = cena2(10, []);
+  igual(conjs(a).map(o => !!o.semVida), [false], '10 de vida: pode pagar (fica com 8)');
+  ok(escolha(a).a !== 'conjurar', 'o agente não paga vida ficando com 10 ou menos');
+  const b = cena2(12, ['Mountain', 'Mountain']);
+  igual(conjs(b).map(o => !!o.semVida), [false, true], 'com mana: as duas formas');
+  ok(escolha(b).semVida === true, 'ficaria com 10: paga a mana');
+  const c = cena2(40, ['Mountain', 'Mountain']);
+  ok(escolha(c).a === 'conjurar' && !escolha(c).semVida, 'com vida sobrando: paga a vida');
+  M.responder(b, b.perg.ops.findIndex(o => o.a === 'conjurar' && o.semVida));
+  for (let g = 0; b.perg && b.perg.tipo !== 'acao' && g < 10; g++) M.responder(b, M.agenteBasico()(b, b.perg));
+  igual(b.jogs[0].vida, 12, 'semVida: não pagou vida');
+  ok(b.pilha.length === 1 || noCampo(b).includes('Dragon Tempest'), 'conjurou pela mana');
+});
+
+caso('115.1', "alvo que volta do cemitério (Marshal's Anthem, Reanimate): o agente básico mira a carta que fica com ele, não a do oponente nem 'pronto'", () => {
+  const e = cena({ campo: enche(8, 'Plains').map(n => [0, n]), mao: [[0, "Marshal's Anthem"]] });   // 8: o multichute cabe (702.33c)
+  e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
+  M.avancar(e); conj(e, "Marshal's Anthem");
+  if (e.perg && e.perg.tipo === 'opcao') respE(e, o => o.v && o.v.chute === 1);   // multichute uma vez (702.33c)
+  const ag = M.agenteBasico(); let viu = false;
+  for (let g = 0; e.perg && g < 40 && !(e.perg.tipo === 'acao' && !e.pilha.length); g++) {
+    if (e.perg.tipo === 'alvo') { viu = true; ok(!!(e.perg.ctx && e.perg.ctx.traz), 'o pedido diz que o efeito traz de volta'); }
+    M.responder(e, ag(e, e.perg));
+  }
+  ok(viu, 'pediu o alvo'); ok(noCampo(e).includes('Grizzly Bears'), 'a Bears voltou (antes: pronto)');
+  const f = cena({ campo: [[0, 'Swamp']], mao: [[0, 'Reanimate']] });
+  f.por(0, 'Llanowar Elves', { zona: 'cemiterio' }); f.por(1, 'Serra Angel', { zona: 'cemiterio' });
+  M.avancar(f); conj(f, 'Reanimate');
+  const p = f.perg; ok(p && p.tipo === 'alvo' && p.ctx.traz === 'voce', 'sob o seu controle');
+  igual(f.objs[p.ops[ag(f, p)].o].n, 'Serra Angel', 'fica comigo: a mais cara de qualquer cemitério');
+});
+
 // ---------- rodar ----------
 // a carta que falta no banco é anotada pelo Proxy; o caso que pediu alguma pula (mesmo que tenha passado ou falhado
 // por causa dela) e o aviso diz quais escrever. Sem falta, erro é erro.
@@ -7636,6 +7762,20 @@ caso('702.62a', 'suspender (Resurgent Belief, sem custo de mana): da mão paga {
   igual(e.objs[rb].zona, 'cemiterio', 'tirou o último: conjurou e resolveu');
   ok(['Phyrexian Arena', 'Rhystic Study'].every(n => noCampo(e).includes(n)), 'os encantamentos voltaram');
 });
+caso('702.62a', "suspender: a criatura conjurada pelo último marcador tem ímpeto só enquanto quem a conjurou a controlar", () => {
+  const c: any = M.carta('Grizzly Bears'), kw0 = c.kw;
+  c.kw = [...(kw0 || []), { k: 'suspender', n: 1, custo: { g: 1 } }];
+  try {
+    const e = cena({ campo: [[0, 'Grizzly Bears', { zona: 'exilio' }]] }); e.pend = [];
+    const gb = e.objs[e.jogs[0].zonas.exilio.find(id => e.objs[id].n === 'Grizzly Bears')]; gb.suspensa = true; gb.marc.time = 1;
+    for (let t = 2; t <= 8 && gb.zona !== 'campo'; t++) ateTurno(e, t);
+    igual(gb.zona, 'campo', 'tirou o último marcador: conjurou e entrou');
+    ok(M.temKw(e, gb, 'pressa'), 'com ímpeto');
+    gb.ctrl0 = gb.ctrl; gb.ctrl = 1; e.vCamada = (e.vCamada || 0) + 1;
+    ok(!M.temKw(e, gb, 'pressa'), 'outro jogador ganhou o controle: sem ímpeto');
+  } finally { c.kw = kw0; }
+});
+
 caso('702.62b', 'suspensa = no exílio com marcador de tempo e suspender; sem custo de suspender pagável não suspende; outra carta no exílio com marcador de tempo não dispara', () => {
   const e = cena({ campo: terras(1, 'Plains'), mao: [[0, 'Resurgent Belief']] }); e.pend = [];
   const rb = e.jogs[0].zonas.mao[0];

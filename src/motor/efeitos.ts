@@ -845,7 +845,7 @@ const H = {
       for (const o of os) {
         // todosTipos (Mirror Entity, 205.3m): "ganha todos os tipos de criatura" = metamorfo dado (lido em tiposCriatura)
         const kw = f.todosTipos ? [...(f.kw || []), { k: 'metamorfo' }] : f.kw;
-        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, soSub: !!f.soSub, ...(f.super ? { super: f.super } : {}), pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null, tE: e.ts, ...(f.dura === 'enquantoNoCampo' && F0 ? { src: { id: F0.id, ts: F0.ts, ctrl: ctx.voce } } : {}) });   // src: "for as long as you control [fonte]" (Welcome to . . . I)
+        (o.anim || (o.anim = [])).push({ ts: o.ts, tipos: f.tipos, sub: f.sub, soSub: !!f.soSub, ...(f.super ? { super: f.super } : {}), pt, kw, cores: f.cores, ...(f.tiraKw ? { tiraKw: f.tiraKw.map(x => x.k) } : {}), fim: f.dura === 'fimDoTurno' ? 'turno' : null, tE: ++e.ts, ...(f.dura === 'enquantoNoCampo' && F0 ? { src: { id: F0.id, ts: F0.ts, ctrl: ctx.voce } } : {}) });   // src: "for as long as you control [fonte]" (Welcome to . . . I)
         if (f.habil) o.ganhos = { ...(o.ganhos || {}), gat: [...((o.ganhos && o.ganhos.gat) || []), ...f.habil.gat] };   // 613.1f
         M.log(e, o.n, 'vira', [pt ? pt.join('/') : '', ...(f.sub || []), ...(f.tipos || [])].filter(Boolean).join(' '));
       }
@@ -1361,8 +1361,7 @@ const H = {
   },
   // CR 701.47: amassar [tipo] N. Sem Armada (criatura Army) sua, cria uma ficha 0/0 preta [tipo] Army; depois escolhe
   // uma Armada sua (a maior), põe N marcadores +1/+1 e, se não for do [tipo], ela passa a ser também (701.47a).
-  // O tipo a mais é efeito de camada 4 sem prazo (611.2a), preso ao objeto (o.anim, mesmo ts): vale para ficha ou não, e
-  // uma cópia dela não o herda (não é valor copiável, 707.2).
+  // O tipo a mais é um efeito de camada 4 preso ao objeto (o.anim, sem duração): vale para ficha ou não, e a cópia não o leva.
   amassar: {
     campos: ['sub'],
     ok: f => (f.quem === undefined || f.quem === 'voce') && Array.isArray(f.sub) && f.sub.length <= 1 && f.sub.every(x => typeof x === 'string') && f.em === undefined,
@@ -1373,7 +1372,7 @@ const H = {
       const a = armadas().sort((x, y) => M.poder(e, y) + M.resistencia(e, y) - M.poder(e, x) - M.resistencia(e, x))[0];
       if (!a) return;                                               // a ficha pode ter sido trocada (substituição) ou morrido antes: nada a escolher
       if (q > 0) M.porMarcadores(e, a, '+1/+1', q);
-      if (sub && (t => t !== 'todos' && !t.includes(sub))(M.tiposCriatura(e, a))) { (a.anim || (a.anim = [])).push({ ts: a.ts, sub: [sub], fim: null, tE: ++e.ts }); e.vCamada = (e.vCamada || 0) + 1; }
+      if (sub && (t => t !== 'todos' && !t.includes(sub))(M.tiposCriatura(e, a))) { (a.anim || (a.anim = [])).push({ ts: a.ts, sub: [sub], fim: null, tE: ++e.ts }); e.vCamada = (e.vCamada || 0) + 1; }   // efeito na camada 4, não valor copiável
       M.log(e, 'amassar', sub || '', q, '→', a.n);
     },
   },
@@ -1407,20 +1406,20 @@ const H = {
         for (const [t, n] of Object.entries<any>(ctx.lki.este.marc || {})) if (n > 0) M.porMarcadores(e, para, t, n);
     },
   },
-  // bis (CR 702.141a): uma ficha cópia por oponente, com ímpeto e "ataca se puder" (simplificação: ataca qualquer um,
-  // não necessariamente aquele oponente); todas sacrificadas no começo da próxima etapa final (gatilho atrasado)
+  // bis (CR 702.141a): uma ficha cópia por oponente, com ímpeto e "ataca aquele oponente neste turno se puder" (o.bisJog
+  // + o.bisT, lidos em combate.ts); todas sacrificadas no começo da próxima etapa final (gatilho atrasado)
   bis: {
     fx(e, f, ctx) {
       const base = copiaDe(e, { copiaDe: 'este' }, ctx); if (!base) return;
-      const tok = { ...base, kw: [...(base.kw || []).filter(x => x.k !== 'bis'), { k: 'pressa' }], est: [...(base.est || []), { modo: 'deveAtacar', afeta: 'este' }] };
+      const tok = { ...base, kw: [...(base.kw || []).filter(x => x.k !== 'bis'), { k: 'pressa' }] };
       ctx.criadas = [];
-      for (const j of M.vivos(e)) if (j !== ctx.voce) for (const o of M.criarFichas(e, ctx.voce, tok, 1)) ctx.criadas.push({ id: o.id, ts: o.ts });
+      for (const j of M.vivos(e)) if (j !== ctx.voce) for (const o of M.criarFichas(e, ctx.voce, tok, 1)) { o.bisJog = j; o.bisT = e.turno.n; ctx.criadas.push({ id: o.id, ts: o.ts }); }
       H.gatilhoAtrasado.fx(e, { op: 'gatilhoAtrasado', quando: { ev: 'fase', passo: 'final', deQuem: 'cadaJogador', fx: [{ op: 'sacrificar', em: 'criadas' }] } }, ctx);
     },
   },
   // fundir (CR 701.42, 712.4): se você é dono e controla as duas, exila esta e a parceira (f) e põe no campo a carta
   // fundida (faces[0] desta). A parceira fica no exílio ligada a ela (o.fundidaCom); quando a fundida sai do campo, as
-  // duas vão juntas (712.4c). O valor de mana da fundida é a soma das duas frentes (712.8g, no dadoDe).
+  // duas vão juntas (712.4c). Valor de mana da fundida = soma das frentes das duas (712.8g, M.dadoBase).
   fundir: {
     campos: ['f', 'virada', 'atacando'],
     ok: f => !!f.f && M.filtroOk(f.f) && f.em === undefined,
