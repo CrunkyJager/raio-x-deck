@@ -2,6 +2,14 @@
 
 Versão `v0.MENOR.CORREÇÃO` até o beta (T42). MENOR sobe a cada entrega que entra na main (bloco do banco, passo da estrutura, tarefa do roadmap); CORREÇÃO sobe em conserto sem função nova. Cada versão tem tag no git. Como entra: ramo do adepto → `integracao` (CI) → `main` + tag (só o coordenador). Detalhe do dia a dia em `planejamento/diario.md`.
 
+## v0.78.0 — 27/11/2026 · Escolhas de quem joga: custo normal, troca de ficha, Oubliette (lote I, rodada 11)
+Testes: check 0 erros · Vitest 762 passaram · partida igual à linha de base (24.0 | 30.0 | 9.5 | 34.5 | turno 9.0 | erros 0) · banco valida 0 erros. Motor joga inteiras **1762/1762**.
+- Custo alternativo de mana agora é escolha de quem conjura: a Mesa mostra "pelo custo normal" quando há um alternativo mais barato (comandante grátis, Baleful Mastery, rondar).
+- Troca de ficha opcional (Jinnie Fay) é pergunta a quem cria: criatura maior troca, Tesouro/Pista fica.
+- Oubliette escolhe artefato, criatura e terreno juntos (a criatura artefato não paga dois tipos); Throne of the Dead Three põe a criatura já com os marcadores.
+- "Uma ou mais" dispara uma vez por ação (duas moagens na mesma mágica = dois gatilhos da Mothman).
+- Para testar: aba Mesa → deck com Jinnie Fay, Oubliette, Baleful Mastery ou comandante de custo grátis.
+
 ## v0.77.0 — 27/11/2026 · Vangloriar, encantar jogador, miríade contra planeswalker (lotes C, D, I, rodada 10)
 Testes: check 0 erros · Vitest 758 passaram · partida igual à linha de base (24.0 | 30.0 | 9.5 | 34.5 | turno 9.0 | erros 0) · banco valida 0 erros. Motor joga inteiras **1762/1762**.
 - Mecânicas novas na Mesa (lote C): vangloriar (Birgi, God of Storytelling), Aura que encanta jogador (Fraying Sanity), gatilho "quando ataca" que copia aquela habilidade (Firebender Ascension).
