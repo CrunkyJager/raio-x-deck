@@ -5449,6 +5449,21 @@ caso('118.3', "Angel of Jubilation: ninguém sacrifica criatura (Viscera Seer) n
   ok(M.fontesDeMana(e, 0).some(f => f.id === lp.id), 'Lotus Petal: sacrificar artefato vale');
 });
 
+caso('601.2h', "firexiana paga com vida não é mana gasta: Gitaxian Probe sem terreno tem manaGasta 0 e o Boromir do oponente dispara; pago com mana, não", () => {
+  const e = cena({ campo: [[1, 'Boromir, Warden of the Tower']], mao: [[0, 'Gitaxian Probe']] });
+  M.avancar(e); conj(e, 'Gitaxian Probe');
+  const p = Object.values<any>(e.objs).find(o => o.n === 'Gitaxian Probe');
+  for (let g = 0; e.perg && p.zona !== 'pilha' && g < 6; g++) respE(e, o => o.a !== 'cancelar');
+  igual(p.zona, 'pilha', 'conjurada'); igual(p.manaGasta, 0, 'vida no lugar da {U/P}');
+  ok(e.pend.some(x => e.objs[x.fonte] && e.objs[x.fonte].n === 'Boromir, Warden of the Tower') || e.pilha.some(id => e.objs[id] && e.objs[id].hab && e.objs[id].n === 'Boromir, Warden of the Tower'), 'Boromir disparou');
+  const f = cena({ campo: [[1, 'Boromir, Warden of the Tower'], [0, 'Island']], mao: [[0, 'Gitaxian Probe']] });
+  f.jogs[0].vida = 1; M.avancar(f); conj(f, 'Gitaxian Probe');
+  const q = Object.values<any>(f.objs).find(o => o.n === 'Gitaxian Probe');
+  for (let g = 0; f.perg && q.zona !== 'pilha' && g < 6; g++) respE(f, o => o.a !== 'cancelar');
+  igual(q.manaGasta, 1, 'pagou com a Island');
+  ok(!f.pend.some(x => f.objs[x.fonte] && f.objs[x.fonte].n === 'Boromir, Warden of the Tower'), 'Boromir não dispara');
+});
+
 caso('607.2a', "Angel of Serenity: exila criaturas do campo e/ou cartas de criatura de cemitérios (até 3) e, ao sair, elas voltam à mão dos donos", () => {
   const e = cena({ campo: [[1, 'Grizzly Bears']] });
   const gb = e.objs[e.campo[0]], cem = e.por(1, 'Grizzly Bears', { zona: 'cemiterio' }), an = e.por(0, 'Angel of Serenity');
