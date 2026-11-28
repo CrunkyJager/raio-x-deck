@@ -417,7 +417,8 @@ const terrasNaMao = (e, j) => e.jogs[j].zonas.mao.filter(id => (M.dadoDe(e, e.ob
 M.porFuga = porFuga; M.fugaDe = fugaDe;
 // custo alternativo da própria carta (CR 118.9): "você pode conjurar sem pagar o custo de mana se controla um
 // comandante" (Deflecting Swat, Fierce Guardianship) ou outro custo de mana. Lido: afeta 'este' com gratis ou
-// pagar.mana, e 'se'. Simplificação: usa o alternativo sempre que sai mais barato (ninguém pagaria mais). Pagar vida,
+// pagar.mana, e 'se'. Usa o alternativo mais barato; pagar o normal é escolha de quem conjura (118.9: a ação 'conjurar'
+// com normal ignora todo alternativo de mana, rondar incluído; o agente básico pega o mais barato). Pagar vida,
 // com parte física (Force of Will, Sephara, Flare of Fortitude): estAltFisOk, uma opção de conjurar {alt: i}.
 // Dado por uma permanente sua a outras cartas (afeta filtro: Dracogenesis, Rooftop Storm, Bolas's Citadel, Demon of
 // Fate's Design): grátis, {0}, mana, ou vida (pagar.vida: número ou {conta:{de:'evento', o:'vm'}} = o valor de mana da mágica;
@@ -483,8 +484,9 @@ const replicarDe = (e, j, o) => {
 };
 M.replicarDe = replicarDe;
 const REPLICAR_MAX = 4;   // o agente não vai além disso (a mana raramente dá)
-const altDe = (e, j, o, semVida = false) => altInfo(e, j, o, semVida)?.custo;
-const altInfo = (e, j, o, semVida = false) => {
+const altDe = (e, j, o, semVida = false, normal = false) => altInfo(e, j, o, semVida, normal)?.custo;
+const altInfo = (e, j, o, semVida = false, normal = false) => {
+  if (normal) return undefined;                                     // 118.9: escolheu o custo normal
   let melhor: any = null, info: any = null;
   for (const s of M.dadoDe(e, o).est || []) {
     if (s.afeta !== 'este' || !estAltManaOk(s) || !(s.gratis || s.pagar.mana)) continue;
@@ -506,8 +508,8 @@ const altInfo = (e, j, o, semVida = false) => {
 };
 M.altDe = (e, j, o) => altDe(e, j, o);
 // o custo alternativo que o custoBase usa (o mesmo encadeamento): para pagar a vida e marcar o limite na conjuração
-const altUsado = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? (p => ({ custo: {}, vida: M.dadoDe(e, o).vm || 0, F: e.objs[p.ctx.este], s: p.s }))(permVida(e, j, o)) : opts.loucura || opts.milagre || (porFlash(e, j, o) && !opts.gratis) || (porFuga(e, j, o) && !opts.gratis) || (porPrevisao(e, j, o) && !opts.gratis) || opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? undefined : altInfo(e, j, o, !!opts.semVida);
-const custoBase = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? {} : opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o, !!opts.semVida);
+const altUsado = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? (p => ({ custo: {}, vida: M.dadoDe(e, o).vm || 0, F: e.objs[p.ctx.este], s: p.s }))(permVida(e, j, o)) : opts.loucura || opts.milagre || (porFlash(e, j, o) && !opts.gratis) || (porFuga(e, j, o) && !opts.gratis) || (porPrevisao(e, j, o) && !opts.gratis) || opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? undefined : altInfo(e, j, o, !!opts.semVida, !!opts.normal);
+const custoBase = (e, j, o, opts) => !opts.gratis && permVida(e, j, o) ? {} : opts.loucura ? custoLoucura(e, o) : opts.milagre ? M.milagreDe(e, o) : porFlash(e, j, o) && !opts.gratis ? flashDe(e, o) : porFuga(e, j, o) && !opts.gratis ? (fugaDe(e, j, o) as any).mana : porPrevisao(e, j, o) && !opts.gratis ? M.previsaoDe(e, o) : opts.gratis || (M.permJogar(e, j, o) || {}).gratis ? {} : altDe(e, j, o, !!opts.semVida, !!opts.normal);
 // a permissão (est podeJogar) que deixa jogar o daqui; limite 1 = "once during each of your turns" (Kess): a fonte guarda o turno do uso
 const permDe = (e, j, o) => ((o.zona === 'cemiterio' || o.zona === 'grimorio') && o.dono === j) || (o.zona === 'exilio' && !o.ficha) ? permissoes(e, j).find(({ s, ctx }) => {   // do exílio: de qualquer dono (Valgavoth)
   if (s.de !== o.zona) return false;
@@ -655,6 +657,11 @@ const porPreparo = (e, j, o) => !!o.copiaPrep && o.zona === 'exilio' && M.prepVa
 M.vidaConj = (e, j, o, face?, opts: any = {}) => {
   const antes = o.face; o.face = face ?? null;
   try { const a = altUsado(e, j, o, opts); return a && a.vida || 0; } finally { o.face = antes; }
+};
+// há um alternativo de mana mais barato que o normal (o que a opção 'normal' deixaria de usar)
+M.altManaConj = (e, j, o, face?) => {
+  const antes = o.face; o.face = face ?? null;
+  try { const imp = M.dadoDe(e, o).custo || {}; return M.vmDe(custoBase(e, j, o, {}) || imp) < M.vmDe(custoBase(e, j, o, { normal: true }) || imp); } finally { o.face = antes; }   // sem alternativo: o impresso
 };
 M.podeConjurar = (e, j, o, face?, opts?) => {
   const antes = o.face;
@@ -846,6 +853,7 @@ function opcoes(e, j) {
         const op: any = face === undefined ? { a: 'conjurar', id } : { a: 'conjurar', id, face };
         ops.push(op);
         if (M.vidaConj(e, j, e.objs[id], face) && !permVida(e, j, e.objs[id]) && M.podeConjurar(e, j, e.objs[id], face, { semVida: true })) ops.push({ ...op, semVida: true });   // 118.9: pagar vida é opcional
+        else if (M.altManaConj(e, j, e.objs[id], face) && M.podeConjurar(e, j, e.objs[id], face, { normal: true })) ops.push({ ...op, normal: true });   // 118.9: o alternativo de mana também
       }
   for (const id of e.campo) {
     const o = e.objs[id]; if (o.ctrl !== j) continue;
@@ -1481,7 +1489,7 @@ M.resolverTopo = e => {
   const id = e.pilha[e.pilha.length - 1];
   M.iniciarProc(e, { tp: 'resolver', id });
 };
-M.conjurar = (e, j, id, face?, baixo?, semVida?) => M.iniciarProc(e, baixo ? { tp: 'conjurar', j, id, baixo } : { tp: 'conjurar', j, id, ...(face === undefined ? {} : { face }), ...(semVida ? { semVida: true } : {}) });
+M.conjurar = (e, j, id, face?, baixo?, semVida?, normal?) => M.iniciarProc(e, baixo ? { tp: 'conjurar', j, id, baixo } : { tp: 'conjurar', j, id, ...(face === undefined ? {} : { face }), ...(semVida ? { semVida: true } : {}), ...(normal ? { normal: true } : {}) });
 // face de terreno de uma carta modal cuja frente não é terreno (Bala Ged Recovery → Bala Ged Sanctuary); 712.9
 M.faceTerreno = (e, o) => M.formaDe(e, o) === 'modal' && ((M.carta(o.n).faces[0] || {}).tipos || []).includes('Land');
 M.ativar = (e, j, id, k) => M.iniciarProc(e, { tp: 'ativar', j, id, k });

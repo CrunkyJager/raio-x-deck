@@ -7608,6 +7608,17 @@ caso('119.4', "pagar vida no lugar da mana (118.9): a regra só pede vida ≥ pa
   ok(b.pilha.length === 1 || noCampo(b).includes('Dragon Tempest'), 'conjurou pela mana');
 });
 
+caso('118.9', "custo alternativo de mana é escolha: com o comandante no campo, Flawless Maneuver tem as duas formas; pelo normal paga {2}{W}; o agente fica com a grátis", () => {
+  const e = cena({ cmd: ['Krenko, Mob Boss'], campo: terras(3, 'Plains'), mao: [[0, 'Flawless Maneuver']] });
+  M.mover(e, e.jogs[0].zonas.comando[0], 'campo'); M.avancar(e);
+  const conjs = () => (e.perg.ops as any[]).filter(o => o.a === 'conjurar');
+  igual(conjs().map(o => !!o.normal), [false, true], 'grátis e normal');
+  ok(!e.perg.ops[M.agenteBasico()(e, e.perg)].normal, 'agente: a grátis');
+  M.responder(e, e.perg.ops.findIndex(o => o.a === 'conjurar' && o.normal));
+  for (let g = 0; e.perg && e.perg.tipo !== 'acao' && g < 10; g++) M.responder(e, M.agenteBasico()(e, e.perg));
+  igual([e.jogs[0].zonas.mao.length, e.campo.filter(id => e.objs[id].n === 'Plains' && e.objs[id].virada).length], [0, 3], 'conjurou pagando: as três Plains viradas');
+});
+
 caso('115.1', "alvo que volta do cemitério (Marshal's Anthem, Reanimate): o agente básico mira a carta que fica com ele, não a do oponente nem 'pronto'", () => {
   const e = cena({ campo: enche(8, 'Plains').map(n => [0, n]), mao: [[0, "Marshal's Anthem"]] });   // 8: o multichute cabe (702.33c)
   e.por(0, 'Grizzly Bears', { zona: 'cemiterio' });
