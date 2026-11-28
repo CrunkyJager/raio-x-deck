@@ -30,7 +30,15 @@ const VIRADA = { n: '', tipos: ['Creature'], pt: [2, 2], custo: {}, vm: 0, cores
 const VIRADA_RESG = { ...VIRADA, kw: [{ k: 'resguardo', custo: { g: 2 } }] };
 M.dadoVirada = o => o.viradaComo === 'disfarce' || o.viradaComo === 'ocultar' ? VIRADA_RESG : VIRADA;
 M.viradaBaixo = o => !!o && !!o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha');
-M.dadoBase = (e, o) => o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha') ? M.dadoVirada(o) : o.ficha ? o.ficha : o.clone ? o.clone : o.face == null ? M.carta(o.n) : M.dadoFace(M.carta(o.n), o.face);
+M.dadoBase = (e, o) => o.faceBaixo && (o.zona === 'campo' || o.zona === 'pilha') ? M.dadoVirada(o) : o.ficha ? o.ficha : o.clone ? o.clone : o.face == null ? M.carta(o.n) : o.fundidaCom && o.zona === 'campo' ? dadoFundida(e, o) : M.dadoFace(M.carta(o.n), o.face);
+// fundida (meld, 712.8g): o valor de mana é a soma dos das frentes das duas cartas (a face de trás não tem custo)
+const FUNDIDA = new Map<string, any>();
+const dadoFundida = (e, o) => {
+  const d = M.dadoFace(M.carta(o.n), o.face), P = e.objs[o.fundidaCom.id]; if (!P) return d;
+  const k = o.n + '\u0000' + P.n + '\u0000' + o.face;
+  let r = FUNDIDA.get(k); if (!r) FUNDIDA.set(k, (r = { ...d, vm: (M.carta(o.n).vm || 0) + (M.carta(P.n).vm || 0) }));
+  return r;
+};
 // camada 4 (tipo) e 7b (P/R fixado), só no campo: o.anim (op animar, preso ao objeto: mesmo ts) e a estática
 // 'continuo' com tipo/sub que afeta 'este' (Ultra Magnus, Arcee, Ratchet: criatura no seu turno). O dado com o
 // que muda é guardado por dado base + mudança (WeakMap), então ler continua sem alocar.
