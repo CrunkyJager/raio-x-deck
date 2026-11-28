@@ -71,7 +71,12 @@ function modelo(r){
 
   /* mana e cor da mana */
   let a=txt.match(/(?:^|\n)\{T\}: Add ([^.\n]*)\./);
-  if(a){const s=a[1];
+  let ax;
+  /* "{T}: Add {G} for each Elf you control / on the battlefield" (Elvish Archdruid, Priest of Titania, Circle of Dreams Druid):
+     a mana é o número de permanentes do tipo, não 1 (106.1, 605.1a) */
+  if(a&&(ax=a[1].match(/^\{[WUBRGC]\} for each ([A-Za-z]+?)(?: creature)?s? (you control|on the battlefield)$/i))){
+    const tp=ax[1].toLowerCase();m.manaX=tp==='creature'?'*':tipoNorm(tp);m.manaXq=/you control/i.test(ax[2])?'eu':'todos';m.mana=0;}
+  else if(a){const s=a[1];
     if(/\btwo mana\b/i.test(s))m.mana=2;else if(/\bthree mana\b/i.test(s))m.mana=3;
     else if(/\bmana\b/i.test(s))m.mana=1;
     else m.mana=(s.split(/ or /i)[0].match(/\{[^}]+\}/g)||[]).length||1;
@@ -104,13 +109,17 @@ function modelo(r){
 
   /* fichas */
   a=low.match(/(?:when[^.\n]*enters[^.\n]*)?create (a|one|two|three|four|\d+) (\d+)\/(\d+)/);
-  if(a&&(m.sp||/when[^.\n]*enters[^.\n]*create/.test(low))){m.tok=n_(a[1])*(+a[2]);m.tokN=n_(a[1]);m.tokP=+a[2];m.tokT=+a[3];}
+  if(a&&(m.sp||/when[^.\n]*enters[^.\n]*create/.test(low))){m.tok=n_(a[1])*(+a[2]);m.tokN=n_(a[1]);m.tokP=+a[2];m.tokT=+a[3];
+    /* a ficha tem os tipos que o texto dá (111.4: "1/1 red Goblin" é Goblin) e "for each Elf you control" multiplica (Elvish Promenade) */
+    const b=low.slice(a.index).match(/^[^.\n]*?create (?:a|one|two|three|four|\d+) \d+\/\d+ ([a-z ]+?) (?:artifact )?creature tokens?([^.\n]*)/);
+    if(b){m.tokTipos=b[1].replace(/\b(?:red|green|black|white|blue|colorless)\b/g,'').trim().split(/\s+/).filter(w=>w&&w!=='and').map(tipoNorm);
+      const q=b[2].match(/for each ([a-z]+?)s? you control/);if(q)m.tokPor=q[1]==='creature'?'*':tipoNorm(q[1]);}}
   {const q=low.match(/whenever [^.\n]*(?:attack|cast|upkeep|end step)[^.\n]*create (a|one|two|three|\d+) (\d+)\/(\d+)/);if(q&&!m.sp){m.tokR={n:n_(q[1]),p:+q[2],t:+q[3]};}}
   a=low.match(/when [^.\n]*dies, create (a|one|two|three|\d+) (\d+)\/(\d+)/);
   if(a)m.morte=n_(a[1])*(+a[2])*(/for each \+1\/\+1 counter/.test(low)?2:1);
 
   /* palavras-chave do proprio corpo */
-  const kw=txt.split('\n').filter(l=>/^(?:(?:flying|haste|vigilance|trample|reach|lifelink|menace|first strike|double strike|deathtouch|indestructible|defender|hexproof|shroud|flash|infect|ward \{\d\})(?:, |$))+$/i.test(l.trim())).join(', ').toLowerCase();
+  const kw=txt.split('\n').map(l=>l.replace(/\s*\([^)]*\)/g,'')).filter(l=>/^(?:(?:flying|haste|vigilance|trample|reach|lifelink|menace|first strike|double strike|deathtouch|indestructible|defender|hexproof|shroud|flash|infect|ward \{\d\})(?:, |$))+$/i.test(l.trim())).join(', ').toLowerCase();
   if(/indestructible/.test(kw))m.ind=1;
   if(/hexproof|shroud/.test(kw))m.hex=1;
   if(/double strike/.test(kw))m.ds=1;
@@ -383,14 +392,14 @@ function lerHab(m){
     /* habilidades ativadas */
     if((a=s.match(/^\{t\}: create x 1\/1 ([a-z ]+?) creature tokens, where x is the number of ([a-z]+) you control/))){m.hab.push(ult={q:'tap',e:{fic:{n:'tipo:'+tipoNorm(a[2]),p:1,t:1,tipos:a[1].replace(/\b(red|green|black|white|blue)\b/g,'').trim().split(/\s+/)}}});ok(fr);continue;}
     if((a=s.match(/^(\{[^}]+\}(?:\{[^}]+\})*), \{t\}: create (?:a|one) (\d+)\/(\d+) ([a-z ]+?) creature token/))){m.hab.push(ult={q:'tap',custo:parseCusto(a[1]).g+parseCusto(a[1]).c,e:{fic:{n:1,p:+a[2],t:+a[3],tipos:a[4].replace(/\b(red|green|black|white|blue)\b/g,'').trim().split(/\s+/)}}});ok(fr);continue;}
-    if(/^\{t\}, tap ten untapped elves you control: each opponent loses 10 life/.test(s)){m.hab.push(ult={q:'tap',dez:'elf',e:{dren:10}});ok(fr);continue;}
+    if(/^\{t\}, tap ten untapped elves you control: each opponent loses 10 life/.test(s)){m.hab.push(ult={q:'tap',dez:'elf',e:{dren:10,vida:/and you gain 10 life/.test(s)?10:0}});ok(fr);continue;}
     if((a=s.match(/^(?:\{(\d)\}(?:\{[wubrg]\})*, )?sacrifice (?:a|another) ([a-z]+)?:? ?(?:creature)?: (?:~|this enchantment|this creature) deals (\d) damage to any target/))||(a=s.match(/^(\{[^}]+\})*,? ?sacrifice (?:a|another) ([a-z]+): ~ deals (\d) damage/))){m.sac={tipo:a[2]&&a[2]!=='creature'?tipoNorm(a[2]):'*',dano:+(a[3]),custo:/\{1\}\{r\}/.test(s)?2:0};ok(fr);continue;}
     if((a=s.match(/^sacrifice (?:a|another) ([a-z]+)?:? ?(?:creature)?: (scry 1|add \{r\}|regenerate target creature)/))){m.sac={tipo:a[1]&&a[1]!=='creature'?tipoNorm(a[1]):'*',dano:0,mana:/add/.test(s)?1:0};ok(fr);continue;}
     if(/^\{t\}: create a token that's a copy of target nonlegendary creature you control/.test(s)){m.kiki=1;ok(fr);continue;}
     if(/^that token gains haste|^sacrifice it at the beginning of the next end step/.test(s)&&m.kiki){ok(fr);continue;}
     if((a=s.match(/^\{t\}: target creature gets \+x\/\+x until end of turn, where x is the number of ([a-z]+) you control/))){m.hab.push({q:'tap',e:{tmpAlvo:'tipo:'+tipoNorm(a[1])}});ok(fr);continue;}
     if((a=s.match(/^\{t\}: put a \+1\/\+1 counter on target creature for each ([a-z]+) you control/))){m.hab.push({q:'tap',e:{cont:{n:'tipo:'+tipoNorm(a[1]),alvo:'melhor'}}});ok(fr);continue;}
-    if((a=s.match(/^\{t\}: add x mana of any one color, where x is the number of ([a-z]+)s? (?:you control|on the battlefield)/))){m.manaX=tipoNorm(a[1]+'s');m.cor=ANY;ok(fr);continue;}
+    if((a=s.match(/^\{t\}: add x mana of any one color, where x is the number of ([a-z]+?)s? (you control|on the battlefield)/))){m.manaX=tipoNorm(a[1]+'s');m.manaXq=a[2]==='you control'?'eu':'todos';m.mana=0;m.cor=ANY;ok(fr);continue;}
     if(/^\{1\}, \{t\}: untap target creature|^you may activate abilities of creatures you control as though those creatures had haste/.test(s)){m.elixir=1;ok(fr);continue;}
     if(/^\{1\}: untap this artifact/.test(s)){ok(fr);continue;}
     if(/^\{5\}, \{t\}: draw a card|^\{2\}, \{t\}: you gain 1 life|^\{3\}, \{t\}: untap target creature|^\{4\}, \{t\}: tap target creature/.test(s)){m.cajado=1;ok(fr);continue;}
@@ -420,7 +429,7 @@ function lerHab(m){
 const HAB_ESP={
   'Stangg, Echo Warrior':Object.assign(m=>{m.hab=m.hab.filter(h=>h.q!=='atk');m.hab.push({q:'atk',quem:'self',e:{gemeo:1}});},{tudo:1}),
   'Edgar Markov':Object.assign(m=>{m.hab=[{q:'conj',tipo:'vampire',outro:1,zona:1,e:{fic:{n:1,p:1,t:1,tipos:['vampire']}}},{q:'atk',quem:'self',e:{cont:{n:1,alvo:'tipo:vampire'}}}];},{tudo:1}),
-  'Lathril, Blade of the Elves':Object.assign(m=>{m.hab=[{q:'danoJog',quem:'self',e:{fic:{n:'dano',p:1,t:1,tipos:['elf','warrior']}}},{q:'tap',dez:'elf',e:{dren:10}}];},{tudo:1}),
+  'Lathril, Blade of the Elves':Object.assign(m=>{m.hab=[{q:'danoJog',quem:'self',e:{fic:{n:'dano',p:1,t:1,tipos:['elf','warrior']}}},{q:'tap',dez:'elf',e:{dren:10,vida:10}}];},{tudo:1}),
   'Krenko, Mob Boss':Object.assign(m=>{m.hab=[{q:'tap',e:{fic:{n:'tipo:goblin',p:1,t:1,tipos:['goblin']}}}];},{tudo:1}),
   'Krenko, Tin Street Kingpin':Object.assign(m=>{m.hab=[{q:'atk',quem:'self',e:{cont:{n:1,alvo:'self'},fic:{n:'poder',p:1,t:1,tipos:['goblin']}}}];},{tudo:1}),
   'Wild Growth':Object.assign(m=>{m.mana=1;m.cor='G';m.aura=0;},{tudo:1}),
@@ -467,7 +476,7 @@ const HAB_ESP={
 /* Leitor de clausulas: separa o texto da carta em frases e diz quais o motor aplica no jogo e quais ignora */
 const KWOK={haste:m=>m.haste,'first strike':m=>m.fs,lifelink:m=>m.ll,flying:m=>m.ev,trample:m=>m.ev,menace:m=>m.ev,'double strike':m=>m.ds,infect:m=>m.inf,vigilance:m=>m.vig,indestructible:m=>m.ind,hexproof:m=>m.hex,shroud:m=>m.hex,ward:m=>m.ward,flash:()=>true,reach:()=>true,improvise:m=>m.impv,affinity:m=>m.myco||m.metal};
 const CLAUSULAS=[
- [/: add (?:\{|one|two|three|an amount)|^lands you control have/i,m=>m.mana||m.lant||m.opal||m.amber],
+ [/: add (?:\{|one|two|three|an amount)|^lands you control have/i,m=>m.mana||m.manaX||m.lant||m.opal||m.amber],
  [/untap all artifacts you control during each other/i,m=>m.clock],
  [/costs? (?:\{\w+\} )?less|cost \{x\} less|spells you cast that share|spells you cast of the chosen/i,m=>m.dis||m.blas||m.metal||m.myco||m.impv],
  [/choose artifact, creature, enchantment|as this artifact enters, choose|imprint/i,m=>m.dis],
